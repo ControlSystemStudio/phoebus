@@ -10,6 +10,17 @@
       <artifactId>framework</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.diirt</groupId>
+      <artifactId>datasource</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.diirt</groupId>
+      <artifactId>vtype</artifactId>
+      <version>3.0.0</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
