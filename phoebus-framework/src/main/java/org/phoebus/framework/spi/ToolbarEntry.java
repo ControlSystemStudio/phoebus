@@ -5,11 +5,11 @@ import java.util.concurrent.Callable;
 /**
  * 
  * @author Kunal Shroff
+ * @param <V>
  *
  */
-public interface ToolbarEntry {
+public interface ToolbarEntry<V> extends Callable<V> {
 
     public String getName();
 
-    public <T> Callable<T> getActions();
 }

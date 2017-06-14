@@ -3,22 +3,11 @@ package org.phoebus.framework.workbench;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
-import javafx.scene.paint.Color;
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.Effect;
-import javafx.scene.effect.Glow;
-import javafx.scene.effect.SepiaTone;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class PhoebusApplication extends Application {
@@ -49,7 +38,7 @@ public class PhoebusApplication extends Application {
             button.setOnAction((event) -> {
                 try {
                     // Future<?> future = executor.submit(entry.getActions());
-                    entry.getActions().call();
+                    entry.call();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

@@ -6,7 +6,6 @@ import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
 import org.phoebus.framework.spi.MenuEntry;
-import org.phoebus.framework.spi.ToolbarEntry;
 
 public class MenubarEntryService {
 

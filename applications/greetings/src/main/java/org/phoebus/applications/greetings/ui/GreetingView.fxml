@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<TitledPane animated="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0" text=" Greetings" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.greetings.ui.GreetingController">
+   <content>
+      <BorderPane prefHeight="200.0" prefWidth="309.0">
+         <top>
+            <Label text="Welcome to Phoebus : " BorderPane.alignment="CENTER" />
+         </top>
+         <center>
+            <Accordion prefHeight="51.0" prefWidth="350.0" BorderPane.alignment="CENTER">
+              <panes>
+                <TitledPane animated="false" text="Applications" />
+                <TitledPane animated="false" text="Selections">
+                     <content>
+                        <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0" />
+                     </content>
+                  </TitledPane>
+              </panes>
+            </Accordion>
+         </center>
+      </BorderPane>
+   </content>
+</TitledPane>

@@ -19,7 +19,8 @@ public class PersonalGreet implements ToolbarEntry {
         return NAME;
     }
 
-    public <T> Callable<T> getActions() {
+    @Override
+    public Object call() throws Exception {
 
         TextInputDialog dialog = new TextInputDialog("Phoebus");
         dialog.setTitle("Personal Greeting Dialog");
