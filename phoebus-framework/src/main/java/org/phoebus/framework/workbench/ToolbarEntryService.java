@@ -11,9 +11,11 @@ public class ToolbarEntryService {
 
     private static ToolbarEntryService toolbarEntryService;
     private ServiceLoader<ToolbarEntry> loader;
+    private List<ToolbarEntry> toolbarEntries;
 
     private ToolbarEntryService() {
         loader = ServiceLoader.load(ToolbarEntry.class);
+        toolbarEntries = loader.stream().map(Provider::get).collect(Collectors.toList());
     }
 
     public static synchronized ToolbarEntryService getInstance() {
@@ -28,7 +30,7 @@ public class ToolbarEntryService {
      * @return
      */
     public List<ToolbarEntry> listToolbarEntries(){
-        return loader.stream().map(Provider::get).collect(Collectors.toList());
+        return toolbarEntries;
     } 
     
 }

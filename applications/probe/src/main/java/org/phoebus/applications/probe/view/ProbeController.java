@@ -1,8 +1,10 @@
 package org.phoebus.applications.probe.view;
 
+import static org.diirt.datasource.ExpressionLanguage.channel;
+import static org.diirt.util.time.TimeDuration.ofMillis;
+
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
@@ -10,10 +12,13 @@ import org.diirt.datasource.PVManager;
 import org.diirt.datasource.PVReader;
 import org.diirt.datasource.PVReaderEvent;
 import org.diirt.datasource.PVReaderListener;
-
-import static org.diirt.datasource.ExpressionLanguage.*;
-import static org.diirt.util.time.TimeDuration.*;
-
+import org.diirt.vtype.Alarm;
+import org.diirt.vtype.AlarmSeverity;
+import org.diirt.vtype.SimpleValueFormat;
+import org.diirt.vtype.Time;
+import org.diirt.vtype.ValueFormat;
+import org.diirt.vtype.ValueUtil;
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionChangeListener;
 import org.phoebus.framework.selection.SelectionService;
@@ -23,19 +28,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 
-import org.diirt.vtype.Alarm;
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.Enum;
-import org.diirt.vtype.SimpleValueFormat;
-import org.diirt.vtype.Time;
-import org.diirt.vtype.ValueFormat;
-import org.diirt.vtype.ValueUtil;
-
 public class ProbeController {
 
-    private static final DateTimeFormatter timeFormat = DateTimeFormatter
-                                                                .ofPattern("yyyy/MM/dd HH:mm:ss.SSS")
-                                                                .withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS")
+            .withZone(ZoneId.systemDefault());
     private ValueFormat valueFormat = new SimpleValueFormat(3);
 
     @FXML
@@ -47,10 +43,15 @@ public class ProbeController {
     @FXML
     TextField txtTimeStamp;
 
+    public void setPVName(String pvName) {
+        txtPVName.setText(pvName);
+        search();
+    }
+
     @FXML
     public void initialize() {
         // register selection listener
-        SelectionService.addListener(new SelectionChangeListener() {
+        SelectionService.getInstance().addListener(new SelectionChangeListener() {
 
             @Override
             public void selectionChanged(Object source, Selection oldValue, Selection newValue) {
@@ -65,17 +66,29 @@ public class ProbeController {
 
     @FXML
     private void setSelection() {
-        SelectionService.setSelection(txtPVName, Arrays.asList(txtPVName.getText()));
+        SelectionService.getInstance().setSelection(txtPVName, Arrays.asList(new ProcessVariable(txtPVName.getText())));
     }
+
+    private PVReader<Object> pv;
 
     @FXML
     private void search() {
+
+        // The PV is different, so disconnect and reset the visuals
+        if (pv != null) {
+            pv.close();
+            pv = null;
+        }
+
         // search for pv
-        PVReader<Object> pvReader = PVManager.read(channel(txtPVName.getText())).readListener(new PVReaderListener<Object>() {
+        pv = PVManager.read(channel(txtPVName.getText())).readListener(new PVReaderListener<Object>() {
             @Override
             public void pvChanged(PVReaderEvent<Object> event) {
                 final Object newValue = event.getPvReader().getValue();
                 Platform.runLater(() -> {
+                    if (event.getPvReader().lastException() != null) {
+                        event.getPvReader().lastException().printStackTrace();
+                    }
                     setValue(newValue, event.getPvReader().isConnected());
                     setTime(ValueUtil.timeOf(newValue));
                 });

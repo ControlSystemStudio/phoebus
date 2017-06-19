@@ -18,7 +18,7 @@
                 <TitledPane animated="false" text="Applications" />
                 <TitledPane animated="false" text="Selections">
                      <content>
-                        <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0" />
+                        <ListView fx:id="listView" onContextMenuRequested="#createContextMenu" prefHeight="200.0" prefWidth="200.0" />
                      </content>
                   </TitledPane>
               </panes>

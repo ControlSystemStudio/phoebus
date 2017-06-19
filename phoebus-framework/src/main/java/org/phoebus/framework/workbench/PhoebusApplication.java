@@ -29,9 +29,11 @@ public class PhoebusApplication extends Application {
             });
             menuBar.getMenus().add(m);
         });
+       
+        
         Menu help = new Menu("Help");
         menuBar.getMenus().add(help);
-        
+
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
 
             Button button = new Button(entry.getName());

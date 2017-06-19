@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.phoebus.framework.workbench.MenubarEntryService;
+
 /**
  * 
  * @author Kunal Shroff
@@ -11,9 +13,8 @@ import java.util.List;
  */
 public class SelectionService {
 
-    private static SelectionService selectionService = new SelectionService();
+    private static SelectionService selectionService;
 
-    @SuppressWarnings("rawtypes")
     private static List<SelectionChangeListener> listeners = Collections
             .synchronizedList(new ArrayList<SelectionChangeListener>());
 
@@ -22,20 +23,27 @@ public class SelectionService {
     private SelectionService() {
     }
 
-    public static SelectionService getInstance() {
+    public static synchronized SelectionService getInstance() {
+        if (selectionService == null) {
+            selectionService = new SelectionService();
+        }
         return selectionService;
     }
 
-    public static void addListener(SelectionChangeListener selectionListner) {
+    public void addListener(SelectionChangeListener selectionListner) {
         listeners.add(selectionListner);
     }
 
-    public static void removeListener(SelectionChangeListener selectionListner) {
+    public void removeListener(SelectionChangeListener selectionListner) {
         listeners.remove(selectionListner);
     }
 
+    public synchronized Selection getSelection() {
+        return selection;
+    }
+
     @SuppressWarnings("unchecked")
-    public static <T> void setSelection(Object source, List<T> selection) {
+    public synchronized <T> void setSelection(Object source, List<T> selection) {
         Selection oldValue = SelectionService.selection;
         SelectionService.selection = SelectionUtil.createSelection(selection);
         listeners.forEach((s) -> {

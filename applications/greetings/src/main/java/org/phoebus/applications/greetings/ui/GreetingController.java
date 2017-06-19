@@ -2,15 +2,23 @@ package org.phoebus.applications.greetings.ui;
 
 import static javafx.collections.FXCollections.observableArrayList;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionChangeListener;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.framework.workbench.ContextMenuService;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
+import javafx.stage.WindowEvent;
 
 public class GreetingController {
 
@@ -22,7 +30,7 @@ public class GreetingController {
     @FXML
     public void initialize() {
         // register selection listener
-        SelectionService.addListener(new SelectionChangeListener() {
+        SelectionService.getInstance().addListener(new SelectionChangeListener() {
 
             @Override
             public void selectionChanged(Object source, Selection oldValue, Selection newValue) {
@@ -32,5 +40,51 @@ public class GreetingController {
                 }
             }
         });
+    }
+
+    @FXML
+    public void createContextMenu() {
+
+        final ContextMenu contextMenu = new ContextMenu();
+        contextMenu.setOnShowing(new EventHandler<WindowEvent>() {
+            public void handle(WindowEvent e) {
+                System.out.println("showing");
+            }
+        });
+        contextMenu.setOnShown(new EventHandler<WindowEvent>() {
+            public void handle(WindowEvent e) {
+                System.out.println("shown");
+            }
+        });
+
+        MenuItem item1 = new MenuItem("About");
+        item1.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e) {
+                System.out.println("About");
+            }
+        });
+        MenuItem item2 = new MenuItem("Preferences");
+        item2.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e) {
+                System.out.println("Preferences");
+            }
+        });
+
+        contextMenu.getItems().addAll(item1, item2);
+
+        List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+        contextEntries.forEach(entry -> {
+            MenuItem item = new MenuItem(entry.getName());
+            item.setOnAction(e -> {
+                try {
+                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            });
+            contextMenu.getItems().add(item);
+        });
+
+        listView.setContextMenu(contextMenu);
     }
 }
