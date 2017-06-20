@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.phoebus.framework.workbench.MenubarEntryService;
-
 /**
  * 
  * @author Kunal Shroff
@@ -30,14 +28,29 @@ public class SelectionService {
         return selectionService;
     }
 
+    /**
+     * Add a selection change listener
+     * 
+     * @param selectionListner
+     */
     public void addListener(SelectionChangeListener selectionListner) {
         listeners.add(selectionListner);
     }
 
+    /**
+     * Remove a selection change listener
+     * 
+     * @param selectionListner
+     */
     public void removeListener(SelectionChangeListener selectionListner) {
         listeners.remove(selectionListner);
     }
 
+    /**
+     * Get the current selection
+     * 
+     * @return
+     */
     public synchronized Selection getSelection() {
         return selection;
     }
