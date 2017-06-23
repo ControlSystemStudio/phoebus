@@ -1,0 +1,86 @@
+<!-- Ant build file for building Phoebus
+
+     All external dependencies need to be
+     provided as jar files in a ../dependencies directory.
+  -->
+<project name="Phoebus" default="dist" basedir=".">
+  <!-- Global properties -->
+  <property name="version" value="0.0.1"/>
+  <property name="src" value="src/main/java"/>
+  <property name="resources" value="src/main/resources"/>
+  <property name="build" value="target"/>
+  <property name="classes" value="target/classes"/>
+  <property name="dependencies" value="../dependencies"/>
+  <path id="app-classpath">
+    <pathelement path="core/phoebus-framework/${classes}"/>
+    <pathelement path="core/phoebus-core-types/${classes}"/>
+    <fileset dir="../dependencies">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+  <target name="init">
+    <!-- Set ${DSTAMP} -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="core/phoebus-framework/${classes}"/>
+    <mkdir dir="core/phoebus-core-types/${classes}"/>
+    <mkdir dir="applications/greetings/${classes}"/>
+    <mkdir dir="applications/probe/${classes}"/>
+    <mkdir dir="phoebus-product/${classes}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <!-- Compile the java code -->
+    <javac includeantruntime="false" srcdir="core/phoebus-framework/${src}" destdir="core/phoebus-framework/${classes}"/>
+    <javac includeantruntime="false" srcdir="core/phoebus-core-types/${src}" destdir="core/phoebus-core-types/${classes}"/>
+
+    <javac includeantruntime="false" srcdir="applications/greetings/${src}" destdir="applications/greetings/${classes}" classpathref="app-classpath"/>
+<!--
+    <javac includeantruntime="false" srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
+  -->
+
+    <javac includeantruntime="false" srcdir="phoebus-product/${src}" destdir="phoebus-product/${classes}" classpathref="app-classpath"/>
+  </target>
+
+  <target name="dist" depends="compile">
+    <!-- Create the jars -->
+    <jar destfile="core/phoebus-framework/${build}/framework-${version}.jar">
+      <fileset dir="core/phoebus-framework/${classes}"/>
+      <fileset dir="core/phoebus-framework/${resources}"/>
+    </jar>
+    <jar destfile="core/phoebus-core-types/${build}/core-types-${version}.jar">
+      <fileset dir="core/phoebus-core-types/${classes}"/>
+    </jar>
+
+    <jar destfile="applications/greetings/${build}/greetings-${version}.jar">
+      <fileset dir="applications/greetings/${classes}"/>
+    </jar>
+
+    <jar destfile="phoebus-product/${build}/product-${version}.jar">
+      <fileset dir="phoebus-product/${classes}"/>
+      <manifest>
+        <attribute name="Main-Class" value="org.phoebus.product.Launcher" />
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="clean">
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="core/phoebus-framework/${build}"/>
+    <delete dir="core/phoebus-core-types/${build}"/>
+    <delete dir="applications/greetings/${classes}"/>
+    <delete dir="applications/probe/${build}"/>
+    <delete dir="phoebus-product/${build}"/>
+  </target>
+
+  <target name="run" depends="dist">
+    <java classname="org.phoebus.product.Launcher">
+      <arg value="--add-modules=ALL-SYSTEM"/>
+      <classpath>
+        <pathelement path="phoebus-product/${classes}"/>
+        <pathelement location="core/phoebus-framework/${build}/framework-${version}.jar"/>
+      </classpath>
+    </java>
+  </target>
+</project>
