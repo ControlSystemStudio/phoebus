@@ -12,7 +12,7 @@ import org.phoebus.framework.selection.Selection;
  * @param <V>
  *
  */
-public interface ContextMenuEntry<V> extends Callable<V> {
+public interface ContextMenuEntry<V> {
 
     public String getName();
 
@@ -20,8 +20,5 @@ public interface ContextMenuEntry<V> extends Callable<V> {
 
     public List<Class> getSupportedTypes();
 
-    default public V callWithSelection(Selection selection) throws Exception {
-        return call();
-    }
-
+    public V callWithSelection(Selection selection) throws Exception;
 }

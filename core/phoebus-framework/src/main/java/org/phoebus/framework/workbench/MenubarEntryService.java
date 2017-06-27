@@ -22,7 +22,7 @@ public class MenubarEntryService {
 
     private MenubarEntryService() {
         loader = ServiceLoader.load(MenuEntry.class);
-        loader.stream().map(Provider::get).collect(Collectors.toList());
+        menuEntries = loader.stream().map(Provider::get).collect(Collectors.toList());
     }
 
     public static synchronized MenubarEntryService getInstance() {

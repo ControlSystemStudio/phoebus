@@ -3,6 +3,11 @@ package org.phoebus.framework.selection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 
+ * @author Kunal Shroff
+ *
+ */
 public class SelectionUtil {
 
     private SelectionUtil() {
