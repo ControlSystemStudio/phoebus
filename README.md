@@ -36,7 +36,8 @@ Can now start product/src/main/java/org.phoebus.product/Launcher.java.
  - [JDK9](http://jdk.java.net/9/)
  - [maven 2.x](https://maven.apache.org/)
  
-### 
+### Building
+
 ```
 mvn clean install -f core/pom.xml
 mvn clean install -f applications/probe/pom.xml
