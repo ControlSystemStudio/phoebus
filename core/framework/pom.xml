@@ -1,7 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>framework</artifactId>
+  <artifactId>framework</artifactId>  
+  <parent>
+    <groupId>org.phoebus</groupId>
+    <artifactId>core</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
   <build>
     <plugins>
       <plugin>
@@ -10,12 +15,25 @@
           <source>1.9</source>
           <target>1.9</target>
         </configuration>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <configuration>
+              <compilerArgument>-proc:none</compilerArgument>
+              <includes>
+                <include>org/phoebus/framework/annotation/ProviderForProcessor.java</include>
+              </includes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>compile-project</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
-  <parent>
-    <groupId>org.phoebus</groupId>
-    <artifactId>core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
 </project>

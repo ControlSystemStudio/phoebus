@@ -18,7 +18,7 @@ public class AdapterService {
     private Map<Class, List<AdapterFactory>> adapters = new HashMap<Class, List<AdapterFactory>>();
 
     @SuppressWarnings("rawtypes")
-private Map<String, List<AdapterFactory>> adaptables = new HashMap<String, List<AdapterFactory>>();
+    private Map<String, List<AdapterFactory>> adaptables = new HashMap<String, List<AdapterFactory>>();
 
     private AdapterService() {
         // Load available adapter factories
@@ -33,7 +33,7 @@ private Map<String, List<AdapterFactory>> adaptables = new HashMap<String, List<
             });
             Class adaptable = adapterFactory.getAdaptableObject();
             System.out.println(adaptable.getName() + " " + adaptable.toString());
-            if(!adaptables.containsKey(adaptable.getName())) {
+            if (!adaptables.containsKey(adaptable.getName())) {
                 adaptables.put(adaptable.getName(), new ArrayList<>());
             }
             adaptables.get(adaptable.getName()).add(adapterFactory);

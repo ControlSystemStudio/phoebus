@@ -5,8 +5,8 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>phoebus-framework</module>
-    <module>phoebus-core-types</module>
+    <module>framework</module>
+    <module>core-types</module>
     <module>logging</module>
   </modules>  
   <build>
