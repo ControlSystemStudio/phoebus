@@ -33,12 +33,6 @@ public class ContextLaunchProbe implements ContextMenuEntry {
         return null;
     }
 
-    @Override
-    public Object call() throws Exception {
-        LaunchProbe(Collections.emptyList());
-        return null;
-    }
-
     private void LaunchProbe(List<ProcessVariable> pvs) {
         try {
 
