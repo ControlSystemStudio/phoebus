@@ -5,7 +5,19 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>phoebus-framework</module>
-    <module>phoebus-core-types</module>
-  </modules>
+    <module>framework</module>
+    <module>core-types</module>
+    <module>logging</module>
+  </modules>  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.9</source>
+          <target>1.9</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

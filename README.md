@@ -1,4 +1,4 @@
-# phoebus
+# phoebus [![Build Status](https://travis-ci.org/shroffk/phoebus.svg?branch=master)](https://travis-ci.org/shroffk/phoebus.svg?branch=master)
 
 Phoebus is a framework and a collections of tools to monitor and operate large scale control systems, such as the ones in the accelerator community
 
@@ -30,3 +30,18 @@ Restart Eclipse IDE.
 
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
+## Building with maven
+
+### Requirements
+ - [JDK9](http://jdk.java.net/9/)
+ - [maven 2.x](https://maven.apache.org/)
+ 
+### Building
+
+```
+mvn clean install -f core/pom.xml
+mvn clean install -f applications/probe/pom.xml
+mvn clean install -f applications/logbook/pom.xml
+mvn clean install -f applications/greetings/pom.xml
+mvn clean install -f phoebus-product/pom.xml
+```
