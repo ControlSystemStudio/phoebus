@@ -45,3 +45,9 @@ mvn clean install -f applications/logbook/pom.xml
 mvn clean install -f applications/greetings/pom.xml
 mvn clean install -f phoebus-product/pom.xml
 ```
+
+### Running test application
+```
+cd target
+java -jar product-0.0.1-SNAPSHOT.jar
+```
