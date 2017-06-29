@@ -1,0 +1,15 @@
+sudo: required
+language: java
+dist: trusty
+jdk: oraclejdk9
+addons:
+  apt:
+    packages:
+      - oracle-java9-installer
+
+script:
+  - mvn clean install -f core/pom.xml
+  - mvn clean install -f applications/probe/pom.xml
+  - mvn clean install -f applications/logbook/pom.xml
+  - mvn clean install -f applications/greetings/pom.xml
+  - mvn clean install -f phoebus-product/pom.xml
