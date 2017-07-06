@@ -85,6 +85,7 @@
     <javac srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
     <jar destfile="applications/probe/${build}/probe-${version}.jar">
       <fileset dir="applications/probe/${classes}"/>
+      <fileset dir="applications/probe/${src}" includes="**/*.fxml"/>
     </jar>
   </target>
 
@@ -93,6 +94,7 @@
     <javac srcdir="applications/greetings/${src}" destdir="applications/greetings/${classes}" classpathref="app-classpath"/>
     <jar destfile="applications/greetings/${build}/greetings-${version}.jar">
       <fileset dir="applications/greetings/${classes}"/>
+      <fileset dir="applications/greetings/${src}" includes="**/*.fxml"/>
     </jar>
   </target>
 
@@ -141,12 +143,8 @@
   </target>
 
   <target name="run" depends="product">
-    <java classname="org.phoebus.product.Launcher">
-      <arg value="--add-modules=ALL-SYSTEM"/>
-      <classpath>
-        <pathelement location="phoebus-product/${build}/product-${version}.jar"/>
-        <pathelement location="core/framework/${build}/framework-${version}.jar"/>
-      </classpath>
+    <java jar="phoebus-product/${build}/product-${version}.jar"
+          fork="true">
     </java>
   </target>
 </project>
