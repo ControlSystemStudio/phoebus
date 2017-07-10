@@ -6,7 +6,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>framework</module>
-    <module>core-types</module>
+    <module>types</module>
     <module>logging</module>
   </modules>  
   <build>
