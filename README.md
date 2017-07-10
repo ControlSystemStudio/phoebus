@@ -1,4 +1,4 @@
-# phoebus [![Build Status](https://travis-ci.org/shroffk/phoebus.svg?branch=master)](https://travis-ci.org/shroffk/phoebus.svg?branch=master)
+# phoebus [![Build Status](https://travis-ci.org/shroffk/phoebus.svg?branch=master)](https://travis-ci.org/shroffk/phoebus)
 
 Phoebus is a framework and a collections of tools to monitor and operate large scale control systems, such as the ones in the accelerator community
 
