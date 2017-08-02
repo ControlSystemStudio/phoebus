@@ -16,31 +16,6 @@
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-sim</artifactId>
-      <version>3.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-sys</artifactId>
-      <version>3.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-loc</artifactId>
-      <version>3.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt.support</groupId>
-      <artifactId>diirt-ca</artifactId>
-      <version>3.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt.support</groupId>
-      <artifactId>diirt-pva</artifactId>
-      <version>3.0.0</version>
-    </dependency>
-    <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>inmemory</artifactId>
       <version>0.0.1-SNAPSHOT</version>
@@ -54,6 +29,26 @@
           <source>1.9</source>
           <target>1.9</target>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-resources</phase>
+            <configuration>
+              <failOnError>true</failOnError>
+              <tasks>
+                <echo message="Adding dependencies to product"/>
+                <copy todir="${project.build.directory}/lib">
+                  <fileset dir="${basedir}/../dependencies/target/lib"/>
+                </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
