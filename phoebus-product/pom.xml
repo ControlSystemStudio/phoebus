@@ -4,6 +4,7 @@
   <groupId>org.phoebus</groupId>
   <artifactId>product</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
@@ -29,26 +30,6 @@
           <source>1.9</source>
           <target>1.9</target>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>process-resources</phase>
-            <configuration>
-              <failOnError>true</failOnError>
-              <tasks>
-                <echo message="Adding dependencies to product"/>
-                <copy todir="${project.build.directory}/lib">
-                  <fileset dir="${basedir}/../dependencies/target/lib"/>
-                </copy>
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -79,11 +60,52 @@
               <classpathPrefix>lib</classpathPrefix>
               <mainClass>org.phoebus.product.Launcher</mainClass>
             </manifest>
-            <manifestEntries>
-              <Class-Path>lib/</Class-Path>
-            </manifestEntries>
           </archive>
         </configuration>
+      </plugin>
+
+      <!-- Above commands built the product.jar.
+           Need to add the dependency jar files
+           and then list all lib/* jars in the manifest classpath
+        -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <configuration>
+              <failOnError>true</failOnError>
+              <tasks>
+                <echo message="Adding dependencies to product"/>
+                <copy todir="${project.build.directory}/lib" verbose="true">
+                  <fileset dir="${basedir}/../dependencies/target/lib"/>
+                </copy>
+
+                <manifestclasspath property="manifest-classpath"
+                                   jarfile="${project.build.directory}/product-${project.version}.jar">
+                  <classpath>
+                    <path>
+                      <fileset dir="${project.build.directory}/lib">
+                        <include name="*.jar"/>
+                      </fileset>
+                    </path>
+                  </classpath>
+                </manifestclasspath>
+            
+                <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
+                <jar update="true" destfile="${project.build.directory}/product-${project.version}.jar">
+                  <manifest>
+                    <attribute name="Class-Path" value="${manifest-classpath}" />
+                  </manifest>
+                </jar>
+
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
