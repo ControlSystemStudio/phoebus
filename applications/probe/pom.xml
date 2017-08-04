@@ -10,17 +10,31 @@
       <artifactId>framework</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+
     <dependency>
-      <groupId>org.diirt</groupId>
+      <groupId>datasource</groupId>
       <artifactId>datasource</artifactId>
       <version>3.0.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/../../dependencies/target/lib/datasource-3.0.0.jar</systemPath>
     </dependency>
     
     <dependency>
-      <groupId>org.diirt</groupId>
+      <groupId>vtype</groupId>
       <artifactId>vtype</artifactId>
       <version>3.0.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/../../dependencies/target/lib/vtype-3.0.0.jar</systemPath>
     </dependency>
+
+    <dependency>
+      <groupId>diirt-util</groupId>
+      <artifactId>diirt-util</artifactId>
+      <version>3.0.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/../../dependencies/target/lib/diirt-util-3.0.0.jar</systemPath>
+    </dependency>
+
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>types</artifactId>

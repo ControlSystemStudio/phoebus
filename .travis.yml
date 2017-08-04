@@ -8,6 +8,7 @@ addons:
       - oracle-java9-installer
 
 script:
+  - mvn clean verify  -f dependencies/pom.xml
   - mvn clean install -f core/pom.xml
   - mvn clean install -f applications/probe/pom.xml
   - mvn clean install -f applications/logbook/pom.xml
