@@ -6,6 +6,4 @@ pom.xml.versionsBackup
 pom.xml.next
 release.properties
 .settings
-.project
-.classpath
 logs.txt
