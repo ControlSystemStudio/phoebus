@@ -13,7 +13,7 @@ import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
 
 @SuppressWarnings("rawtypes")
-@ProviderFor(ToolbarEntry.class)
+// @ProviderFor(ToolbarEntry.class)
 public class Greet implements ToolbarEntry {
 
     private static final String NAME = "Greetings";
