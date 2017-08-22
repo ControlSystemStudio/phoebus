@@ -65,7 +65,7 @@ In Help/Eclipse Marketplace, search for Java 9 Support BETA for Oxygen
 
 ### Use plain Java configuration
 
-Use `File`, `Import`, `Existing Projects into Workspace`.
+Use `File`, `Import`, `General`, `Existing Projects into Workspace`.
 Select the phoebus root directory.
 By default, all projects should be selected ('dependencies', 'core-framework', .., 'product').
 
