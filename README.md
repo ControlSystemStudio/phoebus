@@ -51,3 +51,17 @@ mvn clean install -f phoebus-product/pom.xml
 cd target
 java -jar product-0.0.1-SNAPSHOT.jar
 ```
+
+## Building with ant
+
+```
+ant run
+```
+
+## Building with Eclipse
+
+Use `File`, `Import`, `Existing Projects into Workspace`.
+Select the phoebus root directory.
+By default, all projects should be selected ('dependencies', 'core-framework', .., 'product').
+
+Invoke `Run As/Java Application` on the `Launcher` in the product.
