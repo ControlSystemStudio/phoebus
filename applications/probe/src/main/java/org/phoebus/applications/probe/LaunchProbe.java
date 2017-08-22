@@ -11,7 +11,7 @@ import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
 
 @SuppressWarnings("rawtypes")
-@ProviderFor(ToolbarEntry.class)
+// @ProviderFor(ToolbarEntry.class)
 public class LaunchProbe implements ToolbarEntry {
 
     private static final String NAME = "Probe";
