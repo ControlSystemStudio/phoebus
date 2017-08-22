@@ -11,6 +11,17 @@ https://docs.google.com/document/d/11W52PRlsRjpIvP81HxUxxR9g180DHDByCohYQ9TQv7U/
  - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
+## Target Platform
+
+All external dependencies are expected in `dependencies/target/lib`.
+They could be obtained by expanding a zip-ed folder from an existing build setup, or via one initial maven run:
+
+
+```
+mvn clean verify  -f dependencies/pom.xml
+```
+
+
 ## Building with maven
 
  
