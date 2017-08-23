@@ -86,6 +86,7 @@
     <jar destfile="applications/probe/${build}/probe-${version}.jar">
       <fileset dir="applications/probe/${classes}"/>
       <fileset dir="applications/probe/${src}" includes="**/*.fxml"/>
+      <fileset dir="applications/probe/${resources}"/>
     </jar>
   </target>
 
@@ -95,6 +96,7 @@
     <jar destfile="applications/greetings/${build}/greetings-${version}.jar">
       <fileset dir="applications/greetings/${classes}"/>
       <fileset dir="applications/greetings/${src}" includes="**/*.fxml"/>
+      <fileset dir="applications/greetings/${resources}"/>
     </jar>
   </target>
 

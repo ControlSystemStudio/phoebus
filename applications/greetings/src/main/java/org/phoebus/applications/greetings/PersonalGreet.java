@@ -10,7 +10,7 @@ import javafx.scene.control.Alert.AlertType;
 import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.framework.spi.ToolbarEntry;
 
-@ProviderFor(ToolbarEntry.class)
+// @ProviderFor(ToolbarEntry.class)
 public class PersonalGreet implements ToolbarEntry {
 
     private static final String NAME = "Personal Greeting";

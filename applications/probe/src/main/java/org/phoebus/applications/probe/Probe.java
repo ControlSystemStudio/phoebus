@@ -3,7 +3,7 @@ package org.phoebus.applications.probe;
 import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.framework.spi.Application;
 
-@ProviderFor(Application.class)
+// @ProviderFor(Application.class)
 public class Probe implements Application {
 
     public static final String Name = "Probe";
