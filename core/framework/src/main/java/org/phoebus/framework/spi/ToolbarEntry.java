@@ -5,10 +5,9 @@ import javafx.stage.Stage;
 /**
  *
  * @author Kunal Shroff
- * @param <V>
  *
  */
-public interface ToolbarEntry<V> {
+public interface ToolbarEntry {
 
     public String getName();
 
