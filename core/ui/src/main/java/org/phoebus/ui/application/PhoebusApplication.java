@@ -1,6 +1,8 @@
 package org.phoebus.ui.application;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.phoebus.framework.workbench.MenubarEntryService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
@@ -19,6 +21,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class PhoebusApplication extends Application {
+    /** Logger for all application messages */
+    public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -34,8 +38,8 @@ public class PhoebusApplication extends Application {
             m.setOnAction((event) -> {
                 try {
                     entry.getActions().call();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
                 }
             });
             menuBar.getMenus().add(m);
@@ -69,8 +73,8 @@ public class PhoebusApplication extends Application {
                     }
                     else
                         entry.call(stage);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Error invoking toolbar " + entry.getName(), ex);
                 }
             });
             toolBar.getItems().add(button);
@@ -78,7 +82,10 @@ public class PhoebusApplication extends Application {
         });
         toolBar.setPrefWidth(600);
 
-        final DockItem welcome = new DockItem("Welcome");
+        final DockItem welcome = new DockItem("Welcome",
+                                              new BorderPane(
+                                                    new Label("Welcome to Phoebus!\n\n" +
+                                                             "Try pushing the buttons in the toolbar")));
 
         DockStage.configureStage(stage, welcome);
         final BorderPane layout = DockStage.getLayout(stage);
