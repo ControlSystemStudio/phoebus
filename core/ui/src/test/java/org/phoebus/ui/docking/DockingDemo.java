@@ -51,7 +51,7 @@ public class DockingDemo extends Application
 
         // The DockPane is added to a stage by 'configuring' it.
         // Initial tabs can be provided right away
-        DockPane tabs = DockPane.configureStage(stage, tab1, tab2);
+        DockPane tabs = DockStage.configureStage(stage, tab1, tab2);
         stage.setX(100);
 
         // .. or tabs are added later
@@ -67,7 +67,7 @@ public class DockingDemo extends Application
         tab5.setContent(new Rectangle(500, 500, Color.BISQUE));
 
         final Stage other = new Stage();
-        DockPane.configureStage(other, tab4, tab5);
+        DockStage.configureStage(other, tab4, tab5);
         other.setX(600);
     }
 }

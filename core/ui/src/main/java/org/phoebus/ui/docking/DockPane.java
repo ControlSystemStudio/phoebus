@@ -7,17 +7,12 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javafx.scene.Scene;
 import javafx.scene.control.TabPane;
-import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
 
 /** Pane that contains {@link DockItem}s
  *
@@ -32,7 +27,8 @@ public class DockPane extends TabPane
     /** Logger for all docking related messages */
     public static final Logger logger = Logger.getLogger(DockPane.class.getName());
 
-    private DockPane(final DockItem... tabs)
+    // Only accessible within this package (DockStage)
+    DockPane(final DockItem... tabs)
     {
         super(tabs);
 
@@ -41,40 +37,6 @@ public class DockPane extends TabPane
         setOnDragEntered(this::handleDragEntered);
         setOnDragExited(this::handleDragExited);
         setOnDragDropped(this::handleDrop);
-    }
-
-    /** Helper to configure a Stage for docking
-     *
-     *  <p>Adds a Scene with one DockPane
-     *
-     *  @param stage Stage, should be empty
-     *  @param tabs Zero or more initial {@link DockItem}s
-     *  @throws Exception on error
-     *
-     *  @return {@link DockPane} that was added to the {@link Stage}
-     */
-    public static DockPane configureStage(final Stage stage, final DockItem... tabs)
-    {
-        final DockPane tab_pane = new DockPane(tabs);
-
-        final StackPane stack_pane = new StackPane();
-        stack_pane.getChildren().add(tab_pane);
-
-        final Scene scene = new Scene(stack_pane);
-
-        stage.setScene(scene);
-        stage.setTitle("Phoebus");
-        try
-        {
-            stage.getIcons().add(new Image(DockPane.class.getResourceAsStream("/icons/logo.png")));
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot set application icon", ex);
-        }
-        stage.show();
-
-        return tab_pane;
     }
 
     /** @param tabs One or more tabs to add */

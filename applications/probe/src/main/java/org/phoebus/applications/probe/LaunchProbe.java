@@ -2,11 +2,11 @@ package org.phoebus.applications.probe;
 
 import java.io.IOException;
 
-import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockStage;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
 
@@ -17,6 +17,7 @@ public class LaunchProbe implements ToolbarEntry {
     private static final String NAME = "Probe";
     private TitledPane mainLayout;
 
+    @Override
     public String getName() {
         return NAME;
     }
@@ -24,13 +25,13 @@ public class LaunchProbe implements ToolbarEntry {
     @Override
     public Object call() throws Exception {
         try {
-            Stage stage = new Stage();
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));
             mainLayout = loader.load();
-            Scene scene = new Scene(mainLayout);
-            stage.setScene(scene);
-            stage.show();
+
+            final DockItem tab = new DockItem("Probe", mainLayout);
+            final Stage stage = new Stage();
+            DockStage.configureStage(stage, tab);
         } catch (IOException e) {
             e.printStackTrace();
         }

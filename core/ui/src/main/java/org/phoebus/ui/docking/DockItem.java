@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -45,7 +46,7 @@ import javafx.stage.Stage;
  *
  *  @author Kay Kasemir
  */
-class DockItem extends Tab
+public class DockItem extends Tab
 {
     private final static ImageView detach_icon;
 
@@ -84,6 +85,16 @@ class DockItem extends Tab
 
     /** Label used for the Tab because Tab itself cannot participate in drag-and-drop */
     private final Label tab_name;
+
+    /** Create dock item
+     *  @param label Initial label
+     *  @param content Initial content
+     */
+    public DockItem(final String label, final Node content)
+    {
+        this(label);
+        setContent(content);
+    }
 
     /** Create dock item
      *  @param label Initial label
@@ -227,7 +238,7 @@ class DockItem extends Tab
             throw new IllegalStateException("Expected DockPane for " + this + ", got " + old_parent);
 
         old_parent.getTabs().remove(this);
-        DockPane.configureStage(other, this);
+        DockStage.configureStage(other, this);
     }
 
     @Override

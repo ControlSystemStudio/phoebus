@@ -18,6 +18,7 @@
     <pathelement path="core/framework/${build}/framework-${version}.jar"/>
     <pathelement path="core/logging/${build}/logging-${version}.jar"/>
     <pathelement path="core/types/${build}/types-${version}.jar"/>
+    <pathelement path="core/ui/${build}/ui-${version}.jar"/>
     <fileset dir="dependencies/target/lib">
       <include name="*.jar"/>
     </fileset>
@@ -31,8 +32,8 @@
     <delete dir="core/framework/${build}"/>
     <delete dir="core/logging/${build}"/>
     <delete dir="core/types/${build}"/>
-    <delete dir="applications/probe/${build}"/>
     <delete dir="applications/greetings/${build}"/>
+    <delete dir="applications/probe/${build}"/>
     <delete dir="applications/logbook/inmemory/${build}"/>
     <delete dir="phoebus-product/${build}"/>
   </target>
@@ -107,16 +108,6 @@
     </java>
   </target>
 
-  <target name="applications-probe" depends="core-ui">
-    <mkdir dir="applications/probe/${classes}"/>
-    <javac srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/probe/${build}/probe-${version}.jar">
-      <fileset dir="applications/probe/${classes}"/>
-      <fileset dir="applications/probe/${src}" includes="**/*.fxml"/>
-      <fileset dir="applications/probe/${resources}"/>
-    </jar>
-  </target>
-
   <target name="applications-greetings" depends="core-ui">
     <mkdir dir="applications/greetings/${classes}"/>
     <javac srcdir="applications/greetings/${src}" destdir="applications/greetings/${classes}" classpathref="app-classpath"/>
@@ -124,6 +115,16 @@
       <fileset dir="applications/greetings/${classes}"/>
       <fileset dir="applications/greetings/${src}" includes="**/*.fxml"/>
       <fileset dir="applications/greetings/${resources}"/>
+    </jar>
+  </target>
+
+  <target name="applications-probe" depends="core-ui">
+    <mkdir dir="applications/probe/${classes}"/>
+    <javac srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
+    <jar destfile="applications/probe/${build}/probe-${version}.jar">
+      <fileset dir="applications/probe/${classes}"/>
+      <fileset dir="applications/probe/${src}" includes="**/*.fxml"/>
+      <fileset dir="applications/probe/${resources}"/>
     </jar>
   </target>
 
@@ -135,7 +136,7 @@
     </jar>
   </target>
 
-  <target name="compile" depends="applications-probe, applications-greetings, applications-logbook"
+  <target name="compile" depends="applications-greetings, applications-probe, applications-logbook"
           description="Compile all sources">
   </target>
 

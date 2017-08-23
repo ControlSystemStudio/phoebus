@@ -1,6 +1,6 @@
 package org.phoebus.product;
 
-import org.phoebus.framework.workbench.PhoebusApplication;
+import org.phoebus.ui.application.PhoebusApplication;
 
 import javafx.application.Application;
 

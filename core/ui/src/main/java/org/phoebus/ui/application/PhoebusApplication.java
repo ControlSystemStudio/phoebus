@@ -1,8 +1,13 @@
-package org.phoebus.framework.workbench;
+package org.phoebus.ui.application;
+
+import org.phoebus.framework.workbench.MenubarEntryService;
+import org.phoebus.framework.workbench.ToolbarEntryService;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockStage;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
@@ -18,6 +23,9 @@ public class PhoebusApplication extends Application {
         final ToolBar toolBar = new ToolBar();
         final MenuBar menuBar = new MenuBar();
 
+        Menu file = new Menu("File");
+        menuBar.getMenus().add(file);
+
         MenubarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
             Menu m = new Menu(entry.getName());
             m.setOnAction((event) -> {
@@ -29,8 +37,8 @@ public class PhoebusApplication extends Application {
             });
             menuBar.getMenus().add(m);
         });
-       
-        
+
+
         Menu help = new Menu("Help");
         menuBar.getMenus().add(help);
 
@@ -50,14 +58,14 @@ public class PhoebusApplication extends Application {
         });
         toolBar.setPrefWidth(600);
 
-        BorderPane layout = new BorderPane();
-        layout.setTop(toolBar);
+        final DockItem welcome = new DockItem("Welcome");
 
-        Scene scene = new Scene(new VBox(), 600, 350);
-        ((VBox) scene.getRoot()).getChildren().addAll(menuBar);
-        ((VBox) scene.getRoot()).getChildren().addAll(toolBar);
+        DockStage.configureStage(stage, welcome);
+        final BorderPane layout = DockStage.getLayout(stage);
 
-        stage.setScene(scene);
+        layout.setTop(new VBox(menuBar, toolBar));
+        layout.setBottom(new Label("Status Bar..."));
+
         stage.show();
     }
 
