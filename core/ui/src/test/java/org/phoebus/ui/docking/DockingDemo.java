@@ -69,5 +69,8 @@ public class DockingDemo extends Application
         final Stage other = new Stage();
         DockStage.configureStage(other, tab4, tab5);
         other.setX(600);
+
+        stage.show();
+        other.show();
     }
 }

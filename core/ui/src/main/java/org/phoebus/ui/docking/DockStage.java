@@ -49,7 +49,6 @@ public class DockStage
         {
             logger.log(Level.WARNING, "Cannot set application icon", ex);
         }
-        stage.show();
 
         return getDockPane(stage);
     }

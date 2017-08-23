@@ -239,6 +239,7 @@ public class DockItem extends Tab
 
         old_parent.getTabs().remove(this);
         DockStage.configureStage(other, this);
+        other.show();
     }
 
     @Override
