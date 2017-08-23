@@ -8,6 +8,7 @@
     <module>framework</module>
     <module>types</module>
     <module>logging</module>
+    <module>ui</module>
   </modules>  
   <build>
     <plugins>
