@@ -1,5 +1,7 @@
 package org.phoebus.ui.application;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.phoebus.framework.workbench.MenubarEntryService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.docking.DockItem;
@@ -11,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -43,12 +46,29 @@ public class PhoebusApplication extends Application {
         menuBar.getMenus().add(help);
 
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
-
-            Button button = new Button(entry.getName());
+            final AtomicBoolean open_new = new AtomicBoolean();
+            final Button button = new Button(entry.getName());
+            // Want to handle button presses with 'Control' in different way,
+            // but action event does not carry key modifier information.
+            // -> Add separate event filter to remember the 'Control' state.
+            button.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
+            {
+                open_new.set(event.isControlDown());
+                // Still allow the button to react by 'arming' it
+                button.arm();
+            });
             button.setOnAction((event) -> {
                 try {
                     // Future<?> future = executor.submit(entry.getActions());
-                    entry.call(stage);
+
+                    if (open_new.get())
+                    {   // Invoke with new stage
+                        final Stage new_stage = new Stage();
+                        DockStage.configureStage(new_stage);
+                        entry.call(new_stage);
+                    }
+                    else
+                        entry.call(stage);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
