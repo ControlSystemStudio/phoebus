@@ -39,7 +39,6 @@ public class DockStage
         final BorderPane layout = new BorderPane(tab_pane);
 
         final Scene scene = new Scene(layout, 800, 600);
-
         stage.setScene(scene);
         stage.setTitle("Phoebus");
         try

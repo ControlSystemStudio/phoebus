@@ -23,19 +23,18 @@ public class LaunchProbe implements ToolbarEntry {
     }
 
     @Override
-    public Object call() throws Exception {
+    public void call(final Stage stage) throws Exception {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));
             mainLayout = loader.load();
 
             final DockItem tab = new DockItem("Probe", mainLayout);
-            final Stage stage = new Stage();
-            DockStage.configureStage(stage, tab);
+
+            DockStage.getDockPane(stage).addTab(tab);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
 }

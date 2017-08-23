@@ -43,6 +43,8 @@ public class DockPane extends TabPane
     public void addTab(final DockItem... tabs)
     {
 		getTabs().addAll(tabs);
+		// Select the newly added tab
+		getSelectionModel().select(getTabs().size()-1);
     }
 
     /** Accept dock items */

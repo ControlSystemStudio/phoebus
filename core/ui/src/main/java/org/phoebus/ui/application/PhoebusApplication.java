@@ -48,7 +48,7 @@ public class PhoebusApplication extends Application {
             button.setOnAction((event) -> {
                 try {
                     // Future<?> future = executor.submit(entry.getActions());
-                    entry.call();
+                    entry.call(stage);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

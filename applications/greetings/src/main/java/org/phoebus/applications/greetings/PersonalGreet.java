@@ -1,26 +1,26 @@
 package org.phoebus.applications.greetings;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
+
+import org.phoebus.framework.spi.ToolbarEntry;
 
 import javafx.scene.control.Alert;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Alert.AlertType;
-
-import org.phoebus.framework.annotation.ProviderFor;
-import org.phoebus.framework.spi.ToolbarEntry;
+import javafx.scene.control.TextInputDialog;
+import javafx.stage.Stage;
 
 // @ProviderFor(ToolbarEntry.class)
 public class PersonalGreet implements ToolbarEntry {
 
     private static final String NAME = "Personal Greeting";
 
+    @Override
     public String getName() {
         return NAME;
     }
 
     @Override
-    public Object call() throws Exception {
+    public void call(final Stage stage) throws Exception {
 
         TextInputDialog dialog = new TextInputDialog("Phoebus");
         dialog.setTitle("Personal Greeting Dialog");
@@ -35,7 +35,6 @@ public class PersonalGreet implements ToolbarEntry {
             alert.setContentText("Welcome to pheobus");
             alert.show();
         });
-        return null;
     }
 
 }
