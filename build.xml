@@ -35,6 +35,7 @@
     <delete dir="applications/greetings/${build}"/>
     <delete dir="applications/probe/${build}"/>
     <delete dir="applications/logbook/inmemory/${build}"/>
+    <delete dir="applications/pvtree/${build}"/>
     <delete dir="phoebus-product/${build}"/>
   </target>
 
@@ -136,7 +137,17 @@
     </jar>
   </target>
 
-  <target name="compile" depends="applications-greetings, applications-probe, applications-logbook"
+  <target name="applications-pvtree" depends="core-ui">
+    <mkdir dir="applications/pvtree/${classes}"/>
+    <javac srcdir="applications/pvtree/${src}" destdir="applications/pvtree/${classes}" classpathref="app-classpath"/>
+    <jar destfile="applications/pvtree/${build}/pvtree-${version}.jar">
+      <fileset dir="applications/pvtree/${classes}"/>
+      <fileset dir="applications/pvtree/${resources}"/>
+    </jar>
+  </target>
+
+	
+  <target name="compile" depends="applications-greetings, applications-probe, applications-logbook, applications-pvtree"
           description="Compile all sources">
   </target>
 

@@ -3,12 +3,13 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-logging"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-logging"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-types"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-greetings"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-logbook-inmemory"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-probe"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtree"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
