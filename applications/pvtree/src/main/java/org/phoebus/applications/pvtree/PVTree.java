@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
+import java.util.logging.Logger;
+
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockStage;
 
@@ -29,8 +31,9 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 // @ProviderFor(Application.class)
-public class PVTreeApplication // implements Application
+public class PVTree
 {
+    public static final Logger logger = Logger.getLogger(PVTree.class.getName());
     public static final String NAME = "PV Tree";
 
     private final TextField pv_name = new TextField();
