@@ -1,6 +1,6 @@
 package org.phoebus.pv;
 
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.assertThat;
 
 import java.util.Collection;
@@ -10,14 +10,15 @@ import org.junit.Test;
 import org.phoebus.pv.ca.JCA_Preferences;
 
 @SuppressWarnings("nls")
-public class PVPoolDemo
+public class PVPoolTest
 {
     @Test
     public void listPrefixes()
     {
         final Collection<String> prefs = PVPool.getSupportedPrefixes();
         System.out.println("Prefixes: " + prefs);
-        assertThat(prefs, contains("ca"));
+        assertThat(prefs, hasItem("ca"));
+        assertThat(prefs, hasItem("sim"));
     }
 
     @Test
