@@ -18,6 +18,7 @@ import java.util.prefs.Preferences;
  */
 public class Settings
 {
+    private static final String UPDATE_PERIOD = "update_period";
     private static final String FIELDS = "fields";
     private static final String READ_LONG_FIELDS = "read_long_fields";
 
@@ -70,5 +71,14 @@ public class Settings
             PVTree.logger.log(Level.SEVERE, "Cannot parse fields from '" + spec + "'", ex);
         }
         return Collections.emptyMap();
+    }
+
+    /** @return Max update period in seconds */
+    public static double getUpdatePeriod()
+    {
+        final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
+        double period = prefs.getDouble(UPDATE_PERIOD, 0.2);
+        prefs.putDouble(UPDATE_PERIOD, period);
+        return period;
     }
 }
