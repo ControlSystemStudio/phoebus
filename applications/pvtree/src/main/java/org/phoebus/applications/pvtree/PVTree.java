@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtree.ui.FXTree;
@@ -82,11 +83,14 @@ public class PVTree
 
         final DockItem tab = new DockItem(getName(), layout);
         DockStage.getDockPane(stage).addTab(tab);
+
+        tab.setOnClosed(event -> stop());
     }
 
     public void stop()
     {
-        tree.setPVName("");
+        logger.log(Level.INFO, "Stopping PV Tree...");
+        tree.shutdown();
     }
 
     private ImageView getImageView(final String icon)

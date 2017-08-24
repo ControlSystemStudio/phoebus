@@ -162,4 +162,11 @@ public class FXTree
         for (TreeModelItem node : model.getAlarmItems())
             TreeHelper.expandItemPath(model2ui.get(node));
     }
+
+    /** Call when no longer in use */
+    public void shutdown()
+    {
+        setPVName("");
+        throttle.shutdown();
+    }
 }
