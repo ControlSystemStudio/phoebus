@@ -60,7 +60,7 @@ public class Launcher {
             return;
         }
 
-        System.out.println("Remaining args: " + args);
+        // Remaining args passed on
         Application.launch(PhoebusApplication.class, args.toArray(new String[args.size()]));
     }
 
