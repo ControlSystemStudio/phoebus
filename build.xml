@@ -6,7 +6,10 @@
 <project name="Phoebus" default="product" basedir=".">
   <!-- Global properties -->
   <property name="version" value="0.0.1"/>
+
+  <!-- Shortcuts -->
   <property name="src" value="src/main/java"/>
+  <property name="test" value="src/test/java"/>
   <property name="resources" value="src/main/resources"/>
   <property name="build" value="target"/>
   <property name="classes" value="target/classes"/>
@@ -15,6 +18,7 @@
     <pathelement path="core/framework/${build}/framework-${version}.jar"/>
     <pathelement path="core/logging/${build}/logging-${version}.jar"/>
     <pathelement path="core/types/${build}/types-${version}.jar"/>
+    <pathelement path="core/ui/${build}/ui-${version}.jar"/>
     <fileset dir="dependencies/target/lib">
       <include name="*.jar"/>
     </fileset>
@@ -23,13 +27,13 @@
   <!-- Avoid the 'includeantruntime' warning -->
   <property name="build.sysclasspath" value="last"/>
 
-  <target name="clean">
+  <target name="clean" description="Remove all artifacts">
     <!-- Delete the ${build} directory trees -->
     <delete dir="core/framework/${build}"/>
     <delete dir="core/logging/${build}"/>
     <delete dir="core/types/${build}"/>
-    <delete dir="applications/probe/${build}"/>
     <delete dir="applications/greetings/${build}"/>
+    <delete dir="applications/probe/${build}"/>
     <delete dir="applications/logbook/inmemory/${build}"/>
     <delete dir="phoebus-product/${build}"/>
   </target>
@@ -67,7 +71,7 @@
     </jar>
   </target>
 
-  <target name="types" depends="core-logging">
+  <target name="core-types" depends="core-logging">
     <mkdir dir="core/types/${classes}"/>
     <javac srcdir="core/types/${src}" destdir="core/types/${classes}">
      <classpath>
@@ -80,17 +84,31 @@
     </jar>
   </target>
 
-  <target name="applications-probe" depends="types">
-    <mkdir dir="applications/probe/${classes}"/>
-    <javac srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/probe/${build}/probe-${version}.jar">
-      <fileset dir="applications/probe/${classes}"/>
-      <fileset dir="applications/probe/${src}" includes="**/*.fxml"/>
-      <fileset dir="applications/probe/${resources}"/>
+  <target name="core-ui" depends="core-types">
+    <mkdir dir="core/ui/${classes}"/>
+    <javac destdir="core/ui/${classes}">
+     <src path="core/ui/${src}"/>
+     <src path="core/ui/${test}"/>
+     <classpath>
+        <pathelement path="core/framework/${build}/framework-${version}.jar"/>
+      </classpath>
+    </javac>
+    <jar destfile="core/ui/${build}/ui-${version}.jar">
+      <fileset dir="core/ui/${classes}"/>
+      <fileset dir="core/ui/${resources}"/>
     </jar>
   </target>
 
-  <target name="applications-greetings" depends="types">
+  <target name="core-ui-demo" depends="core-ui">
+    <java classname="org.phoebus.ui.docking.DockingDemo"
+          fork="true">
+      <classpath>
+        <pathelement path="core/ui/${build}/ui-${version}.jar"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="applications-greetings" depends="core-ui">
     <mkdir dir="applications/greetings/${classes}"/>
     <javac srcdir="applications/greetings/${src}" destdir="applications/greetings/${classes}" classpathref="app-classpath"/>
     <jar destfile="applications/greetings/${build}/greetings-${version}.jar">
@@ -100,14 +118,29 @@
     </jar>
   </target>
 
-  <target name="applications-logbook" depends="types">
+  <target name="applications-probe" depends="core-ui">
+    <mkdir dir="applications/probe/${classes}"/>
+    <javac srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
+    <jar destfile="applications/probe/${build}/probe-${version}.jar">
+      <fileset dir="applications/probe/${classes}"/>
+      <fileset dir="applications/probe/${src}" includes="**/*.fxml"/>
+      <fileset dir="applications/probe/${resources}"/>
+    </jar>
+  </target>
+
+  <target name="applications-logbook" depends="core-ui">
     <mkdir dir="applications/logbook/inmemory/${classes}"/>
     <javac srcdir="applications/logbook/inmemory/${src}" destdir="applications/logbook/inmemory/${classes}" classpathref="app-classpath"/>
     <jar destfile="applications/logbook/inmemory/${build}/inmemory-${version}.jar">
       <fileset dir="applications/logbook/inmemory/${classes}"/>
     </jar>
   </target>
-  <target name="product" depends="applications-probe, applications-greetings, applications-logbook">
+
+  <target name="compile" depends="applications-greetings, applications-probe, applications-logbook"
+          description="Compile all sources">
+  </target>
+
+  <target name="product" depends="compile" description="Assemble product">
     <mkdir dir="phoebus-product/${classes}"/>
     <javac srcdir="phoebus-product/${src}" destdir="phoebus-product/${classes}" classpathref="app-classpath"/>
 
@@ -144,7 +177,7 @@
     </jar>
   </target>
 
-  <target name="run" depends="product">
+  <target name="run" depends="product" description="Run the product">
     <java jar="phoebus-product/${build}/product-${version}.jar"
           fork="true">
     </java>

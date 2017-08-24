@@ -9,5 +9,6 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-greetings"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-logbook-inmemory"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-probe"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
