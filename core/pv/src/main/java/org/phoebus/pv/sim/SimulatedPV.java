@@ -23,8 +23,12 @@ import org.phoebus.pv.PV;
 abstract public class SimulatedPV extends PV
 {
     /** Timer for periodic updates */
-    private final static ScheduledExecutorService executor =
-        Executors.newScheduledThreadPool(1, (Runnable target) -> new Thread(target, "SimPV"));
+    private final static ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, target ->
+    {
+        final Thread thread = new Thread(target, "SimPV");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     /** Task that was submitted for periodic updates */
     private ScheduledFuture<?> task;
