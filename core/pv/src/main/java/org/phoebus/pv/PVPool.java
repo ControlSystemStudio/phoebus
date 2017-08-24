@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
+import java.util.prefs.Preferences;
 
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 
@@ -46,6 +47,8 @@ import org.phoebus.pv.RefCountMap.ReferencedEntry;
 @SuppressWarnings("nls")
 public class PVPool
 {
+    public static final String DEFAULT = "default";
+
     /** Separator between PV type indicator and rest of PV name.
      *  <p>
      *  This one is URL-like, and works OK with EPICS PVs because
@@ -58,7 +61,7 @@ public class PVPool
     final private static Map<String, PVFactory> factories = new HashMap<>();
 
     /** Default PV name type prefix */
-    private static String default_type;
+    private static String default_type = "ca";
 
     static
     {   // Load all PVFactory services
@@ -67,8 +70,11 @@ public class PVPool
             final String type = factory.getType();
             logger.log(Level.INFO, "PV type " + type + ":// provided by " + factory);
             factories.put(type, factory);
-            setDefaultType(type);
         }
+
+        final Preferences prefs = Preferences.userNodeForPackage(PVPool.class);
+        default_type = prefs.get(DEFAULT, default_type);
+        prefs.put(DEFAULT, default_type);
 
         logger.log(Level.INFO, "Default PV type " + default_type + "://");
     }
@@ -88,18 +94,6 @@ public class PVPool
     public static Collection<String> getSupportedPrefixes()
     {
         return factories.keySet();
-    }
-
-    /** Set default PV name type prefix.
-     *
-     *  <p>Should be called <u>after</u> adding all factories, because
-     *  factory added last will be the default.
-     *
-     *  @param type Default PV name type prefix to use if none is provided in a PV name
-     */
-    public static void setDefaultType(final String type)
-    {
-        default_type = type;
     }
 
     /** Obtain a PV
