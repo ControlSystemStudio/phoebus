@@ -36,7 +36,7 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class FXTree
 {
-    protected final TreeModel model;
+    protected final TreeModel model = new TreeModel();
 
     private final Map<TreeModelItem, TreeItem<TreeModelItem>> model2ui = new ConcurrentHashMap<>();
 
@@ -92,10 +92,8 @@ public class FXTree
         }
     };
 
-    public FXTree(final TreeModel model)
+    public FXTree()
     {
-        this.model = model;
-
         tree_view = new TreeView<>();
         tree_view.setCellFactory(cell -> new TreeModelItemCell());
         final Tooltip tt = new Tooltip();
@@ -115,6 +113,12 @@ public class FXTree
     public Node getNode()
     {
         return tree_view;
+    }
+
+    /** @return Model */
+    public TreeModel getModel()
+    {
+        return model;
     }
 
     /** @param pv_name PV name to show in tree */

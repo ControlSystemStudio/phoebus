@@ -9,6 +9,7 @@ package org.phoebus.applications.pvtree;
 
 import java.util.logging.Logger;
 
+import org.phoebus.applications.pvtree.ui.FXTree;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockStage;
 
@@ -18,8 +19,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -37,7 +36,7 @@ public class PVTree
     public static final String NAME = "PV Tree";
 
     private final TextField pv_name = new TextField();
-    private final TreeView<String> tree = new TreeView<>();
+    private final FXTree tree = new FXTree();
 
     public String getName()
     {
@@ -53,7 +52,7 @@ public class PVTree
         latch.setTooltip(new Tooltip("Stop updates on first alarm?"));
         latch.setOnAction(event ->
         {
-//            model.latchOnAlarm(latch.isSelected());
+            tree.getModel().latchOnAlarm(latch.isSelected());
             if (latch.isSelected())
                 latch.setGraphic(getImageView("pause_on_alarm.png"));
             else
@@ -62,28 +61,23 @@ public class PVTree
 
         final Button collapse = new Button(null, getImageView("collapse.gif"));
         collapse.setTooltip(new Tooltip("Collapse all tree items"));
-//        collapse.setOnAction(event -> tree.expandAll(false));
+        collapse.setOnAction(event -> tree.expandAll(false));
 
         final Button alarms = new Button(null, getImageView("alarmtree.png"));
         alarms.setTooltip(new Tooltip("Show all tree items that are in alarm"));
-//        alarms.setOnAction(event -> tree.expandAlarms());
+        alarms.setOnAction(event -> tree.expandAlarms());
 
         final Button expand = new Button(null, getImageView("pvtree.png"));
         expand.setTooltip(new Tooltip("Show complete tree"));
-//        expand.setOnAction(event -> tree.expandAll(true));
-
-        final TreeItem<String> root = new TreeItem<>("A");
-        root.getChildren().add(new TreeItem<String>("INPA"));
-        root.getChildren().add(new TreeItem<String>("INPB"));
-        tree.setRoot(root);
+        expand.setOnAction(event -> tree.expandAll(true));
 
         // center vertically
         label.setMaxHeight(Double.MAX_VALUE);
         HBox.setHgrow(pv_name, Priority.ALWAYS);
         final HBox top = new HBox(5, label, pv_name, latch, collapse, alarms, expand);
         BorderPane.setMargin(top, new Insets(5, 5, 0, 5));
-        BorderPane.setMargin(tree, new Insets(5));
-        final BorderPane layout = new BorderPane(tree);
+        BorderPane.setMargin(tree.getNode(), new Insets(5));
+        final BorderPane layout = new BorderPane(tree.getNode());
         layout.setTop(top);
 
         final DockItem tab = new DockItem(getName(), layout);
@@ -92,6 +86,7 @@ public class PVTree
 
     public void stop()
     {
+        tree.setPVName("");
     }
 
     private ImageView getImageView(final String icon)
@@ -103,7 +98,6 @@ public class PVTree
     {
         name = name.trim();
         pv_name.setText(name);
-
-        // TODO Auto-generated method stub
+        tree.setPVName(name);
     }
 }
