@@ -3,32 +3,54 @@
   <groupId>org.phoebus</groupId>
   <artifactId>dependencies</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  
+  <properties>
+      <diirt.version>3.0.0</diirt.version>
+  </properties>
 
   <dependencies>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.diirt</groupId>
       <artifactId>datasource-sim</artifactId>
-      <version>3.0.0</version>
+      <version>${diirt.version}</version>
     </dependency>
     <dependency>
       <groupId>org.diirt</groupId>
       <artifactId>datasource-sys</artifactId>
-      <version>3.0.0</version>
+      <version>${diirt.version}</version>
     </dependency>
     <dependency>
       <groupId>org.diirt</groupId>
       <artifactId>datasource-loc</artifactId>
-      <version>3.0.0</version>
+      <version>${diirt.version}</version>
     </dependency>
     <dependency>
       <groupId>org.diirt.support</groupId>
       <artifactId>diirt-ca</artifactId>
-      <version>3.0.0</version>
+      <version>${diirt.version}</version>
     </dependency>
     <dependency>
       <groupId>org.diirt.support</groupId>
       <artifactId>diirt-pva</artifactId>
-      <version>3.0.0</version>
+      <version>${diirt.version}</version>
     </dependency>
   </dependencies>
 
