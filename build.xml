@@ -19,6 +19,7 @@
     <pathelement path="core/logging/${build}/logging-${version}.jar"/>
     <pathelement path="core/types/${build}/types-${version}.jar"/>
     <pathelement path="core/ui/${build}/ui-${version}.jar"/>
+    <pathelement path="core/pv/${build}/pv-${version}.jar"/>
     <fileset dir="dependencies/target/lib">
       <include name="*.jar"/>
     </fileset>
