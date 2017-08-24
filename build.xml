@@ -98,7 +98,9 @@
         </fileset>
         <pathelement path="core/pv/${build}/pv-${version}.jar"/>
       </classpath>
-      <test name="org.phoebus.pv.PVPoolTest"/>
+      <batchtest>
+      	<zipfileset src="core/pv/${build}/pv-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
     </junit>
   </target>
 
