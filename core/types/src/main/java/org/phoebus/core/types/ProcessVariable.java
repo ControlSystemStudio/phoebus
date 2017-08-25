@@ -1,5 +1,6 @@
 package org.phoebus.core.types;
 
+@SuppressWarnings("nls")
 public class ProcessVariable {
 
     private final String name;
@@ -13,4 +14,8 @@ public class ProcessVariable {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return "ProcessVariable(" + name + ")";
+    }
 }
