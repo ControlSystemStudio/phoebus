@@ -33,7 +33,7 @@ import javafx.stage.Stage;
 // @ProviderFor(Application.class)
 public class PVTree
 {
-    public static final Logger logger = Logger.getLogger(PVTree.class.getName());
+    public static final Logger logger = Logger.getLogger(PVTree.class.getPackageName());
     public static final String NAME = "PV Tree";
 
     private final TextField pv_name = new TextField();
