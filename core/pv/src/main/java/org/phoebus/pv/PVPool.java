@@ -68,7 +68,7 @@ public class PVPool
         for (PVFactory factory : ServiceLoader.load(PVFactory.class))
         {
             final String type = factory.getType();
-            logger.log(Level.INFO, "PV type " + type + ":// provided by " + factory);
+            logger.log(Level.CONFIG, "PV type " + type + ":// provided by " + factory);
             factories.put(type, factory);
         }
 
@@ -108,36 +108,28 @@ public class PVPool
      */
     public static PV getPV(final String name) throws Exception
     {
-        PV pv;
-        synchronized (pool)
-        {   // Try to locate PV in pool
-            pv = pool.get(name);
-            if (pv == null)
-            {
-                pv = createPV(name);
-                // Actual name may differ from the provided name.
-                // For example, "loc://x(2)", "loc://x" and "loc://x<VDouble>(4)"
-                // will be the same PV "loc://x" in the pool.
-                if (pool.get(pv.getName()) == null) // Increment reference?
-                    pool.put(pv.getName(), pv);     // Add new PV
-            }
-        }
-        return pv;
-    }
-
-    /** Create
-     *
-     * @param name
-     * @return
-     * @throws Exception
-     */
-    private static PV createPV(final String name) throws Exception
-    {
         final String[] prefix_base = analyzeName(name);
         final PVFactory factory = factories.get(prefix_base[0]);
         if (factory == null)
             throw new Exception(name + " has unknown PV type '" + prefix_base[0] + "'");
-        return factory.createPV(name, prefix_base[1]);
+
+        final String core_name = factory.getCoreName(prefix_base[1]);
+        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, prefix_base[1]));
+        logger.log(Level.FINE, () -> "PV '" + ref.getEntry().getName() + "' references: " + ref.getReferences());
+        return ref.getEntry();
+    }
+
+    private static PV createPV(PVFactory factory, final String name, final String base_name)
+    {
+        try
+        {
+            return factory.createPV(name, base_name);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot create PV '" + name + "'", ex);
+        }
+        return null;
     }
 
     /** Analyze PV name
@@ -164,13 +156,14 @@ public class PVPool
     /** @param pv PV to be released */
     public static void releasePV(final PV pv)
     {
-        final int references;
-        synchronized (pool)
+        final int references = pool.release(pv.getName());
+        if (references <= 0)
         {
-            references = pool.release(pv.getName());
-        }
-        if (references == 0)
             pv.close();
+            logger.log(Level.FINE, () -> "PV '" + pv.getName() + "' closed");
+        }
+        else
+            logger.log(Level.FINE, () -> "PV '" + pv.getName() + "' remaining references: " + references);
     }
 
     /** @return PVs currently in the pool with reference count information */

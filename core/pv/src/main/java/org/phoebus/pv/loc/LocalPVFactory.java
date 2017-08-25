@@ -42,6 +42,18 @@ public class LocalPVFactory implements PVFactory
     }
 
     @Override
+    public String getCoreName(final String base_name)
+    {
+        int sep = base_name.indexOf('<');
+        if (sep > 0)
+            return base_name.substring(0, sep);
+        sep = base_name.indexOf('(');
+        if (sep > 0)
+            return base_name.substring(0, sep);
+        return base_name;
+    }
+
+    @Override
     public PV createPV(final String name, final String base_name) throws Exception
     {
         final String[] ntv = ValueHelper.parseName(base_name);

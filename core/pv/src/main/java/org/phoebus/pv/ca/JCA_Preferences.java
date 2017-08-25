@@ -117,6 +117,7 @@ public class JCA_Preferences
         setSystemProperty("com.cosylab.epics.caj.CAJContext.addr_list", addr_list);
         setSystemProperty("gov.aps.jca.jni.JNIContext.addr_list", addr_list);
         prefs.put(ADDR_LIST, addr_list);
+        logger.log(Level.INFO, "JCA " + ADDR_LIST + ": " + addr_list);
 
         final String auto_addr = prefs.get(AUTO_ADDR_LIST, "true");
         setSystemProperty("com.cosylab.epics.caj.CAJContext.auto_addr_list", auto_addr);

@@ -9,14 +9,13 @@ package org.phoebus.pv;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /** Map that keeps reference count for its objects
  *
- *  <p>Caller may need to synchronize calls to this map,
- *  because there is no atomic operation to check if an item exists,
- *  and if not, create and add it to the map.
+ *  <p>Thread-safe.
  *
  *  @param <K> Key data type
  *  @param <E> Entry data type
@@ -28,10 +27,10 @@ public class RefCountMap<K, E>
     /** Wrapper for an entry with reference count */
     public static class ReferencedEntry<E>
     {
-        final private E entry;
-        private int references = 1;
+        private final E entry;
+        private final AtomicInteger references = new AtomicInteger(0);
 
-        ReferencedEntry(E entry)
+        private ReferencedEntry(final E entry)
         {
             this.entry = entry;
         }
@@ -45,17 +44,17 @@ public class RefCountMap<K, E>
         /** @return Reference count for the item */
         public int getReferences()
         {
-            return references;
+            return references.get();
         }
 
-        void addRef()
+        private int addRef()
         {
-            ++references;
+            return references.incrementAndGet();
         }
 
-        int decRef()
+        private int decRef()
         {
-            return --references;
+            return references.decrementAndGet();
         }
 
         @Override
@@ -65,32 +64,23 @@ public class RefCountMap<K, E>
         }
     }
 
-    // TODO Use ConcurrentHashMap
-    final private Map<K, ReferencedEntry<E>> map = new HashMap<>();
+    final private ConcurrentHashMap<K, ReferencedEntry<E>> map = new ConcurrentHashMap<>();
 
-    /** Get an item.
-     *  On success, a reference count is added to the item.
-     *  @param key Key for item to get
-     *  @return Item or <code>null</code>
-     */
-    public E get(final K key)
-    {
-        final ReferencedEntry<E> entry = map.get(key);
-        if (entry == null)
-            return null;
-        entry.addRef();
-        return entry.getEntry();
-    }
-
-    /** Add item to map with initial reference count of 1
+    /** Get or create item
+     *
+     *  <p>If item already exists, add reference.
+     *  Otherwise create new item with initial reference count of 1.
+     *
      *  @param key Item key
      *  @param entry The item to add
+     *  @param creator Function that will be called atomically for new items
+     *  @return reference count
      */
-    public void put(final K key, final E entry)
+    public ReferencedEntry<E> createOrGet(final K key, final Supplier<E> creator)
     {
-        if (map.containsKey(key))
-            throw new IllegalStateException("Already referenced " + key);
-        map.put(key,  new ReferencedEntry<E>(entry));
+        final ReferencedEntry<E> ref_entry = map.computeIfAbsent(key, k -> new ReferencedEntry<E>(creator.get()));
+        ref_entry.addRef();
+        return ref_entry;
     }
 
     /** Release an item from the map
@@ -99,13 +89,16 @@ public class RefCountMap<K, E>
      */
     public int release(final K key)
     {
-        final ReferencedEntry<E> entry = map.get(key);
-        if (entry == null)
-            throw new IllegalStateException("No reference found for " + key);
-        final int remaining = entry.decRef();
-        if (remaining <= 0)
-            map.remove(key);
-        return remaining;
+        final ReferencedEntry<E> updated_entry = map.compute(key, (the_key, entry) ->
+        {
+            if (entry == null)
+                throw new IllegalStateException("No reference found for " + key);
+            if (entry.decRef() <= 0)
+                return null;
+            return entry;
+        });
+
+        return updated_entry == null ? 0 : updated_entry.getReferences();
     }
 
     /** @return Entries in map */

@@ -16,6 +16,16 @@ package org.phoebus.pv;
  *  for creating that type of PV and registers it
  *  with the {@link PVPool}.
  *
+ *  <p>A full PV name can have the form <code>type://name&lt;type>(params)</code>,
+ *  for example <code>loc://x(42.3)</code>
+ *  or <code>loc://choices&lt;VEnum>(2, "A", "B", "C")</code>.
+ *
+ *  <p>The 'base name' is everything after the "type://" prefix.
+ *  The 'core name' is used to uniquely identify the name in the PV pool.
+ *  For most PVs, that is the same as the base name.
+ *  For local PVs, the core name is just for example "loc://choices" without the initialization
+ *  parameters.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -27,13 +37,21 @@ public interface PVFactory
     /** @return Type prefix that this PV factory supports */
     public String getType();
 
+    /** Determine core name
+     *  @param base_name Base name of the PV, not including the prefix.
+     *  @return Core name that uniquely identifies the PV
+     */
+    public default String getCoreName(final String base_name)
+    {
+        return base_name;
+    }
+
     /** Create a PV
      *
-     *  @param name Full name of the PV as provided by user. May contain type prefix.
+     *  @param name Full name of the PV as provided by user. May contain type prefix and parameters.
      *  @param base_name Base name of the PV, not including the prefix.
      *  @return PV
      *  @throws Exception on error
      */
     public PV createPV(final String name, final String base_name) throws Exception;
-
 }
