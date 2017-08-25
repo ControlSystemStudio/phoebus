@@ -1,36 +1,33 @@
 package org.phoebus.framework.selection;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 
+ *
  * @author Kunal Shroff
  *
  */
 public class SelectionService {
 
-    private static SelectionService selectionService;
+    private static final SelectionService selectionService = new SelectionService();
 
-    private static List<SelectionChangeListener> listeners = Collections
-            .synchronizedList(new ArrayList<SelectionChangeListener>());
+    private static List<SelectionChangeListener> listeners = new CopyOnWriteArrayList<>();
 
-    private static Selection selection = SelectionUtil.emptySelection();
+    private static AtomicReference<Selection> selection = new AtomicReference<>(SelectionUtil.emptySelection());
 
+    // Singleton
     private SelectionService() {
     }
 
-    public static synchronized SelectionService getInstance() {
-        if (selectionService == null) {
-            selectionService = new SelectionService();
-        }
+    public static SelectionService getInstance() {
         return selectionService;
     }
 
     /**
      * Add a selection change listener
-     * 
+     *
      * @param selectionListner
      */
     public void addListener(SelectionChangeListener selectionListner) {
@@ -39,7 +36,7 @@ public class SelectionService {
 
     /**
      * Remove a selection change listener
-     * 
+     *
      * @param selectionListner
      */
     public void removeListener(SelectionChangeListener selectionListner) {
@@ -48,19 +45,17 @@ public class SelectionService {
 
     /**
      * Get the current selection
-     * 
+     *
      * @return
      */
-    public synchronized Selection getSelection() {
-        return selection;
+    public Selection getSelection() {
+        return selection.get();
     }
 
-    @SuppressWarnings("unchecked")
-    public synchronized <T> void setSelection(Object source, List<T> selection) {
-        Selection oldValue = SelectionService.selection;
-        SelectionService.selection = SelectionUtil.createSelection(selection);
-        listeners.forEach((s) -> {
-            s.selectionChanged(source, oldValue, SelectionService.selection);
-        });
+    public <T> void setSelection(Object source, List<T> selection) {
+        final Selection newValue = SelectionUtil.createSelection(selection);
+        final Selection oldValue = SelectionService.selection.getAndSet(newValue);
+        for (SelectionChangeListener listener : listeners)
+            listener.selectionChanged(source, oldValue, newValue);
     }
 }

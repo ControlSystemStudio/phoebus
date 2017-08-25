@@ -2,7 +2,6 @@ package org.phoebus.applications.probe;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.phoebus.applications.probe.view.ProbeController;
@@ -22,13 +21,14 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     private static final String NAME = "Probe";
     private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
 
+    @Override
     public String getName() {
         return NAME;
     }
 
     @Override
     public Object callWithSelection(Selection selection) {
-        List<ProcessVariable> pvs = (List<ProcessVariable>) selection.getSelections();
+        List<ProcessVariable> pvs = selection.getSelections();
         LaunchProbe(pvs);
         return null;
     }
@@ -39,7 +39,7 @@ public class ContextLaunchProbe implements ContextMenuEntry {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));
             TitledPane mainLayout = loader.load();
-            
+
             if (pvs.isEmpty()) {
                 // Open an empty probe
                 Stage stage = new Stage();
