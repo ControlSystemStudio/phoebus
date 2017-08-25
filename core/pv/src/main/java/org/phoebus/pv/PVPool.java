@@ -115,7 +115,7 @@ public class PVPool
 
         final String core_name = factory.getCoreName(prefix_base[1]);
         final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, prefix_base[1]));
-        logger.log(Level.FINE, () -> "PV '" + ref.getEntry().getName() + "' references: " + ref.getReferences());
+        logger.log(Level.CONFIG, () -> "PV '" + ref.getEntry().getName() + "' references: " + ref.getReferences());
         return ref.getEntry();
     }
 
@@ -160,10 +160,10 @@ public class PVPool
         if (references <= 0)
         {
             pv.close();
-            logger.log(Level.FINE, () -> "PV '" + pv.getName() + "' closed");
+            logger.log(Level.CONFIG, () -> "PV '" + pv.getName() + "' closed");
         }
         else
-            logger.log(Level.FINE, () -> "PV '" + pv.getName() + "' remaining references: " + references);
+            logger.log(Level.CONFIG, () -> "PV '" + pv.getName() + "' remaining references: " + references);
     }
 
     /** @return PVs currently in the pool with reference count information */

@@ -19,6 +19,7 @@ import org.diirt.vtype.AlarmSeverity;
 /** Model of the PV Tree
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class TreeModel
 {
     private final AtomicReference<TreeModelItem> root = new AtomicReference<>();

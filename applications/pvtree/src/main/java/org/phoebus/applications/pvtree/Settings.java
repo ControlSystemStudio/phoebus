@@ -16,6 +16,7 @@ import java.util.prefs.Preferences;
 /** Preference settings
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class Settings
 {
     private static final String UPDATE_PERIOD = "update_period";

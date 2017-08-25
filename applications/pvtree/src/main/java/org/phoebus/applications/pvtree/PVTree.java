@@ -31,6 +31,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 // @ProviderFor(Application.class)
+@SuppressWarnings("nls")
 public class PVTree
 {
     public static final Logger logger = Logger.getLogger(PVTree.class.getPackageName());
@@ -91,6 +92,7 @@ public class PVTree
     {
         logger.log(Level.INFO, "Stopping PV Tree...");
         tree.shutdown();
+        // System.out.println("Remaining PVs " + PVPool.getPVReferences());
     }
 
     private ImageView getImageView(final String icon)

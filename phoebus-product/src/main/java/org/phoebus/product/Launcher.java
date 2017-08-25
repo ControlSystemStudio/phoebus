@@ -14,6 +14,7 @@ import org.phoebus.ui.application.PhoebusApplication;
 
 import javafx.application.Application;
 
+@SuppressWarnings("nls")
 public class Launcher {
 
     public static void main(final String[] original_args) throws Exception
