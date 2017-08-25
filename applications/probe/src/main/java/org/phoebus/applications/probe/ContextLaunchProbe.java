@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.phoebus.applications.probe.view.ProbeController;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
 
@@ -15,7 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
 
-@ProviderFor(ContextMenuEntry.class)
+//@ProviderFor(ContextMenuEntry.class)
 public class ContextLaunchProbe implements ContextMenuEntry {
 
     private static final String NAME = "Probe";
