@@ -100,7 +100,7 @@ public class PVTree
         return new ImageView(new Image(getClass().getResourceAsStream("/icons/" + icon)));
     }
 
-    private void setPVName(String name)
+    void setPVName(String name)
     {
         name = name.trim();
         pv_name.setText(name);
