@@ -22,7 +22,7 @@ package org.phoebus.pv;
  *
  *  <p>The 'base name' is everything after the "type://" prefix.
  *  The 'core name' is used to uniquely identify the name in the PV pool.
- *  For most PVs, that is the same as the base name.
+ *  For most PVs, that is the same as the complete name.
  *  For local PVs, the core name is just for example "loc://choices" without the initialization
  *  parameters.
  *
@@ -38,12 +38,12 @@ public interface PVFactory
     public String getType();
 
     /** Determine core name
-     *  @param base_name Base name of the PV, not including the prefix.
+     *  @param name Name of the PV
      *  @return Core name that uniquely identifies the PV
      */
-    public default String getCoreName(final String base_name)
+    public default String getCoreName(final String name)
     {
-        return base_name;
+        return name;
     }
 
     /** Create a PV

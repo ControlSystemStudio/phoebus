@@ -89,6 +89,7 @@ public class RefCountMap<K, E>
      */
     public int release(final K key)
     {
+        // System.out.println("Release " + key + " in " + map);
         final ReferencedEntry<E> updated_entry = map.compute(key, (the_key, entry) ->
         {
             if (entry == null)
