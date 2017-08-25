@@ -9,6 +9,8 @@ package org.phoebus.applications.pvtree.ui;
 
 import static org.phoebus.applications.pvtree.PVTree.logger;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -16,6 +18,8 @@ import java.util.logging.Level;
 import org.phoebus.applications.pvtree.model.TreeModel;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
 import org.phoebus.applications.pvtree.model.TreeModelListener;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -104,7 +108,17 @@ public class FXTree
             final int alarm_count = model.getAlarmItems().size();
             tt.setText(model.getItemCount() + " items, " + alarm_count + " in alarm");
         });
-        tree_view.setTooltip(tt);
+        tree_view.getSelectionModel().selectedItemProperty().addListener((prop, old_item, selected) ->
+        {
+            ProcessVariable selection = null;
+            if (selected != null)
+            {
+                final TreeModelItem item = selected.getValue();
+                if (item.getSeverity() != null)
+                    selection = new ProcessVariable(item.getPVName());
+            }
+            SelectionService.getInstance().setSelection("PVTree", selection == null ? Collections.emptyList() : Arrays.asList(selection));
+        });
 
         model.addListener(model_listener);
     }
