@@ -20,9 +20,13 @@ import org.phoebus.applications.pvtree.model.TreeModelItem;
 import org.phoebus.applications.pvtree.model.TreeModelListener;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.framework.workbench.ContextMenuService;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -100,6 +104,8 @@ public class FXTree
     {
         tree_view = new TreeView<>();
         tree_view.setCellFactory(cell -> new TreeModelItemCell());
+
+        // Tool tip that shows PV and alarm counts
         final Tooltip tt = new Tooltip();
         tt.setOnShowing(event ->
         {
@@ -108,6 +114,8 @@ public class FXTree
             final int alarm_count = model.getAlarmItems().size();
             tt.setText(model.getItemCount() + " items, " + alarm_count + " in alarm");
         });
+
+        // Publish currently selected PV
         tree_view.getSelectionModel().selectedItemProperty().addListener((prop, old_item, selected) ->
         {
             ProcessVariable selection = null;
@@ -118,6 +126,29 @@ public class FXTree
                     selection = new ProcessVariable(item.getPVName());
             }
             SelectionService.getInstance().setSelection("PVTree", selection == null ? Collections.emptyList() : Arrays.asList(selection));
+        });
+
+        // Provide context menu
+        tree_view.setOnContextMenuRequested(event ->
+        {
+            final ContextMenu menu = new ContextMenu();
+            for (ContextMenuEntry entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
+            {
+                final MenuItem item = new MenuItem(entry.getName());
+                item.setOnAction(e ->
+                {
+                    try
+                    {
+                        entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot invoke context menu", ex);
+                    }
+                });
+                menu.getItems().add(item);
+            }
+            tree_view.setContextMenu(menu);
         });
 
         model.addListener(model_listener);
