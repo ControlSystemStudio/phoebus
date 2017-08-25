@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import org.phoebus.ui.application.PhoebusApplication;
@@ -14,8 +16,12 @@ import javafx.application.Application;
 
 public class Launcher {
 
-    public static void main(final String[] original_args)
+    public static void main(final String[] original_args) throws Exception
     {
+        LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
+
+        Logger.getLogger(Launcher.class.getName()).info("Phoebus Launcher");
+
         // Handle arguments, potentially not even starting the UI
         final List<String> args = new ArrayList<>(Arrays.asList(original_args));
         final Iterator<String> iter = args.iterator();
