@@ -235,7 +235,7 @@ public class TreeModelItem
         return pv_name;
     }
 
-    /** @return Alarm severity */
+    /** @return Alarm severity. <code>null</code> for constant items that are not a PV */
     public AlarmSeverity getSeverity()
     {
         return severity;
