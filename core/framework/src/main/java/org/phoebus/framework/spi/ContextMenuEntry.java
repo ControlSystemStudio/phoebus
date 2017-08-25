@@ -1,13 +1,14 @@
 package org.phoebus.framework.spi;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.phoebus.framework.selection.Selection;
 
+import javafx.stage.Stage;
+
 /**
- * Another example interface which extends {@link Callable}
- * 
+ * Context menu entry service interface
+ *
  * @author Kunal Shroff
  * @param <V>
  *
@@ -18,7 +19,14 @@ public interface ContextMenuEntry<V> {
 
     public Object getIcon();
 
+    /** @return Selection types for which this entry should be displayed */
     public List<Class> getSupportedTypes();
 
-    public V callWithSelection(Selection selection) throws Exception;
+    /** Invoke the context menu
+     *  @param parent_stage Stage that invoked the menu
+     *  @param selection Current selection
+     *  @return TODO What does it return??
+     *  @throws Exception on error
+     */
+    public V callWithSelection(Stage parent_stage, Selection selection) throws Exception;
 }

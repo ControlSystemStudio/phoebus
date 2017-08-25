@@ -36,6 +36,8 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /** Basic JFX Tree for {@link TreeModel}
  *
@@ -139,7 +141,9 @@ public class FXTree
                 {
                     try
                     {
-                        entry.callWithSelection(SelectionService.getInstance().getSelection());
+                        final Window window = tree_view.getScene().getWindow();
+                        final Stage stage = window instanceof Stage ? (Stage) window : null;
+                        entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
                     }
                     catch (Exception ex)
                     {

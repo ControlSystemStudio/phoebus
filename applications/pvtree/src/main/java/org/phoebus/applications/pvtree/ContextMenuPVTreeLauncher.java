@@ -13,6 +13,7 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
 import javafx.stage.Stage;
@@ -47,19 +48,15 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     }
 
     @Override
-    public ProcessVariable callWithSelection(final Selection selection) throws Exception
+    public ProcessVariable callWithSelection(final Stage parent_stage, final Selection selection) throws Exception
     {
+        final DockPane dock_pane = DockStage.getDockPane(parent_stage);
+
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
         {
-            // TODO Would like to open tab in current DockStage, but have no reference to it
-            final Stage new_stage = new Stage();
-            DockStage.configureStage(new_stage);
-
             final PVTree pv_tree = new PVTree();
-            pv_tree.start(new_stage);
-            new_stage.show();
-
+            pv_tree.start(dock_pane);
             pv_tree.setPVName(pv.getName());
         }
         return null;

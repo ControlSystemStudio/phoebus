@@ -8,9 +8,10 @@ import org.phoebus.applications.probe.view.ProbeController;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockStage;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
 
@@ -26,13 +27,13 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public Object callWithSelection(Selection selection) {
+    public Object callWithSelection(final Stage parent_stage, Selection selection) {
         List<ProcessVariable> pvs = selection.getSelections();
-        LaunchProbe(pvs);
+        LaunchProbe(parent_stage, pvs);
         return null;
     }
 
-    private void LaunchProbe(List<ProcessVariable> pvs) {
+    private void LaunchProbe(final Stage stage, List<ProcessVariable> pvs) {
         try {
 
             FXMLLoader loader = new FXMLLoader();
@@ -41,19 +42,13 @@ public class ContextLaunchProbe implements ContextMenuEntry {
 
             if (pvs.isEmpty()) {
                 // Open an empty probe
-                Stage stage = new Stage();
-                Scene scene = new Scene(mainLayout);
-                stage.setScene(scene);
-                stage.show();
+                DockStage.getDockPane(stage).addTab(new DockItem(NAME, mainLayout));
             } else {
                 // Open a probe for each pv
                 pvs.forEach(pv -> {
-                    Stage stage = new Stage();
-                    Scene scene = new Scene(mainLayout);
+                    DockStage.getDockPane(stage).addTab(new DockItem(NAME, mainLayout));
                     ProbeController controller = (ProbeController) loader.getController();
                     controller.setPVName(pv.getName());
-                    stage.setScene(scene);
-                    stage.show();
                 });
             }
         } catch (IOException e) {

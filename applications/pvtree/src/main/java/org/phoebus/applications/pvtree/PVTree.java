@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtree.ui.FXTree;
 import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.docking.DockPane;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -25,7 +25,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.stage.Stage;
 
 /** PV Tree Application
  *  @author Kay Kasemir
@@ -45,7 +44,7 @@ public class PVTree
         return NAME;
     }
 
-    public void start(final Stage stage)
+    public void start(final DockPane dock_pane)
     {
         final Label label = new Label("PV Name:");
         pv_name.setOnAction(event -> setPVName(pv_name.getText()));
@@ -83,7 +82,7 @@ public class PVTree
         layout.setTop(top);
 
         final DockItem tab = new DockItem(getName(), layout);
-        DockStage.getDockPane(stage).addTab(tab);
+        dock_pane.addTab(tab);
 
         tab.setOnClosed(event -> stop());
     }

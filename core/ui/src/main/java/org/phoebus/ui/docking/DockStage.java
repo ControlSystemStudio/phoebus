@@ -11,6 +11,8 @@ import static org.phoebus.ui.docking.DockPane.logger;
 
 import java.util.logging.Level;
 
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -20,6 +22,7 @@ import javafx.stage.Stage;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class DockStage
 {
     /** Helper to configure a Stage for docking
@@ -58,7 +61,10 @@ public class DockStage
      */
     public static BorderPane getLayout(final Stage stage)
     {
-        return (BorderPane) stage.getScene().getRoot();
+        final Parent layout = stage.getScene().getRoot();
+        if (layout instanceof BorderPane)
+            return (BorderPane) layout;
+        throw new IllegalStateException("Expect BorderPane, got " + layout);
     }
 
     /** @param stage Stage that supports docking
@@ -66,6 +72,9 @@ public class DockStage
      */
     public static DockPane getDockPane(final Stage stage)
     {
-        return (DockPane) getLayout(stage).getCenter();
+        final Node dock_pane = getLayout(stage).getCenter();
+        if (dock_pane instanceof DockPane)
+            return (DockPane) dock_pane;
+        throw new IllegalStateException("Expect DockPane, got " + dock_pane);
     }
 }
