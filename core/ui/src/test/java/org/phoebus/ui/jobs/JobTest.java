@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
@@ -16,17 +19,19 @@ import org.junit.Test;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JobDemo
+public class JobTest
 {
     @Test
     public void demoJob() throws Exception
     {
+        final CountDownLatch running = new CountDownLatch(1);
         final CountDownLatch done = new CountDownLatch(1);
 
         JobManager.schedule("Demo", monitor ->
         {
-            monitor.beginTask("Stepping", 5);
-            for (int step=0; step<5; ++step)
+            monitor.beginTask("Stepping", 3);
+            running.countDown();
+            for (int step=0; step<3; ++step)
             {
                 Thread.sleep(500);
                 monitor.worked(1);
@@ -34,6 +39,12 @@ public class JobDemo
             done.countDown();
         });
 
+        // Wait for job to start
+        running.await();
+        System.out.println(JobManager.getJobs());
+        assertThat(JobManager.getJobs().size(), equalTo(1));
+
+        // Wait for job to end
         while (done.getCount() > 0)
         {
             System.out.println(JobManager.getJobs());
@@ -41,6 +52,7 @@ public class JobDemo
         }
         // Show final info
         System.out.println(JobManager.getJobs());
+        assertThat(JobManager.getJobs().size(), equalTo(0));
    }
 
 
@@ -65,7 +77,10 @@ public class JobDemo
             }
         });
 
+        // Wait for job to perform a few steps
         did_some_steps.await();
+
+        // Cancel
         JobManager.getJobs().forEach(job -> job.cancel());
         // Show final info
         Collection<Job> jobs = JobManager.getJobs();
