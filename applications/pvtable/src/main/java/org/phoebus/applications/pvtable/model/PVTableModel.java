@@ -10,6 +10,7 @@ package org.phoebus.applications.pvtable.model;
 import static org.phoebus.applications.pvtable.PVTableApplication.logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,15 +24,13 @@ import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
 
-
-/**
- * A PV table model, i.e. list of {@link PVTableItem}s
- * <p>
- * Updates are throttled: Changed items are accumulated, and depending on how
- * many changed, just those items are notified, or the whole table is marked for
- * update.
+/** A PV table model, i.e. list of {@link PVTableItem}s
  *
- * @author Kay Kasemir, A. PHILIPPE L. PHILIPPE GANIL/FRANCE
+ *  <p>Updates are throttled: Changed items are accumulated, and depending on how
+ *  many changed, just those items are notified, or the whole table is marked for
+ *  update.
+ *
+ *  @author Kay Kasemir, A. PHILIPPE L. PHILIPPE GANIL/FRANCE
  */
 public class PVTableModel implements PVTableItemListener
 {
@@ -82,6 +81,12 @@ public class PVTableModel implements PVTableItemListener
     public void removeListener(final PVTableModelListener listener)
     {
         listeners.remove(listener);
+    }
+
+    /** @return Read-only access to all items */
+    public List<PVTableItem> getItems()
+    {
+        return Collections.unmodifiableList(items);
     }
 
     /** @return Returns number of items (rows) in model. */

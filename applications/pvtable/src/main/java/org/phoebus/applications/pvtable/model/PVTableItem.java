@@ -279,8 +279,11 @@ public class PVTableItem
                 final String desc_name = sep >= 0
                         ? name.substring(0, sep) + ".DESC" : name + ".DESC";
                 final PV new_desc_pv = PVPool.getPV(desc_name);
-                new_desc_pv.addListener(desc_pv_listener);
-                desc_pv.set(new_desc_pv);
+                if (new_desc_pv != null)
+                {
+                    new_desc_pv.addListener(desc_pv_listener);
+                    desc_pv.set(new_desc_pv);
+                }
             }
         }
         catch (Exception ex)
