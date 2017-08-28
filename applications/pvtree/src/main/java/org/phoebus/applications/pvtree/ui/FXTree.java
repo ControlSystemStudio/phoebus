@@ -111,6 +111,7 @@ public class FXTree
         final Tooltip tt = new Tooltip();
         tt.setOnShowing(event ->
         {
+            System.out.println("Creating TT...");
             // Counting alarms on UI thread?
             // Was OK in test with ~12000 items, ~4000 in alarm
             final int alarm_count = model.getAlarmItems().size();

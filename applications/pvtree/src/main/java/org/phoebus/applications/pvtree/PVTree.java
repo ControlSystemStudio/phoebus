@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtree.ui.FXTree;
+import org.phoebus.applications.pvtree.ui.Messages;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -46,11 +47,12 @@ public class PVTree
 
     public void start(final DockPane dock_pane)
     {
-        final Label label = new Label("PV Name:");
+        final Label label = new Label(Messages.PV_Label);
         pv_name.setOnAction(event -> setPVName(pv_name.getText()));
+        pv_name.setTooltip(new Tooltip(Messages.PV_TT));
 
         final ToggleButton latch = new ToggleButton(null, getImageView("run.png"));
-        latch.setTooltip(new Tooltip("Stop updates on first alarm?"));
+        latch.setTooltip(new Tooltip(Messages.LatchTT));
         latch.setOnAction(event ->
         {
             tree.getModel().latchOnAlarm(latch.isSelected());
@@ -61,15 +63,15 @@ public class PVTree
         });
 
         final Button collapse = new Button(null, getImageView("collapse.gif"));
-        collapse.setTooltip(new Tooltip("Collapse all tree items"));
+        collapse.setTooltip(new Tooltip(Messages.CollapseTT));
         collapse.setOnAction(event -> tree.expandAll(false));
 
         final Button alarms = new Button(null, getImageView("alarmtree.png"));
-        alarms.setTooltip(new Tooltip("Show all tree items that are in alarm"));
+        alarms.setTooltip(new Tooltip(Messages.ExpandAlarmsTT));
         alarms.setOnAction(event -> tree.expandAlarms());
 
         final Button expand = new Button(null, getImageView("pvtree.png"));
-        expand.setTooltip(new Tooltip("Show complete tree"));
+        expand.setTooltip(new Tooltip(Messages.ExpandAllTT));
         expand.setOnAction(event -> tree.expandAll(true));
 
         // center vertically
