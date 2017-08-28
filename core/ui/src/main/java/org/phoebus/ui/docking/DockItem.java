@@ -46,6 +46,7 @@ import javafx.stage.Stage;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class DockItem extends Tab
 {
     private final static ImageView detach_icon;
