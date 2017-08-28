@@ -270,21 +270,6 @@ public class PVTableItem
             final PV new_pv = PVPool.getPV(name);
             new_pv.addListener(pv_listener);
             pv.set(new_pv);
-            if (Settings.show_description)
-            {
-                // Determine DESC field.
-                // If name already includes a field,
-                // replace it with DESC field.
-                final int sep = name.lastIndexOf('.');
-                final String desc_name = sep >= 0
-                        ? name.substring(0, sep) + ".DESC" : name + ".DESC";
-                final PV new_desc_pv = PVPool.getPV(desc_name);
-                if (new_desc_pv != null)
-                {
-                    new_desc_pv.addListener(desc_pv_listener);
-                    desc_pv.set(new_desc_pv);
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -292,6 +277,27 @@ public class PVTableItem
             updateValue(ValueFactory.newVString("PV Error",
                         ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No PV"),
                         ValueFactory.timeNow()));
+        }
+
+        if (Settings.show_description)
+        {
+            // Determine DESC field.
+            // If name already includes a field,
+            // replace it with DESC field.
+            final int sep = name.lastIndexOf('.');
+            final String desc_name = sep >= 0
+                    ? name.substring(0, sep) + ".DESC"
+                    : name + ".DESC";
+            try
+            {
+                final PV new_desc_pv = PVPool.getPV(desc_name);
+                new_desc_pv.addListener(desc_pv_listener);
+                desc_pv.set(new_desc_pv);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Skipping " + desc_name);
+            }
         }
     }
 

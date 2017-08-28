@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.ui.PVTable;
+import org.phoebus.pv.PVPool;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -16,6 +17,8 @@ public class PVTableApplication
 
     public static final String NAME = "PV Table";
 
+    final PVTableModel model = new PVTableModel();
+
     public String getName()
     {
         return NAME;
@@ -23,23 +26,13 @@ public class PVTableApplication
 
     public void start(final DockPane dock_pane)
     {
-        final PVTableModel model = new PVTableModel();
-        model.addItem("loc://x(42)");
-        model.addItem("loc://x(42)");
-        model.addItem("loc://x(42)");
-        model.addItem("loc://x(42)");
-        model.addItem("loc://x(42)");
-        model.addItem("loc://x(42)");
-        model.addItem("sim://sine");
-        model.addItem("loc://x(42)");
-        model.addItem("loc://x(42)");
-        model.addItem("RFQ_LLRF:IOC1:Load");
-        model.addItem("MEBT_LLRF:IOC1:Load");
-        model.addItem("MEBT_LLRF:IOC3:Load");
         for (int i=1; i<=6; ++i)
-            model.addItem(String.format("DTL_LLRF:IOC%d:Load", i));
-        for (int i=1; i<=4; ++i)
-            model.addItem(String.format("CCL_LLRF:IOC%d:Load", i));
+        {
+            model.addItem("loc://x(42)");
+            model.addItem("loc://x(42)");
+            model.addItem("sim://sine");
+            model.addItem("sim://ramp");
+        }
         final PVTable table = new PVTable(model);
 
 
@@ -53,7 +46,7 @@ public class PVTableApplication
     public void stop()
     {
         logger.log(Level.INFO, "Stopping PV Table...");
-        // TODO model.shutdown();
-        // System.out.println("Remaining PVs " + PVPool.getPVReferences());
+        model.dispose();
+        System.out.println("Remaining PVs " + PVPool.getPVReferences());
     }
 }

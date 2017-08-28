@@ -10,7 +10,6 @@ package org.phoebus.applications.pvtable.model;
 import static org.phoebus.applications.pvtable.PVTableApplication.logger;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +22,8 @@ import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
+
+import javafx.application.Platform;
 
 /** A PV table model, i.e. list of {@link PVTableItem}s
  *
@@ -83,10 +84,10 @@ public class PVTableModel implements PVTableItemListener
         listeners.remove(listener);
     }
 
-    /** @return Read-only access to all items */
+    /** @return All items */
     public List<PVTableItem> getItems()
     {
-        return Collections.unmodifiableList(items);
+        return items;
     }
 
     /** @return Returns number of items (rows) in model. */
@@ -295,19 +296,22 @@ public class PVTableModel implements PVTableItemListener
             // else: Many items, update whole table
             changed_items.clear();
         }
-        if (to_update.isEmpty())
+        Platform.runLater(() ->
         {
-            // Too many items changed, update the whole table
-            for (PVTableModelListener listener : listeners)
-                listener.tableItemsChanged();
-        }
-        else
-        {
-            // Update exactly the changed items
-            for (PVTableItem item : to_update)
+            if (to_update.isEmpty())
+            {
+                // Too many items changed, update the whole table
                 for (PVTableModelListener listener : listeners)
-                    listener.tableItemChanged(item);
-        }
+                    listener.tableItemsChanged();
+            }
+            else
+            {
+                // Update exactly the changed items
+                for (PVTableItem item : to_update)
+                    for (PVTableModelListener listener : listeners)
+                        listener.tableItemChanged(item);
+            }
+        });
     }
 
     /**
@@ -365,9 +369,10 @@ public class PVTableModel implements PVTableItemListener
     @Override
     public void tableItemChanged(final PVTableItem item)
     {
-        this.isConfHeaderToAdd(item);
+        isConfHeaderToAdd(item);
         synchronized (changed_items)
         {
+            System.out.println("PV Update for " + item.getName());
             changed_items.add(item);
         }
     }
