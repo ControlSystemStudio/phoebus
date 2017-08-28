@@ -7,3 +7,5 @@ pom.xml.next
 release.properties
 .settings
 logs.txt
+settings.xml
+nohup.out
