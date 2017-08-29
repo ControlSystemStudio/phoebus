@@ -13,5 +13,5 @@ public interface Selection {
      * get the current list of selected objects
      * @return
      */
-    public List<?> getSelections();
+    public <T> List<T> getSelections();
 }

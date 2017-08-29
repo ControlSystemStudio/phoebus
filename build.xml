@@ -19,6 +19,7 @@
     <pathelement path="core/logging/${build}/logging-${version}.jar"/>
     <pathelement path="core/types/${build}/types-${version}.jar"/>
     <pathelement path="core/ui/${build}/ui-${version}.jar"/>
+    <pathelement path="core/pv/${build}/pv-${version}.jar"/>
     <fileset dir="dependencies/target/lib">
       <include name="*.jar"/>
     </fileset>
@@ -31,10 +32,12 @@
     <!-- Delete the ${build} directory trees -->
     <delete dir="core/framework/${build}"/>
     <delete dir="core/logging/${build}"/>
+    <delete dir="core/pv/${build}"/>
     <delete dir="core/types/${build}"/>
     <delete dir="applications/greetings/${build}"/>
     <delete dir="applications/probe/${build}"/>
     <delete dir="applications/logbook/inmemory/${build}"/>
+    <delete dir="applications/pvtree/${build}"/>
     <delete dir="phoebus-product/${build}"/>
   </target>
 
@@ -71,7 +74,38 @@
     </jar>
   </target>
 
-  <target name="core-types" depends="core-logging">
+  <target name="core-pv" depends="init">
+    <mkdir dir="core/pv/${classes}"/>
+    <javac destdir="core/pv/${classes}">
+      <src path="core/pv/${src}"/>
+      <src path="core/pv/${test}"/>
+      <classpath>
+        <fileset dir="dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+    <jar destfile="core/pv/${build}/pv-${version}.jar">
+      <fileset dir="core/pv/${classes}"/>
+      <fileset dir="core/pv/${resources}"/>
+    </jar>
+  </target>
+
+  <target name="core-pv-test" depends="core-pv">
+    <junit printsummary="withOutAndErr" haltonfailure="yes">
+      <classpath>
+        <fileset dir="dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement path="core/pv/${build}/pv-${version}.jar"/>
+      </classpath>
+      <batchtest>
+      	<zipfileset src="core/pv/${build}/pv-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+    </junit>
+  </target>
+
+  <target name="core-types" depends="core-framework, core-logging">
     <mkdir dir="core/types/${classes}"/>
     <javac srcdir="core/types/${src}" destdir="core/types/${classes}">
      <classpath>
@@ -108,7 +142,13 @@
     </java>
   </target>
 
-  <target name="applications-greetings" depends="core-ui">
+  <target name="core-all" depends="core-framework, core-logging, core-pv, core-types, core-ui">
+  </target>
+
+  <target name="core-test" depends="core-pv-test">
+  </target>
+	
+  <target name="applications-greetings" depends="core-all">
     <mkdir dir="applications/greetings/${classes}"/>
     <javac srcdir="applications/greetings/${src}" destdir="applications/greetings/${classes}" classpathref="app-classpath"/>
     <jar destfile="applications/greetings/${build}/greetings-${version}.jar">
@@ -118,7 +158,7 @@
     </jar>
   </target>
 
-  <target name="applications-probe" depends="core-ui">
+  <target name="applications-probe" depends="core-all">
     <mkdir dir="applications/probe/${classes}"/>
     <javac srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
     <jar destfile="applications/probe/${build}/probe-${version}.jar">
@@ -128,7 +168,7 @@
     </jar>
   </target>
 
-  <target name="applications-logbook" depends="core-ui">
+  <target name="applications-logbook" depends="core-all">
     <mkdir dir="applications/logbook/inmemory/${classes}"/>
     <javac srcdir="applications/logbook/inmemory/${src}" destdir="applications/logbook/inmemory/${classes}" classpathref="app-classpath"/>
     <jar destfile="applications/logbook/inmemory/${build}/inmemory-${version}.jar">
@@ -136,7 +176,17 @@
     </jar>
   </target>
 
-  <target name="compile" depends="applications-greetings, applications-probe, applications-logbook"
+  <target name="applications-pvtree" depends="core-all">
+    <mkdir dir="applications/pvtree/${classes}"/>
+    <javac srcdir="applications/pvtree/${src}" destdir="applications/pvtree/${classes}" classpathref="app-classpath"/>
+    <jar destfile="applications/pvtree/${build}/pvtree-${version}.jar">
+      <fileset dir="applications/pvtree/${classes}"/>
+      <fileset dir="applications/pvtree/${resources}"/>
+    </jar>
+  </target>
+
+
+  <target name="compile" depends="core-all, applications-greetings, applications-probe, applications-logbook, applications-pvtree"
           description="Compile all sources">
   </target>
 
@@ -170,6 +220,7 @@
 
     <jar destfile="phoebus-product/${build}/product-${version}.jar">
       <fileset dir="phoebus-product/${classes}"/>
+      <fileset dir="phoebus-product/${resources}"/>
       <manifest>
         <attribute name="Main-Class" value="org.phoebus.product.Launcher" />
         <attribute name="Class-Path" value="${manifest-classpath}" />

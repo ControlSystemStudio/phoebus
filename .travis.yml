@@ -13,4 +13,5 @@ script:
   - mvn clean install -f applications/probe/pom.xml
   - mvn clean install -f applications/logbook/pom.xml
   - mvn clean install -f applications/greetings/pom.xml
+  - mvn clean install -f applications/pvtree/pom.xml
   - mvn clean install -f phoebus-product/pom.xml

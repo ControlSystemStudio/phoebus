@@ -11,6 +11,8 @@ import org.phoebus.framework.spi.ContextMenuEntry;
 import org.phoebus.logging.LogEntry;
 import org.phoebus.logging.LogService;
 
+import javafx.stage.Stage;
+
 @SuppressWarnings("rawtypes")
 @ProviderFor(ContextMenuEntry.class)
 public class contextMenuLogging implements ContextMenuEntry {
@@ -18,13 +20,14 @@ public class contextMenuLogging implements ContextMenuEntry {
     private static final String NAME = "Create Log";
     private static final List<Class> supportedTypes = Arrays.asList(LogEntry.class);
 
+    @Override
     public String getName() {
         return NAME;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object callWithSelection(Selection selection) {
+    public Object callWithSelection(final Stage stage, Selection selection) {
 
         List<LogEntry> adaptedSelections = new ArrayList<LogEntry>();
         selection.getSelections().stream().forEach(s -> {

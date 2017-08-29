@@ -2,6 +2,7 @@ package org.phoebus.core.types;
 
 import java.time.Instant;
 
+@SuppressWarnings("nls")
 public class TimeStampedProcessVariable extends ProcessVariable {
 
     private final Instant time;
@@ -15,4 +16,9 @@ public class TimeStampedProcessVariable extends ProcessVariable {
         return time;
     }
 
+
+    @Override
+    public String toString() {
+        return "TimeStampedProcessVariable(" + getName() + ", " + time + ")";
+    }
 }

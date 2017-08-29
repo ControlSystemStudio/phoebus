@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.scene.control.TabPane;
@@ -22,6 +23,7 @@ import javafx.scene.layout.Border;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class DockPane extends TabPane
 {
     /** Logger for all docking related messages */
@@ -75,14 +77,14 @@ public class DockPane extends TabPane
     {
         final DockItem item = DockItem.dragged_item.get();
         if (item == null)
-            System.err.println("Empty drop?");
+            logger.log(Level.SEVERE, "Empty drop, " + event);
         else
         {
             final TabPane old_parent = item.getTabPane();
 
             // Unexpected, but would still "work" at this time
             if (! (old_parent instanceof DockPane))
-                System.err.println("DockItem is not in DockPane");
+                logger.log(Level.SEVERE, "DockItem is not in DockPane but " + old_parent);
 
             old_parent.getTabs().remove(item);
             getTabs().add(item);

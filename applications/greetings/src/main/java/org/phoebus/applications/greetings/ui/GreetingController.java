@@ -18,6 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class GreetingController {
@@ -47,11 +48,13 @@ public class GreetingController {
 
         final ContextMenu contextMenu = new ContextMenu();
         contextMenu.setOnShowing(new EventHandler<WindowEvent>() {
+            @Override
             public void handle(WindowEvent e) {
                 System.out.println("showing");
             }
         });
         contextMenu.setOnShown(new EventHandler<WindowEvent>() {
+            @Override
             public void handle(WindowEvent e) {
                 System.out.println("shown");
             }
@@ -59,12 +62,14 @@ public class GreetingController {
 
         MenuItem item1 = new MenuItem("About");
         item1.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
             public void handle(ActionEvent e) {
                 System.out.println("About");
             }
         });
         MenuItem item2 = new MenuItem("Preferences");
         item2.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
             public void handle(ActionEvent e) {
                 System.out.println("Preferences");
             }
@@ -77,7 +82,8 @@ public class GreetingController {
             MenuItem item = new MenuItem(entry.getName());
             item.setOnAction(e -> {
                 try {
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    final Stage stage = (Stage) listView.getScene().getWindow();
+                    entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
