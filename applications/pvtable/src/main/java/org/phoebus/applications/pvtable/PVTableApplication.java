@@ -9,6 +9,7 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 
 public class PVTableApplication
@@ -51,5 +52,13 @@ public class PVTableApplication
         logger.log(Level.INFO, "Stopping PV Table...");
         model.dispose();
         System.out.println("Remaining PVs " + PVPool.getPVReferences());
+    }
+
+    /** @param name Name of the icon
+     *  @return Image for icon
+     */
+    public static Image getIcon(final String name)
+    {
+        return new Image(PVTableApplication.class.getResourceAsStream("/icons/" + name));
     }
 }

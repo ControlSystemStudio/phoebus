@@ -42,6 +42,7 @@ public class PVTableItem
     /** Primary PV name */
     private String name = null;
 
+    // TODO Initial value of new PV should be UNDEFINED/Disconnected
     /** Last known value of the PV */
     private volatile VType value;
 
