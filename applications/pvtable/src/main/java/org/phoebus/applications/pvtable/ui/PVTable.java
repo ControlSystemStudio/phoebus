@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
 import org.diirt.vtype.VType;
@@ -15,11 +22,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -27,8 +34,12 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.util.converter.DefaultStringConverter;
 
+/** PV Table and its toolbar
+ *  @author Kay Kasemir
+ */
 public class PVTable extends BorderPane
 {
     private final PVTableModel model;
@@ -139,7 +150,7 @@ public class PVTable extends BorderPane
         @Override
         public void tableItemSelectionChanged(PVTableItem item)
         {
-            // TODO Make default
+            tableItemChanged(item);
         }
 
         @Override
@@ -186,7 +197,10 @@ public class PVTable extends BorderPane
         table.setItems(FXCollections.observableList(model.getItems()));
         table.setEditable(true);
 
-        setTop(createToolbar());
+        final Node toolbar = createToolbar();
+        setMargin(toolbar, new Insets(5, 5, 0, 5));
+        setMargin(table, new Insets(5));
+        setTop(toolbar);
         setCenter(table);
 
         model.addListener(model_listener);
@@ -194,14 +208,25 @@ public class PVTable extends BorderPane
 
     private Node createToolbar()
     {
-        final ButtonBar toolbar = new ButtonBar();
-        toolbar.setButtonMinWidth(50);
+        return new HBox(5,
+            createButton("checked.gif", Messages.CheckAll_TT, event ->
+            {
+                for (PVTableItem item : model.getItems())
+                    item.setSelected(true);
+            }),
+            createButton("unchecked.gif", Messages.UncheckAll_TT, event ->
+            {
+                for (PVTableItem item : model.getItems())
+                    item.setSelected(false);
+            }),
 
-        toolbar.getButtons().addAll(
-                createButton("snapshot.png", Messages.Snapshot_TT, event -> model.save()),
-                createButton("restore.png", Messages.Restore_TT, event -> model.restore()));
+            new Separator(),
 
-        return toolbar;
+            createButton("snapshot.png", Messages.Snapshot_TT, event -> model.save()),
+            createButton("restore.png", Messages.Restore_TT, event -> model.restore()),
+
+            new Separator()
+                );
     }
 
     private Button createButton(final String icon, final String tooltip, final EventHandler<ActionEvent> handler)
@@ -210,7 +235,6 @@ public class PVTable extends BorderPane
         button.setGraphic(new ImageView(PVTableApplication.getIcon(icon)));
         button.setTooltip(new Tooltip(tooltip));
         button.setOnAction(handler);
-        ButtonBar.setButtonData(button, ButtonData.LEFT);
         return button;
     }
 

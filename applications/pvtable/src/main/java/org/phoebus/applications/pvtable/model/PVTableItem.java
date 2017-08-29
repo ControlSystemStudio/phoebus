@@ -311,8 +311,10 @@ public class PVTableItem
     /** @param selected Should item be selected to be restored? */
     public void setSelected(final boolean selected)
     {
+        boolean was_selected = this.selected;
         this.selected = selected && !isComment();
-        listener.tableItemSelectionChanged(this);
+        if (was_selected != this.selected)
+            listener.tableItemSelectionChanged(this);
     }
 
     /** @return Returns the name of the 'main' PV. */
