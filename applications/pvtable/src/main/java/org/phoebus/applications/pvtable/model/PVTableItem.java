@@ -37,7 +37,7 @@ public class PVTableItem
 {
     final private PVTableItemListener listener;
 
-    private boolean selected = true;
+    private volatile boolean selected = true;
 
     /** Primary PV name */
     private String name = null;

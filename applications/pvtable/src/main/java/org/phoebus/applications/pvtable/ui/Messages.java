@@ -57,6 +57,7 @@ public class Messages
     public static String RestoreSelection_TT;
     public static String Saved;
     public static String Saved_Value_TimeStamp;
+    public static String Selected;
     public static String Snapshot;
     public static String Snapshot_TT;
     public static String SnapshotSelection;

@@ -372,7 +372,6 @@ public class PVTableModel implements PVTableItemListener
         isConfHeaderToAdd(item);
         synchronized (changed_items)
         {
-            System.out.println("PV Update for " + item.getName());
             changed_items.add(item);
         }
     }

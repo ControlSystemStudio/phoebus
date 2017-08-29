@@ -28,10 +28,13 @@ public class PVTableApplication
     {
         for (int i=1; i<=6; ++i)
         {
+            model.addItem("# Local");
             model.addItem("loc://x(42)");
             model.addItem("loc://x(42)");
+            model.addItem("# Sim");
             model.addItem("sim://sine");
             model.addItem("sim://ramp");
+            model.addItem("#");
         }
         final PVTable table = new PVTable(model);
 
