@@ -1,10 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.phoebus</groupId>
   <artifactId>product</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-
+ 
+  <properties>
+      <diirt.version>3.0.0</diirt.version>
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
@@ -31,16 +33,37 @@
       <artifactId>pvtree</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    
+    <!-- diirt -->    
+    <dependency>
+      <groupId>org.diirt</groupId>
+      <artifactId>datasource-sim</artifactId>
+      <version>${diirt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.diirt</groupId>
+      <artifactId>datasource-sys</artifactId>
+      <version>${diirt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.diirt</groupId>
+      <artifactId>datasource-loc</artifactId>
+      <version>${diirt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.diirt.support</groupId>
+      <artifactId>diirt-ca</artifactId>
+      <version>${diirt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.diirt.support</groupId>
+      <artifactId>diirt-pva</artifactId>
+      <version>${diirt.version}</version>
+    </dependency>
+    
   </dependencies>
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.9</source>
-          <target>1.9</target>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -87,10 +110,6 @@
               <failOnError>true</failOnError>
               <tasks>
                 <echo message="Adding dependencies to product"/>
-                <copy todir="${project.build.directory}/lib" verbose="true">
-                  <fileset dir="${basedir}/../dependencies/target/lib"/>
-                </copy>
-
                 <manifestclasspath property="manifest-classpath"
                                    jarfile="${project.build.directory}/product-${project.version}.jar">
                   <classpath>
@@ -119,4 +138,9 @@
       </plugin>
     </plugins>
   </build>
+  <parent>
+  	<groupId>org.phoebus</groupId>
+  	<artifactId>parent</artifactId>
+  	<version>0.0.1-SNAPSHOT</version>
+  </parent>
 </project>
