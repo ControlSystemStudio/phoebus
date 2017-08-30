@@ -7,21 +7,8 @@
 	<packaging>pom</packaging>
 	
 	<properties>
-		<localRepo>${project.build.directory}/.m2</localRepo>
+		<maven.repo.local>${project.build.directory}/.m2</maven.repo.local>
 	</properties>
-
-	<profiles>
-		<!-- A profile to run the build completely offline -->
-		<profile>
-			<id>offline-build</id>
-		</profile>
-		<!-- A profile for creating the local repository against which an offline 
-			build is run -->
-		<profile>
-			<id>create-repo</id>
-		</profile>
-	</profiles>
-
 	<build>
 		<plugins>
 			<plugin>
