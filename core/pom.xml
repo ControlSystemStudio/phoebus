@@ -8,18 +8,7 @@
     <module>logging</module>
     <module>pv</module>
     <module>ui</module>
-  </modules>  
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.9</source>
-          <target>1.9</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
   	<artifactId>parent</artifactId>
