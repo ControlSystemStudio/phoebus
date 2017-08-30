@@ -28,16 +28,12 @@ mvn clean verify  -f dependencies/pom.xml
 ### Building
 
 ```
-mvn clean install -f core/pom.xml
-mvn clean install -f applications/probe/pom.xml
-mvn clean install -f applications/logbook/pom.xml
-mvn clean install -f applications/greetings/pom.xml
-mvn clean install -f phoebus-product/pom.xml
+mvn clean install
 ```
 
 ### Running test application
 ```
-cd target
+cd phoebus-product/target
 java -jar product-0.0.1-SNAPSHOT.jar
 ```
 
