@@ -59,7 +59,6 @@
     <javac srcdir="core/framework/${src}" destdir="core/framework/${classes}"/>
     <jar destfile="core/framework/${build}/framework-${version}.jar">
       <fileset dir="core/framework/${classes}"/>
-      <fileset dir="core/framework/${resources}"/>
     </jar>
   </target>
 
