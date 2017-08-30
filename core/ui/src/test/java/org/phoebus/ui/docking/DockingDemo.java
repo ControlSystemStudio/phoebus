@@ -20,6 +20,7 @@ import javafx.stage.Stage;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class DockingDemo extends Application
 {
     public static void main(String[] args)

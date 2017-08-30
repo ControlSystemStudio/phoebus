@@ -86,8 +86,8 @@ public class NLS
                     final int sep = line.indexOf('=');
                     if (sep <= 0)
                         throw new Exception("Missing '=' in line " + messages.getLineNumber());
-                    final String name = line.substring(0, sep);
-                    final String value = line.substring(sep+1);
+                    final String name = line.substring(0, sep).trim();
+                    final String value = line.substring(sep+1).trim();
                     final Field field = fields.get(name);
                     if (field == null)
                         logger.log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "'");
