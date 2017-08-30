@@ -65,6 +65,7 @@ public class Messages
     public static String SnapshotSelection;
     public static String SnapshotSelection_TT;
     public static String Time;
+    public static String Timeout;
     public static String TimestampSave;
     public static String Tolerance;
     public static String Tolerance_TT;

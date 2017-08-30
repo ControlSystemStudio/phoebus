@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import org.diirt.vtype.VType;
@@ -17,6 +19,7 @@ import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.SavedValue;
 import org.phoebus.applications.pvtable.model.TimestampHelper;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
+import org.phoebus.ui.dialog.NumericInputDialog;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -28,7 +31,11 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Separator;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -53,6 +60,8 @@ public class PVTable extends BorderPane
     private static final String comment_style = "-fx-text-fill: blue;";
 
     private static final String new_item_style = "-fx-text-fill: gray;";
+
+    private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
 
     private static final String[] alarm_styles = new String[]
     {
@@ -194,6 +203,10 @@ public class PVTable extends BorderPane
                 final PVTableItem item = getTableView().getItems().get(getIndex());
                 setEditable(item.isWritable());
                 setText(value);
+                if (item.isChanged())
+                    setStyle(changed_style);
+                else
+                    setStyle(null);
             }
         }
     }
@@ -246,6 +259,7 @@ public class PVTable extends BorderPane
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         // Select complete rows
         table.getSelectionModel().setCellSelectionEnabled(false);
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         createTableColumns();
 
@@ -258,6 +272,8 @@ public class PVTable extends BorderPane
         setCenter(table);
 
         setItemsFromModel();
+
+        createContextMenu();
 
         model.addListener(model_listener);
     }
@@ -301,6 +317,59 @@ public class PVTable extends BorderPane
         button.setTooltip(new Tooltip(tooltip));
         button.setOnAction(handler);
         return button;
+    }
+
+    private void createContextMenu()
+    {
+        final MenuItem add_row = new MenuItem(Messages.Insert, new ImageView(PVTableApplication.getIcon("add.gif")));
+        add_row.setOnAction(event ->
+        {
+            // Copy selection as it will change when we add to the model
+            final List<PVTableItem> selected = new ArrayList<>(table.getSelectionModel().getSelectedItems());
+            PVTableItem last = null;
+            for (PVTableItem item : selected)
+                last = model.addItemAbove(item, "# ");
+            if (last != null)
+                table.getSelectionModel().select(last);
+        });
+
+        final MenuItem remove_row = new MenuItem(Messages.Delete, new ImageView(PVTableApplication.getIcon("delete.gif")));
+        remove_row.setOnAction(event ->
+        {
+            // Copy selection as it will change
+            final List<PVTableItem> selected = new ArrayList<>(table.getSelectionModel().getSelectedItems());
+            for (PVTableItem item : selected)
+                model.removeItem(item);
+        });
+
+        final MenuItem tolerance = new MenuItem(Messages.Tolerance, new ImageView(PVTableApplication.getIcon("pvtable.png")));
+        tolerance.setOnAction(event ->
+        {
+            final PVTableItem item = table.getSelectionModel().getSelectedItem();
+            if (item == null  ||   item.isComment())
+                return;
+
+            final NumericInputDialog dlg = new NumericInputDialog(Messages.Tolerance,
+                    "Enter tolerance for " + item.getName(),
+                    item.getTolerance(),
+                    number -> number >= 0 ? null : "Enter a positive tolerance value");
+            dlg.promptAndHandle(number -> item.setTolerance(number));
+        });
+
+        final MenuItem timeout = new MenuItem(Messages.Timeout, new ImageView(PVTableApplication.getIcon("timeout.png")));
+        timeout.setOnAction(event ->
+        {
+            final NumericInputDialog dlg = new NumericInputDialog(Messages.Timeout,
+                    "Enter the timeout in seconds used\n" +
+                    "for all items that are restored\n" +
+                    "with 'completion' (put-callback)",
+                    model.getCompletionTimeout(),
+                    number -> number > 0 ? null : "Enter a positive number of seconds");
+            dlg.promptAndHandle(number -> model.setCompletionTimeout(number.longValue()));
+        });
+
+        final ContextMenu menu = new ContextMenu(add_row, remove_row, new SeparatorMenuItem(), tolerance, timeout);
+        table.setContextMenu(menu);
     }
 
     private void createTableColumns()
