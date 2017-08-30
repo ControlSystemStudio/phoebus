@@ -7,33 +7,4 @@
     <artifactId>core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.9</source>
-          <target>1.9</target>
-        </configuration>
-        <executions>
-          <execution>
-            <id>default-compile</id>
-            <configuration>
-              <compilerArgument>-proc:none</compilerArgument>
-              <includes>
-                <include>org/phoebus/framework/annotation/ProviderForProcessor.java</include>
-              </includes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>compile-project</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

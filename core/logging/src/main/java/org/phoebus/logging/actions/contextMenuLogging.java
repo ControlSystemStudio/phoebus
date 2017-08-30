@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.phoebus.framework.adapter.AdapterService;
-import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
 import org.phoebus.logging.LogEntry;
@@ -14,7 +13,6 @@ import org.phoebus.logging.LogService;
 import javafx.stage.Stage;
 
 @SuppressWarnings("rawtypes")
-@ProviderFor(ContextMenuEntry.class)
 public class contextMenuLogging implements ContextMenuEntry {
 
     private static final String NAME = "Create Log";
