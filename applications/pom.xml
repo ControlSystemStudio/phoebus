@@ -12,5 +12,6 @@
   	<module>probe</module>
   	<module>greetings</module>
   	<module>pvtree</module>
+  	<module>logConfiguration</module>
   </modules>
 </project>
