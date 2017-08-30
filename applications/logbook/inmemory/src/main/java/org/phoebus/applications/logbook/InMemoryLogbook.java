@@ -5,11 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.logging.LogEntry;
 import org.phoebus.logging.LogFactory;
 
-@ProviderFor(LogFactory.class)
 public class InMemoryLogbook implements LogFactory {
 
     private static final String ID = "org.phoebus.inmemory.log";

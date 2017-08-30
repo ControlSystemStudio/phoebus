@@ -6,11 +6,14 @@ import java.util.Optional;
 
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.adapter.AdapterFactory;
-import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.logging.LogEntry;
 import org.phoebus.logging.LogEntryFactory;
 
-@ProviderFor(AdapterFactory.class)
+/**
+ * Provides a factory for converting a {@link TimeStampedProcessVariable} to either a {@link LogEntry} or {@link String}
+ * @author Kunal Shroff
+ *
+ */
 public class TimeStampedProcessVariableAdapterFactory implements AdapterFactory {
 
     private static final List<? extends Class> adaptableTypes = Arrays.asList(String.class, LogEntry.class);

@@ -1,17 +1,19 @@
 package org.phoebus.core.types.adapters;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.adapter.AdapterFactory;
-import org.phoebus.framework.annotation.ProviderFor;
 import org.phoebus.logging.LogEntry;
 import org.phoebus.logging.LogEntryFactory;
 
-@ProviderFor(AdapterFactory.class)
+/**
+ * Provide a factory to adapt a {@link ProcessVariable} to {@link LogEntry} or {@link String}
+ * @author Kunal Shroff
+ *
+ */
 public class ProcessVariablesAdapterFactory implements AdapterFactory {
 
     private static final List<? extends Class> adaptableTypes = Arrays.asList(String.class, LogEntry.class);
