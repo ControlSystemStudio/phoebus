@@ -123,9 +123,7 @@ public class PVTable extends BorderPane
         {
             super.updateItem(name, empty);
             if (empty)
-            {
-                setText("");
-            }
+                setText(null);
             else
             {
                 final PVTableItem item = getTableView().getItems().get(getIndex());
@@ -161,20 +159,41 @@ public class PVTable extends BorderPane
         {
             super.updateItem(alarm_text, empty);
             if (empty)
-            {
-                setText("");
-            }
+                setText(null);
             else
             {
                 final PVTableItem item = getTableView().getItems().get(getIndex());
                 final VType value = item.getValue();
                 if (value == null)
-                    setText("");
+                    setText(null);
                 else
                 {
                     setText(alarm_text);
                     setStyle(alarm_styles[VTypeHelper.getSeverity(value).ordinal()]);
                 }
+            }
+        }
+    }
+
+    /** Table cell for 'value' column, enables/disables */
+    private static class ValueTableCell extends TextFieldTableCell<PVTableItem, String>
+    {
+        public ValueTableCell()
+        {
+            super(new DefaultStringConverter());
+        }
+
+        @Override
+        public void updateItem(final String value, final boolean empty)
+        {
+            super.updateItem(value, empty);
+            if (empty)
+                setText(null);
+            else
+            {
+                final PVTableItem item = getTableView().getItems().get(getIndex());
+                setEditable(item.isWritable());
+                setText(value);
             }
         }
     }
@@ -306,13 +325,13 @@ public class PVTable extends BorderPane
                 model.addItem(event.getNewValue());
             else
                 item.updateName(event.getNewValue());
-            // Since editing was suppressed, refresh table
+            // Since updates were suppressed, refresh table
             table.refresh();
         });
         col.setOnEditCancel(event ->
         {
             editing = false;
-            // Since editing was suppressed, refresh table
+            // Since updates were suppressed, refresh table
             table.refresh();
         });
         table.getColumns().add(col);
@@ -348,7 +367,25 @@ public class PVTable extends BorderPane
                 return new SimpleStringProperty();
             return new SimpleStringProperty(VTypeHelper.toString(value));
         });
-        // TODO Edit value
+        col.setCellFactory(column -> new ValueTableCell());
+        col.setOnEditStart(event -> editing = true);
+        col.setOnEditCommit(event ->
+        {
+            editing = false;
+            final PVTableItem item = event.getRowValue();
+            item.setValue(event.getNewValue());
+            // Since updates were suppressed, refresh table
+            table.refresh();
+        });
+        col.setOnEditCancel(event ->
+        {
+            editing = false;
+            // Since updates were suppressed, refresh table
+            table.refresh();
+        });
+
+
+
         table.getColumns().add(col);
 
         // Alarm
