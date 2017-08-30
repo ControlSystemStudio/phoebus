@@ -42,6 +42,25 @@ import javafx.util.converter.DefaultStringConverter;
  */
 public class PVTable extends BorderPane
 {
+    /** 'Magic' table item added to the end of the actual model to allow adding
+     *  entries. Setting the name of this item is handled as adding a new item
+     *  for that name.
+     */
+    final public static PVTableItem NEW_ITEM = new PVTableItem("", 0.0, null, null, null);
+
+    private static final String comment_style = "-fx-text-fill: blue;";
+
+    private static final String new_item_style = "-fx-text-fill: gray;";
+
+    private static final String[] alarm_styles = new String[]
+    {
+        null,
+        "-fx-text-fill: orange;",
+        "-fx-text-fill: red;",
+        "-fx-text-fill: purple;",
+        "-fx-text-fill: pink;",
+    };
+
     private final PVTableModel model;
     private final TableView<PVTableItem> table;
 
@@ -53,14 +72,23 @@ public class PVTable extends BorderPane
     {
         private final CheckBox checkbox = new CheckBox();
 
+        public SelectedTableCell()
+        {
+            checkbox.setFocusTraversable(false);
+        }
+
         @Override
         protected void updateItem(Boolean selected, boolean empty)
         {
             super.updateItem(selected, empty);
             final int row = getIndex();
             final ObservableList<PVTableItem> items = getTableView().getItems();
-            final PVTableItem item = row >= 0 ? items.get(row) : null;
-            if (empty  ||  (item != null && item.isComment()))
+            final PVTableItem item;
+            if (row < 0  ||  row >= items.size())
+                item = null;
+            else
+                item = items.get(row);
+            if (empty  ||  (item != null && item.isComment())  ||  item == NEW_ITEM)
                 setGraphic(null);
             else
             {
@@ -90,9 +118,14 @@ public class PVTable extends BorderPane
             else
             {
                 final PVTableItem item = getTableView().getItems().get(getIndex());
-                if (item.isComment())
+                if (item == NEW_ITEM)
                 {
-                    setStyle("-fx-text-fill: blue;");
+                    setStyle(new_item_style);
+                    setText(Messages.EnterNewPV);
+                }
+                else if (item.isComment())
+                {
+                    setStyle(comment_style);
                     setText(item.getComment());
                 }
                 else
@@ -103,15 +136,6 @@ public class PVTable extends BorderPane
             }
         }
     }
-
-    private static final String[] alarm_styles = new String[]
-    {
-        null,
-        "-fx-text-fill: orange;",
-        "-fx-text-fill: red;",
-        "-fx-text-fill: purple;",
-        "-fx-text-fill: pink;",
-    };
 
     /** Table cell for 'alarm' column, colors alarm states */
     private static class AlarmTableCell extends TextFieldTableCell<PVTableItem, String>
@@ -173,16 +197,17 @@ public class PVTable extends BorderPane
         public void tableItemsChanged()
         {
             System.out.println("Table items changed");
-            table.refresh();
+            setItemsFromModel();
         }
 
         @Override
         public void modelChanged()
         {
             System.out.println("Model changed");
-            table.refresh();
+            setItemsFromModel();
         }
     };
+
 
     public PVTable(final PVTableModel model)
     {
@@ -194,7 +219,6 @@ public class PVTable extends BorderPane
 
         createTableColumns();
 
-        table.setItems(FXCollections.observableList(model.getItems()));
         table.setEditable(true);
 
         final Node toolbar = createToolbar();
@@ -203,7 +227,18 @@ public class PVTable extends BorderPane
         setTop(toolbar);
         setCenter(table);
 
+        setItemsFromModel();
+
         model.addListener(model_listener);
+    }
+
+    private void setItemsFromModel()
+    {
+        table.setItems(FXCollections.emptyObservableList());
+        final ObservableList<PVTableItem> items = FXCollections.observableArrayList(model.getItems());
+        items.add(NEW_ITEM);
+        table.setItems(items);
+        table.refresh();
     }
 
     private Node createToolbar()
@@ -256,7 +291,10 @@ public class PVTable extends BorderPane
         {
             editing = false;
             final PVTableItem item = event.getRowValue();
-            item.updateName(event.getNewValue());
+            if (item == NEW_ITEM)
+                model.addItem(event.getNewValue());
+            else
+                item.updateName(event.getNewValue());
             // Since editing was suppressed, refresh table
             table.refresh();
         });

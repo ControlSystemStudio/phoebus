@@ -18,7 +18,6 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
@@ -155,27 +154,16 @@ public class PVTableModel implements PVTableItemListener
 
     /** Add table item
      *
-     *  @param pv_name PV Name
-     *  @param inital Initial value (Time measure)
-     *  @return Added item
-     */
-    public PVTableItem addItem(final String pv_name, final VType initial)
-    {
-        return addItem(new PVTableItem(pv_name, Settings.tolerance, null, this, initial));
-    }
-
-    /**
-     * Add table item
-     *
-     * @param pv_name
-     * @param tolerance
-     * @param saved
-     * @param time
-     * @param conf
-     * @return added item
+     *  @param pv_name
+     *  @param tolerance
+     *  @param saved
+     *  @param time
+     *  @param conf
+     *  @return added item
      */
     public PVTableItem addItem(final String pv_name, final double tolerance, final SavedValue saved, final String time,
-            final boolean conf, final Measure measure) {
+                               final boolean conf, final Measure measure)
+    {
         return addItem(new PVTableItem(pv_name, time, conf, measure, tolerance, saved, this));
     }
 

@@ -26,6 +26,7 @@ public class Messages
     public static String EnterPositiveTolerance;
     public static String EnterTolerance;
     public static String EmptyTable;
+    public static String EnterNewPV;
     public static String Error;
     public static String ExportXLSAction;
     public static String ExportXLSAction_TT;

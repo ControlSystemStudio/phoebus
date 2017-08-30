@@ -160,42 +160,6 @@ public class PVTableItem
     /** Initialize
      *
      *  @param name
-     *  @param tolerance
-     *  @param saved
-     *  @param listener
-     *  @param time
-     */
-    public PVTableItem(final String name, String time, final double tolerance,
-            final SavedValue saved, final PVTableItemListener listener)
-    {
-        this(name, time, tolerance, saved, listener,
-                ValueFactory.newVString("",
-                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No PV"),
-                        ValueFactory.timeNow()));
-    }
-
-    /** Initialize
-     *
-     *  @param name
-     *  @param time
-     *  @param conf
-     *  @param tolerance
-     *  @param saved
-     *  @param listener
-     */
-    public PVTableItem(final String name, String time, boolean conf,
-            final double tolerance, final SavedValue saved,
-            final PVTableItemListener listener)
-    {
-        this(name, time, conf, null, tolerance, saved, listener,
-                ValueFactory.newVString("",
-                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No PV"),
-                        ValueFactory.timeNow()));
-    }
-
-    /** Initialize
-     *
-     *  @param name
      *  @param time
      *  @param conf
      *  @param measure
@@ -211,23 +175,6 @@ public class PVTableItem
                 ValueFactory.newVString("",
                         ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No PV"),
                         ValueFactory.timeNow()));
-    }
-
-    /** Initialize
-     *
-     *  @param name
-     *  @param tolerance
-     *  @param saved
-     *  @param listener
-     *  @param time
-     *  @param initial_value
-     */
-    public PVTableItem(final String name, String time, final double tolerance,
-            final SavedValue saved, final PVTableItemListener listener,
-            final VType initial_value)
-    {
-        this(name, time, false, null, tolerance, saved, listener,
-                initial_value);
     }
 
     /** Initialize
