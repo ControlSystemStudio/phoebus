@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
+import java.util.function.BiConsumer;
+
 import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -67,14 +69,17 @@ public class PVTable extends BorderPane
     /** Flag to disable updates while editing */
     private boolean editing = false;
 
-    /** Table cell for 'selected' column, selects/de-selects */
-    private static class SelectedTableCell extends TableCell<PVTableItem, Boolean>
+    /** Table cell for column with boolean value, selects/de-selects */
+    private static class BooleanTableCell extends TableCell<PVTableItem, Boolean>
     {
         private final CheckBox checkbox = new CheckBox();
+        private final BiConsumer<PVTableItem, Boolean> update_item;
 
-        public SelectedTableCell()
+        /** @param update_item Will be called when user clicks check box */
+        public BooleanTableCell(final BiConsumer<PVTableItem, Boolean> update_item)
         {
             checkbox.setFocusTraversable(false);
+            this.update_item = update_item;
         }
 
         @Override
@@ -84,17 +89,23 @@ public class PVTable extends BorderPane
             final int row = getIndex();
             final ObservableList<PVTableItem> items = getTableView().getItems();
             final PVTableItem item;
-            if (row < 0  ||  row >= items.size())
+            if (empty  ||  row < 0  ||  row >= items.size())
                 item = null;
             else
-                item = items.get(row);
-            if (empty  ||  (item != null && item.isComment())  ||  item == NEW_ITEM)
+            {
+                final PVTableItem check = items.get(row);
+                if (check == NEW_ITEM  ||  check.isComment())
+                    item = null;
+                else
+                    item = check;
+            }
+            if (item == null)
                 setGraphic(null);
             else
             {
                 setGraphic(checkbox);
                 checkbox.setSelected(selected);
-                checkbox.setOnAction(event -> item.setSelected(checkbox.isSelected()));
+                checkbox.setOnAction(event -> update_item.accept(item, checkbox.isSelected()));
             }
         }
     }
@@ -278,7 +289,7 @@ public class PVTable extends BorderPane
         // Selected column
         final TableColumn<PVTableItem, Boolean> sel_col = new TableColumn<>(Messages.Selected);
         sel_col.setCellValueFactory(cell_data_features -> new SimpleBooleanProperty(cell_data_features.getValue().isSelected()));
-        sel_col.setCellFactory(column -> new SelectedTableCell());
+        sel_col.setCellFactory(column -> new BooleanTableCell( (item, selected) ->  item.setSelected(selected)));
         table.getColumns().add(sel_col);
 
         // PV Name
@@ -372,6 +383,10 @@ public class PVTable extends BorderPane
         });
         table.getColumns().add(col);
 
-        // TODO Completion checkbox
+        // Completion checkbox
+        final TableColumn<PVTableItem, Boolean> compl_col = new TableColumn<>(Messages.Completion);
+        compl_col.setCellValueFactory(cell_data_features -> new SimpleBooleanProperty(cell_data_features.getValue().isUsingCompletion()));
+        compl_col.setCellFactory(column -> new BooleanTableCell( (item, completion) ->  item.setUseCompletion(completion)));
+        table.getColumns().add(compl_col);
     }
 }

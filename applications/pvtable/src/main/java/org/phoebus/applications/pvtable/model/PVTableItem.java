@@ -61,7 +61,7 @@ public class PVTableItem
     /** Tolerance for comparing current and saved (if they're numeric) */
     private double tolerance;
 
-    private volatile boolean use_completion = false;
+    private volatile boolean use_completion = true;
 
     /** Primary PV */
     final private AtomicReference<PV> pv = new AtomicReference<PV>(null);

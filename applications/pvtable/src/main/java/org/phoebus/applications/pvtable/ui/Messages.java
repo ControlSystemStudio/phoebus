@@ -15,6 +15,7 @@ public class Messages
     public static String Description;
     public static String CheckAll;
     public static String CheckAll_TT;
+    public static String Completion;
     public static String Delete;
     public static String Delete_TT;
     public static String DeleteMeasure;

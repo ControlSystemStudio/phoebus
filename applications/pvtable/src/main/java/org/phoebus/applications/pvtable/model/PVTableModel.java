@@ -149,7 +149,7 @@ public class PVTableModel implements PVTableItemListener
      */
     public PVTableItem addItem(final String pv_name)
     {
-        return addItem(pv_name, Settings.tolerance, null, "", false, null);
+        return addItem(new PVTableItem(pv_name, null, false, null, Settings.tolerance, null, this));
     }
 
     /** Add table item
