@@ -11,6 +11,7 @@
   	<module>logbook</module>
   	<module>probe</module>
   	<module>greetings</module>
+  	<module>pvtable</module>
   	<module>pvtree</module>
   	<module>logConfiguration</module>
   </modules>

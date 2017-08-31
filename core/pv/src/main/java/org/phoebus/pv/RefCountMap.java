@@ -9,6 +9,7 @@ package org.phoebus.pv;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -32,7 +33,7 @@ public class RefCountMap<K, E>
 
         private ReferencedEntry(final E entry)
         {
-            this.entry = entry;
+            this.entry = Objects.requireNonNull(entry);
         }
 
         /** @return Item */
@@ -60,7 +61,7 @@ public class RefCountMap<K, E>
         @Override
         public String toString()
         {
-            return entry.toString() + " (" + references + " references)";
+            return entry + " (" + references + " references)";
         }
     }
 

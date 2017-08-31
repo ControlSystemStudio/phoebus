@@ -37,6 +37,7 @@
     <delete dir="applications/greetings/${build}"/>
     <delete dir="applications/probe/${build}"/>
     <delete dir="applications/logbook/inmemory/${build}"/>
+    <delete dir="applications/pvtable/${build}"/>
     <delete dir="applications/pvtree/${build}"/>
     <delete dir="phoebus-product/${build}"/>
   </target>
@@ -58,7 +59,6 @@
     <javac srcdir="core/framework/${src}" destdir="core/framework/${classes}"/>
     <jar destfile="core/framework/${build}/framework-${version}.jar">
       <fileset dir="core/framework/${classes}"/>
-      <fileset dir="core/framework/${resources}"/>
     </jar>
   </target>
 
@@ -133,6 +133,20 @@
     </jar>
   </target>
 
+  <target name="core-ui-test" depends="core-ui">
+    <junit printsummary="withOutAndErr" haltonfailure="yes">
+      <classpath>
+        <fileset dir="dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement path="core/ui/${build}/ui-${version}.jar"/>
+      </classpath>
+      <batchtest>
+      	<zipfileset src="core/ui/${build}/ui-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+    </junit>
+  </target>
+
   <target name="core-ui-demo" depends="core-ui">
     <java classname="org.phoebus.ui.docking.DockingDemo"
           fork="true">
@@ -145,7 +159,7 @@
   <target name="core-all" depends="core-framework, core-logging, core-pv, core-types, core-ui">
   </target>
 
-  <target name="core-test" depends="core-pv-test">
+  <target name="core-test" depends="core-pv-test, core-ui-test">
   </target>
 	
   <target name="applications-greetings" depends="core-all">
@@ -176,6 +190,15 @@
     </jar>
   </target>
 
+  <target name="applications-pvtable" depends="core-all">
+    <mkdir dir="applications/pvtable/${classes}"/>
+    <javac srcdir="applications/pvtable/${src}" destdir="applications/pvtable/${classes}" classpathref="app-classpath"/>
+    <jar destfile="applications/pvtable/${build}/pvtable-${version}.jar">
+      <fileset dir="applications/pvtable/${classes}"/>
+      <fileset dir="applications/pvtable/${resources}"/>
+    </jar>
+  </target>
+
   <target name="applications-pvtree" depends="core-all">
     <mkdir dir="applications/pvtree/${classes}"/>
     <javac srcdir="applications/pvtree/${src}" destdir="applications/pvtree/${classes}" classpathref="app-classpath"/>
@@ -186,7 +209,7 @@
   </target>
 
 
-  <target name="compile" depends="core-all, applications-greetings, applications-probe, applications-logbook, applications-pvtree"
+  <target name="compile" depends="core-all, applications-greetings, applications-probe, applications-logbook, applications-pvtable, applications-pvtree"
           description="Compile all sources">
   </target>
 
