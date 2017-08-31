@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.diirt.vtype.VEnum;
 import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -19,6 +20,7 @@ import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,6 +32,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -178,38 +181,64 @@ public class PVTable extends BorderPane
         public void startEdit()
         {
             super.startEdit();
-
             if (! isEditing())
                 return;
-            System.out.println("Start Edit..");
-
-            // TODO Change from text field into combo for Enum-valued data
-            final TextField text_field = new TextField(getItem());
-            text_field.setOnAction(event ->
-            {
-                commitEdit(text_field.getText());
-                event.consume();
-            });
-            text_field.setOnKeyReleased(event ->
-            {
-                if (event.getCode() == KeyCode.ESCAPE)
-                {
-                    cancelEdit();
-                    event.consume();
-                }
-            });
 
             setText(null);
-            setGraphic(text_field);
-            text_field.selectAll();
-            text_field.requestFocus();
+
+            final TableItemProxy proxy = getTableView().getItems().get(getIndex());
+            final VType value = proxy.item.getValue();
+            if (value instanceof VEnum)
+            {
+                // Use combo for Enum-valued data
+                final VEnum enumerated = (VEnum) value;
+                final ComboBox<String> combo = new ComboBox<>();
+                combo.getItems().addAll(enumerated.getLabels());
+                combo.getSelectionModel().select(enumerated.getIndex());
+                combo.setOnAction(event ->
+                {
+                    // Need to write String, using the enum index
+                    commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
+                    event.consume();
+                });
+                combo.setOnKeyReleased(event ->
+                {
+                    if (event.getCode() == KeyCode.ESCAPE)
+                    {
+                        cancelEdit();
+                        event.consume();
+                    }
+                });
+                setGraphic(combo);
+                Platform.runLater(() -> combo.requestFocus());
+                Platform.runLater(() -> combo.show());
+            }
+            else
+            {
+                final TextField text_field = new TextField(getItem());
+                text_field.setOnAction(event ->
+                {
+                    commitEdit(text_field.getText());
+                    event.consume();
+                });
+                text_field.setOnKeyReleased(event ->
+                {
+                    if (event.getCode() == KeyCode.ESCAPE)
+                    {
+                        cancelEdit();
+                        event.consume();
+                    }
+                });
+                setGraphic(text_field);
+                text_field.selectAll();
+                text_field.requestFocus();
+            }
         }
 
         @Override
         public void cancelEdit()
         {
             super.cancelEdit();
-            System.out.println("Cancel Edit..");
             setText(getItem());
             setGraphic(null);
         }
