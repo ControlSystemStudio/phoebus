@@ -12,6 +12,7 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-logbook-inmemory"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-probe"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtree"/>
+  <classpathentry combineaccessrules="false" exported="true" kind="src" path="/logConfiguration"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-pvtable"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
