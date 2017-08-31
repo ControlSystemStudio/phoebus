@@ -16,4 +16,9 @@ public class Probe implements Application {
     public void stop() {
     }
 
+	@Override
+	public void open() {
+		
+	}
+
 }
