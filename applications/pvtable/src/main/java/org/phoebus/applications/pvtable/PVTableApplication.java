@@ -41,7 +41,7 @@ public class PVTableApplication
         {
             model.addItem("# Local");
             model.addItem("loc://x(42)");
-            model.addItem("loc://x(42)");
+            model.addItem("loc://pick<VEnum>(1, \"A\", \"B\", \"C\")");
             model.addItem("# Sim");
             model.addItem("sim://sine");
             model.addItem("sim://ramp");

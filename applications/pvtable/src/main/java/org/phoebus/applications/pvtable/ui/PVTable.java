@@ -26,6 +26,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
@@ -36,9 +38,11 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.DefaultStringConverter;
@@ -162,19 +166,63 @@ public class PVTable extends BorderPane
     }
 
     /** Table cell for 'value' column, enables/disables and indicates changed value */
-    private static class ValueTableCell extends TextFieldTableCell<TableItemProxy, String>
+    private static class ValueTableCell extends TableCell<TableItemProxy, String>
     {
+
         public ValueTableCell()
         {
-            super(new DefaultStringConverter());
+            getStyleClass().add("text-field-table-cell");
+        }
+
+        @Override
+        public void startEdit()
+        {
+            super.startEdit();
+
+            if (! isEditing())
+                return;
+            System.out.println("Start Edit..");
+
+            // TODO Change from text field into combo for Enum-valued data
+            final TextField text_field = new TextField(getItem());
+            text_field.setOnAction(event ->
+            {
+                commitEdit(text_field.getText());
+                event.consume();
+            });
+            text_field.setOnKeyReleased(event ->
+            {
+                if (event.getCode() == KeyCode.ESCAPE)
+                {
+                    cancelEdit();
+                    event.consume();
+                }
+            });
+
+            setText(null);
+            setGraphic(text_field);
+            text_field.selectAll();
+            text_field.requestFocus();
+        }
+
+        @Override
+        public void cancelEdit()
+        {
+            super.cancelEdit();
+            System.out.println("Cancel Edit..");
+            setText(getItem());
+            setGraphic(null);
         }
 
         @Override
         public void updateItem(final String value, final boolean empty)
         {
             super.updateItem(value, empty);
-            if (!empty)
+            if (empty)
+                setText(null);
+            else
             {
+                setText(value);
                 final TableItemProxy proxy = getTableView().getItems().get(getIndex());
                 setEditable(proxy.item.isWritable());
                 if (proxy.item.isChanged())
@@ -298,6 +346,24 @@ public class PVTable extends BorderPane
 
     private void createContextMenu()
     {
+        final MenuItem info = new MenuItem("Info", new ImageView(PVTableApplication.getIcon("pvtable.png")));
+        info.setOnAction(event ->
+        {
+            final Alert dialog = new Alert(AlertType.INFORMATION);
+            dialog.setTitle("PV Information");
+            dialog.setHeaderText("Details of PVs in marked table rows");
+            dialog.setContentText(table.getSelectionModel()
+                                       .getSelectedItems()
+                                       .stream()
+                                       .filter(proxy -> ! proxy.item.isComment())
+                                       .map(proxy -> proxy.item.toString())
+                                       .collect(Collectors.joining("\n")));
+            dialog.getDialogPane().setPrefWidth(800.0);
+            dialog.setResizable(true);
+            dialog.showAndWait();
+        });
+
+
         final MenuItem save = new MenuItem(Messages.SnapshotSelection, new ImageView(PVTableApplication.getIcon("snapshot.png")));
         save.setOnAction(event ->
         {
@@ -366,7 +432,10 @@ public class PVTable extends BorderPane
             dlg.promptAndHandle(number -> model.setCompletionTimeout(number.longValue()));
         });
 
-        final ContextMenu menu = new ContextMenu(save, restore, new SeparatorMenuItem(), add_row, remove_row, new SeparatorMenuItem(), tolerance, timeout);
+        final ContextMenu menu = new ContextMenu(info, new SeparatorMenuItem(),
+                                                 save, restore, new SeparatorMenuItem(),
+                                                 add_row, remove_row, new SeparatorMenuItem(),
+                                                 tolerance, timeout);
         table.setContextMenu(menu);
     }
 
