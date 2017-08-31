@@ -89,20 +89,6 @@ public class PVTableModel implements PVTableItemListener
         return items;
     }
 
-    /** @return Returns number of items (rows) in model. */
-    public int getItemCount()
-    {
-        return items.size();
-    }
-
-    /** @return Returns item (row). */
-    public PVTableItem getItem(final int row)
-    {
-        if (row >= 0 && row < items.size())
-            return items.get(row);
-        return null;
-    }
-
     /** @return Timeout in seconds used for restoring PVs with completion */
     public long getCompletionTimeout()
     {

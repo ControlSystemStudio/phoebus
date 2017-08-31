@@ -34,8 +34,6 @@ import org.phoebus.applications.pvtable.Settings;
 @SuppressWarnings("nls")
 public class VTypeHelper
 {
-    // TODO Move into core/pv
-
     /** Decode a {@link VType}'s time stamp
      *
      *  @param value Value to decode
@@ -172,7 +170,7 @@ public class VTypeHelper
             return buf.toString();
         }
         if (value == null)
-            return "null";
+            return "";
         return value.toString();
     }
 }

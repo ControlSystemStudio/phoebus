@@ -47,6 +47,7 @@ public class PVTableApplication
             model.addItem("sim://ramp");
             model.addItem("#");
         }
+        model.addItem("DTL_LLRF:IOC1:Load");
         final PVTable table = new PVTable(model);
 
 
