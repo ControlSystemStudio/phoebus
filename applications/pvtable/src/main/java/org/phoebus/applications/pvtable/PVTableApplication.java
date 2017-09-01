@@ -7,11 +7,14 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.ui.PVTable;
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
@@ -37,19 +40,27 @@ public class PVTableApplication
 
     public void start(final DockPane dock_pane)
     {
+        final List<ProcessVariable> pvs = new ArrayList<>();
         for (int i=1; i<=6; ++i)
         {
-            model.addItem("# Local");
-            model.addItem("loc://x(42)");
-            model.addItem("loc://pick<VEnum>(1, \"A\", \"B\", \"C\")");
-            model.addItem("# Sim");
-            model.addItem("sim://sine");
-            model.addItem("sim://ramp");
-            model.addItem("#");
+            pvs.add(new ProcessVariable("# Local"));
+            pvs.add(new ProcessVariable("loc://x(42)"));
+            pvs.add(new ProcessVariable("loc://pick<VEnum>(1, \"A\", \"B\", \"C\")"));
+            pvs.add(new ProcessVariable("# Sim"));
+            pvs.add(new ProcessVariable("sim://sine"));
+            pvs.add(new ProcessVariable("sim://ramp"));
+            pvs.add(new ProcessVariable("#"));
         }
-        model.addItem("DTL_LLRF:IOC1:Load");
-        final PVTable table = new PVTable(model);
+        pvs.add(new ProcessVariable("DTL_LLRF:IOC1:Load"));
+        
+        start(dock_pane, pvs);
+    }
 
+    public void start(final DockPane dock_pane, final List<ProcessVariable> pvs)
+    {
+        for (ProcessVariable pv : pvs)
+            model.addItem(pv.getName());
+        final PVTable table = new PVTable(model);
 
         final BorderPane layout = new BorderPane(table);
         final DockItem tab = new DockItem(getName(), layout);
