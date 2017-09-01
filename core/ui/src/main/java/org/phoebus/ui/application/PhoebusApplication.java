@@ -1,10 +1,11 @@
 package org.phoebus.ui.application;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.framework.workbench.MenubarEntryService;
+import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockStage;
@@ -35,9 +36,7 @@ public class PhoebusApplication extends Application {
         final ToolBar toolBar = createToolbar(stage);
 
         final DockItem welcome = new DockItem("Welcome",
-                                              new BorderPane(
-                                                   new Label("Welcome to Phoebus!\n\n" +
-                                                             "Try pushing the buttons in the toolbar")));
+                new BorderPane(new Label("Welcome to Phoebus!\n\n" + "Try pushing the buttons in the toolbar")));
 
         DockStage.configureStage(stage, welcome);
         final BorderPane layout = DockStage.getLayout(stage);
@@ -48,39 +47,37 @@ public class PhoebusApplication extends Application {
         stage.show();
     }
 
-    private MenuBar createMenu(final Stage stage)
-    {
+    private MenuBar createMenu(final Stage stage) {
         final MenuBar menuBar = new MenuBar();
 
         // File
         final MenuItem open = new MenuItem("Open");
-        open.setOnAction(event ->
-        {
-            final Alert todo = new Alert(AlertType.INFORMATION,
-                                         "Will eventually open file browser etc.",
-                                         ButtonType.OK);
+        open.setOnAction(event -> {
+            final Alert todo = new Alert(AlertType.INFORMATION, "Will eventually open file browser etc.",
+                    ButtonType.OK);
             todo.setHeaderText("File/Open");
             todo.showAndWait();
         });
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event ->
-        {
+        exit.setOnAction(event -> {
             stage.close();
         });
         final Menu file = new Menu("File", null, open, exit);
         menuBar.getMenus().add(file);
 
         // Contributions
-        MenubarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
+        Menu applicationsMenu = new Menu("Applications");
+        MenuEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
             Menu m = new Menu(entry.getName());
             m.setOnAction((event) -> {
                 try {
-                    entry.getActions().call();
+                    entry.call();
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
                 }
             });
-            menuBar.getMenus().add(m);
+            applicationsMenu.getItems().add(m);
+            menuBar.getMenus().add(applicationsMenu);
         });
 
         // Help
@@ -90,8 +87,7 @@ public class PhoebusApplication extends Application {
         return menuBar;
     }
 
-    private ToolBar createToolbar(final Stage stage)
-    {
+    private ToolBar createToolbar(final Stage stage) {
         final ToolBar toolBar = new ToolBar();
 
         // Contributed Entries
@@ -103,8 +99,7 @@ public class PhoebusApplication extends Application {
             // Want to handle button presses with 'Control' in different way,
             // but action event does not carry key modifier information.
             // -> Add separate event filter to remember the 'Control' state.
-            button.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
-            {
+            button.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
                 open_new.set(event.isControlDown());
                 // Still allow the button to react by 'arming' it
                 button.arm();
@@ -114,8 +109,7 @@ public class PhoebusApplication extends Application {
                 try {
                     // Future<?> future = executor.submit(entry.getActions());
 
-                    if (open_new.get())
-                    {   // Invoke with new stage
+                    if (open_new.get()) { // Invoke with new stage
                         final Stage new_stage = new Stage();
                         DockStage.configureStage(new_stage);
                         entry.call(new_stage);
@@ -123,8 +117,7 @@ public class PhoebusApplication extends Application {
                         new_stage.setX(stage.getX() + 10.0);
                         new_stage.setY(stage.getY() + 10.0);
                         new_stage.show();
-                    }
-                    else
+                    } else
                         entry.call(stage);
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Error invoking toolbar " + entry.getName(), ex);

@@ -13,23 +13,23 @@ import org.phoebus.framework.spi.MenuEntry;
  * @author Kunal Shroff
  *
  */
-public class MenubarEntryService {
+public class MenuEntryService {
 
-    private static MenubarEntryService menubarEntryService;
+    private static MenuEntryService menuEntryService;
     private ServiceLoader<MenuEntry> loader;
 
     private List<MenuEntry> menuEntries = Collections.emptyList();
 
-    private MenubarEntryService() {
+    private MenuEntryService() {
         loader = ServiceLoader.load(MenuEntry.class);
         menuEntries = loader.stream().map(Provider::get).collect(Collectors.toList());
     }
 
-    public static synchronized MenubarEntryService getInstance() {
-        if (menubarEntryService == null) {
-            menubarEntryService = new MenubarEntryService();
+    public static synchronized MenuEntryService getInstance() {
+        if (menuEntryService == null) {
+            menuEntryService = new MenuEntryService();
         }
-        return menubarEntryService;
+        return menuEntryService;
     }
 
     /**
