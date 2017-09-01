@@ -275,11 +275,11 @@ public class PVTable extends BorderPane
                     setStyle(null);
                 else
                 {
-	                setEditable(proxy.item.isWritable());
-	                if (proxy.item.isChanged())
-	                    setStyle(changed_style);
-	                else
-	                    setStyle(null);
+                    setEditable(proxy.item.isWritable());
+                    if (proxy.item.isChanged())
+                        setStyle(changed_style);
+                    else
+                        setStyle(null);
                 }
             }
         }
