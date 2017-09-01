@@ -38,7 +38,7 @@ public class PVTableApplication
         return NAME;
     }
 
-    public void start(final DockPane dock_pane)
+    public void start()
     {
         final List<ProcessVariable> pvs = new ArrayList<>();
         for (int i=1; i<=6; ++i)
@@ -53,10 +53,10 @@ public class PVTableApplication
         }
         pvs.add(new ProcessVariable("DTL_LLRF:IOC1:Load"));
         
-        start(dock_pane, pvs);
+        start(pvs);
     }
 
-    public void start(final DockPane dock_pane, final List<ProcessVariable> pvs)
+    public void start(final List<ProcessVariable> pvs)
     {
         for (ProcessVariable pv : pvs)
             model.addItem(pv.getName());
@@ -64,7 +64,7 @@ public class PVTableApplication
 
         final BorderPane layout = new BorderPane(table);
         final DockItem tab = new DockItem(getName(), layout);
-        dock_pane.addTab(tab);
+        DockPane.getActiveDockPane().addTab(tab);
 
         tab.setOnClosed(event -> stop());
     }

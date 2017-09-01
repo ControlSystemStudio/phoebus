@@ -50,13 +50,11 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     @Override
     public ProcessVariable callWithSelection(final Stage parent_stage, final Selection selection) throws Exception
     {
-        final DockPane dock_pane = DockStage.getDockPane(parent_stage);
-
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
         {
             final PVTree pv_tree = new PVTree();
-            pv_tree.start(dock_pane);
+            pv_tree.start();
             pv_tree.setPVName(pv.getName());
         }
         return null;

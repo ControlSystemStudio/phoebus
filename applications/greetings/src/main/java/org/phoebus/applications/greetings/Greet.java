@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.phoebus.framework.spi.ToolbarEntry;
 import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.docking.DockPane;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TitledPane;
@@ -35,7 +35,7 @@ public class Greet implements ToolbarEntry {
             mainLayout = loader.load();
 
             final DockItem tab = new DockItem("Greetings", mainLayout);
-            DockStage.getDockPane(stage).addTab(tab);
+            DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             e.printStackTrace();
         }

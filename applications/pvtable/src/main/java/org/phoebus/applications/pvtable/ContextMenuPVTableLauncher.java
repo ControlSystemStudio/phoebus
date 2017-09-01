@@ -50,10 +50,8 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     @Override
     public ProcessVariable callWithSelection(final Stage parent_stage, final Selection selection) throws Exception
     {
-        final DockPane dock_pane = DockStage.getDockPane(parent_stage);
-
         final PVTableApplication pv_table = new PVTableApplication();
-        pv_table.start(dock_pane, selection.getSelections());
+        pv_table.start(selection.getSelections());
         return null;
     }
 }

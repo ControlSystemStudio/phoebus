@@ -19,7 +19,7 @@ import javafx.scene.layout.Border;
  *
  *  <p>Implemented as {@link TabPane},
  *  but this might change so only methods
- *  declared in here should be invoked
+ *  declared in here should be invoked.
  *
  *  @author Kay Kasemir
  */
@@ -28,6 +28,14 @@ public class DockPane extends TabPane
 {
     /** Logger for all docking related messages */
     public static final Logger logger = Logger.getLogger(DockPane.class.getName());
+    
+    private static DockPane active = null;
+
+    /** @return The last known active dock pane */
+    public static DockPane getActiveDockPane()
+    {
+        return active;
+    }
 
     // Only accessible within this package (DockStage)
     DockPane(final DockItem... tabs)
@@ -39,6 +47,16 @@ public class DockPane extends TabPane
         setOnDragEntered(this::handleDragEntered);
         setOnDragExited(this::handleDragExited);
         setOnDragDropped(this::handleDrop);
+        
+        // This pane, just opened, is the active one for now
+        active = this;
+
+        // Track changes in active pane
+        getSelectionModel().selectedItemProperty().addListener((p, old, tab) ->
+        {
+            final DockItem item = (DockItem) tab;
+            active = item == null  ?  null  :  (DockPane)item.getTabPane();
+        });
     }
 
     /** @param tabs One or more tabs to add */
