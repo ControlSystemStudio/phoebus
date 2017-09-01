@@ -125,6 +125,9 @@
      <src path="core/ui/${test}"/>
      <classpath>
         <pathelement path="core/framework/${build}/framework-${version}.jar"/>
+        <fileset dir="dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
       </classpath>
     </javac>
     <jar destfile="core/ui/${build}/ui-${version}.jar">
