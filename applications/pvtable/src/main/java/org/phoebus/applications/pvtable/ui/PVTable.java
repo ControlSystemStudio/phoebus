@@ -7,9 +7,13 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
+import static org.phoebus.applications.pvtable.PVTableApplication.logger;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.diirt.vtype.VEnum;
 import org.diirt.vtype.VType;
@@ -18,9 +22,14 @@ import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.framework.workbench.ContextMenuService;
 import org.phoebus.ui.dialog.NumericInputDialog;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,6 +39,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -48,6 +58,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.converter.DefaultStringConverter;
 
 /** PV Table and its toolbar
@@ -162,9 +174,14 @@ public class PVTable extends BorderPane
             if (empty)
                 return;
             final TableItemProxy proxy = getTableView().getItems().get(getIndex());
-            final VType value = proxy.item.getValue();
-            if (value != null)
-                setStyle(alarm_styles[VTypeHelper.getSeverity(value).ordinal()]);
+            if (proxy == TableItemProxy.NEW_ITEM)
+                setStyle(null);
+            else
+            {
+                final VType value = proxy.item.getValue();
+                if (value != null)
+                    setStyle(alarm_styles[VTypeHelper.getSeverity(value).ordinal()]);
+            }
         }
     }
 
@@ -195,6 +212,7 @@ public class PVTable extends BorderPane
                 final ComboBox<String> combo = new ComboBox<>();
                 combo.getItems().addAll(enumerated.getLabels());
                 combo.getSelectionModel().select(enumerated.getIndex());
+                
                 combo.setOnAction(event ->
                 {
                     // Need to write String, using the enum index
@@ -253,11 +271,16 @@ public class PVTable extends BorderPane
             {
                 setText(value);
                 final TableItemProxy proxy = getTableView().getItems().get(getIndex());
-                setEditable(proxy.item.isWritable());
-                if (proxy.item.isChanged())
-                    setStyle(changed_style);
-                else
+                if (proxy == TableItemProxy.NEW_ITEM)
                     setStyle(null);
+                else
+                {
+	                setEditable(proxy.item.isWritable());
+	                if (proxy.item.isChanged())
+	                    setStyle(changed_style);
+	                else
+	                    setStyle(null);
+                }
             }
         }
     }
@@ -309,10 +332,22 @@ public class PVTable extends BorderPane
         this.model = model;
         table = new TableView<>();
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-        // Select complete rows
-        table.getSelectionModel().setCellSelectionEnabled(false);
-        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        // Select complete rows
+        final TableViewSelectionModel<TableItemProxy> table_sel = table.getSelectionModel();
+        table_sel.setCellSelectionEnabled(false);
+        table_sel.setSelectionMode(SelectionMode.MULTIPLE);
+
+        // Publish selected PV
+        final InvalidationListener sel_changed = change ->
+        {
+            final List<ProcessVariable> pvs = getSelectedItems()
+                 .map(proxy -> new ProcessVariable(proxy.item.getName()))
+                 .collect(Collectors.toList());
+            SelectionService.getInstance().setSelection("PV Table", pvs);
+        };
+        table_sel.getSelectedItems().addListener(sel_changed);
+        
         createTableColumns();
 
         table.setEditable(true);
@@ -328,6 +363,15 @@ public class PVTable extends BorderPane
         createContextMenu();
 
         model.addListener(model_listener);
+    }
+
+    /** @return Stream of selected items (only PVs, no comment etc.) */
+    private Stream<TableItemProxy> getSelectedItems()
+    {
+        return table.getSelectionModel()
+                    .getSelectedItems()
+                    .stream()
+                    .filter(proxy -> proxy != TableItemProxy.NEW_ITEM  &&  ! proxy.item.isComment());
     }
 
     private void setItemsFromModel()
@@ -375,26 +419,19 @@ public class PVTable extends BorderPane
 
     private void createContextMenu()
     {
-        final MenuItem info = new MenuItem("Info", new ImageView(PVTableApplication.getIcon("pvtable.png")));
-        info.setOnAction(event ->
+        final MenuItem info = createMenuItem("Info", "pvtable.png", event ->
         {
             final Alert dialog = new Alert(AlertType.INFORMATION);
             dialog.setTitle("PV Information");
             dialog.setHeaderText("Details of PVs in marked table rows");
-            dialog.setContentText(table.getSelectionModel()
-                                       .getSelectedItems()
-                                       .stream()
-                                       .filter(proxy -> ! proxy.item.isComment())
-                                       .map(proxy -> proxy.item.toString())
-                                       .collect(Collectors.joining("\n")));
+            dialog.setContentText(getSelectedItems().map(proxy -> proxy.item.toString())
+                                                    .collect(Collectors.joining("\n")));
             dialog.getDialogPane().setPrefWidth(800.0);
             dialog.setResizable(true);
             dialog.showAndWait();
         });
 
-
-        final MenuItem save = new MenuItem(Messages.SnapshotSelection, new ImageView(PVTableApplication.getIcon("snapshot.png")));
-        save.setOnAction(event ->
+        final MenuItem save = createMenuItem(Messages.SnapshotSelection, "snapshot.png", event ->
         {
             model.save(table.getSelectionModel()
                             .getSelectedItems()
@@ -403,8 +440,7 @@ public class PVTable extends BorderPane
                             .collect(Collectors.toList()));
         });
 
-        final MenuItem restore = new MenuItem(Messages.RestoreSelection, new ImageView(PVTableApplication.getIcon("restore.png")));
-        restore.setOnAction(event ->
+        final MenuItem restore = createMenuItem(Messages.RestoreSelection, "restore.png", event ->
         {
             model.restore(table.getSelectionModel()
                                .getSelectedItems()
@@ -413,8 +449,7 @@ public class PVTable extends BorderPane
                                .collect(Collectors.toList()));
         });
 
-        final MenuItem add_row = new MenuItem(Messages.Insert, new ImageView(PVTableApplication.getIcon("add.gif")));
-        add_row.setOnAction(event ->
+        final MenuItem add_row = createMenuItem(Messages.Insert, "add.gif", event ->
         {
             // Copy selection as it will change when we add to the model
             final List<TableItemProxy> selected = new ArrayList<>(table.getSelectionModel().getSelectedItems());
@@ -426,8 +461,7 @@ public class PVTable extends BorderPane
             table.getSelectionModel().select(last);
         });
 
-        final MenuItem remove_row = new MenuItem(Messages.Delete, new ImageView(PVTableApplication.getIcon("delete.gif")));
-        remove_row.setOnAction(event ->
+        final MenuItem remove_row = createMenuItem(Messages.Delete, "delete.gif", event ->
         {
             // Copy selection as it will change
             final List<TableItemProxy> selected = new ArrayList<>(table.getSelectionModel().getSelectedItems());
@@ -435,8 +469,7 @@ public class PVTable extends BorderPane
                 model.removeItem(proxy.item);
         });
 
-        final MenuItem tolerance = new MenuItem(Messages.Tolerance, new ImageView(PVTableApplication.getIcon("pvtable.png")));
-        tolerance.setOnAction(event ->
+        final MenuItem tolerance = createMenuItem(Messages.Tolerance, "pvtable.png", event ->
         {
             final TableItemProxy proxy = table.getSelectionModel().getSelectedItem();
             if (proxy == null  ||   proxy.item.isComment())
@@ -449,8 +482,7 @@ public class PVTable extends BorderPane
             dlg.promptAndHandle(number -> proxy.item.setTolerance(number));
         });
 
-        final MenuItem timeout = new MenuItem(Messages.Timeout, new ImageView(PVTableApplication.getIcon("timeout.png")));
-        timeout.setOnAction(event ->
+        final MenuItem timeout = createMenuItem(Messages.Timeout, "timeout.png", event ->
         {
             final NumericInputDialog dlg = new NumericInputDialog(Messages.Timeout,
                     "Enter the timeout in seconds used\n" +
@@ -461,11 +493,46 @@ public class PVTable extends BorderPane
             dlg.promptAndHandle(number -> model.setCompletionTimeout(number.longValue()));
         });
 
-        final ContextMenu menu = new ContextMenu(info, new SeparatorMenuItem(),
-                                                 save, restore, new SeparatorMenuItem(),
-                                                 add_row, remove_row, new SeparatorMenuItem(),
-                                                 tolerance, timeout);
+        final ContextMenu menu = new ContextMenu();
+
+        table.setOnContextMenuRequested(event ->
+        {
+            // Start with fixed entries
+            menu.getItems().clear();
+            menu.getItems().addAll(info, new SeparatorMenuItem(),
+                    save, restore, new SeparatorMenuItem(),
+                    add_row, remove_row, new SeparatorMenuItem(),
+                    tolerance, timeout, new SeparatorMenuItem());
+            //Add PV entries
+            for (ContextMenuEntry entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
+            {
+                final MenuItem item = new MenuItem(entry.getName());
+                item.setOnAction(e ->
+                {
+                    try
+                    {
+                        final Window window = table.getScene().getWindow();
+                        final Stage stage = window instanceof Stage ? (Stage) window : null;
+                        entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot invoke context menu", ex);
+                    }
+                });
+                menu.getItems().add(item);
+            }
+        });
         table.setContextMenu(menu);
+    }
+
+    private MenuItem createMenuItem(final String label, final String icon,
+                                    final EventHandler<ActionEvent> handler)
+    {
+        final MenuItem item = new MenuItem(label,
+                                           new ImageView(PVTableApplication.getIcon(icon)));
+        item.setOnAction(handler);
+        return item;
     }
 
     private void createTableColumns()
