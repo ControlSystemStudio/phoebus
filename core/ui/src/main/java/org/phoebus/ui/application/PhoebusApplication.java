@@ -68,7 +68,7 @@ public class PhoebusApplication extends Application {
         // Contributions
         Menu applicationsMenu = new Menu("Applications");
         MenuEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
-            Menu m = new Menu(entry.getName());
+            MenuItem m = new MenuItem(entry.getName());
             m.setOnAction((event) -> {
                 try {
                     entry.call();

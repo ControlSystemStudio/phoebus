@@ -18,20 +18,21 @@ import javafx.stage.Stage;
  * @author Kunal Shroff
  */
 public class LoggingConfigurationMenuEntry implements MenuEntry {
-    
+
     @Override
     public String getName() {
         return LoggingConfiguration.NAME;
     }
 
     /**
-     * TODO needs some way of figuring out which stage to open on 
+     * TODO needs some way of figuring out which stage to open on
      */
     @Override
     public Void call() throws Exception {
         final Stage new_stage = new Stage();
         DockStage.configureStage(new_stage);
         LoggingConfiguration.open(DockStage.getDockPane(new_stage));
+        new_stage.show();
         return null;
     }
 
