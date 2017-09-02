@@ -37,6 +37,12 @@ public class DockPane extends TabPane
         return active;
     }
 
+    // Called by DockStage within pachage
+    static void setActiveDockPane(final DockPane pane)
+    {
+        active = pane;
+    }
+
     // Only accessible within this package (DockStage)
     DockPane(final DockItem... tabs)
     {
@@ -51,7 +57,7 @@ public class DockPane extends TabPane
         // This pane, just opened, is the active one for now
         active = this;
 
-        // Track changes in active pane
+        // Track changes of active tab, remember its pane as active
         getSelectionModel().selectedItemProperty().addListener((p, old, tab) ->
         {
             final DockItem item = (DockItem) tab;
@@ -111,5 +117,11 @@ public class DockPane extends TabPane
         }
         event.setDropCompleted(true);
         event.consume();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "DockPane " + getTabs();
     }
 }
