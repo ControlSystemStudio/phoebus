@@ -7,15 +7,12 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.model;
 
-import static org.phoebus.applications.pvtable.PVTableApplication.logger;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.applications.pvtable.Settings;
@@ -32,6 +29,7 @@ import javafx.application.Platform;
  *
  *  @author Kay Kasemir, A. PHILIPPE L. PHILIPPE GANIL/FRANCE
  */
+@SuppressWarnings("nls")
 public class PVTableModel implements PVTableItemListener
 {
     /** Period for update checks
@@ -45,15 +43,10 @@ public class PVTableModel implements PVTableItemListener
 
     final private List<PVTableModelListener> listeners = new ArrayList<PVTableModelListener>();
 
-    final private Timer update_timer = new Timer("PVTableUpdate", true); //$NON-NLS-1$
+    final private Timer update_timer = new Timer("PVTableUpdate", true);
 
     /** @see #performUpdates() */
     private Set<PVTableItem> changed_items = new HashSet<PVTableItem>();
-
-    private Configuration config = null;
-
-    /** The number of time the measure was done */
-    private int nbMeasure = 1;
 
     /** Timeout in seconds used for restoring PVs with completion */
     private long completion_timeout_seconds = 60;
@@ -101,85 +94,23 @@ public class PVTableModel implements PVTableItemListener
         completion_timeout_seconds = seconds;
     }
 
-    /**
-     * @return config null if no config
-     */
-    public Configuration getConfig() {
-        if (config == null) {
-            return null;
-        }
-        return config;
-    }
-
-    /**
-     * Set nbMeasure
-     *
-     * @param nbMeasure
-     */
-    public void setNbMeasure(int nbMeasure) {
-        this.nbMeasure = nbMeasure;
-    }
-
-    /**
-     * get nbMeasure
-     *
-     * @return
-     */
-    public int getNbMeasure() {
-        return this.nbMeasure;
-    }
-
     /** Add table item
      *  @param pv_name PV Name
      *  @return Added item
      */
     public PVTableItem addItem(final String pv_name)
     {
-        return addItem(new PVTableItem(pv_name, null, false, null, Settings.tolerance, null, this));
+        return addItem(new PVTableItem(pv_name, Settings.tolerance, this));
     }
 
     /** Add table item
-     *
-     *  @param pv_name
-     *  @param tolerance
-     *  @param saved
-     *  @param time
-     *  @param conf
-     *  @return added item
-     */
-    public PVTableItem addItem(final String pv_name, final double tolerance, final SavedValue saved, final String time,
-                               final boolean conf, final Measure measure)
-    {
-        return addItem(new PVTableItem(pv_name, time, conf, measure, tolerance, saved, this));
-    }
-
-    /** Add table item Check if the item is a conf or not
      *
      *  @param item Item to add
      *  @return Added item
      */
     public PVTableItem addItem(final PVTableItem item)
     {
-        // A conf already exist
-        if (item.isMeasureHeader() && !items.contains(item))
-            this.nbMeasure++;
         items.add(item);
-        // Add a conf header
-        this.isConfHeaderToAdd(item);
-        // Add an item witch is not a conf header
-        // and there are no conf anymore
-        if (config != null)
-        {
-            // If the item is not the first one in the table, that a conf
-            // already exist and that the item
-            // above it belongs to the conf, add it to the conf.
-            if (items.indexOf(item) > 0 && items.get(items.indexOf(item) - 1).isConf() == true
-                    && !item.isMeasureHeader())
-            {
-                config.addItem(item);
-                item.setConf(true);
-            }
-        }
         for (PVTableModelListener listener : listeners)
             listener.modelChanged();
         return item;
@@ -193,7 +124,7 @@ public class PVTableModel implements PVTableItemListener
      */
     public PVTableItem addItemAbove(final PVTableItem item, final String pv_name)
     {
-        return addItemAbove(item, new PVTableItem(pv_name, Settings.tolerance, null, this));
+        return addItemAbove(item, new PVTableItem(pv_name, Settings.tolerance, this));
     }
 
     /** Add a new item above the selected row. And check if this new item is
@@ -210,20 +141,6 @@ public class PVTableModel implements PVTableItemListener
 
         final int index = Math.max(0, items.indexOf(item));
         items.add(index, newItem);
-        // Add an item witch is not a conf header
-        // and there are no conf anymore
-        if (config != null)
-        {
-            // If the item is not the first one in the table, that a conf
-            // already exist and that the item
-            // above it belongs to the conf, add it to the conf.
-            if (items.indexOf(newItem) > 0 && items.get(items.indexOf(newItem) - 1).isConf() == true
-                    && !newItem.isMeasureHeader())
-            {
-                config.addItem(newItem);
-                newItem.setConf(true);
-            }
-        }
         for (PVTableModelListener listener : listeners)
             listener.modelChanged();
         return newItem;
@@ -236,14 +153,6 @@ public class PVTableModel implements PVTableItemListener
     public void removeItem(final PVTableItem item)
     {
         item.dispose();
-        if (item.isConfHeader()) {
-            // for each config item the item confItem is remove from the conf.
-            for (PVTableItem confItem : config.getItems())
-                confItem.setConf(false);
-            config = null;
-        }
-        if (item.isConf())
-            config.removeItem(item);
         items.remove(item);
         for (PVTableModelListener listener : listeners)
             listener.modelChanged();
@@ -288,48 +197,6 @@ public class PVTableModel implements PVTableItemListener
         });
     }
 
-    /**
-     * Check if the item is a confHeader, if a configuration already exist and
-     * create it if not.
-     *
-     * @param item
-     */
-    public void isConfHeaderToAdd(PVTableItem item)
-    {
-
-        if (item.isConfHeader()) {
-            // If doesn't exist any conf
-            if (config == null) {
-                // Create the conf
-                config = new Configuration(item);
-                // If rows below, add them to conf
-                int indexHeader = items.indexOf(item);
-                for (int i = indexHeader; i < items.size(); i++) {
-                    if (items.get(i).isMeasureHeader() == false && items.get(i).isMeasure() == false) {
-                        items.get(i).setConf(true);
-                        config.addItem(items.get(i));
-                    }
-                }
-            } else {
-                for (PVTableItem i : items) {
-                    if (i.isConfHeader()) {
-                        logger.log(Level.WARNING, "Cannot add more than one config header");
-                        item.updateName(item.getName());
-                        return;
-                    }
-                }
-                config = new Configuration(item);
-                // If rows below, add them to conf
-                int indexHeader = items.indexOf(item);
-                for (int i = indexHeader; items.get(items.indexOf(item)).isMeasure() == false
-                        && i < items.size(); i++) {
-                    items.get(i).setConf(true);
-                    config.addItem(items.get(i));
-                }
-            }
-        }
-    }
-
     /** {@inheritDoc} */
     @Override
     public void tableItemSelectionChanged(final PVTableItem item)
@@ -343,7 +210,6 @@ public class PVTableModel implements PVTableItemListener
     @Override
     public void tableItemChanged(final PVTableItem item)
     {
-        isConfHeaderToAdd(item);
         synchronized (changed_items)
         {
             changed_items.add(item);
@@ -377,11 +243,6 @@ public class PVTableModel implements PVTableItemListener
             listener.tableItemsChanged();
             listener.modelChanged();
         }
-    }
-
-    public void saveConf()
-    {
-        save(config.getItems());
     }
 
     /** Restore saved values for all checked items */

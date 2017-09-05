@@ -25,6 +25,7 @@ import javafx.scene.layout.BorderPane;
 /** PV Table Application
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PVTableApplication
 {
     public static final Logger logger = Logger.getLogger(PVTableApplication.class.getPackageName());
@@ -52,7 +53,7 @@ public class PVTableApplication
             pvs.add(new ProcessVariable("#"));
         }
         pvs.add(new ProcessVariable("DTL_LLRF:IOC1:Load"));
-        
+
         start(pvs);
     }
 
