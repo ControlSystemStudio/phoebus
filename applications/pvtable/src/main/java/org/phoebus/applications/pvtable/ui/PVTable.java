@@ -556,7 +556,14 @@ public class PVTable extends BorderPane
             if (proxy == TableItemProxy.NEW_ITEM)
                 model.addItem(event.getNewValue());
             else
+            {
                 proxy.item.updateName(event.getNewValue());
+                proxy.update(proxy.item);
+                // Changing the name from a comment to a PV or back
+                // means that the 'selected', 'completion' checkboxes
+                // need to show/hide -> Trigger complete update
+                table.refresh();
+            }
         });
         table.getColumns().add(col);
 
