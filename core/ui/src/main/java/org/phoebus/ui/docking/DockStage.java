@@ -53,6 +53,13 @@ public class DockStage
             logger.log(Level.WARNING, "Cannot set application icon", ex);
         }
 
+        // Track active pane via focus
+        stage.focusedProperty().addListener((prop, old, focus) ->
+        {
+            if (focus)
+                DockPane.setActiveDockPane(tab_pane);
+        });
+
         return getDockPane(stage);
     }
 

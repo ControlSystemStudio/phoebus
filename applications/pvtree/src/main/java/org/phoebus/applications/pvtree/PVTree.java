@@ -45,7 +45,7 @@ public class PVTree
         return NAME;
     }
 
-    public void start(final DockPane dock_pane)
+    public void start()
     {
         final Label label = new Label(Messages.PV_Label);
         pv_name.setOnAction(event -> setPVName(pv_name.getText()));
@@ -84,7 +84,7 @@ public class PVTree
         layout.setTop(top);
 
         final DockItem tab = new DockItem(getName(), layout);
-        dock_pane.addTab(tab);
+        DockPane.getActiveDockPane().addTab(tab);
 
         tab.setOnClosed(event -> stop());
     }

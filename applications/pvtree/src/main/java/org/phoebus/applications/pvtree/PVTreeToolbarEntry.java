@@ -8,7 +8,6 @@
 package org.phoebus.applications.pvtree;
 
 import org.phoebus.framework.spi.ToolbarEntry;
-import org.phoebus.ui.docking.DockStage;
 
 import javafx.stage.Stage;
 
@@ -27,6 +26,6 @@ public class PVTreeToolbarEntry implements ToolbarEntry
     @Override
     public void call(final Stage stage) throws Exception
     {
-        new PVTree().start(DockStage.getDockPane(stage));
+        new PVTree().start();
     }
 }
