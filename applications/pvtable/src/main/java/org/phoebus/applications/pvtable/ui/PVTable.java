@@ -162,9 +162,14 @@ public class PVTable extends BorderPane
             if (empty)
                 return;
             final TableItemProxy proxy = getTableView().getItems().get(getIndex());
-            final VType value = proxy.item.getValue();
-            if (value != null)
-                setStyle(alarm_styles[VTypeHelper.getSeverity(value).ordinal()]);
+            if (proxy == TableItemProxy.NEW_ITEM)
+                setStyle(null);
+            else
+            {
+                final VType value = proxy.item.getValue();
+                if (value != null)
+                    setStyle(alarm_styles[VTypeHelper.getSeverity(value).ordinal()]);
+            }
         }
     }
 
@@ -253,11 +258,19 @@ public class PVTable extends BorderPane
             {
                 setText(value);
                 final TableItemProxy proxy = getTableView().getItems().get(getIndex());
-                setEditable(proxy.item.isWritable());
-                if (proxy.item.isChanged())
-                    setStyle(changed_style);
-                else
+                if (proxy == TableItemProxy.NEW_ITEM)
+                {
+                    setEditable(false);
                     setStyle(null);
+                }
+                else
+                {
+                    setEditable(proxy.item.isWritable());
+                    if (proxy.item.isChanged())
+                        setStyle(changed_style);
+                    else
+                        setStyle(null);
+                }
             }
         }
     }
@@ -328,6 +341,8 @@ public class PVTable extends BorderPane
         createContextMenu();
 
         model.addListener(model_listener);
+
+        // TODO Allow 'dropping' PV names
     }
 
     private void setItemsFromModel()
@@ -384,7 +399,7 @@ public class PVTable extends BorderPane
             dialog.setContentText(table.getSelectionModel()
                                        .getSelectedItems()
                                        .stream()
-                                       .filter(proxy -> ! proxy.item.isComment())
+                                       .filter(proxy -> proxy != TableItemProxy.NEW_ITEM  &&  ! proxy.item.isComment())
                                        .map(proxy -> proxy.item.toString())
                                        .collect(Collectors.joining("\n")));
             dialog.getDialogPane().setPrefWidth(800.0);
