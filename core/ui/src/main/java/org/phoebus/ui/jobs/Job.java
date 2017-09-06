@@ -7,6 +7,10 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.util.logging.Level;
+
 /** A Job
  *
  *  <p>A Job is created and executed by the {@link JobManager}
@@ -16,7 +20,7 @@ package org.phoebus.ui.jobs;
 @SuppressWarnings("nls")
 public class Job
 {
-    private final JobMonitor monitor = new JobMonitor();
+    private final JobMonitor monitor = new JobMonitor(this);
     private final String name;
     private final JobRunnable runnable;
 
@@ -50,6 +54,7 @@ public class Job
     public void cancel()
     {
         monitor.cancelled = true;
+        logger.log(Level.INFO, toString());
     }
 
     @Override
