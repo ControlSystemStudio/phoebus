@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -85,7 +87,7 @@ public class DockItem extends Tab
     private static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
 
     /** Label used for the Tab because Tab itself cannot participate in drag-and-drop */
-    private final Label tab_name;
+    protected final Label tab_name;
 
     /** Create dock item
      *  @param label Initial label
@@ -241,6 +243,29 @@ public class DockItem extends Tab
         old_parent.getTabs().remove(this);
         DockStage.configureStage(other, this);
         other.show();
+    }
+
+    /** Programmatically close this tab
+     *
+     *  <p>Will invoke on-close-request handler that can abort the action,
+     *  otherwise invoke the on-closed handler and remove the tab
+     */
+    public void close()
+    {
+        EventHandler<Event> handler = getOnCloseRequest();
+        if (handler != null)
+        {
+            final Event event = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
+            handler.handle(event);
+            if (event.isConsumed())
+                return;
+        }
+
+        handler = getOnClosed();
+        if (null != handler)
+            handler.handle(null);
+
+        getTabPane().getTabs().remove(this);
     }
 
     @Override

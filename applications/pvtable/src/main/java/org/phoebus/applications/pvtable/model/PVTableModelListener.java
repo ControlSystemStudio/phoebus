@@ -13,11 +13,11 @@ package org.phoebus.applications.pvtable.model;
 public interface PVTableModelListener extends PVTableItemListener
 {
     /** Multiple table items have changed, need overall table refresh */
-    public void tableItemsChanged();
+    public default void tableItemsChanged() {};
 
     /** Model has changed (items added, removed, renamed, values saved)
      *
      *  <p>The model can be considered to be 'dirty', it needs to be saved.
      */
-    public void modelChanged();
+    public default void modelChanged() {};
 }

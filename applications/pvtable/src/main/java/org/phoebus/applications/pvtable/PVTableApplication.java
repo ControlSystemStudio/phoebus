@@ -7,20 +7,28 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
+import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.ui.PVTable;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.pv.PVPool;
-import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.dialog.SaveAsDialog;
+import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.jobs.JobMonitor;
 
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /** PV Table Application
  *  @author Kay Kasemir
@@ -33,6 +41,8 @@ public class PVTableApplication
     public static final String NAME = "PV Table";
 
     final PVTableModel model = new PVTableModel();
+
+    private DockItemWithInput dock_item;
 
     public String getName()
     {
@@ -64,10 +74,51 @@ public class PVTableApplication
         final PVTable table = new PVTable(model);
 
         final BorderPane layout = new BorderPane(table);
-        final DockItem tab = new DockItem(getName(), layout);
-        DockPane.getActiveDockPane().addTab(tab);
+        dock_item = new DockItemWithInput(getName(), layout, null, this::doSave);
+        DockPane.getActiveDockPane().addTab(dock_item);
 
-        tab.setOnClosed(event -> stop());
+        model.addListener(new PVTableModelListener()
+        {
+            @Override
+            public void tableItemSelectionChanged(PVTableItem item)
+            {
+                dock_item.setDirty(true);
+            }
+
+            @Override
+            public void modelChanged()
+            {
+                dock_item.setDirty(true);
+            }
+        });
+
+        dock_item.setOnClosed(event -> stop());
+    }
+
+    private final static ExtensionFilter[] file_extensions = new ExtensionFilter[]
+    {
+        new ExtensionFilter("All (*.*)", "*.*"),
+        new ExtensionFilter("PV Table (*.pvs)", "*.pvs"),
+        new ExtensionFilter("Autosave (*.sav)", "*.sav")
+    };
+
+    private void doSave(final JobMonitor monitor) throws Exception
+    {
+        File file = dock_item.getInputFile();
+        if (file == null )
+        {
+            file = SaveAsDialog.promptForFile(dock_item.getTabPane().getScene().getWindow(), "Save PV Table", null, file_extensions);
+            if (file == null)
+                return;
+        }
+        dock_item.setInputFile(file);
+        try
+        (
+            final PrintStream out = new PrintStream(new FileOutputStream(file));
+        )
+        {
+            out.println("Test...");
+        }
     }
 
     public void stop()
