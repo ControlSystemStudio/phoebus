@@ -42,7 +42,6 @@ public class PVTableItem
     /** Primary PV name */
     private String name = null;
 
-    // TODO Initial value of new PV should be UNDEFINED/Disconnected
     /** Last known value of the PV */
     private volatile VType value;
 
@@ -127,10 +126,7 @@ public class PVTableItem
      */
     public PVTableItem(final String name, final double tolerance, final PVTableItemListener listener)
     {
-        this(name, tolerance, null, listener,
-                ValueFactory.newVString("",
-                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No value"),
-                        ValueFactory.timeNow()));
+        this(name, tolerance, null, listener, null);
     }
 
     /** Initialize
@@ -148,8 +144,8 @@ public class PVTableItem
         this.tolerance = tolerance;
         this.saved = Optional.ofNullable(saved);
         this.value = initial_value;
-        determineIfChanged();
         createPVs(name);
+        determineIfChanged();
     }
 
     /** Initialize
@@ -183,9 +179,15 @@ public class PVTableItem
         this.name = name;
         // Ignore empty PVs or comments
         if (name.isEmpty() || isComment())
+        {
+            updateValue(null);
             return;
+        }
         try
         {
+            updateValue(ValueFactory.newVString("",
+                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "Not connected"),
+                        ValueFactory.timeNow()));
             final PV new_pv = PVPool.getPV(name);
             new_pv.addListener(pv_listener);
             pv.set(new_pv);
@@ -469,6 +471,11 @@ public class PVTableItem
     /** Update <code>has_changed</code> based on current and saved value */
     private void determineIfChanged()
     {
+        if (isComment())
+        {
+            has_changed = false;
+            return;
+        }
         final Optional<SavedValue> saved_value = saved;
         if (!saved_value.isPresent())
         {

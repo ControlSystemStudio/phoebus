@@ -79,7 +79,7 @@ public class PVTable extends BorderPane
         "-fx-text-fill: orange;",
         "-fx-text-fill: red;",
         "-fx-text-fill: purple;",
-        "-fx-text-fill: pink;",
+        "-fx-text-fill: magenta;",
     };
 
     private final PVTableModel model;
