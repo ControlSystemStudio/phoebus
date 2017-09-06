@@ -7,9 +7,9 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -18,6 +18,9 @@ import java.util.logging.Logger;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
+import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
+import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
+import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.applications.pvtable.ui.PVTable;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.pv.PVPool;
@@ -37,6 +40,13 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class PVTableApplication
 {
     public static final Logger logger = Logger.getLogger(PVTableApplication.class.getPackageName());
+
+    private static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
+    {
+        new ExtensionFilter("All", "*.*"),
+        new ExtensionFilter("PV Table", "*." + PVTableXMLPersistence.FILE_EXTENSION),
+        new ExtensionFilter("Autosave", "*." + PVTableAutosavePersistence.FILE_EXTENSION)
+    };
 
     public static final String NAME = "PV Table";
 
@@ -69,9 +79,23 @@ public class PVTableApplication
 
     public void start(final List<ProcessVariable> pvs)
     {
+        final PVTable table = new PVTable(model);
+
+        // Start with list of PVs
         for (ProcessVariable pv : pvs)
             model.addItem(pv.getName());
-        final PVTable table = new PVTable(model);
+
+        // Start with file
+//        final File file = new File("/home/ky9/git/phoebus/phoebus-product/test.pvs");
+//        try
+//        {
+//            PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
+//        }
+//        catch (Exception e)
+//        {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
 
         final BorderPane layout = new BorderPane(table);
         dock_item = new DockItemWithInput(getName(), layout, null, this::doSave);
@@ -95,13 +119,6 @@ public class PVTableApplication
         dock_item.setOnClosed(event -> stop());
     }
 
-    private final static ExtensionFilter[] file_extensions = new ExtensionFilter[]
-    {
-        new ExtensionFilter("All (*.*)", "*.*"),
-        new ExtensionFilter("PV Table (*.pvs)", "*.pvs"),
-        new ExtensionFilter("Autosave (*.sav)", "*.sav")
-    };
-
     private void doSave(final JobMonitor monitor) throws Exception
     {
         File file = dock_item.getInputFile();
@@ -114,10 +131,10 @@ public class PVTableApplication
         dock_item.setInputFile(file);
         try
         (
-            final PrintStream out = new PrintStream(new FileOutputStream(file));
+            final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         )
         {
-            out.println("Test...");
+            PVTablePersistence.forFilename(file.toString()).write(model, out);
         }
     }
 

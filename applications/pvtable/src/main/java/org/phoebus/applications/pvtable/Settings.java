@@ -18,13 +18,16 @@ public class Settings
     private static final String TREAT_BYTE_ARRAY_AS_STRING = "treat_byte_array_as_string";
     private static final String SHOW_UNITS = "show_units";
     private static final String SHOW_DESCRIPTION = "show_description";
+    private static final String TOLERANCE = "tolerance";
 
     public static final boolean treat_byte_array_as_string = treatByteArrayAsString();
 
     public static boolean show_units = showUnits();
 
     public static boolean show_description = showDescription();
-    public static double tolerance = 0.1;
+
+    public static double tolerance = tolerance();
+
     public static int update_item_threshold = 50;
 
     private static boolean treatByteArrayAsString()
@@ -51,4 +54,11 @@ public class Settings
         return value;
     }
 
+    private static double tolerance()
+    {
+        final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
+        double value = prefs.getDouble(TOLERANCE, 0.1);
+        prefs.putDouble(TOLERANCE, value);
+        return value;
+    }
 }

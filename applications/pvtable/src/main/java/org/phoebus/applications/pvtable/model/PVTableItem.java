@@ -124,9 +124,9 @@ public class PVTableItem
      *  @param saved
      *  @param listener
      */
-    public PVTableItem(final String name, final double tolerance, final PVTableItemListener listener)
+    PVTableItem(final String name, final double tolerance, final PVTableItemListener listener)
     {
-        this(name, tolerance, null, listener, null);
+        this(name, tolerance, null, "", listener);
     }
 
     /** Initialize
@@ -136,38 +136,17 @@ public class PVTableItem
      *  @param saved
      *  @param listener
      */
-    public PVTableItem(final String name, final double tolerance,
-            final SavedValue saved, final PVTableItemListener listener,
-            final VType initial_value)
+    PVTableItem(final String name, final double tolerance,
+                final SavedValue saved,
+                final String time_saved,
+                final PVTableItemListener listener)
     {
         this.listener = listener;
         this.tolerance = tolerance;
         this.saved = Optional.ofNullable(saved);
-        this.value = initial_value;
+        this.time_saved = time_saved;
         createPVs(name);
         determineIfChanged();
-    }
-
-    /** Initialize
-     *
-     *  @param name
-     *  @param time
-     *  @param tolerance
-     *  @param saved
-     *  @param listener
-     *  @param initial_value
-     */
-    public PVTableItem(final String name, String time,
-            final double tolerance, final SavedValue saved,
-            final PVTableItemListener listener, final VType initial_value)
-    {
-        this.listener = listener;
-        this.time_saved = (time == null) ? "" : time;
-        this.tolerance = tolerance;
-        this.saved = Optional.ofNullable(saved);
-        this.value = initial_value;
-        determineIfChanged();
-        createPVs(name);
     }
 
     /** Set PV name and create reader/writer

@@ -249,8 +249,10 @@ public class DockItem extends Tab
      *
      *  <p>Will invoke on-close-request handler that can abort the action,
      *  otherwise invoke the on-closed handler and remove the tab
+     *
+     *  @return <code>true</code> if tab closed, <code>false</code> if it remained open
      */
-    public void close()
+    public boolean close()
     {
         EventHandler<Event> handler = getOnCloseRequest();
         if (handler != null)
@@ -258,7 +260,7 @@ public class DockItem extends Tab
             final Event event = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
             handler.handle(event);
             if (event.isConsumed())
-                return;
+                return false;
         }
 
         handler = getOnClosed();
@@ -266,6 +268,8 @@ public class DockItem extends Tab
             handler.handle(null);
 
         getTabPane().getTabs().remove(this);
+
+        return true;
     }
 
     @Override

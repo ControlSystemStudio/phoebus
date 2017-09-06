@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
 import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.logging.Level;
 
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
@@ -167,8 +170,10 @@ public class DockItemWithInput extends DockItem
         }
         catch (Exception ex)
         {
-            Platform.runLater(() -> ExceptionDetailsErrorDialog.openError("Save error",
-                    "Error saving " + getLabel(), ex));
+            logger.log(Level.WARNING, "Save error", ex);
+            Platform.runLater(() ->
+                ExceptionDetailsErrorDialog.openError("Save error",
+                                                      "Error saving " + getLabel(), ex));
             return;
         }
 
