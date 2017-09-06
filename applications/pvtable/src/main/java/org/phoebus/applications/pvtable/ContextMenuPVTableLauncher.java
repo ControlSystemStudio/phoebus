@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.applications.pvtree;
+package org.phoebus.applications.pvtable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,20 +18,20 @@ import org.phoebus.ui.docking.DockStage;
 
 import javafx.stage.Stage;
 
-/** Entry for context menues that starts PV Tree for selected ProcessVariable
+/** Entry for context menues that starts PV Table for selected ProcessVariable
  *
  *  @author Kay Kasemir
  */
 // @ProviderFor(ContextMenuEntry.class)
 @SuppressWarnings("rawtypes")
-public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariable>
+public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVariable>
 {
     private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
 
     @Override
     public String getName()
     {
-        return PVTree.NAME;
+        return PVTableApplication.NAME;
     }
 
     @Override
@@ -50,13 +50,8 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     @Override
     public ProcessVariable callWithSelection(final Stage parent_stage, final Selection selection) throws Exception
     {
-        final List<ProcessVariable> pvs = selection.getSelections();
-        for (ProcessVariable pv : pvs)
-        {
-            final PVTree pv_tree = new PVTree();
-            pv_tree.start();
-            pv_tree.setPVName(pv.getName());
-        }
+        final PVTableApplication pv_table = new PVTableApplication();
+        pv_table.start(selection.getSelections());
         return null;
     }
 }

@@ -42,7 +42,6 @@ public class PVTableItem
     /** Primary PV name */
     private String name = null;
 
-    // TODO Initial value of new PV should be UNDEFINED/Disconnected
     /** Last known value of the PV */
     private volatile VType value;
 
@@ -118,10 +117,6 @@ public class PVTableItem
         }
     };
 
-    private boolean conf = false;
-
-    private Measure measure = null;
-
     /** Initialize
      *
      *  @param name
@@ -129,13 +124,9 @@ public class PVTableItem
      *  @param saved
      *  @param listener
      */
-    public PVTableItem(final String name, final double tolerance,
-            final SavedValue saved, final PVTableItemListener listener)
+    public PVTableItem(final String name, final double tolerance, final PVTableItemListener listener)
     {
-        this(name, tolerance, saved, listener,
-                ValueFactory.newVString("",
-                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No PV"),
-                        ValueFactory.timeNow()));
+        this(name, tolerance, null, listener, null);
     }
 
     /** Initialize
@@ -153,52 +144,28 @@ public class PVTableItem
         this.tolerance = tolerance;
         this.saved = Optional.ofNullable(saved);
         this.value = initial_value;
-        determineIfChanged();
         createPVs(name);
+        determineIfChanged();
     }
 
     /** Initialize
      *
      *  @param name
      *  @param time
-     *  @param conf
-     *  @param measure
-     *  @param tolerance
-     *  @param saved
-     *  @param listener
-     */
-    public PVTableItem(final String name, String time, boolean conf,
-            Measure measure, final double tolerance, final SavedValue saved,
-            final PVTableItemListener listener)
-    {
-        this(name, time, conf, measure, tolerance, saved, listener,
-                ValueFactory.newVString("",
-                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No PV"),
-                        ValueFactory.timeNow()));
-    }
-
-    /** Initialize
-     *
-     *  @param name
-     *  @param time
-     *  @param conf
-     *  @param measure
      *  @param tolerance
      *  @param saved
      *  @param listener
      *  @param initial_value
      */
-    public PVTableItem(final String name, String time, boolean conf,
-            Measure measure, final double tolerance, final SavedValue saved,
+    public PVTableItem(final String name, String time,
+            final double tolerance, final SavedValue saved,
             final PVTableItemListener listener, final VType initial_value)
     {
         this.listener = listener;
         this.time_saved = (time == null) ? "" : time;
-        this.conf = conf;
         this.tolerance = tolerance;
         this.saved = Optional.ofNullable(saved);
         this.value = initial_value;
-        this.measure = measure;
         determineIfChanged();
         createPVs(name);
     }
@@ -211,10 +178,16 @@ public class PVTableItem
     {
         this.name = name;
         // Ignore empty PVs or comments
-        if (name.isEmpty() || isComment() || isMeasure())
+        if (name.isEmpty() || isComment())
+        {
+            updateValue(null);
             return;
+        }
         try
         {
+            updateValue(ValueFactory.newVString("",
+                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "Not connected"),
+                        ValueFactory.timeNow()));
             final PV new_pv = PVPool.getPV(name);
             new_pv.addListener(pv_listener);
             pv.set(new_pv);
@@ -252,7 +225,7 @@ public class PVTableItem
     /** @return <code>true</code> if item is selected to be restored */
     public boolean isSelected()
     {
-        return selected && !isComment() && !isMeasure();
+        return selected && !isComment();
     }
 
     /** @param selected Should item be selected to be restored? */
@@ -275,65 +248,6 @@ public class PVTableItem
     {
         // Skip initial "#". Trim in case of another space from "# "
         return name.substring(1).trim();
-    }
-
-    /** @return Returns the conf header. */
-    public String getConfHeader()
-    {
-        String lowName = name.toLowerCase();
-        if (lowName.startsWith("#conf#"))
-        {
-            // If user don't add text after #conf#
-            if (lowName.contentEquals("#conf#") ||
-                lowName.contentEquals("#conf# "))
-            {
-                return lowName.substring(6).concat(" Config").trim();
-            }
-            return lowName.substring(6).trim();
-        }
-        if (lowName.startsWith("#configuration#"))
-            return lowName.substring(14).trim();
-        return lowName;
-    }
-
-    /** @return Returns the measure header. */
-    public String getMeasureHeader()
-    {
-        return name.substring(8).trim();
-    }
-
-    /** @return the measure which this item is. */
-    public Measure getMeasure()
-    {
-        return measure;
-    }
-
-    /** @return Returns if the item is a conf, or not. */
-    public boolean isConf()
-    {
-        return this.conf;
-    }
-
-    /** @return Returns if the item is a measure, or not. */
-    public boolean isMeasure()
-    {
-        if (this.measure == null)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    /** Set conf to true (This is a conf). */
-    public void setConf(boolean b)
-    {
-        this.conf = b;
-    }
-
-    /** Set measure to true (This is a measure). */
-    public void setMeasure(Measure measure)
-    {
-        this.measure = measure;
     }
 
     /** Update PV name
@@ -368,9 +282,7 @@ public class PVTableItem
     /** @return Value */
     public VType getValue()
     {
-        return !isMeasureHeader() && (isComment() || isMeasure())
-               ? null
-               : value;
+        return value;
     }
 
     /** @return Description */
@@ -393,8 +305,7 @@ public class PVTableItem
     public boolean isWritable()
     {
         final PV the_pv = pv.get();
-        return the_pv != null && the_pv.isReadonly() == false && !isComment()
-                && !isMeasure();
+        return the_pv != null && the_pv.isReadonly() == false && !isComment();
     }
 
     /** @return Await completion when restoring value to PV? */
@@ -479,13 +390,12 @@ public class PVTableItem
     /** Save current value as saved value, w/ timestamp */
     public void save()
     {
-        if (isComment() && !isMeasureHeader())
+        if (isComment())
             return;
 
         try
         {
-            time_saved = (TimestampHelper
-                    .format(VTypeHelper.getTimestamp(value)));
+            time_saved = TimestampHelper.format(VTypeHelper.getTimestamp(value));
             saved = Optional.of(SavedValue.forCurrentValue(value));
         }
         catch (Exception ex)
@@ -513,7 +423,7 @@ public class PVTableItem
      */
     public void restore(final long completion_timeout_seconds) throws Exception
     {
-        if (isComment() || isMeasure()  ||  !isWritable())
+        if (isComment() || !isWritable())
             return;
 
         final PV the_pv = pv.get();
@@ -552,25 +462,6 @@ public class PVTableItem
         return name.startsWith("#");
     }
 
-    /** @return true if this item is a config header instead of a PV with name,
-     *               value etc
-     */
-    public boolean isConfHeader()
-    {
-        String lowName = name.toLowerCase();
-        return lowName.startsWith("#conf#")
-                || lowName.startsWith("#configuration#");
-    }
-
-    /** @return true if this item is a measure header instead of a PV with name,
-     *          value etc
-     */
-    public boolean isMeasureHeader()
-    {
-        String lowName = name.toLowerCase();
-        return lowName.startsWith("#mesure#");
-    }
-
     /** @return <code>true</code> if value has changed from saved value */
     public boolean isChanged()
     {
@@ -580,7 +471,7 @@ public class PVTableItem
     /** Update <code>has_changed</code> based on current and saved value */
     private void determineIfChanged()
     {
-        if (isMeasure())
+        if (isComment())
         {
             has_changed = false;
             return;

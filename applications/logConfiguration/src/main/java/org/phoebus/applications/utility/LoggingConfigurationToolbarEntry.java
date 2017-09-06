@@ -8,7 +8,6 @@
 package org.phoebus.applications.utility;
 
 import org.phoebus.framework.spi.ToolbarEntry;
-import org.phoebus.ui.docking.DockStage;
 
 import javafx.stage.Stage;
 
@@ -27,6 +26,6 @@ public class LoggingConfigurationToolbarEntry implements ToolbarEntry {
 
     @Override
     public void call(Stage stage) throws Exception {
-        LoggingConfiguration.open(DockStage.getDockPane(stage));
+        LoggingConfiguration.open();
     }
 }

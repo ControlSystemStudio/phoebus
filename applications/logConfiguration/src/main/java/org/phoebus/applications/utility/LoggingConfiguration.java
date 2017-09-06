@@ -18,7 +18,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -53,10 +52,10 @@ public class LoggingConfiguration {
     private static LogManager manager = LogManager.getLogManager();
     final static TreeItem<NameNode> root = new TreeItem<>(new NameNode(null, null, null, true));
 
-    public static void open(DockPane dockPane) {
+    public static void open() {
 
         final DockItem tab = new DockItem(NAME, createFxScene());
-        dockPane.addTab(tab);
+        DockPane.getActiveDockPane().addTab(tab);
     }
 
     protected static Node createFxScene() {
