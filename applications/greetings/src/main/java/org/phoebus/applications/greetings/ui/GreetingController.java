@@ -82,8 +82,8 @@ public class GreetingController {
             MenuItem item = new MenuItem(entry.getName());
             item.setOnAction(e -> {
                 try {
-                    final Stage stage = (Stage) listView.getScene().getWindow();
-                    entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
+                    //final Stage stage = (Stage) listView.getScene().getWindow();
+                    entry.callWithSelection(SelectionService.getInstance().getSelection());
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }

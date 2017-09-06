@@ -1,6 +1,9 @@
 package org.phoebus.ui.application;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,7 +70,9 @@ public class PhoebusApplication extends Application {
 
         // Contributions
         Menu applicationsMenu = new Menu("Applications");
-        MenuEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
+        Map<String, Object> menuMap = new HashMap<String, Object>();
+        MenuEntryService.getInstance().listMenuEntries().forEach((entry) -> {
+
             MenuItem m = new MenuItem(entry.getName());
             m.setOnAction((event) -> {
                 try {

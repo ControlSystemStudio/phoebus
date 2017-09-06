@@ -10,8 +10,11 @@ import org.phoebus.framework.spi.ContextMenuEntry;
 import org.phoebus.logging.LogEntry;
 import org.phoebus.logging.LogService;
 
-import javafx.stage.Stage;
-
+/**
+ * A headless context menu entry for creating log entries from adaptable selections.
+ * @author Kunal Shroff
+ *
+ */
 @SuppressWarnings("rawtypes")
 public class contextMenuLogging implements ContextMenuEntry {
 
@@ -25,7 +28,7 @@ public class contextMenuLogging implements ContextMenuEntry {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object callWithSelection(final Stage stage, Selection selection) {
+    public Object callWithSelection(Selection selection) {
 
         List<LogEntry> adaptedSelections = new ArrayList<LogEntry>();
         selection.getSelections().stream().forEach(s -> {

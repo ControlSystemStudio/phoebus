@@ -25,14 +25,12 @@ public class LoggingConfigurationMenuEntry implements MenuEntry {
     }
 
     /**
-     * TODO needs some way of figuring out which stage to open on
+     * 
+     * @return 
      */
     @Override
     public Void call() throws Exception {
-        final Stage new_stage = new Stage();
-        DockStage.configureStage(new_stage);
-        LoggingConfiguration.open(DockStage.getDockPane(new_stage));
-        new_stage.show();
+        LoggingConfiguration.open();
         return null;
     }
 

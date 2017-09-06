@@ -1,7 +1,10 @@
 package org.phoebus.framework.workbench;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
@@ -20,6 +23,8 @@ public class MenuEntryService {
 
     private List<MenuEntry> menuEntries = Collections.emptyList();
 
+    private Map<String, ?> menuEntryTree = new HashMap<String, Object>();
+
     private MenuEntryService() {
         loader = ServiceLoader.load(MenuEntry.class);
         menuEntries = loader.stream().map(Provider::get).collect(Collectors.toList());
@@ -35,9 +40,9 @@ public class MenuEntryService {
     /**
      * Get the list of registered menu entries
      * 
-     * @return
+     * @return List of registered {@link MenuEntry}
      */
-    public List<MenuEntry> listToolbarEntries() {
+    public List<MenuEntry> listMenuEntries() {
         return menuEntries;
     }
 
