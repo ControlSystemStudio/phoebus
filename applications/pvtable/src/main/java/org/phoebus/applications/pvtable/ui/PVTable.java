@@ -7,11 +7,8 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
-import static org.phoebus.applications.pvtable.PVTableApplication.logger;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,8 +21,7 @@ import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.framework.workbench.ContextMenuService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 
 import javafx.application.Platform;
@@ -58,8 +54,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import javafx.util.converter.DefaultStringConverter;
 
 /** PV Table and its toolbar
@@ -505,25 +499,8 @@ public class PVTable extends BorderPane
                     save, restore, new SeparatorMenuItem(),
                     add_row, remove_row, new SeparatorMenuItem(),
                     tolerance, timeout, new SeparatorMenuItem());
-            //Add PV entries
-            for (ContextMenuEntry entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
-            {
-                final MenuItem item = new MenuItem(entry.getName());
-                item.setOnAction(e ->
-                {
-                    try
-                    {
-                        final Window window = table.getScene().getWindow();
-                        final Stage stage = window instanceof Stage ? (Stage) window : null;
-                        entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.WARNING, "Cannot invoke context menu", ex);
-                    }
-                });
-                menu.getItems().add(item);
-            }
+            // Add PV entries
+            ContextMenuHelper.addSupportedEntries(table, menu);
         });
         table.setContextMenu(menu);
     }
