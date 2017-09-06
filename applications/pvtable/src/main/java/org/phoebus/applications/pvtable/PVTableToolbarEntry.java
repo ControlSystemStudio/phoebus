@@ -27,6 +27,6 @@ public class PVTableToolbarEntry implements ToolbarEntry
     @Override
     public void call(final Stage stage) throws Exception
     {
-        new PVTableApplication().start(DockStage.getDockPane(stage));
+        new PVTableApplication().start();
     }
 }

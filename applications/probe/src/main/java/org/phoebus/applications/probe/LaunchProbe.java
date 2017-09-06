@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.phoebus.framework.spi.ToolbarEntry;
 import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.docking.DockPane;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TitledPane;
@@ -31,7 +31,7 @@ public class LaunchProbe implements ToolbarEntry {
 
             final DockItem tab = new DockItem("Probe", mainLayout);
 
-            DockStage.getDockPane(stage).addTab(tab);
+            DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             e.printStackTrace();
         }

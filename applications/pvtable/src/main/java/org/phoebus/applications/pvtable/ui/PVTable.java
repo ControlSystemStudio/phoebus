@@ -7,36 +7,59 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
-import java.util.function.BiConsumer;
+import static org.phoebus.applications.pvtable.PVTableApplication.logger;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.diirt.vtype.VEnum;
 import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
-import org.phoebus.applications.pvtable.model.SavedValue;
-import org.phoebus.applications.pvtable.model.TimestampHelper;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.framework.workbench.ContextMenuService;
+import org.phoebus.ui.dialog.NumericInputDialog;
 
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Separator;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.converter.DefaultStringConverter;
 
 /** PV Table and its toolbar
@@ -44,15 +67,11 @@ import javafx.util.converter.DefaultStringConverter;
  */
 public class PVTable extends BorderPane
 {
-    /** 'Magic' table item added to the end of the actual model to allow adding
-     *  entries. Setting the name of this item is handled as adding a new item
-     *  for that name.
-     */
-    final public static PVTableItem NEW_ITEM = new PVTableItem("", 0.0, null, null, null);
-
     private static final String comment_style = "-fx-text-fill: blue;";
 
     private static final String new_item_style = "-fx-text-fill: gray;";
+
+    private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
 
     private static final String[] alarm_styles = new String[]
     {
@@ -60,41 +79,33 @@ public class PVTable extends BorderPane
         "-fx-text-fill: orange;",
         "-fx-text-fill: red;",
         "-fx-text-fill: purple;",
-        "-fx-text-fill: pink;",
+        "-fx-text-fill: magenta;",
     };
 
     private final PVTableModel model;
-    private final TableView<PVTableItem> table;
+    private final TableView<TableItemProxy> table;
 
     /** Flag to disable updates while editing */
     private boolean editing = false;
 
-    /** Table cell for column with boolean value, selects/de-selects */
-    private static class BooleanTableCell extends TableCell<PVTableItem, Boolean>
+    /** Table cell for boolean column, empty for 'comment' items */
+    private static class BooleanTableCell extends TableCell<TableItemProxy, Boolean>
     {
         private final CheckBox checkbox = new CheckBox();
-        private final BiConsumer<PVTableItem, Boolean> update_item;
-
-        /** @param update_item Will be called when user clicks check box */
-        public BooleanTableCell(final BiConsumer<PVTableItem, Boolean> update_item)
-        {
-            checkbox.setFocusTraversable(false);
-            this.update_item = update_item;
-        }
 
         @Override
-        protected void updateItem(Boolean selected, boolean empty)
+        protected void updateItem(final Boolean selected, final boolean empty)
         {
             super.updateItem(selected, empty);
             final int row = getIndex();
-            final ObservableList<PVTableItem> items = getTableView().getItems();
-            final PVTableItem item;
+            final List<TableItemProxy> items = getTableView().getItems();
+            final TableItemProxy item;
             if (empty  ||  row < 0  ||  row >= items.size())
                 item = null;
             else
             {
-                final PVTableItem check = items.get(row);
-                if (check == NEW_ITEM  ||  check.isComment())
+                final TableItemProxy check = items.get(row);
+                if (check == TableItemProxy.NEW_ITEM  ||  check.item.isComment())
                     item = null;
                 else
                     item = check;
@@ -105,13 +116,15 @@ public class PVTable extends BorderPane
             {
                 setGraphic(checkbox);
                 checkbox.setSelected(selected);
-                checkbox.setOnAction(event -> update_item.accept(item, checkbox.isSelected()));
+
+                BooleanProperty cell_property = (BooleanProperty) getTableColumn().getCellObservableValue(row);
+                checkbox.setOnAction(event -> cell_property.set(checkbox.isSelected()));
             }
         }
     }
 
     /** Table cell for 'name' column, colors comments */
-    private static class PVNameTableCell extends TextFieldTableCell<PVTableItem, String>
+    private static class PVNameTableCell extends TextFieldTableCell<TableItemProxy, String>
     {
         public PVNameTableCell()
         {
@@ -126,16 +139,16 @@ public class PVTable extends BorderPane
                 setText(null);
             else
             {
-                final PVTableItem item = getTableView().getItems().get(getIndex());
-                if (item == NEW_ITEM)
+                final TableItemProxy item = getTableView().getItems().get(getIndex());
+                if (item == TableItemProxy.NEW_ITEM)
                 {
                     setStyle(new_item_style);
                     setText(Messages.EnterNewPV);
                 }
-                else if (item.isComment())
+                else if (item.item.isComment())
                 {
                     setStyle(comment_style);
-                    setText(item.getComment());
+                    setText(item.item.getComment());
                 }
                 else
                 {
@@ -147,7 +160,7 @@ public class PVTable extends BorderPane
     }
 
     /** Table cell for 'alarm' column, colors alarm states */
-    private static class AlarmTableCell extends TextFieldTableCell<PVTableItem, String>
+    private static class AlarmTableCell extends TextFieldTableCell<TableItemProxy, String>
     {
         public AlarmTableCell()
         {
@@ -159,28 +172,93 @@ public class PVTable extends BorderPane
         {
             super.updateItem(alarm_text, empty);
             if (empty)
-                setText(null);
+                return;
+            final TableItemProxy proxy = getTableView().getItems().get(getIndex());
+            if (proxy == TableItemProxy.NEW_ITEM)
+                setStyle(null);
             else
             {
-                final PVTableItem item = getTableView().getItems().get(getIndex());
-                final VType value = item.getValue();
-                if (value == null)
-                    setText(null);
-                else
-                {
-                    setText(alarm_text);
+                final VType value = proxy.item.getValue();
+                if (value != null)
                     setStyle(alarm_styles[VTypeHelper.getSeverity(value).ordinal()]);
-                }
             }
         }
     }
 
-    /** Table cell for 'value' column, enables/disables */
-    private static class ValueTableCell extends TextFieldTableCell<PVTableItem, String>
+    /** Table cell for 'value' column, enables/disables and indicates changed value */
+    private static class ValueTableCell extends TableCell<TableItemProxy, String>
     {
+
         public ValueTableCell()
         {
-            super(new DefaultStringConverter());
+            getStyleClass().add("text-field-table-cell");
+        }
+
+        @Override
+        public void startEdit()
+        {
+            super.startEdit();
+            if (! isEditing())
+                return;
+
+            setText(null);
+
+            final TableItemProxy proxy = getTableView().getItems().get(getIndex());
+            final VType value = proxy.item.getValue();
+            if (value instanceof VEnum)
+            {
+                // Use combo for Enum-valued data
+                final VEnum enumerated = (VEnum) value;
+                final ComboBox<String> combo = new ComboBox<>();
+                combo.getItems().addAll(enumerated.getLabels());
+                combo.getSelectionModel().select(enumerated.getIndex());
+
+                combo.setOnAction(event ->
+                {
+                    // Need to write String, using the enum index
+                    commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
+                    event.consume();
+                });
+                combo.setOnKeyReleased(event ->
+                {
+                    if (event.getCode() == KeyCode.ESCAPE)
+                    {
+                        cancelEdit();
+                        event.consume();
+                    }
+                });
+                setGraphic(combo);
+                Platform.runLater(() -> combo.requestFocus());
+                Platform.runLater(() -> combo.show());
+            }
+            else
+            {
+                final TextField text_field = new TextField(getItem());
+                text_field.setOnAction(event ->
+                {
+                    commitEdit(text_field.getText());
+                    event.consume();
+                });
+                text_field.setOnKeyReleased(event ->
+                {
+                    if (event.getCode() == KeyCode.ESCAPE)
+                    {
+                        cancelEdit();
+                        event.consume();
+                    }
+                });
+                setGraphic(text_field);
+                text_field.selectAll();
+                text_field.requestFocus();
+            }
+        }
+
+        @Override
+        public void cancelEdit()
+        {
+            super.cancelEdit();
+            setText(getItem());
+            setGraphic(null);
         }
 
         @Override
@@ -191,9 +269,21 @@ public class PVTable extends BorderPane
                 setText(null);
             else
             {
-                final PVTableItem item = getTableView().getItems().get(getIndex());
-                setEditable(item.isWritable());
                 setText(value);
+                final TableItemProxy proxy = getTableView().getItems().get(getIndex());
+                if (proxy == TableItemProxy.NEW_ITEM)
+                {
+                    setEditable(false);
+                    setStyle(null);
+                }
+                else
+                {
+                    setEditable(proxy.item.isWritable());
+                    if (proxy.item.isChanged())
+                        setStyle(changed_style);
+                    else
+                        setStyle(null);
+                }
             }
         }
     }
@@ -202,13 +292,13 @@ public class PVTable extends BorderPane
     private final PVTableModelListener model_listener = new PVTableModelListener()
     {
         @Override
-        public void tableItemSelectionChanged(PVTableItem item)
+        public void tableItemSelectionChanged(final PVTableItem item)
         {
             tableItemChanged(item);
         }
 
         @Override
-        public void tableItemChanged(PVTableItem item)
+        public void tableItemChanged(final PVTableItem item)
         {
             // In principle, just suppressing updates to the single row
             // that's being edited should be sufficient,
@@ -219,8 +309,9 @@ public class PVTable extends BorderPane
 
             // XXX Replace linear lookup of row w/ member variable in PVTableItem?
             final int row = model.getItems().indexOf(item);
+
             // System.out.println(item + " changed in row " + row + " on " + Thread.currentThread().getName());
-            table.getItems().set(row, item);
+            table.getItems().get(row).update(item);
         }
 
         @Override
@@ -244,8 +335,21 @@ public class PVTable extends BorderPane
         this.model = model;
         table = new TableView<>();
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+
         // Select complete rows
-        table.getSelectionModel().setCellSelectionEnabled(false);
+        final TableViewSelectionModel<TableItemProxy> table_sel = table.getSelectionModel();
+        table_sel.setCellSelectionEnabled(false);
+        table_sel.setSelectionMode(SelectionMode.MULTIPLE);
+
+        // Publish selected PV
+        final InvalidationListener sel_changed = change ->
+        {
+            final List<ProcessVariable> pvs = getSelectedItems()
+                 .map(proxy -> new ProcessVariable(proxy.item.getName()))
+                 .collect(Collectors.toList());
+            SelectionService.getInstance().setSelection("PV Table", pvs);
+        };
+        table_sel.getSelectedItems().addListener(sel_changed);
 
         createTableColumns();
 
@@ -259,14 +363,29 @@ public class PVTable extends BorderPane
 
         setItemsFromModel();
 
+        createContextMenu();
+
         model.addListener(model_listener);
+
+        // TODO Allow 'dropping' PV names
+    }
+
+    /** @return Stream of selected items (only PVs, no comment etc.) */
+    private Stream<TableItemProxy> getSelectedItems()
+    {
+        return table.getSelectionModel()
+                    .getSelectedItems()
+                    .stream()
+                    .filter(proxy -> proxy != TableItemProxy.NEW_ITEM  &&  ! proxy.item.isComment());
     }
 
     private void setItemsFromModel()
     {
         table.setItems(FXCollections.emptyObservableList());
-        final ObservableList<PVTableItem> items = FXCollections.observableArrayList(model.getItems());
-        items.add(NEW_ITEM);
+        final ObservableList<TableItemProxy> items = FXCollections.observableArrayList();
+        for (PVTableItem item : model.getItems())
+            items.add(new TableItemProxy(item));
+        items.add(TableItemProxy.NEW_ITEM);
         table.setItems(items);
         table.refresh();
     }
@@ -303,77 +422,170 @@ public class PVTable extends BorderPane
         return button;
     }
 
+    private void createContextMenu()
+    {
+        final MenuItem info = createMenuItem("Info", "pvtable.png", event ->
+        {
+            final Alert dialog = new Alert(AlertType.INFORMATION);
+            dialog.setTitle("PV Information");
+            dialog.setHeaderText("Details of PVs in marked table rows");
+            dialog.setContentText(getSelectedItems().map(proxy -> proxy.item.toString())
+                                                    .collect(Collectors.joining("\n")));
+            dialog.getDialogPane().setPrefWidth(800.0);
+            dialog.setResizable(true);
+            dialog.showAndWait();
+        });
+
+        final MenuItem save = createMenuItem(Messages.SnapshotSelection, "snapshot.png", event ->
+        {
+            model.save(getSelectedItems().map(proxy -> proxy.item)
+                                         .collect(Collectors.toList()));
+        });
+
+        final MenuItem restore = createMenuItem(Messages.RestoreSelection, "restore.png", event ->
+        {
+            model.restore(getSelectedItems().map(proxy -> proxy.item)
+                                            .collect(Collectors.toList()));
+        });
+
+        final MenuItem add_row = createMenuItem(Messages.Insert, "add.gif", event ->
+        {
+            // Copy selection as it will change when we add to the model
+            final List<TableItemProxy> selected = new ArrayList<>(table.getSelectionModel().getSelectedItems());
+            if (selected.isEmpty())
+                return;
+            final int last = table.getSelectionModel().getSelectedIndex();
+            // addItemAbove() handles proxy.item == null for the NEW_ITEM
+            for (TableItemProxy proxy : selected)
+                model.addItemAbove(proxy.item, "# ");
+            table.getSelectionModel().select(last);
+        });
+
+        final MenuItem remove_row = createMenuItem(Messages.Delete, "delete.gif", event ->
+        {
+            // Copy selection as it will change
+            final List<TableItemProxy> selected = new ArrayList<>(table.getSelectionModel().getSelectedItems());
+            // Don't remove the 'last' item
+            for (TableItemProxy proxy : selected)
+                if (proxy != TableItemProxy.NEW_ITEM)
+                    model.removeItem(proxy.item);
+        });
+
+        final MenuItem tolerance = createMenuItem(Messages.Tolerance, "pvtable.png", event ->
+        {
+            final TableItemProxy proxy = table.getSelectionModel().getSelectedItem();
+            if (proxy == null  ||   proxy.item.isComment())
+                return;
+
+            final NumericInputDialog dlg = new NumericInputDialog(Messages.Tolerance,
+                    "Enter tolerance for " + proxy.item.getName(),
+                    proxy.item.getTolerance(),
+                    number -> number >= 0 ? null : "Enter a positive tolerance value");
+            dlg.promptAndHandle(number -> proxy.item.setTolerance(number));
+        });
+
+        final MenuItem timeout = createMenuItem(Messages.Timeout, "timeout.png", event ->
+        {
+            final NumericInputDialog dlg = new NumericInputDialog(Messages.Timeout,
+                    "Enter the timeout in seconds used\n" +
+                    "for all items that are restored\n" +
+                    "with 'completion' (put-callback)",
+                    model.getCompletionTimeout(),
+                    number -> number > 0 ? null : "Enter a positive number of seconds");
+            dlg.promptAndHandle(number -> model.setCompletionTimeout(number.longValue()));
+        });
+
+        final ContextMenu menu = new ContextMenu();
+
+        table.setOnContextMenuRequested(event ->
+        {
+            // Start with fixed entries
+            menu.getItems().clear();
+            menu.getItems().addAll(info, new SeparatorMenuItem(),
+                    save, restore, new SeparatorMenuItem(),
+                    add_row, remove_row, new SeparatorMenuItem(),
+                    tolerance, timeout, new SeparatorMenuItem());
+            //Add PV entries
+            for (ContextMenuEntry entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
+            {
+                final MenuItem item = new MenuItem(entry.getName());
+                item.setOnAction(e ->
+                {
+                    try
+                    {
+                        final Window window = table.getScene().getWindow();
+                        final Stage stage = window instanceof Stage ? (Stage) window : null;
+                        entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot invoke context menu", ex);
+                    }
+                });
+                menu.getItems().add(item);
+            }
+        });
+        table.setContextMenu(menu);
+    }
+
+    private MenuItem createMenuItem(final String label, final String icon,
+                                    final EventHandler<ActionEvent> handler)
+    {
+        final MenuItem item = new MenuItem(label,
+                                           new ImageView(PVTableApplication.getIcon(icon)));
+        item.setOnAction(handler);
+        return item;
+    }
+
     private void createTableColumns()
     {
         // Selected column
-        final TableColumn<PVTableItem, Boolean> sel_col = new TableColumn<>(Messages.Selected);
-        sel_col.setCellValueFactory(cell_data_features -> new SimpleBooleanProperty(cell_data_features.getValue().isSelected()));
-        sel_col.setCellFactory(column -> new BooleanTableCell( (item, selected) ->  item.setSelected(selected)));
+        final TableColumn<TableItemProxy, Boolean> sel_col = new TableColumn<>(Messages.Selected);
+        sel_col.setCellValueFactory(cell -> cell.getValue().selected);
+        sel_col.setCellFactory(column -> new BooleanTableCell());
         table.getColumns().add(sel_col);
 
         // PV Name
-        TableColumn<PVTableItem, String> col = new TableColumn<>(Messages.PV);
+        TableColumn<TableItemProxy, String> col = new TableColumn<>(Messages.PV);
         col.setPrefWidth(250);
-        col.setCellValueFactory(cell_data_features -> new SimpleStringProperty(cell_data_features.getValue().getName()));
+        col.setCellValueFactory(cell_data_features -> cell_data_features.getValue().name);
         col.setCellFactory(column -> new PVNameTableCell());
-        col.setOnEditStart(event -> editing = true);
         col.setOnEditCommit(event ->
         {
-            editing = false;
-            final PVTableItem item = event.getRowValue();
-            if (item == NEW_ITEM)
+            final TableItemProxy proxy = event.getRowValue();
+            if (proxy == TableItemProxy.NEW_ITEM)
                 model.addItem(event.getNewValue());
             else
-                item.updateName(event.getNewValue());
-            // Since updates were suppressed, refresh table
-            table.refresh();
-        });
-        col.setOnEditCancel(event ->
-        {
-            editing = false;
-            // Since updates were suppressed, refresh table
-            table.refresh();
+            {
+                proxy.item.updateName(event.getNewValue());
+                proxy.update(proxy.item);
+                // Changing the name from a comment to a PV or back
+                // means that the 'selected', 'completion' checkboxes
+                // need to show/hide -> Trigger complete update
+                table.refresh();
+            }
         });
         table.getColumns().add(col);
 
         // Description
         col = new TableColumn<>(Messages.Description);
-        col.setCellValueFactory(cell ->
-        {
-            final PVTableItem item = cell.getValue();
-            if (item.isComment())
-                return new SimpleStringProperty();
-            return new SimpleStringProperty(item.getDescription());
-        });
+        col.setCellValueFactory(cell -> cell.getValue().desc_value);
         table.getColumns().add(col);
 
         // Time Stamp
         col = new TableColumn<>(Messages.Time);
-        col.setCellValueFactory(cell ->
-        {
-            final VType value = cell.getValue().getValue();
-            if (value == null)
-                return new SimpleStringProperty();
-            return new SimpleStringProperty(TimestampHelper.format(VTypeHelper.getTimestamp(value)));
-        });
+        col.setCellValueFactory(cell ->  cell.getValue().time);
         table.getColumns().add(col);
 
         // Editable value
         col = new TableColumn<>(Messages.Value);
-        col.setCellValueFactory(cell ->
-        {
-            final VType value = cell.getValue().getValue();
-            if (value == null)
-                return new SimpleStringProperty();
-            return new SimpleStringProperty(VTypeHelper.toString(value));
-        });
+        col.setCellValueFactory(cell -> cell.getValue().value);
         col.setCellFactory(column -> new ValueTableCell());
         col.setOnEditStart(event -> editing = true);
         col.setOnEditCommit(event ->
         {
             editing = false;
-            final PVTableItem item = event.getRowValue();
-            item.setValue(event.getNewValue());
+            event.getRowValue().item.setValue(event.getNewValue());
             // Since updates were suppressed, refresh table
             table.refresh();
         });
@@ -383,47 +595,28 @@ public class PVTable extends BorderPane
             // Since updates were suppressed, refresh table
             table.refresh();
         });
-
-
-
         table.getColumns().add(col);
 
         // Alarm
         col = new TableColumn<>(Messages.Alarm);
-        col.setCellValueFactory(cell ->
-        {
-            final VType value = cell.getValue().getValue();
-            if (value == null)
-                return new SimpleStringProperty();
-            return new SimpleStringProperty(VTypeHelper.formatAlarm(value));
-        });
+        col.setCellValueFactory(cell -> cell.getValue().alarm);
         col.setCellFactory(column -> new AlarmTableCell());
         table.getColumns().add(col);
 
         // Saved value
         col = new TableColumn<>(Messages.Saved);
-        col.setCellValueFactory(cell ->
-        {
-            final SavedValue value = cell.getValue().getSavedValue().orElse(null);
-            if (value == null)
-                return new SimpleStringProperty();
-            return new SimpleStringProperty(value.toString());
-        });
+        col.setCellValueFactory(cell -> cell.getValue().saved);
         table.getColumns().add(col);
 
         // Saved value's timestamp
         col = new TableColumn<>(Messages.Saved_Value_TimeStamp);
-        col.setCellValueFactory(cell ->
-        {
-            final PVTableItem item = cell.getValue();
-            return new SimpleStringProperty(item.getTime_saved());
-        });
+        col.setCellValueFactory(cell -> cell.getValue().time_saved);
         table.getColumns().add(col);
 
         // Completion checkbox
-        final TableColumn<PVTableItem, Boolean> compl_col = new TableColumn<>(Messages.Completion);
-        compl_col.setCellValueFactory(cell_data_features -> new SimpleBooleanProperty(cell_data_features.getValue().isUsingCompletion()));
-        compl_col.setCellFactory(column -> new BooleanTableCell( (item, completion) ->  item.setUseCompletion(completion)));
+        final TableColumn<TableItemProxy, Boolean> compl_col = new TableColumn<>(Messages.Completion);
+        compl_col.setCellValueFactory(cell -> cell.getValue().use_completion);
+        compl_col.setCellFactory(column -> new BooleanTableCell());
         table.getColumns().add(compl_col);
     }
 }
