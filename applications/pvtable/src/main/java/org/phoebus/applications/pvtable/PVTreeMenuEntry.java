@@ -5,20 +5,25 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.utility;
+package org.phoebus.applications.pvtable;
 
 import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockPane;
+
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.TitledPane;
 
 /**
- * Toolbar entry that starts Logging Configuration Application
+ * Menu entry that starts probe
  * 
  * @author Kunal Shroff
  */
-public class LoggingConfigurationMenuEntry implements MenuEntry {
+public class PVTreeMenuEntry implements MenuEntry {
 
     @Override
     public String getName() {
-        return LoggingConfiguration.NAME;
+        return PVTableApplication.NAME;
     }
 
     /**
@@ -27,7 +32,8 @@ public class LoggingConfigurationMenuEntry implements MenuEntry {
      */
     @Override
     public Void call() throws Exception {
-        LoggingConfiguration.open();
+        final PVTableApplication pv_table = new PVTableApplication();
+        pv_table.start();
         return null;
     }
 

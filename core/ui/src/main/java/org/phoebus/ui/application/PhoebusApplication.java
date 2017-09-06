@@ -8,7 +8,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
+import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockStage;
@@ -70,9 +72,21 @@ public class PhoebusApplication extends Application {
 
         // Contributions
         Menu applicationsMenu = new Menu("Applications");
-        Map<String, Object> menuMap = new HashMap<String, Object>();
-        MenuEntryService.getInstance().listMenuEntries().forEach((entry) -> {
+        MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
 
+        addMenuNode(applicationsMenu, node);
+
+        menuBar.getMenus().add(applicationsMenu);
+        // Help
+        final Menu help = new Menu("Help");
+        menuBar.getMenus().add(help);
+
+        return menuBar;
+    }
+
+    private void addMenuNode(Menu parent, MenuTreeNode node) {
+        
+        for (MenuEntry entry : node.getMenuItems()) {
             MenuItem m = new MenuItem(entry.getName());
             m.setOnAction((event) -> {
                 try {
@@ -81,17 +95,16 @@ public class PhoebusApplication extends Application {
                     logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
                 }
             });
-            applicationsMenu.getItems().add(m);
-            menuBar.getMenus().add(applicationsMenu);
-        });
-
-        // Help
-        final Menu help = new Menu("Help");
-        menuBar.getMenus().add(help);
-
-        return menuBar;
+            parent.getItems().add(m);            
+        }
+        
+        for (MenuTreeNode child : node.getChildren()) {
+            Menu childMenu = new Menu(child.getName());
+            addMenuNode(childMenu, child);
+            parent.getItems().add(childMenu);
+        }
     }
-
+    
     private ToolBar createToolbar(final Stage stage) {
         final ToolBar toolBar = new ToolBar();
 

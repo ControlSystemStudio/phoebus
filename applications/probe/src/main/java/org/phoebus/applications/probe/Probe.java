@@ -4,10 +4,10 @@ import org.phoebus.framework.spi.Application;
 
 public class Probe implements Application {
 
-    public static final String Name = "Probe";
+    public static final String NAME = "Probe";
 
     public String getName() {
-        return Name;
+        return NAME;
     }
 
     public void start() {
