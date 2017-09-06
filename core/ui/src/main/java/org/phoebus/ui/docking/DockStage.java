@@ -9,6 +9,7 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
+import java.util.Objects;
 import java.util.logging.Level;
 
 import javafx.scene.Node;
@@ -83,5 +84,12 @@ public class DockStage
         if (dock_pane instanceof DockPane)
             return (DockPane) dock_pane;
         throw new IllegalStateException("Expect DockPane, got " + dock_pane);
+    }
+
+    /** @param stage Stage that supports docking which should become the active stage */
+    public static void setActiveDockPane(final Stage stage)
+    {
+        final DockPane dock_pane = getDockPane(stage);
+        DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));
     }
 }
