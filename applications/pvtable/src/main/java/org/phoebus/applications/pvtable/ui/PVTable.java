@@ -640,7 +640,8 @@ public class PVTable extends BorderPane
 
         table.setOnDragOver(event ->
         {
-            if (event.getDragboard().hasString())
+            if (event.getDragboard().hasString() ||
+                event.getDragboard().hasContent(DataFormats.ProcessVariables))
                 event.acceptTransferModes(TransferMode.COPY);
             event.consume();
         });
