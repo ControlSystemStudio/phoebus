@@ -52,6 +52,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.DefaultStringConverter;
@@ -59,21 +60,19 @@ import javafx.util.converter.DefaultStringConverter;
 /** PV Table and its toolbar
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PVTable extends BorderPane
 {
     private static final String comment_style = "-fx-text-fill: blue;";
-
     private static final String new_item_style = "-fx-text-fill: gray;";
-
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
-
     private static final String[] alarm_styles = new String[]
     {
-        null,
-        "-fx-text-fill: orange;",
-        "-fx-text-fill: red;",
-        "-fx-text-fill: purple;",
-        "-fx-text-fill: magenta;",
+        null,                      // NONE
+        "-fx-text-fill: orange;",  // MINOR
+        "-fx-text-fill: red;",     // MAJOR
+        "-fx-text-fill: purple;",  // INVALID
+        "-fx-text-fill: magenta;", // UNDEFINED
     };
 
     private final PVTableModel model;
@@ -361,7 +360,7 @@ public class PVTable extends BorderPane
 
         model.addListener(model_listener);
 
-        // TODO Allow 'dropping' PV names
+        hookDragAndDrop();
     }
 
     /** @return Stream of selected items (only PVs, no comment etc.) */
@@ -594,5 +593,33 @@ public class PVTable extends BorderPane
         compl_col.setCellValueFactory(cell -> cell.getValue().use_completion);
         compl_col.setCellFactory(column -> new BooleanTableCell());
         table.getColumns().add(compl_col);
+    }
+
+    private void hookDragAndDrop()
+    {
+        table.setOnDragOver(event ->
+        {
+            if (event.getDragboard().hasString())
+                event.acceptTransferModes(TransferMode.COPY);
+            event.consume();
+        });
+
+        table.setOnDragDropped(event ->
+        {
+            if (event.getDragboard().hasString())
+            {
+                addPVsFromString(event.getDragboard().getString());
+                event.setDropCompleted(true);
+            }
+            event.consume();
+        });
+    }
+
+    private void addPVsFromString(final String pv_text)
+    {
+        final String[] pvs = pv_text.split("[ \\t\\n\\r,]+");
+        for (String pv : pvs)
+            if (! pv.isEmpty())
+                model.addItem(pv);
     }
 }
