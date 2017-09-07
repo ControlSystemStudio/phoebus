@@ -142,9 +142,9 @@ public class FXTree
                 {
                     try
                     {
-                        final Window window = tree_view.getScene().getWindow();
-                        final Stage stage = window instanceof Stage ? (Stage) window : null;
-                        entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
+//                        final Window window = tree_view.getScene().getWindow();
+//                        final Stage stage = window instanceof Stage ? (Stage) window : null;
+                        entry.callWithSelection(SelectionService.getInstance().getSelection());
                     }
                     catch (Exception ex)
                     {

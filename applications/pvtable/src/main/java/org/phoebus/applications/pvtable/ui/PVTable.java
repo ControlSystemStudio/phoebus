@@ -513,9 +513,9 @@ public class PVTable extends BorderPane
                 {
                     try
                     {
-                        final Window window = table.getScene().getWindow();
-                        final Stage stage = window instanceof Stage ? (Stage) window : null;
-                        entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
+//                        final Window window = table.getScene().getWindow();
+//                        final Stage stage = window instanceof Stage ? (Stage) window : null;
+                        entry.callWithSelection(SelectionService.getInstance().getSelection());
                     }
                     catch (Exception ex)
                     {
