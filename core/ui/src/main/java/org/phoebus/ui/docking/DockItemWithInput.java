@@ -77,14 +77,25 @@ public class DockItemWithInput extends DockItem
         });
     }
 
+    // Override to include 'dirty' tab
+    @Override
+    public void setLabel(final String label)
+    {
+        name = label;
+        if (is_dirty)
+            name_tab.setText(DIRTY + label);
+        else
+            name_tab.setText(label);
+    }
+
     /** @param input Input */
     public void setInput(final URL input)
     {
         this.input = input;
         if (input == null)
-            tab_name.setTooltip(new Tooltip("<Not saved to file>"));
+            name_tab.setTooltip(new Tooltip("<Not saved to file>"));
         else
-            tab_name.setTooltip(new Tooltip(input.toString()));
+            name_tab.setTooltip(new Tooltip(input.toString()));
     }
 
     /** @param file File-based input */
@@ -114,18 +125,7 @@ public class DockItemWithInput extends DockItem
         if (dirty == is_dirty)
             return;
         is_dirty = dirty;
-
-        final String text = getLabel();
-        if (dirty)
-        {
-            if (!text.startsWith(DIRTY))
-                setLabel(DIRTY + text);
-        }
-        else
-        {
-            if (text.startsWith(DIRTY))
-                setLabel(text.substring(2));
-        }
+        setLabel(name);
     }
 
     /** Called when user tries to close the tab

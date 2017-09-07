@@ -86,8 +86,11 @@ public class DockItem extends Tab
      */
     private static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
 
+    /** Name of the tab */
+    protected String name;
+
     /** Label used for the Tab because Tab itself cannot participate in drag-and-drop */
-    protected final Label tab_name;
+    protected final Label name_tab;
 
     /** Create dock item
      *  @param label Initial label
@@ -107,38 +110,40 @@ public class DockItem extends Tab
         // Create tab with no 'text',
         // instead using a Label for the text
         // because the label can react to drag operations
-        tab_name = new Label(label);
-        setGraphic(tab_name);
+        name = label;
+        name_tab = new Label(label);
+        setGraphic(name_tab);
 
-        tab_name.setOnDragDetected(this::handleDragDetected);
-        tab_name.setOnDragOver(this::handleDragOver);
-        tab_name.setOnDragEntered(this::handleDragEntered);
-        tab_name.setOnDragExited(this::handleDragExited);
-        tab_name.setOnDragDropped(this::handleDrop);
-        tab_name.setOnDragDone(this::handleDragDone);
+        name_tab.setOnDragDetected(this::handleDragDetected);
+        name_tab.setOnDragOver(this::handleDragOver);
+        name_tab.setOnDragEntered(this::handleDragEntered);
+        name_tab.setOnDragExited(this::handleDragExited);
+        name_tab.setOnDragDropped(this::handleDrop);
+        name_tab.setOnDragDone(this::handleDragDone);
 
         final MenuItem detach = new MenuItem("Detach", detach_icon);
         detach.setOnAction(this::detach);
         final ContextMenu menu = new ContextMenu(detach);
-        tab_name.setContextMenu(menu );
+        name_tab.setContextMenu(menu );
     }
 
     /** Label of this item */
     public String getLabel()
     {
-        return tab_name.getText();
+        return name;
     }
 
     /** @param label Label of this item */
     public void setLabel(final String label)
     {
-        tab_name.setText(label);
+        name = label;
+        name_tab.setText(label);
     }
 
     /**    Allow dragging this item */
     private void handleDragDetected(final MouseEvent event)
     {
-        final Dragboard db = tab_name.startDragAndDrop(TransferMode.MOVE);
+        final Dragboard db = name_tab.startDragAndDrop(TransferMode.MOVE);
 
         final ClipboardContent content = new ClipboardContent();
         content.put(DOCK_ITEM, getLabel());
@@ -169,8 +174,8 @@ public class DockItem extends Tab
         final DockItem item = dragged_item.get();
         if (item != null  &&  item != this)
         {
-            tab_name.setBorder(DROP_ZONE_BORDER);
-            tab_name.setTextFill(Color.GREEN);
+            name_tab.setBorder(DROP_ZONE_BORDER);
+            name_tab.setTextFill(Color.GREEN);
         }
         event.consume();
     }
@@ -178,8 +183,8 @@ public class DockItem extends Tab
     /** Remove Highlight */
     private void handleDragExited(final DragEvent event)
     {
-        tab_name.setBorder(Border.EMPTY);
-        tab_name.setTextFill(Color.BLACK);
+        name_tab.setBorder(Border.EMPTY);
+        name_tab.setTextFill(Color.BLACK);
         event.consume();
     }
 
