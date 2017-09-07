@@ -8,15 +8,10 @@
 package org.phoebus.applications.pvtable;
 
 import org.phoebus.framework.spi.MenuEntry;
-import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockPane;
-
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.TitledPane;
 
 /**
- * Menu entry that starts probe
- * 
+ * Menu entry that starts PV Table
+ *
  * @author Kunal Shroff
  */
 public class PVTreeMenuEntry implements MenuEntry {
@@ -27,8 +22,8 @@ public class PVTreeMenuEntry implements MenuEntry {
     }
 
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     @Override
     public Void call() throws Exception {
