@@ -23,6 +23,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
+import org.phoebus.ui.dnd.DataFormats;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -602,19 +603,21 @@ public class PVTable extends BorderPane
 
     private void hookDragAndDrop()
     {
-        // TODO Add drag/drop data type for List<ProcessVariable>?
-
         // Drag PV names as string. Also locally remember dragged_items
         table.setOnDragDetected(event ->
         {
             final Dragboard db = table.startDragAndDrop(TransferMode.COPY_OR_MOVE);
             final ClipboardContent content = new ClipboardContent();
 
-            dragged_items = table.getSelectionModel()
-                                 .getSelectedItems()
-                                 .stream()
-                                 .filter(proxy -> proxy != TableItemProxy.NEW_ITEM)
-                                 .collect(Collectors.toList());
+            final List<ProcessVariable> pvs = new ArrayList<>();
+            dragged_items = new ArrayList<>();
+            for (TableItemProxy proxy : table.getSelectionModel().getSelectedItems())
+                if (proxy != TableItemProxy.NEW_ITEM)
+                {
+                    dragged_items.add(proxy);
+                    if (! proxy.item.isComment())
+                        pvs.add(new ProcessVariable(proxy.item.getName()));
+                }
 
             final StringBuilder buf = new StringBuilder();
             for (TableItemProxy proxy : dragged_items)
@@ -624,6 +627,7 @@ public class PVTable extends BorderPane
                 buf.append(proxy.name.get());
             }
             content.putString(buf.toString());
+            content.put(DataFormats.ProcessVariables, pvs);
             db.setContent(content);
             event.consume();
         });
@@ -659,17 +663,28 @@ public class PVTable extends BorderPane
             }
 
             if (dragged_items != null)
-            {   // Move items within table
+            {   // Move items within this table
                 for (TableItemProxy proxy : dragged_items)
                 {
                     model.removeItem(proxy.item);
                     model.addItemAbove(existing, proxy.item);
                 }
             }
-            else if (event.getDragboard().hasString())
-            {   // Add new items
-                addPVsFromString(existing, event.getDragboard().getString());
-                event.setDropCompleted(true);
+            else
+            {
+                final Dragboard db = event.getDragboard();
+                if (db.hasContent(DataFormats.ProcessVariables))
+                {   // Add PVs
+                    @SuppressWarnings("unchecked")
+                    final List<ProcessVariable> pvs = (List<ProcessVariable>) db.getContent(DataFormats.ProcessVariables);
+                    for (ProcessVariable pv : pvs)
+                        model.addItemAbove(existing, pv.getName());
+                }
+                else if (db.hasString())
+                {   // Add new items from string
+                    addPVsFromString(existing, db.getString());
+                    event.setDropCompleted(true);
+                }
             }
             event.consume();
         });
