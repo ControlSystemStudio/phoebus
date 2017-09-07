@@ -51,6 +51,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -310,14 +312,12 @@ public class PVTable extends BorderPane
         @Override
         public void tableItemsChanged()
         {
-            System.out.println("Table items changed");
             setItemsFromModel();
         }
 
         @Override
         public void modelChanged()
         {
-            System.out.println("Model changed");
             setItemsFromModel();
         }
     };
@@ -595,8 +595,45 @@ public class PVTable extends BorderPane
         table.getColumns().add(compl_col);
     }
 
+    /** Set to currently dragged items to allow 'drop' to move them instead of
+     *  adding duplicates.
+     */
+    private List<TableItemProxy> dragged_items = null;
+
     private void hookDragAndDrop()
     {
+        // TODO Add drag/drop data type for List<ProcessVariable>?
+
+        // Drag PV names as string. Also locally remember dragged_items
+        table.setOnDragDetected(event ->
+        {
+            final Dragboard db = table.startDragAndDrop(TransferMode.COPY_OR_MOVE);
+            final ClipboardContent content = new ClipboardContent();
+
+            dragged_items = table.getSelectionModel()
+                                 .getSelectedItems()
+                                 .stream()
+                                 .filter(proxy -> proxy != TableItemProxy.NEW_ITEM)
+                                 .collect(Collectors.toList());
+
+            final StringBuilder buf = new StringBuilder();
+            for (TableItemProxy proxy : dragged_items)
+            {
+                if (buf.length() > 0)
+                    buf.append(" ");
+                buf.append(proxy.name.get());
+            }
+            content.putString(buf.toString());
+            db.setContent(content);
+            event.consume();
+        });
+
+        // Clear dragged items
+        table.setOnDragDone(event ->
+        {
+            dragged_items = null;
+        });
+
         table.setOnDragOver(event ->
         {
             if (event.getDragboard().hasString())
@@ -606,34 +643,43 @@ public class PVTable extends BorderPane
 
         table.setOnDragDropped(event ->
         {
-            if (event.getDragboard().hasString())
-            {
-                // Locate cell on which we dropped
-                Node node = event.getPickResult().getIntersectedNode();
-                while (node != null  &&  !(node instanceof TableCell))
-                    node = node.getParent();
-                final TableCell<?,?> cell = (TableCell<?,?>)node;
+            // Locate cell on which we dropped
+            Node node = event.getPickResult().getIntersectedNode();
+            while (node != null  &&  !(node instanceof TableCell))
+                node = node.getParent();
+            final TableCell<?,?> cell = (TableCell<?,?>)node;
 
-                // Table item before which to drop?
-                PVTableItem anchor = null;
-                if (cell != null)
+            // Table item before which to drop?
+            PVTableItem existing = null;
+            if (cell != null)
+            {
+                final int row = cell.getIndex();
+                if (row < model.getItems().size())
+                    existing = model.getItems().get(row);
+            }
+
+            if (dragged_items != null)
+            {   // Move items within table
+                for (TableItemProxy proxy : dragged_items)
                 {
-                    final int row = cell.getIndex();
-                    if (row < model.getItems().size())
-                        anchor = model.getItems().get(row);
+                    model.removeItem(proxy.item);
+                    model.addItemAbove(existing, proxy.item);
                 }
-                addPVsFromString(anchor, event.getDragboard().getString());
+            }
+            else if (event.getDragboard().hasString())
+            {   // Add new items
+                addPVsFromString(existing, event.getDragboard().getString());
                 event.setDropCompleted(true);
             }
             event.consume();
         });
     }
 
-    private void addPVsFromString(final PVTableItem anchor, final String pv_text)
+    private void addPVsFromString(final PVTableItem existing, final String pv_text)
     {
         final String[] pvs = pv_text.split("[ \\t\\n\\r,]+");
         for (String pv : pvs)
             if (! pv.isEmpty())
-                model.addItemAbove(anchor, pv);
+                model.addItemAbove(existing, pv);
     }
 }
