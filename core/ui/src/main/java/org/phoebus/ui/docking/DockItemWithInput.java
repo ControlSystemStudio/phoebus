@@ -14,6 +14,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
@@ -144,6 +145,7 @@ public class DockItemWithInput extends DockItem
                                       text,
                                       ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
         prompt.setTitle("Save File");
+        DialogHelper.positionDialog(prompt, getTabPane(), -200, -100);
         final ButtonType result = prompt.showAndWait().orElse(ButtonType.CANCEL);
 
         // Cancel the close request
