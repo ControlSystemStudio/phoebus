@@ -14,7 +14,7 @@ import org.phoebus.framework.spi.MenuEntry;
  *
  * @author Kunal Shroff
  */
-public class PVTreeMenuEntry implements MenuEntry {
+public class PVTableMenuEntry implements MenuEntry {
 
     @Override
     public String getName() {
