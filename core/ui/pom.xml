@@ -25,5 +25,10 @@
       <artifactId>framework</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>pv</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>

@@ -34,6 +34,7 @@
     <delete dir="core/logging/${build}"/>
     <delete dir="core/pv/${build}"/>
     <delete dir="core/types/${build}"/>
+    <delete dir="core/ui/${build}"/>
     <delete dir="applications/greetings/${build}"/>
     <delete dir="applications/probe/${build}"/>
     <delete dir="applications/logbook/inmemory/${build}"/>
@@ -119,13 +120,14 @@
     </jar>
   </target>
 
-  <target name="core-ui" depends="core-types">
+  <target name="core-ui" depends="core-types, core-pv">
     <mkdir dir="core/ui/${classes}"/>
     <javac destdir="core/ui/${classes}">
      <src path="core/ui/${src}"/>
      <src path="core/ui/${test}"/>
      <classpath>
         <pathelement path="core/framework/${build}/framework-${version}.jar"/>
+        <pathelement path="core/pv/${build}/pv-${version}.jar"/>
         <fileset dir="dependencies/target/lib">
           <include name="*.jar"/>
         </fileset>
