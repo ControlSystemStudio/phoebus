@@ -374,8 +374,16 @@ public class PVTableItem
 
         try
         {
-            time_saved = TimestampHelper.format(VTypeHelper.getTimestamp(value));
-            saved = Optional.of(SavedValue.forCurrentValue(value));
+            if (value == null  ||  VTypeHelper.getSeverity(value).compareTo(AlarmSeverity.INVALID) >= 0)
+            {   // Nothing to save
+                time_saved = "";
+                saved = Optional.empty();
+            }
+            else
+            {
+                time_saved = TimestampHelper.format(VTypeHelper.getTimestamp(value));
+                saved = Optional.of(SavedValue.forCurrentValue(value));
+            }
         }
         catch (Exception ex)
         {
@@ -387,7 +395,7 @@ public class PVTableItem
     /** @return time_saved, the timestamp saved */
     public String getTime_saved()
     {
-        return this.time_saved;
+        return time_saved;
     }
 
     /** @param time_saved, the current value of timestamp */
