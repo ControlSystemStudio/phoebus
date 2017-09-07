@@ -608,18 +608,32 @@ public class PVTable extends BorderPane
         {
             if (event.getDragboard().hasString())
             {
-                addPVsFromString(event.getDragboard().getString());
+                // Locate cell on which we dropped
+                Node node = event.getPickResult().getIntersectedNode();
+                while (node != null  &&  !(node instanceof TableCell))
+                    node = node.getParent();
+                final TableCell<?,?> cell = (TableCell<?,?>)node;
+
+                // Table item before which to drop?
+                PVTableItem anchor = null;
+                if (cell != null)
+                {
+                    final int row = cell.getIndex();
+                    if (row < model.getItems().size())
+                        anchor = model.getItems().get(row);
+                }
+                addPVsFromString(anchor, event.getDragboard().getString());
                 event.setDropCompleted(true);
             }
             event.consume();
         });
     }
 
-    private void addPVsFromString(final String pv_text)
+    private void addPVsFromString(final PVTableItem anchor, final String pv_text)
     {
         final String[] pvs = pv_text.split("[ \\t\\n\\r,]+");
         for (String pv : pvs)
             if (! pv.isEmpty())
-                model.addItem(pv);
+                model.addItemAbove(anchor, pv);
     }
 }
