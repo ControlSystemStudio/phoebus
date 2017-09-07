@@ -304,7 +304,7 @@ public class DockItem extends Tab
         if (closed_callback == null)
         {
             closed_callback = new ArrayList<>();
-            setOnCloseRequest(event ->
+            setOnClosed(event ->
             {
                 for (Runnable check : closed_callback)
                     check.run();
