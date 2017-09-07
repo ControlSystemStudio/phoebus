@@ -71,11 +71,7 @@ public class DockItemWithInput extends DockItem
         this.save_handler = save_handler;
         setInput(input);
 
-        setOnCloseRequest(event ->
-        {
-            if (! okToClose())
-                event.consume();
-        });
+        addCloseCheck(this::okToClose);
     }
 
     // Override to include 'dirty' tab

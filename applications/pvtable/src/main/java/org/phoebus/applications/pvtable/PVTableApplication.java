@@ -23,7 +23,6 @@ import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.applications.pvtable.ui.PVTable;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -116,7 +115,7 @@ public class PVTableApplication
             }
         });
 
-        dock_item.setOnClosed(event -> stop());
+        dock_item.addClosedNotification(this::stop);
     }
 
     private void doSave(final JobMonitor monitor) throws Exception
@@ -142,7 +141,6 @@ public class PVTableApplication
     {
         logger.log(Level.INFO, "Stopping PV Table...");
         model.dispose();
-        System.out.println("Remaining PVs " + PVPool.getPVReferences());
     }
 
     /** @param name Name of the icon

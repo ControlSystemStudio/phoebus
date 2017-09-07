@@ -7,7 +7,10 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 
 import javafx.event.ActionEvent;
@@ -45,6 +48,12 @@ import javafx.stage.Stage;
  *  <li>{@link Tab#setClosable(boolean)}
  *  </ul>
  *  to allow changes to the internals.
+ *
+ *  <p>Specifically,
+ *  {@link Tab#setOnCloseRequest(EventHandler)}
+ *  and
+ *  {@link Tab#setOnClosed(EventHandler)}
+ *  are used internally and should not be called.
  *
  *  @author Kay Kasemir
  */
@@ -91,6 +100,12 @@ public class DockItem extends Tab
 
     /** Label used for the Tab because Tab itself cannot participate in drag-and-drop */
     protected final Label name_tab;
+
+    /** Called to check if OK to close the tab */
+    private List<BooleanSupplier> close_check = null;
+
+    /** Called after tab was closed */
+    private List<Runnable> closed_callback = null;
 
     /** Create dock item
      *  @param label Initial label
@@ -249,6 +264,55 @@ public class DockItem extends Tab
         DockStage.configureStage(other, this);
         other.show();
     }
+
+    /** Select this tab, i.e. raise it in case another tab is currently visible */
+    public void select()
+    {
+        getTabPane().getSelectionModel().select(this);
+    }
+
+    /** Register check for closing the tab
+     *
+     *  @param ok_to_close Will be called when tab is about to close.
+     *                     Should return <code>true</code> if OK to close,
+     *                     <code>false</code> to leave the tab open.
+     */
+    public void addCloseCheck(final BooleanSupplier ok_to_close)
+    {
+        if (close_check == null)
+        {
+            close_check = new ArrayList<>();
+            setOnCloseRequest(event ->
+            {
+                for (BooleanSupplier check : close_check)
+                    if (! check.getAsBoolean())
+                    {
+                        event.consume();
+                        return;
+                    }
+            });
+        }
+        close_check.add(ok_to_close);
+    }
+
+    /** Register for notification when tab was closed
+     *
+     *  @param closed Will be called after tab was closed
+     */
+    public void addClosedNotification(final Runnable closed)
+    {
+        if (closed_callback == null)
+        {
+            closed_callback = new ArrayList<>();
+            setOnCloseRequest(event ->
+            {
+                for (Runnable check : closed_callback)
+                    check.run();
+            });
+        }
+        closed_callback.add(closed);
+    }
+
 
     /** Programmatically close this tab
      *
