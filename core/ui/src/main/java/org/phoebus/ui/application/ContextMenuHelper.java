@@ -58,7 +58,7 @@ public class ContextMenuHelper
             {
                 try
                 {
-                    entry.callWithSelection(stage, SelectionService.getInstance().getSelection());
+                    entry.callWithSelection(SelectionService.getInstance().getSelection());
                 }
                 catch (Exception ex)
                 {

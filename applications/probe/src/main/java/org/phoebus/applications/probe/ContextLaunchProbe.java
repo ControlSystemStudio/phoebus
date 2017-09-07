@@ -13,9 +13,11 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TitledPane;
-import javafx.stage.Stage;
-
-//@ProviderFor(ContextMenuEntry.class)
+/**
+ * A prototype action entry for starting the probe application
+ * @author Kunal Shroff
+ *
+ */
 public class ContextLaunchProbe implements ContextMenuEntry {
 
     private static final String NAME = "Probe";
@@ -27,7 +29,7 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public Object callWithSelection(final Stage parent_stage, Selection selection) {
+    public Object callWithSelection(Selection selection) {
         List<ProcessVariable> pvs = selection.getSelections();
         LaunchProbe(pvs);
         return null;

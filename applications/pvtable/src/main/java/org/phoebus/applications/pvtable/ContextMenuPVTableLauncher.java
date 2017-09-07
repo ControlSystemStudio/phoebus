@@ -13,10 +13,6 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.docking.DockStage;
-
-import javafx.stage.Stage;
 
 /** Entry for context menues that starts PV Table for selected ProcessVariable
  *
@@ -48,7 +44,7 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     }
 
     @Override
-    public ProcessVariable callWithSelection(final Stage parent_stage, final Selection selection) throws Exception
+    public ProcessVariable callWithSelection(final Selection selection) throws Exception
     {
         final PVTableApplication pv_table = new PVTableApplication();
         pv_table.start(selection.getSelections());

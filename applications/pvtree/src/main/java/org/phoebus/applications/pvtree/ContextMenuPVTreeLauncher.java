@@ -46,7 +46,7 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     }
 
     @Override
-    public ProcessVariable callWithSelection(final Stage parent_stage, final Selection selection) throws Exception
+    public ProcessVariable callWithSelection(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
