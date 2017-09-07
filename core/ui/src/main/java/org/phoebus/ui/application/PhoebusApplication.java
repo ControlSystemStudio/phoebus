@@ -1,9 +1,5 @@
 package org.phoebus.ui.application;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +9,7 @@ import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
 import javafx.application.Application;
@@ -29,6 +26,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class PhoebusApplication extends Application {
     /** Logger for all application messages */
@@ -38,7 +36,7 @@ public class PhoebusApplication extends Application {
     public void start(Stage stage) throws Exception {
 
         final MenuBar menuBar = createMenu(stage);
-        final ToolBar toolBar = createToolbar(stage);
+        final ToolBar toolBar = createToolbar();
 
         final DockItem welcome = new DockItem("Welcome",
                 new BorderPane(new Label("Welcome to Phoebus!\n\n" + "Try pushing the buttons in the toolbar")));
@@ -85,7 +83,7 @@ public class PhoebusApplication extends Application {
     }
 
     private void addMenuNode(Menu parent, MenuTreeNode node) {
-        
+
         for (MenuEntry entry : node.getMenuItems()) {
             MenuItem m = new MenuItem(entry.getName());
             m.setOnAction((event) -> {
@@ -95,17 +93,17 @@ public class PhoebusApplication extends Application {
                     logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
                 }
             });
-            parent.getItems().add(m);            
+            parent.getItems().add(m);
         }
-        
+
         for (MenuTreeNode child : node.getChildren()) {
             Menu childMenu = new Menu(child.getName());
             addMenuNode(childMenu, child);
             parent.getItems().add(childMenu);
         }
     }
-    
-    private ToolBar createToolbar(final Stage stage) {
+
+    private ToolBar createToolbar() {
         final ToolBar toolBar = new ToolBar();
 
         // Contributed Entries
@@ -128,15 +126,17 @@ public class PhoebusApplication extends Application {
                     // Future<?> future = executor.submit(entry.getActions());
 
                     if (open_new.get()) { // Invoke with new stage
+                        final Window existing = DockPane.getActiveDockPane().getScene().getWindow();
+
                         final Stage new_stage = new Stage();
                         DockStage.configureStage(new_stage);
-                        entry.call(new_stage);
+                        entry.call();
                         // Position near but not exactly on top of existing stage
-                        new_stage.setX(stage.getX() + 10.0);
-                        new_stage.setY(stage.getY() + 10.0);
+                        new_stage.setX(existing.getX() + 10.0);
+                        new_stage.setY(existing.getY() + 10.0);
                         new_stage.show();
                     } else
-                        entry.call(stage);
+                        entry.call();
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Error invoking toolbar " + entry.getName(), ex);
                 }

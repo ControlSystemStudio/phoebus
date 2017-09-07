@@ -9,23 +9,21 @@ package org.phoebus.applications.utility;
 
 import org.phoebus.framework.spi.ToolbarEntry;
 
-import javafx.stage.Stage;
-
 /**
- * Toolbar entry that starts PV Tree Application
- * 
- * @author Kay Kasemir
+ * Toolbar entry that starts LoggingConfiguration
+ *
+ * @author Kunal Shroff
  */
 // @ProviderFor(ToolbarEntry.class)
 public class LoggingConfigurationToolbarEntry implements ToolbarEntry {
-    
+
     @Override
     public String getName() {
         return LoggingConfiguration.NAME;
     }
 
     @Override
-    public void call(Stage stage) throws Exception {
+    public void call() throws Exception {
         LoggingConfiguration.open();
     }
 }

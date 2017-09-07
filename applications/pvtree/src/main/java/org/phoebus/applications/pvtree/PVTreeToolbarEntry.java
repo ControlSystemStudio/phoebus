@@ -9,8 +9,6 @@ package org.phoebus.applications.pvtree;
 
 import org.phoebus.framework.spi.ToolbarEntry;
 
-import javafx.stage.Stage;
-
 /** Toolbar entry that starts PV Tree Application
  *  @author Kay Kasemir
  */
@@ -24,7 +22,7 @@ public class PVTreeToolbarEntry implements ToolbarEntry
     }
 
     @Override
-    public void call(final Stage stage) throws Exception
+    public void call() throws Exception
     {
         new PVTree().start();
     }
