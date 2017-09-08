@@ -10,10 +10,18 @@ package org.phoebus.ui.docking;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.ui.jobs.JobManager;
+
+import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.collections.ListChangeListener;
+import javafx.event.EventType;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
+import javafx.scene.layout.StackPane;
 
 /** Pane that contains {@link DockItem}s
  *
@@ -63,14 +71,37 @@ public class DockPane extends TabPane
             final DockItem item = (DockItem) tab;
             active = item == null  ?  null  :  (DockPane)item.getTabPane();
         });
+
+        // Show/hide tabs as tab count changes
+        getTabs().addListener((InvalidationListener) change -> autoHideTabs());
+    }
+    
+    // lookup() in autoHideTabs() only works when the scene has been rendered.
+    // Before, it returns null
+    // There is no event for 'node has been rendered',
+    // but overriding layoutChildren() allows to detect that point in time.
+    @Override
+    protected void layoutChildren()
+    {
+        // Perform initial autoHideTabs
+        autoHideTabs();
+        super.layoutChildren();
+    }
+    
+    public void autoHideTabs()
+    {
+        // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX:
+        final StackPane header = (StackPane) lookup(".tab-header-area");
+        if (header != null)
+            header.setPrefHeight(getTabs().size() == 1  ?  0  :  -1);
     }
 
     /** @param tabs One or more tabs to add */
     public void addTab(final DockItem... tabs)
     {
-		getTabs().addAll(tabs);
-		// Select the newly added tab
-		getSelectionModel().select(getTabs().size()-1);
+        getTabs().addAll(tabs);
+        // Select the newly added tab
+        getSelectionModel().select(getTabs().size()-1);
     }
 
     /** Accept dock items */
@@ -112,6 +143,8 @@ public class DockPane extends TabPane
 
             old_parent.getTabs().remove(item);
             getTabs().add(item);
+            autoHideTabs();
+
             // Select the new item
             getSelectionModel().select(item);
         }
