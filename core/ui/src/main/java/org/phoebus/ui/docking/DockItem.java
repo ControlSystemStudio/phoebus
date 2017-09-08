@@ -7,10 +7,15 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -43,6 +48,12 @@ import javafx.stage.Stage;
  *  <li>{@link Tab#setClosable(boolean)}
  *  </ul>
  *  to allow changes to the internals.
+ *
+ *  <p>Specifically,
+ *  {@link Tab#setOnCloseRequest(EventHandler)}
+ *  and
+ *  {@link Tab#setOnClosed(EventHandler)}
+ *  are used internally and should not be called.
  *
  *  @author Kay Kasemir
  */
@@ -84,8 +95,17 @@ public class DockItem extends Tab
      */
     private static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
 
+    /** Name of the tab */
+    protected String name;
+
     /** Label used for the Tab because Tab itself cannot participate in drag-and-drop */
-    private final Label tab_name;
+    protected final Label name_tab;
+
+    /** Called to check if OK to close the tab */
+    private List<BooleanSupplier> close_check = null;
+
+    /** Called after tab was closed */
+    private List<Runnable> closed_callback = null;
 
     /** Create dock item
      *  @param label Initial label
@@ -105,38 +125,40 @@ public class DockItem extends Tab
         // Create tab with no 'text',
         // instead using a Label for the text
         // because the label can react to drag operations
-        tab_name = new Label(label);
-        setGraphic(tab_name);
+        name = label;
+        name_tab = new Label(label);
+        setGraphic(name_tab);
 
-        tab_name.setOnDragDetected(this::handleDragDetected);
-        tab_name.setOnDragOver(this::handleDragOver);
-        tab_name.setOnDragEntered(this::handleDragEntered);
-        tab_name.setOnDragExited(this::handleDragExited);
-        tab_name.setOnDragDropped(this::handleDrop);
-        tab_name.setOnDragDone(this::handleDragDone);
+        name_tab.setOnDragDetected(this::handleDragDetected);
+        name_tab.setOnDragOver(this::handleDragOver);
+        name_tab.setOnDragEntered(this::handleDragEntered);
+        name_tab.setOnDragExited(this::handleDragExited);
+        name_tab.setOnDragDropped(this::handleDrop);
+        name_tab.setOnDragDone(this::handleDragDone);
 
         final MenuItem detach = new MenuItem("Detach", detach_icon);
         detach.setOnAction(this::detach);
         final ContextMenu menu = new ContextMenu(detach);
-        tab_name.setContextMenu(menu );
+        name_tab.setContextMenu(menu );
     }
 
     /** Label of this item */
     public String getLabel()
     {
-        return tab_name.getText();
+        return name;
     }
 
     /** @param label Label of this item */
     public void setLabel(final String label)
     {
-        tab_name.setText(label);
+        name = label;
+        name_tab.setText(label);
     }
 
     /**    Allow dragging this item */
     private void handleDragDetected(final MouseEvent event)
     {
-        final Dragboard db = tab_name.startDragAndDrop(TransferMode.MOVE);
+        final Dragboard db = name_tab.startDragAndDrop(TransferMode.MOVE);
 
         final ClipboardContent content = new ClipboardContent();
         content.put(DOCK_ITEM, getLabel());
@@ -167,8 +189,8 @@ public class DockItem extends Tab
         final DockItem item = dragged_item.get();
         if (item != null  &&  item != this)
         {
-            tab_name.setBorder(DROP_ZONE_BORDER);
-            tab_name.setTextFill(Color.GREEN);
+            name_tab.setBorder(DROP_ZONE_BORDER);
+            name_tab.setTextFill(Color.GREEN);
         }
         event.consume();
     }
@@ -176,8 +198,8 @@ public class DockItem extends Tab
     /** Remove Highlight */
     private void handleDragExited(final DragEvent event)
     {
-        tab_name.setBorder(Border.EMPTY);
-        tab_name.setTextFill(Color.BLACK);
+        name_tab.setBorder(Border.EMPTY);
+        name_tab.setTextFill(Color.BLACK);
         event.consume();
     }
 
@@ -241,6 +263,82 @@ public class DockItem extends Tab
         old_parent.getTabs().remove(this);
         DockStage.configureStage(other, this);
         other.show();
+    }
+
+    /** Select this tab, i.e. raise it in case another tab is currently visible */
+    public void select()
+    {
+        getTabPane().getSelectionModel().select(this);
+    }
+
+    /** Register check for closing the tab
+     *
+     *  @param ok_to_close Will be called when tab is about to close.
+     *                     Should return <code>true</code> if OK to close,
+     *                     <code>false</code> to leave the tab open.
+     */
+    public void addCloseCheck(final BooleanSupplier ok_to_close)
+    {
+        if (close_check == null)
+        {
+            close_check = new ArrayList<>();
+            setOnCloseRequest(event ->
+            {
+                for (BooleanSupplier check : close_check)
+                    if (! check.getAsBoolean())
+                    {
+                        event.consume();
+                        return;
+                    }
+            });
+        }
+        close_check.add(ok_to_close);
+    }
+
+    /** Register for notification when tab was closed
+     *
+     *  @param closed Will be called after tab was closed
+     */
+    public void addClosedNotification(final Runnable closed)
+    {
+        if (closed_callback == null)
+        {
+            closed_callback = new ArrayList<>();
+            setOnClosed(event ->
+            {
+                for (Runnable check : closed_callback)
+                    check.run();
+            });
+        }
+        closed_callback.add(closed);
+    }
+
+
+    /** Programmatically close this tab
+     *
+     *  <p>Will invoke on-close-request handler that can abort the action,
+     *  otherwise invoke the on-closed handler and remove the tab
+     *
+     *  @return <code>true</code> if tab closed, <code>false</code> if it remained open
+     */
+    public boolean close()
+    {
+        EventHandler<Event> handler = getOnCloseRequest();
+        if (handler != null)
+        {
+            final Event event = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
+            handler.handle(event);
+            if (event.isConsumed())
+                return false;
+        }
+
+        handler = getOnClosed();
+        if (null != handler)
+            handler.handle(null);
+
+        getTabPane().getTabs().remove(this);
+
+        return true;
     }
 
     @Override

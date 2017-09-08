@@ -9,11 +9,15 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -60,6 +64,20 @@ public class DockStage
                 DockPane.setActiveDockPane(tab_pane);
         });
 
+        // Prevent closing the stage if one of the tabs doesn't want to close
+        stage.setOnCloseRequest(event ->
+        {
+            // List changes as we close tabs; get save copy
+            final List<Tab> copy = new ArrayList<>(tab_pane.getTabs());
+            for (Tab tab : copy)
+                if (tab instanceof DockItem  &&
+                    ! ((DockItem) tab).close())
+                {
+                    event.consume();
+                    return;
+                }
+        });
+
         return getDockPane(stage);
     }
 
@@ -83,5 +101,12 @@ public class DockStage
         if (dock_pane instanceof DockPane)
             return (DockPane) dock_pane;
         throw new IllegalStateException("Expect DockPane, got " + dock_pane);
+    }
+
+    /** @param stage Stage that supports docking which should become the active stage */
+    public static void setActiveDockPane(final Stage stage)
+    {
+        final DockPane dock_pane = getDockPane(stage);
+        DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));
     }
 }

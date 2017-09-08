@@ -5,25 +5,32 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.pvtree;
+package org.phoebus.ui.pv;
 
-import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.framework.spi.MenuEntry;
 
-/** Toolbar entry that starts PV Tree Application
+/** Menu entry that opens PV List
  *  @author Kay Kasemir
  */
-// @ProviderFor(ToolbarEntry.class)
-public class PVTreeToolbarEntry implements ToolbarEntry
+@SuppressWarnings("nls")
+public class PVListMenuEntry implements MenuEntry
 {
     @Override
     public String getName()
     {
-        return PVTree.NAME;
+        return PVListApplication.NAME;
     }
 
     @Override
-    public void call() throws Exception
+    public String getMenuPath()
     {
-        new PVTree().start();
+        return "Debug";
+    }
+
+    @Override
+    public Void call() throws Exception
+    {
+        PVListApplication.INSTANCE.start();
+        return null;
     }
 }

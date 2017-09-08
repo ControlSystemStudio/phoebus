@@ -20,13 +20,11 @@ import org.phoebus.applications.pvtree.model.TreeModelItem;
 import org.phoebus.applications.pvtree.model.TreeModelListener;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.framework.workbench.ContextMenuService;
+import org.phoebus.ui.application.ContextMenuHelper;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -36,8 +34,6 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /** Basic JFX Tree for {@link TreeModel}
  *
@@ -132,29 +128,13 @@ public class FXTree
         });
 
         // Provide context menu
+        final ContextMenu menu = new ContextMenu();
         tree_view.setOnContextMenuRequested(event ->
         {
-            final ContextMenu menu = new ContextMenu();
-            for (ContextMenuEntry entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
-            {
-                final MenuItem item = new MenuItem(entry.getName());
-                item.setOnAction(e ->
-                {
-                    try
-                    {
-//                        final Window window = tree_view.getScene().getWindow();
-//                        final Stage stage = window instanceof Stage ? (Stage) window : null;
-                        entry.callWithSelection(SelectionService.getInstance().getSelection());
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.WARNING, "Cannot invoke context menu", ex);
-                    }
-                });
-                menu.getItems().add(item);
-            }
-            tree_view.setContextMenu(menu);
+            menu.getItems().clear();
+            ContextMenuHelper.addSupportedEntries(tree_view, menu);
         });
+        tree_view.setContextMenu(menu);
 
         model.addListener(model_listener);
     }

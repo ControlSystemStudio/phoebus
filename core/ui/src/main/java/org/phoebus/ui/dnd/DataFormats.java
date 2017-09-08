@@ -5,25 +5,16 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.pvtree;
+package org.phoebus.ui.dnd;
 
-import org.phoebus.framework.spi.ToolbarEntry;
+import javafx.scene.input.DataFormat;
 
-/** Toolbar entry that starts PV Tree Application
+/** Custom data formats
  *  @author Kay Kasemir
  */
-// @ProviderFor(ToolbarEntry.class)
-public class PVTreeToolbarEntry implements ToolbarEntry
+@SuppressWarnings("nls")
+public class DataFormats
 {
-    @Override
-    public String getName()
-    {
-        return PVTree.NAME;
-    }
-
-    @Override
-    public void call() throws Exception
-    {
-        new PVTree().start();
-    }
+    /** Data is List&lt;ProcessVariable> */
+    public static final DataFormat ProcessVariables = new DataFormat("phoebus.pvs");
 }

@@ -1,12 +1,13 @@
 package org.phoebus.core.types;
 
-@SuppressWarnings("nls")
-public class ProcessVariable {
+import java.io.Serializable;
 
+@SuppressWarnings("nls")
+public class ProcessVariable implements Serializable {
+    private static final long serialVersionUID = -2697682613620592711L;
     private final String name;
 
     public ProcessVariable(String name) {
-        super();
         this.name = name;
     }
 

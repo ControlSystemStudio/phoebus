@@ -8,9 +8,7 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TitledPane;
-import javafx.stage.Stage;
 
-@SuppressWarnings("rawtypes")
 // @ProviderFor(ToolbarEntry.class)
 public class LaunchProbe implements ToolbarEntry {
 
@@ -23,7 +21,7 @@ public class LaunchProbe implements ToolbarEntry {
     }
 
     @Override
-    public void call(final Stage stage) throws Exception {
+    public void call() throws Exception {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));

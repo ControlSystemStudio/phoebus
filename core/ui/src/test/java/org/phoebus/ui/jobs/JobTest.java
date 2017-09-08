@@ -51,6 +51,7 @@ public class JobTest
             Thread.sleep(250);
         }
         // Show final info
+        Thread.sleep(500);
         System.out.println(JobManager.getJobs());
         assertThat(JobManager.getJobs().size(), equalTo(0));
    }

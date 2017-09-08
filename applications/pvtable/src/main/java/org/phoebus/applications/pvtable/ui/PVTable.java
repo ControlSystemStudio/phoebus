@@ -7,11 +7,8 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
-import static org.phoebus.applications.pvtable.PVTableApplication.logger;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,9 +21,9 @@ import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.framework.workbench.ContextMenuService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
+import org.phoebus.ui.dnd.DataFormats;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -55,31 +52,30 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import javafx.util.converter.DefaultStringConverter;
 
 /** PV Table and its toolbar
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PVTable extends BorderPane
 {
     private static final String comment_style = "-fx-text-fill: blue;";
-
     private static final String new_item_style = "-fx-text-fill: gray;";
-
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
-
     private static final String[] alarm_styles = new String[]
     {
-        null,
-        "-fx-text-fill: orange;",
-        "-fx-text-fill: red;",
-        "-fx-text-fill: purple;",
-        "-fx-text-fill: magenta;",
+        null,                      // NONE
+        "-fx-text-fill: orange;",  // MINOR
+        "-fx-text-fill: red;",     // MAJOR
+        "-fx-text-fill: purple;",  // INVALID
+        "-fx-text-fill: magenta;", // UNDEFINED
     };
 
     private final PVTableModel model;
@@ -317,14 +313,12 @@ public class PVTable extends BorderPane
         @Override
         public void tableItemsChanged()
         {
-            System.out.println("Table items changed");
             setItemsFromModel();
         }
 
         @Override
         public void modelChanged()
         {
-            System.out.println("Model changed");
             setItemsFromModel();
         }
     };
@@ -367,7 +361,7 @@ public class PVTable extends BorderPane
 
         model.addListener(model_listener);
 
-        // TODO Allow 'dropping' PV names
+        hookDragAndDrop();
     }
 
     /** @return Stream of selected items (only PVs, no comment etc.) */
@@ -505,25 +499,8 @@ public class PVTable extends BorderPane
                     save, restore, new SeparatorMenuItem(),
                     add_row, remove_row, new SeparatorMenuItem(),
                     tolerance, timeout, new SeparatorMenuItem());
-            //Add PV entries
-            for (ContextMenuEntry entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
-            {
-                final MenuItem item = new MenuItem(entry.getName());
-                item.setOnAction(e ->
-                {
-                    try
-                    {
-//                        final Window window = table.getScene().getWindow();
-//                        final Stage stage = window instanceof Stage ? (Stage) window : null;
-                        entry.callWithSelection(SelectionService.getInstance().getSelection());
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.WARNING, "Cannot invoke context menu", ex);
-                    }
-                });
-                menu.getItems().add(item);
-            }
+            // Add PV entries
+            ContextMenuHelper.addSupportedEntries(table, menu);
         });
         table.setContextMenu(menu);
     }
@@ -559,10 +536,9 @@ public class PVTable extends BorderPane
             {
                 proxy.item.updateName(event.getNewValue());
                 proxy.update(proxy.item);
-                // Changing the name from a comment to a PV or back
-                // means that the 'selected', 'completion' checkboxes
-                // need to show/hide -> Trigger complete update
-                table.refresh();
+                // Content of model changed.
+                // Triggers full table update.
+                model.fireModelChange();
             }
         });
         table.getColumns().add(col);
@@ -618,5 +594,108 @@ public class PVTable extends BorderPane
         compl_col.setCellValueFactory(cell -> cell.getValue().use_completion);
         compl_col.setCellFactory(column -> new BooleanTableCell());
         table.getColumns().add(compl_col);
+    }
+
+    /** Set to currently dragged items to allow 'drop' to move them instead of
+     *  adding duplicates.
+     */
+    private List<TableItemProxy> dragged_items = null;
+
+    private void hookDragAndDrop()
+    {
+        // Drag PV names as string. Also locally remember dragged_items
+        table.setOnDragDetected(event ->
+        {
+            final Dragboard db = table.startDragAndDrop(TransferMode.COPY_OR_MOVE);
+            final ClipboardContent content = new ClipboardContent();
+
+            final List<ProcessVariable> pvs = new ArrayList<>();
+            dragged_items = new ArrayList<>();
+            for (TableItemProxy proxy : table.getSelectionModel().getSelectedItems())
+                if (proxy != TableItemProxy.NEW_ITEM)
+                {
+                    dragged_items.add(proxy);
+                    if (! proxy.item.isComment())
+                        pvs.add(new ProcessVariable(proxy.item.getName()));
+                }
+
+            final StringBuilder buf = new StringBuilder();
+            for (TableItemProxy proxy : dragged_items)
+            {
+                if (buf.length() > 0)
+                    buf.append(" ");
+                buf.append(proxy.name.get());
+            }
+            content.putString(buf.toString());
+            content.put(DataFormats.ProcessVariables, pvs);
+            db.setContent(content);
+            event.consume();
+        });
+
+        // Clear dragged items
+        table.setOnDragDone(event ->
+        {
+            dragged_items = null;
+        });
+
+        table.setOnDragOver(event ->
+        {
+            if (event.getDragboard().hasString() ||
+                event.getDragboard().hasContent(DataFormats.ProcessVariables))
+                event.acceptTransferModes(TransferMode.COPY);
+            event.consume();
+        });
+
+        table.setOnDragDropped(event ->
+        {
+            // Locate cell on which we dropped
+            Node node = event.getPickResult().getIntersectedNode();
+            while (node != null  &&  !(node instanceof TableCell))
+                node = node.getParent();
+            final TableCell<?,?> cell = (TableCell<?,?>)node;
+
+            // Table item before which to drop?
+            PVTableItem existing = null;
+            if (cell != null)
+            {
+                final int row = cell.getIndex();
+                if (row < model.getItems().size())
+                    existing = model.getItems().get(row);
+            }
+
+            if (dragged_items != null)
+            {   // Move items within this table
+                for (TableItemProxy proxy : dragged_items)
+                {
+                    model.removeItem(proxy.item);
+                    model.addItemAbove(existing, proxy.item);
+                }
+            }
+            else
+            {
+                final Dragboard db = event.getDragboard();
+                if (db.hasContent(DataFormats.ProcessVariables))
+                {   // Add PVs
+                    @SuppressWarnings("unchecked")
+                    final List<ProcessVariable> pvs = (List<ProcessVariable>) db.getContent(DataFormats.ProcessVariables);
+                    for (ProcessVariable pv : pvs)
+                        model.addItemAbove(existing, pv.getName());
+                }
+                else if (db.hasString())
+                {   // Add new items from string
+                    addPVsFromString(existing, db.getString());
+                    event.setDropCompleted(true);
+                }
+            }
+            event.consume();
+        });
+    }
+
+    private void addPVsFromString(final PVTableItem existing, final String pv_text)
+    {
+        final String[] pvs = pv_text.split("[ \\t\\n\\r,]+");
+        for (String pv : pvs)
+            if (! pv.isEmpty())
+                model.addItemAbove(existing, pv);
     }
 }

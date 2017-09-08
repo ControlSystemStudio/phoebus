@@ -7,7 +7,10 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 /** Job monitor
  *
@@ -19,10 +22,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressWarnings("nls")
 public class JobMonitor
 {
+    private final Job job;
     private volatile String task = "";
     private volatile int steps = -1;
     private AtomicInteger worked = new AtomicInteger(0);
     volatile boolean cancelled = false;
+
+    JobMonitor(final Job job)
+    {
+        this.job = job;
+    }
 
     /** Indicate a new (sub) task
      *  @param task_name Name of the task
@@ -40,6 +49,7 @@ public class JobMonitor
     {
         task = task_name;
         this.steps = steps;
+        logger.log(Level.INFO, job.toString());
     }
 
     /** Indicate completion of steps
@@ -48,6 +58,7 @@ public class JobMonitor
     public void worked(final int steps)
     {
         worked.addAndGet(steps);
+        logger.log(Level.INFO, job.toString());
     }
 
     // Called by Job on successful completion
@@ -55,6 +66,7 @@ public class JobMonitor
     {
         task = "Finished";
         steps = -1;
+        logger.log(Level.INFO, job.toString());
     }
 
     /** Well-behaved long running jobs check for cancellation

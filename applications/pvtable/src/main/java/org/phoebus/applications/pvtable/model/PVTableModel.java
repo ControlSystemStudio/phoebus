@@ -105,6 +105,18 @@ public class PVTableModel implements PVTableItemListener
 
     /** Add table item
      *
+     *  @param pv_name PV Name
+     *  @param tolerance Tolerance
+     *  @param saved {@link SavedValue}
+     *  @return Added item
+     */
+    public PVTableItem addItem(final String pv_name, final double tolerance, final SavedValue saved, final String time_saved)
+    {
+        return addItem(new PVTableItem(pv_name, Settings.tolerance, saved, time_saved, this));
+    }
+
+    /** Add table item
+     *
      *  @param item Item to add
      *  @return Added item
      */

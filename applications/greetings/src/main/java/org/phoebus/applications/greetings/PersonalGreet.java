@@ -7,7 +7,6 @@ import org.phoebus.framework.spi.ToolbarEntry;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextInputDialog;
-import javafx.stage.Stage;
 
 // @ProviderFor(ToolbarEntry.class)
 public class PersonalGreet implements ToolbarEntry {
@@ -20,7 +19,7 @@ public class PersonalGreet implements ToolbarEntry {
     }
 
     @Override
-    public void call(final Stage stage) throws Exception {
+    public void call() throws Exception {
 
         TextInputDialog dialog = new TextInputDialog("Phoebus");
         dialog.setTitle("Personal Greeting Dialog");

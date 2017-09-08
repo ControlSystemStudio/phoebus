@@ -8,9 +8,6 @@
 package org.phoebus.applications.pvtable;
 
 import org.phoebus.framework.spi.ToolbarEntry;
-import org.phoebus.ui.docking.DockStage;
-
-import javafx.stage.Stage;
 
 /** Toolbar entry that starts PV Table Application
  *  @author Kay Kasemir
@@ -25,7 +22,7 @@ public class PVTableToolbarEntry implements ToolbarEntry
     }
 
     @Override
-    public void call(final Stage stage) throws Exception
+    public void call() throws Exception
     {
         new PVTableApplication().start();
     }

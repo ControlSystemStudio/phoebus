@@ -7,11 +7,14 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtree.ui.FXTree;
 import org.phoebus.applications.pvtree.ui.Messages;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.ui.dnd.DataFormats;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -23,6 +26,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -83,10 +88,41 @@ public class PVTree
         final BorderPane layout = new BorderPane(tree.getNode());
         layout.setTop(top);
 
+        hookDragDrop(layout);
+
         final DockItem tab = new DockItem(getName(), layout);
         DockPane.getActiveDockPane().addTab(tab);
 
         tab.setOnClosed(event -> stop());
+    }
+
+    private void hookDragDrop(final BorderPane layout)
+    {
+        // Allow dropping PV name
+        layout.setOnDragOver(event ->
+        {
+            final Dragboard db = event.getDragboard();
+            if (db.hasContent(DataFormats.ProcessVariables) ||
+                db.hasString())
+                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+            event.consume();
+        });
+        layout.setOnDragDropped(event ->
+        {
+            final Dragboard db = event.getDragboard();
+            if (db.hasContent(DataFormats.ProcessVariables))
+            {
+                // Use last PV in case there's more than one
+                @SuppressWarnings("unchecked")
+                final List<ProcessVariable> pvs = (List<ProcessVariable>) db.getContent(DataFormats.ProcessVariables);
+                if (pvs.size() > 0)
+                    setPVName(pvs.get(pvs.size()-1).getName());
+            }
+            else if (db.hasString())
+                setPVName(db.getString());
+            event.setDropCompleted(true);
+            event.consume();
+        });
     }
 
     public void stop()

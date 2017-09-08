@@ -13,8 +13,6 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.docking.DockStage;
 
 import javafx.stage.Stage;
 
