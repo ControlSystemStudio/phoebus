@@ -642,8 +642,10 @@ public class PVTable extends BorderPane
         {
             if (event.getDragboard().hasString() ||
                 event.getDragboard().hasContent(DataFormats.ProcessVariables))
+            {
                 event.acceptTransferModes(TransferMode.COPY);
-            event.consume();
+                event.consume();
+            }
         });
 
         table.setOnDragDropped(event ->
@@ -684,9 +686,11 @@ public class PVTable extends BorderPane
                 else if (db.hasString())
                 {   // Add new items from string
                     addPVsFromString(existing, db.getString());
-                    event.setDropCompleted(true);
                 }
+                else
+                    return; // Don't accept, pass event on
             }
+            event.setDropCompleted(true);
             event.consume();
         });
     }
