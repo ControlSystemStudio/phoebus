@@ -11,7 +11,7 @@ install:
   - cmd: echo Installing JDK 9
   - ps: (new-object net.webclient).DownloadFile('http://download.java.net/java/jdk9/archive/181/binaries/jdk-9+181_windows-x64_bin.exe', 'jdk-9+181_windows-x64_bin.exe')
   - ps: Start-Process 'jdk-9+181_windows-x64_bin.exe' -ArgumentList '/s INSTALL_SILENT=1' -Wait
-  - cmd: JDK installtion finished
+  - cmd: echo JDK installtion finished
 
 # build 
 build_script:
