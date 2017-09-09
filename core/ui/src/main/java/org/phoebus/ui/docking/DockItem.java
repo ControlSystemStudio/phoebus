@@ -9,6 +9,9 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,7 +41,6 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /** Item for a {@link DockPane}
  *
@@ -259,11 +261,16 @@ public class DockItem extends Tab
         if (item != null  &&  !event.isDropCompleted())
         {
             // Would like to position new stage where the mouse was released,
-            // but don't have those coords -> Place somewhat next to existing window.
+            // but event.getX(), getSceneX(), getScreenX() are all 0.0.
+            // --> Using MouseInfo, which is actually AWT code
             final Stage other = item.detach();
-            final Window window = item.getTabPane().getScene().getWindow();
-            other.setX(window.getX() + 50.0);
-            other.setY(window.getY() + 50.0);
+            final PointerInfo pi = MouseInfo.getPointerInfo();
+            if (pi != null)
+            {
+                final Point loc = pi.getLocation();
+                other.setX(loc.getX());
+                other.setY(loc.getY());
+            }
         }
         event.consume();
     }
