@@ -148,6 +148,12 @@ public class DockItem extends Tab
         return name;
     }
 
+    /** @return Label node, limited to in-package access */
+    Label getNameNode()
+    {
+        return name_tab;
+    }
+
     /** @param label Label of this item */
     public void setLabel(final String label)
     {

@@ -97,17 +97,19 @@ public class DockPane extends TabPane
         if (header != null)
             header.setPrefHeight(single  ?  0  :  -1);
 
-        // TODO Get actual header, which for DockItemWithInput may contain 'dirty' marker
-        // TODO When DockItem* updates its label, re-run this code to update title
-
         // If header for single tab is not shown,
         // put its label into the window tile
-        final String title = single
-           ? ((DockItem)getTabs().get(0)).getLabel()
-           : "Phoebus";
-
         final Stage stage = ((Stage) getScene().getWindow());
-        stage.setTitle(title);
+        if (single)
+        {   // Bind to get actual header, which for DockItemWithInput may contain 'dirty' marker,
+            // and keep updating as it changes
+            stage.titleProperty().bind(((DockItem)getTabs().get(0)).getNameNode().textProperty());
+        }
+        else
+        {   // Fixed title
+            stage.titleProperty().unbind();
+            stage.setTitle("Phoebus");
+        }
     }
 
     /** @param tabs One or more tabs to add */
