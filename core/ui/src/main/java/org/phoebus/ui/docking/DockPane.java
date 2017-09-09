@@ -22,6 +22,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 /** Pane that contains {@link DockItem}s
  *
@@ -87,13 +88,26 @@ public class DockPane extends TabPane
         autoHideTabs();
         super.layoutChildren();
     }
-    
+
     public void autoHideTabs()
     {
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX:
         final StackPane header = (StackPane) lookup(".tab-header-area");
+        final boolean single = getTabs().size() == 1;
         if (header != null)
-            header.setPrefHeight(getTabs().size() == 1  ?  0  :  -1);
+            header.setPrefHeight(single  ?  0  :  -1);
+
+        // TODO Get actual header, which for DockItemWithInput may contain 'dirty' marker
+        // TODO When DockItem* updates its label, re-run this code to update title
+
+        // If header for single tab is not shown,
+        // put its label into the window tile
+        final String title = single
+           ? ((DockItem)getTabs().get(0)).getLabel()
+           : "Phoebus";
+
+        final Stage stage = ((Stage) getScene().getWindow());
+        stage.setTitle(title);
     }
 
     /** @param tabs One or more tabs to add */
