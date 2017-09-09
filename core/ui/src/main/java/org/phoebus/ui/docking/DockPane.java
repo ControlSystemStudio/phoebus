@@ -10,12 +10,7 @@ package org.phoebus.ui.docking;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.ui.jobs.JobManager;
-
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.collections.ListChangeListener;
-import javafx.event.EventType;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.DragEvent;
@@ -37,7 +32,7 @@ public class DockPane extends TabPane
 {
     /** Logger for all docking related messages */
     public static final Logger logger = Logger.getLogger(DockPane.class.getName());
-    
+
     private static DockPane active = null;
 
     /** @return The last known active dock pane */
@@ -62,7 +57,7 @@ public class DockPane extends TabPane
         setOnDragEntered(this::handleDragEntered);
         setOnDragExited(this::handleDragExited);
         setOnDragDropped(this::handleDrop);
-        
+
         // This pane, just opened, is the active one for now
         active = this;
 
@@ -76,7 +71,7 @@ public class DockPane extends TabPane
         // Show/hide tabs as tab count changes
         getTabs().addListener((InvalidationListener) change -> autoHideTabs());
     }
-    
+
     // lookup() in autoHideTabs() only works when the scene has been rendered.
     // Before, it returns null
     // There is no event for 'node has been rendered',
@@ -91,7 +86,7 @@ public class DockPane extends TabPane
 
     public void autoHideTabs()
     {
-        // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX:
+        // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX
         final StackPane header = (StackPane) lookup(".tab-header-area");
         final boolean single = getTabs().size() == 1;
         if (header != null)
@@ -99,11 +94,16 @@ public class DockPane extends TabPane
 
         // If header for single tab is not shown,
         // put its label into the window tile
+        if (! (getScene().getWindow() instanceof Stage))
+            throw new IllegalStateException("Expect Stage, got " + getScene().getWindow());
         final Stage stage = ((Stage) getScene().getWindow());
         if (single)
         {   // Bind to get actual header, which for DockItemWithInput may contain 'dirty' marker,
             // and keep updating as it changes
-            stage.titleProperty().bind(((DockItem)getTabs().get(0)).getNameNode().textProperty());
+            final Tab tab = getTabs().get(0);
+            if (! (tab instanceof DockItem))
+                throw new IllegalStateException("Expected DockItem, got " + tab);
+            stage.titleProperty().bind(((DockItem)tab).labelTextProperty());
         }
         else
         {   // Fixed title

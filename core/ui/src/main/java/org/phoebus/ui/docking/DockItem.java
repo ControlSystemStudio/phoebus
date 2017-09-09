@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 
+import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -148,10 +149,10 @@ public class DockItem extends Tab
         return name;
     }
 
-    /** @return Label node, limited to in-package access */
-    Label getNameNode()
+    /** @return Label node text, limited to in-package access */
+    StringProperty labelTextProperty()
     {
-        return name_tab;
+        return name_tab.textProperty();
     }
 
     /** @param label Label of this item */
