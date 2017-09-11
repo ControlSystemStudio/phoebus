@@ -7,40 +7,35 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
-import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
-import org.phoebus.applications.pvtable.ui.PVTable;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.ui.dialog.SaveAsDialog;
-import org.phoebus.ui.docking.DockItemWithInput;
-import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.jobs.JobMonitor;
+import org.phoebus.framework.spi.Application;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.jobs.JobManager;
 
+import javafx.application.Platform;
 import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 /** PV Table Application
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVTableApplication
+public class PVTableApplication implements Application
 {
     public static final Logger logger = Logger.getLogger(PVTableApplication.class.getPackageName());
 
-    private static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
+    static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
     {
         new ExtensionFilter("All", "*.*"),
         new ExtensionFilter("PV Table", "*." + PVTableXMLPersistence.FILE_EXTENSION),
@@ -49,98 +44,71 @@ public class PVTableApplication
 
     public static final String NAME = "PV Table";
 
-    final PVTableModel model = new PVTableModel();
-
-    private DockItemWithInput dock_item;
-
+    @Override
     public String getName()
     {
         return NAME;
     }
 
-    public void start()
+    @Override
+    public boolean canOpenResource(String resource)
     {
+        return resource.endsWith(PVTableXMLPersistence.FILE_EXTENSION) ||
+               resource.endsWith(PVTableAutosavePersistence.FILE_EXTENSION);
+    }
+
+    @Override
+    public void open()
+    {
+        final PVTableInstance instance = new PVTableInstance();
+
+        // XXX Eventually remove the demo content
+        final PVTableModel model = instance.getModel();
         final List<ProcessVariable> pvs = new ArrayList<>();
         for (int i=1; i<=6; ++i)
         {
-            pvs.add(new ProcessVariable("# Local"));
-            pvs.add(new ProcessVariable("loc://x(42)"));
-            pvs.add(new ProcessVariable("loc://pick<VEnum>(1, \"A\", \"B\", \"C\")"));
-            pvs.add(new ProcessVariable("# Sim"));
-            pvs.add(new ProcessVariable("sim://sine"));
-            pvs.add(new ProcessVariable("sim://ramp"));
-            pvs.add(new ProcessVariable("#"));
+            model.addItem("# Local");
+            model.addItem("loc://x(42)");
+            model.addItem("loc://pick<VEnum>(1, \"A\", \"B\", \"C\")");
+            model.addItem("# Sim");
+            model.addItem("sim://sine");
+            model.addItem("sim://ramp");
+            model.addItem("#");
         }
-        pvs.add(new ProcessVariable("DTL_LLRF:IOC1:Load"));
+        model.addItem("DTL_LLRF:IOC1:Load");
 
-        start(pvs);
+        instance.start();
     }
 
-    public void start(final List<ProcessVariable> pvs)
+    @Override
+    public void open(final String... resources)
     {
-        final PVTable table = new PVTable(model);
-
-        // Start with list of PVs
-        for (ProcessVariable pv : pvs)
-            model.addItem(pv.getName());
-
-        // Start with file
-//        final File file = new File("/home/ky9/git/phoebus/phoebus-product/test.pvs");
-//        try
-//        {
-//            PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
-//        }
-//        catch (Exception e)
-//        {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-
-        final BorderPane layout = new BorderPane(table);
-        dock_item = new DockItemWithInput(getName(), layout, null, this::doSave);
-        DockPane.getActiveDockPane().addTab(dock_item);
-
-        model.addListener(new PVTableModelListener()
+        // Load files in background job
+        JobManager.schedule("Load PV Table", monitor ->
         {
-            @Override
-            public void tableItemSelectionChanged(PVTableItem item)
+            monitor.beginTask("Load", resources.length);
+            for (String resource : resources)
             {
-                dock_item.setDirty(true);
-            }
+                final PVTableInstance instance = new PVTableInstance();
+                final File file = new File(resource);
+                try
+                {
+                    final PVTableModel model = instance.getModel();
+                    PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
 
-            @Override
-            public void modelChanged()
-            {
-                dock_item.setDirty(true);
+                    // On success, start UI
+                    Platform.runLater(() -> instance.start());
+                }
+                catch (Exception ex)
+                {
+                    final String message = "Cannot open PV Table\n" + resource;
+                    logger.log(Level.WARNING, message, ex);
+                    ExceptionDetailsErrorDialog.openError(NAME, message, ex);
+                }
+
+                monitor.worked(1);
             }
         });
-
-        dock_item.addClosedNotification(this::stop);
-    }
-
-    private void doSave(final JobMonitor monitor) throws Exception
-    {
-        File file = dock_item.getInputFile();
-        if (file == null )
-        {
-            file = SaveAsDialog.promptForFile(dock_item.getTabPane().getScene().getWindow(), "Save PV Table", null, file_extensions);
-            if (file == null)
-                return;
-        }
-        dock_item.setInputFile(file);
-        try
-        (
-            final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-        )
-        {
-            PVTablePersistence.forFilename(file.toString()).write(model, out);
-        }
-    }
-
-    public void stop()
-    {
-        logger.log(Level.INFO, "Stopping PV Table...");
-        model.dispose();
     }
 
     /** @param name Name of the icon

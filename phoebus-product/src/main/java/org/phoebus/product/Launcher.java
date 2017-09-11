@@ -67,6 +67,10 @@ public class Launcher {
             return;
         }
 
+        // TODO Check for an existing instance
+        // If found, raise it and pass remaining arguments to it,
+        // instead of starting a new application
+
         // Remaining args passed on
         Application.launch(PhoebusApplication.class, args.toArray(new String[args.size()]));
     }

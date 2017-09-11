@@ -24,6 +24,6 @@ public class PVTableToolbarEntry implements ToolbarEntry
     @Override
     public void call() throws Exception
     {
-        new PVTableApplication().start();
+        new PVTableApplication().open();
     }
 }

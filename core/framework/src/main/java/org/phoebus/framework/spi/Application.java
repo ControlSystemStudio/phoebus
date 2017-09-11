@@ -6,7 +6,14 @@ import org.phoebus.framework.selection.SelectionService;
 
 /**
  * Basic interface for defining phoebus applications via java services
- * 
+ *
+ * <p>The framework creates one instance for each application.
+ * The <code>start()</code> and <code>stop()</code>
+ * methods allow an application to manage global resources.
+ *
+ * <p>The <code>open..</code> methods are called to create running
+ * instances of the application.
+ *
  * @author Kunal Shroff
  *
  */
@@ -14,7 +21,7 @@ public interface Application {
 
 	/**
 	 * Get the application name
-	 * 
+	 *
 	 * @return the name of the application
 	 */
 	public String getName();
@@ -23,10 +30,30 @@ public interface Application {
 	 * Create the resources (connects, load libraries,...) required by this
 	 * particular application
 	 */
-	public void start();
+	public default void start()
+	{
+        // Default does nothing
+	}
 
 	/**
-	 * Open the application
+	 * Called to check if application can handle a resource.
+	 *
+	 * <p>Implementation may check the file extension,
+	 * or even open the file to check content.
+	 *
+	 * <p>If the application indicates that it can handle a resource,
+	 * the framework will then invoke <code>open(resource)</code>.
+	 *
+	 * @param resource Resource to check
+	 * @return <code>true</code> if this application can open the resource
+	 */
+	public default boolean canOpenResource(String resource)
+	{
+	    return false;
+	}
+
+	/**
+	 * Open the application without any specific resources
 	 */
 	public void open();
 
@@ -48,6 +75,10 @@ public interface Application {
 		open();
 	}
 
+	// TODO Remove
+	// ContextMenuEntry already handles it,
+	// AND ContextMenuEntry knows what type of selection it supports.
+	// Would basically have to add all of ContextMenuEntry to Application.
 	/**
 	 * Open the application with the current selection. The selection should be
 	 * recovered from the {@link SelectionService}
@@ -60,6 +91,9 @@ public interface Application {
 	 * Cleanup the resources used by this application, also perform the action of
 	 * storing application state
 	 */
-	public void stop();
+	public default void stop()
+	{
+	       // Default does nothing
 
+	}
 }
