@@ -203,7 +203,6 @@ public class PhoebusApplication extends Application {
             {
                 logger.log(Level.INFO, "Opening " + resource + " with " + app.getName());
                 app.open(resource);
-                break;
             }
             else
                 logger.log(Level.WARNING, "No application found for opening " + resource);
