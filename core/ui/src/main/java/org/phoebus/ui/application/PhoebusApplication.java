@@ -66,6 +66,8 @@ public class PhoebusApplication extends Application {
 
         handleParameters();
 
+        ApplicationServer.setOnArgumentReceived(this::handleArgument);
+
         stage.setOnCloseRequest(event -> stopApplications());
     }
 
@@ -193,20 +195,23 @@ public class PhoebusApplication extends Application {
         return null;
     }
 
-    /** Handle command line arguments */
     private void handleParameters()
     {
         for (String resource : getParameters().getRaw())
+            handleArgument(resource);
+    }
+
+    /** @param resource Resource received as command line argument */
+    private void handleArgument(final String resource)
+    {
+        org.phoebus.framework.spi.Application app = findApplicatation(resource);
+        if (app != null)
         {
-            org.phoebus.framework.spi.Application app = findApplicatation(resource);
-            if (app != null)
-            {
-                logger.log(Level.INFO, "Opening " + resource + " with " + app.getName());
-                app.open(resource);
-            }
-            else
-                logger.log(Level.WARNING, "No application found for opening " + resource);
+            logger.log(Level.INFO, "Opening " + resource + " with " + app.getName());
+            app.open(resource);
         }
+        else
+            logger.log(Level.WARNING, "No application found for opening " + resource);
     }
 
     /** Stop all applications */
