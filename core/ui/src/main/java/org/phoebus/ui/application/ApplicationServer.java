@@ -26,13 +26,13 @@ import java.util.logging.Level;
 /** Server for an application instance
  *
  *  <p>Used to establish one Phoebus instance as a handler
- *  of all command line arguments.
+ *  of all requests to open resources from command line.
  *
  *  <p>First phoebus instance creates this server,
  *  opens a UI, interacts with user, while listening
  *  for client connections.
  *
- *  Follow-up command line invocations will then pass
+ *  <p>Follow-up command line invocations will then pass
  *  command line arguments to the initial instance
  *  without opening yet another top-level UI.
  *
@@ -48,11 +48,15 @@ public class ApplicationServer
     private static volatile ApplicationServer instance = null;
 
     private final static int BUFFER_SIZE = 200;
+
+    private final InetSocketAddress address;
+
     private final boolean is_server;
 
     private CompletionHandler<AsynchronousSocketChannel, Void> client_handler;
 
     private volatile Consumer<String> argument_handler = arg -> logger.log(Level.WARNING, "No argument handler installed to handle " + arg);
+
 
     /** Create the application server instance
      *  @param port TCP port where server will serve resp. where this client will connect to server
@@ -62,7 +66,7 @@ public class ApplicationServer
     public static ApplicationServer create(final int port) throws Exception
     {
         if (instance != null)
-            throw new IllegalStateException();
+            throw new IllegalStateException("Must create at most once");
         instance = new ApplicationServer(port);
         return instance;
     }
@@ -73,25 +77,26 @@ public class ApplicationServer
         return instance;
     }
 
-    public static void setOnArgumentReceived(final Consumer<String> argument_handler)
+    /** @param argument_handler Handler to invoke for arguments received from clients */
+    public static void setOnReceivedArgument(final Consumer<String> argument_handler)
     {
         if (instance != null)
             instance.argument_handler = argument_handler;
     }
 
-
     private ApplicationServer(final int port) throws Exception
     {
-        is_server = startServer(port);
+        address = new InetSocketAddress("localhost", port);
+        is_server = startServer();
     }
 
-    private boolean startServer(final int port) throws Exception
+    private boolean startServer() throws Exception
     {
         final AsynchronousServerSocketChannel server_channel = AsynchronousServerSocketChannel.open();
         server_channel.setOption(StandardSocketOptions.SO_REUSEADDR, Boolean.TRUE);
         try
         {
-            server_channel.bind(new InetSocketAddress("localhost", port));
+            server_channel.bind(address);
         }
         catch (BindException ex)
         {
@@ -119,12 +124,16 @@ public class ApplicationServer
         };
 
         // Accept initial client
-        logger.log(Level.INFO, "Listening for arguments on TCP " + port);
+        logger.log(Level.INFO, "Listening for arguments on TCP " + address.getPort());
         server_channel.accept(null, client_handler);
 
         return true;
     }
 
+    /** @return <code>true</code> if this is the server, <code>false</code>
+     *          when we located an existing server and we're thus a client
+     *          to that one.
+     */
     public boolean isServer()
     {
         return is_server;
@@ -187,12 +196,28 @@ public class ApplicationServer
         }
     }
 
-    public void sendArguments(final List<String> args)
+    /** Acting as a client, send arguments to a server instance
+     *  @param args Arguments to send to the server
+     *  @throws Exception on error
+     */
+    public void sendArguments(final List<String> args) throws Exception
     {
-        // TODO Auto-generated method stub
+        final AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
+        channel.connect(address).get(10, TimeUnit.SECONDS);
+
+        final ByteBuffer buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
         for (String arg : args)
         {
             logger.info("Sending argument to server instance: " + arg);
+            buffer.clear();
+            buffer.put(arg.getBytes());
+            buffer.put("\n".getBytes());
+            buffer.flip();
+            final int len = buffer.limit();
+            final int written = channel.write(buffer).get(10, TimeUnit.SECONDS);
+            if (written != len)
+                logger.log(Level.WARNING, "Wrote only " + written + " bytes for '" + arg + "'");
         }
+        channel.close();
     }
 }

@@ -113,5 +113,10 @@ public class Launcher
         System.out.println("-settings settings.xml          -  Import settings from file");
         System.out.println("-export_settings settings.xml   -  Export settings to file");
         System.out.println("-server port                    -  Create instance server on given TCP port");
+        System.out.println();
+        System.out.println("Remaining arguments are names of resources to open in associated application.");
+        System.out.println();
+        System.out.println("In 'server' mode, first instance opens UI.");
+        System.out.println("Additional calls to open resources are then forwarded to the initial instance.");
     }
 }

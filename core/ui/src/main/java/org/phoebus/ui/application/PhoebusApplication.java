@@ -64,9 +64,12 @@ public class PhoebusApplication extends Application {
 
         applications = startApplications();
 
-        handleParameters();
+        // Handle requests to open resource from command line
+        for (String resource : getParameters().getRaw())
+            openResource(resource);
 
-        ApplicationServer.setOnArgumentReceived(this::handleArgument);
+        // In 'server' mode, handle received requests to open resources
+        ApplicationServer.setOnReceivedArgument(this::openResource);
 
         stage.setOnCloseRequest(event -> stopApplications());
     }
@@ -195,14 +198,8 @@ public class PhoebusApplication extends Application {
         return null;
     }
 
-    private void handleParameters()
-    {
-        for (String resource : getParameters().getRaw())
-            handleArgument(resource);
-    }
-
     /** @param resource Resource received as command line argument */
-    private void handleArgument(final String resource)
+    private void openResource(final String resource)
     {
         org.phoebus.framework.spi.Application app = findApplicatation(resource);
         if (app != null)
