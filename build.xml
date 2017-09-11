@@ -38,7 +38,7 @@
     <delete dir="applications/greetings/${build}"/>
     <delete dir="applications/probe/${build}"/>
     <delete dir="applications/logbook/inmemory/${build}"/>
-    <delete dir="applications/applications-logConfiguration/${build}"/>
+    <delete dir="applications/logConfiguration/${build}"/>
     <delete dir="applications/pvtable/${build}"/>
     <delete dir="applications/pvtree/${build}"/>
     <delete dir="phoebus-product/${build}"/>
@@ -199,8 +199,9 @@
   <target name="applications-logConfiguration" depends="core-all">
     <mkdir dir="applications/logConfiguration/${classes}"/>
     <javac srcdir="applications/logConfiguration/${src}" destdir="applications/logConfiguration/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/logConfiguration/${build}/inmemory-${version}.jar">
+    <jar destfile="applications/logConfiguration/${build}/logConfiguration-${version}.jar">
       <fileset dir="applications/logConfiguration/${classes}"/>
+      <fileset dir="applications/logConfiguration/${resources}"/>
     </jar>
   </target>
 
