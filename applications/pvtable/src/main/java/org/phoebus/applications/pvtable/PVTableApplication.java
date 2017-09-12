@@ -19,7 +19,7 @@ import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.framework.spi.Application;
+import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
 
@@ -31,7 +31,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVTableApplication implements Application
+public class PVTableApplication implements AppDescriptor
 {
     public static final Logger logger = Logger.getLogger(PVTableApplication.class.getPackageName());
 

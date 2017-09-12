@@ -1,8 +1,8 @@
 package org.phoebus.applications.probe;
 
-import org.phoebus.framework.spi.Application;
+import org.phoebus.framework.spi.AppDescriptor;
 
-public class Probe implements Application {
+public class Probe implements AppDescriptor {
 
     public static final String NAME = "Probe";
 

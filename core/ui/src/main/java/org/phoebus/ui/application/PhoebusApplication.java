@@ -43,7 +43,7 @@ public class PhoebusApplication extends Application {
     /** Logger for all application messages */
     public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
 
-    private List<org.phoebus.framework.spi.Application> applications;
+    private List<org.phoebus.framework.spi.AppDescriptor> applications;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -175,10 +175,10 @@ public class PhoebusApplication extends Application {
     /** Locate and start all applications
      *  @return Applications
      */
-    private List<org.phoebus.framework.spi.Application> startApplications()
+    private List<org.phoebus.framework.spi.AppDescriptor> startApplications()
     {
-        final List<org.phoebus.framework.spi.Application> apps = new ArrayList<>();
-        for (org.phoebus.framework.spi.Application app : ServiceLoader.load(org.phoebus.framework.spi.Application.class))
+        final List<org.phoebus.framework.spi.AppDescriptor> apps = new ArrayList<>();
+        for (org.phoebus.framework.spi.AppDescriptor app : ServiceLoader.load(org.phoebus.framework.spi.AppDescriptor.class))
         {
             app.start();
             apps.add(app);
@@ -190,9 +190,9 @@ public class PhoebusApplication extends Application {
      *  @param resource Resource
      *  @return Application that can open the resource, or <code>null</code>
      */
-    private org.phoebus.framework.spi.Application findApplicatation(final String resource)
+    private org.phoebus.framework.spi.AppDescriptor findApplicatation(final String resource)
     {
-        for (org.phoebus.framework.spi.Application app : applications)
+        for (org.phoebus.framework.spi.AppDescriptor app : applications)
             if (app.canOpenResource(resource))
                 return app;
         return null;
@@ -201,7 +201,7 @@ public class PhoebusApplication extends Application {
     /** @param resource Resource received as command line argument */
     private void openResource(final String resource)
     {
-        org.phoebus.framework.spi.Application app = findApplicatation(resource);
+        org.phoebus.framework.spi.AppDescriptor app = findApplicatation(resource);
         if (app != null)
         {
             logger.log(Level.INFO, "Opening " + resource + " with " + app.getName());
@@ -214,7 +214,7 @@ public class PhoebusApplication extends Application {
     /** Stop all applications */
     private void stopApplications()
     {
-        for (org.phoebus.framework.spi.Application app : applications)
+        for (org.phoebus.framework.spi.AppDescriptor app : applications)
             app.stop();
     }
 }
