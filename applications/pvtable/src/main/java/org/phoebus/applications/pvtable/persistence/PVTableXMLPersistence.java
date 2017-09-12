@@ -21,6 +21,7 @@ import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.SavedArrayValue;
 import org.phoebus.applications.pvtable.model.SavedScalarValue;
 import org.phoebus.applications.pvtable.model.SavedValue;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -33,8 +34,6 @@ public class PVTableXMLPersistence extends PVTablePersistence
 {
     /** File extension used for XML files */
     final public static String FILE_EXTENSION = "pvs";
-    final private static String XML_HEADER = "<?xml version=\"1.0\"?>\n<pvtable version=\"3.0\">";
-    final private static String XML_TAIL = "</pvtable>\n";
     final private static String ROOT = "pvtable";
     final private static String TOLERANCE = "tolerance";
     final private static String PVLIST = "pvlist";

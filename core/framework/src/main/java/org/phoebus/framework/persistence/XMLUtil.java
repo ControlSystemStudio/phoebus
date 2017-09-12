@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.pvtable.persistence;
+package org.phoebus.framework.persistence;
 
 import java.io.OutputStream;
 import java.util.Iterator;
@@ -72,19 +72,19 @@ public class XMLUtil
     }
 
     /** Write DOM to stream
-     *  @param doc Document to write
+     *  @param node Node from which on to write. May be the complete {@link Document}
      *  @param stream Output stream
      *  @throws Exception on error
      */
-    public static void writeDocument(Document doc, OutputStream stream) throws Exception
+    public static void writeDocument(Node node, OutputStream stream) throws Exception
     {
         final Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.METHOD, "xml");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        transformer.setOutputProperty(OutputKeys.ENCODING, XMLUtil.ENCODING);
+        transformer.setOutputProperty(OutputKeys.ENCODING, ENCODING);
         transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
-        transformer.transform(new DOMSource(doc), new StreamResult(stream));
+        transformer.transform(new DOMSource(node), new StreamResult(stream));
     }
 
     public static Element createTextElement(final Document doc, final String name, final String value)
