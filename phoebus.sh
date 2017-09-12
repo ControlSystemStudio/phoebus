@@ -14,4 +14,5 @@ else
   JAR="product-${V}-SNAPSHOT.jar"
 fi
 
-java -jar $JAR --add-modules=ALL-SYSTEM "$@"
+# Will eventually need --add-modules=ALL-SYSTEM?
+java -jar $JAR "$@"

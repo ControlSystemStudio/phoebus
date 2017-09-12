@@ -7,13 +7,18 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import static org.phoebus.ui.docking.DockPane.logger;
+
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 
-import javafx.event.ActionEvent;
+import javafx.beans.property.StringProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -71,7 +76,7 @@ public class DockItem extends Tab
         }
         catch (Throwable ex)
         {
-            DockPane.logger.log(Level.WARNING, "Cannot obtain icon", ex);
+            logger.log(Level.WARNING, "Cannot obtain icon", ex);
         }
         detach_icon = icon;
     }
@@ -137,7 +142,7 @@ public class DockItem extends Tab
         name_tab.setOnDragDone(this::handleDragDone);
 
         final MenuItem detach = new MenuItem("Detach", detach_icon);
-        detach.setOnAction(this::detach);
+        detach.setOnAction(event -> detach());
         final ContextMenu menu = new ContextMenu(detach);
         name_tab.setContextMenu(menu );
     }
@@ -146,6 +151,12 @@ public class DockItem extends Tab
     public String getLabel()
     {
         return name;
+    }
+
+    /** @return Label node text, limited to in-package access */
+    StringProperty labelTextProperty()
+    {
+        return name_tab.textProperty();
     }
 
     /** @param label Label of this item */
@@ -206,9 +217,9 @@ public class DockItem extends Tab
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
-        final DockItem item = dragged_item.get();
+        final DockItem item = dragged_item.getAndSet(null);
         if (item == null)
-            System.err.println("Empty drop?");
+            logger.log(Level.SEVERE, "Empty drop, " + event);
         else
         {
             // System.out.println("Somebody dropped " + item + " onto " + this);
@@ -246,11 +257,25 @@ public class DockItem extends Tab
     /** Handle that this tab was dragged elsewhere, or drag aborted */
     private void handleDragDone(final DragEvent event)
     {
-        dragged_item.set(null);
+        final DockItem item = dragged_item.getAndSet(null);
+        if (item != null  &&  !event.isDropCompleted())
+        {
+            // Would like to position new stage where the mouse was released,
+            // but event.getX(), getSceneX(), getScreenX() are all 0.0.
+            // --> Using MouseInfo, which is actually AWT code
+            final Stage other = item.detach();
+            final PointerInfo pi = MouseInfo.getPointerInfo();
+            if (pi != null)
+            {
+                final Point loc = pi.getLocation();
+                other.setX(loc.getX());
+                other.setY(loc.getY());
+            }
+        }
         event.consume();
     }
 
-    private void detach(final ActionEvent event)
+    private Stage detach()
     {
         final Stage other = new Stage();
 
@@ -263,6 +288,8 @@ public class DockItem extends Tab
         old_parent.getTabs().remove(this);
         DockStage.configureStage(other, this);
         other.show();
+
+        return other;
     }
 
     /** Select this tab, i.e. raise it in case another tab is currently visible */

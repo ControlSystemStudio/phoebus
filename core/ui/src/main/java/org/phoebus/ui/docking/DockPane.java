@@ -10,10 +10,14 @@ package org.phoebus.ui.docking;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.beans.InvalidationListener;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 /** Pane that contains {@link DockItem}s
  *
@@ -28,7 +32,7 @@ public class DockPane extends TabPane
 {
     /** Logger for all docking related messages */
     public static final Logger logger = Logger.getLogger(DockPane.class.getName());
-    
+
     private static DockPane active = null;
 
     /** @return The last known active dock pane */
@@ -53,7 +57,7 @@ public class DockPane extends TabPane
         setOnDragEntered(this::handleDragEntered);
         setOnDragExited(this::handleDragExited);
         setOnDragDropped(this::handleDrop);
-        
+
         // This pane, just opened, is the active one for now
         active = this;
 
@@ -63,14 +67,57 @@ public class DockPane extends TabPane
             final DockItem item = (DockItem) tab;
             active = item == null  ?  null  :  (DockPane)item.getTabPane();
         });
+
+        // Show/hide tabs as tab count changes
+        getTabs().addListener((InvalidationListener) change -> autoHideTabs());
+    }
+
+    // lookup() in autoHideTabs() only works when the scene has been rendered.
+    // Before, it returns null
+    // There is no event for 'node has been rendered',
+    // but overriding layoutChildren() allows to detect that point in time.
+    @Override
+    protected void layoutChildren()
+    {
+        // Perform initial autoHideTabs
+        autoHideTabs();
+        super.layoutChildren();
+    }
+
+    public void autoHideTabs()
+    {
+        // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX
+        final StackPane header = (StackPane) lookup(".tab-header-area");
+        final boolean single = getTabs().size() == 1;
+        if (header != null)
+            header.setPrefHeight(single  ?  0  :  -1);
+
+        // If header for single tab is not shown,
+        // put its label into the window tile
+        if (! (getScene().getWindow() instanceof Stage))
+            throw new IllegalStateException("Expect Stage, got " + getScene().getWindow());
+        final Stage stage = ((Stage) getScene().getWindow());
+        if (single)
+        {   // Bind to get actual header, which for DockItemWithInput may contain 'dirty' marker,
+            // and keep updating as it changes
+            final Tab tab = getTabs().get(0);
+            if (! (tab instanceof DockItem))
+                throw new IllegalStateException("Expected DockItem, got " + tab);
+            stage.titleProperty().bind(((DockItem)tab).labelTextProperty());
+        }
+        else
+        {   // Fixed title
+            stage.titleProperty().unbind();
+            stage.setTitle("Phoebus");
+        }
     }
 
     /** @param tabs One or more tabs to add */
     public void addTab(final DockItem... tabs)
     {
-		getTabs().addAll(tabs);
-		// Select the newly added tab
-		getSelectionModel().select(getTabs().size()-1);
+        getTabs().addAll(tabs);
+        // Select the newly added tab
+        getSelectionModel().select(getTabs().size()-1);
     }
 
     /** Accept dock items */
@@ -99,7 +146,7 @@ public class DockPane extends TabPane
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
-        final DockItem item = DockItem.dragged_item.get();
+        final DockItem item = DockItem.dragged_item.getAndSet(null);
         if (item == null)
             logger.log(Level.SEVERE, "Empty drop, " + event);
         else
@@ -112,9 +159,12 @@ public class DockPane extends TabPane
 
             old_parent.getTabs().remove(item);
             getTabs().add(item);
+            autoHideTabs();
+
             // Select the new item
             getSelectionModel().select(item);
         }
+        System.out.println("Dropped into Pane");
         event.setDropCompleted(true);
         event.consume();
     }

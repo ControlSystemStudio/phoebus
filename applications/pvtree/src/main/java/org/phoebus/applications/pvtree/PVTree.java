@@ -104,8 +104,10 @@ public class PVTree
             final Dragboard db = event.getDragboard();
             if (db.hasContent(DataFormats.ProcessVariables) ||
                 db.hasString())
+            {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
-            event.consume();
+                event.consume();
+            }
         });
         layout.setOnDragDropped(event ->
         {
@@ -120,6 +122,8 @@ public class PVTree
             }
             else if (db.hasString())
                 setPVName(db.getString());
+            else
+                return; // Don't consume the event, pass on
             event.setDropCompleted(true);
             event.consume();
         });
