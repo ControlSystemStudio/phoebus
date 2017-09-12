@@ -108,13 +108,12 @@ class FileSystemPreferences extends AbstractPreferences {
         return userRoot;
     }
 
-    private static Integer instanceID;
-
     private static void setupUserRoot() {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
 
-                userRootDir = createUniqueInstanceRoot();
+                userRootDir = new File(System.getProperty("java.util.prefs.userRoot", System.getProperty("user.home")),
+                        ".phoebus/.userPrefs");
 
                 // Attempt to create root dir if it does not yet exist.
                 if (!userRootDir.exists()) {
@@ -137,20 +136,6 @@ class FileSystemPreferences extends AbstractPreferences {
                     }
                 userRootModTime = userRootModFile.lastModified();
                 return null;
-            }
-
-            private File createUniqueInstanceRoot() {
-                int id = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
-                File f = new File(
-                        System.getProperty("java.util.prefs.userRoot", System.getProperty("user.home")) + "/" + id,
-                        ".java/.userPrefs");
-
-                if (!f.exists()) {
-                    instanceID = id;
-                    return f;
-                } else {
-                    return createUniqueInstanceRoot();
-                }
             }
         });
     }
