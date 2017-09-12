@@ -1,5 +1,8 @@
 package org.phoebus.ui.application;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -7,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
@@ -64,6 +68,8 @@ public class PhoebusApplication extends Application {
 
         applications = startApplications();
 
+        loadState();
+
         // Handle requests to open resource from command line
         for (String resource : getParameters().getRaw())
             openResource(resource);
@@ -71,7 +77,14 @@ public class PhoebusApplication extends Application {
         // In 'server' mode, handle received requests to open resources
         ApplicationServer.setOnReceivedArgument(this::openResource);
 
-        stage.setOnCloseRequest(event -> stopApplications());
+        // If user closes all windows, do NOT persist that
+        // because next time we'd then open with no windows...
+        // --> Clear memento to restart as we did the very first time
+        DockStage.setOnFinalCurtain(() ->
+        {
+            clearState();
+            shutdown();
+        });
     }
 
     private MenuBar createMenu(final Stage stage) {
@@ -86,8 +99,10 @@ public class PhoebusApplication extends Application {
             todo.showAndWait();
         });
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event -> {
-            stage.close();
+        exit.setOnAction(event ->
+        {
+            saveState();
+            shutdown();
         });
         final Menu file = new Menu("File", null, open, exit);
         menuBar.getMenus().add(file);
@@ -198,6 +213,25 @@ public class PhoebusApplication extends Application {
         return null;
     }
 
+    private void loadState()
+    {
+        final File memfile = XMLMementoTree.getDefaultFile();
+        if (! memfile.canRead())
+            return;
+
+        try
+        {
+            XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
+
+            // TODO restore state
+            System.out.println("Should restore state from\n" + memento);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Error restoring saved state from " + memfile, ex);
+        }
+    }
+
     /** @param resource Resource received as command line argument */
     private void openResource(final String resource)
     {
@@ -211,10 +245,48 @@ public class PhoebusApplication extends Application {
             logger.log(Level.WARNING, "No application found for opening " + resource);
     }
 
+    /** Delete any saved state */
+    private void clearState()
+    {
+        final File memfile = XMLMementoTree.getDefaultFile();
+        if (memfile.exists())
+            memfile.delete();
+    }
+
+    /** Save state */
+    private void saveState()
+    {
+        final File memfile = XMLMementoTree.getDefaultFile();
+        try
+        {
+            final XMLMementoTree memento = XMLMementoTree.create();
+
+            // TODO Persist all DockStages, their DockItems, their optional inputs, ..
+            memento.getChild("StageAB312476CF").setNumber("width", 600);
+
+            if (! memfile.getParentFile().exists())
+                memfile.getParentFile().mkdirs();
+            memento.write(new FileOutputStream(memfile));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Error writing saved state to " + memfile, ex);
+        }
+    }
+
     /** Stop all applications */
     private void stopApplications()
     {
         for (org.phoebus.framework.spi.Application app : applications)
             app.stop();
+    }
+
+    /** Stop applications and exit */
+    private void shutdown()
+    {
+        stopApplications();
+        // Hard exit because otherwise background threads
+        // might keep us from quitting the VM
+        System.exit(0);
     }
 }

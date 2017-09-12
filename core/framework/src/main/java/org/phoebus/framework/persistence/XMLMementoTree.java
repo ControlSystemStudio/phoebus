@@ -8,6 +8,7 @@
 package org.phoebus.framework.persistence;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -35,6 +36,14 @@ public class XMLMementoTree implements MementoTree
     private static final String ROOT = "memento";
     private final Document document;
     private final Element element;
+
+    /** @return Default file used for the memento */
+    public static File getDefaultFile()
+    {
+        // Same location as user preferences
+        return new File(System.getProperty("java.util.prefs.userRoot", System.getProperty("user.home")),
+                        ".phoebus/memento");
+    }
 
     /** @return New, empty memento
      *  @throws Exception on error

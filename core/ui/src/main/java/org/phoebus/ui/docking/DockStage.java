@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -29,6 +30,12 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class DockStage
 {
+    /** List of all currently open dock stages */
+    private final static List<Stage> dock_stages = new ArrayList<>();
+
+    /** Will be invoked when user closes all stages */
+    private static Runnable final_curtain_runnable = null;
+
     /** Helper to configure a Stage for docking
      *
      *  <p>Adds a Scene with a BorderPane and a DockPane in the center
@@ -67,7 +74,7 @@ public class DockStage
         // Prevent closing the stage if one of the tabs doesn't want to close
         stage.setOnCloseRequest(event ->
         {
-            // List changes as we close tabs; get save copy
+            // List of tabs changes as we close tabs; get save copy
             final List<Tab> copy = new ArrayList<>(tab_pane.getTabs());
             for (Tab tab : copy)
                 if (tab instanceof DockItem  &&
@@ -76,7 +83,13 @@ public class DockStage
                     event.consume();
                     return;
                 }
+
+            dock_stages.remove(stage);
+            if (dock_stages.isEmpty()  &&  final_curtain_runnable != null)
+                Platform.runLater(final_curtain_runnable);
         });
+
+        dock_stages.add(stage);
 
         return getDockPane(stage);
     }
@@ -108,5 +121,11 @@ public class DockStage
     {
         final DockPane dock_pane = getDockPane(stage);
         DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));
+    }
+
+    /** @param runnable Will be invoked when user closed all stages */
+    public static void setOnFinalCurtain(final Runnable runnable)
+    {
+        final_curtain_runnable = runnable;
     }
 }
