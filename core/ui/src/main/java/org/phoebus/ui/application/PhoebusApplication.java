@@ -15,6 +15,7 @@ import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ToolbarEntryService;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
@@ -34,7 +35,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 
 /** Primary UI for a phoebus application
  *
@@ -85,8 +85,10 @@ public class PhoebusApplication extends Application {
         // so prompt for confirmation.
         stage.setOnCloseRequest(event ->
         {
-            if (! closePrimaryStage(stage))
-                event.consume();
+            if (closeMainStage(stage))
+                stop();
+            // Else: At least one tab in one stage didn't want to close
+            event.consume();
         });
     }
 
@@ -102,7 +104,11 @@ public class PhoebusApplication extends Application {
             todo.showAndWait();
         });
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event -> closePrimaryStage(null));
+        exit.setOnAction(event ->
+        {
+            if (closeMainStage(null))
+                stop();
+        });
         final Menu file = new Menu("File", null, open, exit);
         menuBar.getMenus().add(file);
 
@@ -266,7 +272,7 @@ public class PhoebusApplication extends Application {
         }
     }
 
-    /** Close the primary stage
+    /** Close the main stage
      *
      *  <p>If there are more stages open,
      *  warn user that they will be closed.
@@ -276,48 +282,61 @@ public class PhoebusApplication extends Application {
      *  another close request to it because that would
      *  create an infinite loop.
      *
-     *  @param primary_stage_already_closing Primary stage when called
-     *                                       from its onCloseRequested handler, else <code>null</code>
+     *  @param main_stage_already_closing Primary stage when called
+     *                                    from its onCloseRequested handler, else <code>null</code>
      *  @return
      */
-    private boolean closePrimaryStage(final Stage primary_stage_already_closing)
+    private boolean closeMainStage(final Stage main_stage_already_closing)
     {
         final List<Stage> stages = DockStage.getDockStages();
+
         if (stages.size() > 1)
         {
             final Alert dialog = new Alert(AlertType.CONFIRMATION);
-            dialog.setHeaderText("Closing primary window");
-            dialog.setContentText("Closing the primary window exits the application.\nAre you sure?");
+            dialog.setTitle("Exit Phoebus");
+            dialog.setHeaderText("Close main window");
+            dialog.setContentText("Closing this window exits the application,\nclosing all other windows.\n");
+            DialogHelper.positionDialog(dialog, stages.get(0).getScene().getRoot(), -200, -200);
             if (dialog.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return false;
         }
 
-        if (primary_stage_already_closing != null)
-        {
-            if (! DockStage.isStageOkToClose(primary_stage_already_closing))
-                return false;
-            stages.remove(primary_stage_already_closing);
-        }
-        return closeStages(stages);
+        // If called from the main stage that's already about to close,
+        // skip that one when closing all stages
+        if (main_stage_already_closing != null)
+            stages.remove(main_stage_already_closing);
+
+        if (! closeStages(stages))
+            return false;
+
+        // Once all other stages are closed,
+        // potentially check the main stage.
+        if (main_stage_already_closing != null  &&
+            ! DockStage.isStageOkToClose(main_stage_already_closing))
+            return false;
+        return true;
     }
 
-    /** Close all stages on the list
+    /** Close several stages
      *
      *  @param stages_to_check Stages that will be asked to close
-     *  @return <code>false</code> if one stage didn't want to close. Will otherwise exit the JVM, i.e. not actually return <code>true</code>.
+     *  @return <code>true</code> if all stages closed, <code>false</code> if one stage didn't want to close.
      */
     private boolean closeStages(final List<Stage> stages_to_check)
     {
+        // Save current state, _before_ tabs are closed and thus
+        // there's nothing left to save
         saveState();
 
         for (Stage stage : stages_to_check)
         {
-            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
-            if (stage.isShowing())
+            // Could close via event, but then still need to check if the stage remained open
+            // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+            if (DockStage.isStageOkToClose(stage))
+                stage.close();
+            else
                 return false;
         }
-
-        stop();
         return true;
     }
 
@@ -332,8 +351,10 @@ public class PhoebusApplication extends Application {
     public void stop()
     {
         stopApplications();
+
         // Hard exit because otherwise background threads
         // might keep us from quitting the VM
+        logger.log(Level.INFO, "Exiting");
         System.exit(0);
     }
 }
