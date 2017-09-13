@@ -12,6 +12,7 @@ import static org.phoebus.ui.docking.DockPane.logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import javafx.scene.Node;
@@ -38,7 +39,16 @@ import javafx.stage.Stage;
 public class DockStage
 {
     /** List of all currently open dock stages */
+    // TODO Replace with Window.getWindows() ?
     private final static List<Stage> dock_stages = new ArrayList<>();
+
+    /** Property key for the stage ID */
+    public static final String KEY_ID = "ID";
+
+    /** The KEY_ID property is a unique stage ID,
+     *  except for the main window that uses MAIN.
+     */
+    public static final String ID_MAIN = "MAIN";
 
     /** Helper to configure a Stage for docking
      *
@@ -52,6 +62,8 @@ public class DockStage
      */
     public static DockPane configureStage(final Stage stage, final DockItem... tabs)
     {
+        stage.getProperties().put(KEY_ID, UUID.randomUUID().toString());
+
         final DockPane tab_pane = new DockPane(tabs);
 
         final BorderPane layout = new BorderPane(tab_pane);
@@ -84,6 +96,12 @@ public class DockStage
         dock_stages.add(stage);
 
         return getDockPane(stage);
+    }
+
+    /** @return Unique ID of this stage */
+    public static String getID(final Stage stage)
+    {
+        return (String) stage.getProperties().get(KEY_ID);
     }
 
     /** Gracefully close all DockItems when stage closes

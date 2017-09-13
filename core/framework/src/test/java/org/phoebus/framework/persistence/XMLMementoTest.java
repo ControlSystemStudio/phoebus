@@ -8,12 +8,12 @@
 package org.phoebus.framework.persistence;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Test;
 
@@ -36,12 +36,12 @@ public class XMLMementoTest
 
         System.out.println(mt);
 
-        assertThat(mt.getString("text"), equalTo("Some text\nAnother line"));
-        assertThat(mt.getNumber("number"), equalTo(42));
-        assertThat(mt.getNumber("float"), equalTo(3.14));
-        assertThat(mt.getNumber("huge"), equalTo(Integer.MAX_VALUE + 2L));
-        assertThat(mt.getBoolean("flag"), equalTo(true));
-        assertThat(mt.getString("bogus"), nullValue());
+        assertThat(mt.getString("text").get(), equalTo("Some text\nAnother line"));
+        assertThat(mt.getNumber("number").get(), equalTo(42));
+        assertThat(mt.getNumber("float").get(), equalTo(3.14));
+        assertThat(mt.getNumber("huge").get(), equalTo(Integer.MAX_VALUE + 2L));
+        assertThat(mt.getBoolean("flag").get(), equalTo(true));
+        assertThat(mt.getString("bogus"), equalTo(Optional.empty()));
     }
 
     @Test

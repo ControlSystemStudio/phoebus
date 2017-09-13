@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
@@ -19,6 +20,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.internal.MementoHelper;
 
 import javafx.application.Application;
 import javafx.scene.control.Alert;
@@ -60,6 +62,8 @@ public class PhoebusApplication extends Application {
                 new BorderPane(new Label("Welcome to Phoebus!\n\n" + "Try pushing the buttons in the toolbar")));
 
         DockStage.configureStage(stage, welcome);
+        // Patch ID of main window
+        stage.getProperties().put(DockStage.KEY_ID, DockStage.ID_MAIN);
         final BorderPane layout = DockStage.getLayout(stage);
 
         layout.setTop(new VBox(menuBar, toolBar));
@@ -239,10 +243,16 @@ public class PhoebusApplication extends Application {
 
         try
         {
-            XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
+            logger.log(Level.INFO, "Loading state from " + memfile);
+            final XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
 
-            // TODO restore state
-            System.out.println("Should restore state from\n" + memento);
+
+            for (MementoTree stage_memento : memento.getChildren())
+            {
+                // TODO restore state
+                System.out.println("Should restore Stage " + stage_memento.getName());
+
+            }
         }
         catch (Exception ex)
         {
@@ -260,7 +270,8 @@ public class PhoebusApplication extends Application {
             final XMLMementoTree memento = XMLMementoTree.create();
 
             // TODO Persist all DockStages, their DockItems, their optional inputs, ..
-            memento.getChild("StageAB312476CF").setNumber("width", 600);
+            for (Stage stage : DockStage.getDockStages())
+                MementoHelper.saveStage(memento, stage);
 
             if (! memfile.getParentFile().exists())
                 memfile.getParentFile().mkdirs();

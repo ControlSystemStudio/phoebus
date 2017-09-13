@@ -15,6 +15,9 @@ import java.util.List;
  */
 public interface MementoTree extends Memento
 {
+    /** @return Name of this element in the memento tree */
+    public String getName();
+
     /** @param key Key that identifies a child memento
      *  @return Child memento.
      *          Never <code>null</code>, will be created if it didn't exist.

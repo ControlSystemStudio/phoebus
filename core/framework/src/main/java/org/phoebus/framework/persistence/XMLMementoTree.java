@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -85,6 +86,12 @@ public class XMLMementoTree implements MementoTree
     }
 
     @Override
+    public String getName()
+    {
+        return element.getNodeName();
+    }
+
+    @Override
     public void setString(final String key, final String value)
     {
         if (value == null)
@@ -106,46 +113,46 @@ public class XMLMementoTree implements MementoTree
     }
 
     @Override
-    public String getString(final String key)
+    public Optional<String> getString(final String key)
     {
         final Attr attr = element.getAttributeNode(key);
         if (attr == null)
-            return null;
-        return attr.getValue();
+            return Optional.empty();
+        return Optional.of(attr.getValue());
     }
 
     @Override
-    public Number getNumber(final String key)
+    public Optional<Number> getNumber(final String key)
     {
-        final String text = getString(key);
+        final String text = getString(key).orElse(null);
         if (text == null)
-            return null;
+            return Optional.empty();
         try
         {
             final double dbl = Double.parseDouble(text);
             // If it is indeed a floating point number, return that
             if (Math.rint(dbl) != dbl)
-                return dbl;
+                return Optional.of(dbl);
             // Parse as long to allow for large values
             final long lng = Long.parseLong(text);
             if (lng > Integer.MAX_VALUE  ||   lng < Integer.MIN_VALUE)
-                return lng;
+                return Optional.of(lng);
             // If small enough, fall back to integer
-            return (int) lng;
+            return Optional.of((int) lng);
         }
         catch (NumberFormatException ex)
         {
-            return null;
+            return Optional.empty();
         }
     }
 
     @Override
-    public Boolean getBoolean(final String key)
+    public Optional<Boolean> getBoolean(final String key)
     {
-        final String text = getString(key);
+        final String text = getString(key).orElse(null);
         if (text == null)
-            return null;
-        return Boolean.valueOf(text);
+            return Optional.empty();
+        return Optional.of(Boolean.valueOf(text));
     }
 
     @Override

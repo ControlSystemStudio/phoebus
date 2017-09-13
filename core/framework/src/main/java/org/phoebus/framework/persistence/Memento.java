@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.framework.persistence;
 
+import java.util.Optional;
+
 /** Memento used to save and later restore state
  *
  *  @author Kay Kasemir
@@ -29,20 +31,17 @@ public interface Memento
     public void setBoolean(String key, Boolean value);
 
     /** @param key Key that identifies a setting
-     *  @return String value,
-     *          <code>null</<code> if no string was written.
+     *  @return String value
      */
-    public String getString(String key);
+    public Optional<String> getString(String key);
 
     /** @param key Key that identifies a setting
-     *  @return Number value,
-     *          <code>null</<code> if no number was written.
+     *  @return Number value
      */
-    public Number getNumber(String key);
+    public Optional<Number> getNumber(String key);
 
     /** @param key Key that identifies a setting
-     *  @return Boolean value,
-     *          <code>null</<code> if no flag was written.
+     *  @return Boolean value
      */
-    public Boolean getBoolean(String key);
+    public Optional<Boolean> getBoolean(String key);
 }
