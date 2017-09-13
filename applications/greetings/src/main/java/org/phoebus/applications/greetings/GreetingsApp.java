@@ -1,8 +1,8 @@
 package org.phoebus.applications.greetings;
 
-import org.phoebus.framework.spi.Application;
+import org.phoebus.framework.spi.AppDescriptor;
 
-public class GreetingsApp implements Application {
+public class GreetingsApp implements AppDescriptor {
 
     public static final String Name = "Greetings";
 
