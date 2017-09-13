@@ -235,6 +235,7 @@ public class PhoebusApplication extends Application {
             logger.log(Level.WARNING, "No application found for opening " + resource);
     }
 
+    /** Restore stages from memento */
     private void restoreState()
     {
         final File memfile = XMLMementoTree.getDefaultFile();
@@ -267,7 +268,7 @@ public class PhoebusApplication extends Application {
         }
     }
 
-    /** Save state */
+    /** Save state of all stages to memento */
     private void saveState()
     {
         final File memfile = XMLMementoTree.getDefaultFile();
@@ -276,7 +277,7 @@ public class PhoebusApplication extends Application {
         {
             final XMLMementoTree memento = XMLMementoTree.create();
 
-            // TODO Persist all DockStages, their DockItems, their optional inputs, ..
+            // TODO Persist all DockItems, their optional inputs, ..
             for (Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);
 
