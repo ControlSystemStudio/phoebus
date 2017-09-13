@@ -10,9 +10,6 @@ import java.util.Map;
  * <code>start()</code> and <code>stop()</code> methods allow an application to
  * manage global resources.
  *
- * <p>
- * The <code>open..</code> methods are called to create running instances of the
- * application.
  *
  * @author Kunal Shroff
  *
@@ -27,6 +24,15 @@ public interface AppDescriptor {
     public String getName();
 
     /**
+     * Get the applications display name
+     *
+     * @return the Display Name of the application
+     */
+    public default String getDisplayName() {
+        return getName();
+    }
+
+    /**
      * Create the resources (connects, load libraries,...) required by this
      * particular application
      */
@@ -35,46 +41,9 @@ public interface AppDescriptor {
     }
 
     /**
-     * Called to check if application can handle a resource.
-     *
-     * <p>
-     * Implementation may check the file extension, or even open the file to check
-     * content.
-     *
-     * <p>
-     * If the application indicates that it can handle a resource, the framework
-     * will then invoke <code>open(resource)</code>.
-     *
-     * @param resource
-     *            Resource to check
-     * @return <code>true</code> if this application can open the resource
-     */
-    public default boolean canOpenResource(String resource) {
-        return false;
-    }
-
-    /**
      * Open the application without any specific resources
      */
     public void open();
-
-    /**
-     * Open the application using the list of resources, the resource can be the
-     * path or url to a configuration file like .bob or .plt or it can be a list of
-     * pv names, or a channelfinder query
-     */
-    default public void open(String... resources) {
-        open();
-    }
-
-    /**
-     * Open the application using the a map of input parameters and a list of
-     * resources, the resource can be the path or url to a configuration file like
-     * .bob or .plt or it can be a list of pv names, or a channelfinder query
-     */
-    default public void open(Map<String, String> inputParameters, String... resources) {
-        open();
-    }
 
     /**
      * Cleanup the resources used by this application, also perform the action of

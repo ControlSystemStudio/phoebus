@@ -10,6 +10,7 @@ package org.phoebus.applications.pvtable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,7 +20,7 @@ import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
 
@@ -31,7 +32,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVTableApplication implements AppDescriptor
+public class PVTableApplication implements AppResourceDescriptor
 {
     public static final Logger logger = Logger.getLogger(PVTableApplication.class.getPackageName());
 
@@ -50,12 +51,12 @@ public class PVTableApplication implements AppDescriptor
         return NAME;
     }
 
-    @Override
-    public boolean canOpenResource(String resource)
-    {
-        return resource.endsWith(PVTableXMLPersistence.FILE_EXTENSION) ||
-               resource.endsWith(PVTableAutosavePersistence.FILE_EXTENSION);
-    }
+//    @Override
+//    public boolean canOpenResource(String resource)
+//    {
+//        return resource.endsWith(PVTableXMLPersistence.FILE_EXTENSION) ||
+//               resource.endsWith(PVTableAutosavePersistence.FILE_EXTENSION);
+//    }
 
     @Override
     public void open()
@@ -117,5 +118,14 @@ public class PVTableApplication implements AppDescriptor
     public static Image getIcon(final String name)
     {
         return new Image(PVTableApplication.class.getResourceAsStream("/icons/" + name));
+    }
+
+    /**
+     * 
+     */
+    @Override
+    public List<String> supportedFileExtentions() 
+    {
+        return Arrays.asList(PVTableXMLPersistence.FILE_EXTENSION, PVTableAutosavePersistence.FILE_EXTENSION);
     }
 }
