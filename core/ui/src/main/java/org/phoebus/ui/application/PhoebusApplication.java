@@ -3,18 +3,18 @@ package org.phoebus.ui.application;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
+import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItem;
@@ -38,19 +38,19 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-/** Primary UI for a phoebus application
+/**
+ * Primary UI for a phoebus application
  *
- *  <p>Menu bar, tool bar, ..
+ * <p>
+ * Menu bar, tool bar, ..
  *
- *  @author Kunal Shroff
- *  @author Kay Kasemir
+ * @author Kunal Shroff
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class PhoebusApplication extends Application {
     /** Logger for all application messages */
     public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
-
-    private List<org.phoebus.framework.spi.Application> applications;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -70,8 +70,6 @@ public class PhoebusApplication extends Application {
         layout.setBottom(new Label("Status Bar..."));
 
         stage.show();
-
-        applications = startApplications();
 
         restoreState();
 
@@ -196,43 +194,18 @@ public class PhoebusApplication extends Application {
         return toolBar;
     }
 
-    /** Locate and start all applications
-     *  @return Applications
-     */
-    private List<org.phoebus.framework.spi.Application> startApplications()
-    {
-        final List<org.phoebus.framework.spi.Application> apps = new ArrayList<>();
-        for (org.phoebus.framework.spi.Application app : ServiceLoader.load(org.phoebus.framework.spi.Application.class))
-        {
-            app.start();
-            apps.add(app);
-        }
-        return apps;
-    }
-
-    /** Find application for a resource
-     *  @param resource Resource
-     *  @return Application that can open the resource, or <code>null</code>
-     */
-    private org.phoebus.framework.spi.Application findApplicatation(final String resource)
-    {
-        for (org.phoebus.framework.spi.Application app : applications)
-            if (app.canOpenResource(resource))
-                return app;
-        return null;
-    }
-
     /** @param resource Resource received as command line argument */
     private void openResource(final String resource)
     {
-        org.phoebus.framework.spi.Application app = findApplicatation(resource);
-        if (app != null)
-        {
-            logger.log(Level.INFO, "Opening " + resource + " with " + app.getName());
-            app.open(resource);
-        }
-        else
+        List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+        if(applications.isEmpty()) {
             logger.log(Level.WARNING, "No application found for opening " + resource);
+        }
+        else {
+            //TODO currently uses he first registered application
+            logger.log(Level.INFO, "Opening " + resource + " with " + applications.get(0).getName());
+            applications.get(0).open(resource);
+        }            
     }
 
     /** Restore stages from memento */
@@ -359,10 +332,14 @@ public class PhoebusApplication extends Application {
         return true;
     }
 
-    /** Stop all applications */
-    private void stopApplications()
-    {
-        for (org.phoebus.framework.spi.Application app : applications)
+    private List<org.phoebus.framework.spi.AppDescriptor> applications;
+
+    /** 
+     * Stop all applications
+     * TODO currently the list of empty 
+     */
+    private void stopApplications() {
+        for (org.phoebus.framework.spi.AppDescriptor app : applications)
             app.stop();
     }
 

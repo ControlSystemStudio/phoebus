@@ -20,12 +20,11 @@ import javafx.scene.control.TitledPane;
  */
 public class ContextLaunchProbe implements ContextMenuEntry {
 
-    private static final String NAME = "Probe";
     private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
 
     @Override
     public String getName() {
-        return NAME;
+        return Probe.NAME;
     }
 
     @Override
@@ -44,11 +43,11 @@ public class ContextLaunchProbe implements ContextMenuEntry {
 
             if (pvs.isEmpty()) {
                 // Open an empty probe
-                DockPane.getActiveDockPane().addTab(new DockItem(NAME, mainLayout));
+                DockPane.getActiveDockPane().addTab(new DockItem(Probe.NAME, mainLayout));
             } else {
                 // Open a probe for each pv
                 pvs.forEach(pv -> {
-                	DockPane.getActiveDockPane().addTab(new DockItem(NAME, mainLayout));
+                	DockPane.getActiveDockPane().addTab(new DockItem(Probe.NAME, mainLayout));
                     ProbeController controller = (ProbeController) loader.getController();
                     controller.setPVName(pv.getName());
                 });
