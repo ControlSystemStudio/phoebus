@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -25,6 +24,14 @@ import javafx.stage.Stage;
 
 /** Helper for stage that uses docking
  *
+ *  <p>All stages should have a known layout with {@link DockPane} etc.,
+ *  but since the initial Stage is passed to the application,
+ *  it cannot simply be replaced with a "DockStage extends Stage".
+ *
+ *  <p>This is thus not a class that extends Stage, but a helper
+ *  meant to be called to configure and later interface with
+ *  each Stage.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -33,12 +40,9 @@ public class DockStage
     /** List of all currently open dock stages */
     private final static List<Stage> dock_stages = new ArrayList<>();
 
-    /** Will be invoked when user closes all stages */
-    private static Runnable final_curtain_runnable = null;
-
     /** Helper to configure a Stage for docking
      *
-     *  <p>Adds a Scene with a BorderPane and a DockPane in the center
+     *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center
      *
      *  @param stage Stage, should be empty
      *  @param tabs Zero or more initial {@link DockItem}s
@@ -71,27 +75,49 @@ public class DockStage
                 DockPane.setActiveDockPane(tab_pane);
         });
 
-        // Prevent closing the stage if one of the tabs doesn't want to close
         stage.setOnCloseRequest(event ->
         {
-            // List of tabs changes as we close tabs; get save copy
-            final List<Tab> copy = new ArrayList<>(tab_pane.getTabs());
-            for (Tab tab : copy)
-                if (tab instanceof DockItem  &&
-                    ! ((DockItem) tab).close())
-                {
-                    event.consume();
-                    return;
-                }
-
-            dock_stages.remove(stage);
-            if (dock_stages.isEmpty()  &&  final_curtain_runnable != null)
-                Platform.runLater(final_curtain_runnable);
+            if (! isStageOkToClose(stage))
+                event.consume();
         });
 
         dock_stages.add(stage);
 
         return getDockPane(stage);
+    }
+
+    /** Gracefully close all DockItems when stage closes
+     *
+     *  <p>When user closes the stage,
+     *  offer dock items a chance to save changes,
+     *  or abort the close request.
+     *
+     *  @param stage {@link Stage} with {@link DockPane}
+     */
+    public static boolean isStageOkToClose(final Stage stage)
+    {
+        final DockPane tab_pane = getDockPane(stage);
+        // List of tabs changes as we close tabs; get save copy
+        final List<Tab> copy = new ArrayList<>(tab_pane.getTabs());
+        for (Tab tab : copy)
+        {
+            if (tab instanceof DockItem  &&
+                ! ((DockItem) tab).close())
+            {   // Abort the close request
+                return false;
+            }
+        }
+
+        // All tabs either saved or don't care to save,
+        // so this stage will be closed
+        dock_stages.remove(stage);
+        return true;
+    }
+
+    /** @return All currently open dock stages (safe copy) */
+    public static List<Stage> getDockStages()
+    {
+        return new ArrayList<>(dock_stages);
     }
 
     /** @param stage Stage that supports docking
@@ -121,11 +147,5 @@ public class DockStage
     {
         final DockPane dock_pane = getDockPane(stage);
         DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));
-    }
-
-    /** @param runnable Will be invoked when user closed all stages */
-    public static void setOnFinalCurtain(final Runnable runnable)
-    {
-        final_curtain_runnable = runnable;
     }
 }

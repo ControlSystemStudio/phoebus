@@ -34,6 +34,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
 /** Primary UI for a phoebus application
  *
@@ -77,13 +78,15 @@ public class PhoebusApplication extends Application {
         // In 'server' mode, handle received requests to open resources
         ApplicationServer.setOnReceivedArgument(this::openResource);
 
-        // If user closes all windows, do NOT persist that
-        // because next time we'd then open with no windows...
-        // --> Clear memento to restart as we did the very first time
-        DockStage.setOnFinalCurtain(() ->
+        // Closing the primary window is like calling File/Exit.
+        // When the primary window is the only open stage, that's OK.
+        // If there are other stages still open,
+        // closing them all might be unexpected to the user,
+        // so prompt for confirmation.
+        stage.setOnCloseRequest(event ->
         {
-            clearState();
-            shutdown();
+            if (! closePrimaryStage(stage))
+                event.consume();
         });
     }
 
@@ -99,11 +102,7 @@ public class PhoebusApplication extends Application {
             todo.showAndWait();
         });
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event ->
-        {
-            saveState();
-            shutdown();
-        });
+        exit.setOnAction(event -> closePrimaryStage(null));
         final Menu file = new Menu("File", null, open, exit);
         menuBar.getMenus().add(file);
 
@@ -213,6 +212,19 @@ public class PhoebusApplication extends Application {
         return null;
     }
 
+    /** @param resource Resource received as command line argument */
+    private void openResource(final String resource)
+    {
+        org.phoebus.framework.spi.Application app = findApplicatation(resource);
+        if (app != null)
+        {
+            logger.log(Level.INFO, "Opening " + resource + " with " + app.getName());
+            app.open(resource);
+        }
+        else
+            logger.log(Level.WARNING, "No application found for opening " + resource);
+    }
+
     private void loadState()
     {
         final File memfile = XMLMementoTree.getDefaultFile();
@@ -232,31 +244,11 @@ public class PhoebusApplication extends Application {
         }
     }
 
-    /** @param resource Resource received as command line argument */
-    private void openResource(final String resource)
-    {
-        org.phoebus.framework.spi.Application app = findApplicatation(resource);
-        if (app != null)
-        {
-            logger.log(Level.INFO, "Opening " + resource + " with " + app.getName());
-            app.open(resource);
-        }
-        else
-            logger.log(Level.WARNING, "No application found for opening " + resource);
-    }
-
-    /** Delete any saved state */
-    private void clearState()
-    {
-        final File memfile = XMLMementoTree.getDefaultFile();
-        if (memfile.exists())
-            memfile.delete();
-    }
-
     /** Save state */
     private void saveState()
     {
         final File memfile = XMLMementoTree.getDefaultFile();
+        logger.log(Level.INFO, "Persisting state to " + memfile);
         try
         {
             final XMLMementoTree memento = XMLMementoTree.create();
@@ -274,6 +266,61 @@ public class PhoebusApplication extends Application {
         }
     }
 
+    /** Close the primary stage
+     *
+     *  <p>If there are more stages open,
+     *  warn user that they will be closed.
+     *
+     *  <p>When called from the onCloseRequested handler
+     *  of the primary stage, we must _not_ send
+     *  another close request to it because that would
+     *  create an infinite loop.
+     *
+     *  @param primary_stage_already_closing Primary stage when called
+     *                                       from its onCloseRequested handler, else <code>null</code>
+     *  @return
+     */
+    private boolean closePrimaryStage(final Stage primary_stage_already_closing)
+    {
+        final List<Stage> stages = DockStage.getDockStages();
+        if (stages.size() > 1)
+        {
+            final Alert dialog = new Alert(AlertType.CONFIRMATION);
+            dialog.setHeaderText("Closing primary window");
+            dialog.setContentText("Closing the primary window exits the application.\nAre you sure?");
+            if (dialog.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
+                return false;
+        }
+
+        if (primary_stage_already_closing != null)
+        {
+            if (! DockStage.isStageOkToClose(primary_stage_already_closing))
+                return false;
+            stages.remove(primary_stage_already_closing);
+        }
+        return closeStages(stages);
+    }
+
+    /** Close all stages on the list
+     *
+     *  @param stages_to_check Stages that will be asked to close
+     *  @return <code>false</code> if one stage didn't want to close. Will otherwise exit the JVM, i.e. not actually return <code>true</code>.
+     */
+    private boolean closeStages(final List<Stage> stages_to_check)
+    {
+        saveState();
+
+        for (Stage stage : stages_to_check)
+        {
+            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+            if (stage.isShowing())
+                return false;
+        }
+
+        stop();
+        return true;
+    }
+
     /** Stop all applications */
     private void stopApplications()
     {
@@ -281,8 +328,8 @@ public class PhoebusApplication extends Application {
             app.stop();
     }
 
-    /** Stop applications and exit */
-    private void shutdown()
+    @Override
+    public void stop()
     {
         stopApplications();
         // Hard exit because otherwise background threads
