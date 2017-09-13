@@ -1,5 +1,8 @@
 package org.phoebus.ui.application;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -7,13 +10,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.persistence.MementoTree;
+import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ToolbarEntryService;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.internal.MementoHelper;
 
 import javafx.application.Application;
 import javafx.scene.control.Alert;
@@ -55,6 +62,8 @@ public class PhoebusApplication extends Application {
                 new BorderPane(new Label("Welcome to Phoebus!\n\n" + "Try pushing the buttons in the toolbar")));
 
         DockStage.configureStage(stage, welcome);
+        // Patch ID of main window
+        stage.getProperties().put(DockStage.KEY_ID, DockStage.ID_MAIN);
         final BorderPane layout = DockStage.getLayout(stage);
 
         layout.setTop(new VBox(menuBar, toolBar));
@@ -64,6 +73,8 @@ public class PhoebusApplication extends Application {
 
         applications = startApplications();
 
+        restoreState();
+
         // Handle requests to open resource from command line
         for (String resource : getParameters().getRaw())
             openResource(resource);
@@ -71,7 +82,18 @@ public class PhoebusApplication extends Application {
         // In 'server' mode, handle received requests to open resources
         ApplicationServer.setOnReceivedArgument(this::openResource);
 
-        stage.setOnCloseRequest(event -> stopApplications());
+        // Closing the primary window is like calling File/Exit.
+        // When the primary window is the only open stage, that's OK.
+        // If there are other stages still open,
+        // closing them all might be unexpected to the user,
+        // so prompt for confirmation.
+        stage.setOnCloseRequest(event ->
+        {
+            if (closeMainStage(stage))
+                stop();
+            // Else: At least one tab in one stage didn't want to close
+            event.consume();
+        });
     }
 
     private MenuBar createMenu(final Stage stage) {
@@ -86,8 +108,10 @@ public class PhoebusApplication extends Application {
             todo.showAndWait();
         });
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event -> {
-            stage.close();
+        exit.setOnAction(event ->
+        {
+            if (closeMainStage(null))
+                stop();
         });
         final Menu file = new Menu("File", null, open, exit);
         menuBar.getMenus().add(file);
@@ -211,10 +235,145 @@ public class PhoebusApplication extends Application {
             logger.log(Level.WARNING, "No application found for opening " + resource);
     }
 
+    /** Restore stages from memento */
+    private void restoreState()
+    {
+        final File memfile = XMLMementoTree.getDefaultFile();
+        if (! memfile.canRead())
+            return;
+
+        try
+        {
+            logger.log(Level.INFO, "Loading state from " + memfile);
+            final XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
+
+            for (MementoTree stage_memento : memento.getChildren())
+            {
+                final String id = stage_memento.getName();
+                Stage stage = DockStage.getDockStageByID(id);
+                if (stage == null)
+                {   // Create new Stage with that ID
+                    stage = new Stage();
+                    DockStage.configureStage(stage);
+                    stage.getProperties().put(DockStage.KEY_ID, id);
+                    stage.show();
+                }
+                MementoHelper.restoreStage(stage_memento, stage);
+                // TODO restore DockItems, their input, ..
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Error restoring saved state from " + memfile, ex);
+        }
+    }
+
+    /** Save state of all stages to memento */
+    private void saveState()
+    {
+        final File memfile = XMLMementoTree.getDefaultFile();
+        logger.log(Level.INFO, "Persisting state to " + memfile);
+        try
+        {
+            final XMLMementoTree memento = XMLMementoTree.create();
+
+            // TODO Persist all DockItems, their optional inputs, ..
+            for (Stage stage : DockStage.getDockStages())
+                MementoHelper.saveStage(memento, stage);
+
+            if (! memfile.getParentFile().exists())
+                memfile.getParentFile().mkdirs();
+            memento.write(new FileOutputStream(memfile));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Error writing saved state to " + memfile, ex);
+        }
+    }
+
+    /** Close the main stage
+     *
+     *  <p>If there are more stages open,
+     *  warn user that they will be closed.
+     *
+     *  <p>When called from the onCloseRequested handler
+     *  of the primary stage, we must _not_ send
+     *  another close request to it because that would
+     *  create an infinite loop.
+     *
+     *  @param main_stage_already_closing Primary stage when called
+     *                                    from its onCloseRequested handler, else <code>null</code>
+     *  @return
+     */
+    private boolean closeMainStage(final Stage main_stage_already_closing)
+    {
+        final List<Stage> stages = DockStage.getDockStages();
+
+        if (stages.size() > 1)
+        {
+            final Alert dialog = new Alert(AlertType.CONFIRMATION);
+            dialog.setTitle("Exit Phoebus");
+            dialog.setHeaderText("Close main window");
+            dialog.setContentText("Closing this window exits the application,\nclosing all other windows.\n");
+            DialogHelper.positionDialog(dialog, stages.get(0).getScene().getRoot(), -200, -200);
+            if (dialog.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
+                return false;
+        }
+
+        // If called from the main stage that's already about to close,
+        // skip that one when closing all stages
+        if (main_stage_already_closing != null)
+            stages.remove(main_stage_already_closing);
+
+        if (! closeStages(stages))
+            return false;
+
+        // Once all other stages are closed,
+        // potentially check the main stage.
+        if (main_stage_already_closing != null  &&
+            ! DockStage.isStageOkToClose(main_stage_already_closing))
+            return false;
+        return true;
+    }
+
+    /** Close several stages
+     *
+     *  @param stages_to_check Stages that will be asked to close
+     *  @return <code>true</code> if all stages closed, <code>false</code> if one stage didn't want to close.
+     */
+    private boolean closeStages(final List<Stage> stages_to_check)
+    {
+        // Save current state, _before_ tabs are closed and thus
+        // there's nothing left to save
+        saveState();
+
+        for (Stage stage : stages_to_check)
+        {
+            // Could close via event, but then still need to check if the stage remained open
+            // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+            if (DockStage.isStageOkToClose(stage))
+                stage.close();
+            else
+                return false;
+        }
+        return true;
+    }
+
     /** Stop all applications */
     private void stopApplications()
     {
         for (org.phoebus.framework.spi.Application app : applications)
             app.stop();
+    }
+
+    @Override
+    public void stop()
+    {
+        stopApplications();
+
+        // Hard exit because otherwise background threads
+        // might keep us from quitting the VM
+        logger.log(Level.INFO, "Exiting");
+        System.exit(0);
     }
 }

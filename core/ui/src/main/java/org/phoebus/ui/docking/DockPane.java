@@ -7,8 +7,10 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.beans.InvalidationListener;
 import javafx.scene.control.Tab;
@@ -84,7 +86,7 @@ public class DockPane extends TabPane
         super.layoutChildren();
     }
 
-    public void autoHideTabs()
+    void autoHideTabs()
     {
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX
         final StackPane header = (StackPane) lookup(".tab-header-area");
@@ -118,6 +120,14 @@ public class DockPane extends TabPane
         getTabs().addAll(tabs);
         // Select the newly added tab
         getSelectionModel().select(getTabs().size()-1);
+    }
+
+    /** @return All {@link DockItem}s in this pane (safe copy) */
+    public List<DockItem> getDockItems()
+    {
+        return getTabs().stream()
+                        .map(tab -> (DockItem) tab)
+                        .collect(Collectors.toList());
     }
 
     /** Accept dock items */

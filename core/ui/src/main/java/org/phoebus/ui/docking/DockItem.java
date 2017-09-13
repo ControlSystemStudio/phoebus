@@ -127,6 +127,8 @@ public class DockItem extends Tab
      */
     public DockItem(final String label)
     {
+        getProperties().put(DockStage.KEY_ID, DockStage.createID("DockItem"));
+
         // Create tab with no 'text',
         // instead using a Label for the text
         // because the label can react to drag operations
@@ -145,6 +147,12 @@ public class DockItem extends Tab
         detach.setOnAction(event -> detach());
         final ContextMenu menu = new ContextMenu(detach);
         name_tab.setContextMenu(menu );
+    }
+
+    /** @return Unique ID of this dock item */
+    public String getID()
+    {
+        return (String) getProperties().get(DockStage.KEY_ID);
     }
 
     /** Label of this item */
