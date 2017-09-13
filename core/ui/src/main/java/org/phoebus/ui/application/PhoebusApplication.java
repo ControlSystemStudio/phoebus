@@ -73,7 +73,7 @@ public class PhoebusApplication extends Application {
 
         applications = startApplications();
 
-        loadState();
+        restoreState();
 
         // Handle requests to open resource from command line
         for (String resource : getParameters().getRaw())
@@ -235,7 +235,7 @@ public class PhoebusApplication extends Application {
             logger.log(Level.WARNING, "No application found for opening " + resource);
     }
 
-    private void loadState()
+    private void restoreState()
     {
         final File memfile = XMLMementoTree.getDefaultFile();
         if (! memfile.canRead())
@@ -246,12 +246,19 @@ public class PhoebusApplication extends Application {
             logger.log(Level.INFO, "Loading state from " + memfile);
             final XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
 
-
             for (MementoTree stage_memento : memento.getChildren())
             {
-                // TODO restore state
-                System.out.println("Should restore Stage " + stage_memento.getName());
-
+                final String id = stage_memento.getName();
+                Stage stage = DockStage.getDockStageByID(id);
+                if (stage == null)
+                {   // Create new Stage with that ID
+                    stage = new Stage();
+                    DockStage.configureStage(stage);
+                    stage.getProperties().put(DockStage.KEY_ID, id);
+                    stage.show();
+                }
+                MementoHelper.restoreStage(stage_memento, stage);
+                // TODO restore DockItems, their input, ..
             }
         }
         catch (Exception ex)

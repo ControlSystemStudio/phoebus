@@ -22,6 +22,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /** Helper for stage that uses docking
  *
@@ -38,17 +39,13 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class DockStage
 {
-    /** List of all currently open dock stages */
-    // TODO Replace with Window.getWindows() ?
-    private final static List<Stage> dock_stages = new ArrayList<>();
-
     /** Property key for the stage ID */
     public static final String KEY_ID = "ID";
 
     /** The KEY_ID property is a unique stage ID,
-     *  except for the main window that uses MAIN.
+     *  except for the main window that this ID.
      */
-    public static final String ID_MAIN = "MAIN";
+    public static final String ID_MAIN = "DockStage_MAIN";
 
     /** Helper to configure a Stage for docking
      *
@@ -62,7 +59,7 @@ public class DockStage
      */
     public static DockPane configureStage(final Stage stage, final DockItem... tabs)
     {
-        stage.getProperties().put(KEY_ID, UUID.randomUUID().toString());
+        stage.getProperties().put(KEY_ID, "DockStage_" + UUID.randomUUID().toString().replace('-', '_'));
 
         final DockPane tab_pane = new DockPane(tabs);
 
@@ -93,8 +90,6 @@ public class DockStage
                 event.consume();
         });
 
-        dock_stages.add(stage);
-
         return getDockPane(stage);
     }
 
@@ -102,6 +97,31 @@ public class DockStage
     public static String getID(final Stage stage)
     {
         return (String) stage.getProperties().get(KEY_ID);
+    }
+
+    /** @param id Unique ID of a stage
+     *  @return That Stage or <code>null</code> if not found
+     */
+    public static Stage getDockStageByID(final String id)
+    {
+        for (Window window : Window.getWindows())
+            // id.equals(null) is OK, will return false
+            if (id.equals(window.getProperties().get(KEY_ID)))
+                return (Stage) window;
+        return null;
+    }
+
+    /** @return All currently open dock stages (safe copy) */
+    public static List<Stage> getDockStages()
+    {
+        final List<Stage> dock_windows = new ArrayList<>();
+        // Having a KEY_ID property implies that the Window
+        // is a Stage that was configured as a DockStage
+        for (Window window : Window.getWindows())
+            if (window.getProperties().containsKey(KEY_ID))
+                dock_windows.add((Stage) window);
+
+        return dock_windows;
     }
 
     /** Gracefully close all DockItems when stage closes
@@ -128,14 +148,7 @@ public class DockStage
 
         // All tabs either saved or don't care to save,
         // so this stage will be closed
-        dock_stages.remove(stage);
         return true;
-    }
-
-    /** @return All currently open dock stages (safe copy) */
-    public static List<Stage> getDockStages()
-    {
-        return new ArrayList<>(dock_stages);
     }
 
     /** @param stage Stage that supports docking

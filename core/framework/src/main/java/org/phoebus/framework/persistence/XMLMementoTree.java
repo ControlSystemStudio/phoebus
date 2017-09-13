@@ -133,12 +133,20 @@ public class XMLMementoTree implements MementoTree
             // If it is indeed a floating point number, return that
             if (Math.rint(dbl) != dbl)
                 return Optional.of(dbl);
-            // Parse as long to allow for large values
-            final long lng = Long.parseLong(text);
-            if (lng > Integer.MAX_VALUE  ||   lng < Integer.MIN_VALUE)
-                return Optional.of(lng);
-            // If small enough, fall back to integer
-            return Optional.of((int) lng);
+            try
+            {
+                // Parse as long to allow for large values
+                // This will fail for "1234.0" because of the ".0"
+                final long lng = Long.parseLong(text);
+                if (lng > Integer.MAX_VALUE  ||   lng < Integer.MIN_VALUE)
+                    return Optional.of(lng);
+                // If small enough, fall back to integer
+                return Optional.of((int) lng);
+            }
+            catch (NumberFormatException ex)
+            {   // Use the double after all
+                return Optional.of(dbl);
+            }
         }
         catch (NumberFormatException ex)
         {
