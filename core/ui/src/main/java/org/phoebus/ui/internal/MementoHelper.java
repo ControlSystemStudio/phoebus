@@ -8,6 +8,8 @@
 package org.phoebus.ui.internal;
 
 import org.phoebus.framework.persistence.MementoTree;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
 import javafx.stage.Stage;
@@ -43,6 +45,18 @@ public class MementoHelper
             stage_memento.setBoolean(MAXIMIZED, true);
         else if (stage.isIconified())
             stage_memento.setBoolean(MINIMIZED, true);
+
+        for (DockItem item : DockStage.getDockPane(stage).getDockItems())
+            saveDockItem(stage_memento, item);
+    }
+
+    private static void saveDockItem(final MementoTree memento, final DockItem item)
+    {
+        final MementoTree item_memento = memento.getChild(item.getID());
+        // TODO Don't save item's label.
+        //      Get application to save its information,
+        //      so that app can later be asked to re-open.
+        item_memento.setString("dummy_label", item.getLabel());
     }
 
     /** Restore state of Stage from memento
@@ -58,5 +72,19 @@ public class MementoHelper
         stage_memento.getBoolean(FULLSCREEN).ifPresent(flag -> stage.setFullScreen(flag));
         stage_memento.getBoolean(MAXIMIZED).ifPresent(flag -> stage.setMaximized(flag));
         stage_memento.getBoolean(MINIMIZED).ifPresent(flag -> stage.setIconified(flag));
+
+        final DockPane pane = DockStage.getDockPane(stage);
+        for (MementoTree item_memento : stage_memento.getChildren())
+            restoreDockItem(item_memento, pane);
+    }
+
+    private static void restoreDockItem(MementoTree item_memento, DockPane pane)
+    {
+        System.out.println("Need to restore " + item_memento.getName());
+        // TODO Do _not_ create a DockItem,
+        //      but open the original application instance
+        //      which will then open a dock item.
+        final DockItem dummy = new DockItem(item_memento.getString("dummy_label").orElse("??"));
+        pane.addTab(dummy);
     }
 }

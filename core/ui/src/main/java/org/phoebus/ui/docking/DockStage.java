@@ -18,7 +18,6 @@ import java.util.logging.Level;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -47,6 +46,11 @@ public class DockStage
      */
     public static final String ID_MAIN = "DockStage_MAIN";
 
+    static String createID(final String what)
+    {
+        return what + "_" + UUID.randomUUID().toString().replace('-', '_');
+    }
+
     /** Helper to configure a Stage for docking
      *
      *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center
@@ -59,7 +63,7 @@ public class DockStage
      */
     public static DockPane configureStage(final Stage stage, final DockItem... tabs)
     {
-        stage.getProperties().put(KEY_ID, "DockStage_" + UUID.randomUUID().toString().replace('-', '_'));
+        stage.getProperties().put(KEY_ID, createID("DockStage"));
 
         final DockPane tab_pane = new DockPane(tabs);
 
@@ -135,16 +139,10 @@ public class DockStage
     public static boolean isStageOkToClose(final Stage stage)
     {
         final DockPane tab_pane = getDockPane(stage);
-        // List of tabs changes as we close tabs; get save copy
-        final List<Tab> copy = new ArrayList<>(tab_pane.getTabs());
-        for (Tab tab : copy)
-        {
-            if (tab instanceof DockItem  &&
-                ! ((DockItem) tab).close())
-            {   // Abort the close request
+        for (DockItem item : tab_pane.getDockItems())
+            if (! item.close())
+                // Abort the close request
                 return false;
-            }
-        }
 
         // All tabs either saved or don't care to save,
         // so this stage will be closed
