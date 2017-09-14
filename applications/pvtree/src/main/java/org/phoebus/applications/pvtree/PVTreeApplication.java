@@ -24,8 +24,6 @@ public class PVTreeApplication implements AppDescriptor
 
     public static final String NAME = "PV Tree";
 
-    private PVTree pv_tree;
-
     @Override
     public String getName()
     {
@@ -46,7 +44,7 @@ public class PVTreeApplication implements AppDescriptor
 
     PVTree openPVTreeTab()
     {
-        pv_tree = new PVTree(this);
+        final PVTree pv_tree = new PVTree(this);
         final DockItem tab = new DockItem(pv_tree, pv_tree.create());
         tab.addClosedNotification(() -> pv_tree.dispose());
         DockPane.getActiveDockPane().addTab(tab);
