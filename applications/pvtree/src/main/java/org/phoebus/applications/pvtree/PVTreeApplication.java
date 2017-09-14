@@ -9,8 +9,8 @@ package org.phoebus.applications.pvtree;
 
 import java.util.logging.Logger;
 
-import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -39,29 +39,17 @@ public class PVTreeApplication implements AppDescriptor
     }
 
     @Override
-    public void create()
+    public AppInstance create()
     {
-        openPVTreeTab();
+        return openPVTreeTab();
     }
 
     PVTree openPVTreeTab()
     {
-        pv_tree = new PVTree();
-        final DockItem tab = new DockItem(this, pv_tree.create());
+        pv_tree = new PVTree(this);
+        final DockItem tab = new DockItem(pv_tree, pv_tree.create());
         tab.addClosedNotification(() -> pv_tree.dispose());
         DockPane.getActiveDockPane().addTab(tab);
         return pv_tree;
-    }
-
-    @Override
-    public void restore(final Memento memento)
-    {
-        memento.getString("pv").ifPresent(name -> pv_tree.setPVName(name));
-    }
-
-    @Override
-    public void save(final Memento memento)
-    {
-        memento.setString("pv", pv_tree.getPVName());
     }
 }
