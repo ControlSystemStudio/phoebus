@@ -58,28 +58,13 @@ public class PVTableApplication implements AppResourceDescriptor
     @Override
     public PVTableInstance create()
     {
-        final PVTableInstance instance = new PVTableInstance(this);
-
-        // XXX Eventually remove the demo content
-        final PVTableModel model = instance.getModel();
-        for (int i=1; i<=6; ++i)
-        {
-            model.addItem("# Local");
-            model.addItem("loc://x(42)");
-            model.addItem("loc://pick<VEnum>(1, \"A\", \"B\", \"C\")");
-            model.addItem("# Sim");
-            model.addItem("sim://sine");
-            model.addItem("sim://ramp");
-            model.addItem("#");
-        }
-
-        return instance;
+        return new PVTableInstance(this);
     }
 
     @Override
     public PVTableInstance create(final String resource)
     {
-        final PVTableInstance instance = new PVTableInstance(this);
+        final PVTableInstance instance = create();
 
         // Load files in background job
         JobManager.schedule("Load PV Table", monitor ->
