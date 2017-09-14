@@ -11,8 +11,8 @@ import static org.phoebus.applications.pvtable.PVTableApplication.logger;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.net.URL;
 import java.util.logging.Level;
 
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -20,9 +20,9 @@ import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.ui.PVTable;
-import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.util.ResourcePathParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -78,22 +78,6 @@ public class PVTableInstance implements AppInstance
         return app;
     }
 
-    @Override
-    public void restore(final Memento memento)
-    {
-        memento.getString("input").ifPresent(url ->
-        {
-            // TODO
-            System.out.println("I should load PV Table " + url);
-        });
-    }
-
-    @Override
-    public void save(final Memento memento)
-    {
-        memento.setString("input", dock_item.getInput().toString());
-    }
-
     public PVTableModel getModel()
     {
         return model;
@@ -114,15 +98,15 @@ public class PVTableInstance implements AppInstance
         {
             try
             {
-                final File file = new File(resource);
+                final URL input = ResourcePathParser.createValidURL(resource);
                 final PVTableModel model = new PVTableModel();
-                PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
+                PVTablePersistence.forFilename(input.toString()).read(model, input.openStream());
 
                 // On success, update on UI
                 Platform.runLater(() ->
                 {
                     transferModel(model);
-                    dock_item.setInputFile(file);
+                    dock_item.setInput(input);
                 });
             }
             catch (Exception ex)
@@ -137,14 +121,14 @@ public class PVTableInstance implements AppInstance
 
     private void doSave(final JobMonitor monitor) throws Exception
     {
-        File file = dock_item.getInputFile();
-        if (file == null )
+        File file = ResourcePathParser.getFile(dock_item.getInput());
+        if (file == null)
         {
             file = SaveAsDialog.promptForFile(dock_item.getTabPane().getScene().getWindow(), "Save PV Table", null, PVTableApplication.file_extensions);
             if (file == null)
                 return;
         }
-        dock_item.setInputFile(file);
+        dock_item.setInput(ResourcePathParser.getURL(file));
         try
         (
             final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));

@@ -9,13 +9,16 @@ package org.phoebus.ui.internal;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.net.URL;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
@@ -29,6 +32,7 @@ public class MementoHelper
 {
     private static final String FULLSCREEN = "fullscreen";
     private static final String HEIGHT = "height";
+    private static final String INPUT_URL = "input_url";
     private static final String MAXIMIZED = "maximized";
     private static final String MINIMIZED = "minimized";
     private static final String WIDTH = "width";
@@ -64,6 +68,14 @@ public class MementoHelper
         if (application == null)
             return;
         item_memento.setString(DockItem.KEY_APPLICATION, application.getAppDescriptor().getName());
+
+        if (item instanceof DockItemWithInput)
+        {
+            final URL input = ((DockItemWithInput)item).getInput();
+            if (input != null)
+                item_memento.setString(INPUT_URL, input.toString());
+        }
+
         try
         {
             application.save(item_memento);
@@ -104,12 +116,35 @@ public class MementoHelper
             if (app.getName().equals(app_id))
             {
                 DockPane.setActiveDockPane(pane);
-                // TODO CHeck what type of app it is: Basic AppDescriptor,
-                // or one that has resource, so in that case call open(with the resource)
                 app.create().restore(item_memento);
                 return;
             }
 
+
+        for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
+            if (app.getName().equals(app_id))
+            {
+                DockPane.setActiveDockPane(pane);
+
+                final String input = item_memento.getString(INPUT_URL).orElse(null);
+
+                final AppInstance instance;
+                if (input == null)
+                    instance = app.create();
+                else
+                    instance = app.create(input);
+
+                instance.restore(item_memento);
+                return;
+            }
+
         logger.log(Level.WARNING, "No application found for " + app_id);
+//        System.out.println("Apps:");
+//        for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
+//            System.out.println(app.getName());
+//
+//        System.out.println("Apps with resource");
+//        for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
+//            System.out.println(app.getName());
     }
 }

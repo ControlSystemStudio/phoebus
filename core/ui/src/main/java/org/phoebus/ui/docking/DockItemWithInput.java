@@ -9,7 +9,6 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
-import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Level;
@@ -97,32 +96,10 @@ public class DockItemWithInput extends DockItem
             name_tab.setTooltip(new Tooltip(input.toString()));
     }
 
-    /** @param file File-based input */
-    public void setInputFile(final File file)
-    {
-        try
-        {
-            setInput(new URL("file", "", file.getCanonicalPath()));
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.SEVERE, "Cannot create file:// URL for, well, file " + file, ex);
-        }
-    }
-
     /** @return Input, which may be <code>null</code> (OK to call from any thread) */
     public URL getInput()
     {
         return input;
-    }
-
-    /** @return File for file-based input, which may be <code>null</code> (OK to call from any thread) */
-    public File getInputFile() throws Exception
-    {
-        final URL url = getInput();
-        if (url == null  ||  !url.getProtocol().equals("file"))
-            return null;
-        return new File(url.toURI());
     }
 
     /** @param dirty Updated 'dirty' state */
