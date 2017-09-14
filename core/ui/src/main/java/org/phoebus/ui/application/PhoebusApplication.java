@@ -3,6 +3,10 @@ package org.phoebus.ui.application;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -73,9 +77,42 @@ public class PhoebusApplication extends Application {
 
         restoreState();
 
+        List<String> parameters = getParameters().getRaw();
+        // List of applications to launch as specified via cmd line args
+        List<String> launchApplication = new ArrayList<String>();
+        // List of resources to launch as specified via cmd line args
+        List<String> launchResources = new ArrayList<String>();
+        Iterator<String> parametersIterator = parameters.iterator();
+        while (parametersIterator.hasNext())
+        {
+            final String cmd = parametersIterator.next();
+            if (cmd.equals("-app"))
+            {
+                if (! parametersIterator.hasNext())
+                    throw new Exception("Missing -app application name");
+//                parametersIterator.remove();
+                final String filename = parametersIterator.next();
+//                parametersIterator.remove();
+                launchApplication.add(filename);
+            }
+            else if (cmd.equals("-resource"))
+            {
+                if (! parametersIterator.hasNext())
+                    throw new Exception("Missing -resource resource file name");
+//                parametersIterator.remove();
+                final String filename = parametersIterator.next();
+//                parametersIterator.remove();
+                launchResources.add(filename);
+            }
+        }
+        
         // Handle requests to open resource from command line
-        for (String resource : getParameters().getRaw())
+        for (String resource : launchResources)
             openResource(resource);
+        
+     // Handle requests to open resource from command line
+        for (String app : launchApplication)
+            launchApp(app);
 
         // In 'server' mode, handle received requests to open resources
         ApplicationServer.setOnReceivedArgument(this::openResource);
@@ -207,6 +244,15 @@ public class PhoebusApplication extends Application {
             applications.get(0).open(resource);
         }            
     }
+    
+
+    /**
+     * Launch applications with 
+     * @param app application launch string received as command line argument
+     */
+    private void launchApp(String app) {
+                
+    }
 
     /** Restore stages from memento */
     private void restoreState()
@@ -332,7 +378,7 @@ public class PhoebusApplication extends Application {
         return true;
     }
 
-    private List<org.phoebus.framework.spi.AppDescriptor> applications;
+    private List<org.phoebus.framework.spi.AppDescriptor> applications = Collections.emptyList();
 
     /** 
      * Stop all applications
