@@ -7,12 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
+import static org.phoebus.applications.pvtree.PVTreeApplication.logger;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.prefs.Preferences;
-
 /** Preference settings
  *  @author Kay Kasemir
  */
@@ -69,7 +70,7 @@ public class Settings
         }
         catch (Exception ex)
         {
-            PVTree.logger.log(Level.SEVERE, "Cannot parse fields from '" + spec + "'", ex);
+            logger.log(Level.SEVERE, "Cannot parse fields from '" + spec + "'", ex);
         }
         return Collections.emptyMap();
     }

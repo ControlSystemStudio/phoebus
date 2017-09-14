@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtree.ui;
 
-import static org.phoebus.applications.pvtree.PVTree.logger;
+import static org.phoebus.applications.pvtree.PVTreeApplication.logger;
 
 import java.util.ArrayList;
 import java.util.Collection;

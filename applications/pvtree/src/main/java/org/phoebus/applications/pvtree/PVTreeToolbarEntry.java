@@ -18,12 +18,12 @@ public class PVTreeToolbarEntry implements ToolbarEntry
     @Override
     public String getName()
     {
-        return PVTree.NAME;
+        return PVTreeApplication.NAME;
     }
 
     @Override
     public void call() throws Exception
     {
-        new PVTree().start();
+        new PVTreeApplication().open();
     }
 }

@@ -7,18 +7,18 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
+import static org.phoebus.applications.pvtree.PVTreeApplication.logger;
+
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtree.ui.FXTree;
 import org.phoebus.applications.pvtree.ui.Messages;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.ui.dnd.DataFormats;
-import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockPane;
 
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -32,25 +32,16 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-/** PV Tree Application
+/** PV Tree UI
  *  @author Kay Kasemir
  */
-// @ProviderFor(Application.class)
 @SuppressWarnings("nls")
 public class PVTree
 {
-    public static final Logger logger = Logger.getLogger(PVTree.class.getPackageName());
-    public static final String NAME = "PV Tree";
-
     private final TextField pv_name = new TextField();
     private final FXTree tree = new FXTree();
 
-    public String getName()
-    {
-        return NAME;
-    }
-
-    public void start()
+    public Node create()
     {
         final Label label = new Label(Messages.PV_Label);
         pv_name.setOnAction(event -> setPVName(pv_name.getText()));
@@ -90,10 +81,7 @@ public class PVTree
 
         hookDragDrop(layout);
 
-        final DockItem tab = new DockItem(getName(), layout);
-        DockPane.getActiveDockPane().addTab(tab);
-
-        tab.setOnClosed(event -> stop());
+        return layout;
     }
 
     private void hookDragDrop(final BorderPane layout)
@@ -129,7 +117,7 @@ public class PVTree
         });
     }
 
-    public void stop()
+    public void dispose()
     {
         logger.log(Level.INFO, "Stopping PV Tree...");
         tree.shutdown();
@@ -146,5 +134,10 @@ public class PVTree
         name = name.trim();
         pv_name.setText(name);
         tree.setPVName(name);
+    }
+
+    String getPVName()
+    {
+        return pv_name.getText();
     }
 }

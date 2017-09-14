@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtree.model;
 
-import static org.phoebus.applications.pvtree.PVTree.logger;
+import static org.phoebus.applications.pvtree.PVTreeApplication.logger;
 
 import java.util.List;
 import java.util.Map;

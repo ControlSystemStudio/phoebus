@@ -7,7 +7,13 @@
  *******************************************************************************/
 package org.phoebus.ui.internal;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.util.ServiceLoader;
+import java.util.logging.Level;
+
 import org.phoebus.framework.persistence.MementoTree;
+import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
@@ -53,10 +59,11 @@ public class MementoHelper
     private static void saveDockItem(final MementoTree memento, final DockItem item)
     {
         final MementoTree item_memento = memento.getChild(item.getID());
-        // TODO Don't save item's label.
-        //      Get application to save its information,
-        //      so that app can later be asked to re-open.
-        item_memento.setString("dummy_label", item.getLabel());
+        final AppDescriptor application = item.getApplication();
+        if (application == null)
+            return;
+        item_memento.setString(DockItem.KEY_APPLICATION, application.getName());
+        application.save(item_memento);
     }
 
     /** Restore state of Stage from memento
@@ -80,11 +87,20 @@ public class MementoHelper
 
     private static void restoreDockItem(MementoTree item_memento, DockPane pane)
     {
-        System.out.println("Need to restore " + item_memento.getName());
-        // TODO Do _not_ create a DockItem,
-        //      but open the original application instance
-        //      which will then open a dock item.
-        final DockItem dummy = new DockItem(item_memento.getString("dummy_label").orElse("??"));
-        pane.addTab(dummy);
+        final String app_id = item_memento.getString(DockItem.KEY_APPLICATION).orElse(null);
+        if (app_id == null)
+            return;
+
+        for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
+        {
+            if (app.getName().equals(app_id))
+            {
+                DockPane.setActiveDockPane(pane);
+                app.open();
+                app.restore(item_memento);
+                return;
+            }
+        }
+        logger.log(Level.WARNING, "No application found for " + app_id);
     }
 }
