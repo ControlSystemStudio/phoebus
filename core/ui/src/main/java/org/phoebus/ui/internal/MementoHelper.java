@@ -64,7 +64,14 @@ public class MementoHelper
         if (application == null)
             return;
         item_memento.setString(DockItem.KEY_APPLICATION, application.getAppDescriptor().getName());
-        application.save(item_memento);
+        try
+        {
+            application.save(item_memento);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.SEVERE, "Application " + application.getAppDescriptor().getDisplayName() + " memento error", ex);
+        }
     }
 
     /** Restore state of Stage from memento

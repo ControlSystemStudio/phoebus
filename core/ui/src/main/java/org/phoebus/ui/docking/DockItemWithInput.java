@@ -98,9 +98,16 @@ public class DockItemWithInput extends DockItem
     }
 
     /** @param file File-based input */
-    public void setInputFile(final File file) throws Exception
+    public void setInputFile(final File file)
     {
-        setInput(new URL("file", "", file.getCanonicalPath()));
+        try
+        {
+            setInput(new URL("file", "", file.getCanonicalPath()));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot create file:// URL for, well, file " + file, ex);
+        }
     }
 
     /** @return Input, which may be <code>null</code> (OK to call from any thread) */

@@ -11,6 +11,7 @@ import static org.phoebus.applications.pvtable.PVTableApplication.logger;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.logging.Level;
 
@@ -22,11 +23,14 @@ import org.phoebus.applications.pvtable.ui.PVTable;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
 
+import javafx.application.Platform;
 import javafx.scene.layout.BorderPane;
 
 /** PV Table Application
@@ -77,15 +81,17 @@ public class PVTableInstance implements AppInstance
     @Override
     public void restore(final Memento memento)
     {
-        // TODO
-        System.out.println("I should restore the PV Table");
+        memento.getString("input").ifPresent(url ->
+        {
+            // TODO
+            System.out.println("I should load PV Table " + url);
+        });
     }
 
     @Override
     public void save(final Memento memento)
     {
-        // TODO
-        System.out.println("I should save the PV Table");
+        memento.setString("input", dock_item.getInput().toString());
     }
 
     public PVTableModel getModel()
@@ -99,6 +105,34 @@ public class PVTableInstance implements AppInstance
         model.transferItems(new_model);
         // Clear the 'dirty' indicator
         dock_item.setDirty(false);
+    }
+
+    void loadResource(final String resource)
+    {
+        // Load files in background job
+        JobManager.schedule("Load PV Table", monitor ->
+        {
+            try
+            {
+                final File file = new File(resource);
+                final PVTableModel model = new PVTableModel();
+                PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
+
+                // On success, update on UI
+                Platform.runLater(() ->
+                {
+                    transferModel(model);
+                    dock_item.setInputFile(file);
+                });
+            }
+            catch (Exception ex)
+            {
+                final String message = "Cannot open PV Table\n" + resource;
+                logger.log(Level.WARNING, message, ex);
+                ExceptionDetailsErrorDialog.openError(app.getDisplayName(), message, ex);
+            }
+        });
+
     }
 
     private void doSave(final JobMonitor monitor) throws Exception

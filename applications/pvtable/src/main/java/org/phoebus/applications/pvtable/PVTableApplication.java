@@ -7,22 +7,14 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
-import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.jobs.JobManager;
 
-import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -46,6 +38,12 @@ public class PVTableApplication implements AppResourceDescriptor
     @Override
     public String getName()
     {
+        return "pv_table";
+    }
+
+    @Override
+    public String getDisplayName()
+    {
         return NAME;
     }
 
@@ -65,27 +63,7 @@ public class PVTableApplication implements AppResourceDescriptor
     public PVTableInstance create(final String resource)
     {
         final PVTableInstance instance = create();
-
-        // Load files in background job
-        JobManager.schedule("Load PV Table", monitor ->
-        {
-            try
-            {
-                final File file = new File(resource);
-                final PVTableModel model = new PVTableModel();
-                PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
-
-                // On success, update on UI
-                Platform.runLater(() -> instance.transferModel(model));
-            }
-            catch (Exception ex)
-            {
-                final String message = "Cannot open PV Table\n" + resource;
-                logger.log(Level.WARNING, message, ex);
-                ExceptionDetailsErrorDialog.openError(NAME, message, ex);
-            }
-        });
-
+        instance.loadResource(resource);
         return instance;
     }
 
