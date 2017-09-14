@@ -36,10 +36,9 @@ import javafx.scene.layout.BorderPane;
 public class PVTableInstance implements AppInstance
 {
     final private AppDescriptor app;
-    final PVTableModel model = new PVTableModel();
-
     final private DockItemWithInput dock_item;
 
+    private PVTableModel model = new PVTableModel();
 
     PVTableInstance(final AppDescriptor app)
     {
@@ -92,6 +91,14 @@ public class PVTableInstance implements AppInstance
     public PVTableModel getModel()
     {
         return model;
+    }
+
+    public void transferModel(final PVTableModel new_model)
+    {
+        // This sends a model update
+        model.transferItems(new_model);
+        // Clear the 'dirty' indicator
+        dock_item.setDirty(false);
     }
 
     private void doSave(final JobMonitor monitor) throws Exception

@@ -61,13 +61,17 @@ public class DockPane extends TabPane
         setOnDragDropped(this::handleDrop);
 
         // This pane, just opened, is the active one for now
-        active = this;
+        setActiveDockPane(this);
 
         // Track changes of active tab, remember its pane as active
         getSelectionModel().selectedItemProperty().addListener((p, old, tab) ->
         {
             final DockItem item = (DockItem) tab;
-            active = item == null  ?  null  :  (DockPane)item.getTabPane();
+            if (item == null)
+                return;
+            final DockPane pane = (DockPane)item.getTabPane();
+            if (pane != null)
+                setActiveDockPane(pane);
         });
 
         // Show/hide tabs as tab count changes

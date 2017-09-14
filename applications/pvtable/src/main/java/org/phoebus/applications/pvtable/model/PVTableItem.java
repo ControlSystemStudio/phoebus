@@ -35,7 +35,7 @@ import org.phoebus.pv.PVPool;
 @SuppressWarnings("nls")
 public class PVTableItem
 {
-    final private PVTableItemListener listener;
+    volatile PVTableItemListener listener;
 
     private volatile boolean selected = true;
 
