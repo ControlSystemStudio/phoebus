@@ -19,6 +19,9 @@ import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.ui.PVTable;
+import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -30,23 +33,22 @@ import javafx.scene.layout.BorderPane;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVTableInstance
+public class PVTableInstance implements AppInstance
 {
+    final private AppDescriptor app;
     final PVTableModel model = new PVTableModel();
 
-    private DockItemWithInput dock_item;
+    final private DockItemWithInput dock_item;
 
-    public PVTableModel getModel()
-    {
-        return model;
-    }
 
-    public void start()
+    PVTableInstance(final AppDescriptor app)
     {
+        this.app = app;
+
         final PVTable table = new PVTable(model);
 
         final BorderPane layout = new BorderPane(table);
-        dock_item = new DockItemWithInput(PVTableApplication.NAME, layout, null, this::doSave);
+        dock_item = new DockItemWithInput(this, layout, null, this::doSave);
         DockPane.getActiveDockPane().addTab(dock_item);
 
         model.addListener(new PVTableModelListener()
@@ -65,6 +67,31 @@ public class PVTableInstance
         });
 
         dock_item.addClosedNotification(this::stop);
+    }
+
+    @Override
+    public AppDescriptor getAppDescriptor()
+    {
+        return app;
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        // TODO
+        System.out.println("I should restore the PV Table");
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        // TODO
+        System.out.println("I should save the PV Table");
+    }
+
+    public PVTableModel getModel()
+    {
+        return model;
     }
 
     private void doSave(final JobMonitor monitor) throws Exception

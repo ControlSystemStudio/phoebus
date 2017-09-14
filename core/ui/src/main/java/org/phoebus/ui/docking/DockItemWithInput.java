@@ -14,6 +14,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
@@ -60,14 +61,15 @@ public class DockItemWithInput extends DockItem
      *  the 'save_handler' returns.
      *  On error, the 'save_handler' throws an exception.
      *
-     *  @param label Initial label
+     *  @param application {@link AppInstance}
      *  @param content Initial content
      *  @param input URL for the input. May be <code>null</code>
      *  @param save_handler Will be called to 'save' the content
+     *  @
      */
-    public DockItemWithInput(final String label, final Node content, final URL input, final JobRunnable save_handler)
+    public DockItemWithInput(final AppInstance application, final Node content, final URL input, final JobRunnable save_handler)
     {
-        super(label, content);
+        super(application, content);
         this.save_handler = save_handler;
         setInput(input);
 

@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtable.model.PVTableModel;
@@ -20,12 +19,8 @@ import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.jobs.JobManager;
 
-import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -52,17 +47,10 @@ public class PVTableApplication implements AppResourceDescriptor
         return NAME;
     }
 
-//    @Override
-//    public boolean canOpenResource(String resource)
-//    {
-//        return resource.endsWith(PVTableXMLPersistence.FILE_EXTENSION) ||
-//               resource.endsWith(PVTableAutosavePersistence.FILE_EXTENSION);
-//    }
-
     @Override
-    public AppInstance create()
+    public PVTableInstance create()
     {
-        final PVTableInstance instance = new PVTableInstance();
+        final PVTableInstance instance = new PVTableInstance(this);
 
         // XXX Eventually remove the demo content
         final PVTableModel model = instance.getModel();
@@ -79,38 +67,46 @@ public class PVTableApplication implements AppResourceDescriptor
         }
         model.addItem("DTL_LLRF:IOC1:Load");
 
-        instance.start();
+        return instance;
     }
 
     @Override
-    public AppInstance create(final String... resources)
+    public PVTableInstance create(final String resource)
     {
-        // Load files in background job
-        JobManager.schedule("Load PV Table", monitor ->
+        final PVTableInstance instance = create();
+
+        // TODO Load files in background job
+//        JobManager.schedule("Load PV Table", monitor ->
+//        {
+//            monitor.beginTask("Load");
+//            try
+//            {
+//
+//                // On success, start UI
+//                Platform.runLater(() -> instance.start());
+//            }
+//            catch (Exception ex)
+//            {
+//                final String message = "Cannot open PV Table\n" + resource;
+//                logger.log(Level.WARNING, message, ex);
+//                ExceptionDetailsErrorDialog.openError(NAME, message, ex);
+//            }
+//
+//            monitor.worked(1);
+//        });
+
+        final File file = new File(resource);
+        final PVTableModel model = instance.getModel();
+        try
         {
-            monitor.beginTask("Load", resources.length);
-            for (String resource : resources)
-            {
-                final PVTableInstance instance = new PVTableInstance();
-                final File file = new File(resource);
-                try
-                {
-                    final PVTableModel model = instance.getModel();
-                    PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
+            PVTablePersistence.forFilename(file.toString()).read(model, new FileInputStream(file));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
 
-                    // On success, start UI
-                    Platform.runLater(() -> instance.start());
-                }
-                catch (Exception ex)
-                {
-                    final String message = "Cannot open PV Table\n" + resource;
-                    logger.log(Level.WARNING, message, ex);
-                    ExceptionDetailsErrorDialog.openError(NAME, message, ex);
-                }
-
-                monitor.worked(1);
-            }
-        });
+        return instance;
     }
 
     /** @param name Name of the icon
@@ -122,10 +118,10 @@ public class PVTableApplication implements AppResourceDescriptor
     }
 
     /**
-     * 
+     *
      */
     @Override
-    public List<String> supportedFileExtentions() 
+    public List<String> supportedFileExtentions()
     {
         return Arrays.asList(PVTableXMLPersistence.FILE_EXTENSION, PVTableAutosavePersistence.FILE_EXTENSION);
     }

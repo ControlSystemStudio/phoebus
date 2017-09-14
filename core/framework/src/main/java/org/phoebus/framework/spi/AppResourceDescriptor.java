@@ -7,25 +7,25 @@ import java.util.List;
  * defines an interface needed to create Phoebus applications that can handle an
  * input resrouces (like a url,or it can be a list of pv names, or a
  * channelfinder query)
- * 
+ *
  * <p>
  * The <code>open..</code> methods are called to create running instances of the
  * application.
- * 
+ *
  * @author Kunal Shroff
  *
  */
 public interface AppResourceDescriptor extends AppDescriptor {
 
     /**
-     * 
+     *
      * @return A list of supported file extensions
      */
     public List<String> supportedFileExtentions();
 
     /**
      * TODO
-     * 
+     *
      * Called to check if application can handle a resource.
      *
      * <p>
@@ -50,6 +50,6 @@ public interface AppResourceDescriptor extends AppDescriptor {
      * path or url to a configuration file like .bob or .plt or it can be a list of
      * pv names, or a channelfinder query
      */
-    public AppInstance create(String... resources);
+    public AppInstance create(String resource);
 
 }
