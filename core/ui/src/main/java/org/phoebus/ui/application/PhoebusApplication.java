@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
+import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
@@ -83,34 +83,30 @@ public class PhoebusApplication extends Application {
         // List of resources to launch as specified via cmd line args
         List<String> launchResources = new ArrayList<String>();
         Iterator<String> parametersIterator = parameters.iterator();
-        while (parametersIterator.hasNext())
-        {
+        while (parametersIterator.hasNext()) {
             final String cmd = parametersIterator.next();
-            if (cmd.equals("-app"))
-            {
-                if (! parametersIterator.hasNext())
+            if (cmd.equals("-app")) {
+                if (!parametersIterator.hasNext())
                     throw new Exception("Missing -app application name");
-//                parametersIterator.remove();
+                // parametersIterator.remove();
                 final String filename = parametersIterator.next();
-//                parametersIterator.remove();
+                // parametersIterator.remove();
                 launchApplication.add(filename);
-            }
-            else if (cmd.equals("-resource"))
-            {
-                if (! parametersIterator.hasNext())
+            } else if (cmd.equals("-resource")) {
+                if (!parametersIterator.hasNext())
                     throw new Exception("Missing -resource resource file name");
-//                parametersIterator.remove();
+                // parametersIterator.remove();
                 final String filename = parametersIterator.next();
-//                parametersIterator.remove();
+                // parametersIterator.remove();
                 launchResources.add(filename);
             }
         }
-        
+
         // Handle requests to open resource from command line
         for (String resource : launchResources)
             openResource(resource);
-        
-     // Handle requests to open resource from command line
+
+        // Handle requests to open resource from command line
         for (String app : launchApplication)
             launchApp(app);
 
@@ -122,13 +118,14 @@ public class PhoebusApplication extends Application {
         // If there are other stages still open,
         // closing them all might be unexpected to the user,
         // so prompt for confirmation.
-        stage.setOnCloseRequest(event ->
-        {
+        stage.setOnCloseRequest(event -> {
             if (closeMainStage(stage))
                 stop();
             // Else: At least one tab in one stage didn't want to close
             event.consume();
         });
+
+        DockPane.setActiveDockPane(DockStage.getDockPane(stage));
     }
 
     private MenuBar createMenu(final Stage stage) {
@@ -143,8 +140,7 @@ public class PhoebusApplication extends Application {
             todo.showAndWait();
         });
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event ->
-        {
+        exit.setOnAction(event -> {
             if (closeMainStage(null))
                 stop();
         });
@@ -231,47 +227,43 @@ public class PhoebusApplication extends Application {
         return toolBar;
     }
 
-    /** @param resource Resource received as command line argument */
-    private void openResource(final String resource)
-    {
+    /**
+     * @param resource Resource received as command line argument
+     */
+    private void openResource(final String resource) {
         List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
-        if(applications.isEmpty()) {
+        if (applications.isEmpty()) {
             logger.log(Level.WARNING, "No application found for opening " + resource);
-        }
-        else {
-            //TODO currently uses he first registered application
+        } else {
+            // TODO currently uses he first registered application
             logger.log(Level.INFO, "Opening " + resource + " with " + applications.get(0).getName());
             applications.get(0).open(resource);
-        }            
+        }
     }
-    
 
     /**
-     * Launch applications with 
+     * Launch applications with
+     * 
      * @param app application launch string received as command line argument
      */
     private void launchApp(String app) {
-                
+
     }
 
     /** Restore stages from memento */
-    private void restoreState()
-    {
+    private void restoreState() {
         final File memfile = XMLMementoTree.getDefaultFile();
-        if (! memfile.canRead())
+        if (!memfile.canRead())
             return;
 
-        try
-        {
+        try {
             logger.log(Level.INFO, "Loading state from " + memfile);
             final XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
 
-            for (MementoTree stage_memento : memento.getChildren())
-            {
+            for (MementoTree stage_memento : memento.getChildren()) {
                 final String id = stage_memento.getName();
                 Stage stage = DockStage.getDockStageByID(id);
-                if (stage == null)
-                {   // Create new Stage with that ID
+                if (stage == null) { // Create new Stage with that ID
                     stage = new Stage();
                     DockStage.configureStage(stage);
                     stage.getProperties().put(DockStage.KEY_ID, id);
@@ -280,56 +272,50 @@ public class PhoebusApplication extends Application {
                 MementoHelper.restoreStage(stage_memento, stage);
                 // TODO restore DockItems, their input, ..
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.WARNING, "Error restoring saved state from " + memfile, ex);
         }
     }
 
     /** Save state of all stages to memento */
-    private void saveState()
-    {
+    private void saveState() {
         final File memfile = XMLMementoTree.getDefaultFile();
         logger.log(Level.INFO, "Persisting state to " + memfile);
-        try
-        {
+        try {
             final XMLMementoTree memento = XMLMementoTree.create();
 
             // TODO Persist all DockItems, their optional inputs, ..
             for (Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);
 
-            if (! memfile.getParentFile().exists())
+            if (!memfile.getParentFile().exists())
                 memfile.getParentFile().mkdirs();
             memento.write(new FileOutputStream(memfile));
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.WARNING, "Error writing saved state to " + memfile, ex);
         }
     }
 
-    /** Close the main stage
+    /**
+     * Close the main stage
      *
-     *  <p>If there are more stages open,
-     *  warn user that they will be closed.
+     * <p>
+     * If there are more stages open, warn user that they will be closed.
      *
-     *  <p>When called from the onCloseRequested handler
-     *  of the primary stage, we must _not_ send
-     *  another close request to it because that would
-     *  create an infinite loop.
+     * <p>
+     * When called from the onCloseRequested handler of the primary stage, we must
+     * _not_ send another close request to it because that would create an infinite
+     * loop.
      *
-     *  @param main_stage_already_closing Primary stage when called
-     *                                    from its onCloseRequested handler, else <code>null</code>
-     *  @return
+     * @param main_stage_already_closing
+     *            Primary stage when called from its onCloseRequested handler, else
+     *            <code>null</code>
+     * @return
      */
-    private boolean closeMainStage(final Stage main_stage_already_closing)
-    {
+    private boolean closeMainStage(final Stage main_stage_already_closing) {
         final List<Stage> stages = DockStage.getDockStages();
 
-        if (stages.size() > 1)
-        {
+        if (stages.size() > 1) {
             final Alert dialog = new Alert(AlertType.CONFIRMATION);
             dialog.setTitle("Exit Phoebus");
             dialog.setHeaderText("Close main window");
@@ -344,31 +330,32 @@ public class PhoebusApplication extends Application {
         if (main_stage_already_closing != null)
             stages.remove(main_stage_already_closing);
 
-        if (! closeStages(stages))
+        if (!closeStages(stages))
             return false;
 
         // Once all other stages are closed,
         // potentially check the main stage.
-        if (main_stage_already_closing != null  &&
-            ! DockStage.isStageOkToClose(main_stage_already_closing))
+        if (main_stage_already_closing != null && !DockStage.isStageOkToClose(main_stage_already_closing))
             return false;
         return true;
     }
 
-    /** Close several stages
+    /**
+     * Close several stages
      *
-     *  @param stages_to_check Stages that will be asked to close
-     *  @return <code>true</code> if all stages closed, <code>false</code> if one stage didn't want to close.
+     * @param stages_to_check
+     *            Stages that will be asked to close
+     * @return <code>true</code> if all stages closed, <code>false</code> if one
+     *         stage didn't want to close.
      */
-    private boolean closeStages(final List<Stage> stages_to_check)
-    {
+    private boolean closeStages(final List<Stage> stages_to_check) {
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         saveState();
 
-        for (Stage stage : stages_to_check)
-        {
-            // Could close via event, but then still need to check if the stage remained open
+        for (Stage stage : stages_to_check) {
+            // Could close via event, but then still need to check if the stage remained
+            // open
             // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
             if (DockStage.isStageOkToClose(stage))
                 stage.close();
@@ -380,18 +367,16 @@ public class PhoebusApplication extends Application {
 
     private List<org.phoebus.framework.spi.AppDescriptor> applications = Collections.emptyList();
 
-    /** 
-     * Stop all applications
-     * TODO currently the list of empty 
+    /**
+     * Stop all applications TODO currently the list of empty
      */
     private void stopApplications() {
-        for (org.phoebus.framework.spi.AppDescriptor app : applications)
+        for (AppDescriptor app : applications)
             app.stop();
     }
 
     @Override
-    public void stop()
-    {
+    public void stop() {
         stopApplications();
 
         // Hard exit because otherwise background threads

@@ -44,7 +44,7 @@ public class DockPane extends TabPane
     }
 
     // Called by DockStage within pachage
-    static void setActiveDockPane(final DockPane pane)
+    public static void setActiveDockPane(final DockPane pane)
     {
         active = pane;
     }
