@@ -3,6 +3,7 @@ package org.phoebus.ui.application;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -10,6 +11,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
+import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.MenuEntryService;
@@ -92,6 +94,8 @@ public class PhoebusApplication extends Application {
             // Else: At least one tab in one stage didn't want to close
             event.consume();
         });
+
+        DockPane.setActiveDockPane(DockStage.getDockPane(stage));
     }
 
     private MenuBar createMenu(final Stage stage) {
@@ -205,7 +209,7 @@ public class PhoebusApplication extends Application {
             //TODO currently uses he first registered application
             logger.log(Level.INFO, "Opening " + resource + " with " + applications.get(0).getName());
             applications.get(0).open(resource);
-        }            
+        }
     }
 
     /** Restore stages from memento */
@@ -232,7 +236,6 @@ public class PhoebusApplication extends Application {
                     stage.show();
                 }
                 MementoHelper.restoreStage(stage_memento, stage);
-                // TODO restore DockItems, their input, ..
             }
         }
         catch (Exception ex)
@@ -250,7 +253,6 @@ public class PhoebusApplication extends Application {
         {
             final XMLMementoTree memento = XMLMementoTree.create();
 
-            // TODO Persist all DockItems, their optional inputs, ..
             for (Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);
 
@@ -332,14 +334,14 @@ public class PhoebusApplication extends Application {
         return true;
     }
 
-    private List<org.phoebus.framework.spi.AppDescriptor> applications;
+    private List<AppDescriptor> applications = Collections.emptyList();
 
-    /** 
+    /**
      * Stop all applications
-     * TODO currently the list of empty 
+     * TODO currently the list of empty
      */
     private void stopApplications() {
-        for (org.phoebus.framework.spi.AppDescriptor app : applications)
+        for (AppDescriptor app : applications)
             app.stop();
     }
 
