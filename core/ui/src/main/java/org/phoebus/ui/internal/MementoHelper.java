@@ -61,6 +61,14 @@ public class MementoHelper
             saveDockItem(stage_memento, item);
     }
 
+    /** Save state of a DockItem
+     *
+     *  <p>Store the application name, optionally the resource (input),
+     *  and then allow the application itself to store details.
+     *
+     *  @param memento
+     *  @param item
+     */
     private static void saveDockItem(final MementoTree memento, final DockItem item)
     {
         final MementoTree item_memento = memento.getChild(item.getID());
@@ -105,7 +113,17 @@ public class MementoHelper
             restoreDockItem(item_memento, pane);
     }
 
-    private static void restoreDockItem(MementoTree item_memento, DockPane pane)
+    /** Restore a DockItem and AppInstance from memento
+     *
+     *  <p>Create the {@link AppInstance} from the application name
+     *  stored in memento.
+     *  For resource-based application, check for saved resource (input),
+     *  then allow application to restore details.
+     *
+     *  @param item_memento
+     *  @param pane
+     */
+    private static void restoreDockItem(final MementoTree item_memento, final DockPane pane)
     {
         final String app_id = item_memento.getString(DockItem.KEY_APPLICATION).orElse(null);
         if (app_id == null)
@@ -124,21 +142,16 @@ public class MementoHelper
         for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
             if (app.getName().equals(app_id))
             {
-                DockPane.setActiveDockPane(pane);
-
                 final String input = item_memento.getString(INPUT_URL).orElse(null);
-
-                final AppInstance instance;
-                if (input == null)
-                    instance = app.create();
-                else
-                    instance = app.create(input);
-
+                DockPane.setActiveDockPane(pane);
+                final AppInstance instance = input == null
+                    ? app.create()
+                    : app.create(input);
                 instance.restore(item_memento);
                 return;
             }
 
-        logger.log(Level.WARNING, "No application found for " + app_id);
+        logger.log(Level.WARNING, "No application found to restore " + app_id);
 //        System.out.println("Apps:");
 //        for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
 //            System.out.println(app.getName());
