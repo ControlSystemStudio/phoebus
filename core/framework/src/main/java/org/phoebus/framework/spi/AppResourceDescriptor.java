@@ -46,10 +46,10 @@ public interface AppResourceDescriptor extends AppDescriptor {
     }
 
     /**
-     * Open the application using the list of resources, the resource can be the
+     * Create the application using the list of resources, the resource can be the
      * path or url to a configuration file like .bob or .plt or it can be a list of
      * pv names, or a channelfinder query
      */
-    public void open(String... resources);
+    public AppInstance create(String... resources);
 
 }

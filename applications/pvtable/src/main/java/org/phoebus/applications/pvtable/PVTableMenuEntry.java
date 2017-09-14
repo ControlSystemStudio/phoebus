@@ -25,7 +25,7 @@ public class PVTableMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        new PVTableApplication().open();
+        new PVTableApplication().create();
         return null;
     }
 

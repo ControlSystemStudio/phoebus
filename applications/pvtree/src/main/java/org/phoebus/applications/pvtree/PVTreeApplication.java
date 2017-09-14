@@ -39,7 +39,7 @@ public class PVTreeApplication implements AppDescriptor
     }
 
     @Override
-    public void open()
+    public void create()
     {
         openPVTreeTab();
     }

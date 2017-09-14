@@ -1,6 +1,7 @@
 package org.phoebus.applications.probe;
 
 import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 
 public class Probe implements AppDescriptor {
 
@@ -16,9 +17,10 @@ public class Probe implements AppDescriptor {
     public void stop() {
     }
 
-	@Override
-	public void open() {
-		
-	}
+    @Override
+    public AppInstance create() {
+        //TODO
+        return null;
+    }
 
 }

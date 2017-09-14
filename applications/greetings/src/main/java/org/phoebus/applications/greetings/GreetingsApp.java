@@ -17,7 +17,7 @@ public class GreetingsApp implements AppDescriptor {
     }
 
 	@Override
-	public void open() {
+	public void create() {
 		
 	}
 

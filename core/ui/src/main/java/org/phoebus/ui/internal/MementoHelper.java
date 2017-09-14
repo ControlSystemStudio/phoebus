@@ -14,6 +14,7 @@ import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
@@ -59,10 +60,10 @@ public class MementoHelper
     private static void saveDockItem(final MementoTree memento, final DockItem item)
     {
         final MementoTree item_memento = memento.getChild(item.getID());
-        final AppDescriptor application = item.getApplication();
+        final AppInstance application = item.getApplication();
         if (application == null)
             return;
-        item_memento.setString(DockItem.KEY_APPLICATION, application.getName());
+        item_memento.setString(DockItem.KEY_APPLICATION, application.getAppDescriptor().getName());
         application.save(item_memento);
     }
 
@@ -91,14 +92,14 @@ public class MementoHelper
         if (app_id == null)
             return;
 
+        // TODO replace with a hash map with AppDescriptors and AppInstance
         for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
             if (app.getName().equals(app_id))
             {
                 DockPane.setActiveDockPane(pane);
                 // TODO CHeck what type of app it is: Basic AppDescriptor,
                 // or one that has resource, so in that case call open(with the resource)
-                app.open();
-                app.restore(item_memento);
+                app.create().restore(item_memento);
                 return;
             }
 

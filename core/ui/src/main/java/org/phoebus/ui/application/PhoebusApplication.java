@@ -237,7 +237,7 @@ public class PhoebusApplication extends Application {
         } else {
             // TODO currently uses he first registered application
             logger.log(Level.INFO, "Opening " + resource + " with " + applications.get(0).getName());
-            applications.get(0).open(resource);
+            applications.get(0).create(resource);
         }
     }
 

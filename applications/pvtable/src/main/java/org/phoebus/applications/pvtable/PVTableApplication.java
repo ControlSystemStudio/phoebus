@@ -20,6 +20,7 @@ import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
@@ -59,7 +60,7 @@ public class PVTableApplication implements AppResourceDescriptor
 //    }
 
     @Override
-    public void open()
+    public AppInstance create()
     {
         final PVTableInstance instance = new PVTableInstance();
 
@@ -82,7 +83,7 @@ public class PVTableApplication implements AppResourceDescriptor
     }
 
     @Override
-    public void open(final String... resources)
+    public AppInstance create(final String... resources)
     {
         // Load files in background job
         JobManager.schedule("Load PV Table", monitor ->
