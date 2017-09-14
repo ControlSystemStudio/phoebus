@@ -243,7 +243,7 @@ public class PhoebusApplication extends Application {
 
     /**
      * Launch applications with
-     * 
+     *
      * @param app application launch string received as command line argument
      */
     private void launchApp(String app) {
@@ -270,7 +270,6 @@ public class PhoebusApplication extends Application {
                     stage.show();
                 }
                 MementoHelper.restoreStage(stage_memento, stage);
-                // TODO restore DockItems, their input, ..
             }
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Error restoring saved state from " + memfile, ex);
@@ -284,7 +283,6 @@ public class PhoebusApplication extends Application {
         try {
             final XMLMementoTree memento = XMLMementoTree.create();
 
-            // TODO Persist all DockItems, their optional inputs, ..
             for (Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);
 
