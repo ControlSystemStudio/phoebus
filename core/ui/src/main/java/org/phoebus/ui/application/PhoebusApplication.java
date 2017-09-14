@@ -236,7 +236,6 @@ public class PhoebusApplication extends Application {
                     stage.show();
                 }
                 MementoHelper.restoreStage(stage_memento, stage);
-                // TODO restore DockItems, their input, ..
             }
         }
         catch (Exception ex)
@@ -254,7 +253,6 @@ public class PhoebusApplication extends Application {
         {
             final XMLMementoTree memento = XMLMementoTree.create();
 
-            // TODO Persist all DockItems, their optional inputs, ..
             for (Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);
 

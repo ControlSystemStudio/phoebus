@@ -92,15 +92,16 @@ public class MementoHelper
             return;
 
         for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
-        {
             if (app.getName().equals(app_id))
             {
                 DockPane.setActiveDockPane(pane);
+                // TODO CHeck what type of app it is: Basic AppDescriptor,
+                // or one that has resource, so in that case call open(with the resource)
                 app.open();
                 app.restore(item_memento);
                 return;
             }
-        }
+
         logger.log(Level.WARNING, "No application found for " + app_id);
     }
 }
