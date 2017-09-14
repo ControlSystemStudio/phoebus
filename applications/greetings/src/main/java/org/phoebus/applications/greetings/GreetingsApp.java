@@ -1,6 +1,7 @@
 package org.phoebus.applications.greetings;
 
 import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 
 public class GreetingsApp implements AppDescriptor {
 
@@ -16,9 +17,9 @@ public class GreetingsApp implements AppDescriptor {
     public void stop() {
     }
 
-	@Override
-	public void create() {
-		
-	}
+    @Override
+    public AppInstance create() {
+        return null;
+    }
 
 }
