@@ -24,6 +24,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 @SuppressWarnings("nls")
 public class PVTableApplication implements AppResourceDescriptor
 {
+
     public static final Logger logger = Logger.getLogger(PVTableApplication.class.getPackageName());
 
     static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
@@ -33,18 +34,19 @@ public class PVTableApplication implements AppResourceDescriptor
         new ExtensionFilter("Autosave", "*." + PVTableAutosavePersistence.FILE_EXTENSION)
     };
 
-    public static final String NAME = "PV Table";
+    public static final String NAME = "pv_table";
+    public static final String DISPLAY_NAME = "PV Table";
 
     @Override
     public String getName()
     {
-        return "pv_table";
+        return NAME;
     }
 
     @Override
     public String getDisplayName()
     {
-        return NAME;
+        return DISPLAY_NAME;
     }
 
     @Override

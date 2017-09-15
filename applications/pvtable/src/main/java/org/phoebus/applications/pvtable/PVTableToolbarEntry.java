@@ -8,22 +8,22 @@
 package org.phoebus.applications.pvtable;
 
 import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /** Toolbar entry that starts PV Table Application
  *  @author Kay Kasemir
  */
-// @ProviderFor(ToolbarEntry.class)
 public class PVTableToolbarEntry implements ToolbarEntry
 {
     @Override
     public String getName()
     {
-        return PVTableApplication.NAME;
+        return PVTableApplication.DISPLAY_NAME;
     }
 
     @Override
     public void call() throws Exception
     {
-        new PVTableApplication().create();
+        ApplicationService.findApplication(PVTableApplication.NAME).create();
     }
 }

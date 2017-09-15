@@ -13,6 +13,7 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /** Entry for context menues that starts PV Tree for selected ProcessVariable
  *
@@ -47,7 +48,10 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     {
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
-            new PVTreeApplication().openPVTreeTab().setPVName(pv.getName());
+        {
+            final PVTree tree = (PVTree) ApplicationService.findApplication(PVTreeApplication.NAME).create();
+            tree.setPVName(pv.getName());
+        }
 
         return null;
     }

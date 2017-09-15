@@ -13,12 +13,12 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /** Entry for context menues that starts PV Table for selected ProcessVariable
  *
  *  @author Kay Kasemir
  */
-// @ProviderFor(ContextMenuEntry.class)
 @SuppressWarnings("rawtypes")
 public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVariable>
 {
@@ -27,13 +27,12 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     @Override
     public String getName()
     {
-        return PVTableApplication.NAME;
+        return PVTableApplication.DISPLAY_NAME;
     }
 
     @Override
     public Object getIcon()
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -46,9 +45,7 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     @Override
     public ProcessVariable callWithSelection(final Selection selection) throws Exception
     {
-        // TODO Get app descriptor from somewhere instead of creating new one
-
-        final PVTableInstance instance = new PVTableApplication().create();
+        final PVTableInstance instance = (PVTableInstance) ApplicationService.findApplication(PVTableApplication.NAME).create();
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
             instance.getModel().addItem(pv.getName());

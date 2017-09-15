@@ -41,11 +41,6 @@ public class PVTreeApplication implements AppDescriptor
     @Override
     public AppInstance create()
     {
-        return openPVTreeTab();
-    }
-
-    PVTree openPVTreeTab()
-    {
         final PVTree pv_tree = new PVTree(this);
         final DockItem tab = new DockItem(pv_tree, pv_tree.create());
         tab.addClosedNotification(() -> pv_tree.dispose());

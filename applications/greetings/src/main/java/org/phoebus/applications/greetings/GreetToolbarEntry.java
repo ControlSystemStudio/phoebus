@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 public class GreetToolbarEntry implements ToolbarEntry {
 
@@ -20,6 +21,6 @@ public class GreetToolbarEntry implements ToolbarEntry {
 
     @Override
     public void call() throws Exception {
-        new GreetingsApp().create();
+        ApplicationService.findApplication(GreetingsApp.Name).create();
     }
 }
