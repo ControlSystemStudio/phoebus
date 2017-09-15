@@ -19,7 +19,7 @@ import org.junit.Test;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JobTest
+public class JobDemo
 {
     @Test
     public void demoJob() throws Exception
