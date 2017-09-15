@@ -331,7 +331,7 @@ public class PhoebusApplication extends Application {
 
                 any |= MementoHelper.restoreStage(stage_memento, stage);
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             logger.log(Level.WARNING, "Error restoring saved state from " + memfile, ex);
         }
         return any;

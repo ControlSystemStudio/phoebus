@@ -7,7 +7,8 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,8 +48,8 @@ public class JobManager
     }
 
     /** @return Currently active jobs */
-    public static Collection<Job> getJobs()
+    public static List<Job> getJobs()
     {
-        return active_jobs;
+        return new ArrayList<>(active_jobs);
     }
 }
