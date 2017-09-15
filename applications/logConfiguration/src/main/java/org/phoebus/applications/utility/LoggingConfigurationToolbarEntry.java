@@ -8,6 +8,7 @@
 package org.phoebus.applications.utility;
 
 import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /**
  * Toolbar entry that starts LoggingConfiguration
@@ -19,12 +20,11 @@ public class LoggingConfigurationToolbarEntry implements ToolbarEntry {
 
     @Override
     public String getName() {
-        return LoggingConfigurationApplication.NAME;
+        return LoggingConfigurationApplication.DISPLAY_NAME;
     }
 
     @Override
     public void call() throws Exception {
-        // TODO Get app descriptor from somewhere instead of creating new one
-        new LoggingConfigurationApplication().create();
+        ApplicationService.findApplication(LoggingConfigurationApplication.NAME).create();
     }
 }

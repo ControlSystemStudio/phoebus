@@ -14,18 +14,19 @@ import org.phoebus.framework.spi.AppInstance;
 @SuppressWarnings("nls")
 public class LoggingConfigurationApplication implements AppDescriptor
 {
-    public static final String NAME = "Logging Config";
+    public static final String NAME = "log_config";
+    public static final String DISPLAY_NAME = "Logging Config";
 
     @Override
     public String getName()
     {
-        return "log_config";
+        return NAME;
     }
 
     @Override
     public String getDisplayName()
     {
-        return NAME;
+        return DISPLAY_NAME;
     }
 
     @Override

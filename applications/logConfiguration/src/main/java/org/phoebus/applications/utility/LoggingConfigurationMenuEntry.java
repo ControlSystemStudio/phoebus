@@ -8,6 +8,7 @@
 package org.phoebus.applications.utility;
 
 import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /**
  * Toolbar entry that starts Logging Configuration Application
@@ -18,7 +19,7 @@ public class LoggingConfigurationMenuEntry implements MenuEntry {
 
     @Override
     public String getName() {
-        return LoggingConfigurationApplication.NAME;
+        return LoggingConfigurationApplication.DISPLAY_NAME;
     }
 
     /**
@@ -27,8 +28,7 @@ public class LoggingConfigurationMenuEntry implements MenuEntry {
      */
     @Override
     public Void call() throws Exception {
-        // TODO Get app descriptor from somewhere instead of creating new one
-        new LoggingConfigurationApplication().create();
+        ApplicationService.findApplication(LoggingConfigurationApplication.NAME).create();
         return null;
     }
 
