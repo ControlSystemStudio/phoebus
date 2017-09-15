@@ -118,18 +118,6 @@ public class DockItem extends Tab
     /** Called after tab was closed */
     private List<Runnable> closed_callback = null;
 
-    /** Create dock item
-     *  @param label Initial label
-     *  @param content Initial content
-     *  @deprecated
-     */
-    @Deprecated
-    public DockItem(final String label, final Node content)
-    {
-        this(label);
-        setContent(content);
-    }
-
     /** Create dock item for instance of an application
      *  @param application {@link AppInstance}
      *  @param content Content for this application instance
