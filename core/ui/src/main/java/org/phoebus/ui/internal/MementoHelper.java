@@ -97,8 +97,9 @@ public class MementoHelper
     /** Restore state of Stage from memento
      *  @param memento
      *  @param stage
+     *  @return <code>true</code> if any tab item was restored
      */
-    public static void restoreStage(final MementoTree stage_memento, final Stage stage)
+    public static boolean restoreStage(final MementoTree stage_memento, final Stage stage)
     {
         stage_memento.getNumber(X).ifPresent(num -> stage.setX(num.doubleValue()));
         stage_memento.getNumber(Y).ifPresent(num -> stage.setY(num.doubleValue()));
@@ -109,8 +110,10 @@ public class MementoHelper
         stage_memento.getBoolean(MINIMIZED).ifPresent(flag -> stage.setIconified(flag));
 
         final DockPane pane = DockStage.getDockPane(stage);
+        boolean any = false;
         for (MementoTree item_memento : stage_memento.getChildren())
-            restoreDockItem(item_memento, pane);
+            any |= restoreDockItem(item_memento, pane);
+        return any;
     }
 
     /** Restore a DockItem and AppInstance from memento
@@ -122,12 +125,13 @@ public class MementoHelper
      *
      *  @param item_memento
      *  @param pane
+     *  @return <code>true</code> if a tab was restored
      */
-    private static void restoreDockItem(final MementoTree item_memento, final DockPane pane)
+    private static boolean restoreDockItem(final MementoTree item_memento, final DockPane pane)
     {
         final String app_id = item_memento.getString(DockItem.KEY_APPLICATION).orElse(null);
         if (app_id == null)
-            return;
+            return false;
 
         // TODO replace with a hash map with AppDescriptors and AppInstance
         for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
@@ -135,7 +139,7 @@ public class MementoHelper
             {
                 DockPane.setActiveDockPane(pane);
                 app.create().restore(item_memento);
-                return;
+                return true;
             }
 
 
@@ -148,7 +152,7 @@ public class MementoHelper
                     ? app.create()
                     : app.create(input);
                 instance.restore(item_memento);
-                return;
+                return true;
             }
 
         logger.log(Level.WARNING, "No application found to restore " + app_id);
@@ -159,5 +163,7 @@ public class MementoHelper
 //        System.out.println("Apps with resource");
 //        for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
 //            System.out.println(app.getName());
+
+        return false;
     }
 }

@@ -21,10 +21,10 @@ import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
 import javafx.scene.control.Alert;
@@ -62,10 +62,7 @@ public class PhoebusApplication extends Application {
         final MenuBar menuBar = createMenu(stage);
         final ToolBar toolBar = createToolbar();
 
-        final DockItem welcome = new DockItem("Welcome",
-                new BorderPane(new Label("Welcome to Phoebus!\n\n" + "Try pushing the buttons in the toolbar")));
-
-        DockStage.configureStage(stage, welcome);
+        DockStage.configureStage(stage);
         // Patch ID of main window
         stage.getProperties().put(DockStage.KEY_ID, DockStage.ID_MAIN);
         final BorderPane layout = DockStage.getLayout(stage);
@@ -75,7 +72,10 @@ public class PhoebusApplication extends Application {
 
         stage.show();
 
-        restoreState();
+        // If there's nothing to restore from a previous instance,
+        // start with welcome
+        if (! restoreState())
+            new Welcome().create();
 
         List<String> parameters = getParameters().getRaw();
         // List of applications to launch as specified via cmd line args
@@ -250,11 +250,16 @@ public class PhoebusApplication extends Application {
 
     }
 
-    /** Restore stages from memento */
-    private void restoreState() {
+    /** Restore stages from memento
+     *  @return <code>true</code> if any tab was restored
+     */
+    private boolean restoreState() {
+        boolean any = false;
+
         final File memfile = XMLMementoTree.getDefaultFile();
         if (!memfile.canRead())
-            return;
+            return any;
+
 
         try {
             logger.log(Level.INFO, "Loading state from " + memfile);
@@ -269,11 +274,13 @@ public class PhoebusApplication extends Application {
                     stage.getProperties().put(DockStage.KEY_ID, id);
                     stage.show();
                 }
-                MementoHelper.restoreStage(stage_memento, stage);
+
+                any |= MementoHelper.restoreStage(stage_memento, stage);
             }
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Error restoring saved state from " + memfile, ex);
         }
+        return any;
     }
 
     /** Save state of all stages to memento */
