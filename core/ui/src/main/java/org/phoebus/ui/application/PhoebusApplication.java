@@ -6,9 +6,11 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
@@ -31,6 +33,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -237,9 +240,23 @@ public class PhoebusApplication extends Application {
         if (applications.isEmpty()) {
             logger.log(Level.WARNING, "No application found for opening " + resource);
         } else {
-            // TODO currently uses he first registered application
-            logger.log(Level.INFO, "Opening " + resource + " with " + applications.get(0).getName());
-            applications.get(0).create(resource);
+            final AppResourceDescriptor application;
+            if (applications.size() == 1)
+                application = applications.get(0);
+            else
+            {   // Prompt user which application to use for this resource
+                final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
+                final ChoiceDialog<String> which = new ChoiceDialog<>(options.get(0), options);
+                which.setTitle("Open");
+                which.setHeaderText("Select application for opening\n" + resource);
+                final Optional<String> result = which.showAndWait();
+                if (! result.isPresent())
+                    return;
+                application = applications.get(options.indexOf(result.get()));
+            }
+
+            logger.log(Level.INFO, "Opening " + resource + " with " + application.getDisplayName());
+            application.create(resource);
         }
     }
 
