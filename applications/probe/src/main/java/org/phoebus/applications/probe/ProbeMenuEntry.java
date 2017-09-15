@@ -8,10 +8,11 @@
 package org.phoebus.applications.probe;
 
 import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /**
  * Menu entry that starts probe
- * 
+ *
  * @author Kunal Shroff
  */
 public class ProbeMenuEntry implements MenuEntry {
@@ -22,12 +23,12 @@ public class ProbeMenuEntry implements MenuEntry {
     }
 
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     @Override
     public Void call() throws Exception {
-        new Probe().create();
+        ApplicationService.findApplication(Probe.NAME).create();
         return null;
     }
 
