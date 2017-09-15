@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.framework.workbench;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -46,6 +47,12 @@ public class ApplicationService
             if (previous != null)
                 logger.log(Level.SEVERE, "Multiple implementations for Application '" + app.getName() + "'");
         }
+    }
+
+    /** @return All known applications */
+    public static Collection<AppDescriptor> getApplications()
+    {
+        return INSTANCE.apps.values();
     }
 
     /** Find application by name

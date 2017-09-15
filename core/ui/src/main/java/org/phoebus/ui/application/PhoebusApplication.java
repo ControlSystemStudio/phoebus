@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,6 +15,7 @@ import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
@@ -101,6 +101,8 @@ public class PhoebusApplication extends Application {
                 launchResources.add(filename);
             }
         }
+
+        startApplications();
 
         // Handle requests to open resource from command line
         for (String resource : launchResources)
@@ -246,8 +248,14 @@ public class PhoebusApplication extends Application {
      *
      * @param app application launch string received as command line argument
      */
-    private void launchApp(String app) {
-
+    private void launchApp(final String name) {
+        final AppDescriptor app = ApplicationService.findApplication(name);
+        if (app == null)
+        {
+            logger.log(Level.SEVERE, "Unknown application '" + name + "'");
+            return;
+        }
+        app.create();
     }
 
     /** Restore stages from memento
@@ -370,13 +378,20 @@ public class PhoebusApplication extends Application {
         return true;
     }
 
-    private List<org.phoebus.framework.spi.AppDescriptor> applications = Collections.emptyList();
+    /**
+     * Start all applications
+     */
+    private void startApplications()
+    {
+        for (AppDescriptor app : ApplicationService.getApplications())
+            app.start();
+    }
 
     /**
-     * Stop all applications TODO currently the list of empty
+     * Stop all applications
      */
     private void stopApplications() {
-        for (AppDescriptor app : applications)
+        for (AppDescriptor app : ApplicationService.getApplications())
             app.stop();
     }
 
