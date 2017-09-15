@@ -21,18 +21,19 @@ import org.phoebus.framework.spi.AppInstance;
 @SuppressWarnings("nls")
 public class PVListApplication implements AppDescriptor
 {
-    public static final String NAME = "PV List";
+    public static final String NAME = "pv_list";
+    public static final String DISPLAY_NAME = "PV List";
 
     @Override
     public String getName()
     {
-        return "pv_list";
+        return NAME;
     }
 
     @Override
     public String getDisplayName()
     {
-        return NAME;
+        return DISPLAY_NAME;
     }
 
     @Override
