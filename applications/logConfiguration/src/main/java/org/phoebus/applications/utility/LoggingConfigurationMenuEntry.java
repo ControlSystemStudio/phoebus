@@ -11,23 +11,24 @@ import org.phoebus.framework.spi.MenuEntry;
 
 /**
  * Toolbar entry that starts Logging Configuration Application
- * 
+ *
  * @author Kunal Shroff
  */
 public class LoggingConfigurationMenuEntry implements MenuEntry {
 
     @Override
     public String getName() {
-        return LoggingConfiguration.NAME;
+        return LoggingConfigurationApplication.NAME;
     }
 
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     @Override
     public Void call() throws Exception {
-        LoggingConfiguration.open();
+        // TODO Get app descriptor from somewhere instead of creating new one
+        new LoggingConfigurationApplication().create();
         return null;
     }
 

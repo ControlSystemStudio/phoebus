@@ -19,11 +19,12 @@ public class LoggingConfigurationToolbarEntry implements ToolbarEntry {
 
     @Override
     public String getName() {
-        return LoggingConfiguration.NAME;
+        return LoggingConfigurationApplication.NAME;
     }
 
     @Override
     public void call() throws Exception {
-        LoggingConfiguration.open();
+        // TODO Get app descriptor from somewhere instead of creating new one
+        new LoggingConfigurationApplication().create();
     }
 }

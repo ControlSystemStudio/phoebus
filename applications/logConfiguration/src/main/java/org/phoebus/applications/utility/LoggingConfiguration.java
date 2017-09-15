@@ -7,6 +7,8 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -42,23 +44,40 @@ import javafx.util.Callback;
  * @author Kunal Shroff
  *
  */
-public class LoggingConfiguration {
+@SuppressWarnings("nls")
+public class LoggingConfiguration implements AppInstance {
 
-    public static final String ID = "org.csstudio.logging.ui.LoggingConfiguration";
-    public static final String NAME = "Logging Config";
 
     private static Logger logger = Logger.getLogger(LoggingConfiguration.class.getName());
 
-    private static LogManager manager = LogManager.getLogManager();
-    final static TreeItem<NameNode> root = new TreeItem<>(new NameNode(null, null, null, true));
+    /** At most one instance */
+    static LoggingConfiguration INSTANCE = null;
 
-    public static void open() {
+    private final AppDescriptor app;
 
-        final DockItem tab = new DockItem(NAME, createFxScene());
+    private final LogManager manager = LogManager.getLogManager();
+    private final TreeItem<NameNode> root = new TreeItem<>(new NameNode(null, null, null, true));
+    private DockItem tab;
+
+    public LoggingConfiguration(final AppDescriptor app) {
+        this.app = app;
+        tab = new DockItem(this, createFxScene());
+        tab.addClosedNotification(() -> INSTANCE = null);
         DockPane.getActiveDockPane().addTab(tab);
     }
 
-    protected static Node createFxScene() {
+    @Override
+    public AppDescriptor getAppDescriptor()
+    {
+        return app;
+    }
+
+    void raise()
+    {
+        tab.select();
+    }
+
+    protected Node createFxScene() {
 
         root.setExpanded(true);
 
@@ -216,7 +235,7 @@ public class LoggingConfiguration {
     /**
      * creates the TreeItems using the currently registered loggers
      */
-    public static void updateLoggerMap() {
+    public void updateLoggerMap() {
 
         Enumeration<String> loggerNames = manager.getLoggerNames();
         while (loggerNames.hasMoreElements()) {
