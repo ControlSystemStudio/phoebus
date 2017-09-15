@@ -34,6 +34,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -59,6 +60,11 @@ import javafx.stage.Window;
 public class PhoebusApplication extends Application {
     /** Logger for all application messages */
     public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
+
+    private static final String SHOW_TABS = "show_tabs";
+
+    /** Menu item to show/hide tabs */
+    private CheckMenuItem show_tabs;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -151,8 +157,7 @@ public class PhoebusApplication extends Application {
             if (closeMainStage(null))
                 stop();
         });
-        final Menu file = new Menu("File", null, open, exit);
-        menuBar.getMenus().add(file);
+        menuBar.getMenus().add(new Menu("File", null, open, exit));
 
 
         // Application Contributions
@@ -160,6 +165,11 @@ public class PhoebusApplication extends Application {
         MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
         addMenuNode(applicationsMenu, node);
         menuBar.getMenus().add(applicationsMenu);
+
+
+        show_tabs = new CheckMenuItem("Always Show Tabs");
+        show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
+        menuBar.getMenus().add(new Menu("Window", null, show_tabs));
 
 
         // Help
@@ -172,8 +182,7 @@ public class PhoebusApplication extends Application {
             DialogHelper.positionDialog(todo, stage.getScene().getRoot(), 0, 0);
             todo.showAndWait();
         });
-        final Menu help = new Menu("Help", null, content);
-        menuBar.getMenus().add(help);
+        menuBar.getMenus().add(new Menu("Help", null, content));
 
         return menuBar;
     }
@@ -302,6 +311,12 @@ public class PhoebusApplication extends Application {
             logger.log(Level.INFO, "Loading state from " + memfile);
             final XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
 
+            memento.getBoolean(SHOW_TABS).ifPresent(show ->
+            {
+                DockPane.alwaysShowTabs(show);
+                show_tabs.setSelected(show);
+            });
+
             for (MementoTree stage_memento : memento.getChildren()) {
                 final String id = stage_memento.getName();
                 Stage stage = DockStage.getDockStageByID(id);
@@ -326,6 +341,8 @@ public class PhoebusApplication extends Application {
         logger.log(Level.INFO, "Persisting state to " + memfile);
         try {
             final XMLMementoTree memento = XMLMementoTree.create();
+
+            memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
 
             for (Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);

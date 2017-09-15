@@ -37,6 +37,8 @@ public class DockPane extends TabPane
 
     private static DockPane active = null;
 
+    private static boolean always_show_tabs = true;
+
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
@@ -47,6 +49,26 @@ public class DockPane extends TabPane
     public static void setActiveDockPane(final DockPane pane)
     {
         active = pane;
+    }
+
+    /** @return true if even single tab is shown */
+    public static boolean isAlwaysShowingTabs()
+    {
+        return always_show_tabs;
+    }
+
+    /** @param do_show_single_tabs Should even a single tab be shown? */
+    public static void alwaysShowTabs(final boolean do_show_single_tabs)
+    {
+        if (always_show_tabs == do_show_single_tabs)
+            return;
+        always_show_tabs = do_show_single_tabs;
+        for (Stage stage : DockStage.getDockStages())
+        {
+            final DockPane pane = DockStage.getDockPane(stage);
+            pane.autoHideTabs();
+            pane.requestLayout();
+        }
     }
 
     // Only accessible within this package (DockStage)
@@ -94,16 +116,16 @@ public class DockPane extends TabPane
     {
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX
         final StackPane header = (StackPane) lookup(".tab-header-area");
-        final boolean single = getTabs().size() == 1;
+        final boolean do_hide = getTabs().size() == 1  &&  !always_show_tabs;
         if (header != null)
-            header.setPrefHeight(single  ?  0  :  -1);
+            header.setPrefHeight(do_hide  ?  0  :  -1);
 
         // If header for single tab is not shown,
         // put its label into the window tile
         if (! (getScene().getWindow() instanceof Stage))
             throw new IllegalStateException("Expect Stage, got " + getScene().getWindow());
         final Stage stage = ((Stage) getScene().getWindow());
-        if (single)
+        if (do_hide)
         {   // Bind to get actual header, which for DockItemWithInput may contain 'dirty' marker,
             // and keep updating as it changes
             final Tab tab = getTabs().get(0);
