@@ -170,6 +170,7 @@ public class PhoebusApplication extends Application {
 
 
         show_tabs = new CheckMenuItem("Always Show Tabs");
+        show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
         menuBar.getMenus().add(new Menu("Window", null, show_tabs));
 
