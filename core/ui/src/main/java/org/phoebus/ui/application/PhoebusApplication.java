@@ -61,6 +61,7 @@ public class PhoebusApplication extends Application {
     /** Logger for all application messages */
     public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
 
+    /** Memento key to show/hide tabs */
     private static final String SHOW_TABS = "show_tabs";
 
     /** Menu item to show/hide tabs */
@@ -74,9 +75,10 @@ public class PhoebusApplication extends Application {
 
         DockStage.configureStage(stage);
         // Patch ID of main window
+        // (in case we ever need to identify the main window)
         stage.getProperties().put(DockStage.KEY_ID, DockStage.ID_MAIN);
-        final BorderPane layout = DockStage.getLayout(stage);
 
+        final BorderPane layout = DockStage.getLayout(stage);
         layout.setTop(new VBox(menuBar, toolBar));
         layout.setBottom(new Label("Status Bar..."));
 
@@ -309,7 +311,7 @@ public class PhoebusApplication extends Application {
 
         try {
             logger.log(Level.INFO, "Loading state from " + memfile);
-            final XMLMementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
+            final MementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
 
             memento.getBoolean(SHOW_TABS).ifPresent(show ->
             {
