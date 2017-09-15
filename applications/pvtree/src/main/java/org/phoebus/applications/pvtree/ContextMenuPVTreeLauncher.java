@@ -27,7 +27,7 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     @Override
     public String getName()
     {
-        return PVTreeApplication.NAME;
+        return PVTreeApplication.DISPLAY_NAME;
     }
 
     @Override

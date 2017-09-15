@@ -8,6 +8,7 @@
 package org.phoebus.applications.pvtree;
 
 import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /** Toolbar entry that starts PV Tree Application
  *  @author Kay Kasemir
@@ -18,12 +19,12 @@ public class PVTreeToolbarEntry implements ToolbarEntry
     @Override
     public String getName()
     {
-        return PVTreeApplication.NAME;
+        return PVTreeApplication.DISPLAY_NAME;
     }
 
     @Override
     public void call() throws Exception
     {
-        new PVTreeApplication().create();
+        ApplicationService.findApplication(PVTreeApplication.NAME).create();
     }
 }

@@ -10,13 +10,13 @@ package org.phoebus.ui.internal;
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 import java.net.URL;
-import java.util.ServiceLoader;
 import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -133,37 +133,28 @@ public class MementoHelper
         if (app_id == null)
             return false;
 
-        // TODO replace with a hash map with AppDescriptors and AppInstance
-        for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
-            if (app.getName().equals(app_id))
-            {
-                DockPane.setActiveDockPane(pane);
-                app.create().restore(item_memento);
-                return true;
-            }
+        final AppDescriptor app = ApplicationService.findApplication(app_id);
+        if (app == null)
+        {
+            logger.log(Level.WARNING, "No application found to restore " + app_id);
+            return false;
+        }
 
+        DockPane.setActiveDockPane(pane);
+        final AppInstance instance;
+        if (app instanceof AppResourceDescriptor)
+        {
+            final AppResourceDescriptor app_res = (AppResourceDescriptor) app;
+            final String input = item_memento.getString(INPUT_URL).orElse(null);
+            instance = input == null
+                    ? app_res.create()
+                    : app_res.create(input);
+        }
+        else
+            instance = app.create();
 
-        for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
-            if (app.getName().equals(app_id))
-            {
-                final String input = item_memento.getString(INPUT_URL).orElse(null);
-                DockPane.setActiveDockPane(pane);
-                final AppInstance instance = input == null
-                    ? app.create()
-                    : app.create(input);
-                instance.restore(item_memento);
-                return true;
-            }
+        instance.restore(item_memento);
 
-        logger.log(Level.WARNING, "No application found to restore " + app_id);
-//        System.out.println("Apps:");
-//        for (AppDescriptor app : ServiceLoader.load(AppDescriptor.class))
-//            System.out.println(app.getName());
-//
-//        System.out.println("Apps with resource");
-//        for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
-//            System.out.println(app.getName());
-
-        return false;
+        return true;
     }
 }

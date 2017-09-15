@@ -22,18 +22,20 @@ public class PVTreeApplication implements AppDescriptor
 {
     public static final Logger logger = Logger.getLogger(PVTree.class.getPackageName());
 
-    public static final String NAME = "PV Tree";
+    public static final String NAME = "pv_tree";
+
+    public static final String DISPLAY_NAME = "PV Tree";
 
     @Override
     public String getName()
     {
-        return "pv_tree";
+        return NAME;
     }
 
     @Override
     public String getDisplayName()
     {
-        return NAME;
+        return DISPLAY_NAME;
     }
 
     @Override
