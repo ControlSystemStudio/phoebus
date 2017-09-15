@@ -124,7 +124,7 @@ public class PVTableInstance implements AppInstance
         File file = ResourcePathParser.getFile(dock_item.getInput());
         if (file == null)
         {
-            file = SaveAsDialog.promptForFile(dock_item.getTabPane().getScene().getWindow(), "Save PV Table", null, PVTableApplication.file_extensions);
+            file = new SaveAsDialog().promptForFile(dock_item.getTabPane().getScene().getWindow(), "Save PV Table", null, PVTableApplication.file_extensions);
             if (file == null)
                 return;
         }

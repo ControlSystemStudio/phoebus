@@ -23,6 +23,7 @@ import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
@@ -138,11 +139,12 @@ public class PhoebusApplication extends Application {
 
         // File
         final MenuItem open = new MenuItem("Open");
-        open.setOnAction(event -> {
-            final Alert todo = new Alert(AlertType.INFORMATION, "Will eventually open file browser etc.",
-                    ButtonType.OK);
-            todo.setHeaderText("File/Open");
-            todo.showAndWait();
+        open.setOnAction(event ->
+        {
+            final File file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
+            if (file == null)
+                return;
+            openResource(file.toString());
         });
         final MenuItem exit = new MenuItem("Exit");
         exit.setOnAction(event -> {
@@ -152,15 +154,25 @@ public class PhoebusApplication extends Application {
         final Menu file = new Menu("File", null, open, exit);
         menuBar.getMenus().add(file);
 
-        // Contributions
-        Menu applicationsMenu = new Menu("Applications");
+
+        // Application Contributions
+        final Menu applicationsMenu = new Menu("Applications");
         MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
-
         addMenuNode(applicationsMenu, node);
-
         menuBar.getMenus().add(applicationsMenu);
+
+
         // Help
-        final Menu help = new Menu("Help");
+        final MenuItem content = new MenuItem("Content");
+        content.setOnAction(event ->
+        {
+            final Alert todo = new Alert(AlertType.INFORMATION);
+            todo.setHeaderText("Help Content");
+            todo.setContentText("We indeed need somebody who writes online help");
+            DialogHelper.positionDialog(todo, stage.getScene().getRoot(), 0, 0);
+            todo.showAndWait();
+        });
+        final Menu help = new Menu("Help", null, content);
         menuBar.getMenus().add(help);
 
         return menuBar;
