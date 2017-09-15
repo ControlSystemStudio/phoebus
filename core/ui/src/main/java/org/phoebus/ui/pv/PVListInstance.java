@@ -9,6 +9,8 @@ package org.phoebus.ui.pv;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockPane;
 
 /** Application for the PV List
  *
@@ -18,31 +20,40 @@ import org.phoebus.framework.spi.AppInstance;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
-public class PVListApplication implements AppDescriptor
+public class PVListInstance implements AppInstance
 {
-    public static final String NAME = "PV List";
+    /** At most one instance */
+    static PVListInstance INSTANCE = null;
 
-    @Override
-    public String getName()
+    private final AppDescriptor app;
+
+    private DockItem dock_item = null;
+
+    PVListInstance(final AppDescriptor app)
     {
-        return "pv_list";
+        this.app = app;
+
+        // Create the PV List
+        final PVList pv_list = new PVList();
+        dock_item = new DockItem(this, pv_list);
+        dock_item.addClosedNotification(this::dispose);
+        DockPane.getActiveDockPane().addTab(dock_item);
     }
 
     @Override
-    public String getDisplayName()
+    public AppDescriptor getAppDescriptor()
     {
-        return NAME;
+        return app;
     }
 
-    @Override
-    public AppInstance create()
+    /** Show the existing singleton instance */
+    public void raise()
     {
-        // Create the singleton instance or show existing one
-        if (PVListInstance.INSTANCE == null)
-            PVListInstance.INSTANCE = new PVListInstance(this);
-        else
-            PVListInstance.INSTANCE.raise();
-        return PVListInstance.INSTANCE;
+        dock_item.select();
+    }
+
+    private void dispose()
+    {
+        INSTANCE = null;
     }
 }

@@ -30,7 +30,8 @@ public class PVListMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        PVListApplication.INSTANCE.start();
+        // TODO Get app descriptor from some global place
+        new PVListApplication().create();
         return null;
     }
 }
