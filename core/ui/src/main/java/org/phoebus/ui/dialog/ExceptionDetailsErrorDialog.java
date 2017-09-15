@@ -13,14 +13,15 @@ import java.io.PrintStream;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextArea;
 
 /** Dialog that shows error message with exception detail
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ExceptionDetailsErrorDialog
 {
-    /** Open dialog that shows detail of errot
+    /** Open dialog that shows detail of error
      *
      *  <p>May be called from non-UI thread
      *
@@ -35,15 +36,23 @@ public class ExceptionDetailsErrorDialog
 
     private static void doOpenError(final String title, final String message, final Exception exception)
     {
+        final Alert dialog = new Alert(AlertType.ERROR);
+        dialog.setHeaderText(message);
+
+        if (exception != null)
+            dialog.setContentText("Exception: " + exception.getMessage());
+
+        // Show exception stack trace in expandable section of dialog
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         exception.printStackTrace(new PrintStream(buf));
-        final Alert dialog = new Alert(AlertType.ERROR, buf.toString(), ButtonType.OK);
-        dialog.setHeaderText(message);
-        dialog.setResizable(true);
-        dialog.getDialogPane().setPrefWidth(900);
 
-        // TODO Custom dialog pane that allows showing/hiding the exception detail.
-        //      Show in read-only TextField that allows copying the error out.
+        // User can copy trace out of read-only text area
+        final TextArea trace = new TextArea(buf.toString());
+        trace.setEditable(false);
+        dialog.getDialogPane().setExpandableContent(trace);
+
+        dialog.setResizable(true);
+        dialog.getDialogPane().setPrefWidth(800);
 
         dialog.showAndWait();
     }
