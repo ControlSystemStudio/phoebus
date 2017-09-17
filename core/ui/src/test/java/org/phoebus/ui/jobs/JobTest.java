@@ -19,7 +19,7 @@ import org.junit.Test;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JobDemo
+public class JobTest
 {
     @Test
     public void demoJob() throws Exception
@@ -84,13 +84,13 @@ public class JobDemo
         // Cancel
         JobManager.getJobs().forEach(job -> job.cancel());
         // Show final info
-        Collection<Job> jobs = JobManager.getJobs();
-        do
+        while (true)
         {
+	        	Thread.sleep(2000);
+	        	final Collection<Job> jobs = JobManager.getJobs();
+	        	if (jobs.isEmpty())
+	        		break;
             System.out.println(jobs);
-            Thread.sleep(500);
         }
-        while (! jobs.isEmpty());
    }
-
 }

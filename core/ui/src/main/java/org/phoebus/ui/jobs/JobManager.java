@@ -47,7 +47,13 @@ public class JobManager
         return null;
     }
 
-    /** @return Currently active jobs */
+    /** Obtain snapshot of currently running Jobs
+     *
+     *  <p>Note that the list is not updated,
+     *  need to get new list for updated information.
+     *  
+     *  @return Currently active jobs
+     */
     public static List<Job> getJobs()
     {
         return new ArrayList<>(active_jobs);
