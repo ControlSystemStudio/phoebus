@@ -200,7 +200,6 @@ public class DockPane extends TabPane
             // Select the new item
             getSelectionModel().select(item);
         }
-        System.out.println("Dropped into Pane");
         event.setDropCompleted(true);
         event.consume();
     }
