@@ -86,7 +86,7 @@ public class JobTest
         // Show final info
         while (true)
         {
-	        	Thread.sleep(2000);
+	        	Thread.sleep(200);
 	        	final Collection<Job> jobs = JobManager.getJobs();
 	        	if (jobs.isEmpty())
 	        		break;
