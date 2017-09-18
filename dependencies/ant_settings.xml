@@ -1,0 +1,53 @@
+<!--  Common settings for all ant build files -->
+<project name="settings">
+  <!-- Global properties -->
+  <property name="version" value="0.0.1"/>
+
+  <!-- Shortcuts for paths within a module subdirectory -->
+  <property name="src" value="src/main/java"/>
+  <property name="test" value="src/test/java"/>
+  <property name="resources" value="src/main/resources"/>
+  <property name="build" value="target"/>
+  <property name="classes" value="target/classes"/>
+  
+  <!-- 'dependencies' is this directory -->
+  <dirname property="dependencies" file="${ant.file.settings}"/>
+
+  <!-- Classpath used to build applications:
+       1) core modules
+       2) dependencies
+    -->
+  <path id="app-classpath">
+    <fileset dir="${dependencies}/../core">
+      <include name="**/${build}/*-${version}.jar"/>
+    </fileset>
+  	
+  	<fileset dir="${dependencies}/target/lib">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+
+  <!-- Avoid the 'includeantruntime' warning -->
+  <property name="build.sysclasspath" value="last"/>
+  
+  
+  <!--  Targets for use in subdirectories
+        Properties like ${build} are NOT
+        relative to ${dependencies} but
+        evaluted within the subdir
+        where the common settings are included
+   -->
+  <target name="clean" description="Remove all artifacts">
+    <!-- Delete the ${build} directory trees -->
+    <delete dir="${build}"/>
+  </target>
+
+
+  <target name="compile-app" description="Compile application">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath"/>
+  </target>
+  
+
+</project>

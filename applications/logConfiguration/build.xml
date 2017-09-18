@@ -1,0 +1,10 @@
+<project default="module-logConfiguration">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-logConfiguration" depends="compile-app">
+    <jar destfile="${build}/logConfiguration-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

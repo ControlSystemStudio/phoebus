@@ -1,0 +1,35 @@
+<project default="module-pv">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-pv">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  	<jar destfile="${build}/pv-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+  <target name="test-pv" depends="module-pv">
+    <junit printsummary="withOutAndErr" haltonfailure="yes">
+      <classpath>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${build}/pv-${version}.jar"/>
+      </classpath>
+      <batchtest>
+        <zipfileset src="${build}/pv-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+    </junit>
+  </target>
+
+</project>

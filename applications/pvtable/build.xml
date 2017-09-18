@@ -1,0 +1,10 @@
+<project default="module-pvtable">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-pvtable" depends="compile-app">
+    <jar destfile="${build}/pvtable-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>
