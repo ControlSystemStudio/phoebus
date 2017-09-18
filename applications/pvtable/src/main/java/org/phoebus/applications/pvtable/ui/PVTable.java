@@ -8,6 +8,7 @@
 package org.phoebus.applications.pvtable.ui;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -329,6 +330,29 @@ public class PVTable extends BorderPane
         this.model = model;
         table = new TableView<>();
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+
+        // When sorting, keep the 'NEW_ITEM' row at the bottom
+        final Comparator<TableItemProxy> compare_except_new_item = (a, b) ->
+        {
+            // Force 'NEW_ITEM' to remain at bottom
+            if (a == TableItemProxy.NEW_ITEM)
+                return 1;
+            else if (b == TableItemProxy.NEW_ITEM)
+                return -1;
+
+            // Normal comparison uses the currently active comparator,
+            // i.e. the one that depends on the currently selected
+            // sort column
+            final Comparator<TableItemProxy> normal = table.getComparator();
+            if (normal == null)
+                return 0;
+            return normal.compare(a, b);
+        };
+        table.setSortPolicy(table ->
+        {
+            FXCollections.sort(table.getItems(), compare_except_new_item);
+            return true;
+        });
 
         // Select complete rows
         final TableViewSelectionModel<TableItemProxy> table_sel = table.getSelectionModel();
