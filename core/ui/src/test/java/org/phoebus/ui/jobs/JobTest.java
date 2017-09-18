@@ -33,7 +33,7 @@ public class JobTest
             running.countDown();
             for (int step=0; step<3; ++step)
             {
-                Thread.sleep(500);
+                Thread.sleep(200);
                 monitor.worked(1);
             }
             done.countDown();
@@ -48,7 +48,7 @@ public class JobTest
         while (done.getCount() > 0)
         {
             System.out.println(JobManager.getJobs());
-            Thread.sleep(250);
+            Thread.sleep(200);
         }
         // Show final info
         Thread.sleep(500);

@@ -15,7 +15,6 @@ import java.util.concurrent.ForkJoinPool;
 /** Job Manager
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class JobManager
 {
     private static final ConcurrentSkipListSet<Job> active_jobs =
@@ -28,7 +27,7 @@ public class JobManager
      */
     public static void schedule(final String name, final JobRunnable runnable)
     {
-    		ForkJoinPool.commonPool().submit(() -> execute(new Job(name, runnable)));
+        ForkJoinPool.commonPool().submit(() -> execute(new Job(name, runnable)));
     }
 
     private static Void execute(final Job job) throws Exception
@@ -49,7 +48,7 @@ public class JobManager
      *
      *  <p>Note that the list is not updated,
      *  need to get new list for updated information.
-     *  
+     *
      *  @return Currently active jobs
      */
     public static List<Job> getJobs()
