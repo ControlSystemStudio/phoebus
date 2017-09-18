@@ -3,7 +3,6 @@ package org.phoebus.product;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.LogManager;
@@ -27,7 +26,7 @@ public class Launcher
         logger.info("Phoebus Launcher");
 
         // Handle arguments, potentially not even starting the UI
-        final List<String> args = new ArrayList<>(Arrays.asList(original_args));
+        final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         int port = -1;
         try

@@ -7,7 +7,6 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -52,7 +51,7 @@ public class PVTableApplication implements AppResourceDescriptor
     @Override
     public List<String> supportedFileExtentions()
     {
-        return Arrays.asList(PVTableXMLPersistence.FILE_EXTENSION, PVTableAutosavePersistence.FILE_EXTENSION);
+        return List.of(PVTableXMLPersistence.FILE_EXTENSION, PVTableAutosavePersistence.FILE_EXTENSION);
     }
 
     @Override

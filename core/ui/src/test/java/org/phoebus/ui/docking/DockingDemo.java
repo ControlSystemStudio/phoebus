@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
-import java.util.Arrays;
+import java.util.List;
 
 import javafx.application.Application;
 import javafx.scene.control.Label;
@@ -25,12 +25,12 @@ public class DockingDemo extends Application
 {
     public static void main(String[] args)
     {
-        for (String prop : Arrays.asList("java.specification.name",
-                                         "java.specification.vendor",
-                                         "java.specification.version",
-                                         "java.home",
-                                         "java.runtime.name",
-                                         "java.runtime.version"))
+        for (String prop : List.of("java.specification.name",
+                                   "java.specification.vendor",
+                                   "java.specification.version",
+                                   "java.home",
+                                   "java.runtime.name",
+                                   "java.runtime.version"))
             System.out.println(prop + " = " + System.getProperty(prop));
 
         launch(args);

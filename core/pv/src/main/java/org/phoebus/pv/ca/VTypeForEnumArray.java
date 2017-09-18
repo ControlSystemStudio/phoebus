@@ -8,7 +8,6 @@
 package org.phoebus.pv.ca;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.diirt.util.array.ArrayInt;
@@ -38,7 +37,7 @@ public class VTypeForEnumArray extends DBRAlarmTimeWrapper<DBR_TIME_Enum> implem
     @Override
     public List<String> getLabels()
     {
-        return Arrays.asList(labels.getLabels());
+        return List.of(labels.getLabels());
     }
 
     @Override

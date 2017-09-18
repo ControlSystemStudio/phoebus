@@ -7,7 +7,6 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
@@ -22,7 +21,7 @@ import org.phoebus.framework.workbench.ApplicationService;
 @SuppressWarnings("rawtypes")
 public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVariable>
 {
-    private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
+    private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
 
     @Override
     public String getName()
