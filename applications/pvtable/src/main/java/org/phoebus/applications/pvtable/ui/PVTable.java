@@ -47,6 +47,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
@@ -625,11 +626,30 @@ public class PVTable extends BorderPane
      */
     private List<TableItemProxy> dragged_items = null;
 
+    /** @param node Node
+     *  @return <code>true</code> if node is in a table cell, and not the table header
+     */
+    private static boolean isTableCell(Node node)
+    {
+        while (node != null)
+        {
+            if (node instanceof TableRow<?>)
+                return true;
+            node = node.getParent();
+        }
+        return false;
+    }
     private void hookDragAndDrop()
     {
         // Drag PV names as string. Also locally remember dragged_items
         table.setOnDragDetected(event ->
         {
+            // Ignore 'drag' of table header, because that would
+            // interfere with the resizing and re-ordering of table
+            // columns
+            if (!isTableCell(event.getPickResult().getIntersectedNode()))
+                return;
+
             final Dragboard db = table.startDragAndDrop(TransferMode.COPY_OR_MOVE);
             final ClipboardContent content = new ClipboardContent();
 
