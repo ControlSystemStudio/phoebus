@@ -6,6 +6,16 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.mapping;
 
 /**
  * A utility class for parsing user defined resources
@@ -44,26 +54,47 @@ public class ResourcePathParser {
         }
     }
 
-
     /**
      * Get file for URL
      *
-     * @param url {@link URL}
+     * @param url
+     *            {@link URL}
      * @return {@link File} if URL represents a file, otherwise <code>null</code>
      */
-    public static File getFile(final URL url) throws Exception
-    {
-        if (url == null  ||  !url.getProtocol().equals("file"))
+    public static File getFile(final URL url) throws Exception {
+        if (url == null || !url.getProtocol().equals("file"))
             return null;
         return new File(url.toURI());
     }
 
     /**
-     * @param file {@link File}
+     * @param file
+     *            {@link File}
      * @return {@link URL} for that file
      */
-    public static URL getURL(final File file)
-    {
+    public static URL getURL(final File file) {
         return createValidURL(file.getAbsolutePath());
+    }
+
+    /**
+     * 
+     * @param url
+     * @return
+     */
+    public static Map<String, List<String>> splitQuery(URL url) {
+        if (url.getQuery() == null || url.getQuery().isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return Arrays.stream(url.getQuery().split("&"))
+                .map(ResourcePathParser::splitQueryParameter)
+                .collect(Collectors.groupingBy
+                        (SimpleImmutableEntry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
+    }
+
+    private static SimpleImmutableEntry<String, String> splitQueryParameter(String it) {
+        final int idx = it.indexOf("=");
+        final String key = idx > 0 ? it.substring(0, idx) : it;
+        final String value = idx > 0 && it.length() > idx + 1 ? it.substring(idx + 1) : null;
+        return new SimpleImmutableEntry<>(key, value);
     }
 }

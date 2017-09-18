@@ -1,7 +1,5 @@
 package org.phoebus.framework.spi;
 
-import org.phoebus.framework.persistence.Memento;
-
 /**
  * Basic interface for defining phoebus applications via java services
  *

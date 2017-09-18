@@ -1,5 +1,6 @@
 package org.phoebus.framework.spi;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,7 +22,9 @@ public interface AppResourceDescriptor extends AppDescriptor {
      *
      * @return A list of supported file extensions
      */
-    public List<String> supportedFileExtentions();
+    public default List<String> supportedFileExtentions(){
+        return Collections.emptyList();
+    }
 
     /**
      * TODO
