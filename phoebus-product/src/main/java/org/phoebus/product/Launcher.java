@@ -23,7 +23,7 @@ public class Launcher
     {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
 
-        logger.info("Phoebus Launcher");
+        logger.info("Phoebus (PID " + ProcessHandle.current().pid() + ")");
 
         // Handle arguments, potentially not even starting the UI
         final List<String> args = new ArrayList<>(List.of(original_args));
