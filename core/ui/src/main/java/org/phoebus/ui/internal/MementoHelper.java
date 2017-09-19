@@ -101,10 +101,13 @@ public class MementoHelper
      */
     public static boolean restoreStage(final MementoTree stage_memento, final Stage stage)
     {
+        // Closest to atomically setting size and location with minimal flicker: hide, update, show
+        stage.hide();
         stage_memento.getNumber(X).ifPresent(num -> stage.setX(num.doubleValue()));
         stage_memento.getNumber(Y).ifPresent(num -> stage.setY(num.doubleValue()));
         stage_memento.getNumber(WIDTH).ifPresent(num -> stage.setWidth(num.doubleValue()));
         stage_memento.getNumber(HEIGHT).ifPresent(num -> stage.setHeight(num.doubleValue()));
+        stage.show();
         stage_memento.getBoolean(FULLSCREEN).ifPresent(flag -> stage.setFullScreen(flag));
         stage_memento.getBoolean(MAXIMIZED).ifPresent(flag -> stage.setMaximized(flag));
         stage_memento.getBoolean(MINIMIZED).ifPresent(flag -> stage.setIconified(flag));
