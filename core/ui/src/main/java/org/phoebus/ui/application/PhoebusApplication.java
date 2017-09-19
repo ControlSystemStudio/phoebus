@@ -280,8 +280,9 @@ public class PhoebusApplication extends Application {
                 application = applications.get(options.indexOf(result.get()));
             }
 
-            logger.log(Level.INFO, "Opening " + resource + " with " + application.getDisplayName());
-            application.create(resource);
+            final String app_resource = application.getName() + "?" + ResourceParser.FILE_ARG + "=" + resource;
+            logger.log(Level.INFO, "Opening " + app_resource);
+            application.create(app_resource);
         }
     }
 
@@ -302,10 +303,10 @@ public class PhoebusApplication extends Application {
             logger.log(Level.SEVERE, "Unknown application '" + appName + "'");
             return;
         }
-        if (app instanceof AppResourceDescriptor) 
+        if (app instanceof AppResourceDescriptor)
         {
             ((AppResourceDescriptor)app).create(appLaunchString);
-        } else 
+        } else
         {
             app.create();
         }

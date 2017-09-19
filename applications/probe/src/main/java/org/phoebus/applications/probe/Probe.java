@@ -10,11 +10,12 @@ import java.util.Map;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 /**
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -22,7 +23,6 @@ public class Probe implements AppResourceDescriptor {
 
     public static final String NAME = "probe";
     public static final String DISPLAYNAME = "Probe";
-    public static final String PVARG = "pv";
 
     @Override
     public String getName() {
@@ -34,9 +34,11 @@ public class Probe implements AppResourceDescriptor {
         return DISPLAYNAME;
     }
 
+    @Override
     public void start() {
     }
 
+    @Override
     public void stop() {
     }
 
@@ -52,7 +54,7 @@ public class Probe implements AppResourceDescriptor {
         final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
 
         Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
-        List<String> pvs = args.getOrDefault(PVARG, Collections.emptyList());
+        List<String> pvs = args.getOrDefault(ResourceParser.PV_ARG, Collections.emptyList());
         if (pvs.isEmpty()) {
             // Open an empty probe
             app.create();

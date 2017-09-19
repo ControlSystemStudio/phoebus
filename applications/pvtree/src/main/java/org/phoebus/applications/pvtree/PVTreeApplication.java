@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -59,7 +60,7 @@ public class PVTreeApplication implements AppResourceDescriptor
         PVTree pv_tree = null;
 
         final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
-        final List<String> pvs = args.get("pv");
+        final List<String> pvs = args.get(ResourceParser.PV_ARG);
         if (pvs == null)
             pv_tree = create();
         else

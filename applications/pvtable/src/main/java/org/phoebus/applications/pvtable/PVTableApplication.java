@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -75,8 +76,8 @@ public class PVTableApplication implements AppResourceDescriptor
         // -app pv_table?file=/some/file
         // but no mix of pv and file argument in one call
         final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
-        final List<String> pvs = args.get("pv");
-        final List<String> files = args.get("file");
+        final List<String> pvs = args.get(ResourceParser.PV_ARG);
+        final List<String> files = args.get(ResourceParser.FILE_ARG);
         if (pvs != null)
         {
             instance = create();
