@@ -44,7 +44,7 @@ public class PVTreeApplication implements AppResourceDescriptor
     }
 
     @Override
-    public AppInstance create()
+    public PVTree create()
     {
         final PVTree pv_tree = new PVTree(this);
         final DockItem tab = new DockItem(pv_tree, pv_tree.create());
@@ -61,11 +61,11 @@ public class PVTreeApplication implements AppResourceDescriptor
         final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
         final List<String> pvs = args.get("pv");
         if (pvs == null)
-            pv_tree = (PVTree) create();
+            pv_tree = create();
         else
             for (String pv : pvs)
             {
-                pv_tree = (PVTree) create();
+                pv_tree = create();
                 pv_tree.setPVName(pv);
             }
 
