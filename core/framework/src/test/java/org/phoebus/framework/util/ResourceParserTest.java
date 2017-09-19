@@ -61,7 +61,16 @@ public class ResourceParserTest {
                 "Failed to parse app launcher string expected: " + queryArgs + " returned: "
                         + parseQueryArgs(createAppURI(resourceURI)),
                 queryArgs, parseQueryArgs(createAppURI(resourceURI)));
-
+        
+        // the app name and arguments are provided
+        resourceURI = "probe?pv=sim://noise&pv=sim://sine";
+        queryArgs = new HashMap<>();
+        queryArgs.put("pv", Arrays.asList("sim://noise","sim://sine"));
+        assertEquals(
+                "Failed to parse app launcher string expected: " + queryArgs + " returned: "
+                        + parseQueryArgs(createAppURI(resourceURI)),
+                queryArgs, parseQueryArgs(createAppURI(resourceURI)));
+        
     }
 
 }
