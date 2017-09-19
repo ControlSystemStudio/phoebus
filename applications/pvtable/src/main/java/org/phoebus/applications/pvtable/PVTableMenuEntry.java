@@ -14,18 +14,19 @@ import org.phoebus.framework.spi.MenuEntry;
  *
  * @author Kunal Shroff
  */
+@SuppressWarnings("nls")
 public class PVTableMenuEntry implements MenuEntry
 {
     @Override
     public String getName()
     {
-        return PVTableApplication.NAME;
+        return PVTableApplication.DISPLAY_NAME;
     }
 
     @Override
     public Void call() throws Exception
     {
-        new PVTableApplication().open();
+        new PVTableApplication().create();
         return null;
     }
 

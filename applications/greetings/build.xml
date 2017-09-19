@@ -1,0 +1,11 @@
+<project default="module-greetings">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-greetings" depends="compile-app">
+    <jar destfile="${build}/greetings-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${src}" includes="**/*.fxml"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

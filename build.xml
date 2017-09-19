@@ -1,274 +1,52 @@
 <!-- Ant build file for building Phoebus
 
      All external dependencies need to be
-     provided as jar files in a ../dependencies directory.
+     provided as jar files ../dependencies/lib
   -->
-<project name="Phoebus" default="product" basedir=".">
-  <!-- Global properties -->
-  <property name="version" value="0.0.1"/>
-
-  <!-- Shortcuts -->
-  <property name="src" value="src/main/java"/>
-  <property name="test" value="src/test/java"/>
-  <property name="resources" value="src/main/resources"/>
-  <property name="build" value="target"/>
-  <property name="classes" value="target/classes"/>
-  <property name="dependencies" value="../dependencies"/>
-  <path id="app-classpath">
-    <pathelement path="core/framework/${build}/framework-${version}.jar"/>
-    <pathelement path="core/logging/${build}/logging-${version}.jar"/>
-    <pathelement path="core/types/${build}/types-${version}.jar"/>
-    <pathelement path="core/ui/${build}/ui-${version}.jar"/>
-    <pathelement path="core/pv/${build}/pv-${version}.jar"/>
-    <fileset dir="dependencies/target/lib">
-      <include name="*.jar"/>
-    </fileset>
-  </path>
-
-  <!-- Avoid the 'includeantruntime' warning -->
-  <property name="build.sysclasspath" value="last"/>
-
+<project name="Phoebus" default="product">
+	
   <target name="clean" description="Remove all artifacts">
-    <!-- Delete the ${build} directory trees -->
-    <delete dir="core/framework/${build}"/>
-    <delete dir="core/logging/${build}"/>
-    <delete dir="core/pv/${build}"/>
-    <delete dir="core/types/${build}"/>
-    <delete dir="core/ui/${build}"/>
-    <delete dir="applications/greetings/${build}"/>
-    <delete dir="applications/probe/${build}"/>
-    <delete dir="applications/logbook/inmemory/${build}"/>
-    <delete dir="applications/logConfiguration/${build}"/>
-    <delete dir="applications/pvtable/${build}"/>
-    <delete dir="applications/pvtree/${build}"/>
-    <delete dir="phoebus-product/${build}"/>
+    <ant target="clean" dir="core/framework"/>
+    <ant target="clean" dir="core/logging"/>
+    <ant target="clean" dir="core/pv"/>
+    <ant target="clean" dir="core/types"/>
+    <ant target="clean" dir="core/ui"/>
+    <ant target="clean" dir="applications/greetings"/>
+    <ant target="clean" dir="applications/probe"/>
+    <ant target="clean" dir="applications/logbook/inmemory"/>
+    <ant target="clean" dir="applications/logConfiguration"/>
+    <ant target="clean" dir="applications/pvtree"/>
+    <ant target="clean" dir="applications/pvtable"/>
+    <ant target="clean" dir="phoebus-product"/>
   </target>
 
-  <target name="init">
+  <target name="core" description="Build core modules">
     <!-- Set ${DSTAMP} -->
     <tstamp/>
     <!--
     <echo message="App classpath: ${toString:app-classpath}"/>
     -->
+    <ant dir="core/framework"/>
+    <ant dir="core/logging"/>
+    <ant dir="core/pv"/>
+    <ant dir="core/types"/>
+    <ant dir="core/ui"/>
   </target>
 
-  <!-- The framework.jar must be built first and
-       added to the build classpath of the remaining
-       sources because ProviderForProcessor is used to process annotations.
-    -->
-  <target name="core-framework" depends="init">
-    <mkdir dir="core/framework/${classes}"/>
-    <javac srcdir="core/framework/${src}" destdir="core/framework/${classes}"/>
-    <jar destfile="core/framework/${build}/framework-${version}.jar">
-      <fileset dir="core/framework/${classes}"/>
-    </jar>
+  <target name="applications" depends="core" description="Build application modules">
+    <ant dir="applications/greetings"/>
+    <ant dir="applications/probe"/>
+    <ant dir="applications/logbook/inmemory"/>
+    <ant dir="applications/logConfiguration"/>
+    <ant dir="applications/pvtree"/>
+    <ant dir="applications/pvtable"/>
   </target>
 
-  <target name="core-logging" depends="core-framework">
-    <mkdir dir="core/logging/${classes}"/>
-    <javac srcdir="core/logging/${src}" destdir="core/logging/${classes}">
-      <classpath>
-        <pathelement path="core/framework/${build}/framework-${version}.jar"/>
-      </classpath>
-    </javac>
-    <jar destfile="core/logging/${build}/logging-${version}.jar">
-      <fileset dir="core/logging/${classes}"/>
-    </jar>
-  </target>
-
-  <target name="core-pv" depends="init">
-    <mkdir dir="core/pv/${classes}"/>
-    <javac destdir="core/pv/${classes}">
-      <src path="core/pv/${src}"/>
-      <src path="core/pv/${test}"/>
-      <classpath>
-        <fileset dir="dependencies/target/lib">
-          <include name="*.jar"/>
-        </fileset>
-      </classpath>
-    </javac>
-    <jar destfile="core/pv/${build}/pv-${version}.jar">
-      <fileset dir="core/pv/${classes}"/>
-      <fileset dir="core/pv/${resources}"/>
-    </jar>
-  </target>
-
-  <target name="core-pv-test" depends="core-pv">
-    <junit printsummary="withOutAndErr" haltonfailure="yes">
-      <classpath>
-        <fileset dir="dependencies/target/lib">
-          <include name="*.jar"/>
-        </fileset>
-        <pathelement path="core/pv/${build}/pv-${version}.jar"/>
-      </classpath>
-      <batchtest>
-      	<zipfileset src="core/pv/${build}/pv-${version}.jar" includes="**/*Test.class"/>
-      </batchtest>
-    </junit>
-  </target>
-
-  <target name="core-types" depends="core-framework, core-logging">
-    <mkdir dir="core/types/${classes}"/>
-    <javac srcdir="core/types/${src}" destdir="core/types/${classes}">
-     <classpath>
-        <pathelement path="core/framework/${build}/framework-${version}.jar"/>
-        <pathelement path="core/logging/${build}/logging-${version}.jar"/>
-      </classpath>
-    </javac>
-    <jar destfile="core/types/${build}/types-${version}.jar">
-      <fileset dir="core/types/${classes}"/>
-    </jar>
-  </target>
-
-  <target name="core-ui" depends="core-types, core-pv">
-    <mkdir dir="core/ui/${classes}"/>
-    <javac destdir="core/ui/${classes}">
-     <src path="core/ui/${src}"/>
-     <src path="core/ui/${test}"/>
-     <classpath>
-        <pathelement path="core/framework/${build}/framework-${version}.jar"/>
-        <pathelement path="core/pv/${build}/pv-${version}.jar"/>
-        <fileset dir="dependencies/target/lib">
-          <include name="*.jar"/>
-        </fileset>
-      </classpath>
-    </javac>
-    <jar destfile="core/ui/${build}/ui-${version}.jar">
-      <fileset dir="core/ui/${classes}"/>
-      <fileset dir="core/ui/${resources}"/>
-    </jar>
-  </target>
-
-  <target name="core-ui-test" depends="core-ui">
-    <junit printsummary="withOutAndErr" haltonfailure="yes">
-      <classpath>
-        <fileset dir="dependencies/target/lib">
-          <include name="*.jar"/>
-        </fileset>
-        <pathelement path="core/ui/${build}/ui-${version}.jar"/>
-      </classpath>
-      <batchtest>
-      	<zipfileset src="core/ui/${build}/ui-${version}.jar" includes="**/*Test.class"/>
-      </batchtest>
-    </junit>
-  </target>
-
-  <target name="core-ui-demo" depends="core-ui">
-    <java classname="org.phoebus.ui.docking.DockingDemo"
-          fork="true">
-      <classpath>
-        <pathelement path="core/ui/${build}/ui-${version}.jar"/>
-      </classpath>
-    </java>
-  </target>
-
-  <target name="core-all" depends="core-framework, core-logging, core-pv, core-types, core-ui">
-  </target>
-
-  <target name="core-test" depends="core-pv-test, core-ui-test">
-  </target>
-	
-  <target name="applications-greetings" depends="core-all">
-    <mkdir dir="applications/greetings/${classes}"/>
-    <javac srcdir="applications/greetings/${src}" destdir="applications/greetings/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/greetings/${build}/greetings-${version}.jar">
-      <fileset dir="applications/greetings/${classes}"/>
-      <fileset dir="applications/greetings/${src}" includes="**/*.fxml"/>
-      <fileset dir="applications/greetings/${resources}"/>
-    </jar>
-  </target>
-
-  <target name="applications-probe" depends="core-all">
-    <mkdir dir="applications/probe/${classes}"/>
-    <javac srcdir="applications/probe/${src}" destdir="applications/probe/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/probe/${build}/probe-${version}.jar">
-      <fileset dir="applications/probe/${classes}"/>
-      <fileset dir="applications/probe/${src}" includes="**/*.fxml"/>
-      <fileset dir="applications/probe/${resources}"/>
-    </jar>
-  </target>
-
-  <target name="applications-logbook" depends="core-all">
-    <mkdir dir="applications/logbook/inmemory/${classes}"/>
-    <javac srcdir="applications/logbook/inmemory/${src}" destdir="applications/logbook/inmemory/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/logbook/inmemory/${build}/inmemory-${version}.jar">
-      <fileset dir="applications/logbook/inmemory/${classes}"/>
-    </jar>
-  </target>
-
-  <target name="applications-logConfiguration" depends="core-all">
-    <mkdir dir="applications/logConfiguration/${classes}"/>
-    <javac srcdir="applications/logConfiguration/${src}" destdir="applications/logConfiguration/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/logConfiguration/${build}/logConfiguration-${version}.jar">
-      <fileset dir="applications/logConfiguration/${classes}"/>
-      <fileset dir="applications/logConfiguration/${resources}"/>
-    </jar>
-  </target>
-
-  <target name="applications-pvtable" depends="core-all">
-    <mkdir dir="applications/pvtable/${classes}"/>
-    <javac srcdir="applications/pvtable/${src}" destdir="applications/pvtable/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/pvtable/${build}/pvtable-${version}.jar">
-      <fileset dir="applications/pvtable/${classes}"/>
-      <fileset dir="applications/pvtable/${resources}"/>
-    </jar>
-  </target>
-
-  <target name="applications-pvtree" depends="core-all">
-    <mkdir dir="applications/pvtree/${classes}"/>
-    <javac srcdir="applications/pvtree/${src}" destdir="applications/pvtree/${classes}" classpathref="app-classpath"/>
-    <jar destfile="applications/pvtree/${build}/pvtree-${version}.jar">
-      <fileset dir="applications/pvtree/${classes}"/>
-      <fileset dir="applications/pvtree/${resources}"/>
-    </jar>
-  </target>
-
-
-  <target name="compile" depends="core-all, applications-greetings, applications-probe, applications-logbook, applications-logConfiguration, applications-pvtable, applications-pvtree"
-          description="Compile all sources">
-  </target>
-
-  <target name="product" depends="compile" description="Assemble product">
-    <mkdir dir="phoebus-product/${classes}"/>
-    <javac srcdir="phoebus-product/${src}" destdir="phoebus-product/${classes}" classpathref="app-classpath"/>
-
-    <!-- Assemble lib/ -->
-    <copy todir="phoebus-product/${build}/lib" flatten="true">
-      <!-- Copy all application dependencies -->
-      <path refid="app-classpath" />
-      <!-- Copy all applications -->
-      <fileset dir=".">
-        <include name="applications/**/*.jar"/>
-      </fileset>
-    </copy>
-
-    <!-- Create classpath for lib/*jar -->
-    <manifestclasspath property="manifest-classpath"
-                       jarfile="phoebus-product/${build}/product-${version}.jar">
-      <classpath>
-        <path>
-          <fileset dir="phoebus-product/${build}/lib">
-            <include name="*.jar"/>
-          </fileset>
-        </path>
-      </classpath>
-    </manifestclasspath>
-
-    <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
-
-    <jar destfile="phoebus-product/${build}/product-${version}.jar">
-      <fileset dir="phoebus-product/${classes}"/>
-      <fileset dir="phoebus-product/${resources}"/>
-      <manifest>
-        <attribute name="Main-Class" value="org.phoebus.product.Launcher" />
-        <attribute name="Class-Path" value="${manifest-classpath}" />
-      </manifest>
-    </jar>
+  <target name="product" depends="applications" description="Assemble product">
+    <ant target="product" dir="phoebus-product"/>
   </target>
 
   <target name="run" depends="product" description="Run the product">
-    <java jar="phoebus-product/${build}/product-${version}.jar"
-          fork="true">
-    </java>
+    <ant target="run" dir="phoebus-product"/>
   </target>
 </project>

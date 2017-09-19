@@ -1,1 +1,3 @@
-org.phoebus.applications.pvtree.PVTreeApplication
+org.phoebus.ui.welcome.Welcome
+org.phoebus.ui.pv.PVListApplication
+org.phoebus.ui.jobs.JobViewerApplication

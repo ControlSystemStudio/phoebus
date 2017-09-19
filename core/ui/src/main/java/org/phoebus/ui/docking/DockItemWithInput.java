@@ -9,11 +9,11 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
-import java.io.File;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.jobs.JobManager;
@@ -60,14 +60,15 @@ public class DockItemWithInput extends DockItem
      *  the 'save_handler' returns.
      *  On error, the 'save_handler' throws an exception.
      *
-     *  @param label Initial label
+     *  @param application {@link AppInstance}
      *  @param content Initial content
      *  @param input URL for the input. May be <code>null</code>
      *  @param save_handler Will be called to 'save' the content
+     *  @
      */
-    public DockItemWithInput(final String label, final Node content, final URL input, final JobRunnable save_handler)
+    public DockItemWithInput(final AppInstance application, final Node content, final URL input, final JobRunnable save_handler)
     {
-        super(label, content);
+        super(application, content);
         this.save_handler = save_handler;
         setInput(input);
 
@@ -95,25 +96,10 @@ public class DockItemWithInput extends DockItem
             name_tab.setTooltip(new Tooltip(input.toString()));
     }
 
-    /** @param file File-based input */
-    public void setInputFile(final File file) throws Exception
-    {
-        setInput(new URL("file", "", file.getCanonicalPath()));
-    }
-
     /** @return Input, which may be <code>null</code> (OK to call from any thread) */
     public URL getInput()
     {
         return input;
-    }
-
-    /** @return File for file-based input, which may be <code>null</code> (OK to call from any thread) */
-    public File getInputFile() throws Exception
-    {
-        final URL url = getInput();
-        if (url == null  ||  !url.getProtocol().equals("file"))
-            return null;
-        return new File(url.toURI());
     }
 
     /** @param dirty Updated 'dirty' state */

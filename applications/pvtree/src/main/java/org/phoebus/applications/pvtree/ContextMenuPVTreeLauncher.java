@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtree;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /** Entry for context menues that starts PV Tree for selected ProcessVariable
  *
@@ -22,12 +22,12 @@ import org.phoebus.framework.spi.ContextMenuEntry;
 @SuppressWarnings("rawtypes")
 public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariable>
 {
-    private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
+    private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
 
     @Override
     public String getName()
     {
-        return PVTreeApplication.NAME;
+        return PVTreeApplication.DISPLAY_NAME;
     }
 
     @Override
@@ -47,7 +47,10 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     {
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
-            new PVTreeApplication().openPVTreeTab().setPVName(pv.getName());
+        {
+            final PVTree tree = (PVTree) ApplicationService.findApplication(PVTreeApplication.NAME).create();
+            tree.setPVName(pv.getName());
+        }
 
         return null;
     }

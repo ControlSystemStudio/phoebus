@@ -1,0 +1,15 @@
+<project default="module-logging">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-logging">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}">
+      <classpath>
+        <pathelement path="../framework/${build}/framework-${version}.jar"/>
+      </classpath>
+    </javac>
+  	<jar destfile="${build}/logging-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+</project>

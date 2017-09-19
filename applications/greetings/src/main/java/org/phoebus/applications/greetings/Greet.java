@@ -1,42 +1,36 @@
 package org.phoebus.applications.greetings;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.TitledPane;
 
-public class Greet implements ToolbarEntry {
+@SuppressWarnings("nls")
+public class Greet implements AppInstance {
+    private final AppDescriptor app;
 
-    private static final String NAME = "Greetings";
-    private TitledPane mainLayout;
-
-    @Override
-    public String getName() {
-        return GreetingsApp.Name;
-    }
-
-    public List<String> getActionNames() {
-        return Arrays.asList(NAME);
-    }
-
-    @Override
-    public void call() throws Exception {
+    Greet(final AppDescriptor app)
+    {
+        this.app = app;
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("ui/GreetingView.fxml"));
-            mainLayout = loader.load();
-
-            final DockItem tab = new DockItem("Greetings", mainLayout);
+            final DockItem tab = new DockItem(this, loader.load());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);
         }
     }
 
+    @Override
+    public AppDescriptor getAppDescriptor()
+    {
+        return app;
+    }
 }

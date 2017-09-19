@@ -1,0 +1,16 @@
+<project default="module-types">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-types">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}">
+      <classpath>
+        <pathelement path="../framework/${build}/framework-${version}.jar"/>
+        <pathelement path="../logging/${build}/logging-${version}.jar"/>
+      </classpath>
+    </javac>
+  	<jar destfile="${build}/types-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+</project>

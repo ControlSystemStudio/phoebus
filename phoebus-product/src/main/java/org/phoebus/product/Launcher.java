@@ -3,7 +3,6 @@ package org.phoebus.product;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.LogManager;
@@ -24,10 +23,10 @@ public class Launcher
     {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
 
-        logger.info("Phoebus Launcher");
+        logger.info("Phoebus (PID " + ProcessHandle.current().pid() + ")");
 
         // Handle arguments, potentially not even starting the UI
-        final List<String> args = new ArrayList<>(Arrays.asList(original_args));
+        final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         int port = -1;
         try
@@ -109,10 +108,12 @@ public class Launcher
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                           -  This text");
-        System.out.println("-settings settings.xml          -  Import settings from file");
-        System.out.println("-export_settings settings.xml   -  Export settings to file");
-        System.out.println("-server port                    -  Create instance server on given TCP port");
+        System.out.println("-help                                   -  This text");
+        System.out.println("-settings settings.xml                  -  Import settings from file");
+        System.out.println("-export_settings settings.xml           -  Export settings to file");
+        System.out.println("-app  \"probe:?pvs?pv_name1,pv_name2\"  -  launch an application with input arguments");
+        System.out.println("-resource  /tmp/example.plt             -  open a application configuration file with the default application");
+        System.out.println("-server port                            -  Create instance server on given TCP port");
         System.out.println();
         System.out.println("Remaining arguments are names of resources to open in associated application.");
         System.out.println();

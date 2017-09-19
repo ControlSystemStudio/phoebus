@@ -8,6 +8,7 @@
 package org.phoebus.ui.pv;
 
 import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /** Menu entry that opens PV List
  *  @author Kay Kasemir
@@ -18,7 +19,7 @@ public class PVListMenuEntry implements MenuEntry
     @Override
     public String getName()
     {
-        return PVListApplication.NAME;
+        return PVListApplication.DISPLAY_NAME;
     }
 
     @Override
@@ -30,7 +31,7 @@ public class PVListMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        PVListApplication.INSTANCE.start();
+        ApplicationService.findApplication(PVListApplication.NAME).create();
         return null;
     }
 }

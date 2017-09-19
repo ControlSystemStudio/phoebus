@@ -7,7 +7,6 @@
  ******************************************************************************/
 package org.phoebus.pv.ca;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.diirt.util.array.ArrayInt;
@@ -42,7 +41,7 @@ public class VTypeForStringArray extends DBRAlarmTimeWrapper<DBR_TIME_String> im
     @Override
     public List<String> getData()
     {
-        return Arrays.asList(strings);
+        return List.of(strings);
     }
 
     @Override

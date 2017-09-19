@@ -15,6 +15,9 @@ import java.util.logging.Level;
 import org.phoebus.applications.pvtree.ui.FXTree;
 import org.phoebus.applications.pvtree.ui.Messages;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.dnd.DataFormats;
 
 import javafx.geometry.Insets;
@@ -36,10 +39,22 @@ import javafx.scene.layout.Priority;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVTree
+public class PVTree implements AppInstance
 {
+    private final AppDescriptor app;
     private final TextField pv_name = new TextField();
     private final FXTree tree = new FXTree();
+
+    PVTree(final AppDescriptor app)
+    {
+        this.app = app;
+    }
+
+    @Override
+    public AppDescriptor getAppDescriptor()
+    {
+        return app;
+    }
 
     public Node create()
     {
@@ -82,6 +97,19 @@ public class PVTree
         hookDragDrop(layout);
 
         return layout;
+    }
+
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        memento.getString("pv").ifPresent(name -> setPVName(name));
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        memento.setString("pv", getPVName());
     }
 
     private void hookDragDrop(final BorderPane layout)

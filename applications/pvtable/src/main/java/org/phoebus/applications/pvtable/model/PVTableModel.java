@@ -170,6 +170,27 @@ public class PVTableModel implements PVTableItemListener
             listener.modelChanged();
     }
 
+    /** Transfer items from other model to this one
+     *
+     *  <p>Updates from items will be lost during the transfer,
+     *  but a final 'modelChanged' event is sent to listeners
+     *  of this model.
+     *
+     *  @param other_model Model from which all items will be removed, then added into this model
+     */
+    public void transferItems(final PVTableModel other_model)
+    {
+        dispose();
+        for (PVTableItem item : other_model.items)
+        {
+            item.listener = this;
+            items.add(item);
+        }
+        other_model.items.clear();
+        for (PVTableModelListener listener : listeners)
+            listener.modelChanged();
+    }
+
     /** Invoked by timer to perform accumulated updates.
      *
      *  <p>If only one item changed, update that item. If multiple items changed,

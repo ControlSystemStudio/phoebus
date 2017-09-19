@@ -19,6 +19,7 @@ import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 
 import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 
 import javafx.beans.property.StringProperty;
 import javafx.event.Event;
@@ -117,26 +118,14 @@ public class DockItem extends Tab
     /** Called after tab was closed */
     private List<Runnable> closed_callback = null;
 
-    /** Create dock item
-     *  @param label Initial label
-     *  @param content Initial content
-     *  @deprecated
-     */
-    @Deprecated
-    public DockItem(final String label, final Node content)
-    {
-        this(label);
-        setContent(content);
-    }
-
     /** Create dock item for instance of an application
-     *  @param application {@link AppDescriptor}
+     *  @param application {@link AppInstance}
      *  @param content Content for this application instance
      */
-    public DockItem(final AppDescriptor application, final Node content)
+    public DockItem(final AppInstance applicationInstance, final Node content)
     {
-        this(application.getDisplayName());
-        getProperties().put(KEY_APPLICATION, application);
+        this(applicationInstance.getAppDescriptor().getDisplayName());
+        getProperties().put(KEY_APPLICATION, applicationInstance);
         setContent(content);
     }
 
@@ -173,10 +162,10 @@ public class DockItem extends Tab
         return (String) getProperties().get(DockStage.KEY_ID);
     }
 
-    /** @return Application descriptor of this dock item, may be <code>null</code> */
-    public AppDescriptor getApplication()
+    /** @return Application instance of this dock item, may be <code>null</code> */
+    public AppInstance getApplication()
     {
-        return (AppDescriptor) getProperties().get(KEY_APPLICATION);
+        return (AppInstance) getProperties().get(KEY_APPLICATION);
     }
 
     /** Label of this item */

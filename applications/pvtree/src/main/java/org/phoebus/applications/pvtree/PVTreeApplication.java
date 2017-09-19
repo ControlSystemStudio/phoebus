@@ -9,8 +9,8 @@ package org.phoebus.applications.pvtree;
 
 import java.util.logging.Logger;
 
-import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -22,46 +22,29 @@ public class PVTreeApplication implements AppDescriptor
 {
     public static final Logger logger = Logger.getLogger(PVTree.class.getPackageName());
 
-    public static final String NAME = "PV Tree";
+    public static final String NAME = "pv_tree";
 
-    private PVTree pv_tree;
+    public static final String DISPLAY_NAME = "PV Tree";
 
     @Override
     public String getName()
-    {
-        return "pv_tree";
-    }
-
-    @Override
-    public String getDisplayName()
     {
         return NAME;
     }
 
     @Override
-    public void open()
+    public String getDisplayName()
     {
-        openPVTreeTab();
+        return DISPLAY_NAME;
     }
 
-    PVTree openPVTreeTab()
+    @Override
+    public AppInstance create()
     {
-        pv_tree = new PVTree();
-        final DockItem tab = new DockItem(this, pv_tree.create());
+        final PVTree pv_tree = new PVTree(this);
+        final DockItem tab = new DockItem(pv_tree, pv_tree.create());
         tab.addClosedNotification(() -> pv_tree.dispose());
         DockPane.getActiveDockPane().addTab(tab);
         return pv_tree;
-    }
-
-    @Override
-    public void restore(final Memento memento)
-    {
-        memento.getString("pv").ifPresent(name -> pv_tree.setPVName(name));
-    }
-
-    @Override
-    public void save(final Memento memento)
-    {
-        memento.setString("pv", pv_tree.getPVName());
     }
 }

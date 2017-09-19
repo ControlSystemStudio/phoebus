@@ -8,15 +8,11 @@
 package org.phoebus.applications.probe;
 
 import org.phoebus.framework.spi.MenuEntry;
-import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockPane;
-
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.TitledPane;
+import org.phoebus.framework.workbench.ApplicationService;
 
 /**
  * Menu entry that starts probe
- * 
+ *
  * @author Kunal Shroff
  */
 public class ProbeMenuEntry implements MenuEntry {
@@ -27,15 +23,12 @@ public class ProbeMenuEntry implements MenuEntry {
     }
 
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     @Override
     public Void call() throws Exception {
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));
-        TitledPane mainLayout = loader.load();
-        DockPane.getActiveDockPane().addTab(new DockItem(Probe.NAME, mainLayout));
+        ApplicationService.findApplication(Probe.NAME).create();
         return null;
     }
 

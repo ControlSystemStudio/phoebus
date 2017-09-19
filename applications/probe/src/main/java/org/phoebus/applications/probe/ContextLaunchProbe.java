@@ -1,20 +1,17 @@
 package org.phoebus.applications.probe;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.phoebus.applications.probe.view.ProbeController;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockPane;
+import org.phoebus.framework.workbench.ApplicationService;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.TitledPane;
 /**
  * A prototype action entry for starting the probe application
+ *
  * @author Kunal Shroff
  *
  */
@@ -35,25 +32,17 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     private void LaunchProbe(List<ProcessVariable> pvs) {
-        try {
+        final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
 
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));
-            TitledPane mainLayout = loader.load();
-
-            if (pvs.isEmpty()) {
-                // Open an empty probe
-                DockPane.getActiveDockPane().addTab(new DockItem(Probe.NAME, mainLayout));
-            } else {
-                // Open a probe for each pv
-                pvs.forEach(pv -> {
-                	DockPane.getActiveDockPane().addTab(new DockItem(Probe.NAME, mainLayout));
-                    ProbeController controller = (ProbeController) loader.getController();
-                    controller.setPVName(pv.getName());
-                });
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (pvs.isEmpty()) {
+            // Open an empty probe
+            app.create();
+        } else {
+            // Open a probe for each pv
+            pvs.forEach(pv -> {
+                ProbeInstance probe = (ProbeInstance) app.create();
+                probe.setPV(pv.getName());
+            });
         }
     }
 

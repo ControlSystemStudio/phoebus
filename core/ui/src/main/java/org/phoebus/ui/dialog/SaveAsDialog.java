@@ -21,7 +21,15 @@ import javafx.stage.Window;
  */
 public class SaveAsDialog
 {
-    public static File promptForFile(final Window window, final String title, File file, final ExtensionFilter[] filters)
+    /** Prompt for file name
+     *
+     *  @param window Parent window for the modal dialog
+     *  @param title Title
+     *  @param file Suggested file, may be <code>null</code>
+     *  @param filters Filters, may be <code>null</code>
+     *  @return
+     */
+    public File promptForFile(final Window window, final String title, File file, final ExtensionFilter[] filters)
     {
         if (Platform.isFxApplicationThread())
             return doPromptForFile(window, title, file, filters);
@@ -46,9 +54,8 @@ public class SaveAsDialog
         }
     }
 
-    private static File doPromptForFile(final Window window, final String title, File file, final ExtensionFilter[] filters)
+    private File doPromptForFile(final Window window, final String title, File file, final ExtensionFilter[] filters)
     {
-
         final FileChooser dialog = new FileChooser();
         dialog.setTitle(title);
 
@@ -57,7 +64,13 @@ public class SaveAsDialog
             dialog.setInitialDirectory(file.getParentFile());
             dialog.setInitialFileName(file.getName());
         }
-        dialog.getExtensionFilters().addAll(filters);
+        if (filters != null)
+            dialog.getExtensionFilters().addAll(filters);
+        return doExecuteDialog(window, dialog);
+    }
+
+    protected File doExecuteDialog(final Window window, final FileChooser dialog)
+    {
         return dialog.showSaveDialog(window);
     }
 }

@@ -23,7 +23,7 @@ import java.util.logging.Level;
 public class JobMonitor
 {
     private final Job job;
-    private volatile String task = "";
+    private volatile String task = "Idle";
     private volatile int steps = -1;
     private AtomicInteger worked = new AtomicInteger(0);
     volatile boolean cancelled = false;

@@ -1,0 +1,48 @@
+<project default="module-ui">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-ui">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <pathelement path="../framework/${build}/framework-${version}.jar"/>
+        <pathelement path="../pv/${build}/pv-${version}.jar"/>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  	<jar destfile="${build}/ui-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+  <target name="test" depends="module-ui">
+    <junit printsummary="withOutAndErr" haltonfailure="yes" fork="yes">
+     <formatter type="plain"/>
+      <classpath>
+        <pathelement path="../framework/${build}/framework-${version}.jar"/>
+        <pathelement path="../pv/${build}/pv-${version}.jar"/>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${build}/ui-${version}.jar"/>
+      </classpath>
+      <batchtest todir=".">
+        <zipfileset src="${build}/ui-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+    </junit>
+  </target>
+
+  <target name="demo" depends="module-ui">
+    <java classname="org.phoebus.ui.docking.DockingDemo"
+          fork="true">
+      <classpath>
+        <pathelement path="${build}/ui-${version}.jar"/>
+      </classpath>
+    </java>
+  </target>	
+</project>

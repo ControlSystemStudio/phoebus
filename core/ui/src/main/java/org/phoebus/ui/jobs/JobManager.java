@@ -7,18 +7,16 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 /** Job Manager
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class JobManager
 {
-    private static final ExecutorService pool = Executors.newCachedThreadPool(new NamedThreadFactory("Jobs"));
     private static final ConcurrentSkipListSet<Job> active_jobs =
         new ConcurrentSkipListSet<>((job1, job2) -> System.identityHashCode(job2) - System.identityHashCode(job1));
 
@@ -29,7 +27,7 @@ public class JobManager
      */
     public static void schedule(final String name, final JobRunnable runnable)
     {
-        pool.submit(() -> execute(new Job(name, runnable)));
+        ForkJoinPool.commonPool().submit(() -> execute(new Job(name, runnable)));
     }
 
     private static Void execute(final Job job) throws Exception
@@ -46,9 +44,15 @@ public class JobManager
         return null;
     }
 
-    /** @return Currently active jobs */
-    public static Collection<Job> getJobs()
+    /** Obtain snapshot of currently running Jobs
+     *
+     *  <p>Note that the list is not updated,
+     *  need to get new list for updated information.
+     *
+     *  @return Currently active jobs
+     */
+    public static List<Job> getJobs()
     {
-        return active_jobs;
+        return new ArrayList<>(active_jobs);
     }
 }
