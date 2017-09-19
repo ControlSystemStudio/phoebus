@@ -1,5 +1,8 @@
 package org.phoebus.framework.util;
 
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -14,9 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.mapping;
-
 /**
  * A utility class for parsing user defined resources
  *
@@ -24,16 +24,15 @@ import static java.util.stream.Collectors.mapping;
  *
  */
 @SuppressWarnings("nls")
-public class ResourcePathParser {
+public class ResourceParser {
 
     /**
-     * Validates the user entered resource path and returns a {@link URL}
-     *
+     * Creates a {@link URL} for the user entered resource path.
      *
      * @param resourcePath
-     * @return
+     * @return A URL representing the a resource location
      */
-    public static URL createValidURL(String resourcePath) {
+    public static URL createResourceURL(String resourcePath) {
         URI uri = URI.create(resourcePath);
         try {
             if (uri.getScheme() != null) {
@@ -55,10 +54,20 @@ public class ResourcePathParser {
     }
 
     /**
+     * Create a URI representing the user entered app launch string
+     *
+     * @param appLaunch
+     * @return A URI representing the app and its startup arguments.
+     */
+    public static URI createAppURI(String resourcePath) {
+        URI uri = URI.create(resourcePath);
+        return uri;
+    }
+
+    /**
      * Get file for URL
      *
-     * @param url
-     *            {@link URL}
+     * @param url {@link URL}
      * @return {@link File} if URL represents a file, otherwise <code>null</code>
      */
     public static File getFile(final URL url) throws Exception {
@@ -68,27 +77,57 @@ public class ResourcePathParser {
     }
 
     /**
-     * @param file
-     *            {@link File}
+     * @param file {@link File}
      * @return {@link URL} for that file
      */
     public static URL getURL(final File file) {
-        return createValidURL(file.getAbsolutePath());
+        return createResourceURL(file.getAbsolutePath());
     }
 
     /**
+     * Parse the app name from the given resource string
      * 
-     * @param url
-     * @return
+     * @return String app name
      */
-    public static Map<String, List<String>> splitQuery(URL url) {
+    public static String parseAppName(String resource) {
+        return parseAppName(createAppURI(resource));
+    }
+
+    /**
+     * Parse the app name from the given resource URL
+     * 
+     * @return String app name
+     */
+    public static String parseAppName(URI resource) {
+        return resource.getPath();
+    }
+
+    /**
+     * Parse the query segment of a URI and return a {@link Map}
+     * 
+     * @param uri resource path URI
+     * @return {@link Map} a map of all the query parameters
+     */
+    public static Map<String, List<String>> parseQueryArgs(URI uri) {
+        if (uri.getQuery() == null || uri.getQuery().isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return Arrays.stream(uri.getQuery().split("&")).map(ResourceParser::splitQueryParameter).collect(Collectors
+                .groupingBy(SimpleImmutableEntry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
+    }
+    
+    /**
+     * Parse the query segment of a URL and return a {@link Map}
+     * 
+     * @param url resource path URL
+     * @return {@link Map} a map of all the query parameters
+     */
+    public static Map<String, List<String>> parseQueryArgs(URL url) {
         if (url.getQuery() == null || url.getQuery().isEmpty()) {
             return Collections.emptyMap();
         }
-        return Arrays.stream(url.getQuery().split("&"))
-                .map(ResourcePathParser::splitQueryParameter)
-                .collect(Collectors.groupingBy
-                        (SimpleImmutableEntry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
+        return Arrays.stream(url.getQuery().split("&")).map(ResourceParser::splitQueryParameter).collect(Collectors
+                .groupingBy(SimpleImmutableEntry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
     }
 
     private static SimpleImmutableEntry<String, String> splitQueryParameter(String it) {

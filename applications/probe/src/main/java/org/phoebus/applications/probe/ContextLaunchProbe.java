@@ -34,8 +34,6 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     private void LaunchProbe(List<ProcessVariable> pvs) {
         final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
 
-
-
         if (pvs.isEmpty()) {
             // Open an empty probe
             app.create();

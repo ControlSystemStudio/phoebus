@@ -17,6 +17,7 @@ import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
@@ -91,7 +92,7 @@ public class PhoebusApplication extends Application {
 
         List<String> parameters = getParameters().getRaw();
         // List of applications to launch as specified via cmd line args
-        List<String> launchApplication = new ArrayList<String>();
+        List<String> launchApps = new ArrayList<String>();
         // List of resources to launch as specified via cmd line args
         List<String> launchResources = new ArrayList<String>();
         Iterator<String> parametersIterator = parameters.iterator();
@@ -103,7 +104,7 @@ public class PhoebusApplication extends Application {
                 // parametersIterator.remove();
                 final String filename = parametersIterator.next();
                 // parametersIterator.remove();
-                launchApplication.add(filename);
+                launchApps.add(filename);
             } else if (cmd.equals("-resource")) {
                 if (!parametersIterator.hasNext())
                     throw new Exception("Missing -resource resource file name");
@@ -121,8 +122,8 @@ public class PhoebusApplication extends Application {
             openResource(resource);
 
         // Handle requests to open resource from command line
-        for (String app : launchApplication)
-            launchApp(app);
+        for (String appLaunchString : launchApps)
+            launchApp(appLaunchString);
 
         // In 'server' mode, handle received requests to open resources
         ApplicationServer.setOnReceivedArgument(this::openResource);
@@ -287,16 +288,27 @@ public class PhoebusApplication extends Application {
     /**
      * Launch applications with
      *
-     * @param app application launch string received as command line argument
+     * @param appLaunchString
+     *            application launch string received as command line argument which
+     *            contains the app name and the arguments that the applications
+     *            should be launched with , this has to be in the format of a valid
+     *            URL. e.g. probe?pv=sim://noise&pv=sim://ramp
      */
-    private void launchApp(final String name) {
-        final AppDescriptor app = ApplicationService.findApplication(name);
+    private void launchApp(final String appLaunchString) {
+        String appName = ResourceParser.parseAppName(appLaunchString);
+        final AppDescriptor app = ApplicationService.findApplication(appName);
         if (app == null)
         {
-            logger.log(Level.SEVERE, "Unknown application '" + name + "'");
+            logger.log(Level.SEVERE, "Unknown application '" + appName + "'");
             return;
         }
-        app.create();
+        if (app instanceof AppResourceDescriptor) 
+        {
+            ((AppResourceDescriptor)app).create(appLaunchString);
+        } else 
+        {
+            app.create();
+        }
     }
 
     /** Restore stages from memento

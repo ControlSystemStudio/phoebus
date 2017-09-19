@@ -15,9 +15,12 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.framework.util.ResourcePathParser;
+import org.phoebus.framework.util.ResourceParser;
 
 /**
+ * A service to discover, register, and invoke apps which handle resources.
+ * {@link AppResourceDescriptor}
+ * 
  * @author Kunal Shroff
  *
  */
@@ -48,21 +51,19 @@ public class ResourceHandlerService {
     }
 
     /**
-     * Find applications for a resource
+     * Find applications for this resource string 
      * 
-     * @param resource
-     *            String resource
+     * @param resource String resource
      * @return List of Applications that can open this resource
      */
     public static List<AppResourceDescriptor> getApplications(String resource) {
-        return getApplications(ResourcePathParser.createValidURL(resource));
+        return getApplications(ResourceParser.createResourceURL(resource));
     }
 
     /**
-     * Find applications for a resource
+     * Find applications for this resource URL
      * 
-     * @param resource
-     *            URI to resource
+     * @param resource URL to describing the application and the associated resources to be launched using it
      * @return List of Applications that can open this resource
      */
     public static List<AppResourceDescriptor> getApplications(URL resource) {

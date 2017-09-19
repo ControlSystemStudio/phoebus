@@ -22,7 +22,7 @@ import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.ui.PVTable;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.framework.util.ResourcePathParser;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -98,7 +98,7 @@ public class PVTableInstance implements AppInstance
         {
             try
             {
-                final URL input = ResourcePathParser.createValidURL(resource);
+                final URL input = ResourceParser.createResourceURL(resource);
                 final PVTableModel model = new PVTableModel();
                 PVTablePersistence.forFilename(input.toString()).read(model, input.openStream());
 
@@ -121,14 +121,14 @@ public class PVTableInstance implements AppInstance
 
     private void doSave(final JobMonitor monitor) throws Exception
     {
-        File file = ResourcePathParser.getFile(dock_item.getInput());
+        File file = ResourceParser.getFile(dock_item.getInput());
         if (file == null)
         {
             file = new SaveAsDialog().promptForFile(dock_item.getTabPane().getScene().getWindow(), "Save PV Table", null, PVTableApplication.file_extensions);
             if (file == null)
                 return;
         }
-        dock_item.setInput(ResourcePathParser.getURL(file));
+        dock_item.setInput(ResourceParser.getURL(file));
         try
         (
             final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
