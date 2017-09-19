@@ -1,6 +1,6 @@
 package org.phoebus.applications.probe;
 
-import static org.phoebus.framework.util.ResourceParser.createResourceURL;
+import static org.phoebus.framework.util.ResourceParser.createAppURI;
 import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 
 import java.util.Collections;
@@ -20,11 +20,18 @@ import org.phoebus.ui.docking.DockPane;
  */
 public class Probe implements AppResourceDescriptor {
 
-    public static final String NAME = "Probe";
+    public static final String NAME = "probe";
+    public static final String DISPLAYNAME = "Probe";
     public static final String PVARG = "pv";
 
+    @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return DISPLAYNAME;
     }
 
     public void start() {
@@ -44,7 +51,7 @@ public class Probe implements AppResourceDescriptor {
     public AppInstance create(String resource) {
         final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
 
-        Map<String, List<String>> args = parseQueryArgs(createResourceURL(resource));
+        Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
         List<String> pvs = args.getOrDefault(PVARG, Collections.emptyList());
         if (pvs.isEmpty()) {
             // Open an empty probe
@@ -56,6 +63,7 @@ public class Probe implements AppResourceDescriptor {
                 probe.setPV(pv);
             });
         }
+        // TODO what should be returned when multiple instances are opened.
         return null;
     }
 
