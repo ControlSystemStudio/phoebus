@@ -96,22 +96,24 @@ public class PhoebusApplication extends Application {
      */
     private void backgroundStartup(final JobMonitor monitor, final Splash splash)
     {
-        monitor.beginTask("Start Applications", 300);
+        // Assume there's 100 percent of work do to,
+        // not knowing, yet, how many applications to start etc.
+        monitor.beginTask("Start Applications", 100);
 
-        // Locate registered applications and start them
-        startApplications(new SubJobMonitor(monitor, 100));
+        // Locate registered applications and start them, allocating 30% to that
+        startApplications(new SubJobMonitor(monitor, 30));
 
-        // Load saved state (slow file access) off UI thread
+        // Load saved state (slow file access) off UI thread, allocating 30% to that
         monitor.beginTask("Load saved state");
-        final MementoTree memento = loadMemento(new SubJobMonitor(monitor, 100));
+        final MementoTree memento = loadMemento(new SubJobMonitor(monitor, 30));
 
         // Back to UI thread
-        monitor.updateTaskName("Start UI");
         Platform.runLater(() ->
         {
             try
             {
-                startUI(memento);
+                // Leaving remaining 40% to the UI startup
+                startUI(memento, new SubJobMonitor(monitor, 40));
             }
             catch (Throwable ex)
             {
@@ -122,8 +124,10 @@ public class PhoebusApplication extends Application {
         });
     }
 
-    private void startUI(final MementoTree memento) throws Exception
+    private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception
     {
+        monitor.beginTask("Start UI", 4);
+
         final Stage main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
         final ToolBar toolBar = createToolbar();
@@ -142,14 +146,19 @@ public class PhoebusApplication extends Application {
         // But restoreState will only find ID_MAIN when the window is visible
         // --> Do show it.
         main_stage.show();
+        monitor.worked(1);
 
         // If there's nothing to restore from a previous instance,
         // start with welcome
+        monitor.updateTaskName("Restore tabs");
         if (! restoreState(memento))
             new Welcome().create();
+        monitor.worked(1);
 
         // Check command line parameters
+        monitor.updateTaskName("Handle command line parameters");
         handleParameters(getParameters().getRaw());
+        monitor.worked(1);
 
         // In 'server' mode, handle parameters received from client instances
         ApplicationServer.setOnReceivedArgument(this::handleClientParameters);
@@ -167,6 +176,7 @@ public class PhoebusApplication extends Application {
         });
 
         DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
+        monitor.done();
     }
 
     /** Handle parameters from clients, logging errors
