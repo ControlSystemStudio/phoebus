@@ -46,6 +46,10 @@
     <ant target="product" dir="phoebus-product"/>
   </target>
 
+  <target name="dist" depends="applications" description="Pack for distribution">
+    <ant target="dist" dir="phoebus-product"/>
+  </target>
+
   <target name="run" depends="product" description="Run the product">
     <ant target="run" dir="phoebus-product"/>
   </target>

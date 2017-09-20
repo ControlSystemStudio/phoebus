@@ -39,6 +39,13 @@
     </jar>
   </target>
 
+  <target name="dist" depends="product" description="Pack for distribution">
+    <zip destfile="${build}/phoebus-${version}.zip">
+      <zipfileset dir="${build}" includes="**/*.jar" prefix="phoebus-${version}"/>
+      <zipfileset dir="." includes="phoebus.sh" fullpath="phoebus-${version}/phoebus.sh" filemode="755"/>
+    </zip>
+  </target>
+
   <target name="run" depends="product" description="Run the product">
     <java jar="${build}/product-${version}.jar"
 	          fork="true">
