@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.ApplicationServer;
 import org.phoebus.ui.application.PhoebusApplication;
@@ -75,9 +77,20 @@ public class Launcher
                 {
                     iter.remove();
                     final Collection<AppDescriptor> apps = ApplicationService.getApplications();
-                    System.out.format("Name                 Description\n");
+                    System.out.format("Name                 Description          File Extensions\n");
                     for (AppDescriptor app : apps)
-                        System.out.format("%-20s %s\n", "'" + app.getName() + "'", app.getDisplayName());
+                    {
+                        if (app instanceof AppResourceDescriptor)
+                        {
+                            final AppResourceDescriptor app_res = (AppResourceDescriptor) app;
+                            System.out.format("%-20s %-20s %s\n",
+                                              "'" + app.getName() + "'",
+                                              app.getDisplayName(),
+                                              app_res.supportedFileExtentions().stream().collect(Collectors.joining(", ")));
+                        }
+                        else
+                            System.out.format("%-20s %s\n", "'" + app.getName() + "'", app.getDisplayName());
+                    }
                     return;
                 }
             }
