@@ -111,11 +111,9 @@ public class Launcher
         System.out.println("-help                                   -  This text");
         System.out.println("-settings settings.xml                  -  Import settings from file");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
-        System.out.println("-app  \"probe?pv=pv_name1&pv=pv_name2\" -  launch an application with input arguments");
-        System.out.println("-resource  /tmp/example.plt             -  open a application configuration file with the default application");
+        System.out.println("-app \"probe?pv=pv_name1&pv=pv_name2\"    -  Launch an application with input arguments");
+        System.out.println("-resource  /tmp/example.plt             -  Open an application configuration file with the default application");
         System.out.println("-server port                            -  Create instance server on given TCP port");
-        System.out.println();
-        System.out.println("Remaining arguments are names of resources to open in associated application.");
         System.out.println();
         System.out.println("In 'server' mode, first instance opens UI.");
         System.out.println("Additional calls to open resources are then forwarded to the initial instance.");

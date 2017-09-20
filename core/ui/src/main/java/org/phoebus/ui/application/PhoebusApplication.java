@@ -28,9 +28,12 @@ import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.jobs.JobManager;
+import org.phoebus.ui.jobs.JobMonitor;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -68,28 +71,73 @@ public class PhoebusApplication extends Application {
     /** Menu item to show/hide tabs */
     private CheckMenuItem show_tabs;
 
+    /** JavaFX entry point
+     *  @param initial_stage Initial Stage created by JavaFX
+     */
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(final Stage initial_stage) throws Exception {
+        // Show splash screen as soon as possible..
+        final Splash splash = new Splash(initial_stage);
 
-        final MenuBar menuBar = createMenu(stage);
+        // .. then read saved state etc. in background job
+        JobManager.schedule("Startup", monitor -> backgroundStartup(monitor, splash));
+    }
+
+    /** Perform potentially slow startup task off the UI thread
+     *  @param monitor
+     *  @param splash
+     *  @throws Exception
+     */
+    private void backgroundStartup(final JobMonitor monitor, final Splash splash)
+    {
+        // Locate registered applications and start them
+        startApplications();
+
+        // Load saved state (slow file access) off UI thread
+        final MementoTree memento = loadMemento();
+
+        // Back to UI thread
+        Platform.runLater(() ->
+        {
+            try
+            {
+                startUI(memento);
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.SEVERE, "Application cannot start up", ex);
+            }
+            splash.close();
+        });
+    }
+
+    private void startUI(final MementoTree memento) throws Exception
+    {
+        final Stage main_stage = new Stage();
+        final MenuBar menuBar = createMenu(main_stage);
         final ToolBar toolBar = createToolbar();
 
-        DockStage.configureStage(stage);
+        DockStage.configureStage(main_stage);
         // Patch ID of main window
         // (in case we ever need to identify the main window)
-        stage.getProperties().put(DockStage.KEY_ID, DockStage.ID_MAIN);
+        main_stage.getProperties().put(DockStage.KEY_ID, DockStage.ID_MAIN);
 
-        final BorderPane layout = DockStage.getLayout(stage);
+        final BorderPane layout = DockStage.getLayout(main_stage);
         layout.setTop(new VBox(menuBar, toolBar));
         layout.setBottom(new Label("Status Bar..."));
 
-        stage.show();
+        // Main stage may still be moved, resized, and restored apps are added.
+        // --> Would be nice to _not_ show it, yet.
+        // But restoreState will only find ID_MAIN when the window is visible
+        // --> Do show it.
+        main_stage.show();
 
         // If there's nothing to restore from a previous instance,
         // start with welcome
-        if (! restoreState())
+        if (! restoreState(memento))
             new Welcome().create();
 
+        // Check command line parameters
         List<String> parameters = getParameters().getRaw();
         // List of applications to launch as specified via cmd line args
         List<String> launchApps = new ArrayList<String>();
@@ -101,21 +149,15 @@ public class PhoebusApplication extends Application {
             if (cmd.equals("-app")) {
                 if (!parametersIterator.hasNext())
                     throw new Exception("Missing -app application name");
-                // parametersIterator.remove();
                 final String filename = parametersIterator.next();
-                // parametersIterator.remove();
                 launchApps.add(filename);
             } else if (cmd.equals("-resource")) {
                 if (!parametersIterator.hasNext())
                     throw new Exception("Missing -resource resource file name");
-                // parametersIterator.remove();
                 final String filename = parametersIterator.next();
-                // parametersIterator.remove();
                 launchResources.add(filename);
             }
         }
-
-        startApplications();
 
         // Handle requests to open resource from command line
         for (String resource : launchResources)
@@ -133,14 +175,14 @@ public class PhoebusApplication extends Application {
         // If there are other stages still open,
         // closing them all might be unexpected to the user,
         // so prompt for confirmation.
-        stage.setOnCloseRequest(event -> {
-            if (closeMainStage(stage))
+        main_stage.setOnCloseRequest(event -> {
+            if (closeMainStage(main_stage))
                 stop();
             // Else: At least one tab in one stage didn't want to close
             event.consume();
         });
 
-        DockPane.setActiveDockPane(DockStage.getDockPane(stage));
+        DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
     }
 
     private MenuBar createMenu(final Stage stage) {
@@ -312,31 +354,48 @@ public class PhoebusApplication extends Application {
         }
     }
 
+    /** @return Memento for previously persisted state or <code>null</code> */
+    private MementoTree loadMemento()
+    {
+        final File memfile = XMLMementoTree.getDefaultFile();
+        try
+        {
+            if (memfile.canRead())
+            {
+                logger.log(Level.INFO, "Loading state from " + memfile);
+                return XMLMementoTree.read(new FileInputStream(memfile));
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Error restoring saved state from " + memfile, ex);
+        }
+        return null;
+    }
+
     /** Restore stages from memento
      *  @return <code>true</code> if any tab was restored
      */
-    private boolean restoreState() {
+    private boolean restoreState(final MementoTree memento) {
         boolean any = false;
 
-        final File memfile = XMLMementoTree.getDefaultFile();
-        if (!memfile.canRead())
+        if (memento == null)
             return any;
 
-
         try {
-            logger.log(Level.INFO, "Loading state from " + memfile);
-            final MementoTree memento = XMLMementoTree.read(new FileInputStream(memfile));
-
+            // Global settings
             memento.getBoolean(SHOW_TABS).ifPresent(show ->
             {
                 DockPane.alwaysShowTabs(show);
                 show_tabs.setSelected(show);
             });
 
+            // Settings for each stage
             for (MementoTree stage_memento : memento.getChildren()) {
                 final String id = stage_memento.getName();
                 Stage stage = DockStage.getDockStageByID(id);
-                if (stage == null) { // Create new Stage with that ID
+                if (stage == null) {
+                    // Create new Stage with that ID
                     stage = new Stage();
                     DockStage.configureStage(stage);
                     stage.getProperties().put(DockStage.KEY_ID, id);
@@ -346,7 +405,7 @@ public class PhoebusApplication extends Application {
                 any |= MementoHelper.restoreStage(stage_memento, stage);
             }
         } catch (Throwable ex) {
-            logger.log(Level.WARNING, "Error restoring saved state from " + memfile, ex);
+            logger.log(Level.WARNING, "Error restoring saved state", ex);
         }
         return any;
     }
