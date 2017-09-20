@@ -48,7 +48,10 @@ public class Splash
     public Splash(final Stage stage)
     {
         this.stage = stage;
-        stage.initStyle(StageStyle.TRANSPARENT);
+        stage.initStyle(StageStyle.UNDECORATED);
+        // Should keep the stage on top,
+        // but doesn't always work,
+        // so calling toFront() below whenever updating
         stage.setAlwaysOnTop(true);
         stage.setTitle("Phoebus");
 
@@ -83,6 +86,7 @@ public class Splash
         Platform.runLater(() ->
         {
             this.progress.setProgress(progress);
+            stage.toFront();
         });
     }
 
@@ -92,6 +96,7 @@ public class Splash
         Platform.runLater(() ->
         {
             this.status.setText(status);
+            stage.toFront();
         });
     }
 
