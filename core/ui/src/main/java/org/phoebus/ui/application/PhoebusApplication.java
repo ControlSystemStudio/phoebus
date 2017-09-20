@@ -138,12 +138,52 @@ public class PhoebusApplication extends Application {
             new Welcome().create();
 
         // Check command line parameters
-        List<String> parameters = getParameters().getRaw();
+        handleParameters(getParameters().getRaw());
+
+        // In 'server' mode, handle parameters received from client instances
+        ApplicationServer.setOnReceivedArgument(this::handleClientParameters);
+
+        // Closing the primary window is like calling File/Exit.
+        // When the primary window is the only open stage, that's OK.
+        // If there are other stages still open,
+        // closing them all might be unexpected to the user,
+        // so prompt for confirmation.
+        main_stage.setOnCloseRequest(event -> {
+            if (closeMainStage(main_stage))
+                stop();
+            // Else: At least one tab in one stage didn't want to close
+            event.consume();
+        });
+
+        DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
+    }
+
+    /** Handle parameters from clients, logging errors
+     *  @param parameters Command-line parameters from client
+     */
+    private void handleClientParameters(final List<String> parameters)
+    {
+        try
+        {
+            handleParameters(parameters);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot handle client parameters " + parameters, ex);
+        }
+    }
+
+    /** Handle command line parameters
+     *  @param parameters Command-line parameters
+     *  @throws Exception on error
+     */
+    private void handleParameters(final List<String> parameters) throws Exception
+    {
         // List of applications to launch as specified via cmd line args
-        List<String> launchApps = new ArrayList<String>();
+        final List<String> launchApps = new ArrayList<String>();
         // List of resources to launch as specified via cmd line args
-        List<String> launchResources = new ArrayList<String>();
-        Iterator<String> parametersIterator = parameters.iterator();
+        final List<String> launchResources = new ArrayList<String>();
+        final Iterator<String> parametersIterator = parameters.iterator();
         while (parametersIterator.hasNext()) {
             final String cmd = parametersIterator.next();
             if (cmd.equals("-app")) {
@@ -159,30 +199,18 @@ public class PhoebusApplication extends Application {
             }
         }
 
-        // Handle requests to open resource from command line
-        for (String resource : launchResources)
-            openResource(resource);
+        // May have been invoked from background thread,
+        // but application UIs need to open on UI thread
+        Platform.runLater(() ->
+        {
+            // Handle requests to open resource from command line
+            for (String resource : launchResources)
+                openResource(resource);
 
-        // Handle requests to open resource from command line
-        for (String appLaunchString : launchApps)
-            launchApp(appLaunchString);
-
-        // In 'server' mode, handle received requests to open resources
-        ApplicationServer.setOnReceivedArgument(this::openResource);
-
-        // Closing the primary window is like calling File/Exit.
-        // When the primary window is the only open stage, that's OK.
-        // If there are other stages still open,
-        // closing them all might be unexpected to the user,
-        // so prompt for confirmation.
-        main_stage.setOnCloseRequest(event -> {
-            if (closeMainStage(main_stage))
-                stop();
-            // Else: At least one tab in one stage didn't want to close
-            event.consume();
+            // Handle requests to open resource from command line
+            for (String appLaunchString : launchApps)
+                launchApp(appLaunchString);
         });
-
-        DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
     }
 
     private MenuBar createMenu(final Stage stage) {
