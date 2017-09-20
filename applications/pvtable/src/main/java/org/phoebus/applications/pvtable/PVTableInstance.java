@@ -99,6 +99,7 @@ public class PVTableInstance implements AppInstance
             try
             {
                 final URL input = ResourceParser.createResourceURL(resource);
+                monitor.updateTaskName("Load " + input);
                 final PVTableModel model = new PVTableModel();
                 PVTablePersistence.forFilename(input.toString()).read(model, input.openStream());
 
