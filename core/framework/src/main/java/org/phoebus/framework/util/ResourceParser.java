@@ -26,6 +26,12 @@ import java.util.stream.Collectors;
 @SuppressWarnings("nls")
 public class ResourceParser {
 
+    /** Resource query key for PV names */
+    public static final String PV_ARG = "pv";
+
+    /** Resource query key for file names */
+    public static final String FILE_ARG = "file";
+
     /**
      * Creates a {@link URL} for the user entered resource path.
      *
@@ -86,7 +92,7 @@ public class ResourceParser {
 
     /**
      * Parse the app name from the given resource string
-     * 
+     *
      * @return String app name
      */
     public static String parseAppName(String resource) {
@@ -95,7 +101,7 @@ public class ResourceParser {
 
     /**
      * Parse the app name from the given resource URL
-     * 
+     *
      * @return String app name
      */
     public static String parseAppName(URI resource) {
@@ -104,7 +110,7 @@ public class ResourceParser {
 
     /**
      * Parse the query segment of a URI and return a {@link Map}
-     * 
+     *
      * @param uri resource path URI
      * @return {@link Map} a map of all the query parameters
      */
@@ -115,10 +121,10 @@ public class ResourceParser {
         return Arrays.stream(uri.getQuery().split("&")).map(ResourceParser::splitQueryParameter).collect(Collectors
                 .groupingBy(SimpleImmutableEntry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
     }
-    
+
     /**
      * Parse the query segment of a URL and return a {@link Map}
-     * 
+     *
      * @param url resource path URL
      * @return {@link Map} a map of all the query parameters
      */

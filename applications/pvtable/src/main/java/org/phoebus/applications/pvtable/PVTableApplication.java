@@ -7,12 +7,17 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
+import static org.phoebus.framework.util.ResourceParser.createAppURI;
+import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
+
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -63,8 +68,32 @@ public class PVTableApplication implements AppResourceDescriptor
     @Override
     public PVTableInstance create(final String resource)
     {
-        final PVTableInstance instance = create();
-        instance.loadResource(resource);
+        PVTableInstance instance = null;
+
+        // Handles
+        // -app pv_table
+        // -app pv_table?pv=a&pv=b
+        // -app pv_table?file=/some/file
+        // but no mix of pv and file argument in one call
+        final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
+        final List<String> pvs = args.get(ResourceParser.PV_ARG);
+        final List<String> files = args.get(ResourceParser.FILE_ARG);
+        if (pvs != null)
+        {
+            instance = create();
+            for (String pv : pvs)
+                instance.getModel().addItem(pv);
+        }
+        else if (files != null)
+        {
+            for (String file : files)
+            {
+                instance = create();
+                instance.loadResource(file);
+            }
+        }
+        else
+            instance = create();
         return instance;
     }
 
