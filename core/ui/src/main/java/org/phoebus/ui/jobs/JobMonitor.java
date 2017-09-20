@@ -7,11 +7,6 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
-import static org.phoebus.ui.application.PhoebusApplication.logger;
-
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-
 /** Job monitor
  *
  *  <p>Each {@link Job} executes with a job monitor
@@ -19,71 +14,58 @@ import java.util.logging.Level;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
-public class JobMonitor
+public interface JobMonitor
 {
-    private final Job job;
-    private volatile String task = "Idle";
-    private volatile int steps = -1;
-    private AtomicInteger worked = new AtomicInteger(0);
-    volatile boolean cancelled = false;
-
-    JobMonitor(final Job job)
-    {
-        this.job = job;
-    }
-
-    /** Indicate a new (sub) task
+    /** Indicate a new task with indeterminate number of steps
      *  @param task_name Name of the task
      */
-    public void beginTask(final String task_name)
-    {
-        beginTask(task_name, -1);
-    }
+    public void beginTask(final String task_name);
 
-    /** Indicate a new (sub) task with a known number of steps
+    /** Indicate a new task with a known number of steps
      *  @param task_name Name of the task
      *  @param steps Number of steps in task
      */
-    public void beginTask(final String task_name, final int steps)
-    {
-        task = task_name;
-        this.steps = steps;
-        logger.log(Level.INFO, job.toString());
-    }
+    public void beginTask(final String task_name, final int steps);
+
+    /** Update task name
+     *
+     *  <p>Changes the task name without affecting the progress count,
+     *  i.e. NOT starting a new step counter.
+     *
+     *  @param task_name Name of the task
+     */
+    public void updateTaskName(final String task_name);
 
     /** Indicate completion of steps
+     *
+     *  <p>Should only be called after {@link #beginTask(String, int)}
+     *
      *  @param steps Number of steps completed
      */
-    public void worked(final int steps)
-    {
-        worked.addAndGet(steps);
-        logger.log(Level.INFO, job.toString());
-    }
+    public void worked(final int steps);
 
-    // Called by Job on successful completion
-    void done()
-    {
-        task = "Finished";
-        steps = -1;
-        logger.log(Level.INFO, job.toString());
-    }
+    /** Get percentage of work completed
+     *
+     *  <p>Only meaningful for jobs that call
+     *  {@link #beginTask(String, int)}
+     *  and {@link #worked(int)},
+     *  will otherwise return -1 until
+     *  the job completes, whereupon it returns 100.
+     *
+     * @return Percentage 0 .. 100 or -1 for indeterminate
+     */
+    public int getPercentage();
 
     /** Well-behaved long running jobs check for cancellation
      *  @return Has the job been asked to cancel execution?
      */
-    public boolean isCancelled()
-    {
-        return cancelled;
-    }
+    public boolean isCancelled();
 
-    @Override
-    public String toString()
-    {
-        if (cancelled)
-            return task + " - Cancelled";
-        if (steps > 0)
-            return task + " (" + worked.get() + "/" + steps + ")";
-        return task;
-    }
+    /** Indicate that the job has completed.
+     *
+     *  <p>The {@link JobManager} will automatically
+     *  call this when the Job runnable returns.
+     */
+    public void done();
+
 }

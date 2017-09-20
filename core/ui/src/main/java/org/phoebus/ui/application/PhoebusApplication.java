@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
+import org.phoebus.ui.jobs.SubJobMonitor;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
@@ -80,7 +82,11 @@ public class PhoebusApplication extends Application {
         final Splash splash = new Splash(initial_stage);
 
         // .. then read saved state etc. in background job
-        JobManager.schedule("Startup", monitor -> backgroundStartup(monitor, splash));
+        JobManager.schedule("Startup", monitor ->
+        {
+            final JobMonitor splash_monitor = new SplashJobMonitor(monitor, splash);
+            backgroundStartup(splash_monitor, splash);
+        });
     }
 
     /** Perform potentially slow startup task off the UI thread
@@ -90,13 +96,17 @@ public class PhoebusApplication extends Application {
      */
     private void backgroundStartup(final JobMonitor monitor, final Splash splash)
     {
+        monitor.beginTask("Start Applications", 300);
+
         // Locate registered applications and start them
-        startApplications();
+        startApplications(new SubJobMonitor(monitor, 100));
 
         // Load saved state (slow file access) off UI thread
-        final MementoTree memento = loadMemento();
+        monitor.beginTask("Load saved state");
+        final MementoTree memento = loadMemento(new SubJobMonitor(monitor, 100));
 
         // Back to UI thread
+        monitor.updateTaskName("Start UI");
         Platform.runLater(() ->
         {
             try
@@ -107,6 +117,7 @@ public class PhoebusApplication extends Application {
             {
                 logger.log(Level.SEVERE, "Application cannot start up", ex);
             }
+            monitor.done();
             splash.close();
         });
     }
@@ -382,9 +393,11 @@ public class PhoebusApplication extends Application {
         }
     }
 
-    /** @return Memento for previously persisted state or <code>null</code> */
-    private MementoTree loadMemento()
+    /** @param monitor
+     *  @return Memento for previously persisted state or <code>null</code> */
+    private MementoTree loadMemento(final JobMonitor monitor)
     {
+        monitor.beginTask("Load persisted state", 1);
         final File memfile = XMLMementoTree.getDefaultFile();
         try
         {
@@ -397,6 +410,10 @@ public class PhoebusApplication extends Application {
         catch (Exception ex)
         {
             logger.log(Level.SEVERE, "Error restoring saved state from " + memfile, ex);
+        }
+        finally
+        {
+            monitor.done();
         }
         return null;
     }
@@ -529,11 +546,21 @@ public class PhoebusApplication extends Application {
 
     /**
      * Start all applications
+     * @param monitor
      */
-    private void startApplications()
+    private void startApplications(final JobMonitor monitor)
     {
-        for (AppDescriptor app : ApplicationService.getApplications())
+        final Collection<AppDescriptor> apps = ApplicationService.getApplications();
+        monitor.beginTask("Start applications", apps.size());
+        for (AppDescriptor app : apps)
+        {
+            monitor.updateTaskName("Starting " + app.getDisplayName());
             app.start();
+            monitor.worked(1);
+
+            // TODO Remove dummy delay
+            try { Thread.sleep(100); } catch (InterruptedException ex) {}
+        }
     }
 
     /**
