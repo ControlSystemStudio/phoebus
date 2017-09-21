@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /** Server for an application instance
  *
@@ -37,8 +38,22 @@ import java.util.logging.Level;
  *  without opening yet another top-level UI.
  *
  *  <p>External tools can connect to the server
- *  via `telnet` or `nc`, simply sending each argument
- *  as a line separated by '\n'.
+ *  via `telnet` or `nc`, simply sending arguments
+ *  as one line, ending in '\n'.
+ *  Parameters on that line are separated by '|'.
+ *  Example:
+ *  "-app|pv_tree?pv=some_pv\n".
+ *
+ *  XXX The serialization of parameters may change.
+ *  The format
+ *     "parm|parm|parm\n"
+ *  does not allow for '|' within an argument.
+ *  Acceptable as long as parameters are limited
+ *  to application names, PV names, file names.
+ *  If this needs to change, details almost remain
+ *  inside decodeArguments() and decodeArguments(),
+ *  except external tools that send arguments to the server
+ *  will also need to be updated.
  *
  *  @author Kay Kasemir
  */
@@ -55,7 +70,7 @@ public class ApplicationServer
 
     private CompletionHandler<AsynchronousSocketChannel, Void> client_handler;
 
-    private volatile Consumer<String> argument_handler = arg -> logger.log(Level.WARNING, "No argument handler installed to handle " + arg);
+    private volatile Consumer<List<String>> argument_handler = args -> logger.log(Level.WARNING, "No argument handler installed to handle " + args);
 
 
     /** Create the application server instance
@@ -78,7 +93,7 @@ public class ApplicationServer
     }
 
     /** @param argument_handler Handler to invoke for arguments received from clients */
-    public static void setOnReceivedArgument(final Consumer<String> argument_handler)
+    public static void setOnReceivedArgument(final Consumer<List<String>> argument_handler)
     {
         if (instance != null)
             instance.argument_handler = argument_handler;
@@ -190,7 +205,9 @@ public class ApplicationServer
         while (sep >= 0)
         {
             final String line = text.substring(0,  sep);
-            argument_handler.accept(line);
+            final List<String> args = List.of(line.split("\\|"));
+            logger.log(Level.INFO, "Client sent parameters " + args);
+            argument_handler.accept(args);
             text.delete(0, sep+1);
             sep = text.indexOf("\n");
         }
@@ -205,19 +222,17 @@ public class ApplicationServer
         final AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
         channel.connect(address).get(10, TimeUnit.SECONDS);
 
+        final String serialized = args.stream().collect(Collectors.joining("|"));
+        logger.info("Sending parameters to server instance: " + serialized);
         final ByteBuffer buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
-        for (String arg : args)
-        {
-            logger.info("Sending argument to server instance: " + arg);
-            buffer.clear();
-            buffer.put(arg.getBytes());
-            buffer.put("\n".getBytes());
-            buffer.flip();
-            final int len = buffer.limit();
-            final int written = channel.write(buffer).get(10, TimeUnit.SECONDS);
-            if (written != len)
-                logger.log(Level.WARNING, "Wrote only " + written + " bytes for '" + arg + "'");
-        }
+        buffer.put(serialized.getBytes());
+        buffer.put("\n".getBytes());
+        buffer.flip();
+        final int len = buffer.limit();
+        final int written = channel.write(buffer).get(10, TimeUnit.SECONDS);
+        if (written != len)
+            logger.log(Level.WARNING, "Wrote only " + written + " bytes for '" + serialized + "'");
+
         channel.close();
     }
 }

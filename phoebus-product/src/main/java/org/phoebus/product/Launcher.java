@@ -3,12 +3,17 @@ package org.phoebus.product;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.ApplicationServer;
 import org.phoebus.ui.application.PhoebusApplication;
 
@@ -68,6 +73,26 @@ public class Launcher
                     port = Integer.parseInt(iter.next());
                     iter.remove();
                 }
+                else if (cmd.equals("-list"))
+                {
+                    iter.remove();
+                    final Collection<AppDescriptor> apps = ApplicationService.getApplications();
+                    System.out.format("Name                 Description          File Extensions\n");
+                    for (AppDescriptor app : apps)
+                    {
+                        if (app instanceof AppResourceDescriptor)
+                        {
+                            final AppResourceDescriptor app_res = (AppResourceDescriptor) app;
+                            System.out.format("%-20s %-20s %s\n",
+                                              "'" + app.getName() + "'",
+                                              app.getDisplayName(),
+                                              app_res.supportedFileExtentions().stream().collect(Collectors.joining(", ")));
+                        }
+                        else
+                            System.out.format("%-20s %s\n", "'" + app.getName() + "'", app.getDisplayName());
+                    }
+                    return;
+                }
             }
         }
         catch (Exception ex)
@@ -111,6 +136,7 @@ public class Launcher
         System.out.println("-help                                   -  This text");
         System.out.println("-settings settings.xml                  -  Import settings from file");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
+        System.out.println("-list                                   -  List available application features");
         System.out.println("-app \"probe?pv=pv_name1&pv=pv_name2\"    -  Launch an application with input arguments");
         System.out.println("-resource  /tmp/example.plt             -  Open an application configuration file with the default application");
         System.out.println("-server port                            -  Create instance server on given TCP port");

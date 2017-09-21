@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
+import org.phoebus.ui.jobs.SubJobMonitor;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
@@ -80,7 +82,11 @@ public class PhoebusApplication extends Application {
         final Splash splash = new Splash(initial_stage);
 
         // .. then read saved state etc. in background job
-        JobManager.schedule("Startup", monitor -> backgroundStartup(monitor, splash));
+        JobManager.schedule("Startup", monitor ->
+        {
+            final JobMonitor splash_monitor = new SplashJobMonitor(monitor, splash);
+            backgroundStartup(splash_monitor, splash);
+        });
     }
 
     /** Perform potentially slow startup task off the UI thread
@@ -90,29 +96,38 @@ public class PhoebusApplication extends Application {
      */
     private void backgroundStartup(final JobMonitor monitor, final Splash splash)
     {
-        // Locate registered applications and start them
-        startApplications();
+        // Assume there's 100 percent of work do to,
+        // not knowing, yet, how many applications to start etc.
+        monitor.beginTask("Start Applications", 100);
 
-        // Load saved state (slow file access) off UI thread
-        final MementoTree memento = loadMemento();
+        // Locate registered applications and start them, allocating 30% to that
+        startApplications(new SubJobMonitor(monitor, 30));
+
+        // Load saved state (slow file access) off UI thread, allocating 30% to that
+        monitor.beginTask("Load saved state");
+        final MementoTree memento = loadMemento(new SubJobMonitor(monitor, 30));
 
         // Back to UI thread
         Platform.runLater(() ->
         {
             try
             {
-                startUI(memento);
+                // Leaving remaining 40% to the UI startup
+                startUI(memento, new SubJobMonitor(monitor, 40));
             }
             catch (Throwable ex)
             {
                 logger.log(Level.SEVERE, "Application cannot start up", ex);
             }
+            monitor.done();
             splash.close();
         });
     }
 
-    private void startUI(final MementoTree memento) throws Exception
+    private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception
     {
+        monitor.beginTask("Start UI", 4);
+
         final Stage main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
         final ToolBar toolBar = createToolbar();
@@ -131,19 +146,65 @@ public class PhoebusApplication extends Application {
         // But restoreState will only find ID_MAIN when the window is visible
         // --> Do show it.
         main_stage.show();
+        monitor.worked(1);
 
         // If there's nothing to restore from a previous instance,
         // start with welcome
+        monitor.updateTaskName("Restore tabs");
         if (! restoreState(memento))
             new Welcome().create();
+        monitor.worked(1);
 
         // Check command line parameters
-        List<String> parameters = getParameters().getRaw();
+        monitor.updateTaskName("Handle command line parameters");
+        handleParameters(getParameters().getRaw());
+        monitor.worked(1);
+
+        // In 'server' mode, handle parameters received from client instances
+        ApplicationServer.setOnReceivedArgument(this::handleClientParameters);
+
+        // Closing the primary window is like calling File/Exit.
+        // When the primary window is the only open stage, that's OK.
+        // If there are other stages still open,
+        // closing them all might be unexpected to the user,
+        // so prompt for confirmation.
+        main_stage.setOnCloseRequest(event -> {
+            if (closeMainStage(main_stage))
+                stop();
+            // Else: At least one tab in one stage didn't want to close
+            event.consume();
+        });
+
+        DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
+        monitor.done();
+    }
+
+    /** Handle parameters from clients, logging errors
+     *  @param parameters Command-line parameters from client
+     */
+    private void handleClientParameters(final List<String> parameters)
+    {
+        try
+        {
+            handleParameters(parameters);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot handle client parameters " + parameters, ex);
+        }
+    }
+
+    /** Handle command line parameters
+     *  @param parameters Command-line parameters
+     *  @throws Exception on error
+     */
+    private void handleParameters(final List<String> parameters) throws Exception
+    {
         // List of applications to launch as specified via cmd line args
-        List<String> launchApps = new ArrayList<String>();
+        final List<String> launchApps = new ArrayList<String>();
         // List of resources to launch as specified via cmd line args
-        List<String> launchResources = new ArrayList<String>();
-        Iterator<String> parametersIterator = parameters.iterator();
+        final List<String> launchResources = new ArrayList<String>();
+        final Iterator<String> parametersIterator = parameters.iterator();
         while (parametersIterator.hasNext()) {
             final String cmd = parametersIterator.next();
             if (cmd.equals("-app")) {
@@ -159,30 +220,18 @@ public class PhoebusApplication extends Application {
             }
         }
 
-        // Handle requests to open resource from command line
-        for (String resource : launchResources)
-            openResource(resource);
+        // May have been invoked from background thread,
+        // but application UIs need to open on UI thread
+        Platform.runLater(() ->
+        {
+            // Handle requests to open resource from command line
+            for (String resource : launchResources)
+                openResource(resource);
 
-        // Handle requests to open resource from command line
-        for (String appLaunchString : launchApps)
-            launchApp(appLaunchString);
-
-        // In 'server' mode, handle received requests to open resources
-        ApplicationServer.setOnReceivedArgument(this::openResource);
-
-        // Closing the primary window is like calling File/Exit.
-        // When the primary window is the only open stage, that's OK.
-        // If there are other stages still open,
-        // closing them all might be unexpected to the user,
-        // so prompt for confirmation.
-        main_stage.setOnCloseRequest(event -> {
-            if (closeMainStage(main_stage))
-                stop();
-            // Else: At least one tab in one stage didn't want to close
-            event.consume();
+            // Handle requests to open resource from command line
+            for (String appLaunchString : launchApps)
+                launchApp(appLaunchString);
         });
-
-        DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
     }
 
     private MenuBar createMenu(final Stage stage) {
@@ -354,9 +403,11 @@ public class PhoebusApplication extends Application {
         }
     }
 
-    /** @return Memento for previously persisted state or <code>null</code> */
-    private MementoTree loadMemento()
+    /** @param monitor
+     *  @return Memento for previously persisted state or <code>null</code> */
+    private MementoTree loadMemento(final JobMonitor monitor)
     {
+        monitor.beginTask("Load persisted state", 1);
         final File memfile = XMLMementoTree.getDefaultFile();
         try
         {
@@ -369,6 +420,10 @@ public class PhoebusApplication extends Application {
         catch (Exception ex)
         {
             logger.log(Level.SEVERE, "Error restoring saved state from " + memfile, ex);
+        }
+        finally
+        {
+            monitor.done();
         }
         return null;
     }
@@ -501,11 +556,21 @@ public class PhoebusApplication extends Application {
 
     /**
      * Start all applications
+     * @param monitor
      */
-    private void startApplications()
+    private void startApplications(final JobMonitor monitor)
     {
-        for (AppDescriptor app : ApplicationService.getApplications())
+        final Collection<AppDescriptor> apps = ApplicationService.getApplications();
+        monitor.beginTask("Start applications", apps.size());
+        for (AppDescriptor app : apps)
+        {
+            monitor.updateTaskName("Starting " + app.getDisplayName());
             app.start();
+            monitor.worked(1);
+
+            // TODO Remove dummy delay
+            try { Thread.sleep(100); } catch (InterruptedException ex) {}
+        }
     }
 
     /**

@@ -20,7 +20,7 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class Job
 {
-    private final JobMonitor monitor = new JobMonitor(this);
+    private final BasicJobMonitor monitor = new BasicJobMonitor();
     private final String name;
     private final JobRunnable runnable;
 
@@ -53,7 +53,7 @@ public class Job
     /** Request cancellation */
     public void cancel()
     {
-        monitor.cancelled = true;
+        monitor.cancel();
         logger.log(Level.INFO, toString());
     }
 

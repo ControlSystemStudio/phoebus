@@ -16,6 +16,7 @@ import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -151,7 +152,7 @@ public class MementoHelper
             final String input = item_memento.getString(INPUT_URL).orElse(null);
             instance = input == null
                     ? app_res.create()
-                    : app_res.create(input);
+                    : app_res.create(app_res.getName() + "?" + ResourceParser.FILE_ARG + "=" + input);
         }
         else
             instance = app.create();

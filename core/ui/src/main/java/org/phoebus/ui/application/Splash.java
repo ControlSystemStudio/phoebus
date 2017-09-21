@@ -10,8 +10,12 @@ package org.phoebus.ui.application;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
+import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -27,6 +31,8 @@ import javafx.util.Duration;
 public class Splash
 {
     private final Stage stage;
+    private ProgressBar progress;
+    private TextField status;
 
     // The 'fastest' implementation would use the
     // java.awt.SplashScreen and associated
@@ -42,14 +48,28 @@ public class Splash
     public Splash(final Stage stage)
     {
         this.stage = stage;
-        stage.initStyle(StageStyle.TRANSPARENT);
+        stage.initStyle(StageStyle.UNDECORATED);
+        // Should keep the stage on top,
+        // but doesn't always work,
+        // so calling toFront() below whenever updating
         stage.setAlwaysOnTop(true);
         stage.setTitle("Phoebus");
 
         final Image image = new Image(getClass().getResourceAsStream("/icons/splash.png"));
         final double width = image.getWidth();
         final double height = image.getHeight();
-        final Pane layout = new Pane(new ImageView(image));
+
+        progress = new ProgressBar();
+        progress.relocate(5, height-55);
+        progress.setPrefSize(width-10, 20);
+
+        status = new TextField();
+        status.setEditable(false);
+        status.relocate(5, height-30);
+        status.setPrefSize(width-10, 25);
+
+        final Pane layout = new Pane(new ImageView(image), progress, status);
+
         stage.setScene(new Scene(layout, width, height));
 
         // stage.centerOnScreen() uses 1/3 for Y position...
@@ -59,6 +79,28 @@ public class Splash
         stage.show();
     }
 
+    /** @param percentage Progress 0..100, or negative for indeterminate */
+    public void updateProgress(final int percentage)
+    {
+        final double progress = percentage >= 0 ? percentage/100.0 : ProgressIndicator.INDETERMINATE_PROGRESS;
+        Platform.runLater(() ->
+        {
+            this.progress.setProgress(progress);
+            stage.toFront();
+        });
+    }
+
+    /** @param status Status text */
+    public void updateStatus(final String status)
+    {
+        Platform.runLater(() ->
+        {
+            this.status.setText(status);
+            stage.toFront();
+        });
+    }
+
+    /** Close the splash screen */
     public void close()
     {
         // Keep the splash for another 3 seconds
