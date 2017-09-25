@@ -22,5 +22,8 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/service-3.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/stringtemplate-3.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/vtype-3.0.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/activation-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.0.jar" sourcepath="C:/Users/Kunal Shroff/.m2/repository/com/sun/mail/javax.mail/1.6.0/javax.mail-1.6.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/objenesis-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
