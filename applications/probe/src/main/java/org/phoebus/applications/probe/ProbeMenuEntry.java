@@ -19,7 +19,7 @@ public class ProbeMenuEntry implements MenuEntry {
 
     @Override
     public String getName() {
-        return Probe.NAME;
+        return Probe.DISPLAYNAME;
     }
 
     /**
