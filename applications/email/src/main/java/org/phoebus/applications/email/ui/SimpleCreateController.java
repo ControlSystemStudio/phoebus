@@ -1,22 +1,38 @@
 package org.phoebus.applications.email.ui;
 
+import javafx.collections.FXCollections;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import javafx.stage.FileChooser;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 /**
  * Controller for dialog to create and send emails
@@ -27,6 +43,7 @@ import javax.mail.internet.MimeMessage;
 public class SimpleCreateController {
 
     private static final Logger log = Logger.getLogger(SimpleCreateController.class.getCanonicalName());
+    private final FileChooser fileChooser = new FileChooser();
 
     @FXML
     TextField txtTo;
@@ -37,6 +54,12 @@ public class SimpleCreateController {
 
     @FXML
     TextArea textArea;
+
+    @FXML
+    ListView<String> listView;
+
+    @FXML
+    Button btnAtt;
 
     @FXML
     Button btnSend;
@@ -65,10 +88,28 @@ public class SimpleCreateController {
             // Set Subject: header field
             message.setSubject(txtSubject.getText());
 
-            String text = textArea.getText();
-            // Now set the actual message
-            message.setText(text);
+            Multipart multipart = new MimeMultipart();
 
+            // Create the message part
+            BodyPart messageBodyPart;
+
+            // Text
+            messageBodyPart = new MimeBodyPart();
+            messageBodyPart.setText(textArea.getText());
+            multipart.addBodyPart(messageBodyPart);
+
+            // Attachments
+            for (String file : listView.getItems()) {
+                messageBodyPart = new MimeBodyPart();
+                String filename = file;
+                DataSource source = new FileDataSource(filename);
+                messageBodyPart.setDataHandler(new DataHandler(source));
+                messageBodyPart.setFileName(filename);
+                multipart.addBodyPart(messageBodyPart);
+            }
+
+            // Send the complete message parts
+            message.setContent(multipart);
             // Send message
             Transport.send(message);
             log.info("Sent message successfully....");
@@ -86,5 +127,14 @@ public class SimpleCreateController {
         // Do nothing right now
         Stage stage = (Stage) btnCancel.getScene().getWindow();
         stage.close();
+    }
+
+    @FXML
+    public void attachments(Event event) {
+        Stage stage = (Stage) btnAtt.getScene().getWindow();
+        List<File> list = new ArrayList<File>();
+        list = fileChooser.showOpenMultipleDialog(stage);
+        listView.setItems(FXCollections
+                .observableArrayList(list.stream().map(File::getAbsolutePath).collect(Collectors.toList())));
     }
 }
