@@ -1,23 +1,9 @@
 package org.phoebus.applications.email.ui;
 
-import javafx.collections.FXCollections;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.stage.Stage;
-
-import javafx.stage.FileChooser;
-
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import javax.activation.DataHandler;
@@ -27,12 +13,24 @@ import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
-import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+
+import org.phoebus.applications.email.EmailApp;
+import org.phoebus.framework.workbench.ApplicationService;
+
+import javafx.collections.FXCollections;
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 /**
  * Controller for dialog to create and send emails
@@ -69,15 +67,11 @@ public class SimpleCreateController {
     @FXML
     public void send(Event event) {
         // TODO move to a job and move to Email service
-        Properties props = new Properties();
-        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-        props.put("mail.smtp.host", prefs.get("mailhost", "localhost"));
-        props.put("mail.smtp.port", "25");
 
-        Session session = Session.getDefaultInstance(props);
         try {
             // Create a default MimeMessage object.
-            Message message = new MimeMessage(session);
+            Message message = new MimeMessage(
+                    ((EmailApp) ApplicationService.findApplication(EmailApp.NAME)).getSession());
 
             // Set From: header field of the header.
             message.setFrom(new InternetAddress(txtFrom.getText()));
