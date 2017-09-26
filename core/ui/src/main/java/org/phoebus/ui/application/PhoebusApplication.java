@@ -28,6 +28,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.internal.HelpLauncher;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
@@ -269,14 +270,7 @@ public class PhoebusApplication extends Application {
 
         // Help
         final MenuItem content = new MenuItem("Content");
-        content.setOnAction(event ->
-        {
-            final Alert todo = new Alert(AlertType.INFORMATION);
-            todo.setHeaderText("Help Content");
-            todo.setContentText("We indeed need somebody who writes online help");
-            DialogHelper.positionDialog(todo, stage.getScene().getRoot(), 0, 0);
-            todo.showAndWait();
-        });
+        content.setOnAction(event -> JobManager.schedule("Help", new HelpLauncher(this)));
         menuBar.getMenus().add(new Menu("Help", null, content));
 
         return menuBar;

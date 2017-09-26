@@ -1,7 +1,19 @@
 <project default="product">
   <import file="../dependencies/ant_settings.xml"/>
 
-  <target name="product" description="Assemble product">
+  <!-- If the manual has been built... -->
+  <target name="-check-doc">
+    <available property="have.doc" file="../../phoebus-doc/build/html/index.html"/>
+  </target>
+  
+  <!-- .. copy manual into product/doc -->
+  <target name="copy-doc" depends="-check-doc" if="have.doc">
+    <copy todir="${build}/doc">
+      <fileset dir="../../phoebus-doc/build/html"/>
+  	</copy>
+  </target>
+	
+  <target name="product" depends="copy-doc" description="Assemble product">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath"/>
 
@@ -39,16 +51,16 @@
     </jar>
   </target>
 
+  <!-- Create ZIP of the product.jar, lib/, [doc/,] phoebus.sh launcher -->
   <target name="dist" depends="product" description="Pack for distribution">
     <zip destfile="${build}/phoebus-${version}.zip">
       <zipfileset dir="${build}" includes="**/*.jar" prefix="phoebus-${version}"/>
       <zipfileset dir="." includes="phoebus.sh" fullpath="phoebus-${version}/phoebus.sh" filemode="755"/>
+      <zipfileset dir="${build}" includes="doc/**" prefix="phoebus-${version}"/>
     </zip>
   </target>
 
   <target name="run" depends="product" description="Run the product">
-    <java jar="${build}/product-${version}.jar"
-	          fork="true">
-    </java>
+    <java jar="${build}/product-${version}.jar" fork="true"/>
   </target>
 </project>
