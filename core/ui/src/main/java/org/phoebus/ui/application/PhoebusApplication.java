@@ -28,7 +28,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
-import org.phoebus.ui.internal.HelpLauncher;
+import org.phoebus.ui.help.HelpLauncher;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
@@ -267,9 +267,8 @@ public class PhoebusApplication extends Application {
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
         menuBar.getMenus().add(new Menu("Window", null, show_tabs));
 
-
         // Help
-        final MenuItem content = new MenuItem("Content");
+        final MenuItem content = new MenuItem("Documentation");
         content.setOnAction(event -> JobManager.schedule("Help", new HelpLauncher(this)));
         menuBar.getMenus().add(new Menu("Help", null, content));
 

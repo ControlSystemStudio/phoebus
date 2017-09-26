@@ -5,41 +5,54 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.ui.internal;
+package org.phoebus.ui.help;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 import java.io.File;
 import java.util.logging.Level;
 
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
-import org.phoebus.ui.jobs.JobRunnable;
 
-import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.web.WebView;
 
-/** Show help
- *  @author Kay Kasemir
- */
-@SuppressWarnings("nls")
-public class HelpLauncher implements JobRunnable
+public class HelpBrowser implements AppInstance
 {
-    private final Application application;
+    /** At most one instance */
+    static HelpBrowser INSTANCE = null;
 
-    public HelpLauncher(final Application application)
+    private final AppDescriptor app;
+
+    private DockItem dock_item = null;
+
+    private WebView browser;
+
+    HelpBrowser(final AppDescriptor app)
     {
-        this.application = application;
+        this.app = app;
+
+        browser = new WebView();
+        dock_item = new DockItem(this, new BorderPane(browser));
+        dock_item.addClosedNotification(this::dispose);
+        DockPane.getActiveDockPane().addTab(dock_item);
+
+        JobManager.schedule(app.getDisplayName(), this::loadHelp);
     }
 
-    @Override
-    public void run(final JobMonitor monitor) throws Exception
+    private void loadHelp(final JobMonitor monitor)
     {
         final String location = determineHelpLocation();
-
-        Platform.runLater(() -> startBrowser(location));
+        Platform.runLater(() -> browser.getEngine().load(location));
     }
 
-    private String determineHelpLocation()
+    public static String determineHelpLocation()
     {
         // Installation directory can be defined as "phoenix.install",
         // falling back to "user.dir"
@@ -51,7 +64,7 @@ public class HelpLauncher implements JobRunnable
         // Check for the doc/index.html
         File loc = new File(phoenix_install, "doc/index.html");
         if (loc.exists())
-            return loc.toString();
+            return loc.toURI().toString();
 
         // During development,
         // product is started from IDE as ....../git/phoebus/phoebus-product.
@@ -61,7 +74,7 @@ public class HelpLauncher implements JobRunnable
         {
             loc = new File(loc, "build/html/index.html");
             if (loc.exists())
-                return loc.toString();
+                return loc.toURI().toString();
             logger.log(Level.WARNING, "Found phoebus-doc repository, but no build/html/index.html. Run 'make html'");
         }
 
@@ -69,9 +82,20 @@ public class HelpLauncher implements JobRunnable
         return "http://phoebus-doc.readthedocs.io";
     }
 
-    private void startBrowser(final String location)
+    @Override
+    public AppDescriptor getAppDescriptor()
     {
-        logger.log(Level.CONFIG, "Help location: " + location);
-        application.getHostServices().showDocument(location);
+        return app;
+    }
+
+    /** Show the existing singleton instance */
+    public void raise()
+    {
+        dock_item.select();
+    }
+
+    private void dispose()
+    {
+        INSTANCE = null;
     }
 }
