@@ -23,12 +23,16 @@ import org.phoebus.applications.email.EmailApp;
 import org.phoebus.framework.workbench.ApplicationService;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import javafx.scene.web.HTMLEditor;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -41,8 +45,15 @@ import javafx.stage.Stage;
 public class SimpleCreateController {
 
     private static final Logger log = Logger.getLogger(SimpleCreateController.class.getCanonicalName());
+    private static final String TEXT_PLAIN = "text/plain";
+    private static final String TEXT_HTML = "text/html";
+
     private final FileChooser fileChooser = new FileChooser();
 
+    private ObservableList<String> supportedMimeTypes = FXCollections.observableArrayList(TEXT_PLAIN, TEXT_HTML);
+
+    @FXML
+    VBox mainVBox;
     @FXML
     TextField txtTo;
     @FXML
@@ -51,13 +62,21 @@ public class SimpleCreateController {
     TextField txtSubject;
 
     @FXML
-    TextArea textArea;
+    ChoiceBox<String> choiceBox;
 
+    @FXML
+    VBox simpleTextVBox;
+    @FXML
+    TextArea textArea;
     @FXML
     ListView<String> listView;
-
     @FXML
     Button btnAtt;
+
+    @FXML
+    VBox htmlTextVBox;
+    @FXML
+    HTMLEditor htmlEditor;
 
     @FXML
     Button btnSend;
@@ -85,21 +104,31 @@ public class SimpleCreateController {
             Multipart multipart = new MimeMultipart();
 
             // Create the message part
+            // This will depend on the body type
+
             BodyPart messageBodyPart;
-
-            // Text
-            messageBodyPart = new MimeBodyPart();
-            messageBodyPart.setText(textArea.getText());
-            multipart.addBodyPart(messageBodyPart);
-
-            // Attachments
-            for (String file : listView.getItems()) {
+            switch (choiceBox.getValue()) {
+            case TEXT_HTML:
                 messageBodyPart = new MimeBodyPart();
-                String filename = file;
-                DataSource source = new FileDataSource(filename);
-                messageBodyPart.setDataHandler(new DataHandler(source));
-                messageBodyPart.setFileName(filename);
+                String htmlText = htmlEditor.getHtmlText();
+                messageBodyPart.setContent(htmlText, "text/html");
                 multipart.addBodyPart(messageBodyPart);
+                break;
+            default:
+                // Text
+                messageBodyPart = new MimeBodyPart();
+                messageBodyPart.setText(textArea.getText());
+                multipart.addBodyPart(messageBodyPart);
+                // Attachments
+                for (String file : listView.getItems()) {
+                    messageBodyPart = new MimeBodyPart();
+                    String filename = file;
+                    DataSource source = new FileDataSource(filename);
+                    messageBodyPart.setDataHandler(new DataHandler(source));
+                    messageBodyPart.setFileName(filename);
+                    multipart.addBodyPart(messageBodyPart);
+                }
+                break;
             }
 
             // Send the complete message parts
@@ -114,6 +143,24 @@ public class SimpleCreateController {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @FXML
+    public void initialize() {
+        choiceBox.setItems(supportedMimeTypes);
+        choiceBox.setValue("text/plain");
+        recomputeTextArea();
+        choiceBox.setOnAction(value -> {
+            recomputeTextArea();
+        });
+    }
+
+    private void recomputeTextArea() {
+        simpleTextVBox.setVisible(choiceBox.getValue().equals(TEXT_PLAIN));
+        simpleTextVBox.setManaged(choiceBox.getValue().equals(TEXT_PLAIN));
+        htmlTextVBox.setVisible(choiceBox.getValue().equals(TEXT_HTML));
+        htmlTextVBox.setManaged(choiceBox.getValue().equals(TEXT_HTML));
+        mainVBox.requestLayout();
     }
 
     @FXML

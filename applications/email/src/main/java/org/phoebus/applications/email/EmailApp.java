@@ -62,7 +62,7 @@ public class EmailApp implements AppResourceDescriptor {
 
         String username = prefs.get("username", defaultProps.getProperty("username"));
         String password = prefs.get("password", defaultProps.getProperty("password"));
-        if (username != null && password != null) {
+        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
             PasswordAuthentication auth = new PasswordAuthentication(username, password);
             session = Session.getDefaultInstance(props, new Authenticator() {
                 @Override
