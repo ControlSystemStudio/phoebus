@@ -25,6 +25,7 @@ import javafx.beans.property.StringProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -308,6 +309,15 @@ public class DockItem extends Tab
 
         old_parent.getTabs().remove(this);
         DockStage.configureStage(other, this);
+
+        // For size of new stage, use the old one.
+        // (Initially used size of old _Window_,
+        //  but that resulted in a new Stage that's
+        //  too high, about one title bar height taller).
+        final Scene old_scene = old_parent.getScene();
+        other.setWidth(old_scene.getWidth());
+        other.setHeight(old_scene.getHeight());
+
         other.show();
 
         return other;

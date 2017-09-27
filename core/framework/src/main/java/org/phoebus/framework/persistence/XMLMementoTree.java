@@ -18,6 +18,7 @@ import java.util.Optional;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.phoebus.framework.workbench.Locations;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -42,8 +43,7 @@ public class XMLMementoTree implements MementoTree
     public static File getDefaultFile()
     {
         // Same location as user preferences
-        return new File(System.getProperty("java.util.prefs.userRoot", System.getProperty("user.home")),
-                        ".phoebus/memento");
+        return new File(Locations.user(), "memento");
     }
 
     /** @return New, empty memento

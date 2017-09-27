@@ -108,7 +108,8 @@
       </plugin>
 
       <!-- Above commands built the product.jar.
-           Need to add the dependency jar files
+           Need to add the doc/ (if phoebus-doc is available)
+           and the dependency jar files
            and then list all lib/* jars in the manifest classpath
         -->
       <plugin>
@@ -119,6 +120,8 @@
             <configuration>
               <failOnError>true</failOnError>
               <tasks>
+                <echo message="Copying doc/"/>
+                <ant antfile="build.xml" target="copy-doc"/>
                 <echo message="Adding dependencies to product"/>
                 <manifestclasspath property="manifest-classpath"
                                    jarfile="${project.build.directory}/product-${project.version}.jar">

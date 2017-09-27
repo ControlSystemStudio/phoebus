@@ -20,6 +20,7 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.framework.workbench.Locations;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
@@ -28,6 +29,8 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.help.OpenAbout;
+import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
@@ -94,11 +97,13 @@ public class PhoebusApplication extends Application {
      *  @param splash
      *  @throws Exception
      */
-    private void backgroundStartup(final JobMonitor monitor, final Splash splash)
+    private void backgroundStartup(final JobMonitor monitor, final Splash splash) throws Exception
     {
         // Assume there's 100 percent of work do to,
         // not knowing, yet, how many applications to start etc.
         monitor.beginTask("Start Applications", 100);
+
+        Locations.initialize();
 
         // Locate registered applications and start them, allocating 30% to that
         startApplications(new SubJobMonitor(monitor, 30));
@@ -266,18 +271,35 @@ public class PhoebusApplication extends Application {
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
         menuBar.getMenus().add(new Menu("Window", null, show_tabs));
 
-
         // Help
-        final MenuItem content = new MenuItem("Content");
+        final MenuEntry content_entry = new OpenHelp();
+        final MenuItem content = new MenuItem(content_entry.getName());
         content.setOnAction(event ->
         {
-            final Alert todo = new Alert(AlertType.INFORMATION);
-            todo.setHeaderText("Help Content");
-            todo.setContentText("We indeed need somebody who writes online help");
-            DialogHelper.positionDialog(todo, stage.getScene().getRoot(), 0, 0);
-            todo.showAndWait();
+            try
+            {
+                content_entry.call();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error invoking menu entry", ex);
+            }
         });
-        menuBar.getMenus().add(new Menu("Help", null, content));
+
+        final MenuEntry about_entry = new OpenAbout();
+        final MenuItem about = new MenuItem(about_entry.getName());
+        about.setOnAction(event ->
+        {
+            try
+            {
+                about_entry.call();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error invoking menu entry", ex);
+            }
+        });
+        menuBar.getMenus().add(new Menu("Help", null, about, content));
 
         return menuBar;
     }
