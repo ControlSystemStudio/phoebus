@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtable;
 
+import java.util.Properties;
+import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
 /** Preference settings
@@ -20,45 +22,30 @@ public class Settings
     private static final String SHOW_DESCRIPTION = "show_description";
     private static final String TOLERANCE = "tolerance";
 
-    public static final boolean treat_byte_array_as_string = treatByteArrayAsString();
-
-    public static boolean show_units = showUnits();
-
-    public static boolean show_description = showDescription();
-
-    public static double tolerance = tolerance();
-
+    public static boolean treat_byte_array_as_string;
+    public static boolean show_units;
+    public static boolean show_description;
+    public static double tolerance;
     public static int update_item_threshold = 50;
 
-    private static boolean treatByteArrayAsString()
+    static
     {
-        final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
-        boolean value = prefs.getBoolean(TREAT_BYTE_ARRAY_AS_STRING, true);
-        prefs.putBoolean(TREAT_BYTE_ARRAY_AS_STRING, value);
-        return value;
-    }
+        try
+        {
+            final Properties defaults = new Properties();
+            defaults.load(Settings.class.getResourceAsStream("/preferences.properties"));
 
-    private static boolean showUnits()
-    {
-        final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
-        boolean value = prefs.getBoolean(SHOW_UNITS, true);
-        prefs.putBoolean(SHOW_UNITS, value);
-        return value;
-    }
+            final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
 
-    private static boolean showDescription()
-    {
-        final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
-        boolean value = prefs.getBoolean(SHOW_DESCRIPTION, true);
-        prefs.putBoolean(SHOW_DESCRIPTION, value);
-        return value;
-    }
+            treat_byte_array_as_string = Boolean.parseBoolean(prefs.get(TREAT_BYTE_ARRAY_AS_STRING, defaults.getProperty(TREAT_BYTE_ARRAY_AS_STRING)));
+            show_units = Boolean.parseBoolean(prefs.get(SHOW_UNITS, defaults.getProperty(SHOW_UNITS)));
+            show_description = Boolean.parseBoolean(prefs.get(SHOW_DESCRIPTION, defaults.getProperty(SHOW_DESCRIPTION)));
+            tolerance = Double.parseDouble(prefs.get(TOLERANCE, defaults.getProperty(TOLERANCE)));
 
-    private static double tolerance()
-    {
-        final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
-        double value = prefs.getDouble(TOLERANCE, 0.1);
-        prefs.putDouble(TOLERANCE, value);
-        return value;
+        }
+        catch (Exception ex)
+        {
+            PVTableApplication.logger.log(Level.SEVERE, "Cannot get preferences", ex);
+        }
     }
 }
