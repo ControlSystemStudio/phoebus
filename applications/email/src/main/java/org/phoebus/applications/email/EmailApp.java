@@ -55,7 +55,7 @@ public class EmailApp implements AppResourceDescriptor {
         } catch (IOException e) {
             log.log(Level.WARNING, "Failed to read default preferences", e);
         }
-        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 
         props.put("mail.smtp.host", prefs.get("mailhost", defaultProps.getProperty("mailhost")));
         props.put("mail.smtp.port", prefs.get("mailport", defaultProps.getProperty("mailport")));
