@@ -5,21 +5,22 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.probe;
+package org.phoebus.applications.email.actions;
 
+import org.phoebus.applications.email.EmailApp;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 
 /**
- * Menu entry that starts probe
+ * Menu entry that starts email dialog
  *
  * @author Kunal Shroff
  */
-public class ProbeMenuEntry implements MenuEntry {
+public class CreateEmailMenuEntry implements MenuEntry {
 
     @Override
     public String getName() {
-        return Probe.DISPLAYNAME;
+        return EmailApp.DISPLAY_NAME;
     }
 
     /**
@@ -28,7 +29,7 @@ public class ProbeMenuEntry implements MenuEntry {
      */
     @Override
     public Void call() throws Exception {
-        ApplicationService.findApplication(Probe.NAME).create();
+        ApplicationService.findApplication(EmailApp.NAME).create();
         return null;
     }
 

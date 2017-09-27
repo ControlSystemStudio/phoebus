@@ -3,12 +3,16 @@ package org.phoebus.applications.probe;
 import org.phoebus.framework.spi.ToolbarEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 
-// @ProviderFor(ToolbarEntry.class)
-public class LaunchProbe implements ToolbarEntry {
+/**
+ * Launching the probe from the main toolbar
+ * @author Kunal Shroff
+ *
+ */
+public class ProbeToolbarEntry implements ToolbarEntry {
 
     @Override
     public String getName() {
-        return Probe.NAME;
+        return Probe.DISPLAYNAME;
     }
 
     @Override
