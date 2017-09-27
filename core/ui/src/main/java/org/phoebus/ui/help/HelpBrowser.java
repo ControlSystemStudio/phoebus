@@ -54,6 +54,7 @@ public class HelpBrowser implements AppInstance
     private void loadHelp(final JobMonitor monitor)
     {
         final String location = determineHelpLocation();
+        logger.log(Level.CONFIG, "Showing help from " + location);
         Platform.runLater(() -> browser.getEngine().load(location));
     }
 
