@@ -81,3 +81,14 @@ Right click on the affected projects (greeting-app, probe), Build Path, Configur
 Restart Eclipse IDE.
 
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
+
+
+## Complete Distribution, including manual
+
+    git clone https://github.com/kasemir/phoebus-doc.git
+    git clone https://github.com/shroffk/phoebus.git
+    cd phoebus-doc
+    make html
+    cd ../phoebus
+    mvn clean verify -f dependencies/pom.xml
+    ant dist
