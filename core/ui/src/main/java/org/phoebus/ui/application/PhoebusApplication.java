@@ -20,6 +20,7 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.framework.workbench.Locations;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
@@ -28,7 +29,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
-import org.phoebus.ui.help.HelpLauncher;
+import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
@@ -95,11 +96,13 @@ public class PhoebusApplication extends Application {
      *  @param splash
      *  @throws Exception
      */
-    private void backgroundStartup(final JobMonitor monitor, final Splash splash)
+    private void backgroundStartup(final JobMonitor monitor, final Splash splash) throws Exception
     {
         // Assume there's 100 percent of work do to,
         // not knowing, yet, how many applications to start etc.
         monitor.beginTask("Start Applications", 100);
+
+        Locations.initialize();
 
         // Locate registered applications and start them, allocating 30% to that
         startApplications(new SubJobMonitor(monitor, 30));
@@ -268,8 +271,9 @@ public class PhoebusApplication extends Application {
         menuBar.getMenus().add(new Menu("Window", null, show_tabs));
 
         // Help
-        final MenuItem content = new MenuItem("Documentation");
-        content.setOnAction(event -> JobManager.schedule("Help", new HelpLauncher(this)));
+        final OpenHelp help = new OpenHelp();
+        final MenuItem content = new MenuItem(help.getName());
+        content.setOnAction(event -> help.call());
         menuBar.getMenus().add(new Menu("Help", null, content));
 
         return menuBar;

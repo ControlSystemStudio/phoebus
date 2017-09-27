@@ -14,6 +14,7 @@ import java.util.logging.Level;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.jobs.JobManager;
@@ -23,6 +24,10 @@ import javafx.application.Platform;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebView;
 
+/** Web browser that displays help
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
 public class HelpBrowser implements AppInstance
 {
     /** At most one instance */
@@ -54,11 +59,7 @@ public class HelpBrowser implements AppInstance
 
     public static String determineHelpLocation()
     {
-        // Installation directory can be defined as "phoenix.install",
-        // falling back to "user.dir"
-        final String phoenix_install = System.getProperty("phoenix.install", System.getProperty("user.dir"));
-
-        logger.log(Level.CONFIG, "Installed in " + phoenix_install);
+        final File phoenix_install = Locations.install();
 
         // The distribution includes a lib/ and a doc/ folder.
         // Check for the doc/index.html
@@ -68,7 +69,7 @@ public class HelpBrowser implements AppInstance
 
         // During development,
         // product is started from IDE as ....../git/phoebus/phoebus-product.
-        // Check for copy of docs in ....../git/phoebus-doc/build/html
+        // Check for copy of docs in      ....../git/phoebus-doc/build/html
         loc = new File(phoenix_install, "../../phoebus-doc");
         if (loc.exists())
         {

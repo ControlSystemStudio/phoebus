@@ -7,37 +7,31 @@
  *******************************************************************************/
 package org.phoebus.ui.help;
 
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.framework.workbench.ApplicationService;
 
-/** 'Help' application descriptor
+/** Menu entry to open help
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class HelpApplication implements AppDescriptor
+public class OpenHelp implements MenuEntry
 {
-    public static final String NAME = "help";
-    public static final String DISPLAY_NAME = "Help";
-
     @Override
     public String getName()
     {
-        return NAME;
+        return HelpApplication.DISPLAY_NAME;
     }
 
     @Override
-    public String getDisplayName()
+    public String getMenuPath()
     {
-        return DISPLAY_NAME;
+        return "Help/Content";
     }
 
     @Override
-    public AppInstance create()
+    public Void call()
     {
-        if (HelpBrowser.INSTANCE == null)
-            HelpBrowser.INSTANCE = new HelpBrowser(this);
-        else
-            HelpBrowser.INSTANCE.raise();
-        return HelpBrowser.INSTANCE;
+        ApplicationService.findApplication(HelpApplication.NAME).create();
+        return null;
     }
 }
