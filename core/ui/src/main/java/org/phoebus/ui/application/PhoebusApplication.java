@@ -29,6 +29,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.help.OpenAbout;
 import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
@@ -271,10 +272,34 @@ public class PhoebusApplication extends Application {
         menuBar.getMenus().add(new Menu("Window", null, show_tabs));
 
         // Help
-        final OpenHelp help = new OpenHelp();
-        final MenuItem content = new MenuItem(help.getName());
-        content.setOnAction(event -> help.call());
-        menuBar.getMenus().add(new Menu("Help", null, content));
+        final MenuEntry content_entry = new OpenHelp();
+        final MenuItem content = new MenuItem(content_entry.getName());
+        content.setOnAction(event ->
+        {
+            try
+            {
+                content_entry.call();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error invoking menu entry", ex);
+            }
+        });
+
+        final MenuEntry about_entry = new OpenAbout();
+        final MenuItem about = new MenuItem(about_entry.getName());
+        about.setOnAction(event ->
+        {
+            try
+            {
+                about_entry.call();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error invoking menu entry", ex);
+            }
+        });
+        menuBar.getMenus().add(new Menu("Help", null, about, content));
 
         return menuBar;
     }
