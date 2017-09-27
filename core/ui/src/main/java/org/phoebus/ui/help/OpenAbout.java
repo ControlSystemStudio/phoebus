@@ -7,12 +7,20 @@
  *******************************************************************************/
 package org.phoebus.ui.help;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 
 /** Menu entry to open 'about'
@@ -39,15 +47,31 @@ public class OpenAbout implements MenuEntry
         // TODO Useful, but ugly
         // TODO Add version information
         final Alert dialog = new Alert(AlertType.INFORMATION);
-        dialog.setTitle("About");
-        dialog.setHeaderText("Phoebus");
+        dialog.setTitle("About Phoebus");
+        dialog.setHeaderText("Phoebus Installation Information");
 
-        final StringBuilder buf = new StringBuilder();
-        buf.append("Installation : ").append(Locations.install()).append("\n");
-        buf.append("User Settings: ").append(Locations.user()).append("\n");
+        // Table with Name, Value columns
+        final ObservableList<List<String>> infos = FXCollections.observableArrayList();
+        infos.add(Arrays.asList("Installation Location", Locations.install().toString()));
+        infos.add(Arrays.asList("User Settings Location", Locations.user().toString()));
+        infos.add(Arrays.asList("Java Version", System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
 
-        dialog.setContentText(buf.toString());
+        // Display in TableView
+        final TableView<List<String>> info_table = new TableView<>(infos);
+        info_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        info_table.setPrefHeight(200.0);
 
+        final TableColumn<List<String>, String> name_col = new TableColumn<>("Name");
+        name_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(0)));
+        info_table.getColumns().add(name_col);
+
+        final TableColumn<List<String>, String> value_col = new TableColumn<>("Value");
+        value_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(1)));
+        info_table.getColumns().add(value_col);
+
+        dialog.getDialogPane().setContent(info_table);
+
+        // Info for expandable "Show Details" section
         final StringBuilder details = new StringBuilder();
         details.append("Application Features\n");
         details.append("====================\n");
