@@ -67,8 +67,7 @@ public class Locations
         String phoenix_user = System.getProperty(PHOENIX_USER);
         if (phoenix_user == null)
         {
-            phoenix_user = new File(System.getProperty(System.getProperty("user.home")),
-                                    ".phoebus").getAbsolutePath();
+            phoenix_user = new File(System.getProperty("user.home"), ".phoebus").getAbsolutePath();
             System.setProperty(PHOENIX_USER, phoenix_user);
         }
     }
