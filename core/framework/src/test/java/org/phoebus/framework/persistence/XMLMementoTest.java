@@ -84,7 +84,7 @@ public class XMLMementoTest
         // For details not quite clear, the readback contains added lines with just spaces.
         // Doesn't affect the actual data in the memento,
         // but remove them to get exact match with original XML text.
-        final String readback_text = readback.toString().replaceAll(" +\n", "");
+        final String readback_text = readback.toString().replaceAll(" +"+System.getProperty("line.separator"), "");
         System.out.println(readback_text);
 
         assertThat(readback_text, equalTo(mt.toString()));
