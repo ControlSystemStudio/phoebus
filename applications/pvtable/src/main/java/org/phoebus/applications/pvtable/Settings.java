@@ -7,9 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtable;
 
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.prefs.Preferences;
+import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Preference settings
  *  @author Kay Kasemir
@@ -30,22 +28,10 @@ public class Settings
 
     static
     {
-        try
-        {
-            final Properties defaults = new Properties();
-            defaults.load(Settings.class.getResourceAsStream("/preferences.properties"));
-
-            final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
-
-            treat_byte_array_as_string = Boolean.parseBoolean(prefs.get(TREAT_BYTE_ARRAY_AS_STRING, defaults.getProperty(TREAT_BYTE_ARRAY_AS_STRING)));
-            show_units = Boolean.parseBoolean(prefs.get(SHOW_UNITS, defaults.getProperty(SHOW_UNITS)));
-            show_description = Boolean.parseBoolean(prefs.get(SHOW_DESCRIPTION, defaults.getProperty(SHOW_DESCRIPTION)));
-            tolerance = Double.parseDouble(prefs.get(TOLERANCE, defaults.getProperty(TOLERANCE)));
-
-        }
-        catch (Exception ex)
-        {
-            PVTableApplication.logger.log(Level.SEVERE, "Cannot get preferences", ex);
-        }
+        final PreferencesReader prefs = new PreferencesReader(Settings.class, "/preferences.properties");
+        treat_byte_array_as_string = prefs.getBoolean(TREAT_BYTE_ARRAY_AS_STRING);
+        show_units = prefs.getBoolean(SHOW_UNITS);
+        show_description = prefs.getBoolean(SHOW_DESCRIPTION);
+        tolerance = prefs.getDouble(TOLERANCE);
     }
 }

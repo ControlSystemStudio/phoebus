@@ -9,9 +9,9 @@ package org.phoebus.pv.ca;
 
 import static org.phoebus.pv.PV.logger;
 
-import java.util.Properties;
 import java.util.logging.Level;
-import java.util.prefs.Preferences;
+
+import org.phoebus.framework.preferences.PreferencesReader;
 
 import gov.aps.jca.Monitor;
 
@@ -70,12 +70,9 @@ public class JCA_Preferences
      */
     public void installPreferences() throws Exception
     {
-        final Properties defaults = new Properties();
-        defaults.load(getClass().getResourceAsStream("/pv_ca_preferences.properties"));
+        final PreferencesReader prefs = new PreferencesReader(JCA_PVFactory.class, "/pv_ca_preferences.properties");
 
-        final Preferences prefs = Preferences.userNodeForPackage(JCA_PVFactory.class);
-
-        String code = prefs.get(MONITOR_MASK, defaults.getProperty(MONITOR_MASK));
+        String code = prefs.get(MONITOR_MASK);
         switch (code)
         {
         case "ARCHIVE":
@@ -91,9 +88,9 @@ public class JCA_Preferences
             break;
         }
 
-        dbe_property_supported = prefs.getBoolean(DBE_PROPERTY_SUPPORTED, Boolean.parseBoolean(defaults.getProperty(DBE_PROPERTY_SUPPORTED)));
+        dbe_property_supported = prefs.getBoolean(DBE_PROPERTY_SUPPORTED);
 
-        code = prefs.get(VARIABLE_LENGTH_ARRAY, defaults.getProperty(VARIABLE_LENGTH_ARRAY));
+        code = prefs.get(VARIABLE_LENGTH_ARRAY);
         switch (code)
         {
         case "true":
@@ -106,37 +103,37 @@ public class JCA_Preferences
             var_array_supported = null;
         }
 
-        large_array_threshold = prefs.getInt(LARGE_ARRAY_THRESHOLD, Integer.parseInt(defaults.getProperty(LARGE_ARRAY_THRESHOLD)));
+        large_array_threshold = prefs.getInt(LARGE_ARRAY_THRESHOLD);
 
         // Set the 'CAJ' and 'JNI' copies of the settings
         setSystemProperty("com.cosylab.epics.caj.CAJContext.use_pure_java", "true");
 
-        final String addr_list = prefs.get(ADDR_LIST, defaults.getProperty(ADDR_LIST));
+        final String addr_list = prefs.get(ADDR_LIST);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.addr_list", addr_list);
         setSystemProperty("gov.aps.jca.jni.JNIContext.addr_list", addr_list);
         logger.log(Level.INFO, "JCA " + ADDR_LIST + ": " + addr_list);
 
-        final String auto_addr = prefs.get(AUTO_ADDR_LIST, defaults.getProperty(AUTO_ADDR_LIST));
+        final String auto_addr = prefs.get(AUTO_ADDR_LIST);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.auto_addr_list", auto_addr);
         setSystemProperty("gov.aps.jca.jni.JNIContext.auto_addr_list", auto_addr);
 
-        final String timeout = prefs.get(CONNECTION_TIMEOUT, defaults.getProperty(CONNECTION_TIMEOUT));
+        final String timeout = prefs.get(CONNECTION_TIMEOUT);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.connection_timeout", timeout);
         setSystemProperty("gov.aps.jca.jni.JNIContext.connection_timeout", timeout);
 
-        final String beacon_period = prefs.get(BEACON_PERIOD, defaults.getProperty(BEACON_PERIOD));
+        final String beacon_period = prefs.get(BEACON_PERIOD);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.beacon_period", beacon_period);
         setSystemProperty("gov.aps.jca.jni.JNIContext.beacon_period", beacon_period);
 
-        final String repeater_port = prefs.get(REPEATER_PORT, defaults.getProperty(REPEATER_PORT));
+        final String repeater_port = prefs.get(REPEATER_PORT);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.repeater_port", repeater_port);
         setSystemProperty("gov.aps.jca.jni.JNIContext.repeater_port", repeater_port);
 
-        final String server_port = prefs.get(SERVER_PORT, defaults.getProperty(SERVER_PORT));
+        final String server_port = prefs.get(SERVER_PORT);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.server_port", server_port);
         setSystemProperty("gov.aps.jca.jni.JNIContext.server_port", server_port);
 
-        final String max_array_bytes = prefs.get(MAX_ARRAY_BYTES, defaults.getProperty(MAX_ARRAY_BYTES));
+        final String max_array_bytes = prefs.get(MAX_ARRAY_BYTES);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.max_array_bytes", max_array_bytes);
         setSystemProperty("gov.aps.jca.jni.JNIContext.max_array_bytes", max_array_bytes);
 

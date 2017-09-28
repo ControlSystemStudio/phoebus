@@ -12,11 +12,10 @@ import static org.phoebus.pv.PV.logger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
-import java.util.prefs.Preferences;
 
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 
 /** Pool of {@link PV}s
@@ -76,11 +75,8 @@ public class PVPool
                 factories.put(type, factory);
             }
 
-            final Properties defaults = new Properties();
-            defaults.load(PVPool.class.getResourceAsStream("/pv_preferences.properties"));
-
-            final Preferences prefs = Preferences.userNodeForPackage(PVPool.class);
-            default_type = prefs.get(DEFAULT, defaults.getProperty(DEFAULT));
+            final PreferencesReader prefs = new PreferencesReader(PVPool.class, "/pv_preferences.properties");
+            default_type = prefs.get(DEFAULT);
 
             logger.log(Level.INFO, "Default PV type " + default_type + "://");
         }
