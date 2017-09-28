@@ -10,14 +10,13 @@ It attempts to reflect the data flow by traversing input links
 
 The PV Tree has two modes:
 
-"Run":
+"Run" |run|:
   In this mode it will always display the current value
   of each item in the tree.
  
-"Freeze on Alarm":
+"Freeze on Alarm" |pause|:
   In this mode, updates pause as soon as the
   root item of the PV Tree goes into alarm.
-
 
 Usage
 -----
@@ -27,37 +26,31 @@ Enter a name into the "PV" text box, and see what happens.
 
 Tool Bar Buttons
 ----------------
-.. TODO: Would like to use inline images...
 
-.. image:: ../src/main/resources/icons/run.png
-.. image:: ../src/main/resources/icons/pause_on_alarm.png
+|run|, |pause|
+  Changes the PV Tree mode between "running" and "freeze on alarm".
 
-Changes the PV Tree mode between "running" and "freeze on alarm".
+|collapse|
+  Collapse the tree, i.e. close all sub-sections of the tree.
 
+|alarmtree|
+  Display all items in the tree that are in an alarm state.
+  Note that this is performed whenever you push the tool bar button.
+  If the PV tree items update, branches will not automatically
+  show or hide based on their alarm state, because this could
+  result in a very nervous display for a rapidly changing
+  PV tree.
+  Whenever you desire to update the tree to show/hide items,
+  push the button.
 
+|tree|
+  Expand all sub-sections of the tree.
 
-.. image:: ../src/main/resources/icons/collapse.gif
-
-Collapse the tree, i.e. close all sub-sections of the tree.
-
-
-
-.. image:: ../src/main/resources/icons/alarmtree.png
-
-Display all items in the tree that are in an alarm state.
-Note that this is performed whenever you push the tool bar button.
-If the PV tree items update, branches will not automatically
-show or hide based on their alarm state, because this could
-result in a very nervous display for a rapidly changing
-PV tree.
-Whenever you desire to update the tree to show/hide items,
-push the button.
-
-
-.. image:: ../src/main/resources/icons/pvtree.png
-
-Expand all sub-sections of the tree.
-
+.. |run| image:: ../src/main/resources/icons/run.png
+.. |pause| image:: ../src/main/resources/icons/pause_on_alarm.png
+.. |collapse| image:: ../src/main/resources/icons/collapse.gif
+.. |alarmtree| image:: ../src/main/resources/icons/alarmtree.png
+.. |tree| image:: ../src/main/resources/icons/pvtree.png
 
 
 Limitations
