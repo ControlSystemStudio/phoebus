@@ -30,7 +30,7 @@ import org.phoebus.applications.pvtree.Settings;
 @SuppressWarnings("nls")
 public class TreeValueUpdateThrottle<T>
 {
-    private final static long update_period_ms = Math.round(Settings.getUpdatePeriod() * 1000);
+    private final static long update_period_ms = Math.round(Settings.max_update_period * 1000);
     private final Consumer<Collection<T>> updater;
     private final Set<T> updateable = new LinkedHashSet<>();
     private final Thread throttle_thread;
