@@ -28,7 +28,7 @@ public class Settings
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Settings.class, "/preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(Settings.class, "/pv_table_preferences.properties");
         treat_byte_array_as_string = prefs.getBoolean(TREAT_BYTE_ARRAY_AS_STRING);
         show_units = prefs.getBoolean(SHOW_UNITS);
         show_description = prefs.getBoolean(SHOW_DESCRIPTION);
