@@ -51,7 +51,7 @@ public class EmailApp implements AppResourceDescriptor {
         Properties props = new Properties();
         Properties defaultProps = new Properties();
         try {
-            defaultProps.load(AppResourceDescriptor.class.getResourceAsStream("/email.properties"));
+            defaultProps.load(AppResourceDescriptor.class.getResourceAsStream("/preferences.properties"));
         } catch (IOException e) {
             log.log(Level.WARNING, "Failed to read default preferences", e);
         }
