@@ -96,17 +96,17 @@ public class PVTableInstance implements AppInstance
         // Load files in background job
         JobManager.schedule("Load PV Table", monitor ->
         {
+            final PVTableModel load_model = new PVTableModel(false);
             try
             {
                 final URL input = ResourceParser.createResourceURL(resource);
                 monitor.updateTaskName("Load " + input);
-                final PVTableModel model = new PVTableModel();
-                PVTablePersistence.forFilename(input.toString()).read(model, input.openStream());
+                PVTablePersistence.forFilename(input.toString()).read(load_model, input.openStream());
 
                 // On success, update on UI
                 Platform.runLater(() ->
                 {
-                    transferModel(model);
+                    transferModel(load_model);
                     dock_item.setInput(input);
                 });
             }
