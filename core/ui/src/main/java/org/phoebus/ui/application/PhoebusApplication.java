@@ -36,6 +36,7 @@ import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
 import org.phoebus.ui.jobs.SubJobMonitor;
+import org.phoebus.ui.monitoring.ResponsivenessMonitor;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
@@ -252,17 +253,6 @@ public class PhoebusApplication extends Application {
             final File file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
             if (file == null)
                 return;
-
-            // TODO Remove artificial delay for ResponsivenessMonitor test
-            try
-            {
-                Thread.sleep(4000);
-            }
-            catch (InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-
             openResource(file.toString());
         });
         final MenuItem exit = new MenuItem("Exit");

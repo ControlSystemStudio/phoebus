@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.ui.application;
+package org.phoebus.ui.monitoring;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
