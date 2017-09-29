@@ -48,11 +48,19 @@ public class ResponsivenessMonitor
         return thread;
     });
 
+    /** Set by UI 'ping' runnable */
     private final AtomicBoolean ui_thread_responded = new AtomicBoolean(true);
+
+    /** Is the UI thread frozen at this time? */
     private final AtomicBoolean frozen = new AtomicBoolean(false);
 
+    /** ID of UI thread */
     private final long ui_thread_id;
+
+    /** Beam for dumping thread infos */
     private final ThreadMXBean thread_bean;
+
+    /** Functionalities of ThreadMXBean */
     private final boolean dumpLockedMonitors, dumpLockedSynchronizers;
 
 
@@ -72,6 +80,7 @@ public class ResponsivenessMonitor
         timer.scheduleWithFixedDelay(this::check, period, period, unit);
     }
 
+    /** Called periodically to check if UI thread responds */
     private void check()
     {
         // Did the UI thread respond to the last 'ping'?
@@ -94,6 +103,7 @@ public class ResponsivenessMonitor
         }
     }
 
+    /** Log detail about UI freezeup */
     private void reportUIFreeze()
     {
         final StringBuilder buf = new StringBuilder();
@@ -103,6 +113,7 @@ public class ResponsivenessMonitor
         {
             if (info.getThreadId() == Thread.currentThread().getId())
             {
+                // Exclude the ResponsivenessMonitor thread
                 continue;
             }
             if (info.getThreadId() == ui_thread_id)
