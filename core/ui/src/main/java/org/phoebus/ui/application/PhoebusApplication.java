@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -83,6 +84,8 @@ public class PhoebusApplication extends Application {
     public void start(final Stage initial_stage) throws Exception {
         // Show splash screen as soon as possible..
         final Splash splash = new Splash(initial_stage);
+
+        new ResponsivenessMonitor(500, TimeUnit.MILLISECONDS);
 
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
@@ -249,6 +252,17 @@ public class PhoebusApplication extends Application {
             final File file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
             if (file == null)
                 return;
+
+            // TODO Remove artificial delay for ResponsivenessMonitor test
+            try
+            {
+                Thread.sleep(4000);
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+
             openResource(file.toString());
         });
         final MenuItem exit = new MenuItem("Exit");
