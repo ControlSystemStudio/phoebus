@@ -10,6 +10,7 @@
         <fileset dir="../../dependencies/target/lib">
           <include name="*.jar"/>
         </fileset>
+        <pathelement path="../framework/${build}/framework-${version}.jar"/>
       </classpath>
     </javac>
   	<jar destfile="${build}/pv-${version}.jar">

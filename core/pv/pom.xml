@@ -35,5 +35,10 @@
       <artifactId>vtype</artifactId>
       <version>3.0.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>framework</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>

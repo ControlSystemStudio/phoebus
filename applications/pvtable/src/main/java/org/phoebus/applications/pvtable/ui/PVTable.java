@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import org.diirt.vtype.VEnum;
 import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
+import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
@@ -569,9 +570,12 @@ public class PVTable extends BorderPane
         table.getColumns().add(col);
 
         // Description
-        col = new TableColumn<>(Messages.Description);
-        col.setCellValueFactory(cell -> cell.getValue().desc_value);
-        table.getColumns().add(col);
+        if (Settings.show_description)
+        {
+            col = new TableColumn<>(Messages.Description);
+            col.setCellValueFactory(cell -> cell.getValue().desc_value);
+            table.getColumns().add(col);
+        }
 
         // Time Stamp
         col = new TableColumn<>(Messages.Time);

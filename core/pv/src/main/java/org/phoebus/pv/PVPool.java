@@ -14,8 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
-import java.util.prefs.Preferences;
 
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 
 /** Pool of {@link PV}s
@@ -64,19 +64,26 @@ public class PVPool
     private static String default_type = "ca";
 
     static
-    {   // Load all PVFactory services
-        for (PVFactory factory : ServiceLoader.load(PVFactory.class))
+    {
+        try
         {
-            final String type = factory.getType();
-            logger.log(Level.CONFIG, "PV type " + type + ":// provided by " + factory);
-            factories.put(type, factory);
+            // Load all PVFactory services
+            for (PVFactory factory : ServiceLoader.load(PVFactory.class))
+            {
+                final String type = factory.getType();
+                logger.log(Level.CONFIG, "PV type " + type + ":// provided by " + factory);
+                factories.put(type, factory);
+            }
+
+            final PreferencesReader prefs = new PreferencesReader(PVPool.class, "/pv_preferences.properties");
+            default_type = prefs.get(DEFAULT);
+
+            logger.log(Level.INFO, "Default PV type " + default_type + "://");
         }
-
-        final Preferences prefs = Preferences.userNodeForPackage(PVPool.class);
-        default_type = prefs.get(DEFAULT, default_type);
-        prefs.put(DEFAULT, default_type);
-
-        logger.log(Level.INFO, "Default PV type " + default_type + "://");
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot initialize PVPool", ex);
+        }
     }
 
     /** PV Pool

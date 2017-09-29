@@ -10,7 +10,8 @@ package org.phoebus.pv.ca;
 import static org.phoebus.pv.PV.logger;
 
 import java.util.logging.Level;
-import java.util.prefs.Preferences;
+
+import org.phoebus.framework.preferences.PreferencesReader;
 
 import gov.aps.jca.Monitor;
 
@@ -64,90 +65,77 @@ public class JCA_Preferences
         }
     }
 
-    /** Update the JCA/CAJ related properties from preferences */
-    public void installPreferences()
+    /** Update the JCA/CAJ related properties from preferences
+     *  @throws Exception on error
+     */
+    public void installPreferences() throws Exception
     {
-        final Preferences prefs = Preferences.userNodeForPackage(JCA_PVFactory.class);
+        final PreferencesReader prefs = new PreferencesReader(JCA_PVFactory.class, "/pv_ca_preferences.properties");
 
-        String code = prefs.get(MONITOR_MASK, "VALUE");
+        String code = prefs.get(MONITOR_MASK);
         switch (code)
         {
         case "ARCHIVE":
             monitor_mask = Monitor.LOG;
-            prefs.put(MONITOR_MASK, "ARCHIVE");
             break;
         case "ALARM":
             monitor_mask = Monitor.ALARM;
-            prefs.put(MONITOR_MASK, "ALARM");
             break;
         default:
             logger.log(Level.WARNING, "Invalid " + MONITOR_MASK + "'" + code + "'");
         case "VALUE":
             monitor_mask = Monitor.VALUE | Monitor.ALARM;
-            prefs.put(MONITOR_MASK, "VALUE");
             break;
         }
 
-        dbe_property_supported = prefs.getBoolean(DBE_PROPERTY_SUPPORTED, dbe_property_supported);
-        prefs.putBoolean(DBE_PROPERTY_SUPPORTED, dbe_property_supported);
+        dbe_property_supported = prefs.getBoolean(DBE_PROPERTY_SUPPORTED);
 
-        code = prefs.get(VARIABLE_LENGTH_ARRAY, "true");
+        code = prefs.get(VARIABLE_LENGTH_ARRAY);
         switch (code)
         {
         case "true":
             var_array_supported = Boolean.TRUE;
-            prefs.put(VARIABLE_LENGTH_ARRAY, "true");
             break;
         case "false":
             var_array_supported = Boolean.FALSE;
-            prefs.put(VARIABLE_LENGTH_ARRAY, "false");
             break;
         default:
             var_array_supported = null;
-            prefs.put(VARIABLE_LENGTH_ARRAY, "auto");
         }
 
-        large_array_threshold = prefs.getInt(LARGE_ARRAY_THRESHOLD, large_array_threshold);
-        prefs.putInt(LARGE_ARRAY_THRESHOLD, large_array_threshold);
+        large_array_threshold = prefs.getInt(LARGE_ARRAY_THRESHOLD);
 
         // Set the 'CAJ' and 'JNI' copies of the settings
         setSystemProperty("com.cosylab.epics.caj.CAJContext.use_pure_java", "true");
 
-        final String addr_list = prefs.get(ADDR_LIST, "");
+        final String addr_list = prefs.get(ADDR_LIST);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.addr_list", addr_list);
         setSystemProperty("gov.aps.jca.jni.JNIContext.addr_list", addr_list);
-        prefs.put(ADDR_LIST, addr_list);
         logger.log(Level.INFO, "JCA " + ADDR_LIST + ": " + addr_list);
 
-        final String auto_addr = prefs.get(AUTO_ADDR_LIST, "true");
+        final String auto_addr = prefs.get(AUTO_ADDR_LIST);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.auto_addr_list", auto_addr);
         setSystemProperty("gov.aps.jca.jni.JNIContext.auto_addr_list", auto_addr);
-        prefs.put(AUTO_ADDR_LIST, auto_addr);
 
-        final String timeout = prefs.get(CONNECTION_TIMEOUT, "30.0");
+        final String timeout = prefs.get(CONNECTION_TIMEOUT);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.connection_timeout", timeout);
         setSystemProperty("gov.aps.jca.jni.JNIContext.connection_timeout", timeout);
-        prefs.put(CONNECTION_TIMEOUT, timeout);
 
-        final String beacon_period = prefs.get(BEACON_PERIOD, "15.0");
+        final String beacon_period = prefs.get(BEACON_PERIOD);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.beacon_period", beacon_period);
         setSystemProperty("gov.aps.jca.jni.JNIContext.beacon_period", beacon_period);
-        prefs.put(BEACON_PERIOD, beacon_period);
 
-        final String repeater_port = prefs.get(REPEATER_PORT, "5065");
+        final String repeater_port = prefs.get(REPEATER_PORT);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.repeater_port", repeater_port);
         setSystemProperty("gov.aps.jca.jni.JNIContext.repeater_port", repeater_port);
-        prefs.put(REPEATER_PORT, repeater_port);
 
-        final String server_port = prefs.get(SERVER_PORT, "5064");
+        final String server_port = prefs.get(SERVER_PORT);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.server_port", server_port);
         setSystemProperty("gov.aps.jca.jni.JNIContext.server_port", server_port);
-        prefs.put(SERVER_PORT, server_port);
 
-        final String max_array_bytes = prefs.get(MAX_ARRAY_BYTES, "100000000");
+        final String max_array_bytes = prefs.get(MAX_ARRAY_BYTES);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.max_array_bytes", max_array_bytes);
         setSystemProperty("gov.aps.jca.jni.JNIContext.max_array_bytes", max_array_bytes);
-        prefs.put(MAX_ARRAY_BYTES, max_array_bytes);
 
         // gov.aps.jca.event.QueuedEventDispatcher avoids
         // deadlocks when calling JCA while receiving JCA callbacks.

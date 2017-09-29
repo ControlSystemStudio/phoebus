@@ -10,7 +10,6 @@ package org.phoebus.applications.pvtree.model;
 import static org.phoebus.applications.pvtree.PVTreeApplication.logger;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,12 +33,6 @@ import org.phoebus.pv.PVPool;
 @SuppressWarnings("nls")
 public class TreeModelItem
 {
-    /** Map of record type to fields for that record type */
-    private final static Map<String, List<String>> field_info = Settings.getFieldInfo();
-
-    /** Read links as long fields? */
-    private final static boolean read_long_fields = Settings.readLongFields();
-
     /** The model to which this whole tree belongs. */
     private final TreeModel model;
 
@@ -271,7 +264,7 @@ public class TreeModelItem
             logger.fine("Known item " + record_name + "." + info + ", not traversing inputs (again)");
             return;
         }
-        final List<String> type_links = field_info.get(type);
+        final List<String> type_links = Settings.field_info.get(type);
         if (type_links == null)
         {
             logger.fine("Type " + type + " has no known links");
@@ -298,7 +291,7 @@ public class TreeModelItem
             return;
 
         String link_name = record_name + "." + field;
-        if (read_long_fields)
+        if (Settings.read_long_fields)
             link_name += "$";
         try
         {

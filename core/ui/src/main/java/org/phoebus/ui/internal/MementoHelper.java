@@ -36,6 +36,7 @@ public class MementoHelper
     private static final String INPUT_URL = "input_url";
     private static final String MAXIMIZED = "maximized";
     private static final String MINIMIZED = "minimized";
+    private static final String SELECTED = "selected";
     private static final String WIDTH = "width";
     private static final String X = "x";
     private static final String Y = "y";
@@ -58,7 +59,9 @@ public class MementoHelper
         else if (stage.isIconified())
             stage_memento.setBoolean(MINIMIZED, true);
 
-        for (DockItem item : DockStage.getDockPane(stage).getDockItems())
+        final DockPane pane = DockStage.getDockPane(stage);
+        stage_memento.setNumber(SELECTED, pane.getSelectionModel().getSelectedIndex());
+        for (DockItem item : pane.getDockItems())
             saveDockItem(stage_memento, item);
     }
 
@@ -117,6 +120,9 @@ public class MementoHelper
         boolean any = false;
         for (MementoTree item_memento : stage_memento.getChildren())
             any |= restoreDockItem(item_memento, pane);
+
+        stage_memento.getNumber(SELECTED).ifPresent(index -> pane.getSelectionModel().select(index.intValue()));
+
         return any;
     }
 
@@ -134,6 +140,9 @@ public class MementoHelper
     private static boolean restoreDockItem(final MementoTree item_memento, final DockPane pane)
     {
         final String app_id = item_memento.getString(DockItem.KEY_APPLICATION).orElse(null);
+
+
+
         if (app_id == null)
             return false;
 

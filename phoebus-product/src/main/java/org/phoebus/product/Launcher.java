@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -52,7 +53,11 @@ public class Launcher
                     iter.remove();
                     final String filename = iter.next();
                     iter.remove();
-                    Preferences.importPreferences(new FileInputStream(filename));
+
+                    if (filename.endsWith(".xml"))
+                        Preferences.importPreferences(new FileInputStream(filename));
+                    else
+                        PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
                 else if (cmd.equals("-export_settings"))
                 {
@@ -134,7 +139,7 @@ public class Launcher
         System.out.println("Command-line arguments:");
         System.out.println();
         System.out.println("-help                                   -  This text");
-        System.out.println("-settings settings.xml                  -  Import settings from file");
+        System.out.println("-settings settings.xml                  -  Import settings from file, either exported XML or property file format");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
         System.out.println("-list                                   -  List available application features");
         System.out.println("-app \"probe?pv=pv_name1&pv=pv_name2\"    -  Launch an application with input arguments");
