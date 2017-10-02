@@ -170,7 +170,14 @@ public class PhoebusApplication extends Application {
         monitor.worked(1);
 
         // In 'server' mode, handle parameters received from client instances
-        ApplicationServer.setOnReceivedArgument(this::handleClientParameters);
+        ApplicationServer.setOnReceivedArgument(parameters ->
+        {
+            // Invoked by received arguments from the OS's file browser,
+            // i.e. the file browser is currently in focus.
+            // Assert that the phoebus window is visible
+            Platform.runLater(() -> main_stage.toFront());
+            handleClientParameters(parameters);
+        });
 
         // Closing the primary window is like calling File/Exit.
         // When the primary window is the only open stage, that's OK.
