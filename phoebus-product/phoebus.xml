@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mine type definitions for Linux
+
+     sudo cp phoebus.xml /usr/share/mime/packages
+     sudo update-mime-database /usr/share/mime
+  -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/pvtable">
+    <comment>PV Table</comment>
+    <glob pattern="*.pvs"/>
+  </mime-type>
+  <mime-type type="application/pvtable">
+    <comment>PV Table</comment>
+    <glob pattern="*.sav"/>
+  </mime-type>
+</mime-info>
