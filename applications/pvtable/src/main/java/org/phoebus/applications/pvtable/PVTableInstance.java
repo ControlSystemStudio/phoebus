@@ -83,6 +83,11 @@ public class PVTableInstance implements AppInstance
         return model;
     }
 
+    public void raise()
+    {
+        dock_item.select();
+    }
+
     public void transferModel(final PVTableModel new_model)
     {
         // This sends a model update
@@ -91,7 +96,7 @@ public class PVTableInstance implements AppInstance
         dock_item.setDirty(false);
     }
 
-    void loadResource(final String resource)
+    void loadResource(final URL input)
     {
         // Load files in background job
         JobManager.schedule("Load PV Table", monitor ->
@@ -99,7 +104,6 @@ public class PVTableInstance implements AppInstance
             final PVTableModel load_model = new PVTableModel(false);
             try
             {
-                final URL input = ResourceParser.createResourceURL(resource);
                 monitor.updateTaskName("Load " + input);
                 PVTablePersistence.forFilename(input.toString()).read(load_model, input.openStream());
 
@@ -112,7 +116,7 @@ public class PVTableInstance implements AppInstance
             }
             catch (Exception ex)
             {
-                final String message = "Cannot open PV Table\n" + resource;
+                final String message = "Cannot open PV Table\n" + input;
                 logger.log(Level.WARNING, message, ex);
                 ExceptionDetailsErrorDialog.openError(app.getDisplayName(), message, ex);
             }

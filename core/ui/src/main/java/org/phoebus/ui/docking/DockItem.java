@@ -164,9 +164,10 @@ public class DockItem extends Tab
     }
 
     /** @return Application instance of this dock item, may be <code>null</code> */
-    public AppInstance getApplication()
+    @SuppressWarnings("unchecked")
+    public <INST extends AppInstance> INST getApplication()
     {
-        return (AppInstance) getProperties().get(KEY_APPLICATION);
+        return (INST) getProperties().get(KEY_APPLICATION);
     }
 
     /** Label of this item */

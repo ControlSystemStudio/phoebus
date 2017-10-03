@@ -64,7 +64,6 @@ public class DockItemWithInput extends DockItem
      *  @param content Initial content
      *  @param input URL for the input. May be <code>null</code>
      *  @param save_handler Will be called to 'save' the content
-     *  @
      */
     public DockItemWithInput(final AppInstance application, final Node content, final URL input, final JobRunnable save_handler)
     {
@@ -169,6 +168,6 @@ public class DockItemWithInput extends DockItem
     @Override
     public String toString()
     {
-        return "DockItem(\"" + getLabel() + "\")";
+        return "DockItemWithInput(\"" + getLabel() + "\", " + getInput() + ")";
     }
 }
