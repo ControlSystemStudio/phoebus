@@ -98,6 +98,11 @@ public class PVTableInstance implements AppInstance
 
     void loadResource(final URL input)
     {
+        // Set input ASAP so that other requests to open this
+        // resource will find this instance and not start
+        // another instance
+        dock_item.setInput(input);
+
         // Load files in background job
         JobManager.schedule("Load PV Table", monitor ->
         {
@@ -111,7 +116,6 @@ public class PVTableInstance implements AppInstance
                 Platform.runLater(() ->
                 {
                     transferModel(load_model);
-                    dock_item.setInput(input);
                 });
             }
             catch (Exception ex)
@@ -121,7 +125,6 @@ public class PVTableInstance implements AppInstance
                 ExceptionDetailsErrorDialog.openError(app.getDisplayName(), message, ex);
             }
         });
-
     }
 
     private void doSave(final JobMonitor monitor) throws Exception
