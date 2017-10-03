@@ -9,6 +9,7 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -176,5 +177,25 @@ public class DockStage
     {
         final DockPane dock_pane = getDockPane(stage);
         DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));
+    }
+
+    /** Locate DockItemWithInput for application and input
+     *  @param application_name Application name
+     *  @param input Input, must not be <code>null</code>
+     *  @return {@link DockItemWithInput} or <code>null</code> if not found
+     */
+    public static DockItemWithInput getDockItemWithInput(final String application_name, final URL input)
+    {
+        Objects.requireNonNull(input);
+        for (Stage stage : getDockStages())
+            for (DockItem tab : getDockPane(stage).getDockItems())
+                if (tab instanceof DockItemWithInput)
+                {
+                    final DockItemWithInput item = (DockItemWithInput) tab;
+                    if (input.equals(item.getInput()) &&
+                        item.getApplication().getAppDescriptor().getName().equals(application_name))
+                        return item;
+                }
+        return null;
     }
 }

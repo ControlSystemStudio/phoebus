@@ -1,2 +1,3 @@
 org.phoebus.ui.pv.PVListMenuEntry
 org.phoebus.ui.jobs.JobViewerMenuEntry
+org.phoebus.ui.monitoring.FreezeUI

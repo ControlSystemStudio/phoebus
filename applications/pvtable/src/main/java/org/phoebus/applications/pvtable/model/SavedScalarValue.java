@@ -76,7 +76,7 @@ public class SavedScalarValue extends SavedValue
             else
                 pv.write(Double.parseDouble(saved_value));
         }
-        else if (pv_type instanceof VNumber)
+        else if (pv_type instanceof VNumber  ||  pv_type instanceof VEnum)
         {
             if (completion_timeout_secs > 0)
                 pv.asyncWrite(getSavedNumber(saved_value).longValue()).get(completion_timeout_secs, TimeUnit.SECONDS);

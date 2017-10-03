@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Terminal=false
+Name=Phoebus
+Exec=~/bin/phoebus -resource %f

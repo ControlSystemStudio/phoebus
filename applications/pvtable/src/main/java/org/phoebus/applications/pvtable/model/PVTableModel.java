@@ -43,7 +43,7 @@ public class PVTableModel implements PVTableItemListener
 
     final private List<PVTableModelListener> listeners = new ArrayList<PVTableModelListener>();
 
-    final private Timer update_timer = new Timer("PVTableUpdate", true);
+    private Timer update_timer;
 
     /** @see #performUpdates() */
     private Set<PVTableItem> changed_items = new HashSet<PVTableItem>();
@@ -54,14 +54,26 @@ public class PVTableModel implements PVTableItemListener
     /** Initialize */
     public PVTableModel()
     {
-        update_timer.schedule(new TimerTask()
+        this(true);
+    }
+
+    /** Initialize
+     *  @param with_timer With timer to send events?
+     */
+    public PVTableModel(final boolean with_timer)
+    {
+        if (with_timer)
         {
-            @Override
-            public void run()
+            update_timer = new Timer("PVTableUpdate", true);
+            update_timer.schedule(new TimerTask()
             {
-                performUpdates();
-            }
-        }, UPDATE_PERIOD_MS, UPDATE_PERIOD_MS);
+                @Override
+                public void run()
+                {
+                    performUpdates();
+                }
+            }, UPDATE_PERIOD_MS, UPDATE_PERIOD_MS);
+        }
     }
 
     /** @param listener Listener to add */
@@ -180,7 +192,6 @@ public class PVTableModel implements PVTableItemListener
      */
     public void transferItems(final PVTableModel other_model)
     {
-        dispose();
         for (PVTableItem item : other_model.items)
         {
             item.listener = this;
@@ -316,6 +327,7 @@ public class PVTableModel implements PVTableItemListener
     /** Must be invoked when 'done' by the creator of the model. */
     public void dispose()
     {
+        update_timer.cancel();
         for (PVTableItem item : items)
             item.dispose();
         items.clear();

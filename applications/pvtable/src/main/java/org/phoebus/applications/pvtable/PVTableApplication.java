@@ -10,6 +10,7 @@ package org.phoebus.applications.pvtable;
 import static org.phoebus.framework.util.ResourceParser.createAppURI;
 import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -18,6 +19,8 @@ import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
 import org.phoebus.applications.pvtable.persistence.PVTableXMLPersistence;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.docking.DockItemWithInput;
+import org.phoebus.ui.docking.DockStage;
 
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -88,8 +91,19 @@ public class PVTableApplication implements AppResourceDescriptor
         {
             for (String file : files)
             {
-                instance = create();
-                instance.loadResource(file);
+                final URL input = ResourceParser.createResourceURL(file);
+                // Check for existing instance with that input
+                final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, input);
+                if (existing != null)
+                {   // Found one, raise it
+                    instance = existing.getApplication();
+                    instance.raise();
+                }
+                else
+                {   // Nothing found, create new one
+                    instance = create();
+                    instance.loadResource(input);
+                }
             }
         }
         else

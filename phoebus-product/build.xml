@@ -57,6 +57,8 @@
       <zipfileset dir="${build}" includes="**/*.jar" prefix="phoebus-${version}"/>
       <zipfileset dir="." includes="phoebus.sh" fullpath="phoebus-${version}/phoebus.sh" filemode="755"/>
       <zipfileset dir="." includes="phoebus.bat" fullpath="phoebus-${version}/phoebus.bat"/>
+      <zipfileset dir="." includes="phoebus.xml" fullpath="phoebus-${version}/phoebus.xml"/>
+      <zipfileset dir="." includes="phoebus.desktop" fullpath="phoebus-${version}/phoebus.desktop"/>
       <zipfileset dir="${build}" includes="doc/**" prefix="phoebus-${version}"/>
     </zip>
   </target>

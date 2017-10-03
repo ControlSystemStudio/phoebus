@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +36,7 @@ import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
 import org.phoebus.ui.jobs.SubJobMonitor;
+import org.phoebus.ui.monitoring.ResponsivenessMonitor;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
@@ -83,6 +85,8 @@ public class PhoebusApplication extends Application {
     public void start(final Stage initial_stage) throws Exception {
         // Show splash screen as soon as possible..
         final Splash splash = new Splash(initial_stage);
+
+        new ResponsivenessMonitor(500, TimeUnit.MILLISECONDS);
 
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
@@ -166,7 +170,14 @@ public class PhoebusApplication extends Application {
         monitor.worked(1);
 
         // In 'server' mode, handle parameters received from client instances
-        ApplicationServer.setOnReceivedArgument(this::handleClientParameters);
+        ApplicationServer.setOnReceivedArgument(parameters ->
+        {
+            // Invoked by received arguments from the OS's file browser,
+            // i.e. the file browser is currently in focus.
+            // Assert that the phoebus window is visible
+            Platform.runLater(() -> main_stage.toFront());
+            handleClientParameters(parameters);
+        });
 
         // Closing the primary window is like calling File/Exit.
         // When the primary window is the only open stage, that's OK.

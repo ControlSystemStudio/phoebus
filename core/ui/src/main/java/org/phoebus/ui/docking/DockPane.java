@@ -42,10 +42,20 @@ public class DockPane extends TabPane
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
+        if (! active.getScene().getWindow().isShowing())
+        {
+            // The Window for the previously active dock pane was closed
+            // Use the first one that's still open
+            for (Stage stage : DockStage.getDockStages())
+            {
+                active = DockStage.getDockPane(stage);
+                break;
+            }
+        }
         return active;
     }
 
-    // Called by DockStage within pachage
+    // Called by DockStage within package
     public static void setActiveDockPane(final DockPane pane)
     {
         active = pane;
