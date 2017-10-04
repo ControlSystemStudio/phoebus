@@ -2,7 +2,7 @@
 [![Travis Status](https://travis-ci.org/shroffk/phoebus.svg?branch=master)](https://travis-ci.org/shroffk/phoebus)
 [![Appveyor Status](https://ci.appveyor.com/api/projects/status/kwktt0vf955aged1/branch/master?svg=true)](https://ci.appveyor.com/project/mattclarke/phoebus-o58ne/branch/master)
 
-Phoebus is a framework and a collections of tools to monitor and operate large scale control systems, such as the ones in the accelerator community
+Phoebus is a framework and a collections of tools to monitor and operate large scale control systems, such as the ones in the accelerator community. Phoebus is an update of the Control System Studio toolset that removes dependencies on Eclipse RCP and SWT.
 
 More information:
 http://phoebus-doc.readthedocs.io
