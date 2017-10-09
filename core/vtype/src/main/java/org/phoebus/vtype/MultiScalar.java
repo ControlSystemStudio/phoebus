@@ -26,7 +26,7 @@ import java.util.List;
  * @param <T> the type for the multi channel values
  * @author carcassi
  */
-public interface MultiScalar<T extends Scalar> {
+public interface MultiScalar<T extends Scalar> extends VType {
 
     /**
      * The list of values for all the different channels. Never null.

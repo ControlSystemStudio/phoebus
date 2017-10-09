@@ -14,7 +14,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface Scalar {
+public interface Scalar extends VType {
 
     /**
      * Returns the value. Never null.

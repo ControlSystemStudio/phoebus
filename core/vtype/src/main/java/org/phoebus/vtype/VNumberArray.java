@@ -15,7 +15,7 @@ import org.phoebus.util.array.ListNumber;
  *
  * @author carcassi
  */
-public interface VNumberArray extends Array, Alarm, Time, Display, VType {
+public interface VNumberArray extends Array, Alarm, Time, Display {
     @Override
     ListNumber getData();
 

@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListLong;
  *
  * @author carcassi
  */
-public interface VLongArray extends VNumberArray, VType {
+public interface VLongArray extends VNumberArray {
 
     @Override
     ListLong getData();

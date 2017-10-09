@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListFloat;
  *
  * @author carcassi
  */
-public interface VFloatArray extends VNumberArray, VType {
+public interface VFloatArray extends VNumberArray {
 
     @Override
     ListFloat getData();

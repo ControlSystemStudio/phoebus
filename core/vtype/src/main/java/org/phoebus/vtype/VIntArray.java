@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListInt;
  *
  * @author carcassi
  */
-public interface VIntArray extends VNumberArray, VType {
+public interface VIntArray extends VNumberArray {
 
     @Override
     ListInt getData();

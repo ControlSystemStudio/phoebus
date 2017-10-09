@@ -11,7 +11,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VShort extends VNumber, VType {
+public interface VShort extends VNumber {
     /**
      * {@inheritDoc }
      */

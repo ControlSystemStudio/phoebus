@@ -9,6 +9,6 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VMultiDouble extends MultiScalar<VDouble>, Alarm, Time, Display, VType {
+public interface VMultiDouble extends MultiScalar<VDouble>, Alarm, Time, Display {
 
 }

@@ -28,7 +28,7 @@ import org.phoebus.util.array.ListNumber;
  *
  * @author carcassi
  */
-public interface Array {
+public interface Array extends VType {
 
     /**
      * Return the object containing the array data.

@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListBoolean;
  *
  * @author carcassi
  */
-public interface VBooleanArray extends Array, Alarm, Time, VType {
+public interface VBooleanArray extends Array, Alarm, Time {
 
     /**
      * {@inheritDoc }

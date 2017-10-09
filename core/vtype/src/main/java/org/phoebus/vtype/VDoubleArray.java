@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListDouble;
  *
  * @author carcassi
  */
-public interface VDoubleArray extends VNumberArray, VType {
+public interface VDoubleArray extends VNumberArray {
 
     /**
      * {@inheritDoc }

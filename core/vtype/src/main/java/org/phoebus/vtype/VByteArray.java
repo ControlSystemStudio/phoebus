@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListByte;
  *
  * @author carcassi
  */
-public interface VByteArray extends VNumberArray, VType {
+public interface VByteArray extends VNumberArray {
 
     /**
      * {@inheritDoc }

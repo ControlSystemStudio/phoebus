@@ -11,7 +11,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VInt extends VNumber, VType {
+public interface VInt extends VNumber {
     /**
      * {@inheritDoc }
      */

@@ -9,5 +9,5 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VStatistics extends Statistics, Alarm, Time, Display, VType {
+public interface VStatistics extends Statistics, Alarm, Time, Display {
 }

@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author carcassi
  */
-public interface VStringArray extends Array, Alarm, Time, VType {
+public interface VStringArray extends Array, Alarm, Time {
     @Override
     List<String> getData();
 }

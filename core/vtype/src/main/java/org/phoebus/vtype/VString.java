@@ -9,7 +9,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VString extends Scalar, Alarm, Time, VType {
+public interface VString extends Scalar, Alarm, Time {
 
     /**
      * {@inheritDoc }

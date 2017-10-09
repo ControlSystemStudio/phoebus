@@ -11,7 +11,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VFloat extends VNumber, VType {
+public interface VFloat extends VNumber {
     /**
      * {@inheritDoc }
      */

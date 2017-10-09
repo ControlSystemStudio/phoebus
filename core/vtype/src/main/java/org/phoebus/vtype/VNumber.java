@@ -12,7 +12,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VNumber extends Scalar, Alarm, Time, Display, VType {
+public interface VNumber extends Scalar, Alarm, Time, Display {
 
     /**
      * The numeric value.

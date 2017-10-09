@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListShort;
  *
  * @author carcassi
  */
-public interface VShortArray extends VNumberArray, VType {
+public interface VShortArray extends VNumberArray {
 
     @Override
     ListShort getData();

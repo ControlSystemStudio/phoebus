@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author carcassi
  */
-public interface Enum {
+public interface Enum extends VType{
 
     /**
      * All the possible labels. Never null.

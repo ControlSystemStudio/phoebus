@@ -13,7 +13,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VEnum extends Scalar, Enum, Alarm, Time, VType {
+public interface VEnum extends Scalar, Enum, Alarm, Time {
 
     /**
      * {@inheritDoc }

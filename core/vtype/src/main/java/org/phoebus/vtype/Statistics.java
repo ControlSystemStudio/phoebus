@@ -18,7 +18,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface Statistics {
+public interface Statistics extends VType {
 
     /**
      * The average. Never null.

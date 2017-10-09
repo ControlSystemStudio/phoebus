@@ -11,7 +11,7 @@ package org.phoebus.vtype;
  *
  * @author carcassi
  */
-public interface VDouble extends VNumber, VType {
+public interface VDouble extends VNumber {
     /**
      * {@inheritDoc }
      */

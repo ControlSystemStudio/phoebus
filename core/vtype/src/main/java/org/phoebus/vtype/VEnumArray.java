@@ -11,7 +11,7 @@ import org.phoebus.util.array.ListInt;
  *
  * @author carcassi
  */
-public interface VEnumArray extends Array, Enum, Alarm, Time, VType {
+public interface VEnumArray extends Array, Enum, Alarm, Time {
     @Override
     List<String> getData();
 
