@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JFileChooser;
-import static org.diirt.util.text.StringUtil.DOUBLE_REGEX_WITH_NAN;
+import static org.phoebus.util.text.StringUtil.DOUBLE_REGEX_WITH_NAN;
 import org.phoebus.util.text.CsvParserResult;
 
 /**
