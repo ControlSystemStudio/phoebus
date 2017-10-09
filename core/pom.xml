@@ -8,6 +8,8 @@
     <module>logging</module>
     <module>pv</module>
     <module>ui</module>
+    <module>vtype</module>
+    <module>util</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
