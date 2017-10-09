@@ -12,9 +12,23 @@ package org.phoebus.vtype;
  * @author carcassi
  */
 public interface VDouble extends VNumber {
+
     /**
      * {@inheritDoc }
      */
     @Override
     Double getValue();
+
+    /**
+     * Creates a new VDouble.
+     *
+     * @param value the value
+     * @param alarm the alarm
+     * @param time the time
+     * @param display the display
+     * @return the new value
+     */
+    public static VDouble create(final Double value, final Alarm alarm, final Time time, final Display display) {
+        return new IVDouble(value, alarm, time, display);
+    }
 }
