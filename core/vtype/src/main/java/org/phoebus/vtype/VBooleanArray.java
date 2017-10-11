@@ -19,4 +19,18 @@ public interface VBooleanArray extends Array, Alarm, Time {
      */
     @Override
     ListBoolean getData();
+    
+
+    /**
+     * Creates a new VBooleanArray.
+     *
+     * @param data the value
+     * @param alarm the alarm
+     * @param time the time
+     * 
+     * @return the new value
+     */
+    public static VBooleanArray create(final ListBoolean data, final Alarm alarm, final Time time) {
+        return new IVBooleanArray(data, null, alarm, time);
+    }
 }

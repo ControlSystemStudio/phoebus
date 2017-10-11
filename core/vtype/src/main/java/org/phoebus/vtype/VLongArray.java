@@ -15,4 +15,18 @@ public interface VLongArray extends VNumberArray {
 
     @Override
     ListLong getData();
+    
+
+    /**
+     * Creates a new VLongArray.
+     *
+     * @param data the value
+     * @param alarm the alarm
+     * @param time the time
+     * @param display the display
+     * @return the new value
+     */
+    public static VLongArray create(final ListLong data, final Alarm alarm, final Time time, final Display display) {
+        return new IVLongArray(data, null, alarm, time, display);
+    }
 }

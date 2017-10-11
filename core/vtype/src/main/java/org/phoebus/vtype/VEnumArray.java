@@ -5,6 +5,7 @@
 package org.phoebus.vtype;
 
 import java.util.List;
+
 import org.phoebus.util.array.ListInt;
 
 /**
@@ -21,4 +22,19 @@ public interface VEnumArray extends Array, Enum, Alarm, Time {
      * @return an array of indexes
      */
     ListInt getIndexes();
+    
+
+    /**
+     * Creates a new {@link VEnumArray}
+     * 
+     * @param indexes
+     * @param labels
+     * @param sizes
+     * @param alarm
+     * @param time
+     * @return
+     */
+    public static VEnumArray create(ListInt indexes, List<String> labels, ListInt sizes, Alarm alarm, Time time) {
+        return new IVEnumArray(indexes, labels, sizes, alarm, time);
+    }
 }

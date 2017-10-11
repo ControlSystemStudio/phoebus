@@ -16,4 +16,16 @@ public interface VBoolean extends Scalar, Alarm, Time {
      */
     @Override
     Boolean getValue();
+    
+
+    /**
+     * Creates a new VBoolean.
+     *
+     * @param value the value
+     * @param alarm the alarm
+     * @param time the time
+     */
+    public static VBoolean create(final Boolean value, final Alarm alarm, final Time time) {
+        return new IVBoolean(value, alarm, time);
+    }
 }

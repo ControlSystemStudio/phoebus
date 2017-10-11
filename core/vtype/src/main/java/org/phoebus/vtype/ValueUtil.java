@@ -11,18 +11,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.phoebus.util.array.ArrayByte;
 import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.array.ArrayInt;
 import org.phoebus.util.array.ListInt;
 import org.phoebus.util.array.ListNumber;
-import org.phoebus.util.array.ListNumbers;
 import org.phoebus.util.text.NumberFormats;
 
 /**

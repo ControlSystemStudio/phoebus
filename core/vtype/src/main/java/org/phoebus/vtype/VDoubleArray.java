@@ -21,7 +21,7 @@ public interface VDoubleArray extends VNumberArray {
     ListDouble getData();
 
     /**
-     * Creates a new VDouble.
+     * Creates a new VDoubleArray.
      *
      * @param data the value
      * @param alarm the alarm

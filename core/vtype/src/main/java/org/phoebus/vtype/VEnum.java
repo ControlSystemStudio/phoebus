@@ -4,6 +4,8 @@
  */
 package org.phoebus.vtype;
 
+import java.util.List;
+
 /**
  * Scalar enum with alarm and timestamp.
  * Given that enumerated values are of very limited use without
@@ -27,5 +29,19 @@ public interface VEnum extends Scalar, Enum, Alarm, Time {
      * @return the current index
      */
     int getIndex();
+    
+
+    /**
+     * Creates a new VEnum.
+     *
+     * @param index the index
+     * @param value the value
+     * @param alarm the alarm
+     * @param time the time
+     * @return the new value
+     */
+    public static VEnum create(final int index, List<String> labels, final Alarm alarm, final Time time) {
+        return new IVEnum(index, labels, alarm, time);
+    }
 
 }

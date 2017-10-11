@@ -15,4 +15,18 @@ public interface VFloatArray extends VNumberArray {
 
     @Override
     ListFloat getData();
+    
+
+    /**
+     * Creates a new VFloatArray.
+     *
+     * @param data the value
+     * @param alarm the alarm
+     * @param time the time
+     * @param display the display
+     * @return the new value
+     */
+    public static VFloatArray create(final ListFloat data, final Alarm alarm, final Time time, final Display display) {
+        return new IVFloatArray(data, null, alarm, time, display);
+    }
 }
