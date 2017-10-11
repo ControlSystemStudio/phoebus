@@ -72,5 +72,14 @@ public class ResourceParserTest {
                 queryArgs, parseQueryArgs(createAppURI(resourceURI)));
         
     }
+    
+    @Test
+    public void checkFileParsing() {
+//        File file = new File("test");
+//        String absolutePath = file.getAbsolutePath();
+//        URL url = createResourceURL(absolutePath);
+//        System.out.println(url);
+//        file.delete();
+    }
 
 }
