@@ -1,0 +1,17 @@
+<project default="module-vtype">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-vtype">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <classpath>
+        <pathelement path="../util/${build}/util-${version}.jar"/>
+      </classpath>
+    </javac>
+    <jar destfile="${build}/vtype-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+	
+</project>
