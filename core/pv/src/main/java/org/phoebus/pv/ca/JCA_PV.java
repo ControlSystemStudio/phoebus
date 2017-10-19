@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import org.diirt.vtype.VType;
+import org.phoebus.vtype.VType;
 import org.phoebus.pv.PV;
 
 import gov.aps.jca.CAStatus;

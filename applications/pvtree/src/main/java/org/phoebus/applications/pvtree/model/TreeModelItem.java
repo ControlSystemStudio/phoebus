@@ -15,12 +15,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtree.Settings;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
+import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.VType;
 
 /** One 'item' in the PV Tree
  *

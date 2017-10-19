@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
-import org.diirt.vtype.VType;
+import org.phoebus.vtype.VType;
 
 /** Listener to a {@link PV}
  *  @author Kay Kasemir

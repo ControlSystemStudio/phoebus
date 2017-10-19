@@ -7,10 +7,11 @@
  ******************************************************************************/
 package org.phoebus.pv.ca;
 
-import org.diirt.util.time.Timestamp;
-import org.diirt.vtype.Alarm;
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.Time;
+import java.time.Instant;
+
+import org.phoebus.vtype.Alarm;
+import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.Time;
 
 import gov.aps.jca.dbr.Severity;
 import gov.aps.jca.dbr.TIME;
@@ -55,23 +56,14 @@ public class DBRAlarmTimeWrapper<T_DBR extends TIME> implements Alarm, Time
     }
 
     @Override
-    public Timestamp getTimestamp()
+    public Instant getTimestamp()
     {
-        // TODO Use Instant
-//        if (dbr == null)
-//            return Instant.now();
-//        final TimeStamp epics_time = dbr.getTimeStamp();
-//        if (epics_time == null)
-//            return Instant.now();
-//        return Instant.ofEpochSecond(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
-
-
         if (dbr == null)
-            return Timestamp.now();
+            return Instant.now();
         final TimeStamp epics_time = dbr.getTimeStamp();
         if (epics_time == null)
-            return Timestamp.now();
-        return Timestamp.of(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
+            return Instant.now();
+        return Instant.ofEpochSecond(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
     }
 
     @Override

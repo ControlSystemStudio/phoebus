@@ -9,8 +9,8 @@ package org.phoebus.pv;
 
 import java.util.concurrent.CountDownLatch;
 
-import org.diirt.vtype.VType;
 import org.junit.Test;
+import org.phoebus.vtype.VType;
 
 /** @author Kay Kasemir */
 @SuppressWarnings("nls")

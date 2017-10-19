@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.diirt.vtype.AlarmSeverity;
+import org.phoebus.vtype.AlarmSeverity;
 
 /** Model of the PV Tree
  *  @author Kay Kasemir

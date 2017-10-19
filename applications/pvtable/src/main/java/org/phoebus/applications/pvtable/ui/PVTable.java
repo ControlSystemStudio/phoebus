@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -26,6 +24,8 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VType;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;

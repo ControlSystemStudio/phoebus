@@ -10,8 +10,8 @@ package org.phoebus.applications.pvtree.ui;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-import org.diirt.vtype.AlarmSeverity;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
+import org.phoebus.vtype.AlarmSeverity;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.TreeCell;

@@ -9,8 +9,8 @@ package org.phoebus.pv.ca;
 
 import java.text.NumberFormat;
 
-import org.diirt.util.text.NumberFormats;
-import org.diirt.vtype.Display;
+import org.phoebus.util.text.NumberFormats;
+import org.phoebus.vtype.Display;
 
 import gov.aps.jca.dbr.CTRL;
 import gov.aps.jca.dbr.GR;

@@ -14,19 +14,19 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.VByteArray;
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VEnumArray;
-import org.diirt.vtype.VNumber;
-import org.diirt.vtype.VNumberArray;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VType;
-import org.diirt.vtype.ValueFactory;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
+import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.VByteArray;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VEnumArray;
+import org.phoebus.vtype.VNumber;
+import org.phoebus.vtype.VNumberArray;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
 
 /** One item (row) in the PV table.
  *

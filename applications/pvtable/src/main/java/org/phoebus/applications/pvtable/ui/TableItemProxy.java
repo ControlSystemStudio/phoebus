@@ -7,11 +7,11 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
-import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.SavedValue;
 import org.phoebus.applications.pvtable.model.TimestampHelper;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
+import org.phoebus.vtype.VType;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

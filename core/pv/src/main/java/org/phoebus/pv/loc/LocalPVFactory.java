@@ -12,17 +12,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.diirt.vtype.VDouble;
-import org.diirt.vtype.VDoubleArray;
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VLong;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VStringArray;
-import org.diirt.vtype.VTable;
-import org.diirt.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVFactory;
 import org.phoebus.pv.PVPool;
+import org.phoebus.vtype.VDouble;
+import org.phoebus.vtype.VDoubleArray;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VLong;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VStringArray;
+import org.phoebus.vtype.VTable;
+import org.phoebus.vtype.VType;
 
 /** Factory for creating {@link LocalPV}s
  *  @author Kay Kasemir

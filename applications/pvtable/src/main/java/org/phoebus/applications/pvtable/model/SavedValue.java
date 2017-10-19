@@ -11,17 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.diirt.util.array.IteratorDouble;
-import org.diirt.util.array.IteratorNumber;
-import org.diirt.vtype.VDoubleArray;
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VEnumArray;
-import org.diirt.vtype.VNumber;
-import org.diirt.vtype.VNumberArray;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VStringArray;
-import org.diirt.vtype.VType;
 import org.phoebus.pv.PV;
+import org.phoebus.util.array.IteratorDouble;
+import org.phoebus.util.array.IteratorNumber;
+import org.phoebus.vtype.VDoubleArray;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VEnumArray;
+import org.phoebus.vtype.VNumber;
+import org.phoebus.vtype.VNumberArray;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VStringArray;
+import org.phoebus.vtype.VType;
 
 /** Base for saved values of a table item
  *
