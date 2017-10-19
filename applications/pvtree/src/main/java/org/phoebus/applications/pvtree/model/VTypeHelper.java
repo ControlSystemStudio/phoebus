@@ -59,7 +59,7 @@ public class VTypeHelper
         {
             final VString text = (VString) value;
             try
-            {   // org.diirt.pvmanager.jca.VStringFromDbr.getValue(VStringFromDbr.java:39) can create NullPointerException
+            {
                 buf.append(text.getValue());
             }
             catch (NullPointerException ex)
