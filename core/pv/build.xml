@@ -11,6 +11,8 @@
           <include name="*.jar"/>
         </fileset>
         <pathelement path="../framework/${build}/framework-${version}.jar"/>
+        <pathelement path="../util/${build}/util-${version}.jar"/>
+        <pathelement path="../vtype/${build}/vtype-${version}.jar"/>
       </classpath>
     </javac>
   	<jar destfile="${build}/pv-${version}.jar">
