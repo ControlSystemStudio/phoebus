@@ -50,21 +50,25 @@ ant clean run
 
 ## Developing with Eclipse
 
-Download Eclipse Oxygen 4.7 from http://download.eclipse.org/eclipse/downloads/
+Download Eclipse Oxygen 4.7.1a from http://download.eclipse.org/eclipse/downloads/
 
 Start Eclipse like this:
 
 	export JAVA_HOME=/path/to/your/jdk-9
 	export PATH="$JAVA_HOME/bin:$PATH"
-	eclipse/eclipse -consoleLog -vmargs --add-modules=ALL-SYSTEM
+	eclipse/eclipse -consoleLog
 
-In Help/Eclipse Marketplace, search for Java 9 Support BETA for Oxygen
+Check Eclipse Preferences:
+
+ * Java, Installed JREs: JDK 9 should be the default
+ * Java, Compiler: JDK Compliance should be "9"
 
 
 ### Use plain Java configuration
 
 Use `File`, `Import`, `General`, `Existing Projects into Workspace`.
-Select the phoebus root directory.
+Select the phoebus root directory, and check the option to "Seach for nested projects".
+
 By default, all projects should be selected ('dependencies', 'core-framework', .., 'product').
 
 Invoke `Run As/Java Application` on the `Launcher` in the product.
