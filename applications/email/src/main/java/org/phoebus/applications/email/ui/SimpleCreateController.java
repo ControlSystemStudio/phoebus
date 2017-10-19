@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
+//import javax.activation.DataHandler;
+//import javax.activation.DataSource;
+//import javax.activation.FileDataSource;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -120,14 +120,15 @@ public class SimpleCreateController {
                 messageBodyPart.setText(textArea.getText());
                 multipart.addBodyPart(messageBodyPart);
                 // Attachments
-                for (String file : listView.getItems()) {
-                    messageBodyPart = new MimeBodyPart();
-                    String filename = file;
-                    DataSource source = new FileDataSource(filename);
-                    messageBodyPart.setDataHandler(new DataHandler(source));
-                    messageBodyPart.setFileName(filename);
-                    multipart.addBodyPart(messageBodyPart);
-                }
+// TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
+//                for (String file : listView.getItems()) {
+//                    messageBodyPart = new MimeBodyPart();
+//                    String filename = file;
+//                    DataSource source = new FileDataSource(filename);
+//                    messageBodyPart.setDataHandler(new DataHandler(source));
+//                    messageBodyPart.setFileName(filename);
+//                    multipart.addBodyPart(messageBodyPart);
+//                }
                 break;
             }
 
