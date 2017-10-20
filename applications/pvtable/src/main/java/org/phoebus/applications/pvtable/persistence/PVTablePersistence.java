@@ -10,11 +10,11 @@ package org.phoebus.applications.pvtable.persistence;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.diirt.vtype.VDouble;
-import org.diirt.vtype.VLong;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.model.PVTableModel;
+import org.phoebus.vtype.VDouble;
+import org.phoebus.vtype.VLong;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VType;
 
 /** Base for persisting PVTableModel to/from file
  *  @author Kay Kasemir

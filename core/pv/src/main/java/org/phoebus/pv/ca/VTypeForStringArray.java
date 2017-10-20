@@ -9,10 +9,10 @@ package org.phoebus.pv.ca;
 
 import java.util.List;
 
-import org.diirt.util.array.ArrayInt;
-import org.diirt.util.array.ListInt;
-import org.diirt.vtype.VStringArray;
-import org.diirt.vtype.VTypeToString;
+import org.phoebus.util.array.ArrayInt;
+import org.phoebus.util.array.ListInt;
+import org.phoebus.vtype.VStringArray;
+import org.phoebus.vtype.VTypeToString;
 
 import gov.aps.jca.dbr.DBR_String;
 import gov.aps.jca.dbr.DBR_TIME_String;

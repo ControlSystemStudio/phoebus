@@ -10,15 +10,15 @@ package org.phoebus.applications.pvtree.model;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
 
-import org.diirt.util.array.ListNumber;
-import org.diirt.vtype.Alarm;
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.VByteArray;
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VNumber;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VType;
-import org.diirt.vtype.ValueUtil;
+import org.phoebus.util.array.ListNumber;
+import org.phoebus.vtype.Alarm;
+import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.VByteArray;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VNumber;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueUtil;
 
 /** Helper for {@link VType} gymnastics
  *  @author Kay Kasemir
@@ -59,7 +59,7 @@ public class VTypeHelper
         {
             final VString text = (VString) value;
             try
-            {   // org.diirt.pvmanager.jca.VStringFromDbr.getValue(VStringFromDbr.java:39) can create NullPointerException
+            {
                 buf.append(text.getValue());
             }
             catch (NullPointerException ex)

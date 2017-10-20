@@ -56,7 +56,7 @@ public class JCAContext implements ContextMessageListener, ContextExceptionListe
         context.addContextExceptionListener(this);
 
         // Potentially check version for variable array support,
-        // based on diirt JCADataSourceConfiguration#isVarArraySupported().
+        // based on phoebus JCADataSourceConfiguration#isVarArraySupported().
         boolean supported;
         if (JCA_Preferences.getInstance().isVarArraySupported() == null)
         {   // Variable array support was added to CAJ 1.1.10

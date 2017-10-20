@@ -7,10 +7,13 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Level;
 
 /** Job Manager
  *  @author Kay Kasemir
@@ -36,6 +39,11 @@ public class JobManager
         try
         {
             job.execute();
+        }
+        catch (Throwable ex)
+        {
+        	logger.log(Level.WARNING, "Job '" + job.getName() + "' failed", ex);
+        	throw ex;
         }
         finally
         {

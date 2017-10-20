@@ -7,8 +7,8 @@
  ******************************************************************************/
 package org.phoebus.pv.ca;
 
-import org.diirt.vtype.VShort;
-import org.diirt.vtype.VTypeToString;
+import org.phoebus.vtype.VShort;
+import org.phoebus.vtype.VTypeToString;
 
 import gov.aps.jca.dbr.DBR_TIME_Short;
 import gov.aps.jca.dbr.GR;

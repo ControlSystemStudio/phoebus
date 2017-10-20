@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.VDouble;
-import org.diirt.vtype.VDoubleArray;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VStringArray;
-import org.diirt.vtype.VType;
 import org.phoebus.pv.PV;
+import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.VDouble;
+import org.phoebus.vtype.VDoubleArray;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VStringArray;
+import org.phoebus.vtype.VType;
 
 /** Local Process Variable
  *
@@ -33,7 +33,7 @@ import org.phoebus.pv.PV;
  *  <li>loc://name&lt;VTable>, declares PV as table (initially empty)
  *  <li>loc://name&lt;VTable>("X", "Y"), declares PV as table with given column names (initially empty)
  *  </ul>
- *  @author Kay Kasemir, based on similar code in org.csstudio.utility.pv and diirt
+ *  @author Kay Kasemir, based on similar code in org.csstudio.utility.pv
  */
 @SuppressWarnings("nls")
 public class LocalPV extends PV

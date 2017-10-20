@@ -7,8 +7,8 @@
  ******************************************************************************/
 package org.phoebus.pv.sim;
 
-import org.diirt.vtype.VType;
-import org.diirt.vtype.ValueFactory;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
 
 /** Base for simulated text PVs
  *  @author Kay Kasemir, based on similar code in org.csstudio.utility.pv and diirt

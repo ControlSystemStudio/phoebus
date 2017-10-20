@@ -9,8 +9,8 @@ package org.phoebus.pv.ca;
 
 import java.util.List;
 
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VTypeToString;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VTypeToString;
 
 import gov.aps.jca.dbr.DBR_TIME_Enum;
 import gov.aps.jca.dbr.LABELS;

@@ -8,6 +8,8 @@
   <target name="clean" description="Remove all artifacts">
     <ant target="clean" dir="core/framework"/>
     <ant target="clean" dir="core/logging"/>
+  	<ant target="clean" dir="core/util"/>
+  	<ant target="clean" dir="core/vtype"/>
     <ant target="clean" dir="core/pv"/>
     <ant target="clean" dir="core/types"/>
     <ant target="clean" dir="core/ui"/>
@@ -28,6 +30,8 @@
     -->
     <ant dir="core/framework"/>
     <ant dir="core/logging"/>
+    <ant dir="core/util"/>
+    <ant dir="core/vtype"/>
     <ant dir="core/pv"/>
     <ant dir="core/types"/>
     <ant dir="core/ui"/>

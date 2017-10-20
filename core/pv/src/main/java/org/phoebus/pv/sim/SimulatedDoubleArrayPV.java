@@ -9,11 +9,11 @@ package org.phoebus.pv.sim;
 
 import java.text.NumberFormat;
 
-import org.diirt.util.array.ArrayDouble;
-import org.diirt.vtype.Display;
-import org.diirt.vtype.VType;
-import org.diirt.vtype.ValueFactory;
-import org.diirt.vtype.ValueUtil;
+import org.phoebus.util.array.ArrayDouble;
+import org.phoebus.vtype.Display;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
+import org.phoebus.vtype.ValueUtil;
 
 /** Base for simulated array PVs
  *
@@ -23,7 +23,7 @@ import org.diirt.vtype.ValueUtil;
  *  warnings generated at 20%/80% of range,
  *  alarms at 10%/90% of range.
  *
- *  @author Kay Kasemir, based on similar code in org.csstudio.utility.pv and diirt
+ *  @author Kay Kasemir, based on similar code in org.csstudio.utility.pv
  */
 @SuppressWarnings("nls")
 abstract public class SimulatedDoubleArrayPV extends SimulatedPV

@@ -10,8 +10,8 @@ package org.phoebus.pv.sim;
 import java.util.Arrays;
 import java.util.List;
 
-import org.diirt.vtype.ValueFactory;
 import org.phoebus.pv.PV;
+import org.phoebus.vtype.ValueFactory;
 
 /** Simulated PV for flipflop
  *  @author Kay Kasemir, based on similar code in org.csstudio.utility.pv and diirt

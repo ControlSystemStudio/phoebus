@@ -9,14 +9,14 @@ package org.phoebus.pv.ca;
 
 import java.util.List;
 
-import org.diirt.util.array.ArrayFloat;
-import org.diirt.util.array.ArrayInt;
-import org.diirt.util.array.ListFloat;
-import org.diirt.util.array.ListInt;
-import org.diirt.vtype.ArrayDimensionDisplay;
-import org.diirt.vtype.VFloatArray;
-import org.diirt.vtype.VTypeToString;
-import org.diirt.vtype.ValueUtil;
+import org.phoebus.util.array.ArrayFloat;
+import org.phoebus.util.array.ArrayInt;
+import org.phoebus.util.array.ListFloat;
+import org.phoebus.util.array.ListInt;
+import org.phoebus.vtype.ArrayDimensionDisplay;
+import org.phoebus.vtype.VFloatArray;
+import org.phoebus.vtype.VTypeToString;
+import org.phoebus.vtype.ValueUtil;
 
 import gov.aps.jca.dbr.DBR_TIME_Float;
 import gov.aps.jca.dbr.GR;

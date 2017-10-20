@@ -9,13 +9,13 @@ package org.phoebus.applications.pvtable.model;
 
 import java.util.concurrent.TimeUnit;
 
-import org.diirt.vtype.VDouble;
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VFloat;
-import org.diirt.vtype.VNumber;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VType;
 import org.phoebus.pv.PV;
+import org.phoebus.vtype.VDouble;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VFloat;
+import org.phoebus.vtype.VNumber;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VType;
 
 /** Saved value of a scalar table item
  *

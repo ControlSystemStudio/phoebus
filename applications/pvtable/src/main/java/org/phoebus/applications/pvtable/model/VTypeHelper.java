@@ -10,23 +10,23 @@ package org.phoebus.applications.pvtable.model;
 import java.text.NumberFormat;
 import java.time.Instant;
 
-import org.diirt.util.array.IteratorInt;
-import org.diirt.util.array.IteratorNumber;
-import org.diirt.util.array.ListByte;
-import org.diirt.vtype.Alarm;
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.Time;
-import org.diirt.vtype.VByteArray;
-import org.diirt.vtype.VDoubleArray;
-import org.diirt.vtype.VEnum;
-import org.diirt.vtype.VEnumArray;
-import org.diirt.vtype.VFloatArray;
-import org.diirt.vtype.VNumber;
-import org.diirt.vtype.VNumberArray;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VType;
-import org.diirt.vtype.ValueUtil;
 import org.phoebus.applications.pvtable.Settings;
+import org.phoebus.util.array.IteratorInt;
+import org.phoebus.util.array.IteratorNumber;
+import org.phoebus.util.array.ListByte;
+import org.phoebus.vtype.Alarm;
+import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.Time;
+import org.phoebus.vtype.VByteArray;
+import org.phoebus.vtype.VDoubleArray;
+import org.phoebus.vtype.VEnum;
+import org.phoebus.vtype.VEnumArray;
+import org.phoebus.vtype.VFloatArray;
+import org.phoebus.vtype.VNumber;
+import org.phoebus.vtype.VNumberArray;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueUtil;
 
 /** Helper for handling {@link VType} data
  *  @author Kay Kasemir
@@ -43,10 +43,9 @@ public class VTypeHelper
     {
         if (value instanceof Time)
         {
-            // TODO Update to new VType which is already providing Instant
             final Time time = (Time) value;
             if (time.isTimeValid())
-                return Instant.ofEpochSecond(time.getTimestamp().getSec(), time.getTimestamp().getNanoSec());
+                return time.getTimestamp();
         }
         return Instant.now();
     }

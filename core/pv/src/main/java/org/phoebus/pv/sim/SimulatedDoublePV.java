@@ -9,10 +9,10 @@ package org.phoebus.pv.sim;
 
 import java.text.NumberFormat;
 
-import org.diirt.vtype.Display;
-import org.diirt.vtype.VType;
-import org.diirt.vtype.ValueFactory;
-import org.diirt.vtype.ValueUtil;
+import org.phoebus.vtype.Display;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
+import org.phoebus.vtype.ValueUtil;
 
 /** Base for simulated scalar PVs
  *

@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.diirt.vtype.VType;
+import org.phoebus.vtype.VType;
 
 /** Process Variable, API for accessing life control system data.
  *

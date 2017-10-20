@@ -10,18 +10,18 @@ package org.phoebus.applications.pvtable.model;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.diirt.util.array.ListInt;
-import org.diirt.util.array.ListNumber;
-import org.diirt.vtype.VByteArray;
-import org.diirt.vtype.VDoubleArray;
-import org.diirt.vtype.VEnumArray;
-import org.diirt.vtype.VFloatArray;
-import org.diirt.vtype.VNumberArray;
-import org.diirt.vtype.VString;
-import org.diirt.vtype.VStringArray;
-import org.diirt.vtype.VType;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.pv.PV;
+import org.phoebus.util.array.ListInt;
+import org.phoebus.util.array.ListNumber;
+import org.phoebus.vtype.VByteArray;
+import org.phoebus.vtype.VDoubleArray;
+import org.phoebus.vtype.VEnumArray;
+import org.phoebus.vtype.VFloatArray;
+import org.phoebus.vtype.VNumberArray;
+import org.phoebus.vtype.VString;
+import org.phoebus.vtype.VStringArray;
+import org.phoebus.vtype.VType;
 
 /** Saved value of an array table item
  *

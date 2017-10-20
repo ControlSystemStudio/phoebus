@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.pv.ca;
 
-import org.diirt.vtype.VType;
+import org.phoebus.vtype.VType;
 
 import gov.aps.jca.dbr.DBR;
 import gov.aps.jca.dbr.DBRType;

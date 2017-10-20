@@ -7,8 +7,8 @@
  ******************************************************************************/
 package org.phoebus.pv.ca;
 
-import org.diirt.vtype.VFloat;
-import org.diirt.vtype.VTypeToString;
+import org.phoebus.vtype.VFloat;
+import org.phoebus.vtype.VTypeToString;
 
 import gov.aps.jca.dbr.DBR_TIME_Float;
 import gov.aps.jca.dbr.GR;
