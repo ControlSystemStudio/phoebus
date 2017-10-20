@@ -9,6 +9,7 @@ package org.phoebus.ui.application;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.io.InputStream;
 import java.util.logging.Level;
 
 import org.phoebus.framework.selection.SelectionService;
@@ -19,6 +20,8 @@ import org.phoebus.ui.docking.DockStage;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -54,6 +57,10 @@ public class ContextMenuHelper
         for (ContextMenuEntry<?> entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
         {
             final MenuItem item = new MenuItem(entry.getName());
+
+            final InputStream icon = entry.getIcon();
+            if (icon != null)
+                item.setGraphic(new ImageView(new Image(icon)));
             item.setOnAction(e ->
             {
                 try

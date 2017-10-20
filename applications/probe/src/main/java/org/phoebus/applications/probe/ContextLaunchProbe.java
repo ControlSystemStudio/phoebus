@@ -47,11 +47,6 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public Object getIcon() {
-        return null;
-    }
-
-    @Override
     public List<Class> getSupportedTypes() {
         return supportedTypes;
     }

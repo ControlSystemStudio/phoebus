@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
+import java.io.InputStream;
 import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
@@ -30,9 +31,9 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     }
 
     @Override
-    public Object getIcon()
+    public InputStream getIcon()
     {
-        return null;
+        return PVTableApplication.getIconStream("pvtable.png");
     }
 
     @Override
