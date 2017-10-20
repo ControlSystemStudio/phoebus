@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtree;
 
+import java.io.InputStream;
 import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
@@ -18,8 +19,7 @@ import org.phoebus.framework.workbench.ApplicationService;
  *
  *  @author Kay Kasemir
  */
-// @ProviderFor(ContextMenuEntry.class)
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "nls", "rawtypes" })
 public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariable>
 {
     private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
@@ -31,9 +31,9 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     }
 
     @Override
-    public Object getIcon()
+    public InputStream getIcon()
     {
-        return null;
+        return getClass().getResourceAsStream("/icons/pvtree.png");
     }
 
     @Override

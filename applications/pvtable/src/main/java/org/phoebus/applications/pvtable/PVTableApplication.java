@@ -10,6 +10,7 @@ package org.phoebus.applications.pvtable;
 import static org.phoebus.framework.util.ResourceParser.createAppURI;
 import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -116,6 +117,14 @@ public class PVTableApplication implements AppResourceDescriptor
      */
     public static Image getIcon(final String name)
     {
-        return new Image(PVTableApplication.class.getResourceAsStream("/icons/" + name));
+        return new Image(getIconStream(name));
+    }
+
+    /** @param name Name of the icon
+     *  @return InputStream for icon
+     */
+    public static InputStream getIconStream(final String name)
+    {
+        return PVTableApplication.class.getResourceAsStream("/icons/" + name);
     }
 }

@@ -45,11 +45,6 @@ public class contextMenuLogging implements ContextMenuEntry {
     }
 
     @Override
-    public Object getIcon() {
-        return null;
-    }
-
-    @Override
     public List<Class> getSupportedTypes() {
         return supportedTypes;
     }
