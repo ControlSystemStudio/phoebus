@@ -30,6 +30,22 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class ContextMenuHelper
 {
+    /** Load icon from class resource
+     *  @param clazz Class used to load the resource
+     *  @param icon_path Path to icon resource
+     *  @return Icon {@link Image} or <code>null</code> if not found
+     */
+    public static Image loadIcon(final Class<?> clazz, final String icon_path)
+    {
+        final InputStream stream = clazz.getResourceAsStream(icon_path);
+        if (stream == null)
+        {
+            logger.log(Level.WARNING, "Cannot open '" + icon_path + "' for " + clazz);
+            return null;
+        }
+        return new Image(stream);
+    }
+
     /** Add entries suitable for the current selection
      *
      *  <p>Invoke inside 'setOnContextMenuRequested' handler,
@@ -57,9 +73,9 @@ public class ContextMenuHelper
         {
             final MenuItem item = new MenuItem(entry.getName());
 
-            final InputStream icon = entry.getIcon();
+            final Image icon = entry.getIcon();
             if (icon != null)
-                item.setGraphic(new ImageView(new Image(icon)));
+                item.setGraphic(new ImageView(icon));
             item.setOnAction(e ->
             {
                 try

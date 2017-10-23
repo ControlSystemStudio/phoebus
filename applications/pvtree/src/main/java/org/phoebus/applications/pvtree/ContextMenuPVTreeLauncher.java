@@ -7,13 +7,15 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtree;
 
-import java.io.InputStream;
 import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.spi.ContextMenuEntry;
+
+import javafx.scene.image.Image;
 
 /** Entry for context menues that starts PV Tree for selected ProcessVariable
  *
@@ -24,6 +26,8 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
 {
     private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
 
+    private static final Image icon = ContextMenuHelper.loadIcon(ContextMenuPVTreeLauncher.class, "/icons/pvtree.png");
+
     @Override
     public String getName()
     {
@@ -31,9 +35,9 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     }
 
     @Override
-    public InputStream getIcon()
+    public Image getIcon()
     {
-        return getClass().getResourceAsStream("/icons/pvtree.png");
+        return icon;
     }
 
     @Override
