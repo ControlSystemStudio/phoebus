@@ -13,9 +13,8 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.framework.workbench.ContextMenuService;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;

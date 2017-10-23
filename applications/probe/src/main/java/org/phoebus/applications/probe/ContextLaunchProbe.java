@@ -6,8 +6,8 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.spi.ContextMenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
  * A prototype action entry for starting the probe application

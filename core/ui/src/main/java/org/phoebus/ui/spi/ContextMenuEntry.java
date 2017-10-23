@@ -1,4 +1,4 @@
-package org.phoebus.framework.spi;
+package org.phoebus.ui.spi;
 
 import java.io.InputStream;
 import java.util.List;
