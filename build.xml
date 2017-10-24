@@ -19,6 +19,7 @@
     <ant target="clean" dir="applications/logConfiguration"/>
     <ant target="clean" dir="applications/pvtree"/>
     <ant target="clean" dir="applications/pvtable"/>
+    <ant target="clean" dir="applications/display/model"/>
     <ant target="clean" dir="phoebus-product"/>
   </target>
 
@@ -44,6 +45,7 @@
     <ant dir="applications/logConfiguration"/>
     <ant dir="applications/pvtree"/>
     <ant dir="applications/pvtable"/>
+    <ant dir="applications/display/model"/>
   </target>
 
   <target name="product" depends="applications" description="Assemble product">
