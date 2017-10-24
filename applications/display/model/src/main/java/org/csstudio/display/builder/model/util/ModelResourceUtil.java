@@ -167,23 +167,11 @@ public class ModelResourceUtil
 
     /** Obtain the local path for a resource
      *
-     *  <p>When the workspace is supported, this
-     *  translates a workspace location into an absolute
-     *  location.
-     *
-     *  <p>Note that the resource must not exist:
-     *  This can also be used to translate
-     *    /some/workspace/file.txt
-     *  into the absolute
-     *    /location/of/workspace/some/workspace/file.txt
-     *  that the caller wants to create,
-     *  i.e. the file does not exist, yet.
-     *  The parent directory of the resource, however,
-     *  must exist.
-     *
      *  @param resource_name Resource that may be relative to workspace
      *  @return Location in local file system or <code>null</code>
+     *  @deprecated There is no more "workspace", so no need to get local path
      */
+    @Deprecated
     public static String getLocalPath(final String resource_name)
     {
         final File file = new File(resource_name);

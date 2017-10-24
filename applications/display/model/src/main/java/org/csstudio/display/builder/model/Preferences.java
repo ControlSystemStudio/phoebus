@@ -39,9 +39,10 @@ public class Preferences
     static
     {
         final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/display_model_preferences.properties");
-        class_files = prefs.get(CLASS_FILES).split(" *; *");
-        color_files = prefs.get(COLOR_FILES).split(" *; *");
-        font_files = prefs.get(FONT_FILES).split(" *; *");
+
+        class_files = getFiles(prefs, CLASS_FILES);
+        color_files = getFiles(prefs, COLOR_FILES);
+        font_files = getFiles(prefs, FONT_FILES);
         read_timeout = prefs.getInt(READ_TIMEOUT);
         cache_timeout = prefs.getInt(CACHE_TIMEOUT);
         max_reparse = prefs.getInt(MAX_REPARSE_ITERATIONS);
@@ -55,6 +56,15 @@ public class Preferences
             logger.log(Level.WARNING, "Error in macro preference", ex);
             macros = new Macros();
         }
+    }
+
+    private static String[] getFiles(final PreferencesReader prefs, final String key)
+    {
+        final String[] setting = prefs.get(key).split(" *; *");
+        // split() will turn "" into { "" }, which we change into empty array
+        if (setting.length == 0  ||  (setting.length == 1 && setting[0].isEmpty()))
+            return new String[0];
+        return setting;
     }
 
     public static Macros getMacros()
