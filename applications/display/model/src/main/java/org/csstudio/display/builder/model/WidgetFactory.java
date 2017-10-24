@@ -13,54 +13,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
-import org.csstudio.display.builder.model.widgets.ArcWidget;
-import org.csstudio.display.builder.model.widgets.ArrayWidget;
-import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
-import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
-import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
-import org.csstudio.display.builder.model.widgets.ClockWidget;
-import org.csstudio.display.builder.model.widgets.ComboWidget;
-import org.csstudio.display.builder.model.widgets.DigitalClockWidget;
-import org.csstudio.display.builder.model.widgets.EllipseWidget;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
-import org.csstudio.display.builder.model.widgets.GaugeWidget;
-import org.csstudio.display.builder.model.widgets.GroupWidget;
-import org.csstudio.display.builder.model.widgets.KnobWidget;
-import org.csstudio.display.builder.model.widgets.LEDWidget;
-import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.csstudio.display.builder.model.widgets.LinearMeterWidget;
-import org.csstudio.display.builder.model.widgets.MeterWidget;
-import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget;
-import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
-import org.csstudio.display.builder.model.widgets.PictureWidget;
-import org.csstudio.display.builder.model.widgets.PolygonWidget;
-import org.csstudio.display.builder.model.widgets.PolylineWidget;
-import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
-import org.csstudio.display.builder.model.widgets.RadioWidget;
-import org.csstudio.display.builder.model.widgets.RectangleWidget;
-import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
-import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
-import org.csstudio.display.builder.model.widgets.SpinnerWidget;
-import org.csstudio.display.builder.model.widgets.SymbolWidget;
-import org.csstudio.display.builder.model.widgets.TableWidget;
-import org.csstudio.display.builder.model.widgets.TabsWidget;
-import org.csstudio.display.builder.model.widgets.TankWidget;
-import org.csstudio.display.builder.model.widgets.TextEntryWidget;
-import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
-import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
-import org.csstudio.display.builder.model.widgets.ThermometerWidget;
-import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
-import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
-import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
+import org.csstudio.display.builder.model.spi.WidgetsService;
 
 /** Factory that creates widgets based on type
+ *
+ *  <p>Locates widgets via the SPI {@link WidgetsService}
  *
  *  <p>Widgets register with their 'primary' type,
  *  which needs to be unique.
@@ -117,52 +81,10 @@ public class WidgetFactory
     // Prevent instantiation
     private WidgetFactory()
     {
-        registerKnownWidgets();
-        // TODO Load widgets from service
-    }
-
-    /** Add known widgets as fallback in absence of registry information */
-    private void registerKnownWidgets ( ) {
-        addWidgetType(ActionButtonWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ArcWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ArrayWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(BoolButtonWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ByteMonitorWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(CheckBoxWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ClockWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ComboWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(DigitalClockWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(EllipseWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(GaugeWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(GroupWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ImageWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(KnobWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(LabelWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(LEDWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(LinearMeterWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(MeterWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(MultiStateLEDWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(NavigationTabsWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(PictureWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(PolygonWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(PolylineWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ProgressBarWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(RadioWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(RectangleWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ScaledSliderWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ScrollBarWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(SpinnerWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(SymbolWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(TableWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(TabsWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(TankWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(TextEntryWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(TextSymbolWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(TextUpdateWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(ThermometerWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(WebBrowserWidget.WIDGET_DESCRIPTOR);
-        addWidgetType(XYPlotWidget.WIDGET_DESCRIPTOR);
+        // Load widgets from services
+        for (WidgetsService service : ServiceLoader.load(WidgetsService.class))
+            for (WidgetDescriptor descriptor : service.getWidgetDescriptors())
+                addWidgetType(descriptor);
     }
 
     /** @return Singleton instance */

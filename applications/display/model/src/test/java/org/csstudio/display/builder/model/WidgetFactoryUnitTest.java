@@ -149,7 +149,6 @@ public class WidgetFactoryUnitTest
     public void widgetStats() throws Exception
     {
         System.out.format("%-20s %s\n", "Widget Type", "Number of Properties");
-
         WidgetFactory.getInstance()
                      .getWidgetDescriptions()
                      .stream()
@@ -161,6 +160,5 @@ public class WidgetFactoryUnitTest
                      {
                          System.out.format("%-20s %d\n", widget.getType(), widget.getProperties().size());
                      });
-
     }
 }
