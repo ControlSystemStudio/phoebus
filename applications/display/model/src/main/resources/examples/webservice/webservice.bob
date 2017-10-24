@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Web Service</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Web Service Example</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>491</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Script that fetches data from a web service.
+
+Example for integrating a site-specific web service,
+in this case for titles of recent SNS logbook entries,
+into a display.
+
+Cannot use ordinary widgets because the data is not available via Channel Access.
+
+Without scripts, this would require implementing a custom widget,
+an effort that is unlikely warranted for such a site-specific need.
+A script on the other hand is easy to implement,
+and its performance is "good enough".</text>
+    <y>41</y>
+    <width>571</width>
+    <height>220</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>SECTION</class>
+    <text>Recent SNS Logbook Entry Titles</text>
+    <y>281</y>
+    <width>341</width>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <y>311</y>
+    <width>600</width>
+    <columns>
+      <column>
+        <name>Time</name>
+        <width>150</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+      <column>
+        <name>Title</name>
+        <width>450</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+    </columns>
+    <scripts>
+      <script file="scripts/service_example.py">
+        <pv_name>loc://initial_trigger$(DID)(1)</pv_name>
+        <pv_name>loc://refetch(0)</pv_name>
+      </script>
+    </scripts>
+    <editable>false</editable>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>1</value>
+        <description>Re-fetch</description>
+      </action>
+    </actions>
+    <pv_name>loc://refetch(0)</pv_name>
+    <x>491</x>
+    <y>630</y>
+    <width>109</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <class>COMMENT</class>
+    <text>Example script runs once when display is opened,
+and can later be re-triggered by pushing this button --&gt;</text>
+    <x>120</x>
+    <y>620</y>
+    <width>360</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+</display>

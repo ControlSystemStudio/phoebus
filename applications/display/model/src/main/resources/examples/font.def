@@ -1,0 +1,58 @@
+// Named font definitions
+//
+// Entries in this file are read in sequence.
+// A later entry in the file can override
+// an earlier entry in the file.
+//
+// In a production setup, this file may be constructed
+// by concatenating a generic file with a more specific file,
+// and the specific entries would then override generic entries
+// of the same name.
+
+// Format:
+//
+//   NamedFont['(' OS ')'] = Family '-' Style '-' Size | '@'PreviouslyDefinedNamedFont
+//
+// Family: Font family name "Liberation Sans", "Liberation Mono", "Liberation Serif"
+//  Style: "regular", "bold", "italic", "bold italic"
+//   Size: Font height in pixels
+//     OS: "windows", "linux", "macosx"
+//
+// Leading/trailing spaces around each element are OK, but if the font family
+// is "Liberation Sans", it has to be typed with just that one space between
+// "Liberation" and "Sans"
+//
+// Examples of named fonts
+//
+//   Default      = Liberation Sans - regular - 14
+//   Default Bold = Liberation Sans - bold    - 14
+//   Header 1     = @Default Bold
+//
+// Speaking of "Liberation Sans":
+// The display builder includes the "Liberation" fonts
+// from https://fedorahosted.org/liberation-fonts.
+// Their use is encouraged because the resulting displays
+// will always render correctly.
+// When using other fonts, for example "Arial" on Windows,
+// the font might not be available to a display builder
+// runtime that is executing on Mac OS or Linux.
+
+// Predefined fonts that this file could re-define
+Default      = Liberation Sans - regular - 14
+Default Bold = Liberation Sans - bold    - 14
+Header 1     = Liberation Sans - bold    - 22
+Header 2     = Liberation Sans - bold    - 18
+Header 3     = Liberation Sans - bold    - 16
+Comment      = Liberation Sans - italic  - 14
+Fine Print   = Liberation Sans - regular - 12
+
+
+// Example for a named font
+Oddball = Comic Sans MS-regular-40
+
+// On Linux resp. MacOS, these will be used instead,
+// replacnig the definition shown above.
+// Operating system selectors are: "windows", "linux", "macosx"
+Oddball(linux) = PakTypeNaqsh-regular-40
+Oddball(macosx) = Herculanum-regular-40
+

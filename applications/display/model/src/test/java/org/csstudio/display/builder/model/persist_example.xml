@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <widget type="custom" version="2.0.0">
+    <name>Demo</name>
+    <zero_ten>7</zero_ten>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>My Group</name>
+    <width>300</width>
+    <height>200</height>
+    <widget type="base" version="2.0.0">
+      <name>Jänner</name>
+    </widget>
+  </widget>
+</display>

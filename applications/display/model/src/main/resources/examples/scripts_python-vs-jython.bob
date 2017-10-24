@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Python vs Jython</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>281</width>
+    <height>31</height>
+    <text>Python vs Jython</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <x>120</x>
+    <y>195</y>
+    <foreground_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="scripts/python/update_text.py">
+        <pv_name>sim://ramp(-5,5,.3)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <x>190</x>
+    <y>290</y>
+    <width>90</width>
+    <text>I'm moving!</text>
+    <foreground_color>
+      <color name="STOP" red="255" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="scripts/python/update_x.py">
+        <pv_name>sim://ramp(-5,5,0.3)</pv_name>
+        <pv_name trigger="false">loc://pos(240)</pv_name>
+        <pv_name trigger="false">loc://scale(10)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <x>800</x>
+    <y>225</y>
+    <width>210</width>
+    <height>26</height>
+    <scripts>
+      <script file="scripts/python/update_pv_name.py">
+        <pv_name>loc://pv_name("sim://sine")</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <x>541</x>
+    <y>251</y>
+    <width>210</width>
+    <text>Jython</text>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <x>240</x>
+    <y>350</y>
+    <width>90</width>
+    <text>&lt;- Active</text>
+    <foreground_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="scripts/python/update_x.py">
+        <pv_name>loc://mode(0)</pv_name>
+        <pv_name trigger="false">loc://pos(240)</pv_name>
+        <pv_name trigger="false">loc://scale(150)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <x>190</x>
+    <y>350</y>
+    <width>60</width>
+    <text>Mode 1</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <x>340</x>
+    <y>350</y>
+    <width>60</width>
+    <text>Mode 2</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <y>165</y>
+    <width>70</width>
+    <pv_name>sim://ramp(-5,5,.3)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_38</name>
+    <x>120</x>
+    <y>165</y>
+    <foreground_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="scripts/python/update_text.py">
+        <pv_name>sim://ramp(-5,5,.3)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_39</name>
+    <y>135</y>
+    <width>180</width>
+    <height>30</height>
+    <text>Update Label Text</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <y>255</y>
+    <width>70</width>
+    <pv_name>sim://ramp(-5,5,0.3)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_40</name>
+    <y>225</y>
+    <width>281</width>
+    <height>30</height>
+    <text>Update Label Position</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_41</name>
+    <x>190</x>
+    <y>255</y>
+    <width>90</width>
+    <text>I'm moving!</text>
+    <foreground_color>
+      <color name="STOP" red="255" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="scripts/update_x.py">
+        <pv_name>sim://ramp(-5,5,0.3)</pv_name>
+        <pv_name trigger="false">loc://pos(240)</pv_name>
+        <pv_name trigger="false">loc://scale(10)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <x>541</x>
+    <y>165</y>
+    <width>210</width>
+    <pv_name>loc://pv_name("sim://sine")</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_42</name>
+    <x>411</x>
+    <y>135</y>
+    <width>180</width>
+    <height>30</height>
+    <text>Update PV Name</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_43</name>
+    <x>411</x>
+    <y>165</y>
+    <width>120</width>
+    <text>Enter PV Name:</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_44</name>
+    <x>411</x>
+    <y>195</y>
+    <width>330</width>
+    <height>30</height>
+    <text>Script will update the PV name of the Text Update:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <x>541</x>
+    <y>225</y>
+    <width>210</width>
+    <height>26</height>
+    <scripts>
+      <script file="scripts/update_pv_name.py">
+        <pv_name>loc://pv_name("sim://sine")</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_45</name>
+    <x>411</x>
+    <y>225</y>
+    <width>120</width>
+    <text>Value of PV:</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_46</name>
+    <x>240</x>
+    <y>320</y>
+    <width>90</width>
+    <text>&lt;- Active</text>
+    <foreground_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="scripts/update_x.py">
+        <pv_name>loc://mode(0)</pv_name>
+        <pv_name trigger="false">loc://pos(240)</pv_name>
+        <pv_name trigger="false">loc://scale(150)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <y>320</y>
+    <pv_name>loc://mode(0)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_47</name>
+    <x>190</x>
+    <y>320</y>
+    <width>60</width>
+    <text>Mode 1</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_48</name>
+    <x>340</x>
+    <y>320</y>
+    <width>60</width>
+    <text>Mode 2</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_49</name>
+    <y>390</y>
+    <width>361</width>
+    <height>22</height>
+    <text>Enter mode values 0 or 1, and the "Active" label moves.</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_50</name>
+    <y>100</y>
+    <width>161</width>
+    <height>25</height>
+    <text>Examples</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_52</name>
+    <y>31</y>
+    <width>591</width>
+    <text>The following are examples of scripts implemented to run using Jython and native Python.</text>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_53</name>
+    <y>51</y>
+    <width>591</width>
+    <height>39</height>
+    <text>These examples were made for the purpose of comparison and demonstration,
+and should NOT be taken as examples of good practice.</text>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <x>800</x>
+    <y>251</y>
+    <width>210</width>
+    <text>Python</text>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <x>211</x>
+    <y>195</y>
+    <width>70</width>
+    <text>Python</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <x>211</x>
+    <y>165</y>
+    <width>70</width>
+    <text>Jython</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <x>120</x>
+    <y>290</y>
+    <width>70</width>
+    <text>Python</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <x>120</x>
+    <y>255</y>
+    <width>70</width>
+    <text>Jython</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <x>120</x>
+    <y>350</y>
+    <width>70</width>
+    <text>Python</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <x>120</x>
+    <y>320</y>
+    <width>70</width>
+    <text>Jython</text>
+  </widget>
+</display>

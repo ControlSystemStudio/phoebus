@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <macros>
+    <groupname>MacroGroupName</groupname>
+  </macros>
+  <width>1200</width>
+  <height>1000</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Embedded Display Widget</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>311</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays another *.bob file inside a widget.
+This widget is a 'container' that hosts another *.bob file as its 'content'.
+By default, both the container and its content remain their original size.
+The container provides scroll bars when the content is too large.
+Alternatively, the content can be resized to match the container,
+or the container can resize to match the content, but these options
+are always a compromise that often results in inconsistent widget sizes.</text>
+    <y>41</y>
+    <width>521</width>
+    <height>146</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded</name>
+    <file>embedded.bob</file>
+    <macros>
+      <X>No resize</X>
+    </macros>
+    <x>1</x>
+    <y>217</y>
+    <width>140</width>
+    <height>140</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Scrollbars</text>
+    <x>1</x>
+    <y>187</y>
+    <width>80</width>
+    <height>26</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded</name>
+    <file>embedded.bob</file>
+    <macros>
+      <X>Content shrinks</X>
+    </macros>
+    <x>181</x>
+    <y>217</y>
+    <width>140</width>
+    <height>140</height>
+    <resize>1</resize>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Resize content</text>
+    <x>181</x>
+    <y>187</y>
+    <width>103</width>
+    <height>26</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded</name>
+    <file>embedded.bob</file>
+    <macros>
+      <X>Widget grows</X>
+    </macros>
+    <x>361</x>
+    <y>217</y>
+    <width>180</width>
+    <height>180</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Size to content</text>
+    <x>361</x>
+    <y>187</y>
+    <width>103</width>
+    <height>26</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>A typical use case defines, for example, a macro-based "Motor" display,
+then shows several motors via the Embedded Display Widget:</text>
+    <y>431</y>
+    <width>511</width>
+    <height>50</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_1</name>
+    <file>motor.bob</file>
+    <macros>
+      <M>XPos</M>
+    </macros>
+    <y>481</y>
+    <width>320</width>
+    <height>210</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_1</name>
+    <file>motor.bob</file>
+    <macros>
+      <M>YPos</M>
+    </macros>
+    <x>310</x>
+    <y>481</y>
+    <width>320</width>
+    <height>210</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>The content of the embedded display widget,
+i.e. the file to display, can be modified at runtime.
+This example updates the display file name from a script.</text>
+    <y>701</y>
+    <width>431</width>
+    <height>100</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display</name>
+    <y>770</y>
+    <width>320</width>
+    <height>210</height>
+    <scripts>
+      <script file="update_display.py">
+        <pv_name>sim://ramp(0, 3, 2)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>group_name_ex_1</name>
+    <file>template.bob</file>
+    <macros>
+      <pv_name>sim://sine</pv_name>
+    </macros>
+    <x>651</x>
+    <y>481</y>
+    <width>160</width>
+    <height>220</height>
+    <group_name>Group1</group_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Another case uses the "group_name" property to show parts of some larger
+template or master display, possibly setting different macros.</text>
+    <x>651</x>
+    <y>431</y>
+    <width>511</width>
+    <height>50</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>group_name_ex_2</name>
+    <file>template.bob</file>
+    <macros>
+      <pv_name>sim://sine</pv_name>
+    </macros>
+    <x>821</x>
+    <y>481</y>
+    <width>160</width>
+    <height>220</height>
+    <group_name>Group2</group_name>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>group_name_ex_3</name>
+    <file>template.bob</file>
+    <macros>
+      <pv_name>sim://ramp(1,5,.5)</pv_name>
+    </macros>
+    <x>981</x>
+    <y>481</y>
+    <width>160</width>
+    <height>220</height>
+    <group_name>Group1</group_name>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>group_name_ex_4</name>
+    <file>template.bob</file>
+    <macros>
+      <pv_name>sim://ramp(1,5,.5)</pv_name>
+    </macros>
+    <x>651</x>
+    <y>701</y>
+    <width>170</width>
+    <height>220</height>
+    <group_name>$(groupname)</group_name>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="open_display">
+        <file>sub.bob</file>
+        <macros>
+          <FILE>a.bob</FILE>
+          <M>ZPos</M>
+        </macros>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <x>420</x>
+    <y>830</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>The name of the embedded display
+can be a macro.
+In this example, the button passes
+a FILE macro to a sub display,
+which then uses that to embed
+the display provided in the macro.</text>
+    <x>380</x>
+    <y>701</y>
+    <width>250</width>
+    <height>119</height>
+  </widget>
+</display>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Timer</name>
+  <widget type="arc" version="2.0.0">
+    <name>Arc</name>
+    <width>950</width>
+    <height>389</height>
+    <background_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </background_color>
+    <line_color>
+      <color name="Off" red="60" green="100" blue="60">
+      </color>
+    </line_color>
+    <start_angle>90.0</start_angle>
+    <total_angle>360</total_angle>
+    <scripts>
+      <script file="timer.py">
+        <pv_name>loc://run(0)</pv_name>
+        <pv_name trigger="false">loc://max("20:00")</pv_name>
+        <pv_name trigger="false">loc://time("00:00")</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <x>410</x>
+    <y>460</y>
+    <width>120</width>
+    <height>30</height>
+    <pv_name>loc://max("20:00")</pv_name>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button</name>
+    <x>710</x>
+    <y>460</y>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </background_color>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>1</value>
+        <description>Start</description>
+      </action>
+    </actions>
+    <pv_name>loc://run(0)</pv_name>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button_1</name>
+    <x>820</x>
+    <y>460</y>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color name="STOP" red="255" green="0" blue="0">
+      </color>
+    </background_color>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>0</value>
+        <description>Stop</description>
+      </action>
+    </actions>
+    <pv_name>loc://run(0)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <x>420</x>
+    <y>240</y>
+    <width>135</width>
+    <height>78</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD_ITALIC" size="40.0">
+      </font>
+    </font>
+    <pv_name>loc://time("00:00")</pv_name>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button_2</name>
+    <x>30</x>
+    <y>460</y>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>20:00</value>
+        <description>20:00</description>
+      </action>
+    </actions>
+    <pv_name>loc://max("20:00")</pv_name>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button_3</name>
+    <x>250</x>
+    <y>460</y>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>10:00</value>
+        <description>10:00</description>
+      </action>
+    </actions>
+    <pv_name>loc://max("20:00")</pv_name>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button_4</name>
+    <x>140</x>
+    <y>460</y>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>15:00</value>
+        <description>15:00</description>
+      </action>
+    </actions>
+    <pv_name>loc://max("20:00")</pv_name>
+  </widget>
+</display>

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Using Classes</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>281</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED</name>
+    <class>ON_OFF</class>
+    <pv_name>sim://ramp(0, 1, 1)</pv_name>
+    <x>200</x>
+    <y>410</y>
+    <off_color use_class="true">
+      <color name="Off" red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="On" red="0" green="255" blue="0">
+      </color>
+    </on_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_1</name>
+    <class>WARNING</class>
+    <pv_name>sim://ramp(0, 1, 1)</pv_name>
+    <x>200</x>
+    <y>450</y>
+    <off_color use_class="true">
+      <color red="105" green="74" blue="44">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </on_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>When editing a display file, you can select the class
+of a widget to update properties to the values defined
+by the class.
+For example, a COMMENT class for Label widgets
+may set the font of the widget.</text>
+    <y>31</y>
+    <width>430</width>
+    <height>99</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>Example Label using the COMMENT class.</text>
+    <x>30</x>
+    <y>130</y>
+    <width>320</width>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>The display file contains all the property values of a widget,
+i.e. the display file will look the same when it is later used
+without any class file that defines COMMENT for Labels.
+When using a different class file that also defines COMMENT,
+those settings would be used.
+
+Class files thus allow you to define standards for your displays.
+All Labels that are meant to show comments will look the same
+when you use the COMMENT class.
+You can later change their look, with some limitations:
+If you change the font to something much larger or smaller,
+your display elements will naturally not "fit".</text>
+    <y>160</y>
+    <width>430</width>
+    <height>220</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>LED of class ON_OFF</text>
+    <y>410</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>LED of class WARNING</text>
+    <y>450</y>
+    <width>170</width>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_2</name>
+    <pv_name>sim://ramp(0, 1, 1)</pv_name>
+    <x>200</x>
+    <y>490</y>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Toggle widget class
+from org.csstudio.display.builder.runtime.script import PVUtil
+
+if PVUtil.getInt(pvs[0]) > 0:
+    widget.setPropertyValue("class", "ON_OFF")
+else:
+    widget.setPropertyValue("class", "WARNING")
+]]></text>
+        <pv_name>sim://ramp(0, 1, 5)</pv_name>
+      </script>
+    </scripts>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>LED with script that
+changes between
+classes ON_OFF
+and WARNING</text>
+    <y>490</y>
+    <width>190</width>
+    <height>80</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <class>COMMENT</class>
+    <text>(Silly. Only to demonstrate
+ that a different class can be
+ assigned at runtime.) </text>
+    <x>240</x>
+    <y>490</y>
+    <width>210</width>
+    <height>70</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+</display>

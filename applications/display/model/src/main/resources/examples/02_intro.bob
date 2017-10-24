@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>371</width>
+    <height>41</height>
+    <text>Introduction</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>41</y>
+    <width>411</width>
+    <height>260</height>
+    <text>The display builder consists of the Editor for creating displays
+and the Runtime for executing them.
+
+In the Editor, you interactively design a display:
+1) Add a widget
+2) Configure its properties like size, color,
+    and usually most important a Process Variable (PV)
+
+The Runtime loads an existing display, connects
+to all PVs used by widgets in the display,
+and updates the widgets with the current values
+of PVs.</text>
+  </widget>
+</display>

@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <width>1150</width>
+  <height>2000</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Scripts</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Scripts allow modifications of the display at runtime
+that go beyond the usual PV-based update of a widget.</text>
+    <y>41</y>
+    <width>381</width>
+    <height>50</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>The use of scripts should be limited!</text>
+    <y>91</y>
+    <width>301</width>
+    <height>30</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Bad examples of using a script:
+- Turn control system display into video game.
+- Perform automation of the control system in the display.
+- Handle interlocks for the control system in the display.</text>
+    <x>381</x>
+    <y>201</y>
+    <width>381</width>
+    <height>80</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Scripts should only be employed to solve very few and specific cases.
+
+The script API cannot be guaranteed to remain available as the display builder
+evolves. Scripts may need to be updated as the API changes.
+</text>
+    <y>121</y>
+    <width>521</width>
+    <height>80</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Acceptable examples of using a script:
+- Improve the visualization of the control system state
+  in a few, carefully selected cases.
+- Integrate external functionality, for example perform
+  a web service lookup, for a specific need that is not
+  generic enough to create a new widget or
+  PV data source.</text>
+    <y>201</y>
+    <width>381</width>
+    <height>140</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>sim://ramp(-5,5,0.1)</pv_name>
+    <x>11</x>
+    <y>481</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <x>141</x>
+    <y>481</y>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </foreground_color>
+    <scripts>
+      <script file="scripts/update_text.py">
+        <pv_name>sim://ramp(-5,5,0.1)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Update Label Text</text>
+    <y>451</y>
+    <width>180</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Script attached to label, triggered by the PV,
+updates the label's text to indicate positive or negative value.</text>
+    <y>511</y>
+    <width>381</width>
+    <height>50</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Such a check could be performed on the IOC, updating
+an enum PV with the "Positive", "Negative" text, then
+using a plain Text Update widget to show the result. Or
+a rule could be attached to the label's text property.</text>
+    <y>551</y>
+    <width>391</width>
+    <height>80</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>sim://ramp(-5,5,0.1)</pv_name>
+    <x>11</x>
+    <y>671</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Update Label Position</text>
+    <y>641</y>
+    <width>281</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Script attached to label, triggered by the PV,
+updates the label's position based on that PV
+and some other local PVs which are used to pass in 
+constant configuration parameters.</text>
+    <y>701</y>
+    <width>381</width>
+    <height>70</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Not clear why one would want to do this.
+Clearly a counterexample for the use of scripts.</text>
+    <y>781</y>
+    <width>391</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>I'm moving!</text>
+    <x>141</x>
+    <y>671</y>
+    <width>90</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="STOP" red="255" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="scripts/update_x.py">
+        <pv_name>sim://ramp(-5,5,0.1)</pv_name>
+        <pv_name trigger="false">loc://pos_160(160)</pv_name>
+        <pv_name trigger="false">loc://scale_10(10)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://pv_name("sim://sine")</pv_name>
+    <x>541</x>
+    <y>481</y>
+    <width>210</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Update PV Name</text>
+    <x>411</x>
+    <y>451</y>
+    <width>180</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Enter PV Name:</text>
+    <x>411</x>
+    <y>481</y>
+    <width>120</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Script will update the PV name of the Text Update:</text>
+    <x>411</x>
+    <y>511</y>
+    <width>330</width>
+    <height>30</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <x>541</x>
+    <y>541</y>
+    <width>210</width>
+    <height>26</height>
+    <scripts>
+      <script file="scripts/update_pv_name.py">
+        <pv_name>loc://pv_name("sim://sine")</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Value of PV:</text>
+    <x>411</x>
+    <y>541</y>
+    <width>120</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>This could be useful to update the PVs of a display.
+On the other hand, the display structure may be easier to understand
+and long term maintenance is simplified when using buttons that open
+new displays, passing macros for the PV names...</text>
+    <x>411</x>
+    <y>581</y>
+    <width>470</width>
+    <height>90</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <text>&lt;- Active</text>
+    <x>201</x>
+    <y>831</y>
+    <width>90</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </foreground_color>
+    <scripts>
+      <script file="scripts/update_x.py">
+        <pv_name>loc://mode(0)</pv_name>
+        <pv_name trigger="false">loc://pos_200(200)</pv_name>
+        <pv_name trigger="false">loc://scale_150(150)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>loc://mode(0)</pv_name>
+    <x>11</x>
+    <y>831</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <text>Mode 1</text>
+    <x>151</x>
+    <y>831</y>
+    <width>60</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>Mode 2</text>
+    <x>301</x>
+    <y>831</y>
+    <width>60</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>Is this good or gimmickry?
+LEDs next to each mode that are 'on' for the active mode
+would avoid scripts and maybe overall be better.</text>
+    <y>901</y>
+    <width>391</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <text>Similar: Enter mode values 0 or 1,
+and the "Active" label moves next to the selected mode.</text>
+    <y>861</y>
+    <width>361</width>
+    <height>40</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="open_display">
+        <file>solitaire/solitaire.bob</file>
+        <target>replace</target>
+        <description>Solitaire</description>
+      </action>
+    </actions>
+    <x>411</x>
+    <y>791</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="open_display">
+        <file>t3/t3.bob</file>
+        <target>replace</target>
+        <description>Tic-Tac-Toe</description>
+      </action>
+    </actions>
+    <x>411</x>
+    <y>831</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>Longer Examples</text>
+    <x>411</x>
+    <y>671</y>
+    <width>270</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>These examples include scripts that remain active as long
+as the display is open, continuously updating the widgets
+in the display, or use a script that performs a comparably
+lengthy computation before updating the display.</text>
+    <x>411</x>
+    <y>701</y>
+    <width>430</width>
+    <height>83</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>Search Path</text>
+    <x>411</x>
+    <y>880</y>
+    <width>130</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <text>The Jython search path is configured via a display builder preference.
+In addition, the location of each invoked script is added to allow
+"import" from files in the same location of the script.</text>
+    <x>411</x>
+    <y>910</y>
+    <width>452</width>
+    <height>70</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_28</name>
+    <x>411</x>
+    <y>1000</y>
+    <width>690</width>
+    <height>170</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+import sys
+
+path = "\n".join(sys.path)
+
+widget.setPropertyValue("text", path)]]></text>
+        <pv_name>loc://trigger_path_script(1)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_29</name>
+    <text>Current search path:</text>
+    <x>411</x>
+    <y>970</y>
+    <width>232</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_30</name>
+    <text>For performance reasons, the Jython state is shared, so the
+search path will grow over time as scripts are invoked
+from new locations.</text>
+    <x>411</x>
+    <y>1180</y>
+    <width>452</width>
+    <height>70</height>
+    <font>
+      <font name="Fine Print" family="Liberation Sans" style="REGULAR" size="12.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="open_display">
+        <file>webservice/webservice.bob</file>
+        <target>replace</target>
+        <description>Web Service</description>
+      </action>
+    </actions>
+    <x>631</x>
+    <y>791</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_3</name>
+    <actions>
+      <action type="open_display">
+        <file>sudoku/sudoku.bob</file>
+        <target>replace</target>
+        <description>Sudoku</description>
+      </action>
+    </actions>
+    <x>520</x>
+    <y>790</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="open_display">
+        <file>script_util/script_util.bob</file>
+        <target>replace</target>
+        <description>Script Utils</description>
+      </action>
+    </actions>
+    <x>740</x>
+    <y>790</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_32</name>
+    <text>The examples on this page use Jython. To see similar examples implemented
+using "native" Python, click the button below. For an explanation of Python
+(and Jython) script API, refer to Display Builder Help.</text>
+    <y>351</y>
+    <width>521</width>
+    <height>50</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_33</name>
+    <text>Python vs Jython</text>
+    <y>331</y>
+    <width>151</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_5</name>
+    <actions>
+      <action type="open_display">
+        <file>scripts_python-vs-jython.bob</file>
+        <target>replace</target>
+        <description>Python vs Jython</description>
+      </action>
+    </actions>
+    <y>411</y>
+    <width>141</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_31</name>
+    <text>Script PVs, 'Trigger'</text>
+    <y>991</y>
+    <width>281</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_34</name>
+    <text>By default, a script is first invoked when all PVs are connected.
+From then it is invoked (triggered) when receiving
+updates for those PVs that are marked as a "Trigger".
+
+When one of more script PVs are disconnected,
+the script is not invoked.
+This simplifies script implementation because the script
+does not need to specifically handle disconnected values.
+
+Beware that a PV can change or disconnect at any time.
+The script receives a handle to all its PVs, and then reads
+the current value of each PV as desired.
+Assuming a rapidly changing PV that invokes the script
+with value "A", by the time the script executes and
+reads the PV, it might get a new value "B",
+or the PV might have disconnected.</text>
+    <y>1021</y>
+    <width>411</width>
+    <height>299</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_6</name>
+    <actions>
+      <action type="open_display">
+        <file>python/scripts_python_detail.bob</file>
+        <target>replace</target>
+        <description>Detail</description>
+      </action>
+    </actions>
+    <x>162</x>
+    <y>413</y>
+    <width>141</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_7</name>
+    <actions>
+      <action type="open_display">
+        <file>script_util/porting.opi</file>
+        <target>replace</target>
+        <description>Porting</description>
+      </action>
+    </actions>
+    <x>850</x>
+    <y>790</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_35</name>
+    <text>Disconnecting channel:</text>
+    <y>1330</y>
+    <width>171</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>sim://intermittent</pv_name>
+    <x>211</x>
+    <y>1330</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_36</name>
+    <text>Default Script:</text>
+    <y>1360</y>
+    <width>171</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_37</name>
+    <x>211</x>
+    <y>1360</y>
+    <width>170</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import ValueUtil
+
+value = pvs[0].read()
+if value is None:
+    widget.setPropertyValue("text", "DISCONNCECTED")
+else:
+    widget.setPropertyValue("text", str(ValueUtil.getDouble(value)))
+]]></text>
+        <pv_name>sim://intermittent</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_41</name>
+    <text>Only executed when PV has a value.
+Widget sees the 'disconnected' state,
+but script won't unless the PV just happens
+to disconnect while script is executing.</text>
+    <y>1390</y>
+    <width>341</width>
+    <height>80</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_42</name>
+    <text>Even trigger when disconnected:</text>
+    <y>1480</y>
+    <width>211</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_43</name>
+    <x>211</x>
+    <y>1480</y>
+    <width>170</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy" check_connections="false">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import ValueUtil
+
+value = pvs[0].read()
+if value is None:
+    widget.setPropertyValue("visible", "false")
+else:
+    widget.setPropertyValue("visible", "true")
+    widget.setPropertyValue("text", str(ValueUtil.getDouble(value)))
+]]></text>
+        <pv_name>sim://intermittent</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_44</name>
+    <text>Also triggered when PV is disconnected
+and has no value, so script can react
+to it, in this case by making the widget invisible.</text>
+    <y>1510</y>
+    <width>341</width>
+    <height>60</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_8</name>
+    <actions>
+      <action type="open_display">
+        <file>conway/life.bob</file>
+        <target>replace</target>
+        <description>Conway</description>
+      </action>
+    </actions>
+    <x>524</x>
+    <y>831</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

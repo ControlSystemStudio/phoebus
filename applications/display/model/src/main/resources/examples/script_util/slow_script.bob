@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Slow Script Example</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Script..</text>
+    <x>150</x>
+    <y>61</y>
+    <width>130</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+import time
+from org.csstudio.display.builder.runtime.script import PVUtil
+
+print("Executing script..")
+widget.setPropertyValue("text", PVUtil.getString(pvs[0]))
+time.sleep(2)
+print("Done.")
+]]></text>
+        <pv_name>sim://ramp</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>Scripts are triggered by PVs and execute in background threads.
+
+In this example, the PV triggers every second, but the script includes a two second delay, typically resulting in this behavior:
+
+1) PV changes, executes script.
+2) One second later, PV changes again while script is still running, scheduling another script execution.
+3) One second later, PV changes again, but script is already scheduled, so this change is ignored.
+4) The scheduled script executes, and sees the most recent value of the PV.
+
+The exact timing of 3 and 4 can differ. Sometimes the PV will change just before the scheduled script runs, so that re-trigger is ignored.
+At other times, the script will just have started when the PV changes, in which case the PV change schedules another script run.
+
+A log level of FINE will show when a script trigger is ignored because the script is already scheduled for execution. </text>
+    <y>100</y>
+    <width>570</width>
+    <height>350</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>PV:</text>
+    <y>31</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Read by slow script:</text>
+    <y>61</y>
+    <width>130</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>sim://ramp</pv_name>
+    <x>150</x>
+    <y>31</y>
+  </widget>
+</display>

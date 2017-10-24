@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Image Widget</name>
+  <width>1100</width>
+  <height>1200</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Image Widget</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>181</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays an image PV.</text>
+    <y>41</y>
+    <width>181</width>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image</name>
+    <pv_name>sim://sawtooth(10, 50, 10000, 0.5)</pv_name>
+    <y>71</y>
+    <width>291</width>
+    <height>299</height>
+    <color_bar>
+      <visible>false</visible>
+      <bar_size>40</bar_size>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </color_bar>
+    <x_axis>
+      <visible>false</visible>
+      <title>X</title>
+      <minimum>0.0</minimum>
+      <maximum>100.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </x_axis>
+    <y_axis>
+      <visible>false</visible>
+      <title>Y</title>
+      <minimum>100.0</minimum>
+      <maximum>0.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </y_axis>
+    <interpolation>0</interpolation>
+    <minimum>-1.0</minimum>
+    <maximum>1.0</maximum>
+    <rois>
+    </rois>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>Default; perceptually uniform.
+Represents value range without
+emphasising any subsection.
+Differences in computer monitors or
+color vision deficiency have only minor 
+impacts on overall perception. </text>
+    <y>421</y>
+    <width>271</width>
+    <height>120</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <class>SECTION</class>
+    <text>'Viridis' Color Map</text>
+    <y>390</y>
+    <width>171</width>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image_1</name>
+    <pv_name>sim://sawtooth(10, 50, 10000, 0.5)</pv_name>
+    <x>331</x>
+    <y>71</y>
+    <width>291</width>
+    <height>299</height>
+    <color_map>
+      <name>JET</name>
+    </color_map>
+    <color_bar>
+      <visible>false</visible>
+      <bar_size>40</bar_size>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </color_bar>
+    <x_axis>
+      <visible>false</visible>
+      <title>X</title>
+      <minimum>0.0</minimum>
+      <maximum>100.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </x_axis>
+    <y_axis>
+      <visible>false</visible>
+      <title>Y</title>
+      <minimum>0.0</minimum>
+      <maximum>100.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </y_axis>
+    <scripts>
+      <script file="scripts/select_colormap.py">
+        <pv_name>loc://color_map("JET")</pv_name>
+      </script>
+    </scripts>
+    <interpolation>1</interpolation>
+    <minimum>-1.0</minimum>
+    <maximum>1.0</maximum>
+    <rois>
+    </rois>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <class>SECTION</class>
+    <text>'Jet' Color Map</text>
+    <x>331</x>
+    <y>390</y>
+    <width>171</width>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <class>COMMENT</class>
+    <text>Example for alternate color map; colorful.
+May add visual interest, but distorts the data
+because it over-emphasizes subsections of
+the value range.</text>
+    <x>331</x>
+    <y>421</y>
+    <width>320</width>
+    <height>120</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image_2</name>
+    <pv_name>sim://sawtooth(10, 50, 10000, 0.5)</pv_name>
+    <y>541</y>
+    <width>622</width>
+    <height>320</height>
+    <show_toolbar>true</show_toolbar>
+    <y_axis>
+      <visible>true</visible>
+      <title>Y</title>
+      <minimum>0.0</minimum>
+      <maximum>80.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </y_axis>
+    <autoscale>false</autoscale>
+    <minimum>-1.0</minimum>
+    <maximum>1.0</maximum>
+    <cursor_info_pv>loc://cursor_info</cursor_info_pv>
+    <x_pv>loc://cursor_x</x_pv>
+    <y_pv>loc://cursor_y</y_pv>
+    <cursor_crosshair>true</cursor_crosshair>
+    <rois>
+      <roi>
+        <name>ROI 0</name>
+        <color>
+          <color red="255" green="168" blue="0">
+          </color>
+        </color>
+        <visible>true</visible>
+        <interactive>true</interactive>
+        <x_pv>loc://roi_x(10)</x_pv>
+        <y_pv>loc://roi_y(10)</y_pv>
+        <width_pv>loc://roi_w(10)</width_pv>
+        <height_pv>loc://roi_h(10)</height_pv>
+        <file></file>
+      </roi>
+      <roi>
+        <name></name>
+        <color>
+          <color red="255" green="0" blue="0">
+          </color>
+        </color>
+        <visible>true</visible>
+        <interactive>false</interactive>
+        <x_pv>loc://roi_x2(50)</x_pv>
+        <y_pv>loc://roi_y2(40)</y_pv>
+        <width_pv>loc://roi_w2(10)</width_pv>
+        <height_pv>loc://roi_h2(20)</height_pv>
+        <file>pic/xmark.png</file>
+      </roi>
+    </rois>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>For PVAccess, a PV that serves an NTNDArray will provide
+both the image data and the width &amp; height information.
+(This is currently limited to byte[] data.
+ For NTNDArray with short, int, etc., you need to read
+ pva://that_pv/value to get just the data array,
+ and configure the data width and height).
+
+For PVAccess or Channel Access, the data can be a waveform
+that contains the pixels values starting with the top-left pixel,
+followed by the pixels of the top row, then the second row
+and so on.
+
+The image data width and height need to be configured for
+waveform PVs.
+For NTNDArray PVs, the image size is provided by the PV.</text>
+    <x>201</x>
+    <y>921</y>
+    <width>421</width>
+    <height>279</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <class>SECTION</class>
+    <text>PV, Data</text>
+    <x>201</x>
+    <y>891</y>
+    <width>171</width>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Region of Interest</text>
+    <x>651</x>
+    <y>521</y>
+    <width>149</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>X:</text>
+    <x>651</x>
+    <y>640</y>
+    <width>25</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://roi_x(10)</pv_name>
+    <x>686</x>
+    <y>640</y>
+    <format>1</format>
+    <precision>2</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Y:</text>
+    <x>651</x>
+    <y>672</y>
+    <width>25</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>loc://roi_y(10)</pv_name>
+    <x>686</x>
+    <y>672</y>
+    <format>1</format>
+    <precision>2</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>W:</text>
+    <x>811</x>
+    <y>640</y>
+    <width>25</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>loc://roi_w(10)</pv_name>
+    <x>846</x>
+    <y>640</y>
+    <format>1</format>
+    <precision>2</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>H:</text>
+    <x>811</x>
+    <y>672</y>
+    <width>25</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <pv_name>loc://roi_h(10)</pv_name>
+    <x>846</x>
+    <y>672</y>
+    <format>1</format>
+    <precision>2</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Image can have one or more regions of interest.
+Each ROI is shown on the plot.
+PVs can be assigned to the X/Y position and size.
+The first ROI is 'interactive', you can move it via
+the mouse and the PVs.
+</text>
+    <x>651</x>
+    <y>546</y>
+    <width>330</width>
+    <height>94</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Cursor Info</text>
+    <x>651</x>
+    <y>830</y>
+    <width>149</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>A cursor info PV is updated with the current mouse position
+in the image and the pixel value at that location.
+(When the crosshair is active, the position of the crosshair
+is used instead of the current mouse position)
+The location is reported both in X/Y axis coordinates
+and as integer offsets within the image.
+
+The value is of type VTable and can be displayed directly,
+or used in a script for customized formatting.</text>
+    <x>651</x>
+    <y>860</y>
+    <width>409</width>
+    <height>170</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <x>651</x>
+    <y>1179</y>
+    <width>330</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="scripts/cursor_info.py">
+        <pv_name>loc://cursor_info</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <pv_name>loc://cursor_info</pv_name>
+    <x>651</x>
+    <y>1099</y>
+    <width>429</width>
+    <height>70</height>
+    <columns>
+      <column>
+        <name>X</name>
+        <width>80</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+      <column>
+        <name>Y</name>
+        <width>80</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+      <column>
+        <name>Value</name>
+        <width>100</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+      <column>
+        <name>Xi</name>
+        <width>80</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+      <column>
+        <name>Yi</name>
+        <width>80</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>loc://cursor_info</pv_name>
+    <x>651</x>
+    <y>1030</y>
+    <width>409</width>
+    <height>50</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <text>Interpolation</text>
+    <x>651</x>
+    <y>41</y>
+    <width>149</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <text>In the left image, interpolation is turned off.
+Each image pixel is drawn 'as is', which is useful for histogram-type
+images where the value of each pixel represents a distinct count.
+
+In the right image, interpolation is on.
+Each pixel on the screen is based on the interpolation between
+data in the image, which is useful for camera images where
+the underlying pixelation is more necessary evil than feature.
+
+The default interpolation mode is 'automatic':
+If the image is smaller than the screen area, interpolation is disabled.
+If the image is larger than the screen area, interpolation is enabled.
+This allows zooming into pixels, while otherwise providing
+an adequate representation of the image when zooming out.</text>
+    <x>651</x>
+    <y>66</y>
+    <width>439</width>
+    <height>304</height>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo Box</name>
+    <pv_name>loc://color_map("JET")</pv_name>
+    <x>431</x>
+    <y>500</y>
+    <width>139</width>
+    <items>
+      <item>VIRIDIS</item>
+      <item>JET</item>
+      <item>GRAY</item>
+      <item>SPECTRUM</item>
+      <item>HOT</item>
+      <item>COOL</item>
+      <item>SHADED</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>Color Map:</text>
+    <x>331</x>
+    <y>510</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <class>SECTION</class>
+    <text>Toolbar</text>
+    <y>891</y>
+    <width>171</width>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>The toolbar can be
+enabled or hidden
+via the context
+menu of the plot
+or by pressing 't'.
+
+It lists similar options
+to the XYPlot, refer
+to its description for
+details.
+
+The crosshair option
+enables a marker
+that can be positioned
+by clicking into
+the plot.</text>
+    <y>911</y>
+    <width>220</width>
+    <height>279</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_4</name>
+    <pv_name>loc://cursor_x</pv_name>
+    <x>720</x>
+    <y>1209</y>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_5</name>
+    <pv_name>loc://cursor_y</pv_name>
+    <x>720</x>
+    <y>1239</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>X:</text>
+    <x>660</x>
+    <y>1210</y>
+    <width>40</width>
+    <height>19</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Y:</text>
+    <x>660</x>
+    <y>1239</y>
+    <width>40</width>
+    <height>19</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <text>The second ROI uses an image.
+It is not interactive, moving only
+via PVs.</text>
+    <x>651</x>
+    <y>710</y>
+    <width>330</width>
+    <height>60</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>X:</text>
+    <x>651</x>
+    <y>770</y>
+    <width>25</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_6</name>
+    <pv_name>loc://roi_x2(50)</pv_name>
+    <x>686</x>
+    <y>770</y>
+    <format>1</format>
+    <precision>2</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>Y:</text>
+    <x>651</x>
+    <y>802</y>
+    <width>25</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_7</name>
+    <pv_name>loc://roi_y2(40)</pv_name>
+    <x>686</x>
+    <y>802</y>
+    <format>1</format>
+    <precision>2</precision>
+  </widget>
+</display>

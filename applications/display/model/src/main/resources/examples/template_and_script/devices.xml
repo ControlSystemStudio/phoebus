@@ -1,0 +1,17 @@
+<!-- Example for a file that provides information about devices -->
+<devices>
+  <!-- The file could list information for each device -->
+  <device>
+    <NAME>Device 1</NAME>
+    <PV>sim://noise(-5,5,0.1)</PV>
+  </device>
+  <device>
+    <NAME>Device 2</NAME>
+    <PV>sim://noise(-5,5,0.1)</PV>
+  </device>
+  <!-- and to on .. -->
+  <device>
+    <NAME>Device 200</NAME>
+    <PV>sim://noise(-5,5,0.1)</PV>
+  </device>
+</devices>

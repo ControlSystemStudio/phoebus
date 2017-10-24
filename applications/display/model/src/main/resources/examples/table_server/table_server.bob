@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Table Server Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Table Server</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Filter by name:</text>
+    <y>50</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>Enter a name to filter table by name. Enter nothing ("") to see all names.</text>
+    <x>220</x>
+    <y>40</y>
+    <width>310</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <pv_name>pva://table</pv_name>
+    <x>20</x>
+    <y>90</y>
+    <height>240</height>
+    <columns>
+      <column>
+        <name>Column 1</name>
+        <width>50</width>
+        <editable>false</editable>
+      </column>
+    </columns>
+    <editable>false</editable>
+    <row_selection_mode>true</row_selection_mode>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>This display demonstrates what can be done with a table PV served by a pvaPy server like the one in "server.py".
+
+In the past, creating tables from tabular data has been a two-step process involving scripts at both ends. First, the server would pickle the data and send it as a string. Then the client would need a script to un-pickle the data and fill the table manually.
+
+This server is much simpler. The data is served directly as a table. In the display, a Table widget displays the data with no extra effort.
+
+It's even fairly simple to add a monitor to the server script which filters the data by name. No additional scripts are needed for the display.
+</text>
+    <x>30</x>
+    <y>350</y>
+    <width>490</width>
+    <height>230</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Update</name>
+    <pv_name>pva://name</pv_name>
+    <x>100</x>
+    <y>50</y>
+    <background_color>
+      <color name="Background" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <wrap_words>true</wrap_words>
+    <tooltip>pva://name
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+  </widget>
+</display>

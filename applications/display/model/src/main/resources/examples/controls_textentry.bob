@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Text Entry</name>
+  <width>850</width>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Text Entry Widget</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>241</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays the value of a PV as text and allows entering a new value.</text>
+    <y>41</y>
+    <width>481</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Example:</text>
+    <y>91</y>
+    <width>181</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Can be configured to be ugly:</text>
+    <y>131</y>
+    <width>201</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Default:</text>
+    <y>261</y>
+    <width>111</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Formatting options:</text>
+    <y>231</y>
+    <width>201</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Don't show units:</text>
+    <y>291</y>
+    <width>161</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Decimal w/ 2 digits:</text>
+    <y>321</y>
+    <width>191</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Exponential Notation:</text>
+    <y>351</y>
+    <width>191</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>sim://sine</pv_name>
+    <x>201</x>
+    <y>261</y>
+    <width>210</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>sim://sine</pv_name>
+    <x>201</x>
+    <y>291</y>
+    <width>210</width>
+    <show_units>false</show_units>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>sim://sine</pv_name>
+    <x>201</x>
+    <y>321</y>
+    <width>210</width>
+    <format>1</format>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <pv_name>sim://sine</pv_name>
+    <x>201</x>
+    <y>351</y>
+    <width>210</width>
+    <format>2</format>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_4</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>201</x>
+    <y>91</y>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_5</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>201</x>
+    <y>131</y>
+    <width>250</width>
+    <height>70</height>
+    <font>
+      <font name="Oddball" family="PakTypeNaqsh" style="REGULAR" size="40.0">
+      </font>
+    </font>
+    <background_color>
+      <color red="229" green="193" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <class>COMMENT</class>
+    <text>The text entry widget updates whenever the value of the
+associated PV changes.
+
+To permit editing, updates are suppressed as soon as one presses
+any key, including for example 'Alt', 'Control' or cursor keys, within
+the widget.
+
+Pressing 'Escape' or selecting a different widget aborts editing
+and restores the original value of the PV.
+
+Pressing 'Enter' confirms editing and writes the entered value to the PV.</text>
+    <y>391</y>
+    <width>451</width>
+    <height>210</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Multiple Lines:</text>
+    <x>470</x>
+    <y>231</y>
+    <width>201</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_6</name>
+    <pv_name>loc://long_text("Some long text...")</pv_name>
+    <x>470</x>
+    <y>261</y>
+    <width>289</width>
+    <height>110</height>
+    <wrap_words>true</wrap_words>
+    <multi_line>true</multi_line>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <class>COMMENT</class>
+    <text>The text entry widget can be "multi-lined",
+starting a new line on each newline character in the text.
+Optionally, it can also wrap words to a new line when
+reaching the end of a line.
+
+Since pressing 'Enter' now simply starts a new line,
+'Control-Enter' now confirms editing and writes the entered value to the PV.</text>
+    <x>470</x>
+    <y>391</y>
+    <width>359</width>
+    <height>210</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <class>COMMENT</class>
+    <text>Text Entry widgets display the current value
+of a PV.
+When you click the widget or type anything
+into the widget, it enters an 'active' state,
+indicated by a different background color.
+
+It will now stop displaying received PV
+updates so you can edit without interruptions.
+Press 'Enter' to confirm.
+Press 'Escape', 'Tab', or click elsewhere to abort.</text>
+    <x>470</x>
+    <y>31</y>
+    <width>310</width>
+    <height>189</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+</display>

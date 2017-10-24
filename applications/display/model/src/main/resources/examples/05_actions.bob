@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Actions</name>
+  <height>635</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Actions</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>281</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <class>SECTION</class>
+    <text>Purpose</text>
+    <y>41</y>
+    <width>331</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Actions are typically defined on the 'Action Button' widget.
+
+Actions can
+- Open another display file,
+  either as a new panel or by replacing the current panel.
+- Write a value to a PV
+- Start scripts
+- Execute external commands
+</text>
+    <y>71</y>
+    <width>561</width>
+    <height>180</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Actions can be assigned to any widget.
+To invoke them, the user then needs to invoke the context menu
+on the widget (right-click) and select the desired action.
+The use of 'Action Buttons' should be preferred because
+it is more obvious to end users.</text>
+    <y>360</y>
+    <width>561</width>
+    <height>110</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="open_display">
+        <file>01_main.bob</file>
+        <target>replace</target>
+        <description>back to main</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>140</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>Hello</value>
+        <description>Write Hello</description>
+      </action>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>Bye</value>
+        <description>Write Bye</description>
+      </action>
+    </actions>
+    <pv_name>loc://text("some_PV")</pv_name>
+    <x>440</x>
+    <y>251</y>
+    <width>140</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>loc://text("some_PV")</pv_name>
+    <x>320</x>
+    <y>251</y>
+    <width>110</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Typical actions buttons have exactly one
+action assigned to them.
+Clicking the button invokes that action.
+
+If an action button has multiple actions
+assigned, a drop-down allows invoking
+one of them at a time.</text>
+    <y>230</y>
+    <width>300</width>
+    <height>130</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="command">
+        <command>echo "Hello, World"</command>
+        <description>Print 'Hello'</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>480</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_3</name>
+    <actions>
+      <action type="command">
+        <command>/opt/X11/bin/xterm</command>
+        <description>Start XTerm (Mac)</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>560</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="command">
+        <command>pwd</command>
+        <description>Print CWD</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>520</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>SECTION</class>
+    <text>External Commands</text>
+    <y>460</y>
+    <width>331</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Actions that invoke external commands are executed
+by the operating system in the directory of the display file,
+unless an absolute path is provided.
+
+The standard output and the error output of the command
+are printed as log messages.
+</text>
+    <y>480</y>
+    <width>410</width>
+    <height>110</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_5</name>
+    <actions>
+      <action type="command">
+        <command>/usr/bin/xterm</command>
+        <description>Start XTerm (Linux)</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>600</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_6</name>
+    <actions>
+      <action type="open_webpage">
+        <url>http://www.google.com</url>
+        <description>Open Google</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>440</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

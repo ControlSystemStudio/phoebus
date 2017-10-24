@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Table</name>
+  <width>1200</width>
+  <height>1100</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Table Widget</text>
+    <width>181</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>This widget displays a table of values.
+
+It is typically used with scripts that set the "value".
+It may allow the user to edit the table cells,
+and finally another script can fetch the data and use it in some way.
+</text>
+    <y>31</y>
+    <width>461</width>
+    <height>110</height>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <y>271</y>
+    <width>491</width>
+    <height>200</height>
+    <columns>
+      <column>
+        <name>PV</name>
+        <width>250</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Value</name>
+        <width>230</width>
+        <editable>true</editable>
+      </column>
+    </columns>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import PVUtil
+
+# Create matrix (2D array) of strings
+data = []
+
+for pv in pvs:
+    row =  [ pv.getName(), PVUtil.getString(pv) ]
+    data.append(row)
+
+widget.setValue(data)]]></text>
+        <pv_name>sim://sine</pv_name>
+        <pv_name>sim://ramp</pv_name>
+        <pv_name>sim://noise</pv_name>
+      </script>
+    </scripts>
+    <editable>false</editable>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Alternatively, a PV can provide a VTable.
+One example is the 'cursor info' PV written by the image widget.
+In this example, a script updates that PV:</text>
+    <x>511</x>
+    <y>201</y>
+    <width>491</width>
+    <height>70</height>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table_1</name>
+    <pv_name>loc://table_pv&lt;VTable&gt;</pv_name>
+    <x>511</x>
+    <y>271</y>
+    <width>491</width>
+    <height>200</height>
+    <background_color>
+      <color red="210" green="212" blue="253">
+      </color>
+    </background_color>
+    <columns>
+      <column>
+        <name>Columns taken from PV</name>
+        <width>100</width>
+        <editable>true</editable>
+      </column>
+    </columns>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import PVUtil, ValueUtil
+
+target = pvs[0]
+inputs = pvs[1:]
+
+# Create matrix (2D array) of strings
+data = []
+for pv in inputs:
+    row =  [ pv.getName(), PVUtil.getString(pv) ]
+    data.append(row)
+
+table = ValueUtil.createStringTableFromRows([ "PV", "Value" ], data)
+widget.setPropertyValue("value", table)
+]]></text>
+        <pv_name trigger="false">loc://table_pv&lt;VTable&gt;</pv_name>
+        <pv_name>sim://sine</pv_name>
+        <pv_name>sim://ramp</pv_name>
+        <pv_name>sim://noise</pv_name>
+      </script>
+    </scripts>
+    <editable>false</editable>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>This table receives an initial value from a script.
+You can then edit the cells:</text>
+    <y>542</y>
+    <width>491</width>
+    <height>41</height>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>user_table</name>
+    <y>600</y>
+    <show_toolbar>true</show_toolbar>
+    <columns>
+      <column>
+        <name>Item</name>
+        <width>170</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Small</name>
+        <width>100</width>
+        <editable>true</editable>
+        <options>
+          <option>false</option>
+          <option>true</option>
+        </options>
+      </column>
+      <column>
+        <name>Condition</name>
+        <width>200</width>
+        <editable>true</editable>
+        <options>
+          <option>Terrific</option>
+          <option>Adequate</option>
+          <option>Poor</option>
+          <option>Pathetic</option>
+        </options>
+      </column>
+    </columns>
+    <rules>
+      <rule name="Select Rows?" prop_id="row_selection_mode" out_exp="true">
+        <exp bool_exp="true">
+          <expression>pv0&gt;0</expression>
+        </exp>
+        <pv_name>loc://sel_rows(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+
+# Adjust options for the 3rd column
+print("Original Options: ")
+options = widget.getColumnOptions(2)
+print(options)
+options.insert(0, "Outstanding")
+widget.setColumnOptions(2, options)
+
+# Create matrix (2D array) of strings for initial table values
+data = [
+  [ "Container", "false",   "Poor" ],
+  [ "House",      "false", "Good" ],
+  [ "Shed",        "true",         "Excellent" ],
+]
+
+widget.setValue(data)]]></text>
+        <pv_name>loc://init(1)</pv_name>
+      </script>
+    </scripts>
+    <row_selection_mode>true</row_selection_mode>
+    <selection_pv>loc://table_selection&lt;VTable&gt;</selection_pv>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table_3</name>
+    <pv_name>loc://table_selection&lt;VTable&gt;</pv_name>
+    <x>521</x>
+    <y>600</y>
+    <width>570</width>
+    <height>110</height>
+    <columns>
+      <column>
+        <name>Selection</name>
+        <width>100</width>
+        <editable>true</editable>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Information about the currently selected cells
+(or complete rows) in the table are written to a PV.
+That value can itself be displayed in a table:</text>
+    <x>521</x>
+    <y>542</y>
+    <width>491</width>
+    <height>59</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>The "Condition" column of this table uses a list of options,
+presented in a combo-box when editing a cell.
+
+The options are first set on the widget, then modified by a script to demonstrate
+how a script can configure the table.
+
+The "Small" column uses options "true"/"false",
+which are represented by a checkbox.</text>
+    <y>911</y>
+    <width>500</width>
+    <height>160</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+# Get current headers and data
+headers = table.getHeaders()
+data = table.getValue()
+
+print("Before:")
+print(headers)
+print(data)
+
+# Change headers and data
+for c in range(len(headers)):
+    headers[c] = "New " +  headers[c]
+print("After:")
+print(headers)
+
+for r in range(len(data)):
+    data[r][0] = "New " + data[r][0]
+print(data)
+
+# Update table with new headers and data
+
+# Changing all headers means loosing the column options,
+# so fetch the current column options
+num = len(headers)
+options = [ table.getColumnOptions(c) for c in range(num) ]
+
+table.setHeaders(headers)
+# Restore column options
+for c in range(num):
+    table.setColumnOptions(c, options[c])
+table.setValue(data)
+]]></text>
+        </script>
+        <description>Handle Data</description>
+      </action>
+    </actions>
+    <x>630</x>
+    <y>811</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>In this example, a script sets the value to
+a two-dimensional string array, i.e. a
+List&lt;List&lt;String&gt;&gt;:</text>
+    <y>201</y>
+    <width>441</width>
+    <height>60</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Read-only Tables</text>
+    <y>151</y>
+    <width>321</width>
+    <height>31</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Editable Table</text>
+    <y>511</y>
+    <width>191</width>
+    <height>31</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Scripts can 'set' the data to something,
+or 'handle' the data by fetching the current
+table content, modifying the first column,
+and writing the result back to the table.</text>
+    <x>521</x>
+    <y>731</y>
+    <width>491</width>
+    <height>80</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Example for updating individual cell colors
+
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+from org.csstudio.display.builder.model.properties import WidgetColor
+from java.lang import Math
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+if Math.random() > 0.5:
+    ScriptUtil.getLogger().info("One way, cell by cell..")
+    table.setCellColor(0, 0, WidgetColor(255, 0, 0))
+    table.setCellColor(1, 1, WidgetColor(0, 255, 0))
+else:
+    ScriptUtil.getLogger().info("Other way, cell by cell..")
+    table.setCellColor(1, 1, WidgetColor(255, 0, 0))
+    table.setCellColor(0, 0, WidgetColor(0, 255, 0))
+]]></text>
+        </script>
+        <description>Color Cells</description>
+      </action>
+    </actions>
+    <x>520</x>
+    <y>880</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Scripts can also define colors for specific cells.
+</text>
+    <x>520</x>
+    <y>860</y>
+    <width>491</width>
+    <height>30</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+table.setCellValue(1, 0, "Thingy")
+]]></text>
+        </script>
+        <description>Set Data</description>
+      </action>
+    </actions>
+    <x>521</x>
+    <y>811</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_3</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# This example sets a complete table of colors
+
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+from org.csstudio.display.builder.model.properties import WidgetColor
+from java.lang import Math
+from java.util import ArrayList
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+# Table can be sparse with None for empty rows
+# as well as rows that are shorter than the table width
+colors = [
+  None,
+  [ None ],
+  [ None, None ]
+]
+
+if Math.random() > 0.5:
+    ScriptUtil.getLogger().info("One way, complete array..")
+    colors[1][0] = WidgetColor(255, 0, 0)
+    colors[2][1] = WidgetColor(0, 255, 0)
+else:
+    ScriptUtil.getLogger().info("Other way, complete array..")
+    colors[1][0] = WidgetColor(0, 255, 0)
+    colors[2][1] = WidgetColor(255, 0, 0)
+
+table.setPropertyValue("cell_colors", colors)]]></text>
+        </script>
+        <description>Color Table</description>
+      </action>
+    </actions>
+    <x>630</x>
+    <y>880</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <class>COMMENT</class>
+    <text>Left button changes the color of individual cells.
+Right button sets a new matrix of cell colors.
+
+Changing the value of a table removes all cell colors.
+</text>
+    <x>520</x>
+    <y>920</y>
+    <width>391</width>
+    <height>100</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+# Get data
+data = table.getValue()
+
+print("Before:")
+print(data)
+
+data.append([ "Item %d" % (len(data) + 1),        "true",         "Excellent" ])
+
+print("After:")
+print(data)
+
+# Update table with new data
+table.setValue(data)
+]]></text>
+        </script>
+        <description>Add Row</description>
+      </action>
+    </actions>
+    <x>740</x>
+    <y>810</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox</name>
+    <pv_name>loc://sel_rows(1)</pv_name>
+    <label>Select rows?</label>
+    <x>980</x>
+    <y>570</y>
+    <width>112</width>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_5</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+# Changing the header does also delete the data!
+headers = table.getHeaders()
+headers[0] = "Gadget"
+table.setHeaders(headers)
+
+]]></text>
+        </script>
+        <description>Change Header</description>
+      </action>
+    </actions>
+    <x>850</x>
+    <y>810</y>
+    <width>152</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

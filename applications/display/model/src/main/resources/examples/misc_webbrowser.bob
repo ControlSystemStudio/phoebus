@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <x>20</x>
+    <y>10</y>
+    <width>281</width>
+    <height>31</height>
+    <text>Web Browser</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <x>20</x>
+    <y>41</y>
+    <width>570</width>
+    <height>39</height>
+    <text>A simple, embedded web browser with optional toolbar. The "show toolbar" property
+cannot be changed at runtime.</text>
+  </widget>
+  <widget type="webbrowser" version="2.0.0">
+    <name>Web Browser</name>
+    <url>controlsystemstudio.org</url>
+    <x>20</x>
+    <y>80</y>
+  </widget>
+</display>

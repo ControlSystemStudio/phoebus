@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Color Images</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Color Images</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image</name>
+    <pv_name>pva://rgb1_image</pv_name>
+    <x>20</x>
+    <y>90</y>
+    <color_map>
+      <section value="0" red="0" green="0" blue="0"/>
+      <section value="255" red="255" green="0" blue="0"/>
+    </color_map>
+    <color_bar>
+      <visible>false</visible>
+      <bar_size>40</bar_size>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </color_bar>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image_1</name>
+    <pv_name>pva://rgb2_blocks</pv_name>
+    <x>490</x>
+    <y>90</y>
+    <color_map>
+      <name>GRAY</name>
+    </color_map>
+    <color_bar>
+      <visible>false</visible>
+      <bar_size>40</bar_size>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </color_bar>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image_2</name>
+    <pv_name>pva://rgb2_image</pv_name>
+    <x>20</x>
+    <y>430</y>
+    <color_map>
+      <name>GRAY</name>
+    </color_map>
+    <color_bar>
+      <visible>false</visible>
+      <bar_size>40</bar_size>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </color_bar>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Images served with pvaPy. Run 'python colorsdemo.py' to serve images.</text>
+    <y>40</y>
+    <width>810</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>pva:/rgb1_image</text>
+    <x>40</x>
+    <y>70</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>pva://rgb2_blocks</text>
+    <x>510</x>
+    <y>70</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>pva://rgb2_image</text>
+    <x>40</x>
+    <y>410</y>
+    <width>170</width>
+  </widget>
+  <widget type="array" version="2.0.0">
+    <name>Array</name>
+    <pv_name>pva://names</pv_name>
+    <x>490</x>
+    <y>430</y>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update</name>
+      <width>380</width>
+      <background_color>
+        <color name="Background" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <transparent>true</transparent>
+      <tooltip></tooltip>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>pva://names</text>
+    <x>510</x>
+    <y>410</y>
+  </widget>
+</display>

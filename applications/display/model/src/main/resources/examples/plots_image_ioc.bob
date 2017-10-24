@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Image Widget</name>
+  <width>1100</width>
+  <height>1200</height>
+  <widget type="image" version="2.0.0">
+    <name>Image</name>
+    <pv_name>pva://IMAGE</pv_name>
+    <width>360</width>
+    <height>310</height>
+    <x_axis>
+      <visible>false</visible>
+      <title>X</title>
+      <minimum>0.0</minimum>
+      <maximum>100.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </x_axis>
+    <y_axis>
+      <visible>false</visible>
+      <title>Y</title>
+      <minimum>100.0</minimum>
+      <maximum>0.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </y_axis>
+    <scripts>
+      <script file="scripts/select_colormap.py">
+        <pv_name>loc://color_map("VIRIDIS")</pv_name>
+      </script>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("autoscale", True)]]></text>
+        <pv_name>loc://init(1)</pv_name>
+      </script>
+    </scripts>
+    <tooltip></tooltip>
+    <minimum>-128.0</minimum>
+    <maximum>128.0</maximum>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo Box</name>
+    <pv_name>loc://color_map("VIRIDIS")</pv_name>
+    <x>100</x>
+    <y>320</y>
+    <width>139</width>
+    <tooltip></tooltip>
+    <items>
+      <item>VIRIDIS</item>
+      <item>JET</item>
+      <item>GRAY</item>
+      <item>SPECTRUM</item>
+      <item>HOT</item>
+      <item>COOL</item>
+      <item>SHADED</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>Color Map:</text>
+    <y>320</y>
+    <height>30</height>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+</display>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Clock Widgets</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Clock Widgets</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays an analog or digital clock.</text>
+    <y>50</y>
+    <width>240</width>
+  </widget>
+  <widget type="clock" version="2.0.0">
+    <name>Clock</name>
+    <skin>3</skin>
+    <x>20</x>
+    <y>110</y>
+    <width>160</width>
+    <height>160</height>
+    <background_color>
+      <color red="239" green="239" blue="239">
+      </color>
+    </background_color>
+    <border_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </border_color>
+    <border_width>5.0</border_width>
+    <date_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </date_color>
+    <hour_color>
+      <color red="42" green="42" blue="42">
+      </color>
+    </hour_color>
+    <hour_tick_mark_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </hour_tick_mark_color>
+    <minute_color>
+      <color red="42" green="42" blue="42">
+      </color>
+    </minute_color>
+    <minute_tick_mark_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </minute_tick_mark_color>
+    <second_color>
+      <color red="209" green="34" blue="43">
+      </color>
+    </second_color>
+    <text_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </text_color>
+    <tick_label_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </tick_label_color>
+    <tick_label_visible>false</tick_label_visible>
+    <title>INDUSTRIAL</title>
+    <title_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </title_color>
+    <title_visible>true</title_visible>
+  </widget>
+  <widget type="digital_clock" version="2.0.0">
+    <name>Digital Clock</name>
+    <x>230</x>
+    <y>110</y>
+    <title>SECTIONS design</title>
+    <title_visible>true</title_visible>
+  </widget>
+  <widget type="digital_clock" version="2.0.0">
+    <name>Digital Clock_1</name>
+    <lcd_design>0</lcd_design>
+    <x>230</x>
+    <y>210</y>
+    <shadows_enabled>false</shadows_enabled>
+    <title>AMBER design</title>
+    <title_visible>true</title_visible>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>INDUSTRIAL skin</text>
+    <x>20</x>
+    <y>280</y>
+    <width>160</width>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="clock" version="2.0.0">
+    <name>Clock_1</name>
+    <x>30</x>
+    <y>330</y>
+    <width>160</width>
+    <height>160</height>
+    <background_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <border_width>0.0</border_width>
+    <date_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </date_color>
+    <date_visible>true</date_visible>
+    <hour_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </hour_color>
+    <hour_tick_mark_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </hour_tick_mark_color>
+    <knob_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </knob_color>
+    <minute_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </minute_color>
+    <minute_tick_mark_color>
+      <color red="115" green="115" blue="115">
+      </color>
+    </minute_tick_mark_color>
+    <second_color>
+      <color red="255" green="165" blue="24">
+      </color>
+    </second_color>
+    <tick_label_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </tick_label_color>
+    <title>PEAR</title>
+    <title_visible>true</title_visible>
+    <discrete_seconds>true</discrete_seconds>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>PEAR skin</text>
+    <x>30</x>
+    <y>500</y>
+    <width>160</width>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="clock" version="2.0.0">
+    <name>Clock_2</name>
+    <skin>6</skin>
+    <x>230</x>
+    <y>330</y>
+    <width>160</width>
+    <height>160</height>
+    <border_width>0.0</border_width>
+    <date_color>
+      <color red="230" green="77" blue="77">
+      </color>
+    </date_color>
+    <date_visible>true</date_visible>
+    <hour_color>
+      <color red="230" green="77" blue="77">
+      </color>
+    </hour_color>
+    <minute_color>
+      <color red="0" green="191" blue="255">
+      </color>
+    </minute_color>
+    <second_color>
+      <color red="230" green="77" blue="77">
+      </color>
+    </second_color>
+    <title>SLIM</title>
+    <title_visible>true</title_visible>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>SLIM skin</text>
+    <x>230</x>
+    <y>500</y>
+    <width>160</width>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Shadows disabled</text>
+    <x>410</x>
+    <y>210</y>
+    <width>130</width>
+    <height>90</height>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Shadows enabled</text>
+    <x>410</x>
+    <y>110</y>
+    <width>130</width>
+    <height>90</height>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+</display>

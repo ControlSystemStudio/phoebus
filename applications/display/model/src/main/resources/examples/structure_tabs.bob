@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Tabs</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>181</width>
+    <height>31</height>
+    <text>Tabs</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>41</y>
+    <width>411</width>
+    <height>30</height>
+    <text>A container that presents widgets in one or more 'Tabs'.</text>
+    <vertical_alignment>0</vertical_alignment>
+  </widget>
+  <widget type="tabs" version="2.0.0">
+    <name>Tabs</name>
+    <x>11</x>
+    <y>81</y>
+    <width>571</width>
+    <height>250</height>
+    <active_tab>1</active_tab>
+    <tabs>
+      <tab>
+        <name>System 1</name>
+        <children>
+          <widget type="label" version="2.0.0">
+            <name>Label_4</name>
+            <x>9</x>
+            <y>16</y>
+            <width>220</width>
+            <height>30</height>
+            <text>This is system 1</text>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>Label_15</name>
+            <x>9</x>
+            <y>56</y>
+            <width>80</width>
+            <height>26</height>
+            <text>Value:</text>
+            <foreground_color>
+              <color red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <background_color>
+              <color red="255" green="255" blue="255">
+              </color>
+            </background_color>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>Text Update_2</name>
+            <x>69</x>
+            <y>56</y>
+            <width>80</width>
+            <height>26</height>
+            <border_alarm_sensitive>false</border_alarm_sensitive>
+            <foreground_color>
+              <color red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <pv_name>sim://ramp(0, 4, 1)</pv_name>
+          </widget>
+          <widget type="led" version="2.0.0">
+            <name>BoolLED_1</name>
+            <x>160</x>
+            <y>58</y>
+            <width>26</width>
+            <height>26</height>
+            <border_alarm_sensitive>false</border_alarm_sensitive>
+            <off_color>
+              <color name="Off" red="60" green="100" blue="60">
+              </color>
+            </off_color>
+            <on_color>
+              <color name="On" red="0" green="255" blue="0">
+              </color>
+            </on_color>
+            <pv_name>sim://ramp(0, 4, 1)</pv_name>
+            <bit>-1</bit>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>System 2</name>
+        <children>
+          <widget type="label" version="2.0.0">
+            <name>Label_16</name>
+            <x>9</x>
+            <y>16</y>
+            <width>220</width>
+            <height>30</height>
+            <text>This is system 2</text>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>Label_17</name>
+            <x>9</x>
+            <y>56</y>
+            <width>80</width>
+            <height>26</height>
+            <text>Value:</text>
+            <foreground_color>
+              <color red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <background_color>
+              <color red="255" green="255" blue="255">
+              </color>
+            </background_color>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>Text Update_3</name>
+            <x>69</x>
+            <y>56</y>
+            <width>80</width>
+            <height>26</height>
+            <border_alarm_sensitive>false</border_alarm_sensitive>
+            <foreground_color>
+              <color red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <pv_name>sim://ramp(0, 4, 1)</pv_name>
+          </widget>
+          <widget type="led" version="2.0.0">
+            <name>BoolLED_2</name>
+            <x>169</x>
+            <y>56</y>
+            <width>26</width>
+            <height>26</height>
+            <border_alarm_sensitive>false</border_alarm_sensitive>
+            <off_color>
+              <color name="Off" red="60" green="100" blue="60">
+              </color>
+            </off_color>
+            <on_color>
+              <color name="On" red="0" green="255" blue="0">
+              </color>
+            </on_color>
+            <pv_name>sim://ramp(0, 4, 1)</pv_name>
+            <bit>-1</bit>
+          </widget>
+        </children>
+      </tab>
+      <tab>
+        <name>System 3</name>
+        <children>
+          <widget type="label" version="2.0.0">
+            <name>Label_3</name>
+            <x>9</x>
+            <y>16</y>
+            <width>220</width>
+            <height>30</height>
+            <text>This is system 3</text>
+          </widget>
+          <widget type="label" version="2.0.0">
+            <name>Label_14</name>
+            <x>9</x>
+            <y>56</y>
+            <width>80</width>
+            <height>26</height>
+            <text>Value:</text>
+            <foreground_color>
+              <color red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <background_color>
+              <color red="255" green="255" blue="255">
+              </color>
+            </background_color>
+          </widget>
+          <widget type="textupdate" version="2.0.0">
+            <name>Text Update_1</name>
+            <x>69</x>
+            <y>56</y>
+            <width>80</width>
+            <height>26</height>
+            <border_alarm_sensitive>false</border_alarm_sensitive>
+            <foreground_color>
+              <color red="0" green="0" blue="0">
+              </color>
+            </foreground_color>
+            <pv_name>sim://ramp(0, 4, 1)</pv_name>
+          </widget>
+          <widget type="led" version="2.0.0">
+            <name>BoolLED</name>
+            <x>169</x>
+            <y>56</y>
+            <width>26</width>
+            <height>26</height>
+            <border_alarm_sensitive>false</border_alarm_sensitive>
+            <off_color>
+              <color name="Off" red="60" green="100" blue="60">
+              </color>
+            </off_color>
+            <on_color>
+              <color name="On" red="0" green="255" blue="0">
+              </color>
+            </on_color>
+            <pv_name>sim://ramp(0, 4, 1)</pv_name>
+            <bit>-1</bit>
+          </widget>
+          <widget type="tabs" version="2.0.0">
+            <name>Tabs_1</name>
+            <x>248</x>
+            <y>20</y>
+            <width>290</width>
+            <height>170</height>
+            <tabs>
+              <tab>
+                <name>Summary</name>
+                <children>
+                  <widget type="textupdate" version="2.0.0">
+                    <name>Text Update_4</name>
+                    <x>8</x>
+                    <y>16</y>
+                    <pv_name>sim://noise</pv_name>
+                  </widget>
+                </children>
+              </tab>
+              <tab>
+                <name>Detail</name>
+                <children>
+                  <widget type="textupdate" version="2.0.0">
+                    <name>Text Update_5</name>
+                    <x>18</x>
+                    <y>15</y>
+                    <pv_name>sim://noise</pv_name>
+                  </widget>
+                  <widget type="textupdate" version="2.0.0">
+                    <name>Text Update_6</name>
+                    <x>18</x>
+                    <y>46</y>
+                    <pv_name>sim://noise</pv_name>
+                  </widget>
+                  <widget type="textupdate" version="2.0.0">
+                    <name>Text Update_7</name>
+                    <x>18</x>
+                    <y>76</y>
+                    <pv_name>sim://noise</pv_name>
+                  </widget>
+                </children>
+              </tab>
+            </tabs>
+            <direction>1</direction>
+          </widget>
+        </children>
+      </tab>
+    </tabs>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <y>361</y>
+    <width>491</width>
+    <height>210</height>
+    <text>Tabs are useful when users need to quickly and frequently
+switch between related content, because widgets in all tabs
+are always 'active'.
+They remain connected to PVs, their scripts will continue to execute,
+even while a tab is not visible.
+This allows them to reflect their current state right away when shown.
+
+If the content of tabs is not related, and users only infrequently switch
+between them, a setup with action buttons to change between separate
+displays is more suitable and will preserve resources.</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <vertical_alignment>0</vertical_alignment>
+  </widget>
+</display>

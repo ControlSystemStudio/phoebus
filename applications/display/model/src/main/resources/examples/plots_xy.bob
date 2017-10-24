@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>XY Plot</name>
+  <width>1150</width>
+  <height>900</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>XY Plot Widget</text>
+    <width>181</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays two waveform PVs,
+one for the "X" and one for the "Y" axis.</text>
+    <y>41</y>
+    <width>371</width>
+    <height>40</height>
+  </widget>
+  <widget type="xyplot" version="2.0.0">
+    <name>X/Y Plot_1</name>
+    <y>91</y>
+    <width>511</width>
+    <height>340</height>
+    <traces>
+      <trace>
+        <name></name>
+        <x_pv>sim://sawtooth(0, 100, 100, 1, 0, 102)</x_pv>
+        <y_pv>sim://sinewave(1, 50, 100, 0.1, 70, 90)</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+        <line_width>3</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+      </trace>
+      <trace>
+        <name></name>
+        <x_pv>sim://sawtooth(0, 100, 100, 1, 0, 102)</x_pv>
+        <y_pv>sim://sinewave(1, 50, 100, 0.1, 10, 100)</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>0</trace_type>
+        <color>
+          <color red="0" green="255" blue="0">
+          </color>
+        </color>
+        <line_width>1</line_width>
+        <point_type>2</point_type>
+        <point_size>5</point_size>
+      </trace>
+    </traces>
+    <marker>
+      <marker>
+        <color>
+          <color red="204" green="128" blue="153">
+          </color>
+        </color>
+        <pv_name>loc://pos(50)</pv_name>
+        <interactive>true</interactive>
+      </marker>
+    </marker>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/pan.png</file>
+    <y>681</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Runtime Usage of Plot</text>
+    <y>441</y>
+    <width>221</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Show/hide Tool bar</text>
+    <x>121</x>
+    <y>511</y>
+    <width>221</width>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture_1</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/crosshair.png</file>
+    <y>541</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture_2</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/stagger.png</file>
+    <y>571</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Show/hide cross-hair cursor</text>
+    <x>121</x>
+    <y>541</y>
+    <width>360</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Stagger all value axes</text>
+    <x>121</x>
+    <y>571</y>
+    <width>450</width>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture_3</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/zoom_in.png</file>
+    <y>601</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Zoom 'in' mode: Use mouse to select range in plot, on X or on a Y axis.
+Double-click zooms back out.</text>
+    <x>121</x>
+    <y>601</y>
+    <width>490</width>
+    <height>50</height>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture_4</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/zoom_out.png</file>
+    <y>651</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Zoom 'out' mode: Click mouse in plot, X or a Y axis</text>
+    <x>121</x>
+    <y>651</y>
+    <width>450</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Pan mode: Use mouse to drag plot, X or a Y axis</text>
+    <x>121</x>
+    <y>681</y>
+    <width>440</width>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture_9</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/pointer.png</file>
+    <y>711</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Pointer mode: Mouse is just a pointer (good for moving marker)</text>
+    <x>121</x>
+    <y>711</y>
+    <width>450</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Un-do</text>
+    <x>121</x>
+    <y>741</y>
+    <width>221</width>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture_10</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/undo.png</file>
+    <y>741</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture_11</name>
+    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/redo.png</file>
+    <y>771</y>
+    <width>16</width>
+    <height>16</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>(Control
+    +
+ Mouse
+ Wheel)</text>
+    <x>41</x>
+    <y>801</y>
+    <width>70</width>
+    <height>80</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>(y)</text>
+    <x>41</x>
+    <y>771</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>(z)</text>
+    <x>41</x>
+    <y>741</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>(Shift)</text>
+    <x>41</x>
+    <y>681</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>(Alt)</text>
+    <x>41</x>
+    <y>651</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>(Control)</text>
+    <x>41</x>
+    <y>601</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <text>(s)</text>
+    <x>41</x>
+    <y>571</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <text>(c)</text>
+    <x>41</x>
+    <y>541</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>(t)</text>
+    <x>41</x>
+    <y>511</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <text>Zoom item under mouse, i.e. plot, X or Y axis, in/out</text>
+    <x>121</x>
+    <y>801</y>
+    <width>490</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Re-do</text>
+    <x>121</x>
+    <y>771</y>
+    <width>221</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Item (Shortcut)  Description</text>
+    <y>471</y>
+    <width>221</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>(Space)</text>
+    <x>41</x>
+    <y>711</y>
+    <width>70</width>
+  </widget>
+  <widget type="xyplot" version="2.0.0">
+    <name>RightPlot</name>
+    <x>591</x>
+    <y>91</y>
+    <width>511</width>
+    <height>340</height>
+    <show_legend>false</show_legend>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# pvs[0] - Value
+# pvs[1] - Local PV to which error bar info is written
+
+from org.csstudio.display.builder.runtime.script import PVUtil
+from math import sqrt
+
+values = PVUtil.getDoubleArray(pvs[0])
+err = [ sqrt(y) for y in values ]
+pvs[1].write(err)
+]]></text>
+        <pv_name>sim://sinewave(5, 5, 10, 2, 0, 100)</pv_name>
+        <pv_name trigger="false">loc://errors(0, 0)</pv_name>
+      </script>
+    </scripts>
+    <x_axis>
+      <title>X</title>
+      <autoscale>false</autoscale>
+      <minimum>0.0</minimum>
+      <maximum>10.0</maximum>
+      <show_grid>false</show_grid>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </x_axis>
+    <y_axes>
+      <y_axis>
+        <title>Y</title>
+        <autoscale>true</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>0.0</minimum>
+        <maximum>120.0</maximum>
+        <show_grid>false</show_grid>
+        <title_font>
+          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          </font>
+        </title_font>
+        <scale_font>
+          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          </font>
+        </scale_font>
+        <visible>true</visible>
+      </y_axis>
+    </y_axes>
+    <traces>
+      <trace>
+        <name>Counts</name>
+        <x_pv>loc://xxx(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)</x_pv>
+        <y_pv>sim://sinewave(5, 5, 10, 2, 0, 100)</y_pv>
+        <err_pv>loc://errors(0, 0)</err_pv>
+        <axis>0</axis>
+        <trace_type>3</trace_type>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+        <line_width>3</line_width>
+        <point_type>2</point_type>
+        <point_size>10</point_size>
+      </trace>
+      <trace>
+        <name>Demo</name>
+        <x_pv></x_pv>
+        <y_pv>sim://sinewave(2, 6, 10, 0.2, 100, 120)</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="0" green="255" blue="150">
+          </color>
+        </color>
+        <line_width>1</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+      </trace>
+    </traces>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>Error Bars</text>
+    <x>591</x>
+    <y>441</y>
+    <width>221</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>The data for a trace typically consists of two PVs:
+
+X PV: A waveform that provides the horizontal coordinates.
+Y PV: A waveform that provides the vertical coordinates, i.e. values.
+Both waveforms must have the same length.
+
+
+If only a Y PV is provided, the array index 0 .. (size of(Y) -1) is
+used for the horizontal coordinate.
+
+
+To display error bars, three PVs need to be provided:
+
+X PV: A waveform that provides the horizontal coordinates.
+Y PV: A waveform that provides the vertical coordinates, i.e. values.
+Error PV: Absolute error for each of the Y values.
+All waveforms must have the same length.
+</text>
+    <x>591</x>
+    <y>471</y>
+    <width>511</width>
+    <height>300</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>In this example, the Y PV triggers a script
+which computes the error values into a local PV.
+That local PV is then used as the error bar waveform.</text>
+    <x>591</x>
+    <y>771</y>
+    <width>429</width>
+    <height>69</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <text>This plot auto-scales the "Y" axis.
+Manual zoom disables auto-scale.
+Push button to re-enable.</text>
+    <x>591</x>
+    <y>31</y>
+    <width>379</width>
+    <height>50</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is this button.
+# Fetch plot widget based on its name
+plot = widget.getDisplayModel().runtimeChildren().getChildByName("RightPlot")
+
+# The widget's "autoscale" option is still 'true',
+# not updated from the plot as user zooms in.
+# Force update by changing falue to false, then true again.
+plot.setPropertyValue("y_axes[0].autoscale", False)
+plot.setPropertyValue("y_axes[0].autoscale", True)
+]]></text>
+        </script>
+        <description>Autoscale</description>
+      </action>
+    </actions>
+    <x>1000</x>
+    <y>31</y>
+    <width>102</width>
+    <height>29</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="xyplot" version="2.0.0">
+    <name>X/Y Plot</name>
+    <y>900</y>
+    <x_axis>
+      <title>X</title>
+      <autoscale>false</autoscale>
+      <minimum>-2.0</minimum>
+      <maximum>22.0</maximum>
+      <show_grid>false</show_grid>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </x_axis>
+    <y_axes>
+      <y_axis>
+        <title>Y</title>
+        <autoscale>false</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>-10.0</minimum>
+        <maximum>10.0</maximum>
+        <show_grid>false</show_grid>
+        <title_font>
+          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          </font>
+        </title_font>
+        <scale_font>
+          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          </font>
+        </scale_font>
+        <visible>true</visible>
+      </y_axis>
+    </y_axes>
+    <traces>
+      <trace>
+        <name>Histogram</name>
+        <x_pv></x_pv>
+        <y_pv>sim://sinewave(1, 16, 20, 0.2, -10, 10)</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>5</trace_type>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+        <line_width>0</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+      </trace>
+      <trace>
+        <name>Bars</name>
+        <x_pv></x_pv>
+        <y_pv>sim://sinewave(1, 16, 20, 0.2, 10, -10)</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>5</trace_type>
+        <color>
+          <color red="0" green="255" blue="0">
+          </color>
+        </color>
+        <line_width>5</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+      </trace>
+    </traces>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_28</name>
+    <text>The "Bars" type of trace displays a bar for each element of a waveform, up/down from zero.
+
+The width of the bar is controlled by the "Line Width" of the trace.
+
+For a "Line Width" of zero, the bar graph turns into a histogram-type display with adjacent bars.</text>
+    <x>410</x>
+    <y>930</y>
+    <width>260</width>
+    <height>300</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_29</name>
+    <text>Bar Graph</text>
+    <x>410</x>
+    <y>900</y>
+    <width>221</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://pos(50)</pv_name>
+    <x>410</x>
+    <y>441</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_30</name>
+    <text>Marker:</text>
+    <x>300</x>
+    <y>441</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_31</name>
+    <class>COMMENT</class>
+    <text>(Can also move marker with mouse)</text>
+    <x>300</x>
+    <y>461</y>
+    <width>250</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+</display>

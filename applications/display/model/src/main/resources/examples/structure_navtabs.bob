@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Navigation Tabs</name>
+  <width>600</width>
+  <height>650</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Navigation Tabs</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>181</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>A container with tabs that selects amongst several embedded displays.</text>
+    <y>31</y>
+    <width>550</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <class>COMMENT</class>
+    <text>Similar to Tabs where each tab contains an Embedded Display,
+this allows users to switch between different sub-displays.
+
+In contrast to Tabs with one Embedded Display per tab,
+the Navigation Tabs maintain exactly one embedded display.
+As you select a different tab, the embedded display is replaced,
+reducing resources compared to having one embedded display
+inside each tab.
+
+Tabs can be switched programmatically by updating the
+"active_tab" property of the widget.
+In this example, the last tab allows setting a local PV
+to the desired tab index (0, 1, ..).
+A script attached to the navigation widget updates its "active_tab"
+property from that local PV.</text>
+    <y>390</y>
+    <width>510</width>
+    <height>260</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="navtabs" version="2.0.0">
+    <name>Navigation Tabs</name>
+    <tabs>
+      <tab>
+        <name>Motor 1</name>
+        <file>embedded/motor.bob</file>
+        <macros>
+          <M>Mot1</M>
+        </macros>
+        <group_name></group_name>
+      </tab>
+      <tab>
+        <name>Motor 2</name>
+        <file>embedded/motor.bob</file>
+        <macros>
+          <M>Mot2</M>
+        </macros>
+        <group_name></group_name>
+      </tab>
+      <tab>
+        <name></name>
+        <file></file>
+        <macros>
+        </macros>
+        <group_name></group_name>
+      </tab>
+      <tab>
+        <name>Colors</name>
+        <file>embedded/colors.bob</file>
+        <macros>
+        </macros>
+        <group_name></group_name>
+      </tab>
+      <tab>
+        <name>Select Tab</name>
+        <file>embedded/sel_active.bob</file>
+        <macros>
+        </macros>
+        <group_name></group_name>
+      </tab>
+    </tabs>
+    <y>60</y>
+    <width>590</width>
+    <height>310</height>
+    <tab_width>150</tab_width>
+    <tab_height>35</tab_height>
+    <tab_spacing>10</tab_spacing>
+    <active_tab>1</active_tab>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Select active tab based on PV
+#
+# Embedded displays contain buttons to update
+# loc://active_tab(0) with values 0, 1, 2, ... to select
+# the active tab.
+#
+# pvs[0]: loc://active_tab(0)
+from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("active_tab", PVUtil.getInt(pvs[0]))
+]]></text>
+        <pv_name>loc://active_tab(0)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+</display>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Action Button Example</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Action Button Widgets</text>
+    <width>301</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Action Buttons with one assigned action trigger when pressed</text>
+    <y>31</y>
+    <width>641</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Action Buttons with more than one action provide a dropdown to choose an action</text>
+    <y>290</y>
+    <width>530</width>
+    <height>50</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>GotoA</name>
+    <actions>
+      <action type="open_display">
+        <file>screen_A.bob</file>
+        <target>replace</target>
+        <description>Go to screen A</description>
+      </action>
+    </actions>
+    <x>20</x>
+    <y>70</y>
+    <width>160</width>
+    <height>50</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>DoNothing</name>
+    <text>Does Nothing</text>
+    <x>220</x>
+    <y>70</y>
+    <width>160</width>
+    <height>50</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>OpenAll</name>
+    <actions>
+      <action type="open_display">
+        <file>screen_A.bob</file>
+        <target>replace</target>
+        <description>Open A</description>
+      </action>
+      <action type="open_display">
+        <file>screen_B.bob</file>
+        <target>replace</target>
+        <description>Open B</description>
+      </action>
+      <action type="open_display">
+        <file>screen_C.bob</file>
+        <target>tab</target>
+        <description>Open C (New tab)</description>
+      </action>
+      <action type="open_display">
+        <file>screen_C.bob</file>
+        <target>window</target>
+        <description>Open C (New Window)</description>
+      </action>
+      <action type="open_display">
+        <file>screen_C.bob</file>
+        <target>standalone</target>
+        <description>Open C (Standalone)</description>
+      </action>
+    </actions>
+    <text>Open Screens</text>
+    <x>40</x>
+    <y>350</y>
+    <width>160</width>
+    <height>50</height>
+    <foreground_color>
+      <color red="255" green="255" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color red="128" green="77" blue="128">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Actions can also be invoked from the context menu of the button.
+
+Actions can in fact be assigned to any widget, and the context menu
+then allows users to invoke them.
+
+The preferred way to offer actions, however, is via action buttons
+that the user can simply "click", while actions assigned to other
+widgets for invokation via the context menu are more suitable
+for "hidden" actions.</text>
+    <y>500</y>
+    <width>500</width>
+    <height>169</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Actions that open a display will by default replace the existing display.
+Users can then navigate 'back' to the original display as well as 'forward' again.
+
+By holding the 'Control' key, the display will open in a new tab.
+By holding the 'Shift' key, the display will open in a new workspace window.
+By holding both 'Control' and 'Shift' key, the display will open in a standalone window.
+(On Mac OS X, use 'Command' instead of 'Control')
+</text>
+    <y>150</y>
+    <width>590</width>
+    <height>120</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>This button includes actions that will default to
+using a tab, workbench window or standalone window.
+Ideally, that decision is however left to the user
+via the 'Control' ('Command' on Mac) and 'Shift' modifiers.</text>
+    <y>410</y>
+    <width>500</width>
+    <height>70</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>GotoA_2</name>
+    <actions>
+      <action type="open_display">
+        <file>screen_A.bob</file>
+        <target>replace</target>
+        <description>Go to screen A</description>
+      </action>
+    </actions>
+    <x>510</x>
+    <y>350</y>
+    <width>67</width>
+    <height>139</height>
+    <rotation_step>3</rotation_step>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>The button's text can be rotated. Send a postcard to the author if you find this useful.</text>
+    <x>590</x>
+    <y>350</y>
+    <width>180</width>
+    <height>90</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Gimmicks</text>
+    <x>510</x>
+    <y>290</y>
+    <width>283</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+</display>

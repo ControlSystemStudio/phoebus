@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Text Update</name>
+  <height>800</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Text Update Widget</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>241</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays the value of a PV.</text>
+    <y>41</y>
+    <width>191</width>
+    <height>30</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>sim://sine</pv_name>
+    <x>191</x>
+    <y>91</y>
+    <width>170</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>sim://intermittent</pv_name>
+    <x>191</x>
+    <y>121</y>
+    <width>170</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>sim://strings</pv_name>
+    <x>201</x>
+    <y>191</y>
+    <width>310</width>
+    <height>80</height>
+    <font>
+      <font name="Oddball" family="PakTypeNaqsh" style="REGULAR" size="40.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color red="255" green="255" blue="128">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Basic Number:</text>
+    <y>91</y>
+    <width>181</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Disconnecting channel:</text>
+    <y>121</y>
+    <width>171</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Can be configured to be ugly:</text>
+    <y>221</y>
+    <width>201</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Basic Text:</text>
+    <y>151</y>
+    <width>171</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>sim://strings</pv_name>
+    <x>191</x>
+    <y>151</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Default:</text>
+    <y>351</y>
+    <width>111</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <pv_name>sim://sine</pv_name>
+    <x>191</x>
+    <y>351</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Formatting options:</text>
+    <y>321</y>
+    <width>201</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <pv_name>sim://sine</pv_name>
+    <x>191</x>
+    <y>381</y>
+    <width>170</width>
+    <show_units>false</show_units>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Don't show units:</text>
+    <y>381</y>
+    <width>161</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_6</name>
+    <pv_name>sim://sine</pv_name>
+    <x>191</x>
+    <y>411</y>
+    <width>170</width>
+    <format>1</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Decimal w/ 2 digits:</text>
+    <y>411</y>
+    <width>191</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_7</name>
+    <pv_name>sim://sine</pv_name>
+    <x>191</x>
+    <y>441</y>
+    <width>170</width>
+    <format>2</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Exponential Notation:</text>
+    <y>441</y>
+    <width>191</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_9</name>
+    <pv_name>sim://sine</pv_name>
+    <x>191</x>
+    <y>471</y>
+    <width>170</width>
+    <format>3</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Engineering Notation:</text>
+    <y>471</y>
+    <width>191</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Compare Number Options:</text>
+    <y>520</y>
+    <width>330</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Hex:</text>
+    <y>610</y>
+    <width>111</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_10</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>191</x>
+    <y>610</y>
+    <width>109</width>
+    <format>4</format>
+    <precision>0</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>610</y>
+    <width>109</width>
+    <format>4</format>
+    <precision>0</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Sexagesimal:</text>
+    <y>640</y>
+    <width>111</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_11</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>191</x>
+    <y>640</y>
+    <width>109</width>
+    <format>7</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>640</y>
+    <width>109</width>
+    <format>7</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Sexagesimal (HMS):</text>
+    <y>670</y>
+    <width>161</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_12</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>191</x>
+    <y>670</y>
+    <width>109</width>
+    <format>8</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>670</y>
+    <width>109</width>
+    <format>8</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Sexagesimal (DMS):</text>
+    <y>700</y>
+    <width>161</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_13</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>191</x>
+    <y>700</y>
+    <width>109</width>
+    <format>9</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>700</y>
+    <width>109</width>
+    <format>9</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Sexagesimal represents a number 3.5 as
+hours (or degrees), minutes and seconds,
+e.g. 3:30:00.
+
+The HMS specialization treats the number as radians
+and maps 2 pi to 24 hours,
+while the DMS specialization maps 2 pi to 360 degrees.
+(Try a value of 3.14 or 6.28 to see the effect)</text>
+    <x>450</x>
+    <y>580</y>
+    <width>350</width>
+    <height>160</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>Decimal:</text>
+    <y>550</y>
+    <width>111</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_14</name>
+    <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
+    <x>191</x>
+    <y>770</y>
+    <width>109</width>
+    <format>1</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_4</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>550</y>
+    <width>109</width>
+    <format>1</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <text>Engineering:</text>
+    <y>580</y>
+    <width>111</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_17</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>191</x>
+    <y>580</y>
+    <width>109</width>
+    <format>3</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_5</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>580</y>
+    <width>109</width>
+    <format>3</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_8</name>
+    <pv_name>sim://sine</pv_name>
+    <x>460</x>
+    <y>121</y>
+    <width>160</width>
+    <horizontal_alignment>1</horizontal_alignment>
+    <rotation_step>2</rotation_step>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_18</name>
+    <pv_name>sim://sine</pv_name>
+    <x>636</x>
+    <y>91</y>
+    <width>40</width>
+    <height>80</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <rotation_step>3</rotation_step>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <text>The widget can be rotated:</text>
+    <x>450</x>
+    <y>91</y>
+    <width>186</width>
+    <height>28</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>Interactive Behavior:</text>
+    <y>740</y>
+    <width>330</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_15</name>
+    <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
+    <x>191</x>
+    <y>800</y>
+    <width>69</width>
+    <height>60</height>
+    <format>1</format>
+    <precision>4</precision>
+    <interactive>true</interactive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>Not interactive:</text>
+    <y>770</y>
+    <width>111</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>Interactive:</text>
+    <y>800</y>
+    <width>111</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <text>By default, Text Update widgets simply display the value of a PV.
+They allow no interaction.
+
+When you set the  'interactive' property to true, the widget allows selecting the current value so users and 'copy' it.
+In addition, a scrollbar appears when the text exceeds the widget area.
+</text>
+    <x>450</x>
+    <y>770</y>
+    <width>350</width>
+    <height>160</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+</display>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <width>900</width>
+  <height>800</height>
+  <widget type="image" version="2.0.0">
+    <name>Image</name>
+    <pv_name>Test:TestImage</pv_name>
+    <width>890</width>
+    <height>660</height>
+    <color_map>
+      <name>JET</name>
+    </color_map>
+    <x_axis>
+      <visible>true</visible>
+      <title>X</title>
+      <minimum>0.0</minimum>
+      <maximum>100.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </x_axis>
+    <y_axis>
+      <visible>true</visible>
+      <title>Y</title>
+      <minimum>100.0</minimum>
+      <maximum>0.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </y_axis>
+    <tooltip></tooltip>
+    <cursor_info_pv>loc://cursor&lt;VTable&gt;</cursor_info_pv>
+    <rois>
+    </rois>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <pv_name>loc://cursor&lt;VTable&gt;</pv_name>
+    <x>170</x>
+    <y>670</y>
+    <width>510</width>
+    <height>130</height>
+    <columns>
+      <column>
+        <name>X</name>
+        <width>100</width>
+        <editable>false</editable>
+        <options>
+        </options>
+      </column>
+      <column>
+        <name>Y</name>
+        <width>100</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+      <column>
+        <name>Value</name>
+        <width>100</width>
+        <editable>true</editable>
+        <options>
+        </options>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+</display>

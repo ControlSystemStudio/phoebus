@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <scripts>
+    <script file="life_ui.py">
+      <pv_name>loc://init$(DID)(1)</pv_name>
+      <pv_name trigger="false">loc://run(1)</pv_name>
+    </script>
+  </scripts>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Conway's Game of Life</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button</name>
+    <pv_name>loc://run(1)</pv_name>
+    <y>31</y>
+    <off_label>Pause</off_label>
+    <on_label>Run</on_label>
+    <tooltip>Run game, or Pause?</tooltip>
+  </widget>
+</display>

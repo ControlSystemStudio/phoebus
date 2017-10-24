@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <x>-1</x>
+  <y>-1</y>
+  <width>250</width>
+  <height>180</height>
+  <widget type="group" version="2.0.0">
+    <name>$(M)</name>
+    <width>300</width>
+    <height>200</height>
+    <widget type="label" version="2.0.0">
+      <name>Label</name>
+      <x>1</x>
+      <y>41</y>
+      <width>180</width>
+      <text>(Macro 'M' is set to $(M))</text>
+      <foreground_color>
+        <color red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color>
+        <color red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <font>
+        <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+        </font>
+      </font>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_1</name>
+      <x>1</x>
+      <y>1</y>
+      <width>161</width>
+      <height>26</height>
+      <text>Motor $(M)</text>
+      <foreground_color>
+        <color red="0" green="0" blue="0">
+        </color>
+      </foreground_color>
+      <background_color>
+        <color red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </font>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_2</name>
+      <x>1</x>
+      <y>81</y>
+      <text>Position:</text>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_3</name>
+      <x>1</x>
+      <y>124</y>
+      <text>Readback:</text>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update</name>
+      <x>135</x>
+      <y>124</y>
+      <pv_name>loc://mot${M}(0)</pv_name>
+    </widget>
+    <widget type="textentry" version="2.0.0">
+      <name>Text Entry</name>
+      <x>135</x>
+      <y>81</y>
+      <pv_name>loc://mot${M}(0)</pv_name>
+    </widget>
+  </widget>
+</display>

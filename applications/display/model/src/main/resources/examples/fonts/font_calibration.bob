@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Font Calibration</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>210</width>
+    <height>31</height>
+    <text>$(DNAME)</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <x>50</x>
+    <y>230</y>
+    <width>460</width>
+    <height>60</height>
+    <text>Liberation Mono 40</text>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="40.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <y>31</y>
+    <width>460</width>
+    <height>169</height>
+    <text>Font sizes are in 'pixels', roughly describing the height of a font.
+The internal handling of fonts, however, is always in 'points'.
+In principle, a point represents 1/72 of an inch on the screen,
+i.e. font sizes change with the display resolution.
+
+The display builder self-calibrates on startup with an internal
+calibration text of a certain expected size, so the following text
+should nearly match the surrounding rectangles as long as
+the "Liberation" fonts are available:</text>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle</name>
+    <x>44</x>
+    <y>242</y>
+    <width>10</width>
+    <height>27</height>
+    <line_width>0</line_width>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_1</name>
+    <x>54</x>
+    <y>269</y>
+    <width>427</width>
+    <height>10</height>
+    <line_width>0</line_width>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_2</name>
+    <x>54</x>
+    <y>230</y>
+    <width>427</width>
+    <height>10</height>
+    <line_width>0</line_width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <x>60</x>
+    <y>377</y>
+    <width>281</width>
+    <height>31</height>
+    <text>Liberation Mono 22</text>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_3</name>
+    <x>52</x>
+    <y>384</y>
+    <width>10</width>
+    <height>14</height>
+    <line_width>0</line_width>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_4</name>
+    <x>62</x>
+    <y>399</y>
+    <width>234</width>
+    <height>10</height>
+    <line_width>0</line_width>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_5</name>
+    <x>62</x>
+    <y>373</y>
+    <width>234</width>
+    <height>10</height>
+    <line_width>0</line_width>
+  </widget>
+</display>

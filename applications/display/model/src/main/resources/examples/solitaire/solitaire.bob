@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Example</name>
+  <height>800</height>
+  <scripts>
+    <script file="solitaire.py">
+      <pv_name>loc://start(1)</pv_name>
+    </script>
+  </scripts>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>181</width>
+    <height>31</height>
+    <text>Solitaire</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>41</y>
+    <width>410</width>
+    <height>49</height>
+    <text>Script that solves and then displays the "Solitaire" puzzle.</text>
+    <vertical_alignment>0</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <x>450</x>
+    <y>41</y>
+    <width>410</width>
+    <height>199</height>
+    <text>● Demonstrates how script can modify the display:
+   Add new widgets, change their properties
+● Script executes on background thread while
+   user interface remains responsive
+
+
+At the same time a counterexample for scripts
+because essential functionality like a puzzle solver
+should be provided by IOC-type service and not
+be performed in user interface.
+</text>
+    <vertical_alignment>0</vertical_alignment>
+  </widget>
+</display>

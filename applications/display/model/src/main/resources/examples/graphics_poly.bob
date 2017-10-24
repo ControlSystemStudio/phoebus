@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Polygon,Line</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>211</width>
+    <height>31</height>
+    <text>Polygon, Polyline</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>251</y>
+    <width>191</width>
+    <height>30</height>
+    <text>APPEND Mode</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="polyline" version="2.0.0">
+    <name>Polyline_1</name>
+    <x>61</x>
+    <y>551</y>
+    <width>175</width>
+    <height>265</height>
+    <points>
+      <point x="60.43098889476467" y="0.0">
+      </point>
+      <point x="0.0" y="164.37530843188975">
+      </point>
+      <point x="44.18032786885246" y="265.2931166510678">
+      </point>
+      <point x="128.52459016393442" y="263.8410618565473">
+      </point>
+      <point x="175.0" y="174.53969199353358">
+      </point>
+      <point x="171.55737704918033" y="97.58078788394454">
+      </point>
+      <point x="130.81967213114754" y="50.38900706202673">
+      </point>
+      <point x="78.0327868852459" y="46.03284267846508">
+      </point>
+      <point x="41.885245901639344" y="93.22462350038289">
+      </point>
+      <point x="25.81967213114754" y="151.30681528120482">
+      </point>
+      <point x="44.75409836065573" y="198.49859610312262">
+      </point>
+      <point x="79.18032786885246" y="227.53969199353358">
+      </point>
+      <point x="118.1967213114754" y="223.18352760997195">
+      </point>
+      <point x="161.2295081967213" y="183.25202076065688">
+      </point>
+      <point x="165.81967213114754" y="134.6081851442185">
+      </point>
+      <point x="140.0" y="98.3068152812048">
+      </point>
+      <point x="86.63934426229508" y="74.34791117161576">
+      </point>
+      <point x="60.81967213114754" y="106.29311665106782">
+      </point>
+      <point x="51.63934426229508" y="155.66297966476645">
+      </point>
+      <point x="67.1311475409836" y="191.2383221305199">
+      </point>
+      <point x="119.91803278688523" y="194.86845911682124">
+      </point>
+      <point x="138.85245901639342" y="163.64928103462947">
+      </point>
+      <point x="133.11475409836066" y="131.7040755551774">
+      </point>
+      <point x="108.44262295081967" y="107.74517144558837">
+      </point>
+      <point x="80.327868852459" y="108.47119884284865">
+      </point>
+      <point x="71.72131147540983" y="141.86845911682124">
+      </point>
+      <point x="72.8688524590164" y="165.10133582915">
+      </point>
+      <point x="92.95081967213115" y="183.25202076065688">
+      </point>
+      <point x="109.01639344262294" y="179.6218837743555">
+      </point>
+      <point x="117.04918032786884" y="158.56708925380755">
+      </point>
+      <point x="114.75409836065573" y="136.06023993873904">
+      </point>
+      <point x="100.98360655737704" y="125.16982897983495">
+      </point>
+      <point x="87.21311475409836" y="127.34791117161576">
+      </point>
+      <point x="82.04918032786885" y="141.86845911682124">
+      </point>
+      <point x="84.34426229508196" y="156.38900706202674">
+      </point>
+      <point x="94.09836065573771" y="168.73147281545138">
+      </point>
+      <point x="105.0" y="171.63558240449248">
+      </point>
+      <point x="110.1639344262295" y="153.48489747298564">
+      </point>
+      <point x="109.59016393442623" y="142.59448651408152">
+      </point>
+      <point x="101.55737704918032" y="138.2383221305199">
+      </point>
+      <point x="96.39344262295081" y="143.3205139113418">
+      </point>
+      <point x="94.09836065573771" y="152.75887007572535">
+      </point>
+    </points>
+  </widget>
+  <widget type="polygon" version="2.0.0">
+    <name>Polygon</name>
+    <x>331</x>
+    <y>561</y>
+    <width>184</width>
+    <height>241</height>
+    <points>
+      <point x="5.0" y="66.0">
+      </point>
+      <point x="92.0" y="0.0">
+      </point>
+      <point x="163.0" y="13.0">
+      </point>
+      <point x="182.0" y="58.0">
+      </point>
+      <point x="184.0" y="163.0">
+      </point>
+      <point x="107.0" y="241.0">
+      </point>
+      <point x="0.0" y="229.0">
+      </point>
+      <point x="109.0" y="189.0">
+      </point>
+      <point x="119.0" y="128.0">
+      </point>
+      <point x="99.0" y="79.0">
+      </point>
+      <point x="58.0" y="80.0">
+      </point>
+    </points>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <y>41</y>
+    <width>481</width>
+    <height>220</height>
+    <text>The editor for polygon or polyline widget points has two modes,
+APPEND and EDIT mode.
+
+When creating a new Polygon or Polyline, you start out in APPEND mode.
+
+When later editing an existing Polygon or Polyline, you start out in EDIT mode.
+(Selecting a Polyline can be tricky because you need to click on the actual line.
+ The Outline view may be helpful to select the widget.)
+
+Pressing the 'Space' key toggles between EDIT and APPEND mode.
+Pressing 'Enter' or 'Escape' exits either mode.</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <y>381</y>
+    <width>191</width>
+    <height>30</height>
+    <text>EDIT Mode</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <y>281</y>
+    <width>391</width>
+    <height>120</height>
+    <text>In this mode each mouse click adds a new point
+to the end of the polygon or polyline.
+The 'Backspace' key deletes the last point.
+'Space' switches to EDIT mode.
+'Enter' or 'Escape' exits the point editor.</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <y>411</y>
+    <width>421</width>
+    <height>160</height>
+    <text>In this mode, a handle on each point allows moving the point.
+Clicking a handle with 'Control' pressed adds a new point
+next to the existing one.
+Clicking with 'Shift' deletes the point.
+
+Space key switches to APPEND mode.
+'Enter' or 'Escape' exits the point editor.
+</text>
+  </widget>
+  <widget type="polygon" version="2.0.0">
+    <name>Polygon_5</name>
+    <x>531</x>
+    <y>130</y>
+    <width>46</width>
+    <height>21</height>
+    <background_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </background_color>
+    <line_color>
+      <color red="128" green="0" blue="255">
+      </color>
+    </line_color>
+    <line_width>0</line_width>
+    <points>
+      <point x="15.0" y="0.0">
+      </point>
+      <point x="0.0" y="20.0">
+      </point>
+      <point x="45.0" y="20.0">
+      </point>
+      <point x="31.0" y="0.0">
+      </point>
+    </points>
+    <rules>
+      <rule name="OnOff Color Rule" prop_id="background_color" out_exp="false">
+        <exp bool_exp="pv0&gt;0">
+          <value>
+            <color red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0&lt;=0">
+          <value>
+            <color red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <pv_name>sim://ramp(0,1,1,1)</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_1</name>
+    <x>551</x>
+    <y>91</y>
+    <width>37</width>
+    <height>16</height>
+    <background_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </background_color>
+    <line_color>
+      <color red="128" green="0" blue="255">
+      </color>
+    </line_color>
+    <line_width>0</line_width>
+    <rules>
+      <rule name="OnOff Color Rule" prop_id="background_color" out_exp="false">
+        <exp bool_exp="pv0&gt;0">
+          <value>
+            <color red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0&lt;=0">
+          <value>
+            <color red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <pv_name>sim://ramp(0,1,1,1)</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="ellipse" version="2.0.0">
+    <name>Ellipse_1</name>
+    <x>531</x>
+    <y>91</y>
+    <width>46</width>
+    <height>48</height>
+    <background_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </background_color>
+    <line_color>
+      <color red="128" green="0" blue="255">
+      </color>
+    </line_color>
+    <line_width>0</line_width>
+    <rules>
+      <rule name="OnOff Color Rule" prop_id="background_color" out_exp="false">
+        <exp bool_exp="pv0&gt;0">
+          <value>
+            <color red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0&lt;=0">
+          <value>
+            <color red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <pv_name>sim://ramp(0,1,1,1)</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="polyline" version="2.0.0">
+    <name>Polyline_6</name>
+    <x>550</x>
+    <y>182</y>
+    <width>1</width>
+    <height>30</height>
+    <line_color>
+      <color name="Blue" red="0" green="0" blue="255">
+      </color>
+    </line_color>
+    <line_width>2</line_width>
+    <points>
+      <point x="1.0" y="30.0">
+      </point>
+      <point x="1.0" y="1.0">
+      </point>
+    </points>
+  </widget>
+  <widget type="arc" version="2.0.0">
+    <name>Arc_2</name>
+    <x>531</x>
+    <y>181</y>
+    <width>38</width>
+    <height>21</height>
+    <background_color>
+      <color name="Blue" red="0" green="0" blue="255">
+      </color>
+    </background_color>
+    <line_width>0</line_width>
+    <total_angle>180</total_angle>
+  </widget>
+  <widget type="polygon" version="2.0.0">
+    <name>Polygon_6</name>
+    <x>552</x>
+    <y>198</y>
+    <width>17</width>
+    <height>26</height>
+    <points>
+      <point x="0.0" y="13.0">
+      </point>
+      <point x="17.0" y="0.0">
+      </point>
+      <point x="16.0" y="26.0">
+      </point>
+    </points>
+  </widget>
+  <widget type="polygon" version="2.0.0">
+    <name>Polygon_7</name>
+    <x>535</x>
+    <y>200</y>
+    <width>14</width>
+    <height>24</height>
+    <points>
+      <point x="14.0" y="12.0">
+      </point>
+      <point x="0.0" y="0.0">
+      </point>
+      <point x="0.0" y="24.0">
+      </point>
+    </points>
+  </widget>
+</display>

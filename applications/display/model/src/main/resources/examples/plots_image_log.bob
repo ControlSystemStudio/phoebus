@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Image Widget</name>
+  <width>1100</width>
+  <height>1200</height>
+  <widget type="image" version="2.0.0">
+    <name>Image_2</name>
+    <pv_name>sim://sawtooth(10, 50, 10000, 2, 0, 10000)</pv_name>
+    <x>10</x>
+    <width>622</width>
+    <height>509</height>
+    <y_axis>
+      <visible>true</visible>
+      <title>Y</title>
+      <minimum>0.0</minimum>
+      <maximum>80.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </y_axis>
+    <rules>
+      <rule name="Log?" prop_id="log_scale" out_exp="false">
+        <exp bool_exp="pv0&gt;0">
+          <value>true</value>
+        </exp>
+        <pv_name>loc://use_log(0)</pv_name>
+      </rule>
+    </rules>
+    <autoscale>false</autoscale>
+    <maximum>10000.0</maximum>
+    <cursor_info_pv>loc://cursor_info</cursor_info_pv>
+    <x_pv>loc://cursor_x</x_pv>
+    <y_pv>loc://cursor_y</y_pv>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <pv_name>loc://cursor_info</pv_name>
+    <x>650</x>
+    <y>30</y>
+    <width>429</width>
+    <height>70</height>
+    <columns>
+      <column>
+        <name>X</name>
+        <width>80</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Y</name>
+        <width>80</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Value</name>
+        <width>100</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Xi</name>
+        <width>80</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Yi</name>
+        <width>80</width>
+        <editable>true</editable>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox</name>
+    <pv_name>loc://use_log(0)</pv_name>
+    <label>Log. color scale</label>
+    <x>650</x>
+    <width>220</width>
+  </widget>
+</display>

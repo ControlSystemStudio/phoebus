@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Properties</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>281</width>
+    <height>31</height>
+    <text>Properties</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>41</y>
+    <width>331</width>
+    <height>30</height>
+    <text>Common Properties</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <y>71</y>
+    <width>541</width>
+    <height>140</height>
+    <text>Every widget has properties "x", "y", "width", "height"
+that define its position within the display.
+
+Every widget also has a "name" that can be used to identify a widget.
+
+Many widgets have a "foreground_color" or "font".</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <y>211</y>
+    <width>331</width>
+    <height>30</height>
+    <text>Specific Properties</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <y>241</y>
+    <width>481</width>
+    <height>80</height>
+    <text>Many widget have some properties that are very
+specific to the functionality of just that widget,
+properties that are not found in other widgets.</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <y>321</y>
+    <width>331</width>
+    <height>30</height>
+    <text>Property Names</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <y>351</y>
+    <width>481</width>
+    <height>260</height>
+    <text>In the display editor, the "Properties" panel will
+show each property with a name like "Text" or "Foreground Color",
+and a user interface for setting the value of that property.
+For "Text", you can enter the text,
+and for "Foreground Color" you can select the color from a dialog.
+
+The property name shown in the editor can be localized,
+i.e. translated into different languages.
+Each property also has an internal name that is not localized
+because it uniquely identifies the property in the display file and also
+when accessed by Rules or Scripts.
+That internal name is typically based on the English property name,
+but all lowercase with underscores instead of spaces.
+The internal name for "Foreground Color" is "foreground_color". </text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <y>621</y>
+    <width>331</width>
+    <height>30</height>
+    <text>Array and Structure Properties</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <y>651</y>
+    <width>541</width>
+    <height>180</height>
+    <text>Some widgets contain properties that are arrays and/or structures.
+
+For example, the Multi-State LED has a "states" property that is an array.
+The elements of the array are in turn strucures with a "value" and "color".
+
+For access from Rules or Scripts these properties can be accessed via names
+   "states[0].value",
+   "states[1].color",
+and so on.</text>
+  </widget>
+</display>
