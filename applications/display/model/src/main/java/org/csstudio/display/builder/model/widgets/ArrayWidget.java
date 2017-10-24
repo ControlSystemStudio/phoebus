@@ -42,7 +42,7 @@ public class ArrayWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("array", WidgetCategory.STRUCTURE,
             Messages.ArrayWidget_Name,
-                    "platform:/plugin/org.csstudio.display.builder.model/icons/array.png",
+                    "/icons/array.png",
             Messages.ArrayWidget_Description,
             Arrays.asList("org.csstudio.opibuilder.widgets.array"))
     {

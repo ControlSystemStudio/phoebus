@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.model;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.csstudio.display.builder.model.spi.WidgetsService;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
@@ -50,8 +51,6 @@ import org.csstudio.display.builder.model.widgets.ThermometerWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
-
-import com.sun.tools.javac.util.List;
 
 /** SPI for the base widgets
  *  @author Kay Kasemir

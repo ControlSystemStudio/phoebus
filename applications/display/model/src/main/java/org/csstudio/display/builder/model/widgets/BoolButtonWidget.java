@@ -53,7 +53,7 @@ public class BoolButtonWidget extends WritablePVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("bool_button", WidgetCategory.CONTROL,
             "Boolean Button",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/bool_button.png",
+            "/icons/bool_button.png",
             "Button that can toggle one bit of a PV value between 1 and 0",
             Arrays.asList("org.csstudio.opibuilder.widgets.BoolButton",
                           "org.csstudio.opibuilder.widgets.ImageBoolButton",

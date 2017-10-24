@@ -33,7 +33,7 @@ public class ThermometerWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR = new WidgetDescriptor("thermometer",
             WidgetCategory.MONITOR,
             "Thermometer",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/Thermo.png",
+            "/icons/Thermo.png",
             "A thermometer",
             Arrays.asList("org.csstudio.opibuilder.widgets.thermometer"))
     {

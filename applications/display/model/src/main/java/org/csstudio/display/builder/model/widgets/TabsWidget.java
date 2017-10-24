@@ -61,7 +61,7 @@ public class TabsWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("tabs", WidgetCategory.STRUCTURE,
             Messages.TabsWidget_Name,
-            "platform:/plugin/org.csstudio.display.builder.model/icons/tabs.png",
+            "/icons/tabs.png",
             Messages.TabsWidget_Description,
             Arrays.asList("org.csstudio.opibuilder.widgets.tab"))
     {

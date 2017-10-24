@@ -57,7 +57,7 @@ public class TextUpdateWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("textupdate", WidgetCategory.MONITOR,
             "TextUpdate",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/textupdate.png",
+            "/icons/textupdate.png",
             "Displays current value of PV as text",
             Arrays.asList("org.csstudio.opibuilder.widgets.TextUpdate"))
     {

@@ -41,7 +41,7 @@ public class ClockWidget extends BaseClockWidget {
         "clock",
         WidgetCategory.MISC,
         "Clock",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/clock.png",
+        "/icons/clock.png",
         "Simple clock"
     ) {
         @Override

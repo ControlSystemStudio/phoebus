@@ -72,7 +72,7 @@ public class TableWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("table", WidgetCategory.MONITOR,
             "Table",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/table.png",
+            "/icons/table.png",
             "A table",
             Arrays.asList("org.csstudio.opibuilder.widgets.table"))
     {

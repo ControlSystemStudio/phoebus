@@ -12,8 +12,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +59,14 @@ public class WidgetFactoryUnitTest
                 return new CustomWidget();
             }
         });
+    }
+
+    /** @param descriptor WidgetDescriptor
+     *  @return Real widget or one of the test cases created in here
+     */
+    private static boolean isTestWidget(final WidgetDescriptor descriptor)
+    {
+        return List.of("base", "custom", "demo", "plot").contains(descriptor.getType());
     }
 
     /** Initialize factory for tests */
@@ -144,6 +154,30 @@ public class WidgetFactoryUnitTest
         assertThat(widget.getType(), equalTo("custom"));
     }
 
+    /** Check that each widget has an icon */
+    @Test
+    public void testIcons() throws Exception
+    {
+        for (WidgetDescriptor descriptor : WidgetFactory.getInstance().getWidgetDescriptions())
+        {
+            if (isTestWidget(descriptor))
+                continue;
+            System.out.println(descriptor);
+            System.out.println("  Icon URL : " + descriptor.getIconURL());
+            assertThat(descriptor.getIconURL(), not(nullValue()));
+
+            try
+            (
+                final InputStream stream = descriptor.getIconURL().openStream();
+            )
+            {
+                final int size = stream.available();
+                System.out.println("  Icon size: " + size + " bytes");
+                assertTrue(size > 0);
+            }
+        }
+    }
+
     /** List all widgets, sorted by number of properties */
     @Test
     public void widgetStats() throws Exception
@@ -152,8 +186,7 @@ public class WidgetFactoryUnitTest
         WidgetFactory.getInstance()
                      .getWidgetDescriptions()
                      .stream()
-                     .filter(desc -> ! ("base".equals(desc.getType()) ||
-                                        "custom".equals(desc.getType())))
+                     .filter(desc -> ! isTestWidget(desc))
                      .map(desc -> desc.createWidget())
                      .sorted((a, b) -> a.getProperties().size() - b.getProperties().size())
                      .forEach(widget ->

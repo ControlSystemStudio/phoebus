@@ -33,7 +33,7 @@ public class ArcWidget extends VisibleWidget {
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("arc", WidgetCategory.GRAPHIC,
             "Arc",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/arc.png",
+            "/icons/arc.png",
             "An arc",
             Arrays.asList("org.csstudio.opibuilder.widgets.arc"))
     {

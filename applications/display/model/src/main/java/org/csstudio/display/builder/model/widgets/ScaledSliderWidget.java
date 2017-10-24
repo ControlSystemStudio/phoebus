@@ -55,7 +55,7 @@ public class ScaledSliderWidget extends WritablePVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("scaledslider", WidgetCategory.CONTROL,
             "Scaled Slider",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/scaled_slider.png",
+            "/icons/scaled_slider.png",
             "A scaled slider that can read/write a numeric PV",
             // Can also represent "org.csstudio.opibuilder.widgets.knob",
             // but using KnobWidget for that

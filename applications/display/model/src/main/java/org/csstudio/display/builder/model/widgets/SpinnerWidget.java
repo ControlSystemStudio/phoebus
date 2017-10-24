@@ -44,7 +44,7 @@ public class SpinnerWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("spinner", WidgetCategory.CONTROL,
             "Spinner",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/Spinner.png",
+            "/icons/Spinner.png",
             "A spinner, with up/down arrows",
             Arrays.asList("org.csstudio.opibuilder.widgets.spinner"))
         {

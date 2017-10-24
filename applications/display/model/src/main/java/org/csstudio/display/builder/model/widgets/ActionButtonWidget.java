@@ -56,7 +56,7 @@ public class ActionButtonWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
             new WidgetDescriptor("action_button", WidgetCategory.CONTROL,
                     "Action Button",
-                    "platform:/plugin/org.csstudio.display.builder.model/icons/action_button.png",
+                    "/icons/action_button.png",
                     "Button that can open related displays or write PVs",
                     Arrays.asList("org.csstudio.opibuilder.widgets.ActionButton",
                                   "org.csstudio.opibuilder.widgets.MenuButton",

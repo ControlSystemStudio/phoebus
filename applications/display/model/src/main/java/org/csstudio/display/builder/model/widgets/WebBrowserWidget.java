@@ -31,7 +31,7 @@ public class WebBrowserWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("webbrowser", WidgetCategory.MISC,
             "Web Browser",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/web_browser.png",
+            "/icons/web_browser.png",
             "A simple embedded web browser",
             Arrays.asList("org.csstudio.opibuilder.widgets.webbrowser"))
     {

@@ -51,7 +51,7 @@ public class ComboWidget extends WritablePVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("combo", WidgetCategory.CONTROL,
             "Combo Box",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/combo.png",
+            "/icons/combo.png",
             "Writes one of a selection of options to a PV",
             Arrays.asList("org.csstudio.opibuilder.widgets.MenuButton",
                           "org.csstudio.opibuilder.widgets.combo"))

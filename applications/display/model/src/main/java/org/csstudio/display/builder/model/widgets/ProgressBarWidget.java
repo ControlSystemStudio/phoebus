@@ -40,7 +40,7 @@ public class ProgressBarWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("progressbar", WidgetCategory.MONITOR,
             "Progress Bar",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/progressbar.png",
+            "/icons/progressbar.png",
             "Bar graph widget that 'fills' relative to numeric value of a PV",
             Arrays.asList("org.csstudio.opibuilder.widgets.progressbar"))
     {

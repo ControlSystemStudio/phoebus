@@ -47,7 +47,7 @@ public class TextSymbolWidget extends PVWidget {
         "text-symbol",
         WidgetCategory.MONITOR,
         "Text Symbol",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/text-symbol.png",
+        "/icons/text-symbol.png",
         "A container of text symbols displayed depending of the value of a PV"
     ) {
         @Override

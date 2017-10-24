@@ -55,7 +55,7 @@ public class TextEntryWidget extends WritablePVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("textentry", WidgetCategory.CONTROL,
             "Text Entry",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/textentry.png",
+            "/icons/textentry.png",
             "Text field that writes entered values to PV",
             Arrays.asList("org.csstudio.opibuilder.widgets.TextInput",
                           "org.csstudio.opibuilder.widgets.NativeText"))

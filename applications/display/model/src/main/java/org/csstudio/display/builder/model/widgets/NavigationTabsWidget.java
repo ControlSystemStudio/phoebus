@@ -48,7 +48,7 @@ public class NavigationTabsWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("navtabs", WidgetCategory.STRUCTURE,
             "Navigation Tabs",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/navtabs.png",
+            "/icons/navtabs.png",
             "Tabs to select amongst several embedded displays")
     {
         @Override

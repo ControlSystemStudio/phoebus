@@ -44,13 +44,13 @@ import org.w3c.dom.Element;
  */
 public class SymbolWidget extends PVWidget {
 
-    public final static String DEFAULT_SYMBOL = "platform:/plugin/org.csstudio.display.builder.model/icons/default_symbol.png"; //$NON-NLS-1$
+    public final static String DEFAULT_SYMBOL = "/icons/default_symbol.png"; //$NON-NLS-1$
 
     public static final WidgetDescriptor WIDGET_DESCRIPTOR = new WidgetDescriptor(
         "symbol",
         WidgetCategory.MONITOR,
         "Symbol",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/symbol.png",
+        "/icons/symbol.png",
         "A container of symbols displayed depending of the value of a PV",
         Arrays.asList(
             "org.csstudio.opibuilder.widgets.ImageBoolIndicator",

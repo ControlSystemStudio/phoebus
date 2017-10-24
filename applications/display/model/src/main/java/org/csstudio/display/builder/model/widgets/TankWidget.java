@@ -47,7 +47,7 @@ public class TankWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("tank", WidgetCategory.MONITOR,
             "Tank",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/tank.png",
+            "/icons/tank.png",
             "Tank that 'fills' relative to numeric value of a PV",
             Arrays.asList("org.csstudio.opibuilder.widgets.tank"))
     {

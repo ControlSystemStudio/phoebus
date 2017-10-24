@@ -52,7 +52,7 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("embedded", WidgetCategory.STRUCTURE,
             "Embedded Display",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/embedded.png",
+            "/icons/embedded.png",
             "Widget that embeds another display",
             Arrays.asList("org.csstudio.opibuilder.widgets.linkingContainer"))
     {

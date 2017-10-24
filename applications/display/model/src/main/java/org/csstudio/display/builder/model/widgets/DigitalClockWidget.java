@@ -36,7 +36,7 @@ public class DigitalClockWidget extends BaseClockWidget {
         "digital_clock",
         WidgetCategory.MISC,
         "DigitalClock",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/digital-clock.png",
+        "/icons/digital-clock.png",
         "Digital clock"
     ) {
         @Override

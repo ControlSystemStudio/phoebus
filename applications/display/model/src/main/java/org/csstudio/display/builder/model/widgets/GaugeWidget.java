@@ -37,7 +37,7 @@ public class GaugeWidget extends BaseGaugeWidget {
         "gauge",
         WidgetCategory.MONITOR,
         "Gauge",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/gauge.png",
+        "/icons/gauge.png",
         "Gauge that can read a numeric PV"
     ) {
         @Override

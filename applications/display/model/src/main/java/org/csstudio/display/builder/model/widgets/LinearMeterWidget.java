@@ -37,7 +37,7 @@ public class LinearMeterWidget extends BaseMeterWidget {
         "linear-meter",
         WidgetCategory.MONITOR,
         "Linear Meter",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/linear-meter.png",
+        "/icons/linear-meter.png",
         "Linear meter that can read a numeric PV"
     ) {
         @Override

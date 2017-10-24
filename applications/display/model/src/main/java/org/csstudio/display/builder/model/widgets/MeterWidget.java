@@ -45,7 +45,7 @@ public class MeterWidget extends BaseMeterWidget {
         "meter",
         WidgetCategory.MONITOR,
         "Meter",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/meter.png",
+        "/icons/meter.png",
         "Meter that can read a numeric PV",
         Arrays.asList(
             "org.csstudio.opibuilder.widgets.gauge",

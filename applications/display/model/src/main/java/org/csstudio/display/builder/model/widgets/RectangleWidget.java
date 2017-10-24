@@ -35,7 +35,7 @@ public class RectangleWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("rectangle", WidgetCategory.GRAPHIC,
             "Rectangle",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/rectangle.png",
+            "/icons/rectangle.png",
             "A rectangle",
             Arrays.asList("org.csstudio.opibuilder.widgets.Rectangle",
                           "org.csstudio.opibuilder.widgets.RoundedRectangle"))

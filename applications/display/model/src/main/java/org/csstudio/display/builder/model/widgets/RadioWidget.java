@@ -40,7 +40,7 @@ public class RadioWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
             new WidgetDescriptor("radio", WidgetCategory.CONTROL,
                     "Radio Button",
-                    "platform:/plugin/org.csstudio.display.builder.model/icons/radiobutton.png",
+                    "/icons/radiobutton.png",
                     "Selects one of multiple items using radio buttons",
                     Arrays.asList("org.csstudio.opibuilder.widgets.radioBox",
                                   "org.csstudio.opibuilder.widgets.choiceButton"))

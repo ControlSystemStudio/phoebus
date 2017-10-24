@@ -42,7 +42,7 @@ public class ScrollBarWidget extends WritablePVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("scrollbar", WidgetCategory.CONTROL,
             "Scrollbar",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/scrollbar.png",
+            "/icons/scrollbar.png",
             "A scrollbar that can read/write a numeric PV",
             Arrays.asList("org.csstudio.opibuilder.widgets.scrollbar"))
     {

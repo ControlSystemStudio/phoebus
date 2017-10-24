@@ -36,7 +36,7 @@ public class CheckBoxWidget extends WritablePVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("checkbox", WidgetCategory.CONTROL,
             "Check Box",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/checkbox.png",
+            "/icons/checkbox.png",
             "Read/write a bit in a PV",
             Arrays.asList("org.csstudio.opibuilder.widgets.checkbox") )
     {

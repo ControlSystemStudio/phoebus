@@ -49,7 +49,7 @@ public class PolylineWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("polyline", WidgetCategory.GRAPHIC,
             "Polyline",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/polyline.png",
+            "/icons/polyline.png",
             "Line with two or more points",
             Arrays.asList("org.csstudio.opibuilder.widgets.polyline"))
     {

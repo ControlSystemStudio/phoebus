@@ -44,7 +44,7 @@ public class LEDWidget extends BaseLEDWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("led", WidgetCategory.MONITOR,
             "LED",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/led.png",
+            "/icons/led.png",
             "LED that represents on/off",
             Arrays.asList("org.csstudio.opibuilder.widgets.LED"))
     {

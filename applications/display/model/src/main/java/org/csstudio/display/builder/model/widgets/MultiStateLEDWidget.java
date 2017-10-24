@@ -44,7 +44,7 @@ public class MultiStateLEDWidget extends BaseLEDWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("multi_state_led", WidgetCategory.MONITOR,
             "LED (Multi State)",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/led-multi.png",
+            "/icons/led-multi.png",
             "LED that represents multiple states",
             Arrays.asList("org.csstudio.opibuilder.widgets.LED"))
     {

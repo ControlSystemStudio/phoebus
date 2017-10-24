@@ -49,7 +49,7 @@ public class PersistenceUnitTest
 {
     private String getExampleFile() throws Exception
     {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("../persist_example.xml")));
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("persist_example.xml")));
         final StringBuilder buf = new StringBuilder();
         String line;
         while ( (line = reader.readLine()) != null)

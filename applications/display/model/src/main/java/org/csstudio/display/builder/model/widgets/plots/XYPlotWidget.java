@@ -69,7 +69,7 @@ public class XYPlotWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("xyplot", WidgetCategory.PLOT,
             Messages.XYPlot_Name,
-            "platform:/plugin/org.csstudio.display.builder.model/icons/xyplot.png",
+            "/icons/xyplot.png",
             Messages.XYPlot_Description,
             Arrays.asList("org.csstudio.opibuilder.widgets.xyGraph"))
     {

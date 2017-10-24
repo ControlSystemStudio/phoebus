@@ -61,7 +61,7 @@ public class ImageWidget extends PVWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
             new WidgetDescriptor("image", WidgetCategory.PLOT,
             "Image",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/image.png",
+            "/icons/image.png",
             "Display image",
             Arrays.asList("org.csstudio.opibuilder.widgets.intensityGraph"))
     {

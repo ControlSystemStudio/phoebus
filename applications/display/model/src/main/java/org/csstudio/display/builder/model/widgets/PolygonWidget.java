@@ -40,7 +40,7 @@ public class PolygonWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("polygon", WidgetCategory.GRAPHIC,
             "Polygon",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/polygon.png",
+            "/icons/polygon.png",
             "Area defined by points",
             Arrays.asList("org.csstudio.opibuilder.widgets.polygon"))
     {

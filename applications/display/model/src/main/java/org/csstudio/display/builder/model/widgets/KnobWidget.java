@@ -55,7 +55,7 @@ public class KnobWidget extends WritablePVWidget {
         "knob",
         WidgetCategory.CONTROL,
         "Knob",
-        "platform:/plugin/org.csstudio.display.builder.model/icons/knob.png",
+        "/icons/knob.png",
         "Knob controller that can read/write a numeric PV",
         Arrays.asList(
             "org.csstudio.opibuilder.widgets.knob"

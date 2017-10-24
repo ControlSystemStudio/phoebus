@@ -42,7 +42,7 @@ public class ByteMonitorWidget extends PVWidget
 	public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("byte_monitor", WidgetCategory.MONITOR,
             "Byte Monitor",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/byte_monitor.png",
+            "/icons/byte_monitor.png",
             "Displays the bits in an Integer or Long Integer value as a set of LEDs",
             Arrays.asList("org.csstudio.opibuilder.widgets.bytemonitor"))
     {

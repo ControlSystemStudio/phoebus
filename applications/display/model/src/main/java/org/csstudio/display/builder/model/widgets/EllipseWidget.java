@@ -31,7 +31,7 @@ public class EllipseWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("ellipse", WidgetCategory.GRAPHIC,
             "Ellipse",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/ellipse.png",
+            "/icons/ellipse.png",
             "An ellipse",
             Arrays.asList("org.csstudio.opibuilder.widgets.Ellipse"))
     {
