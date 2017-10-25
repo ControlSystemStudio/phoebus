@@ -39,6 +39,7 @@ public class OpenDisplayActionInfo extends ActionInfo
          *  Support for this mode can be enabled
          *  via a preference setting
          */
+        @Deprecated
         STANDALONE(Messages.Target_Standalone);
 
         private final String name;

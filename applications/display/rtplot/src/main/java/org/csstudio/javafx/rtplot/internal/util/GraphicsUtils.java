@@ -12,11 +12,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 
-import com.sun.javafx.scene.control.skin.Utils;
-import com.sun.javafx.tk.Toolkit;
-
 import javafx.geometry.Rectangle2D;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
@@ -24,7 +20,7 @@ import javafx.scene.text.FontWeight;
 /** Utility methods for drawing graphics
  *  @author Kay Kasemir
  */
-@SuppressWarnings({ "nls", "restriction" })
+@SuppressWarnings("nls")
 public class GraphicsUtils
 {
     /** Convert color
@@ -86,41 +82,6 @@ public class GraphicsUtils
     public static Rectangle2D convert(final Rectangle rect)
     {
         return new Rectangle2D(rect.x, rect.y, rect.width, rect.height);
-    }
-
-    /** Measure text
-     *  @param gc JFX Graphics context. Font must be set.
-     *  @param text Text to measure, may contain '\n' for multi-line text.
-     *  @return Rectangle where (x, y) is the offset from the top-left
-     *          corner of the text to its baseline as used for gc.drawString(),
-     *          and (width, height) are the overall bounding box.
-     */
-    public static Rectangle measureText(final GraphicsContext gc, final String text)
-    {
-        // This is not public API for FontMetrics, see
-        // https://bugs.openjdk.java.net/browse/JDK-8098301
-        // https://bugs.openjdk.java.net/browse/JDK-8090775
-        final com.sun.javafx.tk.FontMetrics metrics =
-                Toolkit.getToolkit().getFontLoader().getFontMetrics(gc.getFont());
-
-        // Check for multi-line text
-        int lines = 1;
-        int nl = 0;
-        while ( (nl = text.indexOf('\n', nl)) > 0)
-        {
-            ++nl;
-            ++lines;
-        }
-
-        Utils.computeTextWidth(gc.getFont(), text, 20000.0);
-        // TODO Re-implement
-        throw new IllegalStateException("Needs to be implemented");
-
-            // computeStringWidth(String) has been replaced with getCharWidth(char)
-//        return new Rectangle(0,
-//                             (int)(metrics.getLeading() + metrics.getAscent()),
-//                             (int)metrics.computeStringWidth(text),
-//                             lines * (int)metrics.getLineHeight());
     }
 
     /** Measure text

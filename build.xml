@@ -21,6 +21,7 @@
     <ant target="clean" dir="applications/pvtable"/>
     <ant target="clean" dir="applications/display/model"/>
     <ant target="clean" dir="applications/display/representation"/>
+    <ant target="clean" dir="applications/display/representation-javafx"/>
     <ant target="clean" dir="phoebus-product"/>
   </target>
 
@@ -48,6 +49,7 @@
     <ant dir="applications/pvtable"/>
     <ant dir="applications/display/model"/>
     <ant dir="applications/display/representation"/>
+    <ant dir="applications/display/representation-javafx"/>
   </target>
 
   <target name="product" depends="applications" description="Assemble product">

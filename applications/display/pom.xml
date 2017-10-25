@@ -5,6 +5,7 @@
   <modules>
     <module>model</module>
     <module>representation</module>
+    <module>representation-javafx</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
