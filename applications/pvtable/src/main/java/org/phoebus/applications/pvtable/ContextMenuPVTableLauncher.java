@@ -11,17 +11,22 @@ import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.spi.ContextMenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.spi.ContextMenuEntry;
+
+import javafx.scene.image.Image;
 
 /** Entry for context menues that starts PV Table for selected ProcessVariable
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "nls" })
 public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVariable>
 {
     private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
+
+    private static final Image icon = ContextMenuHelper.loadIcon(PVTableApplication.class, "/icons/pvtable.png");
 
     @Override
     public String getName()
@@ -30,9 +35,9 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     }
 
     @Override
-    public Object getIcon()
+    public Image getIcon()
     {
-        return null;
+        return icon;
     }
 
     @Override

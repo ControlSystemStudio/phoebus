@@ -1,4 +1,4 @@
-package org.phoebus.framework.workbench;
+package org.phoebus.ui.application;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,10 +7,9 @@ import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
-import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.ContextMenuEntry;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 @SuppressWarnings("rawtypes")
 public class ContextMenuService {
@@ -34,7 +33,7 @@ public class ContextMenuService {
 
     /**
      * Get the list of registered context menu providers
-     * 
+     *
      * @return
      */
     public List<ContextMenuEntry> listContextMenuEntries() {
@@ -42,7 +41,7 @@ public class ContextMenuService {
     }
 
     /**
-     * 
+     *
      * @param selectionType
      * @return
      */

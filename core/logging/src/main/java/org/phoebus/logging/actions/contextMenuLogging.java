@@ -6,9 +6,9 @@ import java.util.List;
 
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.spi.ContextMenuEntry;
 import org.phoebus.logging.LogEntry;
 import org.phoebus.logging.LogService;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
  * A headless context menu entry for creating log entries from adaptable selections.
@@ -41,11 +41,6 @@ public class contextMenuLogging implements ContextMenuEntry {
             });
         });
         LogService.getInstance().createLogEntry(adaptedSelections);
-        return null;
-    }
-
-    @Override
-    public Object getIcon() {
         return null;
     }
 

@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionChangeListener;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.framework.workbench.ContextMenuService;
+import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;

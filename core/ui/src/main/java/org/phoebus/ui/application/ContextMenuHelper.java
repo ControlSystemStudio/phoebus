@@ -9,16 +9,18 @@ package org.phoebus.ui.application;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.net.URL;
 import java.util.logging.Level;
 
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.ContextMenuEntry;
-import org.phoebus.framework.workbench.ContextMenuService;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -28,6 +30,29 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class ContextMenuHelper
 {
+    /** Load icon from class resource
+     *
+     *  <p>Supports alternate resolution icons:
+     *  Given "icon-name.png", it will
+     *  actually load "icon-name@2x.png" or "icon-name@3x.png",
+     *  if available,
+     *  on high resolution displays.
+     *
+     *  @param clazz Class used to load the resource
+     *  @param icon_path Path to icon resource
+     *  @return Icon {@link Image} or <code>null</code> if not found
+     */
+    public static Image loadIcon(final Class<?> clazz, final String icon_path)
+    {
+        final URL resource = clazz.getResource(icon_path);
+        if (resource == null)
+        {
+            logger.log(Level.WARNING, "Cannot open '" + icon_path + "' for " + clazz);
+            return null;
+        }
+        return new Image(resource.toExternalForm());
+    }
+
     /** Add entries suitable for the current selection
      *
      *  <p>Invoke inside 'setOnContextMenuRequested' handler,
@@ -54,6 +79,10 @@ public class ContextMenuHelper
         for (ContextMenuEntry<?> entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
         {
             final MenuItem item = new MenuItem(entry.getName());
+
+            final Image icon = entry.getIcon();
+            if (icon != null)
+                item.setGraphic(new ImageView(icon));
             item.setOnAction(e ->
             {
                 try
