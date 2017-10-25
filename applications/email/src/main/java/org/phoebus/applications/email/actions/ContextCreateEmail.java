@@ -5,9 +5,8 @@ import java.util.List;
 
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.spi.ContextMenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
  * A prototype action entry for starting the email application
@@ -27,11 +26,6 @@ public class ContextCreateEmail implements ContextMenuEntry {
     @Override
     public Object callWithSelection(Selection selection) {
         ApplicationService.findApplication(EmailApp.NAME).create();
-        return null;
-    }
-
-    @Override
-    public Object getIcon() {
         return null;
     }
 
