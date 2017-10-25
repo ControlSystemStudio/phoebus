@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import org.phoebus.ui.nls.NLS;
+import org.phoebus.framework.nls.NLS;
 
 /** Externalized Strings
  *  @author Kay Kasemir
