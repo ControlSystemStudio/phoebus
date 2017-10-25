@@ -43,6 +43,16 @@
       <artifactId>email</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>display-model</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>display-representation</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
     
     <!-- diirt -->    
     <dependency>

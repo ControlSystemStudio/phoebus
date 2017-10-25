@@ -4,6 +4,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>model</module>
+    <module>representation</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
