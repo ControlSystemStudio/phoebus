@@ -1,0 +1,48 @@
+/* Style sheet used by Java FX representations
+ */
+
+/** Temporarily assigned to nodes to have them stand out during development */
+.debug
+{
+    -fx-background-color: rgba(255, 100, 0, 0.2);
+}
+
+/** When widgets are disabled, they try to simply disable the Java FX node,
+ *  but that can as a side-effect remove access to the context menu,
+ *  or prevent copying the current value of a text field.
+ *
+ *  This style is then assigned as an alternative,
+ *  which results in a similar appearance.
+ */
+.not_enabled
+{
+    -fx-opacity: 0.4;
+}
+
+/** Tracker */
+.tracker
+{
+    -fx-stroke-width: 1;
+    -fx-fill: rgba(100, 100, 255, 0.05);
+    -fx-stroke: blue;
+    -fx-stroke-dash-array: 5.0, 5.0;
+  /*  -fx-effect: dropshadow(one-pass-box, black, 10, 0, 0, 0); */
+}
+
+.tracker_handle
+{
+    -fx-stroke-width: 1;
+    -fx-fill: rgba(0, 0, 255, 0.2);
+    -fx-stroke: blue;
+    -fx-arc-width: 3;
+    -fx-arc-height: 3;
+}
+
+.location_size
+{
+    -fx-font-size: 8.5px;
+    -fx-padding: 1 1 1 1;
+    -fx-text-fill: white;
+    -fx-background-radius: 15;
+    -fx-background-color: rgba(10, 10, 10, 0.66);
+}
