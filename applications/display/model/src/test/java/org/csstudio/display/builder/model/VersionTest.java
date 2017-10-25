@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
+
 
 /** JUnit test of Version
  *  @author Kay Kasemir
@@ -37,5 +40,28 @@ public class VersionTest
     {
         assertThat(Version.parse("2.0.1").compareTo(Version.parse("2.0.0")), equalTo(1));
         assertThat(Version.parse("2.0.1").compareTo(Version.parse("3.0.0")), equalTo(-1));
+    }
+
+    @Test
+    public void testError()
+    {
+        try
+        {
+            Version.parse("2");
+            fail("Didn't detect invalid version");
+        }
+        catch (IllegalArgumentException ex)
+        {
+            assertThat(ex.getMessage(), containsString("Invalid version string"));
+        }
+        try
+        {
+            Version.parse("2.1.2.3");
+            fail("Didn't detect invalid version");
+        }
+        catch (IllegalArgumentException ex)
+        {
+            assertThat(ex.getMessage(), containsString("Invalid version string"));
+        }
     }
 }
