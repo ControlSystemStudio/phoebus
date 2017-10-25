@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtree.ui;
 
-import org.phoebus.ui.nls.NLS;
+import org.phoebus.framework.nls.NLS;
 
 public class Messages extends NLS
 {

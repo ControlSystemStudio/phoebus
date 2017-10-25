@@ -5,19 +5,17 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.ui.nls;
-
-import static org.phoebus.ui.application.PhoebusApplication.logger;
+package org.phoebus.framework.nls;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Support for Internationalization
  *
@@ -35,13 +33,26 @@ import java.util.logging.Level;
  *  with `xx` determined by the {@link Locale} will be
  *  given preference over the generic `messages.properties` file.
  *
+ *  <p>Since the message files are Java property files,
+ *  they need to use ISO 8859-1 character encoding.
+ *  From the Javadoc for {@link Properties#load(InputStream)}:
+ *  "Characters not in Latin1, and certain special characters,
+ *  are represented in keys and elements using Unicode escapes
+ *  as defined in section 3.3 of The Java™ Language Specification"
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class NLS
 {
+    // Logger is unlikely to be called, so only create when needed
+    private static Logger getLogger()
+    {
+        return Logger.getLogger(NLS.class.getName());
+    }
+
     /** Initialize message fields
-     *  @param clazz Messages class to initalize
+     *  @param clazz Messages class to initialize
      */
     public static void initializeMessages(Class<?> clazz)
     {
@@ -50,9 +61,9 @@ public class NLS
         for (Field field : clazz.getFields())
         {
             if (field.getType() != String.class)
-                logger.log(Level.SEVERE, clazz.getName()+ " field '" + field.getName() + "' is not of type String");
+                getLogger().log(Level.SEVERE, clazz.getName()+ " field '" + field.getName() + "' is not of type String");
             else if ((field.getModifiers() & Modifier.STATIC) != Modifier.STATIC)
-                logger.log(Level.SEVERE, clazz.getName()+ " field '" + field.getName() + "' is not static");
+                getLogger().log(Level.SEVERE, clazz.getName()+ " field '" + field.getName() + "' is not static");
             else
                 fields.put(field.getName(), field);
         }
@@ -73,24 +84,18 @@ public class NLS
 
             // Read properties into fields
             if (msg_props == null)
-                logger.log(Level.SEVERE, "Cannot open '" + filename  + "' for " + clazz.getName());
+                getLogger().log(Level.SEVERE, "Cannot open '" + filename  + "' for " + clazz.getName());
             else
             {
-                final LineNumberReader messages = new LineNumberReader(new InputStreamReader(msg_props));
-                String line;
-                while ((line = messages.readLine()) != null)
+                final Properties props = new Properties();
+                props.load(msg_props);
+
+                for (final String name : props.stringPropertyNames())
                 {
-                    line = line.trim();
-                    if (line.isEmpty())
-                        continue;
-                    final int sep = line.indexOf('=');
-                    if (sep <= 0)
-                        throw new Exception("Missing '=' in line " + messages.getLineNumber());
-                    final String name = line.substring(0, sep).trim();
-                    final String value = line.substring(sep+1).trim();
+                    final String value = props.getProperty(name);
                     final Field field = fields.get(name);
                     if (field == null)
-                        logger.log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "'");
+                        getLogger().log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "'");
                     else
                     {
                         field.set(null, value);
@@ -102,14 +107,13 @@ public class NLS
             // Complain about missing values, set their fields to reflect the field name
             for (Field field : fields.values())
             {
-                logger.log(Level.SEVERE, clazz.getName() + " is missing value for '" + field.getName() + "'");
+                getLogger().log(Level.SEVERE, clazz.getName() + " is missing value for '" + field.getName() + "'");
                 field.set(null, "<" + field.getName() + ">");
             }
         }
         catch (Exception ex)
         {
-            logger.log(Level.SEVERE, "Error reading properties for " + clazz.getName(), ex);
+            getLogger().log(Level.SEVERE, "Error reading properties for " + clazz.getName(), ex);
         }
     }
-
 }
