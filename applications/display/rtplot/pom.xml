@@ -6,7 +6,7 @@
     <artifactId>display</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>display-representation-javafx</artifactId>
+  <artifactId>display-rtplot</artifactId>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -22,22 +22,17 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>framework</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>vtype</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>ui</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>display-rtplot</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>display-model</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>display-representation</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
