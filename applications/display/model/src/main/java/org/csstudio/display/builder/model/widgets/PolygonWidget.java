@@ -22,6 +22,7 @@ import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -70,8 +71,10 @@ public class PolygonWidget extends VisibleWidget
                 final int x = Integer.parseInt(p_xml.getAttribute("x"));
                 final int y = Integer.parseInt(p_xml.getAttribute("y"));
                 // Adjust to be relative to x0/y0
-                p_xml.setAttribute("x", Integer.toString(x - x0));
-                p_xml.setAttribute("y", Integer.toString(y - y0));
+                final int nx = x - x0;
+                final int ny = y - y0;
+                p_xml.setAttribute("x", Integer.toString(nx));
+                p_xml.setAttribute("y", Integer.toString(ny));
             }
         }
     }
@@ -87,7 +90,13 @@ public class PolygonWidget extends VisibleWidget
         @Override
         public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml) throws Exception
         {
-            adjustXMLPoints(widget_xml);
+            if (xml_version.getMajor() < 2)
+            {
+                adjustXMLPoints(widget_xml);
+                // In case a re-parse is triggered, prevent another XMLPoints adjustment
+                // by marking as current version
+                widget_xml.setAttribute(XMLTags.VERSION, version.toString());
+            }
             // Parse updated XML
             return super.configureFromXML(model_reader, widget, widget_xml);
         }

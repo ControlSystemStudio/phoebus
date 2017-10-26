@@ -28,6 +28,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.LineStyle;
@@ -113,17 +114,23 @@ public class PolylineWidget extends VisibleWidget
         @Override
         public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml) throws Exception
         {
-            PolygonWidget.adjustXMLPoints(widget_xml);
-            // Legacy used background color for the line
-            Element xml = XMLUtil.getChildElement(widget_xml, "background_color");
-            if (xml != null)
+            if (xml_version.getMajor() < 2)
             {
-                final Document doc = widget_xml.getOwnerDocument();
-                Element line = doc.createElement(propLineColor.getName());
-                final Element c = XMLUtil.getChildElement(xml, "color");
-                line.appendChild(c.cloneNode(true));
-                widget_xml.appendChild(line);
-                widget_xml.removeChild(xml);
+                PolygonWidget.adjustXMLPoints(widget_xml);
+                // Legacy used background color for the line
+                Element xml = XMLUtil.getChildElement(widget_xml, "background_color");
+                if (xml != null)
+                {
+                    final Document doc = widget_xml.getOwnerDocument();
+                    Element line = doc.createElement(propLineColor.getName());
+                    final Element c = XMLUtil.getChildElement(xml, "color");
+                    line.appendChild(c.cloneNode(true));
+                    widget_xml.appendChild(line);
+                    widget_xml.removeChild(xml);
+                }
+                // In case a re-parse is triggered, prevent another XMLPoints adjustment
+                // by marking as current version
+                widget_xml.setAttribute(XMLTags.VERSION, version.toString());
             }
 
             // Parse updated XML
