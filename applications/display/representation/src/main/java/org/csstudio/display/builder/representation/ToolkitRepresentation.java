@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,6 +22,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,9 +30,11 @@ import java.util.logging.Logger;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.csstudio.display.builder.representation.spi.WidgetRepresentationsService;
 
 /** Representation for a toolkit.
  *
@@ -56,7 +60,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     /** Logger suggested for all representation logging */
     public final static Logger logger = Logger.getLogger(ToolkitRepresentation.class.getName());
 
-    private static boolean initialized = false;
+    private final static AtomicBoolean initialized = new AtomicBoolean();
 
     /** Factories for representations based on widget type.
      *
@@ -100,14 +104,8 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     public ToolkitRepresentation(final boolean edit_mode)
     {
         this.edit_mode = edit_mode;
-        synchronized (ToolkitRepresentation.class)
-        {
-            if (! initialized)
-            {
-                initialize();
-                initialized = true;
-            }
-        }
+        if (! initialized.getAndSet(true))
+            initialize();
     }
 
     /** 'Edit' mode is used by the editor,
@@ -129,18 +127,28 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
         return edit_mode;
     }
 
-    /** Register available representations */
-    abstract protected void initialize();
-
-    /** Register the toolkit's representation of a model widget
+    /** Called once to initialize.
      *
-     *  @param widget_type {@link Widget} type ID
-     *  @param factory Factory for creating representation
+     *  <p>Registers available representations.
+     *
+     *  <p>Derived class may override to
+     *  add initialization steps, but must call
+     *  base implementation.
      */
-    protected void register(final String widget_type,
-                            final WidgetRepresentationFactory<TWP, TW> factory)
+    protected void initialize()
     {
-        factories.put(widget_type, factory);
+        // Load representations from service
+        for (WidgetRepresentationsService service : ServiceLoader.load(WidgetRepresentationsService.class))
+        {
+            final Map<WidgetDescriptor, WidgetRepresentationFactory<TWP, TW>> ss = service.getWidgetRepresentationFactories();
+            ss.forEach((desc, factory) ->
+            {
+                if (factories.putIfAbsent(desc.getType(), factory) != null)
+                    throw new Error("Representation for " + desc + " already defined");
+
+
+            });
+        }
     }
 
     /** Obtain the toolkit used to represent widgets

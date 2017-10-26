@@ -144,7 +144,6 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         final WebHistory history = webEngine.getHistory();
 
         //--toolbar controls
-        //TODO: remove button text when icons work
         HBox toolbar;
         final Button backButton = new Button();
         final Button foreButton = new Button();

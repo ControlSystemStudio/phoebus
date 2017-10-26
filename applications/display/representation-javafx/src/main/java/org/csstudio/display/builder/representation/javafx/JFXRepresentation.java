@@ -13,9 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -32,78 +30,8 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
-import org.csstudio.display.builder.model.widgets.ArcWidget;
-import org.csstudio.display.builder.model.widgets.ArrayWidget;
-import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
-import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
-import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
-import org.csstudio.display.builder.model.widgets.ComboWidget;
-import org.csstudio.display.builder.model.widgets.EllipseWidget;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
-import org.csstudio.display.builder.model.widgets.GroupWidget;
-import org.csstudio.display.builder.model.widgets.LEDWidget;
-import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget;
-import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
-import org.csstudio.display.builder.model.widgets.PictureWidget;
-import org.csstudio.display.builder.model.widgets.PolygonWidget;
-import org.csstudio.display.builder.model.widgets.PolylineWidget;
-import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
-import org.csstudio.display.builder.model.widgets.RadioWidget;
-import org.csstudio.display.builder.model.widgets.RectangleWidget;
-import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
-import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
-import org.csstudio.display.builder.model.widgets.SpinnerWidget;
-import org.csstudio.display.builder.model.widgets.SymbolWidget;
-import org.csstudio.display.builder.model.widgets.TableWidget;
-import org.csstudio.display.builder.model.widgets.TabsWidget;
-import org.csstudio.display.builder.model.widgets.TankWidget;
-import org.csstudio.display.builder.model.widgets.TextEntryWidget;
-import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
-import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
-import org.csstudio.display.builder.model.widgets.ThermometerWidget;
-import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
-import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
-import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
-import org.csstudio.display.builder.representation.WidgetRepresentation;
-import org.csstudio.display.builder.representation.WidgetRepresentationFactory;
-import org.csstudio.display.builder.representation.javafx.widgets.ActionButtonRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ArcRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ArrayRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.BoolButtonRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ByteMonitorRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.CheckBoxRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ComboRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.EllipseRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.EmbeddedDisplayRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.GroupRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.LEDRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.LabelRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.MultiStateLEDRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.NavigationTabsRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.PictureRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.PolygonRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.PolylineRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ProgressBarRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.RadioRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.RectangleRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ScaledSliderRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ScrollBarRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.SpinnerRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.SymbolRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.TableRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.TabsRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.TankRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.TextEntryRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.TextSymbolRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.TextUpdateRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.ThermometerRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.WebBrowserRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.plots.ImageRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.plots.XYPlotRepresentation;
 import org.csstudio.javafx.rtplot.ColorMappingFunction;
 import org.csstudio.javafx.rtplot.NamedColorMapping;
 import org.csstudio.javafx.rtplot.NamedColorMappings;
@@ -204,8 +132,6 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     private Group scroll_body;
     private ScrollPane model_root;
 
-    private static boolean initialized_colormaps = false;
-
     /** Constructor
      *  @param edit_mode Edit mode?
      */
@@ -217,61 +143,11 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     @Override
     protected void initialize()
     {
-        final Map<String, WidgetRepresentationFactory<Parent, Node>> factories = new HashMap<>();
+        super.initialize();
 
-        // TODO Load from service
-        registerKnownRepresentations(factories);
-        for (Map.Entry<String, WidgetRepresentationFactory<Parent, Node>> entry : factories.entrySet())
-            register(entry.getKey(), entry.getValue());
-
-        if (! initialized_colormaps)
-        {
-            for (PredefinedColorMaps.Predefined map : PredefinedColorMaps.PREDEFINED)
-                NamedColorMappings.add(new NamedColorMapping(map.getName(), intensity  ->  ColorMappingFunction.getRGB(map.getColor(intensity))));
-            initialized_colormaps = true;
-        }
-    }
-
-    /**
-     * Add known representations as fallback in absence of registry information
-     */
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private static void registerKnownRepresentations(final Map<String, WidgetRepresentationFactory<Parent, Node>> factories)
-    {
-        factories.put(ActionButtonWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ActionButtonRepresentation());
-        factories.put(ArcWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ArcRepresentation());
-        factories.put(ArrayWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ArrayRepresentation());
-        factories.put(BoolButtonWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new BoolButtonRepresentation());
-        factories.put(ByteMonitorWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ByteMonitorRepresentation());
-        factories.put(CheckBoxWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new CheckBoxRepresentation());
-        factories.put(ComboWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ComboRepresentation());
-        factories.put(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new EmbeddedDisplayRepresentation());
-        factories.put(EllipseWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new EllipseRepresentation());
-        factories.put(GroupWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new GroupRepresentation());
-        factories.put(ImageWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ImageRepresentation());
-        factories.put(LabelWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new LabelRepresentation());
-        factories.put(LEDWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new LEDRepresentation());
-        factories.put(MultiStateLEDWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new MultiStateLEDRepresentation());
-        factories.put(NavigationTabsWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new NavigationTabsRepresentation());
-        factories.put(PictureWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new PictureRepresentation());
-        factories.put(PolygonWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new PolygonRepresentation());
-        factories.put(PolylineWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new PolylineRepresentation());
-        factories.put(ProgressBarWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ProgressBarRepresentation());
-        factories.put(RadioWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new RadioRepresentation());
-        factories.put(RectangleWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new RectangleRepresentation());
-        factories.put(ScaledSliderWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ScaledSliderRepresentation());
-        factories.put(ScrollBarWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ScrollBarRepresentation());
-        factories.put(SpinnerWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new SpinnerRepresentation());
-        factories.put(SymbolWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new SymbolRepresentation());
-        factories.put(TableWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new TableRepresentation());
-        factories.put(TabsWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new TabsRepresentation());
-        factories.put(TankWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new TankRepresentation());
-        factories.put(TextEntryWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new TextEntryRepresentation());
-        factories.put(TextSymbolWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new TextSymbolRepresentation());
-        factories.put(TextUpdateWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new TextUpdateRepresentation());
-        factories.put(ThermometerWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new ThermometerRepresentation());
-        factories.put(WebBrowserWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new WebBrowserRepresentation());
-        factories.put(XYPlotWidget.WIDGET_DESCRIPTOR.getType(), ( ) -> (WidgetRepresentation) new XYPlotRepresentation());
+        // Register default color mappings of model in JFX RTPlot
+        for (PredefinedColorMaps.Predefined map : PredefinedColorMaps.PREDEFINED)
+            NamedColorMappings.add(new NamedColorMapping(map.getName(), intensity  ->  ColorMappingFunction.getRGB(map.getColor(intensity))));
     }
 
     /** Create scrollpane etc. for hosting the model

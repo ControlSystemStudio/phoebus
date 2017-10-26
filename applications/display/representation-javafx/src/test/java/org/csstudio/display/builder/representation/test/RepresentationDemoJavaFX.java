@@ -12,7 +12,6 @@ import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXStageRepresentation;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
 
@@ -30,22 +29,14 @@ public class RepresentationDemoJavaFX extends Application
     }
 
     @Override
-    public void start(final Stage stage)
+    public void start(final Stage stage) throws Exception
     {
-        try
-        {
-            final DisplayModel model = ExampleModels.createModel();
-            final JFXStageRepresentation toolkit = new JFXStageRepresentation(stage);
-            final Parent parent = toolkit.configureStage(model, this::close);
-            toolkit.representModel(parent, model);
+        final DisplayModel model = ExampleModels.createModel();
+        final JFXStageRepresentation toolkit = new JFXStageRepresentation(stage);
+        final Parent parent = toolkit.configureStage(model, this::close);
+        toolkit.representModel(parent, model);
 
-            runtime = new DummyRuntime(model);
-        }
-        catch (final Exception ex)
-        {
-            ex.printStackTrace();
-            Platform.exit();
-        }
+        runtime = new DummyRuntime(model);
     }
 
     public void close(final DisplayModel model)
