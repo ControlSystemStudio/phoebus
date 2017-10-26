@@ -170,6 +170,8 @@ public class ModelResourceUtil
      *  @param resource_name Resource that may be relative to workspace
      *  @return Location in local file system or <code>null</code>
      *  @deprecated There is no more "workspace", so no need to get local path
+     *
+     *  TODO Remove calls to getLocalPath
      */
     @Deprecated
     public static String getLocalPath(final String resource_name)
