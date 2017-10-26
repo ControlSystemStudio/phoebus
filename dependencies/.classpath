@@ -17,9 +17,15 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/hamcrest-all-1.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jca-2.3.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/junit-4.12.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jython-standalone-2.7.0.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="target/lib/mockito-core-1.9.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/pvAccessJava-4.0.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/pvDataJava-4.0.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/py4j-0.10.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/service-3.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/stringtemplate-3.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/vtype-3.0.0.jar"/>

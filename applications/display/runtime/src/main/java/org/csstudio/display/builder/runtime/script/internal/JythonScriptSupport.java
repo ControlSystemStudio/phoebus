@@ -9,10 +9,8 @@ package org.csstudio.display.builder.runtime.script.internal;
 
 import static org.csstudio.display.builder.runtime.RuntimePlugin.logger;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -26,8 +24,6 @@ import org.python.core.PyCode;
 import org.python.core.PyList;
 import org.python.core.PySystemState;
 import org.python.util.PythonInterpreter;
-
-import javafx.scene.shape.Path;
 
 /** Jython script support
  *
@@ -53,8 +49,11 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             final Properties pre_props = System.getProperties();
             final Properties props = new Properties();
 
+            // TODO Locate jython jar via org.phoebus.framework.workbench.Locations
+
             // Locate the jython plugin for 'home' to allow use of /Lib in there
-            final String home = getPluginPath("org.python.jython", "/");
+            final String home = null; // getPluginPath("org.python.jython", "/");
+
             if (home == null)
                 throw new Exception("Cannot locate jython bundle. No OSGi?");
 
@@ -79,7 +78,7 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             props.setProperty("python.console.encoding", "UTF-8");
 
             // This will replace entries found on JYTHONPATH
-            final String python_path = Preferences.getPythonPath();
+            final String python_path = Preferences.python_path;
             if (! python_path.isEmpty())
                 props.setProperty("python.path", python_path);
 
@@ -90,7 +89,8 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             PythonInterpreter.initialize(pre_props, props, new String[0]);
 
             final PyList paths = Py.getSystemState().path;
-            paths.add(getPluginPath("org.csstudio.display.builder.runtime", "scripts"));
+            // TODO Add more paths?
+            // paths.add(getPluginPath("org.csstudio.display.builder.runtime", "scripts"));
 
             return true;
         }
@@ -113,24 +113,23 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
      *  @return Location of that path within bundle, or <code>null</code> if not found or no bundle support
      *  @throws IOException on error
      */
-    private static String getPluginPath(final String bundle_name, final String path_in_bundle) throws IOException
-    {
-        final Bundle bundle = Platform.getBundle(bundle_name);
-        if (bundle == null)
-            return null;
-        final URL url = FileLocator.find(bundle, new Path(path_in_bundle), null);
-        if (url == null)
-            return null;
-        String path = FileLocator.resolve(url).getPath();
-
-        // Turn politically correct URL into path digestible by jython
-        if (path.startsWith("file:/"))
-           path = path.substring(5);
-        path = path.replace(".jar!", ".jar");
-
-        return path;
-    }
-
+//    private static String getPluginPath(final String bundle_name, final String path_in_bundle) throws IOException
+//    {
+//        final Bundle bundle = Platform.getBundle(bundle_name);
+//        if (bundle == null)
+//            return null;
+//        final URL url = FileLocator.find(bundle, new Path(path_in_bundle), null);
+//        if (url == null)
+//            return null;
+//        String path = FileLocator.resolve(url).getPath();
+//
+//        // Turn politically correct URL into path digestible by jython
+//        if (path.startsWith("file:/"))
+//           path = path.substring(5);
+//        path = path.replace(".jar!", ".jar");
+//
+//        return path;
+//    }
 
     /** Create executor for jython scripts
      *  @param support {@link ScriptSupport}
