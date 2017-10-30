@@ -88,21 +88,13 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                     }
                     break;
                 case ENTER:
-                case UNDEFINED:
-                    // On Linux, ENTER means 'enter' key on main keyboard.
-                    // The  the numeric keypad 'enter' key sends UNDEFINED?!
-                    // --> Handle in onKeyTyped for both cases
-                    break;
-                default:
-                    // Any other key results in active state
-                    setActive(true);
-                }
-            });
-            text.setOnKeyTyped(event ->
-            {
-                final String typed = event.getCharacter();
-                if (typed.length() == 1  &&  event.getCharacter().charAt(0) == 13)
-                {
+                    // With Java 8, the main keyboard sent 'ENTER',
+                    // but the numeric keypad's enter key sent UNDEFINED?!
+                    // -> Was handled by checking for char 13 in onKeyTyped handler.
+                    // With Java 9, always get ENTER in here,
+                    // and _not_ receiving char 13 in onKeyTyped any more,
+                    // so all enter keys handled in here.
+
                     // Single line mode uses plain ENTER.
                     // Multi line mode requires Control-ENTER.
                     if (!isMultiLine()  ||  event.isControlDown())
@@ -111,6 +103,10 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                         submit();
                         setActive(false);
                     }
+                    break;
+                default:
+                    // Any other key results in active state
+                    setActive(true);
                 }
             });
             // Clicking into widget also activates
