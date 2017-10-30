@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-representation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-representation-javafx"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
