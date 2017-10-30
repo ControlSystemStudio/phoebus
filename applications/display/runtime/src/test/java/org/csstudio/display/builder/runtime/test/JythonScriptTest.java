@@ -29,14 +29,14 @@ public class JythonScriptTest
         System.setProperty("python.import.site", "false");
 
         // Load some display with a label
-        final DisplayModel display = ModelLoader.loadModel(getClass().getResourceAsStream("/examples/script_test.opi"), "script_test.opi");
+        final DisplayModel display = ModelLoader.loadModel(getClass().getResourceAsStream("/rt_examples/script_test.opi"), "script_test.opi");
         final Widget widget = display.runtimeChildren().getChildByName("Label 100");
 
         // Set widget variable in script
         final ScriptSupport scripting = new ScriptSupport();
         final Script script = scripting.compile(".",
                                                 "updateText.py",
-                                                getClass().getResourceAsStream("/examples/updateText.py"));
+                                                getClass().getResourceAsStream("/rt_examples/updateText.py"));
         // Run the script several times
         for (int run=0; run<10; ++run)
         {   // Script should set the "text" to "Hello"

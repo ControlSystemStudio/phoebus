@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.test;
 
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,7 +30,7 @@ import javafx.stage.Stage;
 public class RuntimeDemoJavaFX extends Application
 {
     // Default display, can be changed via command line
-    public static String display_path = DisplayModel.class.getResource("/examples/01_main.bob").getPath();
+    public static String display_path;
 
     private final Logger logger = Logger.getLogger(getClass().getName());
     private JFXStageRepresentation toolkit;
@@ -39,6 +40,11 @@ public class RuntimeDemoJavaFX extends Application
      */
     public static void main(final String[] args) throws Exception
     {
+        display_path = DisplayModel.class.getResource("/examples/01_main.bob").getPath().replace("file:", "");
+        if (display_path.contains(".jar!"))
+            display_path = new File(new File(display_path).getParentFile().getParentFile().getParentFile().getParentFile(),
+                                    "src/main/resources/examples/01_main.bob").getAbsolutePath();
+
         if (args.length == 1)
             display_path = args[0];
         launch(args);

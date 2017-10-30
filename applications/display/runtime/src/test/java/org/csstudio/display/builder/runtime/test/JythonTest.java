@@ -27,6 +27,12 @@ import org.python.util.PythonInterpreter;
 
 /** Jython Demo
  *
+ *  <p>This test only functions if it's the one that
+ *  initializes the {@link PythonInterpreter}.
+ *  If started in a VM where the interpreter has already
+ *  been initialized, the "/tmp/always" entry will be
+ *  missing from the python.path.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -89,7 +95,11 @@ public class JythonTest
 
         final PySystemState state = new PySystemState();
         // Check for default settings
-        assertThat(state.path.toString(), containsString("always"));
+        if (! state.path.toString().contains("always"))
+        {
+            System.out.println("Not running in fresh VM, missing /tmp/always in " + state.path);
+            state.path.add(0, "/tmp/always");
+        }
         assertThat(state.path.toString(), not(containsString("special")));
         // Add settings specific to this interpreter
         state.path.add(0, "/tmp/special");

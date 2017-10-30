@@ -55,7 +55,12 @@ public class CommandExecutorTest
         logger.addHandler(handler);
 
         // Locate examples
-        examples_dir = new File(CommandExecutorTest.class.getResource("/examples").getPath());
+        examples_dir = new File(CommandExecutorTest.class.getResource("/rt_examples").getPath().replace("file:", ""));
+
+        // When compiled into jar file, change runtime/target/display-runtime*.jar!/rt_examples
+        // into the source location
+        if (examples_dir.getPath().contains(".jar!"))
+            examples_dir = new File(examples_dir.getParentFile().getParentFile().getParentFile(), "src/main/resources/rt_examples");
         System.out.println("Examples directory: " + examples_dir);
     }
 
@@ -112,7 +117,7 @@ public class CommandExecutorTest
             return;
 
         // Start one directory 'up' to generate error
-        final Integer status = new CommandExecutor("examples/cmd_short.sh", examples_dir.getParentFile()).call();
+        final Integer status = new CommandExecutor("rt_examples/cmd_short.sh", examples_dir.getParentFile()).call();
 
         final String log = getLoggedMessages();
         assertThat(log, containsString("Wrong directory"));

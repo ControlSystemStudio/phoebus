@@ -36,7 +36,7 @@ public class RulesJythonScriptTest
     public void testRule() throws Exception
     {
         // Load a display which contains rectangle with rule-based width
-        final DisplayModel display = ModelLoader.loadModel(getClass().getResourceAsStream("/examples/rule_demo.opi"), "rule_demo.opi");
+        final DisplayModel display = ModelLoader.loadModel(getClass().getResourceAsStream("/rt_examples/rule_demo.opi"), "rule_demo.opi");
         final Widget widget = display.runtimeChildren().getChildByName("Rectangle");
         System.out.println(widget);
         final RuleInfo rule = widget.propRules().getValue().get(0);
