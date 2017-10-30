@@ -20,34 +20,60 @@ import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.jobs.JobManager;
 
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 
 /** PV Table Application
  *  @author Kay Kasemir
  */
-public class DisplayRuntime implements AppInstance
+public class DisplayRuntimeInstance implements AppInstance
 {
+    // TODO This is ~ RCP RuntimeViewPart
     final private AppDescriptor app;
+    final private BorderPane layout = new BorderPane();
     final private DockItemWithInput dock_item;
+    private Node toolbar;
 
-    DisplayRuntime(final AppDescriptor app, final URL input)
+    DisplayRuntimeInstance(final AppDescriptor app)
     {
         this.app = app;
-
-        final BorderPane layout = new BorderPane(new Label("TODO: load, represent, start " + input));
-        dock_item = new DockItemWithInput(this, layout, input, null);
-        DockPane.getActiveDockPane().addTab(dock_item);
-
-        loadResource(input);
-
-        dock_item.addClosedNotification(this::stop);
+        dock_item = createComponents();
     }
 
     @Override
     public AppDescriptor getAppDescriptor()
     {
         return app;
+    }
+
+    private DockItemWithInput createComponents()
+    {
+        toolbar = createToolbar();
+        BorderPane.setMargin(toolbar, new Insets(5, 5, 0, 5));
+        layout.setTop(toolbar);
+        final DockItemWithInput dock_item = new DockItemWithInput(this, layout, null, null);
+        DockPane.getActiveDockPane().addTab(dock_item);
+
+        dock_item.addClosedNotification(this::stop);
+        return dock_item;
+    }
+
+    private Node createToolbar()
+    {
+        final Separator sep = new Separator();
+        HBox.setHgrow(sep, Priority.ALWAYS);
+        return new HBox(5,
+                        new Label("TODO: TOOLBAR"),
+                        sep,
+                        new Button("Back"),
+                        new Button("Fore")
+                        );
     }
 
     public void raise()
@@ -70,6 +96,12 @@ public class DisplayRuntime implements AppInstance
             {
                 String parent_display = null;
                 ModelLoader.resolveAndLoadModel(parent_display , input.toString());
+
+
+                Platform.runLater(() ->
+                {
+                    layout.setCenter(new Label("TODO: Represent " + input));
+                });
             }
             catch (Exception ex)
             {
@@ -84,6 +116,7 @@ public class DisplayRuntime implements AppInstance
         Platform.runLater(() ->
         {
             // TODO Show error in dock_item
+            // See RuntimeViewPart::onDispose()
         });
     }
 

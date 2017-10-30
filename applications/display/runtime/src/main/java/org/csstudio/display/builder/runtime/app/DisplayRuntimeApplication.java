@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.csstudio.display.builder.model.DisplayModel;
-import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -49,17 +48,17 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     }
 
     @Override
-    public AppInstance create()
+    public DisplayRuntimeInstance create()
     {
-        throw new IllegalStateException("Display runtime always needs an input");
+        return new DisplayRuntimeInstance(this);
     }
 
     @Override
-    public AppInstance create(final String resource)
+    public DisplayRuntimeInstance create(final String resource)
     {
         // TODO Auto-generated method stub
 
-        DisplayRuntime instance = null;
+        DisplayRuntimeInstance instance = null;
 
         final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
         for (String file : args.get(ResourceParser.FILE_ARG))
@@ -75,7 +74,8 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
             }
             else
             {   // Nothing found, create new one
-                instance = new DisplayRuntime(this, input);
+                instance = create();
+                instance.loadResource(input);
             }
         }
 
