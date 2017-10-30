@@ -9,7 +9,6 @@ package org.csstudio.display.builder.runtime;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPVName;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVValue;
-import static org.csstudio.display.builder.runtime.RuntimePlugin.logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
@@ -60,6 +60,9 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class WidgetRuntime<MW extends Widget>
 {
+    /** Suggested logger for all runtime logging */
+    public final static Logger logger = Logger.getLogger(WidgetRuntime.class.getName());
+
     /** Extension point for contributing custom widget runtime */
     public static final String EXTENSION_POINT = "org.csstudio.display.builder.runtime.widgets";
 

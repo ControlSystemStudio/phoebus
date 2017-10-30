@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.internal;
 
-import static org.csstudio.display.builder.runtime.RuntimePlugin.logger;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

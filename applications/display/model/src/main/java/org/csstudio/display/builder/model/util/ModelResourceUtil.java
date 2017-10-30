@@ -232,11 +232,14 @@ public class ModelResourceUtil
      *  @param resource_name Resource path. If relative, it is resolved relative to the parent display
      *  @return Resolved file name. May also be the original name if no idea how to adjust it
      */
-    public static String resolveResource(final String parent_display, final String resource_name)
+    public static String resolveResource(final String parent_display, String resource_name)
     {
         logger.log(Level.FINE, "Resolving {0} relative to {1}", new Object[] { resource_name, parent_display });
 
-        if (resource_name.endsWith(".opi"))
+        if (resource_name.startsWith("file:"))
+            resource_name = resource_name.substring(5);
+
+        if (resource_name.endsWith("." + DisplayModel.LEGACY_FILE_EXTENSION))
         {   // Check if there is an updated file for a legacy resource
             final String updated_resource = resource_name.substring(0, resource_name.length()-3) + DisplayModel.FILE_EXTENSION;
             final String test = doResolveResource(parent_display, updated_resource);

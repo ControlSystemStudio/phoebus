@@ -8,7 +8,7 @@
 package org.csstudio.display.builder.runtime.internal;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVWritable;
-import static org.csstudio.display.builder.runtime.RuntimePlugin.logger;
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.util.ArrayList;
 import java.util.Collection;

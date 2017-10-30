@@ -52,6 +52,9 @@ public class DisplayModel extends Widget
     /** File extension used for display files */
     public static final String FILE_EXTENSION = "bob";
 
+    /** File extension used for legacy display files */
+    public static final String LEGACY_FILE_EXTENSION = "opi";
+
     /** Widget type used by the display model */
     public static final String WIDGET_TYPE = "display";
 

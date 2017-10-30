@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.script.internal;
 
-import static org.csstudio.display.builder.runtime.RuntimePlugin.logger;
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;

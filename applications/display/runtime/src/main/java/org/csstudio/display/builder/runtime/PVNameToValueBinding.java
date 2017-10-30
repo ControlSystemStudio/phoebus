@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime;
 
-import static org.csstudio.display.builder.runtime.RuntimePlugin.logger;
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;

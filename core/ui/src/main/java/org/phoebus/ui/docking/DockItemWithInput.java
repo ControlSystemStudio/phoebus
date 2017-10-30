@@ -63,7 +63,7 @@ public class DockItemWithInput extends DockItem
      *  @param application {@link AppInstance}
      *  @param content Initial content
      *  @param input URL for the input. May be <code>null</code>
-     *  @param save_handler Will be called to 'save' the content
+     *  @param save_handler Will be called to 'save' the content. May be <code>null</code> if never calling <code>setDirty(true)</code>
      */
     public DockItemWithInput(final AppInstance application, final Node content, final URL input, final JobRunnable save_handler)
     {
@@ -149,6 +149,8 @@ public class DockItemWithInput extends DockItem
 
         try
         {
+            if (save_handler == null)
+                throw new Exception("No save_handler provided for 'dirty' " + toString());
             save_handler.run(monitor);
         }
         catch (Exception ex)

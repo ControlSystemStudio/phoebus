@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime;
 
-import static org.csstudio.display.builder.runtime.RuntimePlugin.logger;
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
