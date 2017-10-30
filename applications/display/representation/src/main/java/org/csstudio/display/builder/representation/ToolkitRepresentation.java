@@ -140,8 +140,8 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
         // Load representations from service
         for (WidgetRepresentationsService service : ServiceLoader.load(WidgetRepresentationsService.class))
         {
-            final Map<WidgetDescriptor, WidgetRepresentationFactory<TWP, TW>> ss = service.getWidgetRepresentationFactories();
-            ss.forEach((desc, factory) ->
+            final Map<WidgetDescriptor, WidgetRepresentationFactory<TWP, TW>> map = service.getWidgetRepresentationFactories();
+            map.forEach((desc, factory) ->
             {
                 if (factories.putIfAbsent(desc.getType(), factory) != null)
                     throw new Error("Representation for " + desc + " already defined");
