@@ -24,12 +24,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-/** Table demo
+/** {@link StringTable} demo
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TableDemo extends Application
+public class StringTableDemo extends Application
 {
     public static void main(final String[] args)
     {

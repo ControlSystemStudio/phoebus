@@ -22,7 +22,6 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -226,8 +225,6 @@ public class StringTable extends BorderPane
 
     private final TableView<List<String>> table = new TableView<>(data);
 
-    private List<TableColumn<List<String>, ?>> columns = Collections.emptyList();
-
     /** Currently editing a cell? */
     private boolean editing = false;
 
@@ -245,30 +242,6 @@ public class StringTable extends BorderPane
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         table.getSelectionModel().getSelectedIndices().addListener(this::selectionChanged);
         table.setPlaceholder(new Label());
-
-        // Prevent moving the columns, but there's no good API.
-        // Need to remove all, then add back
-        table.getColumns().addListener(new ListChangeListener<Object>()
-        {
-            @Override
-            public void onChanged(Change<? extends Object> change)
-            {
-                change.next();
-                if (change.wasReplaced())
-                {
-                    // setAll doesn't work, must clear and then set
-                    // System.out.println("Restoring columns to " +
-                    //                    columns.stream().map(c -> c.getText()).collect(Collectors.toList()));
-                    // Change columns while data has been detached
-                    table.setItems(NO_DATA);
-                    table.getColumns().clear();
-                    table.getColumns().addAll(columns);
-                    // Re-attach data and force update
-                    table.setItems(data);
-                    table.refresh();
-                }
-            }
-         });
 
         if (editable)
         {
@@ -521,6 +494,9 @@ public class StringTable extends BorderPane
     {
         final TableColumn<List<String>, String> table_column = new TableColumn<>(header);
         table_column.setCellValueFactory(CELL_FACTORY);
+        // Prevent column re-ordering
+        // (handled via moveColumn which also re-orders the data)
+        table_column.setReorderable(false);
 
         // By default, use text field editor. setColumnOptions() can replace
         table_column.setCellFactory(list -> new StringTextCell());
@@ -547,8 +523,6 @@ public class StringTable extends BorderPane
             table.getColumns().add(index, table_column);
         else
             table.getColumns().add(table_column);
-
-        columns = new ArrayList<>(table.getColumns());
     }
 
     /** @return Header labels */
