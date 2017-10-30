@@ -113,6 +113,10 @@ public class CommandExecutor implements Callable<Integer>
             return status;
         }
 
+        // Java 9 would allow running something when process finally quits,
+        // but LogWriter exit on their own, so no more cleanup to do?
+        // process.onExit().thenRun(() -> {});
+
         // Leave running, continuing to log outputs, but no longer checking status
         return null;
     }
@@ -131,7 +135,7 @@ public class CommandExecutor implements Callable<Integer>
         if (p == null)
             return "CommandExecutor (idle): " +  process_builder.command().get(0);
         else if (p.isAlive())
-            return "CommandExecutor (running): " +  process_builder.command().get(0);
+            return "CommandExecutor (running, PID " + p.pid() + "): " +  process_builder.command().get(0);
         else
             return "CommandExecutor (" + p.exitValue() + "): " +  process_builder.command().get(0);
     }
