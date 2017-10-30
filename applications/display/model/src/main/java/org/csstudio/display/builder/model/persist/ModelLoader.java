@@ -52,23 +52,24 @@ public class ModelLoader
 
 
     /** Load model, with classes applied (except for *.bcf itself)
-    *
-    *  @param display_file Model file
-    *  @return {@link DisplayModel}
-    *  @throws Exception on error
-    */
-   public static DisplayModel loadModel(final InputStream stream, final String display_path) throws Exception
-   {
-       final ModelReader reader = new ModelReader(stream);
-       final DisplayModel model = reader.readModel();
-       model.setUserData(DisplayModel.USER_DATA_INPUT_FILE, display_path);
+     *
+     *  @param stream Stream for the display
+     *  @param display_file Model file path, will be registered via {@link DisplayModel#USER_DATA_INPUT_FILE}
+     *  @return {@link DisplayModel}
+     *  @throws Exception on error
+     */
+    public static DisplayModel loadModel(final InputStream stream, final String display_file) throws Exception
+    {
+        final ModelReader reader = new ModelReader(stream);
+        final DisplayModel model = reader.readModel();
+        model.setUserData(DisplayModel.USER_DATA_INPUT_FILE, display_file);
 
-       // Models from version 2 on support classes
-       if (reader.getVersion().getMajor() >= 2  &&
-           !display_path.endsWith(WidgetClassSupport.FILE_EXTENSION))
-       {
-           WidgetClassesService.getWidgetClasses().apply(model);
-       }
-       return model;
+        // Models from version 2 on support classes
+        if (reader.getVersion().getMajor() >= 2  &&
+            !display_file.endsWith(WidgetClassSupport.FILE_EXTENSION))
+        {
+            WidgetClassesService.getWidgetClasses().apply(model);
+        }
+        return model;
   }
 }
