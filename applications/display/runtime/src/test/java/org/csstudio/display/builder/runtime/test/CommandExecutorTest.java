@@ -54,13 +54,14 @@ public class CommandExecutorTest
         handler = new StreamHandler(log_buf, new SimpleFormatter());
         logger.addHandler(handler);
 
-        // Locate examples
+        // Locate examples via class
         examples_dir = new File(CommandExecutorTest.class.getResource("/rt_examples").getPath().replace("file:", ""));
 
-        // When compiled into jar file, change runtime/target/display-runtime*.jar!/rt_examples
+        // Change either runtime/target/display-runtime*.jar!/rt_examples
+        // or            runtime/target/classes/rt_examples into
         // into the source location
-        if (examples_dir.getPath().contains(".jar!"))
-            examples_dir = new File(examples_dir.getParentFile().getParentFile().getParentFile(), "src/main/resources/rt_examples");
+        examples_dir = new File(examples_dir.getParentFile().getParentFile().getParentFile(), "src/main/resources/rt_examples");
+
         System.out.println("Examples directory: " + examples_dir);
     }
 

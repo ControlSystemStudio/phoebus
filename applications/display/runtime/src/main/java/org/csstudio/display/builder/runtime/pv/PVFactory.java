@@ -44,7 +44,7 @@ public class PVFactory
         {   // Fall back for running without OSGi
             logger.log(Level.CONFIG, "Defaulting to VTypePVFactory");
             the_factory = new VTypePVFactory();
-            impl.add("vtype.pv");
+            impl.add("pv");
         }
 //        else
 //        {
