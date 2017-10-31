@@ -13,11 +13,10 @@ import static org.junit.Assert.assertThat;
 import java.net.URL;
 
 import org.csstudio.display.builder.model.macros.Macros;
-import org.csstudio.display.builder.runtime.TextPatch;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.junit.Test;
 
-/** JUnit demo of the {@link TextPatch}
+/** JUnit test of the {@link DisplayInfo}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
