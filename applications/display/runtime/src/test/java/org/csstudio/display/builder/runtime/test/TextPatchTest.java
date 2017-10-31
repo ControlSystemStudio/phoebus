@@ -56,5 +56,4 @@ public class TextPatchTest
         System.out.println(name + " -> " + patched);
         assertThat(patched, equalTo("loc://strFred(\"Fred\")"));
     }
-
 }
