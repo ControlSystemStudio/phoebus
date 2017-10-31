@@ -8,6 +8,8 @@
 package org.csstudio.display.builder.runtime.test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 import java.net.URL;
@@ -22,6 +24,20 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class DisplayInfoTest
 {
+    @Test
+    public void testDisplayInfo() throws Exception
+    {
+        // 'Name' defaults to basename of path
+        DisplayInfo info = new DisplayInfo("/some/path/file.bob", null, new Macros(), true);
+        assertThat(info.getPath(), equalTo("/some/path/file.bob"));
+        assertThat(info.getName(), equalTo("file.bob"));
+
+        // Name provided
+        info = new DisplayInfo("/some/path/file.bob", "My Display", new Macros(), true);
+        assertThat(info.getPath(), equalTo("/some/path/file.bob"));
+        assertThat(info.getName(), equalTo("My Display"));
+    }
+
     @Test
     public void testURL2DisplayInfo() throws Exception
     {
@@ -49,7 +65,7 @@ public class DisplayInfoTest
     {
         // Plain path
         final Macros macros = new Macros();
-        DisplayInfo info = new DisplayInfo("file:/some/path/xx.bob", null, macros, false);
+        DisplayInfo info = new DisplayInfo("/some/path/xx.bob", null, macros, false);
         URL url = info.toURL();
         System.out.println(url);
         assertThat(url.toString(), equalTo("file:/some/path/xx.bob"));
@@ -69,5 +85,26 @@ public class DisplayInfoTest
         System.out.println(url);
 
         assertThat(url.toString(), equalTo("file:/some/path/xx.bob;X=Fred+Harvey+Newman;Y=2#X+Overview"));
+    }
+
+    @Test
+    public void testUniqueness() throws Exception
+    {
+        // URLs using the same macros, but different order
+        final URL url1 = new URL("file:/some/path/xx.bob;X=Fred+Harvey%20Newman;Y=2;Z=1");
+        final URL url2 = new URL("file:/some/path/xx.bob;Z=1;X=Fred+Harvey%20Newman;Y=2");
+
+        // Should result in equal DisplayInfos
+        DisplayInfo info1 = DisplayInfo.forURL(url1);
+        DisplayInfo info2 = DisplayInfo.forURL(url2);
+        System.out.println(info1);
+        System.out.println(info2);
+        assertThat(info1, equalTo(info2));
+        assertThat(info1, not(sameInstance(info2)));
+
+        // When turned back into a URL, they use the alphabetical ordered macros
+        // (like url1, but with '+' for spaces)
+        assertThat(info1.toURL().toString(), equalTo(info2.toURL().toString()));
+        assertThat(info2.toURL().toString(), equalTo("file:/some/path/xx.bob;X=Fred+Harvey+Newman;Y=2;Z=1"));
     }
 }

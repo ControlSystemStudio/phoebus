@@ -7,12 +7,11 @@
  ******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
-import static org.phoebus.framework.util.ResourceParser.createAppURI;
-import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -56,27 +55,35 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     @Override
     public DisplayRuntimeInstance create(final String resource)
     {
-        // TODO Auto-generated method stub
-
         DisplayRuntimeInstance instance = null;
 
-        final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
-        for (String file : args.get(ResourceParser.FILE_ARG))
+        // Expect "display_runtime?file=file:/some/path;MACRO=Some+Value;X=2"
+        if (! resource.startsWith("display_runtime?file="))
         {
-            final URL input = ResourceParser.createResourceURL(file);
-            // Check for existing instance with that input
-            // TODO input needs to include display path and macros
-            final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, input);
-            if (existing != null)
-            {   // Found one, raise it
-                instance = existing.getApplication();
-                instance.raise();
-            }
-            else
-            {   // Nothing found, create new one
-                instance = create();
-                instance.loadResource(input);
-            }
+            logger.log(Level.SEVERE, "Expected '\"display_runtime?file=...\", ignoring " + resource);
+            return null;
+        }
+
+        // "file:/some/path;MACRO=Some+Value;X=2"
+        final URL orig_input = ResourceParser.createResourceURL(resource.substring(21));
+
+        // Convert URL to DisplayInfo and back for normalized URL,
+        // where for example macros are alphabetically sorted,
+        // to uniquely identify an already running instance via its input
+        final DisplayInfo info = DisplayInfo.forURL(orig_input);
+        final URL input = info.toURL();
+
+        // Check for existing instance with that input, i.e. path & macros
+        final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, input);
+        if (existing != null)
+        {   // Found one, raise it
+            instance = existing.getApplication();
+            instance.raise();
+        }
+        else
+        {   // Nothing found, create new one
+            instance = create();
+            instance.loadDisplayFile(info);
         }
 
         return instance;

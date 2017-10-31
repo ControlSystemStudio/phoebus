@@ -10,6 +10,7 @@ package org.csstudio.display.builder.runtime.app;
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -155,7 +156,7 @@ public class DisplayInfo
     public DisplayInfo(final String path, final String name, final Macros macros, final boolean resolve)
     {
         this.path = path;
-        this.name = name;
+        this.name = name != null ? name : basename(path);
         this.macros = Objects.requireNonNull(macros);
         this.resolve = resolve;
     }
@@ -208,23 +209,42 @@ public class DisplayInfo
     }
 
     /** @return URL representation of display info */
-    public URL toURL() throws Exception
+    public URL toURL()
     {
         final StringBuilder buf = new StringBuilder();
 
-        buf.append(path);
+        // If no schema in path, use file:
+        if (! (path.startsWith("file:")  ||
+               path.startsWith("http:")  ||
+               path.startsWith("https:") ||
+               path.startsWith("ftp:")))
+            buf.append("file:");
 
+        // In path, keep ':' and '/', but replace spaces
+        buf.append(path.replace(' ', '+'));
+
+        // Add macros as path parameters
         for (String name : macros.getNames())
             buf.append(';')
                .append(name)
                .append('=')
                .append(encode(macros.getValue(name)));
 
+        // Have display name (other than basename of path)?
+        // Add as fragment aka reference
         if (name != null  &&  !basename(path).equals(name))
             buf.append('#')
                .append(encode(name));
 
-        return new URL(buf.toString());
+        try
+        {
+            return new URL(buf.toString());
+        }
+        catch (MalformedURLException ex)
+        {
+            logger.log(Level.SEVERE, "Internal error in Display Info URL '" + buf.toString() + "'", ex);
+        }
+        return null;
     }
 
     @Override

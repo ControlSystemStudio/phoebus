@@ -9,7 +9,6 @@ package org.csstudio.display.builder.runtime.app;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
-import java.net.URL;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.persist.ModelLoader;
@@ -81,32 +80,32 @@ public class DisplayRuntimeInstance implements AppInstance
         dock_item.select();
     }
 
-    public void loadResource(final URL input)
+    public void loadDisplayFile(final DisplayInfo info)
     {
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
         // another instance
-        dock_item.setInput(input);
+        dock_item.setInput(info.toURL());
 
         // Load files in background job
         JobManager.schedule("Load Display", monitor ->
         {
-            monitor.beginTask(input.toExternalForm());
+            monitor.beginTask(info.getName());
             try
             {
                 String parent_display = null;
-                ModelLoader.resolveAndLoadModel(parent_display , input.toString());
+                ModelLoader.resolveAndLoadModel(parent_display , info.getPath());
 
 
                 Platform.runLater(() ->
                 {
-                    layout.setCenter(new Label("TODO: Represent " + input));
+                    layout.setCenter(new Label("TODO: Represent " + info.toString()));
                 });
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, "Error loading " + input, ex);
-                showError("Error loading " + input);
+                logger.log(Level.WARNING, "Error loading " + info, ex);
+                showError("Error loading " + info);
             }
         });
     }
