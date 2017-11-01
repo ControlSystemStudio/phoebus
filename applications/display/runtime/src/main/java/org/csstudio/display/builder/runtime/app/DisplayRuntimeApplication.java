@@ -57,6 +57,10 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     {
         DisplayRuntimeInstance instance = null;
 
+        // TODO Change back to query args,
+        // "display_runtime?file=file:/some/path&MACRO=Some+Value&X=2"
+        // (only downside: Can't have a "file" macro)
+
         // Expect "display_runtime?file=file:/some/path;MACRO=Some+Value;X=2"
         if (! resource.startsWith("display_runtime?file="))
         {
