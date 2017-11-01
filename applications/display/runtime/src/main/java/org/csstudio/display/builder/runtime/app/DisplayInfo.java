@@ -27,7 +27,7 @@ import org.csstudio.display.builder.model.macros.Macros;
 public class DisplayInfo
 {
     private static final String UTF_8 = "UTF-8";
-    private final String path, name;
+    private final String path;
     private final Macros macros;
     private final boolean resolve;
 
@@ -40,36 +40,28 @@ public class DisplayInfo
      *
      *  <p>Full example:
      *  <code>
-     *  file://path/to/file.bob;MACRO1=value1;MACRO2=another%20value#Display%20Name
+     *  file://path/to/file.bob?MACRO1=value1&MACRO2=another%20value
      *  </code>
 
      *  <p>Path of the URL is the file or http link to
      *  the display.
      *
-     *  <p>Optional path parameters, added via ';' to the path,
-     *  provide macros.
-     *
-     *  <p>An optional '#..' reference is used as the display name,
-     *  which is otherwise derived from the file name,
-     *  i.e. the last segment of the path.
+     *  <p>Optional query parameters, added via '?' to the path,
+     *  and then separated by '&', provide macros.
      *
      *  @param url
      *  @return {@link DisplayInfo}
      */
     public static DisplayInfo forURL(final URL url)
     {
-        if (url.getQuery() != null)
-            logger.log(Level.WARNING, "Ignoring query component '" + url.getQuery() + "' in " + url);
+        // Get basic file or http 'path' from path
+        final String path = url.getPath();
 
-        // Get basic file or http 'path' and 'macros' from the URL pathname and path parameters
-        final String path_and_macros = url.getPath();
-        final String path;
+        // Check query for macros
         final Macros macros = new Macros();
-        int sep = path_and_macros.indexOf(';');
-        if (sep > 0)
-        {
-            path = path_and_macros.substring(0, sep);
-            for (String macro_spec : path_and_macros.substring(sep+1).split(";"))
+        final String query = url.getQuery();
+        if (query != null)
+            for (String macro_spec : query.split("&"))
             {
                 final int mvsep = macro_spec.indexOf('=');
                 if (mvsep > 0)
@@ -79,18 +71,8 @@ public class DisplayInfo
                     macros.add(name, value);
                 }
             }
-        }
-        else
-            path = path_and_macros;
 
-        // Use either provided display name, or basename of path
-        String name = url.getRef();
-        if (name != null)
-            name = decode(name);
-        if (name == null)
-            name = basename(path);
-
-        return new DisplayInfo(path, name, macros, true);
+        return new DisplayInfo(path, macros, true);
     }
 
     /** Decode URL text
@@ -143,20 +125,17 @@ public class DisplayInfo
     public static DisplayInfo forModel(final DisplayModel model)
     {
         return new DisplayInfo(model.getUserData(DisplayModel.USER_DATA_INPUT_FILE),
-                model.getDisplayName(),
                 model.propMacros().getValue(),
                 false);
     }
 
     /** @param path Path to the display
-     *  @param name Name to show
      *  @param macros Macros
      *  @param resolve Resolve the display, potentially using *.bob for a *.opi path?
      */
-    public DisplayInfo(final String path, final String name, final Macros macros, final boolean resolve)
+    public DisplayInfo(final String path, final Macros macros, final boolean resolve)
     {
         this.path = path;
-        this.name = name != null ? name : basename(path);
         this.macros = Objects.requireNonNull(macros);
         this.resolve = resolve;
     }
@@ -165,12 +144,6 @@ public class DisplayInfo
     public String getPath()
     {
         return path;
-    }
-
-    /** @return Display name */
-    public String getName()
-    {
-        return name;
     }
 
     /** @return Macros */
@@ -190,7 +163,6 @@ public class DisplayInfo
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + name.hashCode();
         result = prime * result + path.hashCode();
         result = prime * result + macros.hashCode();
         return result;
@@ -202,7 +174,6 @@ public class DisplayInfo
         if (! (obj instanceof DisplayInfo))
             return false;
         final DisplayInfo other = (DisplayInfo) obj;
-        // Ignore the name
         // Displays match if they refer to the same path and macros
         return path.equals(other.path) &&
                macros.equals(other.macros);
@@ -224,17 +195,20 @@ public class DisplayInfo
         buf.append(path.replace(' ', '+'));
 
         // Add macros as path parameters
+        boolean first = true;
         for (String name : macros.getNames())
-            buf.append(';')
-               .append(name)
+        {
+            if (first)
+            {
+                buf.append('?');
+                first = false;
+            }
+            else
+                buf.append('&');
+            buf.append(name)
                .append('=')
                .append(encode(macros.getValue(name)));
-
-        // Have display name (other than basename of path)?
-        // Add as fragment aka reference
-        if (name != null  &&  !basename(path).equals(name))
-            buf.append('#')
-               .append(encode(name));
+        }
 
         try
         {
@@ -250,6 +224,6 @@ public class DisplayInfo
     @Override
     public String toString()
     {
-        return "Display '" + name + "', file " + path + ", macros " + macros + (resolve ? " (resolve)" : "");
+        return "Display " + path + ", macros " + macros + (resolve ? " (resolve)" : "");
     }
 }

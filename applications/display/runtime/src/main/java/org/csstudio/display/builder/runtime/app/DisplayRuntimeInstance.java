@@ -95,13 +95,10 @@ public class DisplayRuntimeInstance implements AppInstance
         // Load files in background job
         JobManager.schedule("Load Display", monitor ->
         {
-            monitor.beginTask(info.getName());
+            monitor.beginTask(info.toString());
             try
             {
                 String parent_display = null;
-
-
-
 
                 final DisplayModel model = ModelLoader.resolveAndLoadModel(parent_display , info.getPath());
                 Platform.runLater(() -> represent(model));
@@ -128,6 +125,13 @@ public class DisplayRuntimeInstance implements AppInstance
         {
             showError("Cannot represent model", ex);
         }
+    }
+
+    void trackCurrentModel(final DisplayModel model)
+    {
+        // TODO There's much more to tracking the current model,
+        // see RuntimeViewPart#trackCurrentModel()
+        dock_item.setLabel(model.getDisplayName());
     }
 
     /** Show error message and stack trace

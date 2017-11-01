@@ -24,6 +24,13 @@ public class DockItemRepresentation extends JFXRepresentation
     }
 
     @Override
+    public void representModel(final Parent root, final DisplayModel model) throws Exception
+    {
+        app_instance.trackCurrentModel(model);
+        super.representModel(root, model);
+    }
+
+    @Override
     public ToolkitRepresentation<Parent, Node> openNewWindow(DisplayModel model,
             Consumer<DisplayModel> close_handler) throws Exception
     {

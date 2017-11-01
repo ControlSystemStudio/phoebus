@@ -8,12 +8,16 @@
 package org.csstudio.display.builder.runtime.app;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
+import static org.phoebus.framework.util.ResourceParser.createAppURI;
+import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -55,29 +59,40 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     @Override
     public DisplayRuntimeInstance create(final String resource)
     {
-        DisplayRuntimeInstance instance = null;
-
-        // TODO Change back to query args,
-        // "display_runtime?file=file:/some/path&MACRO=Some+Value&X=2"
-        // (only downside: Can't have a "file" macro)
-
-        // Expect "display_runtime?file=file:/some/path;MACRO=Some+Value;X=2"
+        // Expect "display_runtime?file=file:/some/path&MACRO=Some+Value&X=2"
         if (! resource.startsWith("display_runtime?file="))
         {
             logger.log(Level.SEVERE, "Expected '\"display_runtime?file=...\", ignoring " + resource);
             return null;
         }
 
-        // "file:/some/path;MACRO=Some+Value;X=2"
-        final URL orig_input = ResourceParser.createResourceURL(resource.substring(21));
+        // Get file path and maybe macros
+        final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
+        String path = null;
+        final Macros macros = new Macros();
+        for (Map.Entry<String, List<String>> entry : args.entrySet())
+        {
+            if (entry.getValue().size() != 1)
+                logger.log(Level.WARNING, "Expected 1 value for '" + entry.getKey() + "' but got " + entry.getValue());
+            else if (entry.getKey().equals(ResourceParser.FILE_ARG))
+                path = entry.getValue().get(0);
+            else
+                macros.add(entry.getKey(),  entry.getValue().get(0));
+        }
+        if (path == null)
+        {
+            logger.log(Level.WARNING, "Missing 'file=..' in " + resource);
+            return null;
+        }
 
-        // Convert URL to DisplayInfo and back for normalized URL,
-        // where for example macros are alphabetically sorted,
+        // Create display info
+        final DisplayInfo info =new DisplayInfo(path, macros, true);
+        // Display URL, normalized such that for example macros are alphabetically sorted,
         // to uniquely identify an already running instance via its input
-        final DisplayInfo info = DisplayInfo.forURL(orig_input);
         final URL input = info.toURL();
 
         // Check for existing instance with that input, i.e. path & macros
+        final DisplayRuntimeInstance instance;
         final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, input);
         if (existing != null)
         {   // Found one, raise it

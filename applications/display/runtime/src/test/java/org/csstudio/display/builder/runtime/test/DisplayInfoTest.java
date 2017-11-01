@@ -27,15 +27,8 @@ public class DisplayInfoTest
     @Test
     public void testDisplayInfo() throws Exception
     {
-        // 'Name' defaults to basename of path
-        DisplayInfo info = new DisplayInfo("/some/path/file.bob", null, new Macros(), true);
+        DisplayInfo info = new DisplayInfo("/some/path/file.bob",  new Macros(), true);
         assertThat(info.getPath(), equalTo("/some/path/file.bob"));
-        assertThat(info.getName(), equalTo("file.bob"));
-
-        // Name provided
-        info = new DisplayInfo("/some/path/file.bob", "My Display", new Macros(), true);
-        assertThat(info.getPath(), equalTo("/some/path/file.bob"));
-        assertThat(info.getName(), equalTo("My Display"));
     }
 
     @Test
@@ -47,15 +40,13 @@ public class DisplayInfoTest
         System.out.println(info);
 
         assertThat(info.getPath(), equalTo("/some/path/xx.bob"));
-        assertThat(info.getName(), equalTo("xx.bob"));
 
-        // Complete example with display name and macros
-        url = new URL("file:/some/path/xx.bob;X=Fred+Harvey%20Newman;Y=2?query=ignored#X%20Overview");
+        // .. with macros
+        url = new URL("file:/some/path/xx.bob?X=Fred+Harvey%20Newman&Y=2");
         info = DisplayInfo.forURL(url);
         System.out.println(info);
 
         assertThat(info.getPath(), equalTo("/some/path/xx.bob"));
-        assertThat(info.getName(), equalTo("X Overview"));
         assertThat(info.getMacros().getValue("X"), equalTo("Fred Harvey Newman"));
         assertThat(info.getMacros().getValue("Y"), equalTo("2"));
     }
@@ -65,7 +56,7 @@ public class DisplayInfoTest
     {
         // Plain path
         final Macros macros = new Macros();
-        DisplayInfo info = new DisplayInfo("/some/path/xx.bob", null, macros, false);
+        DisplayInfo info = new DisplayInfo("/some/path/xx.bob", macros, false);
         URL url = info.toURL();
         System.out.println(url);
         assertThat(url.toString(), equalTo("file:/some/path/xx.bob"));
@@ -73,26 +64,19 @@ public class DisplayInfoTest
         // .. with macros
         macros.add("X", "Fred Harvey Newman");
         macros.add("Y", "2");
-        info = new DisplayInfo("file:/some/path/xx.bob", null, macros, false);
+        info = new DisplayInfo("file:/some/path/xx.bob", macros, false);
         url = info.toURL();
         System.out.println(url);
 
-        assertThat(url.toString(), equalTo("file:/some/path/xx.bob;X=Fred+Harvey+Newman;Y=2"));
-
-        // .. and display name
-        info = new DisplayInfo("file:/some/path/xx.bob", "X Overview", macros, false);
-        url = info.toURL();
-        System.out.println(url);
-
-        assertThat(url.toString(), equalTo("file:/some/path/xx.bob;X=Fred+Harvey+Newman;Y=2#X+Overview"));
+        assertThat(url.toString(), equalTo("file:/some/path/xx.bob?X=Fred+Harvey+Newman&Y=2"));
     }
 
     @Test
     public void testUniqueness() throws Exception
     {
         // URLs using the same macros, but different order
-        final URL url1 = new URL("file:/some/path/xx.bob;X=Fred+Harvey%20Newman;Y=2;Z=1");
-        final URL url2 = new URL("file:/some/path/xx.bob;Z=1;X=Fred+Harvey%20Newman;Y=2");
+        final URL url1 = new URL("file:/some/path/xx.bob?X=Fred+Harvey%20Newman&Y=2&Z=1");
+        final URL url2 = new URL("file:/some/path/xx.bob?Z=1&X=Fred+Harvey%20Newman&Y=2");
 
         // Should result in equal DisplayInfos
         DisplayInfo info1 = DisplayInfo.forURL(url1);
@@ -105,6 +89,6 @@ public class DisplayInfoTest
         // When turned back into a URL, they use the alphabetical ordered macros
         // (like url1, but with '+' for spaces)
         assertThat(info1.toURL().toString(), equalTo(info2.toURL().toString()));
-        assertThat(info2.toURL().toString(), equalTo("file:/some/path/xx.bob;X=Fred+Harvey+Newman;Y=2;Z=1"));
+        assertThat(info2.toURL().toString(), equalTo("file:/some/path/xx.bob?X=Fred+Harvey+Newman&Y=2&Z=1"));
     }
 }
