@@ -18,6 +18,7 @@ import java.util.logging.Level;
 /** Job Manager
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class JobManager
 {
     private static final ConcurrentSkipListSet<Job> active_jobs =
