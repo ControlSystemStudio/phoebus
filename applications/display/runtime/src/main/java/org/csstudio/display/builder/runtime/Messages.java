@@ -12,6 +12,8 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order and aligned with messages.properties
+    public static String NavigateBack_TT;
+    public static String NavigateForward_TT;
     public static String Toolbar_Hide;
     public static String Toolbar_Show;
 

@@ -7,9 +7,15 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javafx.scene.control.Button;
+import org.csstudio.display.builder.runtime.Messages;
+
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SplitMenuButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -17,8 +23,7 @@ import javafx.scene.image.ImageView;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-// TODO Button with drop-down option
-public abstract class NavigationAction extends Button
+public abstract class NavigationAction extends SplitMenuButton
 {
     /** Icons */
     private static final Image backward, forward;
@@ -33,9 +38,9 @@ public abstract class NavigationAction extends Button
      *  @param navigation {@link DisplayNavigation} for that instance
      *  @return Button for navigating 'back'
      */
-    public static Button createBackAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation)
+    public static ButtonBase createBackAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation)
     {
-        return new NavigationAction(instance, navigation, backward)
+        return new NavigationAction(instance, navigation, Messages.NavigateBack_TT, backward)
         {
             @Override
             protected List<DisplayInfo> getDisplays()
@@ -55,9 +60,9 @@ public abstract class NavigationAction extends Button
      *  @param navigation {@link DisplayNavigation} for that instance
      *  @return Button for navigating 'forward'
      */
-    public static Button createForewardAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation)
+    public static ButtonBase createForewardAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation)
     {
-        return new NavigationAction(instance, navigation, forward)
+        return new NavigationAction(instance, navigation, Messages.NavigateForward_TT, forward)
         {
             @Override
             protected List<DisplayInfo> getDisplays()
@@ -75,18 +80,49 @@ public abstract class NavigationAction extends Button
 
     private final DisplayRuntimeInstance instance;
 
-    private NavigationAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation, final Image icon)
+    private NavigationAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation,
+                             final String tooltip, final Image icon)
     {
-        setGraphic(new ImageView(icon));
         this.instance = instance;
+        setGraphic(new ImageView(icon));
+        // Don't react to '&' etc. in display names
+        setMnemonicParsing(false);
+        setTooltip(new Tooltip(tooltip));
 
-        // Then automatically enable/disable
-        final DisplayNavigation.Listener listener = nav -> setDisable(getDisplays().isEmpty());
+        // Automatically enable/disable
+        final DisplayNavigation.Listener listener = nav -> updateUI(nav);
         navigation.addListener(listener);
         // Trigger initial enable/disable
         listener.displayHistoryChanged(navigation);
 
+        // Plain button click navigates one step
         setOnAction(event -> navigate(1));
+    }
+
+    private void updateUI(final DisplayNavigation navigation)
+    {
+        final List<DisplayInfo> displays = getDisplays();
+        final int N = displays.size();
+        if (N<=0)
+        {
+            setDisable(true);
+            getItems().clear();
+        }
+        else
+        {
+            setDisable(false);
+            final List<MenuItem> items = new ArrayList<>(N);
+            for (int i=0; i<N; ++i)
+                items.add(createNavigationItem(displays.get(N-i-1), i+1));
+            getItems().setAll(items);
+        }
+    }
+
+    private MenuItem createNavigationItem(final DisplayInfo info, final int steps)
+    {
+        final MenuItem item = new MenuItem(info.getName());
+        item.setOnAction(event -> navigate(steps));
+        return item;
     }
 
     /** @return List of back resp. forward displays */
