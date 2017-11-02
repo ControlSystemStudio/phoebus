@@ -52,6 +52,12 @@ public class DisplayRuntimeInstance implements AppInstance
     private final DockItemRepresentation representation;
     private Node toolbar;
 
+    /** Property on the 'model_parent' of the JFX scene that holds this DisplayRuntimeInstance */
+    static final String MODEL_PARENT_DISPLAY_RUNTIME = "_runtime_view_part";
+
+    /** Back/forward navigation */
+    private final DisplayNavigation navigation = new DisplayNavigation();
+
     /** Display info for the currently shown model */
     private volatile Optional<DisplayInfo> display_info = Optional.empty();
 
@@ -74,6 +80,7 @@ public class DisplayRuntimeInstance implements AppInstance
         dock_item = new DockItemWithInput(this, layout, null, null);
         dock_pane.addTab(dock_item);
 
+        representation.getModelParent().getProperties().put(MODEL_PARENT_DISPLAY_RUNTIME, this);
         representation.getModelParent().setOnContextMenuRequested(event ->
         {
             // TODO
@@ -86,7 +93,7 @@ public class DisplayRuntimeInstance implements AppInstance
             }
         });
 
-        dock_item.addClosedNotification(this::stop);
+        dock_item.addClosedNotification(this::onClosed);
     }
 
     @Override
@@ -97,17 +104,19 @@ public class DisplayRuntimeInstance implements AppInstance
 
     private Node createToolbar()
     {
+        // TODO toolbar
         final Separator sep = new Separator();
         HBox.setHgrow(sep, Priority.ALWAYS);
         return new HBox(5,
                         new Label("TODO: TOOLBAR"),
                         sep,
                         new Button("Zoom"),
-                        new Button("Back"),
-                        new Button("Fore")
+                        NavigationAction.createBackAction(this, navigation),
+                        NavigationAction.createForewardAction(this, navigation)
                         );
     }
 
+    /** Select dock item, make visible */
     public void raise()
     {
         dock_item.select();
@@ -148,17 +157,17 @@ public class DisplayRuntimeInstance implements AppInstance
         try
         {
             final DisplayModel model = info.shouldResolve()
-                    ? ModelLoader.resolveAndLoadModel(null, info.getPath())
-                    : ModelLoader.loadModel(info.getPath());
+                ? ModelLoader.resolveAndLoadModel(null, info.getPath())
+                : ModelLoader.loadModel(info.getPath());
 
             // This code is called
             // 1) When opening a new display
-            // No macros in info.
+            //    No macros in info.
             // 2) On application restart with DisplayInfo from memento
-            // info contains snapshot of macros from last run
-            // Could simply use info's macros if they are non-empty,
-            // but merging macros with those loaded from model file
-            // allows for newly added macros in the display file.
+            //    Info contains snapshot of macros from last run
+            //    Could simply use info's macros if they are non-empty,
+            //    but merging macros with those loaded from model file
+            //    allows for newly added macros in the display file.
             final Macros macros = Macros.merge(model.propMacros().getValue(), info.getMacros());
             model.propMacros().setValue(macros);
 
@@ -230,8 +239,9 @@ public class DisplayRuntimeInstance implements AppInstance
 
         // TODO There's much more to tracking the current model,
         // see RuntimeViewPart#trackCurrentModel()
-        // Update 'input'
-        // navigation.setCurrentDisplay(info);
+        // TODO Update 'input' for correct tool tip and, well, input for memento
+
+        navigation.setCurrentDisplay(info);
         active_model = model;
     }
 
@@ -273,9 +283,12 @@ public class DisplayRuntimeInstance implements AppInstance
         });
     }
 
-    public void stop()
+    /** DockItem closed */
+    public void onClosed()
     {
+        // Stop runtime, dispose widgets for the model
         disposeModel();
+        // Stop representation, so no more widgets can be created in this dock item
         representation.shutdown();
     }
 }

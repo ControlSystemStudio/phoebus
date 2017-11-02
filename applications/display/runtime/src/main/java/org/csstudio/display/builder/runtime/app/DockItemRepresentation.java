@@ -24,17 +24,22 @@ public class DockItemRepresentation extends JFXRepresentation
     }
 
     @Override
-    public void representModel(final Parent root, final DisplayModel model) throws Exception
-    {
-        app_instance.trackCurrentModel(model);
-        super.representModel(root, model);
-    }
-
-    @Override
     public ToolkitRepresentation<Parent, Node> openNewWindow(DisplayModel model,
             Consumer<DisplayModel> close_handler) throws Exception
     {
         // TODO DisplayRuntimeApplication.create().represent(model)
         return super.openNewWindow(model, close_handler);
+    }
+
+    @Override
+    public void representModel(final Parent model_parent, final DisplayModel model) throws Exception
+    {
+        // Top-level Group of the part's Scene has pointer to DisplayRuntimeInstance.
+        // For EmbeddedDisplayWidget, the parent is inside the EmbeddedDisplayWidget,
+        // and has no reference to the DisplayRuntimeInstance.
+        // Only track the top-level model, not embedded models.
+        if (model_parent.getProperties().get(DisplayRuntimeInstance.MODEL_PARENT_DISPLAY_RUNTIME) == app_instance)
+            app_instance.trackCurrentModel(model);
+        super.representModel(model_parent, model);
     }
 }
