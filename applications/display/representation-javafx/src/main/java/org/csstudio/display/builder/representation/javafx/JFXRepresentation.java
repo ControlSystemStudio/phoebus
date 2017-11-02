@@ -289,6 +289,20 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         return zoom;
     }
 
+    /** @return Zoom factor, 1.0 for 1:1 */
+    public double getZoom()
+    {
+        final List<Transform> transforms = widget_parent.getTransforms();
+        if (transforms.isEmpty()  ||
+            transforms.size() > 1 ||
+            ! (transforms.get(0) instanceof Scale))
+            return 1.0;
+        // Have one 'scale'
+        final Scale scale = (Scale) transforms.get(0);
+        // Expect scaling in X == Y, but just in case return average
+        return ( scale.getX() + scale.getY() ) / 2.0;
+    }
+
     /** Obtain the 'children' of a Toolkit widget parent
      *  @param parent Parent that's either Group or Pane
      *  @return Children
