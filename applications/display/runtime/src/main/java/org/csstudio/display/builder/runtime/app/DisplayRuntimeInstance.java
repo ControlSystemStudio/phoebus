@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -54,18 +55,36 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Display info for the currently shown model */
     private volatile Optional<DisplayInfo> display_info = Optional.empty();
 
+    private DisplayModel active_model;
 
     DisplayRuntimeInstance(final AppDescriptor app)
     {
         this.app = app;
 
+        final DockPane dock_pane = DockPane.getActiveDockPane();
+        JFXRepresentation.setSceneStyle(dock_pane.getScene());
+
         representation = new DockItemRepresentation(this);
+        RuntimeUtil.hookRepresentationListener(representation);
+
         toolbar = createToolbar();
         BorderPane.setMargin(toolbar, new Insets(5, 5, 0, 5));
         layout.setTop(toolbar);
         layout.setCenter(representation.createModelRoot());
         dock_item = new DockItemWithInput(this, layout, null, null);
-        DockPane.getActiveDockPane().addTab(dock_item);
+        dock_pane.addTab(dock_item);
+
+        representation.getModelParent().setOnContextMenuRequested(event ->
+        {
+            // TODO
+            System.out.println("SHOULD SHOW CONTEXT MENU!");
+            final DisplayModel model = active_model;
+            if (model != null)
+            {
+                event.consume();
+                representation.fireContextMenu(model);
+            }
+        });
 
         dock_item.addClosedNotification(this::stop);
     }
@@ -100,7 +119,7 @@ public class DisplayRuntimeInstance implements AppInstance
     public void loadDisplayFile(final DisplayInfo info)
     {
         // If already executing another display, shut it down
-        // TODO disposeModel();
+        disposeModel();
 
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
@@ -157,11 +176,6 @@ public class DisplayRuntimeInstance implements AppInstance
      */
     private void representModel(final DisplayModel model)
     {
-        // TODO disposeModelAndRepresentation(old_model)
-        // representation.disposeRepresentation(old_model);
-
-        final DisplayInfo info = DisplayInfo.forModel(model);
-
         try
         {
             final Parent parent = representation.getModelParent();
@@ -218,7 +232,16 @@ public class DisplayRuntimeInstance implements AppInstance
         // see RuntimeViewPart#trackCurrentModel()
         // Update 'input'
         // navigation.setCurrentDisplay(info);
-        // active_model = model;
+        active_model = model;
+    }
+
+    /** Stop runtime, dispose representation for current model */
+    private void disposeModel()
+    {
+        final DisplayModel model = active_model;
+        active_model = null;
+        if (model != null)
+            ActionUtil.handleClose(model);
     }
 
     /** Show error message and stack trace
@@ -252,6 +275,7 @@ public class DisplayRuntimeInstance implements AppInstance
 
     public void stop()
     {
-        // TODO Stop runtime, dispose representation, release model
+        disposeModel();
+        representation.shutdown();
     }
 }

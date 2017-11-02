@@ -72,7 +72,7 @@ public class RuntimeUtil
      */
     public static void hookRepresentationListener(final ToolkitRepresentation<?,?> toolkit)
     {
-        // For representation in an RCP view, a "new" display
+        // For representation in an RCP view or Phoebus dock item, a "new" display
         // may actually just bring an existing display back to the front.
         // In that case, prevent double-subscription by first trying to
         // remove the listener.
