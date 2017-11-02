@@ -10,12 +10,31 @@ import javafx.scene.layout.Region;
  */
 public class ToolbarHelper
 {
-    /** @return 'Spring' that fills available space */
+    // See http://www.oracle.com/technetwork/articles/java/javafxbest2-1634274.html
+
+    /** @return 'Spring', spacer that fills available space */
     public static Node createSpring()
     {
-        // See http://www.oracle.com/technetwork/articles/java/javafxbest2-1634274.html
         final Region sep = new Region();
         HBox.setHgrow(sep, Priority.ALWAYS);
+        return sep;
+    }
+
+    /** @return 'Strut', a small fixed-width spacer */
+    public static Node createStrut()
+    {
+        return createStrut(10);
+    }
+
+    /** @param width Desired width
+     *  @return 'Strut' that occupies requested width
+     */
+    public static Node createStrut(int width)
+    {
+        final Region sep = new Region();
+        sep.setPrefWidth(width);
+        sep.setMinWidth(Region.USE_PREF_SIZE);
+        sep.setMaxWidth(Region.USE_PREF_SIZE);
         return sep;
     }
 }
