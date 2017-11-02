@@ -23,7 +23,18 @@ public class Styles
     public static void setSceneStyle(final Scene scene)
     {
         final String css = Styles.class.getResource("csstudio.css").toExternalForm();
-        scene.getStylesheets().add(css);
+        set(scene, css);
+    }
+
+    /** Apply style sheet to scene (but only once)
+     *
+     *  @param scene Scene where style sheet is added
+     *  @param css Style sheet to apply
+     */
+    public static void set(final Scene scene, final String css)
+    {
+        if (! scene.getStylesheets().contains(css))
+            scene.getStylesheets().add(css);
     }
 
     /** Set a style
