@@ -27,8 +27,9 @@ public class DisplayInfoTest
     @Test
     public void testDisplayInfo() throws Exception
     {
-        DisplayInfo info = new DisplayInfo("/some/path/file.bob",  new Macros(), true);
+        DisplayInfo info = new DisplayInfo("/some/path/file.bob",  null, new Macros(), true);
         assertThat(info.getPath(), equalTo("/some/path/file.bob"));
+        assertThat(info.getName(), equalTo("file.bob"));
     }
 
     @Test
@@ -56,7 +57,7 @@ public class DisplayInfoTest
     {
         // Plain path
         final Macros macros = new Macros();
-        DisplayInfo info = new DisplayInfo("/some/path/xx.bob", macros, false);
+        DisplayInfo info = new DisplayInfo("/some/path/xx.bob", null, macros, false);
         URL url = info.toURL();
         System.out.println(url);
         assertThat(url.toString(), equalTo("file:/some/path/xx.bob"));
@@ -64,7 +65,7 @@ public class DisplayInfoTest
         // .. with macros
         macros.add("X", "Fred Harvey Newman");
         macros.add("Y", "2");
-        info = new DisplayInfo("file:/some/path/xx.bob", macros, false);
+        info = new DisplayInfo("file:/some/path/xx.bob", null, macros, false);
         url = info.toURL();
         System.out.println(url);
 

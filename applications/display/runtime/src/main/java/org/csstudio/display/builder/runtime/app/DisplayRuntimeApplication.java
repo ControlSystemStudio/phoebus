@@ -86,7 +86,7 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
         }
 
         // Create display info
-        final DisplayInfo info =new DisplayInfo(path, macros, true);
+        final DisplayInfo info = new DisplayInfo(path, null, macros, true);
         // Display URL, normalized such that for example macros are alphabetically sorted,
         // to uniquely identify an already running instance via its input
         final URL input = info.toURL();

@@ -28,6 +28,7 @@ public class DisplayInfo
 {
     private static final String UTF_8 = "UTF-8";
     private final String path;
+    private final String name;
     private final Macros macros;
     private final boolean resolve;
 
@@ -72,7 +73,7 @@ public class DisplayInfo
                 }
             }
 
-        return new DisplayInfo(path, macros, true);
+        return new DisplayInfo(path, null, macros, true);
     }
 
     /** Decode URL text
@@ -109,6 +110,7 @@ public class DisplayInfo
         return text;
     }
 
+    // TODO Remove?
     private static String basename(final String path)
     {
         int sep = path.lastIndexOf('/');
@@ -125,17 +127,23 @@ public class DisplayInfo
     public static DisplayInfo forModel(final DisplayModel model)
     {
         return new DisplayInfo(model.getUserData(DisplayModel.USER_DATA_INPUT_FILE),
+                model.getDisplayName(),
                 model.propMacros().getValue(),
                 false);
     }
 
     /** @param path Path to the display
+     *  @param name Display name or <code>null</code> to use basename of path
      *  @param macros Macros
      *  @param resolve Resolve the display, potentially using *.bob for a *.opi path?
      */
-    public DisplayInfo(final String path, final Macros macros, final boolean resolve)
+    public DisplayInfo(final String path, final String name, final Macros macros, final boolean resolve)
     {
         this.path = path;
+        if (name == null  ||  name.isEmpty())
+            this.name = basename(path);
+        else
+            this.name = name;
         this.macros = Objects.requireNonNull(macros);
         this.resolve = resolve;
     }
@@ -144,6 +152,12 @@ public class DisplayInfo
     public String getPath()
     {
         return path;
+    }
+
+    /** @return Display name to show to user */
+    public String getName()
+    {
+        return name;
     }
 
     /** @return Macros */
@@ -174,7 +188,8 @@ public class DisplayInfo
         if (! (obj instanceof DisplayInfo))
             return false;
         final DisplayInfo other = (DisplayInfo) obj;
-        // Displays match if they refer to the same path and macros
+        // Displays match if they refer to the same path and macros,
+        // regardless of 'name'
         return path.equals(other.path) &&
                macros.equals(other.macros);
     }
@@ -224,6 +239,6 @@ public class DisplayInfo
     @Override
     public String toString()
     {
-        return "Display " + path + ", macros " + macros + (resolve ? " (resolve)" : "");
+        return "Display '" + name + "' " + path + ", macros " + macros + (resolve ? " (resolve)" : "");
     }
 }

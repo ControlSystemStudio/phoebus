@@ -11,16 +11,20 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.jobs.JobManager;
+import org.phoebus.ui.jobs.JobMonitor;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -37,6 +41,7 @@ import javafx.scene.layout.Priority;
 /** PV Table Application
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class DisplayRuntimeInstance implements AppInstance
 {
     // TODO This is ~ RCP RuntimeViewPart
@@ -45,6 +50,10 @@ public class DisplayRuntimeInstance implements AppInstance
     private final DockItemWithInput dock_item;
     private final DockItemRepresentation representation;
     private Node toolbar;
+
+    /** Display info for the currently shown model */
+    private volatile Optional<DisplayInfo> display_info = Optional.empty();
+
 
     DisplayRuntimeInstance(final AppDescriptor app)
     {
@@ -85,61 +94,135 @@ public class DisplayRuntimeInstance implements AppInstance
         dock_item.select();
     }
 
+    /** Load display file, represent it, start runtime
+     *  @param info Display file to load
+     */
     public void loadDisplayFile(final DisplayInfo info)
     {
+        // If already executing another display, shut it down
+        // TODO disposeModel();
+
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
         // another instance
         dock_item.setInput(info.toURL());
 
-        // Load files in background job
-        JobManager.schedule("Load Display", monitor ->
-        {
-            monitor.beginTask(info.toString());
-            try
-            {
-                String parent_display = null;
+        // Now that old model is no longer represented,
+        // show info.
+        // Showing this info before disposeModel()
+        // would result in old representation not being able
+        // to traverse its expected widget tree
+        showMessage("Loading " + info);
 
-                final DisplayModel model = ModelLoader.resolveAndLoadModel(parent_display , info.getPath());
-                Platform.runLater(() -> represent(model));
-            }
-            catch (Exception ex)
-            {
-                showError("Error loading " + info, ex);
-            }
-        });
+        // Note the path & macros, then
+        display_info = Optional.of(info);
+        // load model off UI thread
+        JobManager.schedule("Load Display", monitor -> loadModel(monitor, info));
     }
 
-    void represent(final DisplayModel model)
+    /** Load display model, schedule representation
+     *  @param info Display to load
+     */
+    private void loadModel(final JobMonitor monitor, final DisplayInfo info)
     {
-        // TODO disposeModelAndRepresentation(old_model)
-        final DisplayInfo info = DisplayInfo.forModel(model);
-
-        final Parent parent = representation.getModelParent();
-        JFXRepresentation.getChildren(parent).clear();
+        monitor.beginTask(info.toString());
         try
         {
+            final DisplayModel model = info.shouldResolve()
+                    ? ModelLoader.resolveAndLoadModel(null, info.getPath())
+                    : ModelLoader.loadModel(info.getPath());
+
+            // This code is called
+            // 1) When opening a new display
+            // No macros in info.
+            // 2) On application restart with DisplayInfo from memento
+            // info contains snapshot of macros from last run
+            // Could simply use info's macros if they are non-empty,
+            // but merging macros with those loaded from model file
+            // allows for newly added macros in the display file.
+            final Macros macros = Macros.merge(model.propMacros().getValue(), info.getMacros());
+            model.propMacros().setValue(macros);
+
+            // Schedule representation on UI thread
+            representation.execute(() -> representModel(model));
+        }
+        catch (Exception ex)
+        {
+            showError("Error loading " + info, ex);
+        }
+    }
+
+    /** Represent model, schedule start of runtime
+     *  @param model Model to represent
+     */
+    private void representModel(final DisplayModel model)
+    {
+        // TODO disposeModelAndRepresentation(old_model)
+        // representation.disposeRepresentation(old_model);
+
+        final DisplayInfo info = DisplayInfo.forModel(model);
+
+        try
+        {
+            final Parent parent = representation.getModelParent();
+            JFXRepresentation.getChildren(parent).clear();
             representation.representModel(parent, model);
         }
         catch (Exception ex)
         {
             showError("Cannot represent model", ex);
         }
+
+        // Start runtimes in background
+        RuntimeUtil.getExecutor().execute(() -> RuntimeUtil.startRuntime(model));
     }
 
+    /** Take note of the currently displayed model
+     *
+     *  <p>Called by the {@link DockItemRepresentation},
+     *  either when representing the initial model or when
+     *  an action later changes the model.
+     *
+     *  @param model Model that's now represented
+     */
     void trackCurrentModel(final DisplayModel model)
     {
+        final DisplayInfo old_info = display_info.orElse(null);
+        final DisplayInfo info = DisplayInfo.forModel(model);
+        // A display might be loaded without macros,
+        // but the DisplayModel may then have macros configured in the display itself.
+        //
+        // This can later result in not recognizing an existing display:
+        // Display X is running, and it contained macros.
+        // Now somehow we open X again, without macros, but
+        // all the executing displays have X with macros,
+        // so we open yet another one instead of showing the existing instance.
+        //
+        // To avoid this problem:
+        //
+        // When first loading a display, set display_info to the received info.
+        //
+        // When this is later updated, only replace the display_info
+        // if there was none,
+        // or the new one has a different path,
+        // or different macros _and_ there were original macros.
+        if ( old_info == null  ||
+            !old_info.getPath().equals(info.getPath()) ||
+          ( !old_info.getMacros().isEmpty()  &&  !old_info.getMacros().equals(info.getMacros())))
+        {
+            display_info = Optional.of(info);
+        }
+        dock_item.setLabel(info.getName());
+
         // TODO There's much more to tracking the current model,
         // see RuntimeViewPart#trackCurrentModel()
-        dock_item.setLabel(model.getDisplayName());
+        // Update 'input'
+        // navigation.setCurrentDisplay(info);
+        // active_model = model;
     }
 
     /** Show error message and stack trace
-     *
-     *  <p>Replaces the 'Representation' in the center
-     *  of the layout with an error message.
-     *
-     *  @param message Me
+     *  @param message Message
      *  @param error
      */
     private void showError(final String message, final Throwable error)
@@ -148,14 +231,22 @@ public class DisplayRuntimeInstance implements AppInstance
 
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         final PrintStream out = new PrintStream(buf);
-        out.append(message).append("\n");
+        out.append(message).append("\n\n");
         error.printStackTrace(out);
-        final String info = buf.toString();
+        showMessage(buf.toString());
+    }
+
+    /** Show message
+     *  @param message Message
+     */
+    private void showMessage(final String message)
+    {
         Platform.runLater(() ->
         {
-            final TextArea text = new TextArea(info);
+            final TextArea text = new TextArea(message);
             text.setEditable(false);
-            layout.setCenter(text);
+            text.setPrefSize(800, 600);
+            JFXRepresentation.getChildren(representation.getModelParent()).setAll(text);
         });
     }
 
