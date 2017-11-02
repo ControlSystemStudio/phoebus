@@ -24,6 +24,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
 
@@ -31,13 +32,9 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 
 /** PV Table Application
  *  @author Kay Kasemir
@@ -102,18 +99,19 @@ public class DisplayRuntimeInstance implements AppInstance
         return app;
     }
 
+    /** @return {@link JFXRepresentation} */
+    JFXRepresentation getRepresentation()
+    {
+        return representation;
+    }
+
     private Node createToolbar()
     {
-        // TODO toolbar
-        final Separator sep = new Separator();
-        HBox.setHgrow(sep, Priority.ALWAYS);
-        return new HBox(5,
-                        new Label("TODO: TOOLBAR"),
-                        sep,
-                        new Button("Zoom"),
-                        NavigationAction.createBackAction(this, navigation),
-                        NavigationAction.createForewardAction(this, navigation)
-                        );
+        return new ToolBar(ToolbarHelper.createSpring(),
+                           new ZoomAction(this),
+                           NavigationAction.createBackAction(this, navigation),
+                           NavigationAction.createForewardAction(this, navigation)
+                           );
     }
 
     /** Select dock item, make visible */
