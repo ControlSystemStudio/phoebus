@@ -5,7 +5,7 @@
   <height>1100</height>
   <widget type="table" version="2.0.0">
     <name>user_table</name>
-    <width>310</width>
+    <width>340</width>
     <height>429</height>
     <columns>
       <column>
@@ -15,7 +15,7 @@
       </column>
       <column>
         <name>Small</name>
-        <width>1</width>
+        <width>100</width>
         <editable>true</editable>
         <options>
           <option>false</option>
@@ -24,7 +24,7 @@
       </column>
       <column>
         <name>Condition</name>
-        <width>1</width>
+        <width>100</width>
         <editable>true</editable>
         <options>
           <option>Terrific</option>

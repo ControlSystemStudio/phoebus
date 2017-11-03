@@ -394,20 +394,22 @@ public class StringTable extends BorderPane
         // Remove all data
         table.setItems(NO_DATA);
 
-        table.getColumns().clear();
+        // Forcing this refresh avoided https://github.com/kasemir/org.csstudio.display.builder/issues/245,
+        // an IndexOutOfBoundsException somewhere in CSS updates that uses the wrong table row count
+        // Doesn't seem necessary any more?
+        table.refresh();
+
         cell_colors = null;
+        // Remove table columns, create new ones
+        table.getColumns().clear();
+        for (String header : headers)
+            createTableColumn(-1, header);
 
         // Start over with no data, since table columns changed
         data.clear();
         if (editable)
             data.add(MAGIC_LAST_ROW);
         table.setItems(data);
-        // Forcing this refresh avoids https://github.com/kasemir/org.csstudio.display.builder/issues/245,
-        // an IndexOutOfBoundsException somewhere in CSS updates that uses the wrong table row count
-        table.refresh();
-
-        for (String header : headers)
-            createTableColumn(-1, header);
     }
 
     /** Set (minimum and preferred) column width
