@@ -19,6 +19,11 @@
     <ant target="clean" dir="applications/logConfiguration"/>
     <ant target="clean" dir="applications/pvtree"/>
     <ant target="clean" dir="applications/pvtable"/>
+    <ant target="clean" dir="applications/display/rtplot"/>
+    <ant target="clean" dir="applications/display/model"/>
+    <ant target="clean" dir="applications/display/representation"/>
+    <ant target="clean" dir="applications/display/representation-javafx"/>
+    <ant target="clean" dir="applications/display/runtime"/>
     <ant target="clean" dir="phoebus-product"/>
   </target>
 
@@ -44,6 +49,11 @@
     <ant dir="applications/logConfiguration"/>
     <ant dir="applications/pvtree"/>
     <ant dir="applications/pvtable"/>
+    <ant dir="applications/display/rtplot"/>
+    <ant dir="applications/display/model"/>
+    <ant dir="applications/display/representation"/>
+    <ant dir="applications/display/representation-javafx"/>
+    <ant dir="applications/display/runtime"/>
   </target>
 
   <target name="product" depends="applications" description="Assemble product">

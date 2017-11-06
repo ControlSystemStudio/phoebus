@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Data Browser Plot</name>
+  <width>600</width>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Data Browser Plot Widget</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>481</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays PVs over time, using a separate Data Browser *.plt file for configuration.</text>
+    <y>41</y>
+    <width>530</width>
+    <height>40</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Runtime Usage of Plot</text>
+    <y>441</y>
+    <width>221</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>The plot supports the same zoom and pan operations as the XYPlot.
+
+In addition, the context menu of the widget allows opening the full Data Browser for the *.plt file.</text>
+    <y>480</y>
+    <width>400</width>
+    <height>100</height>
+  </widget>
+  <widget type="databrowser" version="2.0.0">
+    <name>X/Y Plot_1</name>
+    <file>plots_databrowser.plt</file>
+    <y>91</y>
+    <width>511</width>
+    <height>340</height>
+    <show_toolbar>false</show_toolbar>
+    <tooltip>sim://sinewave(1, 50, 100, 0.1, 70, 90)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="open_display">
+        <file>plots_xy.bob</file>
+        <target>replace</target>
+        <description>XY Plot</description>
+      </action>
+    </actions>
+    <x>410</x>
+    <y>480</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

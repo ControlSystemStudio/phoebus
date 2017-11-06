@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="action_button" version="3.0.0">
+    <name>AB1</name>
+    <actions>
+      <action type="open_display">
+        <file>combo.opi</file>
+        <target>tab</target>
+        <description>OpenComboTab</description>
+      </action>
+    </actions>
+    <text>Action Buttton 1 action</text>
+    <x>70</x>
+    <y>201</y>
+    <width>270</width>
+    <height>40</height>
+    <background_color>
+      <color red="228" green="176" blue="189">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>AB4_run2</name>
+    <actions>
+      <action type="open_display">
+        <file>combo.opi</file>
+        <target>tab</target>
+        <description>OpenComboTab</description>
+      </action>
+      <action type="open_display">
+        <file>bool_buttons.opi</file>
+        <target>tab</target>
+        <description>OpenBoolButtonsTab</description>
+      </action>
+      <action type="open_display">
+        <file>gauges.opi</file>
+        <target>tab</target>
+        <description>OpenGaugesTab</description>
+      </action>
+      <action type="open_display">
+        <file>rules.opi</file>
+        <target>tab</target>
+        <description>OpenRulesTab</description>
+      </action>
+    </actions>
+    <text>Action Buttton 4 action, run #2</text>
+    <x>70</x>
+    <y>312</y>
+    <width>270</width>
+    <height>40</height>
+    <background_color>
+      <color red="160" green="236" blue="210">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>AB4_runall</name>
+    <actions>
+      <action type="open_display">
+        <file>combo.opi</file>
+        <target>replace</target>
+        <description>OpenComboReplace</description>
+      </action>
+      <action type="open_display">
+        <file>bool_buttons.opi</file>
+        <target>tab</target>
+        <description>OpenBoolButtonsTab</description>
+      </action>
+      <action type="open_display">
+        <file>gauges.opi</file>
+        <target>tab</target>
+        <description>OpenGaugesTab</description>
+      </action>
+      <action type="open_display">
+        <file>rules.opi</file>
+        <target>standalone</target>
+        <description>OpenRulesNewWindow</description>
+      </action>
+    </actions>
+    <text>Action Buttton 4 action, run all</text>
+    <x>70</x>
+    <y>424</y>
+    <width>270</width>
+    <height>40</height>
+    <foreground_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color red="80" green="0" blue="80">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>MenuButton_FromPV</name>
+    <pv_name>loc://test</pv_name>
+    <x>411</x>
+    <y>201</y>
+    <width>270</width>
+    <height>40</height>
+    <background_color>
+      <color red="220" green="158" blue="175">
+      </color>
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+    </items>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>MenuButton_5action</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>4</value>
+      </action>
+      <action type="open_display">
+        <file>bool_buttons.opi</file>
+        <target>tab</target>
+        <description>OpenBoolButtons</description>
+      </action>
+      <action type="open_display">
+        <file>gauges.opi</file>
+        <target>tab</target>
+      </action>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>8</value>
+      </action>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>20</value>
+      </action>
+    </actions>
+    <pv_name>loc://test</pv_name>
+    <text>Menu Button 5 actions</text>
+    <x>422</x>
+    <y>424</y>
+    <width>270</width>
+    <height>40</height>
+    <foreground_color>
+      <color name="Header_ForeGround" red="255" green="255" blue="255">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color red="80" green="0" blue="80">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Import as action button to do 1 action</text>
+    <x>70</x>
+    <y>169</y>
+    <width>270</width>
+    <height>22</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Import as action button with dropdown of 4</text>
+    <x>70</x>
+    <y>280</y>
+    <width>270</width>
+    <height>22</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Import as action button with dropdown of 4</text>
+    <x>70</x>
+    <y>388</y>
+    <width>270</width>
+    <height>22</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Import as combo box from PV</text>
+    <x>411</x>
+    <y>169</y>
+    <width>270</width>
+    <height>22</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Import as action button with dropdown of 5</text>
+    <x>422</x>
+    <y>388</y>
+    <width>270</width>
+    <height>22</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>loc://test</pv_name>
+    <x>70</x>
+    <y>76</y>
+    <width>80</width>
+    <height>26</height>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Test PV Value</text>
+    <x>70</x>
+    <y>45</y>
+    <width>270</width>
+    <height>22</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Action to execute external command</text>
+    <x>411</x>
+    <y>280</y>
+    <width>270</width>
+    <height>22</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>AB1_1</name>
+    <actions>
+      <action type="command">
+        <command>echo Hello</command>
+        <description>Hello</description>
+      </action>
+    </actions>
+    <text>Hello</text>
+    <x>411</x>
+    <y>312</y>
+    <width>270</width>
+    <height>40</height>
+    <background_color>
+      <color red="228" green="176" blue="189">
+      </color>
+    </background_color>
+    <tooltip>Print Hello</tooltip>
+  </widget>
+</display>

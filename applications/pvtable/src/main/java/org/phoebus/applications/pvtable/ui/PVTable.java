@@ -24,6 +24,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
+import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VType;
 
@@ -44,7 +45,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -52,6 +52,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
@@ -60,7 +61,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.util.converter.DefaultStringConverter;
 
 /** PV Table and its toolbar
@@ -412,7 +412,8 @@ public class PVTable extends BorderPane
 
     private Node createToolbar()
     {
-        return new HBox(5,
+        return new ToolBar(
+            ToolbarHelper.createSpring(),
             createButton("checked.gif", Messages.CheckAll_TT, event ->
             {
                 for (PVTableItem item : model.getItems())
@@ -423,14 +424,10 @@ public class PVTable extends BorderPane
                 for (PVTableItem item : model.getItems())
                     item.setSelected(false);
             }),
-
-            new Separator(),
-
+            ToolbarHelper.createStrut(),
             createButton("snapshot.png", Messages.Snapshot_TT, event -> model.save()),
-            createButton("restore.png", Messages.Restore_TT, event -> model.restore()),
-
-            new Separator()
-                );
+            createButton("restore.png", Messages.Restore_TT, event -> model.restore())
+            );
     }
 
     private Button createButton(final String icon, final String tooltip, final EventHandler<ActionEvent> handler)

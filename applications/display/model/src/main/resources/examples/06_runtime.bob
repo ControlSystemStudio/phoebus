@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Runtime</name>
+  <height>900</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Runtime Support</text>
+    <width>281</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Value</text>
+    <y>50</y>
+    <width>141</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>sim://sine(0, 10, 0.5)</pv_name>
+    <x>90</x>
+    <y>290</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Alarm Indication</text>
+    <x>230</x>
+    <y>50</y>
+    <width>169</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Tool Tip</text>
+    <x>450</x>
+    <y>50</y>
+    <width>169</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="tank" version="2.0.0">
+    <name>Tank</name>
+    <pv_name>sim://sine(0, 10, 0.5)</pv_name>
+    <x>240</x>
+    <y>200</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Simply configuring the PV name
+should be sufficient for most
+widgets to display the current
+value including units,
+using the information
+regarding suggested
+display precision
+and value range.
+</text>
+    <y>80</y>
+    <width>210</width>
+    <height>170</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>By default, all widgets
+will represent the alarm
+state of the PV via
+a border.</text>
+    <x>230</x>
+    <y>80</y>
+    <width>190</width>
+    <height>140</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>By default, all widgets
+that have a PV can display
+the PV name and current
+value in a tool tip.</text>
+    <x>450</x>
+    <y>80</y>
+    <width>190</width>
+    <height>140</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Optionally, the PV's
+units, range etc.
+can be ignored,
+instead configuring
+these via widget
+properties.
+</text>
+    <y>410</y>
+    <width>210</width>
+    <height>170</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>The alarm-sensitive
+border can be
+disabled.</text>
+    <x>230</x>
+    <y>410</y>
+    <width>190</width>
+    <height>140</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>This text has been
+configured to have
+a tooltip,
+and the tank below
+has a non-default
+tool tip.
+</text>
+    <x>450</x>
+    <y>410</y>
+    <width>190</width>
+    <height>140</height>
+    <tooltip>Thanks for reading the text!
+
+                ;-)
+
+Have fun.</tooltip>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>sim://sine(0, 10, 0.5)</pv_name>
+    <x>90</x>
+    <y>660</y>
+    <format>3</format>
+    <precision>3</precision>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="tank" version="2.0.0">
+    <name>Tank_1</name>
+    <pv_name>sim://sine(0, 10, 0.5)</pv_name>
+    <x>240</x>
+    <y>570</y>
+    <tooltip>This is a tank.
+
+Current value: $(pv_value)</tooltip>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <limits_from_pv>false</limits_from_pv>
+  </widget>
+</display>

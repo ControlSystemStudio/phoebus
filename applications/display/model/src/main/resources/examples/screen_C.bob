@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Screen C</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>301</width>
+    <height>31</height>
+    <text>Sample Screen C</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture</name>
+    <x>81</x>
+    <y>51</y>
+    <width>740</width>
+    <height>430</height>
+    <file>pic/sea.jpg</file>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <x>81</x>
+    <y>501</y>
+    <width>400</width>
+    <height>60</height>
+    <text>Cape Spartel‎, Tangier, Morocco
+Author: Diego Delso
+Wikimedia Commons, License CC-BY-SA 4.0</text>
+  </widget>
+</display>

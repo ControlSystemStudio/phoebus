@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <width>250</width>
+  <height>180</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Example for programmatically selecting the active Navigation Tab.</text>
+    <width>250</width>
+    <height>40</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://active_tab(0)</pv_name>
+    <x>130</x>
+    <y>40</y>
+    <precision>0</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Enter desired tab:</text>
+    <y>40</y>
+    <width>150</width>
+    <height>30</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>0</value>
+        <description>First Tab</description>
+      </action>
+    </actions>
+    <pv_name>loc://active_tab(0)</pv_name>
+    <x>130</x>
+    <y>70</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>1</value>
+        <description>Second Tab</description>
+      </action>
+    </actions>
+    <pv_name>loc://active_tab(0)</pv_name>
+    <x>130</x>
+    <y>110</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

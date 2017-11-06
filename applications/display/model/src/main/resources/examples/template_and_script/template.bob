@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <width>160</width>
+  <height>20</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>80</width>
+    <text>$(NAME):</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Template</name>
+    <x>80</x>
+    <width>70</width>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+</display>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Gauge Widgets</name>
+  <width>690</width>
+  <height>840</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Gauge Widgets</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Gauges display numerical values in a graphical manner.</text>
+    <y>50</y>
+    <width>590</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Different Skins</text>
+    <y>90</y>
+    <width>580</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>0</skin>
+    <x>10</x>
+    <y>120</y>
+    <title>DASHBOARD</title>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_1</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>1</skin>
+    <x>180</x>
+    <y>120</y>
+    <title>DIGITAL</title>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_2</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <x>350</x>
+    <y>120</y>
+    <title>FLAT</title>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_3</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>3</skin>
+    <x>520</x>
+    <y>120</y>
+    <background_color>
+      <color red="26" green="26" blue="26">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <title>MODERN</title>
+    <title_color>
+      <color name="Background" red="255" green="255" blue="255">
+      </color>
+    </title_color>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_4</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>4</skin>
+    <x>10</x>
+    <y>290</y>
+    <title>SIMPLE_DIGITAL</title>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_5</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <x>180</x>
+    <y>290</y>
+    <title>SIMPLE_SECTION</title>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_6</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>6</skin>
+    <x>350</x>
+    <y>290</y>
+    <title>SLIM</title>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Start From Zero</text>
+    <y>470</y>
+    <width>580</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_11</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>0</skin>
+    <x>10</x>
+    <y>500</y>
+    <title>DASHBOARD</title>
+    <value_color>
+      <color red="51" green="77" blue="179">
+      </color>
+    </value_color>
+    <bar_color>
+      <color red="77" green="102" blue="204">
+      </color>
+    </bar_color>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_12</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>1</skin>
+    <x>180</x>
+    <y>500</y>
+    <title>DIGITAL</title>
+    <bar_color>
+      <color red="179" green="128" blue="26">
+      </color>
+    </bar_color>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_13</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <x>350</x>
+    <y>500</y>
+    <title>FLAT</title>
+    <bar_color>
+      <color red="179" green="128" blue="179">
+      </color>
+    </bar_color>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_14</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>3</skin>
+    <x>520</x>
+    <y>500</y>
+    <background_color>
+      <color red="26" green="26" blue="26">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <title>MODERN</title>
+    <title_color>
+      <color name="Background" red="255" green="255" blue="255">
+      </color>
+    </title_color>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_15</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>0</skin>
+    <x>10</x>
+    <y>670</y>
+    <title>DASHBOARD</title>
+    <bar_background_color>
+      <color red="153" green="153" blue="0">
+      </color>
+    </bar_background_color>
+    <start_from_zero>false</start_from_zero>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_16</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>1</skin>
+    <x>180</x>
+    <y>670</y>
+    <title>DIGITAL</title>
+    <start_from_zero>false</start_from_zero>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_17</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <x>350</x>
+    <y>670</y>
+    <title>FLAT</title>
+    <start_from_zero>false</start_from_zero>
+  </widget>
+  <widget type="gauge" version="2.0.0">
+    <name>Gauge_18</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>3</skin>
+    <x>520</x>
+    <y>670</y>
+    <background_color>
+      <color red="77" green="0" blue="26">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <title>MODERN</title>
+    <title_color>
+      <color name="Background" red="255" green="255" blue="255">
+      </color>
+    </title_color>
+    <start_from_zero>false</start_from_zero>
+  </widget>
+</display>

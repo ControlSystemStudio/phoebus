@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>PVA+Table</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>PVA+Table</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Requires a PVA server. Run server.py.</text>
+    <x>10</x>
+    <y>31</y>
+    <width>480</width>
+    <height>19</height>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <pv_name>pva://nt_table</pv_name>
+    <x>30</x>
+    <y>50</y>
+    <width>460</width>
+    <height>130</height>
+    <columns>
+      <column>
+        <name>Column 1</name>
+        <width>100</width>
+        <editable>false</editable>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table_1</name>
+    <pv_name>pva://table</pv_name>
+    <x>30</x>
+    <y>190</y>
+    <width>320</width>
+    <height>110</height>
+    <columns>
+      <column>
+        <name>Column 1</name>
+        <width>75</width>
+        <editable>false</editable>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table_2</name>
+    <pv_name>pva://table/value/Dingus</pv_name>
+    <x>30</x>
+    <y>330</y>
+    <width>190</width>
+    <height>110</height>
+    <columns>
+      <column>
+        <name>Column 1</name>
+        <width>100</width>
+        <editable>false</editable>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Dingus</text>
+    <x>30</x>
+    <y>300</y>
+    <width>190</width>
+    <height>30</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Label_5</name>
+    <pv_name>pva://nt_table_str</pv_name>
+    <x>30</x>
+    <y>470</y>
+    <width>450</width>
+    <height>130</height>
+    <background_color>
+      <color name="Background" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <transparent>true</transparent>
+    <tooltip></tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Structure of pva://nt_table</text>
+    <x>30</x>
+    <y>450</y>
+    <width>450</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color red="220" green="220" blue="220">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Avg Quality</name>
+    <x>230</x>
+    <y>420</y>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="getAverage.py">
+        <pv_name>pva://table</pv_name>
+      </script>
+    </scripts>
+    <tooltip>
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Average Dingus Quality</text>
+    <x>230</x>
+    <y>370</y>
+    <height>40</height>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Label_6</name>
+    <pv_name>pva://table_str</pv_name>
+    <x>480</x>
+    <y>470</y>
+    <width>320</width>
+    <height>130</height>
+    <background_color>
+      <color name="Background" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <transparent>true</transparent>
+    <tooltip></tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Structure of pva://table</text>
+    <x>480</x>
+    <y>450</y>
+    <width>320</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color red="220" green="220" blue="220">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>NTTable PVs have labels and values. These can be displayed with the Table widget.</text>
+    <x>510</x>
+    <y>80</y>
+    <width>290</width>
+    <height>110</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Displaying an NTTable PV</text>
+    <x>510</x>
+    <y>50</y>
+    <width>290</width>
+    <height>30</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color red="220" green="220" blue="220">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Displaying an Arbitrary Structured PV</text>
+    <x>370</x>
+    <y>190</y>
+    <width>430</width>
+    <height>30</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color red="220" green="220" blue="220">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>It's also possible to display an arbitrary structure. If there is a "value" field, only that field will be used. If not, the entire structure is placed into the table. Fields (table columns) in sub-structures are represented with their full names, i.e. "name/field_name".
+However, not all arbitrary structures translate well to a table-style display. In that case, structured values may still be useful in scripts.</text>
+    <x>370</x>
+    <y>220</y>
+    <width>430</width>
+    <height>120</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Accessing Structure Elements in Scripts</text>
+    <x>350</x>
+    <y>340</y>
+    <width>450</width>
+    <height>30</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <background_color>
+      <color red="220" green="220" blue="220">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>This label widget has an attached script which calculates and displays the average dingus quality. There are methods in the PVUtil and ValueUtil classes for getting structure elements by name. See "getAverage.py" for details.</text>
+    <x>350</x>
+    <y>370</y>
+    <width>450</width>
+    <height>80</height>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+</display>

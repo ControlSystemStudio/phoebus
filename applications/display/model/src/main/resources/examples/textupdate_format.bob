@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <macros>
+    <PV>DTL_LLRF:IOC1:Load</PV>
+  </macros>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>331</width>
+    <height>31</height>
+    <text>Text Update Widget Formatting</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>41</y>
+    <width>311</width>
+    <height>70</height>
+    <text>This display needs a "PV" macro: $(PV).
+
+It can be used to test format options.</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <y>161</y>
+    <width>111</width>
+    <text>Default:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <x>191</x>
+    <y>161</y>
+    <width>170</width>
+    <precision>-1</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <y>131</y>
+    <width>181</width>
+    <text>Formatting options</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <x>191</x>
+    <y>191</y>
+    <width>170</width>
+    <precision>-1</precision>
+    <show_units>false</show_units>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <y>191</y>
+    <width>161</width>
+    <text>Default, no units:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_6</name>
+    <x>191</x>
+    <y>221</y>
+    <width>170</width>
+    <format>1</format>
+    <precision>-1</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <y>221</y>
+    <width>191</width>
+    <text>Decimal w/ 2 digits:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_7</name>
+    <x>191</x>
+    <y>251</y>
+    <width>170</width>
+    <format>2</format>
+    <precision>-1</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <y>251</y>
+    <width>191</width>
+    <text>Exponential Notation:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_8</name>
+    <x>191</x>
+    <y>281</y>
+    <width>170</width>
+    <format>3</format>
+    <precision>-1</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <y>281</y>
+    <width>191</width>
+    <text>Engineering Notation:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_9</name>
+    <x>191</x>
+    <y>312</y>
+    <width>170</width>
+    <format>4</format>
+    <precision>-1</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <y>312</y>
+    <width>191</width>
+    <text>Hex Notation:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_10</name>
+    <x>192</x>
+    <y>341</y>
+    <width>170</width>
+    <format>5</format>
+    <precision>-1</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <x>1</x>
+    <y>341</y>
+    <width>191</width>
+    <text>Compact Notation:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_11</name>
+    <x>192</x>
+    <y>371</y>
+    <width>170</width>
+    <format>6</format>
+    <precision>-1</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <x>1</x>
+    <y>371</y>
+    <width>191</width>
+    <text>String:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_12</name>
+    <x>381</x>
+    <y>161</y>
+    <width>170</width>
+    <precision>6</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_13</name>
+    <x>381</x>
+    <y>191</y>
+    <width>170</width>
+    <precision>6</precision>
+    <show_units>false</show_units>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_14</name>
+    <x>381</x>
+    <y>221</y>
+    <width>170</width>
+    <format>1</format>
+    <precision>6</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_15</name>
+    <x>381</x>
+    <y>251</y>
+    <width>170</width>
+    <format>2</format>
+    <precision>6</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_16</name>
+    <x>381</x>
+    <y>281</y>
+    <width>170</width>
+    <format>3</format>
+    <precision>6</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_17</name>
+    <x>381</x>
+    <y>312</y>
+    <width>170</width>
+    <format>4</format>
+    <precision>6</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_18</name>
+    <x>382</x>
+    <y>341</y>
+    <width>170</width>
+    <format>5</format>
+    <precision>6</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_19</name>
+    <x>382</x>
+    <y>371</y>
+    <width>170</width>
+    <format>6</format>
+    <precision>6</precision>
+    <pv_name>$(PV)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <x>191</x>
+    <y>131</y>
+    <width>181</width>
+    <text>Precision -1 (use PV)</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <x>381</x>
+    <y>131</y>
+    <width>290</width>
+    <text>Precision 6</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+</display>

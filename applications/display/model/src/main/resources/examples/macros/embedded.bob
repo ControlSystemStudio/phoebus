@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Embedded Display</name>
+  <macros>
+    <EXAMPLE_MACRO>.. from embedded display</EXAMPLE_MACRO>
+  </macros>
+  <x>-1</x>
+  <y>-1</y>
+  <width>400</width>
+  <height>200</height>
+  <widget type="group" version="2.0.0">
+    <name>Embedded Display</name>
+    <width>371</width>
+    <height>241</height>
+    <widget type="label" version="2.0.0">
+      <name>Label</name>
+      <x>11</x>
+      <y>9</y>
+      <width>341</width>
+      <height>91</height>
+      <text>This embedded display file
+inherits macros from the Embedded Display widget
+that hosts it.
+
+In then sets EXAMPLE_MACRO to a new value.</text>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_8</name>
+      <x>11</x>
+      <y>115</y>
+      <width>310</width>
+      <height>40</height>
+      <text>EXAMPLE_MACRO = $(EXAMPLE_MACRO)
+MY_MACRO = $(MY_MACRO)</text>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_15</name>
+      <x>11</x>
+      <y>165</y>
+      <width>324</width>
+      <height>40</height>
+      <text>For this display, DID = $(DID)
+and DNAME = $(DNAME).</text>
+    </widget>
+  </widget>
+</display>

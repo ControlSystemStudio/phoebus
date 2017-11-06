@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>File Selector</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>File Selector Widget</text>
+    <width>241</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Allows selecting a file or directory, writing the result to a PV.
+Typically used in connection with a text entry widget
+where users can enter a path directly,
+offering an alternate way to select an existing file.</text>
+    <y>41</y>
+    <width>481</width>
+    <height>80</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Workspace</text>
+    <x>141</x>
+    <y>251</y>
+    <width>111</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>File Space</text>
+    <x>141</x>
+    <y>221</y>
+    <width>111</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Full Path:</text>
+    <y>281</y>
+    <width>141</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>filename</name>
+    <pv_name>loc://path("")</pv_name>
+    <x>150</x>
+    <y>471</y>
+    <width>471</width>
+    <height>25</height>
+    <format>1</format>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector</name>
+    <pv_name>loc://path("")</pv_name>
+    <x>151</x>
+    <y>281</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Directory:</text>
+    <y>320</y>
+    <width>141</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Name &amp; Extension:</text>
+    <y>359</y>
+    <width>141</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Base Name:</text>
+    <y>398</y>
+    <width>141</width>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector_1</name>
+    <pv_name>loc://path("")</pv_name>
+    <component>1</component>
+    <x>152</x>
+    <y>322</y>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector_2</name>
+    <pv_name>loc://path("")</pv_name>
+    <component>2</component>
+    <x>151</x>
+    <y>358</y>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector_3</name>
+    <pv_name>loc://path("")</pv_name>
+    <component>3</component>
+    <x>150</x>
+    <y>396</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>File System</text>
+    <x>241</x>
+    <y>251</y>
+    <width>111</width>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector_4</name>
+    <pv_name>loc://path("")</pv_name>
+    <filespace>1</filespace>
+    <x>251</x>
+    <y>281</y>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector_5</name>
+    <pv_name>loc://path("")</pv_name>
+    <filespace>1</filespace>
+    <component>1</component>
+    <x>252</x>
+    <y>322</y>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector_6</name>
+    <pv_name>loc://path("")</pv_name>
+    <filespace>1</filespace>
+    <component>2</component>
+    <x>251</x>
+    <y>358</y>
+  </widget>
+  <widget type="fileselector" version="2.0.0">
+    <name>File Selector_7</name>
+    <pv_name>loc://path("")</pv_name>
+    <filespace>1</filespace>
+    <component>3</component>
+    <x>250</x>
+    <y>396</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>File:</text>
+    <y>471</y>
+    <width>111</width>
+    <height>25</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Component</text>
+    <y>251</y>
+    <width>111</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>The file selection can be based on the Workspace,
+or the complete file system.
+The PV can be updated to the complete path of
+the file, just the directory path, just the file name,
+or just the base name of the file (without extension).</text>
+    <y>121</y>
+    <width>431</width>
+    <height>100</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>For scripts, there is the related ScriptUtil.showSaveAsDialog() method.
+It allows scripts to prompt for a new name in case this is needed
+during the execution of the script.
+Ideally, this can be avoided by passing required file names
+into the script via PVs, which in turn are configured via the File Selector widget.</text>
+    <y>521</y>
+    <width>511</width>
+    <height>110</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil, PVUtil
+
+filename = ScriptUtil.findWidgetByName(widget, "filename")
+
+pv = ScriptUtil.getPrimaryPV(filename)
+name = PVUtil.getString(pv)
+
+name = ScriptUtil.showSaveAsDialog(widget, name)
+
+if name:
+    pv.write(name)
+]]></text>
+        </script>
+        <description>Save As</description>
+      </action>
+    </actions>
+    <x>511</x>
+    <y>521</y>
+    <width>110</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

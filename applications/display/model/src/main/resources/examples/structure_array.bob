@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Array</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>281</width>
+    <height>31</height>
+    <text>Array</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <y>41</y>
+    <width>500</width>
+    <height>129</height>
+    <text>A container that assigns copies of widgets to elements of an array PV.
+
+The Array Widget is configured with the name of an array PV
+and one child widget.
+At runtime, it creates one copy of the child widget for each array element.
+The child widgets this display the array elements, and control widgets
+can also write to their respective array element.</text>
+  </widget>
+  <widget type="array" version="2.0.0">
+    <name>Array</name>
+    <x>355</x>
+    <y>190</y>
+    <width>250</width>
+    <height>200</height>
+    <pv_name>loc://&lt;VStringArray&gt;("Monitor 1", "Monitor 2", "Monitor 3", "Monitor 4", "Monitor 5", "Monitor 6")</pv_name>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update</name>
+      <width>230</width>
+      <height>30</height>
+    </widget>
+  </widget>
+  <widget type="array" version="2.0.0">
+    <name>Array_4</name>
+    <y>190</y>
+    <width>250</width>
+    <height>181</height>
+    <pv_name>sim://sawtooth(10, 50, 10000, 0.5, -1, 1)</pv_name>
+    <widget type="progressbar" version="2.0.0">
+      <name>Progress Bar</name>
+      <width>230</width>
+      <height>23</height>
+      <limits_from_pv>false</limits_from_pv>
+      <minimum>-1.0</minimum>
+      <maximum>1.0</maximum>
+    </widget>
+  </widget>
+  <widget type="array" version="2.0.0">
+    <name>Array_5</name>
+    <y>480</y>
+    <width>242</width>
+    <height>150</height>
+    <pv_name>sim://sawtooth(10, 50, 10000, 0.5, -1, 1)</pv_name>
+    <widget type="progressbar" version="2.0.0">
+      <name>Progress Bar_1</name>
+      <width>37</width>
+      <height>130</height>
+      <horizontal>false</horizontal>
+      <limits_from_pv>false</limits_from_pv>
+      <minimum>-1.0</minimum>
+      <maximum>1.0</maximum>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>410</y>
+    <width>240</width>
+    <height>70</height>
+    <text>The orientation of the widgets
+inside determines their arrangement.
+Widgets without a horizontal property
+are treated as horizontal by default.</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="array" version="2.0.0">
+    <name>Array_2</name>
+    <macros>
+      <labeltext>It's like looking in a mirror</labeltext>
+    </macros>
+    <x>355</x>
+    <y>490</y>
+    <width>250</width>
+    <height>140</height>
+    <pv_name>sim://sinewave(10,50,5,.5,-1,1)</pv_name>
+    <widget type="label" version="2.0.0">
+      <name>Label_2</name>
+      <width>230</width>
+      <height>40</height>
+      <text>${labeltext}</text>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <x>360</x>
+    <y>410</y>
+    <width>240</width>
+    <height>70</height>
+    <text>Array widgets can also assign
+macros. However, any properties
+which use them are the same for
+all child widgets.
+</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="array" version="2.0.0">
+    <name>Array_3</name>
+    <x>630</x>
+    <y>190</y>
+    <width>250</width>
+    <height>200</height>
+    <pv_name>loc://&lt;VStringArray&gt;("Monitor 1", "Monitor 2", "Monitor 3", "Monitor 4", "Monitor 5", "Monitor 6")</pv_name>
+    <widget type="textentry" version="3.0.0">
+      <name>Text Entry_1</name>
+      <width>230</width>
+      <height>30</height>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <y>170</y>
+    <width>121</width>
+    <text>Array of Numbers:</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <x>355</x>
+    <y>170</y>
+    <width>240</width>
+    <text>Array of Strings with Text Updates</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <x>630</x>
+    <y>170</y>
+    <width>240</width>
+    <text>Same Strings with Text Entries</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+</display>

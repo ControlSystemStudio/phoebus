@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>A</name>
+  <width>300</width>
+  <height>200</height>
+  <scripts>
+    <script file="init.py">
+      <pv_name>loc://trigger$(DID)(1)</pv_name>
+    </script>
+  </scripts>
+  <widget type="group" version="2.0.0">
+    <name>Some Display</name>
+    <width>300</width>
+    <height>200</height>
+    <widget type="label" version="2.0.0">
+      <name>Label_2</name>
+      <text>This is some example display</text>
+      <x>1</x>
+      <y>11</y>
+      <width>239</width>
+      <height>24</height>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_3</name>
+      <text>Macro M = $(M)</text>
+      <x>1</x>
+      <y>65</y>
+      <width>239</width>
+      <height>24</height>
+    </widget>
+  </widget>
+</display>

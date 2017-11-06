@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Meter Widgets</name>
+  <width>980</width>
+  <height>910</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Meter Widgets</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Meters display numerical values graphically by means of a needle and a scale.</text>
+    <y>50</y>
+    <width>620</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Different Skins &amp; No Highlight</text>
+    <y>90</y>
+    <width>580</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <x>220</x>
+    <y>120</y>
+    <width>200</width>
+    <height>100</height>
+    <highligh_zones>false</highligh_zones>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_1</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <knob_position>2</knob_position>
+    <x>430</x>
+    <y>120</y>
+    <width>200</width>
+    <height>200</height>
+    <highligh_zones>false</highligh_zones>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_2</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>0</skin>
+    <knob_position>3</knob_position>
+    <x>10</x>
+    <y>120</y>
+    <width>200</width>
+    <height>200</height>
+    <highligh_zones>false</highligh_zones>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_3</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>3</skin>
+    <knob_position>3</knob_position>
+    <x>640</x>
+    <y>120</y>
+    <width>200</width>
+    <height>200</height>
+    <highligh_zones>false</highligh_zones>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_4</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>4</skin>
+    <knob_position>5</knob_position>
+    <x>850</x>
+    <y>120</y>
+    <width>100</width>
+    <height>200</height>
+    <highligh_zones>false</highligh_zones>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Different Knob Positions &amp; Value Display &amp; Scale Direction</text>
+    <y>350</y>
+    <width>580</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_5</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <knob_position>6</knob_position>
+    <x>10</x>
+    <y>380</y>
+    <width>200</width>
+    <height>100</height>
+    <lcd_visible>false</lcd_visible>
+    <scale_direction>1</scale_direction>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_6</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <knob_position>7</knob_position>
+    <x>220</x>
+    <y>380</y>
+    <width>200</width>
+    <height>200</height>
+    <lcd_font>2</lcd_font>
+    <scale_direction>1</scale_direction>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_8</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <knob_position>8</knob_position>
+    <x>430</x>
+    <y>380</y>
+    <width>200</width>
+    <height>200</height>
+    <lcd_font>4</lcd_font>
+    <scale_direction>1</scale_direction>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_9</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <knob_position>1</knob_position>
+    <x>640</x>
+    <y>380</y>
+    <width>200</width>
+    <height>200</height>
+    <lcd_font>4</lcd_font>
+    <scale_direction>1</scale_direction>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_10</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>4</skin>
+    <knob_position>4</knob_position>
+    <x>850</x>
+    <y>380</y>
+    <width>100</width>
+    <height>200</height>
+    <lcd_design>8</lcd_design>
+    <scale_direction>1</scale_direction>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Mean Value &amp; Needle Type &amp; Tick Mark Ring</text>
+    <y>610</y>
+    <width>580</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_11</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <x>220</x>
+    <y>640</y>
+    <width>200</width>
+    <height>100</height>
+    <average>true</average>
+    <average_samples>50</average_samples>
+    <needle_type>1</needle_type>
+    <tick_mark_ring_visible>true</tick_mark_ring_visible>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_12</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>2</skin>
+    <knob_position>2</knob_position>
+    <x>430</x>
+    <y>640</y>
+    <width>200</width>
+    <height>200</height>
+    <average>true</average>
+    <average_samples>50</average_samples>
+    <needle_type>3</needle_type>
+    <tick_mark_ring_visible>true</tick_mark_ring_visible>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_13</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>0</skin>
+    <knob_position>3</knob_position>
+    <x>10</x>
+    <y>640</y>
+    <width>200</width>
+    <height>200</height>
+    <average>true</average>
+    <average_samples>50</average_samples>
+    <needle_type>0</needle_type>
+    <tick_mark_ring_visible>true</tick_mark_ring_visible>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_14</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>3</skin>
+    <knob_position>3</knob_position>
+    <x>640</x>
+    <y>640</y>
+    <width>200</width>
+    <height>200</height>
+    <average>true</average>
+    <average_samples>50</average_samples>
+    <needle_type>5</needle_type>
+    <scale_direction>1</scale_direction>
+    <tick_mark_ring_visible>true</tick_mark_ring_visible>
+  </widget>
+  <widget type="meter" version="2.0.0">
+    <name>Meter_15</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <skin>4</skin>
+    <knob_position>5</knob_position>
+    <x>850</x>
+    <y>640</y>
+    <width>100</width>
+    <height>200</height>
+    <value_visible>false</value_visible>
+    <average>true</average>
+    <average_samples>50</average_samples>
+    <needle_type>2</needle_type>
+    <tick_mark_ring_visible>true</tick_mark_ring_visible>
+  </widget>
+</display>

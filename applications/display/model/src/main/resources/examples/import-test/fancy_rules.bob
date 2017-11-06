@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <x>-1</x>
+  <y>-1</y>
+  <width>800</width>
+  <height>600</height>
+  <widget type="arc" version="2.0.0">
+    <name>Arc</name>
+    <x>42</x>
+    <y>285</y>
+    <height>100</height>
+    <background_color>
+      <color red="30" green="144" blue="255">
+      </color>
+    </background_color>
+    <line_width>1</line_width>
+    <rules>
+      <rule name="Rule" prop_id="total_angle" out_exp="false">
+        <exp bool_exp="pv0==0">
+          <value>90</value>
+        </exp>
+        <exp bool_exp="pv0==1">
+          <value>180</value>
+        </exp>
+        <exp bool_exp="pv0==2">
+          <value>270</value>
+        </exp>
+        <exp bool_exp="pv0==3">
+          <value>360</value>
+        </exp>
+        <pv_name>sim://ramp(0,3,1)</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <x>252</x>
+    <y>30</y>
+    <width>80</width>
+    <height>26</height>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <precision>0</precision>
+    <show_units>true</show_units>
+    <pv_name>sim://ramp(0,3,1)</pv_name>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED</name>
+    <x>224</x>
+    <y>287</y>
+    <width>59</width>
+    <height>59</height>
+    <off_color>
+      <color name="Off" red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="On" red="0" green="255" blue="0">
+      </color>
+    </on_color>
+    <rules>
+      <rule name="LEDColor" prop_id="off_color" out_exp="false">
+        <exp bool_exp="pv1==0">
+          <value>
+            <color red="0" green="100" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0==0">
+          <value>
+            <color red="252" green="234" blue="87">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0==1">
+          <value>
+            <color name="Attention" red="255" green="160" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0==2">
+          <value>
+            <color name="STOP" red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0==3">
+          <value>
+            <color name="WritePV_Background" red="128" green="255" blue="255">
+            </color>
+          </value>
+        </exp>
+        <pv_name>sim://ramp(0,3,1)</pv_name>
+        <pv_name>loc://test</pv_name>
+      </rule>
+      <rule name="LEDVisible" prop_id="visible" out_exp="false">
+        <exp bool_exp="pv0&gt;=0">
+          <value>true</value>
+        </exp>
+        <exp bool_exp="pv0&lt;0">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://test</pv_name>
+      </rule>
+      <rule name="LEDHeight" prop_id="height" out_exp="true">
+        <exp bool_exp="true">
+          <expression>pv0</expression>
+        </exp>
+        <pv_name>loc://mysize</pv_name>
+      </rule>
+    </rules>
+    <pv_name></pv_name>
+    <bit>0</bit>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <x>252</x>
+    <y>97</y>
+    <width>217</width>
+    <height>79</height>
+    <text>Test Var
+Set &lt; 0 to make LED invisible
+Set = 0 for LED no color change
+Set &gt; 0 for LED Color Change</text>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <x>161</x>
+    <y>30</y>
+    <width>80</width>
+    <height>26</height>
+    <text>Ramp</text>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input</name>
+    <x>161</x>
+    <y>97</y>
+    <width>80</width>
+    <height>26</height>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <background_color>
+      <color name="WritePV_Background" red="128" green="255" blue="255">
+      </color>
+    </background_color>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <precision>0</precision>
+    <show_units>true</show_units>
+    <pv_name>loc://test</pv_name>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_1</name>
+    <x>161</x>
+    <y>192</y>
+    <width>80</width>
+    <height>26</height>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <background_color>
+      <color name="WritePV_Background" red="128" green="255" blue="255">
+      </color>
+    </background_color>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <precision>0</precision>
+    <show_units>true</show_units>
+    <pv_name>loc://mysize</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <x>252</x>
+    <y>192</y>
+    <width>133</width>
+    <height>26</height>
+    <text>Set  LED Size</text>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="multi_state_led" version="2.0.0">
+    <name>LED_4State</name>
+    <x>350</x>
+    <y>287</y>
+    <width>59</width>
+    <height>59</height>
+    <rules>
+      <rule name="LEDVisible" prop_id="visible" out_exp="false">
+        <exp bool_exp="pv0&gt;=0">
+          <value>true</value>
+        </exp>
+        <exp bool_exp="pv0&lt;0">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://test</pv_name>
+      </rule>
+      <rule name="LEDHeight" prop_id="height" out_exp="true">
+        <exp bool_exp="true">
+          <expression>pv0</expression>
+        </exp>
+        <pv_name>loc://mysize</pv_name>
+      </rule>
+      <rule name="LEDState0Color" prop_id="state_color_0" out_exp="false">
+        <exp bool_exp="pv0 &gt; 50">
+          <value>&lt;color blue="255" green="0" name="Disconnected" red="255"/&gt;</value>
+        </exp>
+        <pv_name>loc://mysize</pv_name>
+      </rule>
+    </rules>
+    <pv_name>loc://mystate</pv_name>
+    <states>
+      <state>
+        <value>0.0</value>
+        <color>
+          <color red="0" green="100" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>1.0</value>
+        <color>
+          <color red="0" green="255" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>2.0</value>
+        <color>
+          <color red="255" green="0" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>3.0</value>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+      </state>
+    </states>
+    <fallback>
+      <color red="100" green="100" blue="100">
+      </color>
+    </fallback>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <x>252</x>
+    <y>228</y>
+    <width>133</width>
+    <height>26</height>
+    <text>Set  LED State</text>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_2</name>
+    <x>161</x>
+    <y>228</y>
+    <width>80</width>
+    <height>26</height>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <background_color>
+      <color name="WritePV_Background" red="128" green="255" blue="255">
+      </color>
+    </background_color>
+    <foreground_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <font>
+      <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <precision>0</precision>
+    <show_units>true</show_units>
+    <pv_name>loc://mystate</pv_name>
+  </widget>
+</display>

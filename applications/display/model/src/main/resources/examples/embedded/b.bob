@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>B</name>
+  <width>300</width>
+  <height>200</height>
+  <widget type="group" version="2.0.0">
+    <name>Another Display</name>
+    <width>300</width>
+    <height>200</height>
+    <widget type="label" version="2.0.0">
+      <name>Label_2</name>
+      <text>This is another example display</text>
+      <x>1</x>
+      <y>11</y>
+      <width>250</width>
+      <height>90</height>
+    </widget>
+  </widget>
+</display>

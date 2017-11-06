@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>My Display</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image</name>
+    <pv_name>pva://EPICS-rgb.png.red</pv_name>
+    <x>20</x>
+    <y>90</y>
+    <color_map>
+      <section value="0" red="0" green="0" blue="0"/>
+      <section value="255" red="255" green="0" blue="0"/>
+    </color_map>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image_1</name>
+    <pv_name>pva://EPICS-gs.png</pv_name>
+    <x>490</x>
+    <y>90</y>
+    <color_map>
+      <name>GRAY</name>
+    </color_map>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image_2</name>
+    <pv_name>pva://checkerboard-gs.png</pv_name>
+    <x>20</x>
+    <y>430</y>
+    <color_map>
+      <name>GRAY</name>
+    </color_map>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Images served with pvaPy. Run 'python imagedemo.py *.pkl' to serve images. See imagedemo.py for details.</text>
+    <y>40</y>
+    <width>810</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>pva://EPICS-rbg.png.red</text>
+    <x>40</x>
+    <y>70</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>pva://EPICS-gs.png</text>
+    <x>510</x>
+    <y>70</y>
+    <width>170</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>pva://checkerboard-gs.png</text>
+    <x>40</x>
+    <y>410</y>
+    <width>170</width>
+  </widget>
+  <widget type="array" version="2.0.0">
+    <name>Array</name>
+    <pv_name>pva://names</pv_name>
+    <x>490</x>
+    <y>430</y>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update</name>
+      <width>380</width>
+      <background_color>
+        <color name="Background" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <transparent>true</transparent>
+      <tooltip></tooltip>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>pva://names</text>
+    <x>510</x>
+    <y>410</y>
+  </widget>
+</display>

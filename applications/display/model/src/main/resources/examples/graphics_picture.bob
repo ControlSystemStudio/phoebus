@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Picture</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>181</width>
+    <height>31</height>
+    <text>Picture Widget</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Grasshopper</name>
+    <x>41</x>
+    <y>61</y>
+    <width>210</width>
+    <height>220</height>
+    <file>pic/grasshopper.jpg</file>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Rose</name>
+    <x>61</x>
+    <y>331</y>
+    <width>210</width>
+    <height>170</height>
+    <rotation>90.0</rotation>
+    <file>pic/Yellow-Rose.png</file>
+  </widget>
+</display>

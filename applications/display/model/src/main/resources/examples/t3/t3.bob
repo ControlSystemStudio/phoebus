@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>TTT</name>
+  <width>600</width>
+  <height>500</height>
+  <widget type="label" version="2.0.0">
+    <name>ttt0</name>
+    <y>60</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="polyline" version="2.0.0">
+    <name>Polyline</name>
+    <x>25</x>
+    <y>60</y>
+    <width>0</width>
+    <height>75</height>
+    <points>
+      <point x="0.0" y="0.0">
+      </point>
+      <point x="0.0" y="75.0">
+      </point>
+    </points>
+  </widget>
+  <widget type="polyline" version="2.0.0">
+    <name>Polyline</name>
+    <x>50</x>
+    <y>60</y>
+    <width>0</width>
+    <height>75</height>
+    <points>
+      <point x="0.0" y="0.0">
+      </point>
+      <point x="0.0" y="75.0">
+      </point>
+    </points>
+  </widget>
+  <widget type="polyline" version="2.0.0">
+    <name>Polyline</name>
+    <y>85</y>
+    <width>75</width>
+    <height>0</height>
+    <points>
+      <point x="0.0" y="0.0">
+      </point>
+      <point x="75.0" y="0.0">
+      </point>
+    </points>
+  </widget>
+  <widget type="polyline" version="2.0.0">
+    <name>Polyline</name>
+    <y>110</y>
+    <width>75</width>
+    <height>0</height>
+    <points>
+      <point x="0.0" y="0.0">
+      </point>
+      <point x="75.0" y="0.0">
+      </point>
+    </points>
+  </widget>
+  <widget type="textentry" version="2.0.0">
+    <name>Text Entry</name>
+    <x>110</x>
+    <y>150</y>
+    <height>40</height>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="t3_ui.py">
+        <pv_name>loc://pos("4")</pv_name>
+      </script>
+    </scripts>
+    <pv_name>loc://pos("4")</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt1</name>
+    <x>25</x>
+    <y>60</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt2</name>
+    <x>50</x>
+    <y>60</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt3</name>
+    <y>85</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt4</name>
+    <x>25</x>
+    <y>85</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt5</name>
+    <x>50</x>
+    <y>85</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt6</name>
+    <y>110</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt7</name>
+    <x>25</x>
+    <y>110</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>ttt8</name>
+    <x>50</x>
+    <y>110</y>
+    <width>25</width>
+    <height>25</height>
+    <text>x</text>
+    <foreground_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>info</name>
+    <y>190</y>
+    <width>490</width>
+    <text>Tic Tac Toe...</text>
+    <foreground_color>
+      <color red="150" green="0" blue="150">
+      </color>
+    </foreground_color>
+    <font>
+      <font family="Liberation Mono" style="BOLD" size="20.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>180</width>
+    <height>40</height>
+    <text>Tic Tac Toe</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>150</y>
+    <width>110</width>
+    <height>40</height>
+    <text>Your Move:</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <y>230</y>
+    <width>270</width>
+    <height>80</height>
+    <text>Example for a comparably complex script
+that computes the computer's move
+whenever user enters a new value,
+then updates the display.</text>
+    <vertical_alignment>0</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <y>320</y>
+    <width>430</width>
+    <height>105</height>
+    <text>Demonstrates that scripts execute off the user interface thread.
+
+Counterexample for scripts because display should not
+perform functionality. "Control", i.e. computation of move
+belongs in IOC-type service.</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <vertical_alignment>0</vertical_alignment>
+  </widget>
+</display>

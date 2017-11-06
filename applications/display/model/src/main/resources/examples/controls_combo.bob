@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Combo</name>
+  <macros>
+    <one>Macro "one"</one>
+    <three>Macro "three"</three>
+    <two>Macro "two"</two>
+  </macros>
+  <widget type="combo" version="2.0.0">
+    <name>Combo</name>
+    <pv_name>loc://test&lt;String&gt;</pv_name>
+    <y>251</y>
+    <width>150</width>
+    <height>27</height>
+    <items>
+      <item>Item 0</item>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>loc://test&lt;String&gt;</pv_name>
+    <y>300</y>
+    <width>150</width>
+    <height>25</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>Target_Diag:TIS:fitPD.SCAN</pv_name>
+    <x>188</x>
+    <y>430</y>
+    <width>190</width>
+    <height>25</height>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo_ReadOnly</name>
+    <pv_name>Target_Diag:TIS:fitPD.SCAN</pv_name>
+    <x>188</x>
+    <y>381</y>
+    <width>190</width>
+    <height>27</height>
+    <items>
+      <item>Item 0</item>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Items from property</text>
+    <y>220</y>
+    <width>150</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Items from PV (read-only)</text>
+    <x>188</x>
+    <y>350</y>
+    <width>190</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo_ItemsFromPV</name>
+    <pv_name>loc://test3&lt;VEnum&gt;(0, "High", "Medium", "Low")</pv_name>
+    <x>188</x>
+    <y>251</y>
+    <width>190</width>
+    <height>27</height>
+    <items>
+      <item>Item 0</item>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>loc://test3&lt;VEnum&gt;(0, "High", "Medium", "Low")</pv_name>
+    <x>188</x>
+    <y>300</y>
+    <width>190</width>
+    <height>25</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Items from PV (writeable)</text>
+    <x>188</x>
+    <y>220</y>
+    <width>190</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo_Macros</name>
+    <pv_name>loc://test2&lt;String&gt;</pv_name>
+    <y>381</y>
+    <width>150</width>
+    <height>27</height>
+    <items>
+      <item>$(one)</item>
+      <item>$(two)</item>
+      <item>$(three)</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>loc://test2&lt;String&gt;</pv_name>
+    <y>430</y>
+    <width>150</width>
+    <height>25</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Items with macros</text>
+    <y>350</y>
+    <width>150</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo_BadMatch</name>
+    <pv_name>loc://test4&lt;VEnum&gt;(1, "High", "Medium", "Low")</pv_name>
+    <y>521</y>
+    <width>150</width>
+    <height>27</height>
+    <items>
+      <item>Item 0</item>
+      <item>Item 1</item>
+      <item>Item 2</item>
+      <item>High</item>
+      <item>Medium</item>
+      <item>Low</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Items don't match PV</text>
+    <y>490</y>
+    <width>150</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Combo Box Widget</text>
+    <width>220</width>
+    <height>30</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Combo boxes can read/write a list of string values to a PV.
+When an item is selected, the widget attempts to write its
+value to the PV. If the write fails for any reason, the true PV
+value is still shown.</text>
+    <y>30</y>
+    <width>378</width>
+    <height>70</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://test4&lt;VEnum&gt;(1, "High", "Medium", "Low")</pv_name>
+    <y>570</y>
+    <width>150</width>
+    <height>25</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Allowed values:
+  o  High
+  o  Medium
+  o  Low</text>
+    <x>188</x>
+    <y>521</y>
+    <width>190</width>
+    <height>74</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Can be configured to be ugly:</text>
+    <y>650</y>
+    <width>260</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>The property "Items From PV" controls whether the items
+available to the widget are derived from the PV (if it is an
+enum PV) or from the "Items" property.</text>
+    <y>150</y>
+    <width>378</width>
+    <height>60</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Items from PV</text>
+    <y>120</y>
+    <width>260</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo Box</name>
+    <pv_name>loc://test&lt;String&gt;</pv_name>
+    <y>681</y>
+    <width>200</width>
+    <height>110</height>
+    <font>
+      <font name="Oddball" family="PakTypeNaqsh" style="REGULAR" size="40.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Off" red="60" green="100" blue="60">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <items>
+      <item>0</item>
+      <item>1</item>
+      <item>2</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+combo = ScriptUtil.findWidgetByName(widget, "Combo")
+
+items = combo.getItems()
+
+ScriptUtil.showMessageDialog(widget,
+                                                 "Orignal items:\n" + "\n".join(items))
+
+combo.setItems( [ "Ene", "Mene", "Muh" ] )
+
+ScriptUtil.getPrimaryPV(combo).write("Mene")
+
+ScriptUtil.showMessageDialog(widget,
+                                                 "Check the combo box now!")
+]]></text>
+        </script>
+        <description>Update Items</description>
+      </action>
+    </actions>
+    <x>421</x>
+    <y>300</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Ideally, the items for the combo box
+are obtained from an "enum" PV,
+or they are fixed and configured
+as properties of the widget.
+
+In special cases, a script can access the items.</text>
+    <x>421</x>
+    <y>150</y>
+    <width>378</width>
+    <height>111</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Script Support</text>
+    <x>421</x>
+    <y>120</y>
+    <width>260</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>This button will show, then update
+the items of the top left combo box.</text>
+    <x>421</x>
+    <y>350</y>
+    <width>260</width>
+    <height>58</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Editable, allow entering anything</text>
+    <x>310</x>
+    <y>490</y>
+    <width>280</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo_BadMatch_1</name>
+    <pv_name>loc://test5("anything")</pv_name>
+    <x>310</x>
+    <y>521</y>
+    <width>150</width>
+    <height>27</height>
+    <items>
+      <item>Item 0</item>
+      <item>Item 1</item>
+      <item>Item 2</item>
+      <item>High</item>
+      <item>Medium</item>
+      <item>Low</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+    <editable>true</editable>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>loc://test5("anything")</pv_name>
+    <x>310</x>
+    <y>570</y>
+    <width>150</width>
+    <height>25</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Combo contains some suggestions, but allows entering any text.
+
+Only useful with plain string PV that allows any value, not applicable to enum PV that has fixed set of options.</text>
+    <x>470</x>
+    <y>521</y>
+    <width>240</width>
+    <height>119</height>
+  </widget>
+</display>

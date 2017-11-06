@@ -1,0 +1,774 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Scripts</name>
+  <width>1000</width>
+  <height>1000</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Script Utilities</text>
+    <width>281</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.showMessageDialog(widget,
+        "Hello!\nHow are you doing?\n" +
+        "This is a long message, it just goes on and on...\n" +
+        "This is a long message, it just goes on and on...\n" +
+        "This is a long message, it just goes on and on...\n" +
+        "This is a long message, it just goes on and on...\n" +
+        " .. and then it's done!")
+]]></text>
+        </script>
+        <description>Show Info</description>
+      </action>
+    </actions>
+    <y>811</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.getLogger().severe("This is a severe log message.")]]></text>
+        </script>
+        <description>Log Severe</description>
+      </action>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.getLogger().warning("This is a warning log message.")]]></text>
+        </script>
+        <description>Log Warning</description>
+      </action>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.getLogger().info("This is a warning log message.")]]></text>
+        </script>
+        <description>Log Info</description>
+      </action>
+    </actions>
+    <text>Log a message</text>
+    <y>640</y>
+    <width>149</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>pv_name</name>
+    <pv_name>loc://getPV&lt;String&gt;("loc://test1")</pv_name>
+    <x>640</x>
+    <y>680</y>
+    <width>140</width>
+    <items>
+      <item>loc://test1</item>
+      <item>loc://test2</item>
+      <item>loc://test3</item>
+      <item>loc://test4</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>test1</name>
+    <pv_name>loc://test1</pv_name>
+    <x>880</x>
+    <y>680</y>
+    <width>50</width>
+    <height>30</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>test2</name>
+    <pv_name>loc://test2</pv_name>
+    <x>880</x>
+    <y>720</y>
+    <width>50</width>
+    <height>30</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>test3</name>
+    <pv_name>loc://test3</pv_name>
+    <x>880</x>
+    <y>760</y>
+    <width>50</width>
+    <height>30</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>test4</name>
+    <pv_name>loc://test4</pv_name>
+    <x>880</x>
+    <y>800</y>
+    <width>50</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>pv_value</name>
+    <pv_name>loc://the_value(42.0)</pv_name>
+    <x>640</x>
+    <y>717</y>
+    <width>135</width>
+    <height>30</height>
+    <show_units>false</show_units>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_3</name>
+    <actions>
+      <action type="execute">
+        <script file="write_pv.py">
+        </script>
+        <description>Write PV</description>
+      </action>
+    </actions>
+    <x>640</x>
+    <y>766</y>
+    <width>135</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.showErrorDialog(widget, "Test!")
+]]></text>
+        </script>
+        <description>Show Error</description>
+      </action>
+    </actions>
+    <x>130</x>
+    <y>811</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>The package org.csstudio.display.builder.runtime.script
+contains several helper classes meant for use in scripts.</text>
+    <y>230</y>
+    <width>369</width>
+    <height>49</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>ScriptUtil: Logging</text>
+    <y>470</y>
+    <width>250</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>On Linux and Mac OS X one can often use plain 'print' statements
+in the script code to log debug messages.
+They appear on the console, i.e. the terminal from which the display
+was started.
+On Windows, there is typically no console.
+An overall more reliable way for logging is the Logger, which results
+in log messages that CS-Studio can show in the Console view, and/or
+redirect to files, JMS etc.</text>
+    <y>490</y>
+    <width>479</width>
+    <height>160</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Scripts can use dialogs to force the user's attention,
+or to prompt for confirmation.
+
+The use of such dialogs should be limited, however,
+because it can disrupt a user's workflow.</text>
+    <y>710</y>
+    <width>385</width>
+    <height>101</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>ScriptUtil: Dialogs</text>
+    <y>690</y>
+    <width>170</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.getLogger().warning("Prompting..")
+
+if ScriptUtil.showConfirmationDialog(widget, "Does this make sense?"):
+    ScriptUtil.showMessageDialog(widget, "Excellent!")
+else:
+    ScriptUtil.showMessageDialog(widget, "Well, too bad")
+
+ScriptUtil.getLogger().warning("Done")
+]]></text>
+        </script>
+        <description>Ask</description>
+      </action>
+    </actions>
+    <x>130</x>
+    <y>850</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Scripts are invoked with
+ 1) 'widget' - The widget to which the script was assigned
+ 2) 'pvs' - An array of PVs
+
+The script can set the property of a widget like this:
+    widget.setPropertyValue("text", "Hello");
+
+The script can locate other widgets in the display like this:
+    display = widget.getDisplayModel()
+    display.runtimeChildren().getChildByName("Some Name")</text>
+    <y>51</y>
+    <width>590</width>
+    <height>169</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Basics</text>
+    <y>31</y>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>PVUtil: PV Values</text>
+    <x>530</x>
+    <y>31</y>
+    <width>210</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>The PVUtil can read the value of a PV.
+In this example, a Label widget shows the value of a PV
+because a script updates its text.</text>
+    <x>530</x>
+    <y>51</y>
+    <width>479</width>
+    <height>61</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <x>530</x>
+    <y>112</y>
+    <width>180</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("text", "Value is: " + PVUtil.getString(pvs[0]))
+]]></text>
+        <pv_name>sim://sine</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>A regular Text Update widget could have used instead.
+It's easier to configure, and automatically shows the alarm state of the PV:</text>
+    <x>530</x>
+    <y>132</y>
+    <width>479</width>
+    <height>40</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <pv_name>sim://sine</pv_name>
+    <x>530</x>
+    <y>182</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Scripts are typically called with all the PVs that they need to access.
+
+In rare cases, it can be helpful to fetch PVs from other widgets,
+i.e. access PVs that are not directly associated with the script.
+
+In no case should scripts themself create new PVs.
+The complete life cycle of creating a PV, awaiting the connection,
+and finally also disposing the PV when the display is closed
+is best handled by the display runtime, so scripts simply
+access PVs that have already been created.</text>
+    <x>530</x>
+    <y>490</y>
+    <width>450</width>
+    <height>180</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>ScriptUtil: Widget PVs</text>
+    <x>530</x>
+    <y>470</y>
+    <width>250</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Test PV 1:</text>
+    <x>810</x>
+    <y>686</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Test PV 2:</text>
+    <x>810</x>
+    <y>726</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Test PV 3:</text>
+    <x>810</x>
+    <y>766</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Test PV 4:</text>
+    <x>810</x>
+    <y>806</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>PV to write:</text>
+    <x>530</x>
+    <y>686</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <text>Value (number):</text>
+    <x>530</x>
+    <y>723</y>
+    <width>110</width>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_5</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+selected = ScriptUtil.showSelectionDialog(widget, 
+                                                                  "Pick one",
+                                                                  [ "Apple", "Banana", "Cucumber" ])
+
+if selected is None:
+    ScriptUtil.showMessageDialog(widget, "Sorry that you don't like any...")
+else:
+    ScriptUtil.showMessageDialog(widget, selected + " is a great choice!")
+]]></text>
+        </script>
+        <description>Select</description>
+      </action>
+    </actions>
+    <y>850</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_6</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# Password dialog checks the password,
+# keeps prompting while wrong
+pw = ScriptUtil.showPasswordDialog(widget, "What's the secret password?", "secret")
+if pw:
+    ScriptUtil.showMessageDialog(widget, "Excellent!")]]></text>
+        </script>
+        <description>Password 1</description>
+      </action>
+    </actions>
+    <x>260</x>
+    <y>811</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_7</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# Script checks the password
+pw = ScriptUtil.showPasswordDialog(widget, "What's the secret password?", None)
+if pw == "secret":
+    ScriptUtil.showMessageDialog(widget, "Excellent!")
+else:
+    ScriptUtil.showMessageDialog(widget, "Sorry..")
+]]></text>
+        </script>
+        <description>Password 2</description>
+      </action>
+    </actions>
+    <x>260</x>
+    <y>850</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <text>ScriptUtil: Displays</text>
+    <x>530</x>
+    <y>860</y>
+    <width>170</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>Scripts can replace a display or open another one.</text>
+    <x>530</x>
+    <y>880</y>
+    <width>385</width>
+    <height>40</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_8</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.openDisplay(widget, "../01_main.bob", "TAB", None)]]></text>
+        </script>
+        <description>Open 'Main' Tab</description>
+      </action>
+    </actions>
+    <x>530</x>
+    <y>920</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_9</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.openDisplay(widget, "../01_main.bob", "REPLACE", None)]]></text>
+        </script>
+        <description>Replace w/ 'Main'</description>
+      </action>
+    </actions>
+    <x>530</x>
+    <y>960</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_10</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+ScriptUtil.closeDisplay(widget)]]></text>
+        </script>
+        <description>Close Display</description>
+      </action>
+    </actions>
+    <x>700</x>
+    <y>920</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>PVUtil: Time Stamps</text>
+    <y>300</y>
+    <width>210</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>The PVUtil can read the time stamps
+of a PV as a number or as a string.</text>
+    <y>320</y>
+    <width>400</width>
+    <height>41</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <x>220</x>
+    <y>371</y>
+    <width>230</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("text", PVUtil.getTimeInMilliseconds(pvs[0]))
+]]></text>
+        <pv_name>sim://sine</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>Milliseconds since 1970 (UTC):</text>
+    <y>371</y>
+    <width>210</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>Formatted as Time String:</text>
+    <y>401</y>
+    <width>210</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <x>222</x>
+    <y>404</y>
+    <width>228</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("text", PVUtil.getTimeString(pvs[0]))
+]]></text>
+        <pv_name>sim://sine</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_28</name>
+    <text>PVUtil: Alarm Info</text>
+    <x>530</x>
+    <y>300</y>
+    <width>210</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_29</name>
+    <text>The PVUtil can read the alarm
+severity and status of a PV.</text>
+    <x>530</x>
+    <y>320</y>
+    <width>400</width>
+    <height>41</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_30</name>
+    <x>600</x>
+    <y>371</y>
+    <width>120</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("text", PVUtil.getSeverityString(pvs[0]))
+]]></text>
+        <pv_name>sim://sine</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_31</name>
+    <text>Severity:</text>
+    <x>530</x>
+    <y>371</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_32</name>
+    <text>Status:</text>
+    <x>530</x>
+    <y>401</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_33</name>
+    <x>600</x>
+    <y>401</y>
+    <width>118</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("text", PVUtil.getStatus(pvs[0]))
+]]></text>
+        <pv_name>sim://sine</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_34</name>
+    <x>810</x>
+    <y>371</y>
+    <width>40</width>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("text", str(PVUtil.getSeverity(pvs[0])))
+]]></text>
+        <pv_name>sim://sine</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_35</name>
+    <text>.. as code:</text>
+    <x>730</x>
+    <y>371</y>
+    <width>80</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_36</name>
+    <text>RCPUtil: Eclipse Commands</text>
+    <y>910</y>
+    <width>320</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_15</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.rcp.script import RCPUtil
+
+RCPUtil.executeEclipseCommand("org.eclipse.ui.perspectives.showPerspective",
+       [ "org.eclipse.ui.perspectives.showPerspective.perspectiveId",
+         "org.csstudio.trends.databrowser.Perspective"
+       ])
+]]></text>
+        </script>
+        <description>Switch Perspective</description>
+      </action>
+    </actions>
+    <y>960</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_37</name>
+    <text>Scripts can control Eclipse</text>
+    <x>4</x>
+    <y>933</y>
+    <width>385</width>
+    <height>40</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_16</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.rcp.script import RCPUtil
+
+RCPUtil.executeEclipseCommand("org.eclipse.ui.views.showView",
+       [ "org.eclipse.ui.views.showView.viewId",
+         "org.eclipse.ui.views.ResourceNavigator"
+       ])
+]]></text>
+        </script>
+        <description>Open Navigator</description>
+      </action>
+    </actions>
+    <x>160</x>
+    <y>960</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_17</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+from org.csstudio.display.builder.rcp.script import RCPUtil
+
+if ScriptUtil.showConfirmationDialog(widget, "Dude, this was just meant as an example.\nDo you really want to close CS-Studio?"):
+    RCPUtil.executeEclipseCommand("org.eclipse.ui.file.exit")
+
+
+
+
+]]></text>
+        </script>
+        <description>Close CSS</description>
+      </action>
+    </actions>
+    <x>320</x>
+    <y>960</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Display that embeds a file provided by macro</text>
+    <width>520</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>A</name>
+    <file>$(FILE)</file>
+    <y>70</y>
+    <width>350</width>
+    <height>240</height>
+  </widget>
+</display>

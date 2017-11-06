@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>XY Plot</name>
+  <width>1150</width>
+  <height>900</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>XY Plot Widget</text>
+    <width>181</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Plot with script that changes the 'y_pv' every 3 seconds.</text>
+    <y>41</y>
+    <width>371</width>
+    <height>40</height>
+  </widget>
+  <widget type="xyplot" version="2.0.0">
+    <name>X/Y Plot_1</name>
+    <y>91</y>
+    <width>511</width>
+    <height>340</height>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+
+if PVUtil.getDouble(pvs[0]) > 0:
+    pv = "sim://sinewave(1, 50, 100, 0.1, 70, 90)"
+else:
+    pv = "sim://sinewave(1, 50, 100, 0.1, 20, 50)"
+
+widget.setPropertyValue("traces[0].y_pv", pv)
+]]></text>
+        <pv_name>sim://flipflop(3)</pv_name>
+      </script>
+    </scripts>
+    <traces>
+      <trace>
+        <name></name>
+        <x_pv>sim://sawtooth(0, 100, 100, 1, 0, 102)</x_pv>
+        <y_pv>sim://sinewave(1, 50, 100, 0.1, 70, 90)</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+        <line_width>3</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+      </trace>
+    </traces>
+  </widget>
+</display>

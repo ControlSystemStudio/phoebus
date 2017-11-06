@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Python Detail</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>281</width>
+    <height>31</height>
+    <text>Python Scripting Detail</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>50</y>
+    <width>281</width>
+    <text>Jython Scripts</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <y>80</y>
+    <width>430</width>
+    <height>130</height>
+    <text>By default, script files ending in ".py" are executed as Jython scripts.
+
+They receive a "widget" and optionally "pvs[]" variables
+to interact with the display.
+Since the Jython code is executed by the same JVM that also
+handles the display, interaction with the display is comparable fast
+once the script has been loaded &amp; compiled.</text>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button</name>
+    <y>230</y>
+    <width>130</width>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>1</value>
+        <description>Trigger Jython</description>
+      </action>
+    </actions>
+    <pv_name>loc://run_jython(0)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <x>160</x>
+    <y>230</y>
+    <width>490</width>
+    <height>70</height>
+    <text>Text updated by jython</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="jython.py">
+        <pv_name>loc://run_jython(0)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <x>160</x>
+    <y>560</y>
+    <width>410</width>
+    <height>120</height>
+    <text>Text updated by python</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <scripts>
+      <script file="python.py">
+        <pv_name>loc://run_python(0)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button_1</name>
+    <y>560</y>
+    <width>130</width>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>1</value>
+        <description>Trigger Python</description>
+      </action>
+    </actions>
+    <pv_name>loc://run_python(0)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <y>320</y>
+    <width>281</width>
+    <text>Python Scripts</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <y>350</y>
+    <width>430</width>
+    <height>200</height>
+    <text>If *.py scripts contain "python" in the first line,
+an external Python process will be launched to execute the script.
+
+That script can use Py4J to interact with the display via
+proxy objects for the "widget", "pvs[]" and some script utility classes.
+
+Compared to Jython, starting an external python script and
+establishing the proxy objects takes longer.
+Similarly, releasing the proxies on shutdown takes time.
+On the upside, python scripts can access numpy etc.,
+they are not limited to Jython.</text>
+  </widget>
+</display>

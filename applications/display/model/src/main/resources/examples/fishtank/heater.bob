@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Heater Demo</name>
+  <macros>
+    <P>$(USER)</P>
+    <tooltip>Hello!</tooltip>
+  </macros>
+  <width>700</width>
+  <height>700</height>
+  <actions>
+  </actions>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Room</text>
+    <x>12</x>
+    <y>50</y>
+    <width>40</width>
+    <height>16</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="scaledslider" version="2.0.0">
+    <name>Scaled Slider</name>
+    <pv_name>$(P):heat_V</pv_name>
+    <x>442</x>
+    <y>70</y>
+    <width>52</width>
+    <height>142</height>
+    <horizontal>false</horizontal>
+    <background_color>
+      <color red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <major_tick_step_hint>50</major_tick_step_hint>
+    <show_hihi>false</show_hihi>
+    <show_high>false</show_high>
+    <show_low>false</show_low>
+    <show_lolo>false</show_lolo>
+    <actions>
+    </actions>
+    <maximum>110.0</maximum>
+    <limits_from_pv>false</limits_from_pv>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Isolation Factor:</text>
+    <x>132</x>
+    <y>282</y>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Heat Capacity:</text>
+    <x>132</x>
+    <y>322</y>
+    <width>92</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Sensor:</text>
+    <x>132</x>
+    <y>362</y>
+    <width>49</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Menu Button</name>
+    <pv_name>$(P):sensor</pv_name>
+    <x>132</x>
+    <y>380</y>
+    <width>101</width>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+    </items>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>$(P):tank</pv_name>
+    <x>132</x>
+    <y>260</y>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <pv_name>$(P):heat_V</pv_name>
+    <x>442</x>
+    <y>230</y>
+    <width>61</width>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <pv_name>$(P):heat_Pwr</pv_name>
+    <x>442</x>
+    <y>270</y>
+    <width>61</width>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input</name>
+    <pv_name>$(P):room</pv_name>
+    <x>12</x>
+    <y>260</y>
+    <width>61</width>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_1</name>
+    <pv_name>$(P):tank_clc.D</pv_name>
+    <x>132</x>
+    <y>300</y>
+    <format>1</format>
+    <show_units>false</show_units>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_2</name>
+    <pv_name>$(P):tank_clc.E</pv_name>
+    <x>132</x>
+    <y>340</y>
+    <format>1</format>
+    <show_units>false</show_units>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Water Tank</text>
+    <x>132</x>
+    <y>50</y>
+    <width>76</width>
+    <height>16</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Setpoint</text>
+    <x>302</x>
+    <y>50</y>
+    <width>58</width>
+    <height>14</height>
+    <visible>false</visible>
+    <font>
+      <font family="Arial" style="BOLD" size="11.881188118811881">
+      </font>
+    </font>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Fishtank Heater Demo for user $(USER)</text>
+    <x>12</x>
+    <y>3</y>
+    <width>364</width>
+    <height>25</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="20" green="67" blue="227">
+      </color>
+    </foreground_color>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+    <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Temperature:</text>
+    <x>132</x>
+    <y>242</y>
+    <width>85</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Controller</text>
+    <x>302</x>
+    <y>300</y>
+    <width>67</width>
+    <height>16</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Temperature:</text>
+    <x>14</x>
+    <y>242</y>
+    <width>85</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Voltage:</text>
+    <x>442</x>
+    <y>212</y>
+    <width>52</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Power:</text>
+    <x>442</x>
+    <y>254</y>
+    <width>44</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Image</name>
+    <file>fish.gif</file>
+    <x>340</x>
+    <y>116</y>
+    <width>80</width>
+    <height>70</height>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <text>Heater</text>
+    <x>442</x>
+    <y>50</y>
+    <width>44</width>
+    <height>16</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Prop. Gain</text>
+    <x>442</x>
+    <y>314</y>
+    <width>67</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Error</text>
+    <x>446</x>
+    <y>362</y>
+    <width>32</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_4</name>
+    <pv_name>$(P):PID.C</pv_name>
+    <x>512</x>
+    <y>330</y>
+    <width>51</width>
+    <height>21</height>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Status</name>
+    <text>Status</text>
+    <x>442</x>
+    <y>420</y>
+    <width>201</width>
+    <height>21</height>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+    <actions>
+    </actions>
+    <scripts>
+      <script file="scripts/Analyze.py">
+        <pv_name>$(P):PID</pv_name>
+        <pv_name>sim://sine(-10,10,10,0.1)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <text>Status:</text>
+    <x>440</x>
+    <y>404</y>
+    <width>44</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Err. Integral</text>
+    <x>512</x>
+    <y>362</y>
+    <width>74</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <pv_name>$(P):error</pv_name>
+    <x>442</x>
+    <y>380</y>
+    <width>61</width>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Output:</text>
+    <x>302</x>
+    <y>320</y>
+    <width>46</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Integral Limit</text>
+    <x>584</x>
+    <y>362</y>
+    <width>81</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>$(P):integral</pv_name>
+    <x>512</x>
+    <y>380</y>
+    <width>61</width>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <wrap_words>false</wrap_words>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_5</name>
+    <pv_name>$(P):integral.C</pv_name>
+    <x>584</x>
+    <y>380</y>
+    <width>61</width>
+    <height>21</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_3</name>
+    <pv_name>$(P):PID.A</pv_name>
+    <x>442</x>
+    <y>330</y>
+    <width>51</width>
+    <height>21</height>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Integral Gain</text>
+    <x>512</x>
+    <y>314</y>
+    <width>81</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>Heater
+is
+on</text>
+    <x>518</x>
+    <y>66</y>
+    <width>75</width>
+    <height>50</height>
+    <font>
+      <font family="Arial" style="BOLD" size="11.881188118811881">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>1</horizontal_alignment>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+    <rules>
+      <rule name="show" prop_id="visible" out_exp="false">
+        <exp bool_exp="pv0 &lt; 50">
+          <value>false</value>
+        </exp>
+        <pv_name>$(USER):heat_V</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="databrowser" version="2.0.0">
+    <name>Data Browser</name>
+    <file>strip.plt</file>
+    <macros>
+      <user>$(USER)</user>
+    </macros>
+    <y>438</y>
+    <width>697</width>
+    <height>259</height>
+    <show_toolbar>false</show_toolbar>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>Setpoint</text>
+    <x>282</x>
+    <y>50</y>
+    <width>56</width>
+    <height>16</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="scaledslider" version="2.0.0">
+    <name>Scaled Slider_1</name>
+    <pv_name>$(P):setpoint</pv_name>
+    <x>282</x>
+    <y>66</y>
+    <width>58</width>
+    <height>200</height>
+    <horizontal>false</horizontal>
+    <show_hihi>false</show_hihi>
+    <show_high>false</show_high>
+    <show_low>false</show_low>
+    <show_lolo>false</show_lolo>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button</name>
+    <x>672</x>
+    <y>250</y>
+    <width>1</width>
+    <height>1</height>
+  </widget>
+  <widget type="radio" version="2.0.0">
+    <name>Menu Button_1</name>
+    <pv_name>$(USER):heat_V.OMSL</pv_name>
+    <x>518</x>
+    <y>130</y>
+    <width>154</width>
+    <height>50</height>
+    <tooltip>$(USER):heat_V.OMSL
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>'item' = 'Item 0'</item>
+    </items>
+  </widget>
+  <widget type="progressbar" version="2.0.0">
+    <name>Gauge</name>
+    <pv_name>$(USER):PID</pv_name>
+    <x>302</x>
+    <y>336</y>
+    <width>118</width>
+    <height>30</height>
+    <actions>
+    </actions>
+    <tooltip>$(USER):PID
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Gauge_1</name>
+    <pv_name>$(USER):PID</pv_name>
+    <x>302</x>
+    <y>380</y>
+    <width>118</width>
+    <height>30</height>
+    <actions>
+    </actions>
+    <tooltip>$(USER):PID
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="thermometer" version="2.0.0">
+    <name>Tank</name>
+    <pv_name>$(P):tank</pv_name>
+    <x>134</x>
+    <y>70</y>
+    <width>98</width>
+    <height>171</height>
+    <fill_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </fill_color>
+    <actions>
+    </actions>
+    <rules>
+      <rule name="Color" prop_id="fill_color" out_exp="false">
+        <exp bool_exp="pv0&gt;50">
+          <value>
+            <color name="MAJOR" red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0&gt;40">
+          <value>
+            <color red="255" green="179" blue="102">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0&gt;20">
+          <value>
+            <color red="0" green="179" blue="102">
+            </color>
+          </value>
+        </exp>
+        <pv_name>$(P):tank</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="thermometer" version="2.0.0">
+    <name>Tank_1</name>
+    <pv_name>$(P):room</pv_name>
+    <x>12</x>
+    <y>70</y>
+    <width>98</width>
+    <height>171</height>
+    <fill_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </fill_color>
+    <actions>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Requires fishtank IOC</text>
+    <x>12</x>
+    <y>28</y>
+    <width>685</width>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+</display>

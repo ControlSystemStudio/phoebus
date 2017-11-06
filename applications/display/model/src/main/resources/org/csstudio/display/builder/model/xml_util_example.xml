@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0">
+  <widget type="custom" version="1.0">
+    <name>Fred</name>
+    <x>0</x>
+    <y>0</y>
+    <color><r>2</r><g>10</g><b>100</b></color>
+    <zero_ten>7</zero_ten>
+  </widget>
+  <widget type="base" version="1.0">
+    <name>Jänner</name>
+    <x>0</x>
+    <y>0</y>
+  </widget>
+</display>

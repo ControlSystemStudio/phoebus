@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>181</width>
+    <height>31</height>
+    <text>Checkbox</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <x>31</x>
+    <y>61</y>
+    <width>641</width>
+    <height>30</height>
+    <text>Checkboxes toggle one bit in a PV</text>
+    <background_color>
+      <color red="204" green="230" blue="255">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <font>
+      <font family="Liberation Sans" style="REGULAR" size="16.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>TextUpdate</name>
+    <x>151</x>
+    <y>111</y>
+    <width>140</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <format>4</format>
+    <pv_name>loc://boolTest</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <x>41</x>
+    <y>111</y>
+    <width>110</width>
+    <text>Numeric Values:</text>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <x>41</x>
+    <y>301</y>
+    <width>281</width>
+    <text>Bit -1 registers true for any bit enabed</text>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox</name>
+    <x>177</x>
+    <y>151</y>
+    <height>26</height>
+    <label>bit 0</label>
+    <pv_name>loc://boolTest</pv_name>
+  </widget>
+  <widget type="byte_monitor" version="2.0.0">
+    <name>Byte Monitor</name>
+    <x>151</x>
+    <y>151</y>
+    <width>24</width>
+    <height>90</height>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <numBits>4</numBits>
+    <bitReverse>true</bitReverse>
+    <horizontal>false</horizontal>
+    <pv_name>loc://boolTest</pv_name>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox_1</name>
+    <x>177</x>
+    <y>177</y>
+    <label>bit 1</label>
+    <pv_name>loc://boolTest</pv_name>
+    <bit>1</bit>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox_2</name>
+    <x>177</x>
+    <y>223</y>
+    <label>bit 3</label>
+    <pv_name>loc://boolTest</pv_name>
+    <bit>3</bit>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox_3</name>
+    <x>177</x>
+    <y>197</y>
+    <height>26</height>
+    <label>bit 2</label>
+    <pv_name>loc://boolTest</pv_name>
+    <bit>2</bit>
+  </widget>
+  <widget type="byte_monitor" version="2.0.0">
+    <name>Byte Monitor_1</name>
+    <x>322</x>
+    <y>151</y>
+    <width>25</width>
+    <height>92</height>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <numBits>4</numBits>
+    <bitReverse>true</bitReverse>
+    <horizontal>false</horizontal>
+    <pv_name>sim://ramp(0,4,1)</pv_name>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox_4</name>
+    <x>352</x>
+    <y>177</y>
+    <label>bit 1</label>
+    <pv_name>sim://ramp(0,4,1)</pv_name>
+    <bit>1</bit>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox_5</name>
+    <x>151</x>
+    <y>257</y>
+    <width>130</width>
+    <label>bit -1</label>
+    <pv_name>loc://boolTest</pv_name>
+    <bit>-1</bit>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox_6</name>
+    <x>322</x>
+    <y>257</y>
+    <width>124</width>
+    <label>bit -1</label>
+    <pv_name>sim://ramp(0,4,1)</pv_name>
+    <bit>-1</bit>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>TextUpdate_1</name>
+    <x>322</x>
+    <y>111</y>
+    <width>140</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <format>4</format>
+    <show_units>false</show_units>
+    <pv_name>sim://ramp(0,4,1)</pv_name>
+  </widget>
+</display>

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Enablement</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Enablement</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>PV Name:</text>
+    <y>31</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>Try    loc://x        for writable PV
+and   sim://sine  for read-only PV.</text>
+    <x>250</x>
+    <y>31</y>
+    <width>270</width>
+    <height>49</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://pv_name("loc://x(4)")</pv_name>
+    <x>90</x>
+    <y>31</y>
+    <width>140</width>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox</name>
+    <pv_name>loc://enable(1)</pv_name>
+    <label>Enable?</label>
+    <x>90</x>
+    <y>70</y>
+    <width>130</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <x>90</x>
+    <y>140</y>
+    <rules>
+      <rule name="Enable" prop_id="enabled" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://enable(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("pv_name", PVUtil.getString(pvs[0]))]]></text>
+        <pv_name>loc://pv_name("loc://x(4)")</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Text Entry_2</name>
+    <label>Set 0/1</label>
+    <x>90</x>
+    <y>180</y>
+    <rules>
+      <rule name="Enable" prop_id="enabled" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://enable(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("pv_name", PVUtil.getString(pvs[0]))]]></text>
+        <pv_name>loc://pv_name("loc://x(4)")</pv_name>
+      </script>
+    </scripts>
+    <tooltip>
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <class>COMMENT</class>
+    <text>Widgets that write to a PV
+will allow interaction (enter value, push button, ..)
+if they are both 'enabled'
+and the PV provides write access.
+
+They will automatically disable if the PV
+prevents write access.
+
+In addition, they can be disabled by scripts
+that update the 'enabled' property.
+In that case the still indicate the current
+value of the PV, but do not allow interaction.
+
+To disconnect the widget, enter an empty PV name.</text>
+    <x>250</x>
+    <y>140</y>
+    <width>310</width>
+    <height>280</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Text Entry_3</name>
+    <x>90</x>
+    <y>220</y>
+    <height>40</height>
+    <rules>
+      <rule name="Enable" prop_id="enabled" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://enable(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("pv_name", PVUtil.getString(pvs[0]))]]></text>
+        <pv_name>loc://pv_name("loc://x(4)")</pv_name>
+      </script>
+    </scripts>
+    <tooltip>
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Text Entry_4</name>
+    <x>90</x>
+    <y>280</y>
+    <width>130</width>
+    <rules>
+      <rule name="Enable" prop_id="enabled" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://enable(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("pv_name", PVUtil.getString(pvs[0]))]]></text>
+        <pv_name>loc://pv_name("loc://x(4)")</pv_name>
+      </script>
+    </scripts>
+    <tooltip></tooltip>
+    <items>
+      <item>2</item>
+      <item>4</item>
+      <item>6</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="scaledslider" version="2.0.0">
+    <name>Text Entry_5</name>
+    <x>90</x>
+    <y>320</y>
+    <width>50</width>
+    <height>190</height>
+    <horizontal>false</horizontal>
+    <background_color>
+      <color name="Button_Background" red="210" green="210" blue="210">
+      </color>
+    </background_color>
+    <show_hihi>false</show_hihi>
+    <show_high>false</show_high>
+    <show_low>false</show_low>
+    <show_lolo>false</show_lolo>
+    <rules>
+      <rule name="Enable" prop_id="enabled" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://enable(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("pv_name", PVUtil.getString(pvs[0]))]]></text>
+        <pv_name>loc://pv_name("loc://x(4)")</pv_name>
+      </script>
+    </scripts>
+    <tooltip></tooltip>
+    <maximum>10.0</maximum>
+    <limits_from_pv>false</limits_from_pv>
+  </widget>
+  <widget type="scrollbar" version="2.0.0">
+    <name>Text Entry_6</name>
+    <x>150</x>
+    <y>320</y>
+    <width>50</width>
+    <height>190</height>
+    <horizontal>false</horizontal>
+    <rules>
+      <rule name="Enable" prop_id="enabled" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://enable(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
+widget.setPropertyValue("pv_name", PVUtil.getString(pvs[0]))]]></text>
+        <pv_name>loc://pv_name("loc://x(4)")</pv_name>
+      </script>
+    </scripts>
+    <tooltip></tooltip>
+    <maximum>10.0</maximum>
+    <bar_length>1.0</bar_length>
+  </widget>
+</display>

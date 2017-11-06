@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Screen B</name>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>301</width>
+    <height>31</height>
+    <text>Sample Screen B</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button</name>
+    <x>131</x>
+    <y>331</y>
+    <width>271</width>
+    <height>30</height>
+    <text>$(actions)</text>
+    <actions>
+      <action type="open_display">
+        <file>control_action_buttons.bob</file>
+        <target>replace</target>
+        <description>Back To Action Buttons Screen</description>
+      </action>
+    </actions>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture</name>
+    <x>81</x>
+    <y>51</y>
+    <width>380</width>
+    <height>250</height>
+    <file>pic/bee.jpg</file>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <x>481</x>
+    <y>211</y>
+    <width>360</width>
+    <height>90</height>
+    <text>Megachile (Chalicodoma) montenegrensis Dours 1873, 
+female foraging on Malva sylvestris L., 
+Negev Mountains, Israel, April 16, 2014.
+
+Author: Gideon Pisanty</text>
+  </widget>
+</display>

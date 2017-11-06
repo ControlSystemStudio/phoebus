@@ -1,0 +1,33 @@
+<project default="module-display-rtplot">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="module-display-rtplot">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/display-rtplot-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+  <target name="test-display-rtplot" depends="module-display-rtplot">
+    <junit printsummary="withOutAndErr" haltonfailure="yes">
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="${build}/display-rtplot-${version}.jar"/>
+      </classpath>
+      <batchtest>
+        <zipfileset src="${build}/display-rtplot-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+      <formatter type="plain" usefile="false"/>
+    </junit>
+  </target>
+	
+</project>

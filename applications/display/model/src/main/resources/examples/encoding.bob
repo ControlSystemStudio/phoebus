@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Encoding</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Display files use UTF-8 encoding.
+For the most part this means you can simply type the text of a label in the editor, or you can copy/paste characters with other applications.</text>
+    <y>31</y>
+    <width>470</width>
+    <height>69</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Arrows:  ←, ↑, → , ↓</text>
+    <y>130</y>
+    <width>270</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Umlaut Characters: Ä, Ö, Ü, ä, ö, ü, ß</text>
+    <y>100</y>
+    <width>270</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Arrows: &#x2190;, &#x2191;, &#x2192;, &#x2193; (entered as "&amp;#x...;" in a text editor)</text>
+    <y>270</y>
+    <width>400</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>If you cannot directly enter a unicode character on the keyboard, locate the hexadecimal code point for the desired symbol on one of the UTF-8 related web sites.
+For example, you will find that 2190 represents the leftward arrow.
+Open the display file in a text editor and enter the symbol as "&amp;#x2190;".
+</text>
+    <y>170</y>
+    <width>500</width>
+    <height>100</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Other Examples: &#x263B; &#x263A; &#x2639; &#x2600; &#x2602; &#x260E; &#x2610; &#x2611;</text>
+    <y>310</y>
+    <width>400</width>
+    <height>30</height>
+  </widget>
+</display>

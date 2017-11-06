@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>MQTT Demo</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>MQTT Servo Demo</text>
+    <width>281</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>mqtt://dev/servo/status&lt;VString&gt;</pv_name>
+    <x>40</x>
+    <y>220</y>
+    <width>300</width>
+    <height>70</height>
+    <font>
+      <font family="Liberation Sans" style="REGULAR" size="18.0">
+      </font>
+    </font>
+    <rules>
+      <rule name="Color Rule" prop_id="background_color" out_exp="false">
+        <exp bool_exp="pvStr0==&quot;online&quot;">
+          <value>
+            <color name="OK" red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pvStr0==&quot;offline&quot;">
+          <value>
+            <color name="STOP" red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <pv_name>mqtt://dev/servo/status&lt;VString&gt;</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Rotation Value in Degrees</text>
+    <x>40</x>
+    <y>60</y>
+    <width>270</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>mqtt://dev/servo/rotation</pv_name>
+    <x>40</x>
+    <y>100</y>
+    <width>300</width>
+    <height>60</height>
+    <font>
+      <font family="Liberation Sans" style="REGULAR" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Status</text>
+    <x>40</x>
+    <y>180</y>
+    <width>270</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+</display>

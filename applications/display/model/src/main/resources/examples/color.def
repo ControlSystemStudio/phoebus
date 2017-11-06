@@ -1,0 +1,66 @@
+# Named colors
+#
+# Format:
+#   NameOfColor = red, green, blue [, alpha ] | PreviouslyDefinedNameOfColor
+# with values in 0..255 range.
+#
+# Whenever possible, use named colors in displays
+# instead of arbitrary red/green/blue values.
+
+# ------- Predefined colors ----------------
+# May be overridden in here
+
+# Alarm related
+OK = 0, 255, 0
+MINOR = 255, 128, 0
+MAJOR = 255, 0, 0
+INVALID = 255, 0, 255
+DISCONNECTED = 200, 0, 200, 200
+
+# Default color for text
+Text=0,0,0
+
+# Default color for 'active' text that's being edited
+ActiveText=255, 255, 0
+
+# Display background
+Background = 255, 255, 255
+
+# .. for widgets that read/write a value
+Read_Background = 240, 240, 240
+Write_Background = 128, 255, 255
+
+# .. for buttons
+Button_Background = 210, 210, 210
+
+# ------- Examples for additional colors ----------------
+# Also show ideas for site-specific guidelines that
+# are required to make sense of the color names.
+
+# Styling
+Header_Background=77,77,77
+Header_ForeGround=255,255,255
+
+# Use alarm colors only when you mean to indicate an alarm.
+# Avoid using 'Red' which might suggest an alarm
+# just because you like the look of red.
+# STOP looks similar to red=MAJOR alarm, and is allowed
+# for 'STOP' type of buttons
+STOP = MAJOR
+
+# Attention looks similar to a MINOR alarm.
+# It is meant to draw attention
+Attention = 255,160,0
+
+# The colors for On/Off, Open/Close etc,.
+# "On" does not necessarily mean 'device is turned on', but
+# stands for 'indicator is on, active, illuminated'.
+# For a 'motor is at target' type indicator, the motor would
+# actually be 'off' while the indicator uses the 'On' color.
+#
+# If one of the states represents an alarm, the corresponding alarm color may be used.
+# For example, a limit switch indicator could use colors "Off" and "MAJOR":
+# Off when idle, MAJOR when the limit switch was hit and this is an abnormal situation
+# that requires attention.
+On = OK
+Off = 60,100,60

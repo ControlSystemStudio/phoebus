@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Macro Hierarchy</name>
+  <macros>
+    <MY_MACRO>.. as defined in display</MY_MACRO>
+  </macros>
+  <x>-1</x>
+  <y>-1</y>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display</name>
+    <macros>
+      <MY_MACRO>.. from embedding widget</MY_MACRO>
+    </macros>
+    <x>371</x>
+    <y>171</y>
+    <width>410</width>
+    <height>330</height>
+    <file>embedded.bob</file>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>281</width>
+    <height>31</height>
+    <text>Macros</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <y>61</y>
+    <width>221</width>
+    <height>30</height>
+    <text>1) Preferences</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <y>31</y>
+    <width>331</width>
+    <height>30</height>
+    <text>Marco Hierarchy</text>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <y>881</y>
+    <width>540</width>
+    <height>100</height>
+    <text>Actions that open displays, usually defined on an Action Button,
+can add/replace macros which are then passed to the opened
+display.
+
+The follwing buttons open the same display:</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <y>231</y>
+    <width>321</width>
+    <height>130</height>
+    <text>Each display can add or replace macros:
+
+MY_MACRO = $(MY_MACRO)
+
+In the "Embedded Display" example,
+the display file that's embedded uses this
+to update the EXAMPLE_MACRO.</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <y>661</y>
+    <width>351</width>
+    <height>50</height>
+    <text>Each group within a display can add or replace macros
+which are then visible to the widgets within the group.</text>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Group that replaces MY_MACRO</name>
+    <macros>
+      <MY_MACRO>replaced by group</MY_MACRO>
+    </macros>
+    <y>721</y>
+    <width>351</width>
+    <height>100</height>
+    <widget type="label" version="2.0.0">
+      <name>Label_7</name>
+      <x>5</x>
+      <y>4</y>
+      <width>310</width>
+      <height>55</height>
+      <text>EXAMPLE_MACRO = $(EXAMPLE_MACRO)
+MY_MACRO = $(MY_MACRO)
+DID = $(DID)</text>
+    </widget>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Group that replaces EXAMPLE_MACRO</name>
+    <macros>
+      <EXAMPLE_MACRO>replaced by group</EXAMPLE_MACRO>
+    </macros>
+    <x>371</x>
+    <y>721</y>
+    <width>351</width>
+    <height>100</height>
+    <widget type="label" version="2.0.0">
+      <name>Label_16</name>
+      <x>4</x>
+      <y>4</y>
+      <width>310</width>
+      <height>55</height>
+      <text>EXAMPLE_MACRO = $(EXAMPLE_MACRO)
+MY_MACRO = $(MY_MACRO)
+DID = $(DID)</text>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <x>371</x>
+    <y>61</y>
+    <width>180</width>
+    <height>30</height>
+    <text>2) Embedded Display</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button</name>
+    <y>981</y>
+    <width>181</width>
+    <text>$(actions)</text>
+    <actions>
+      <action type="open_display">
+        <file>new_display.bob</file>
+        <target>replace</target>
+        <description>No changes</description>
+      </action>
+    </actions>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button_1</name>
+    <x>200</x>
+    <y>981</y>
+    <width>181</width>
+    <text>$(actions)</text>
+    <actions>
+      <action type="open_display">
+        <file>new_display.bob</file>
+        <macros>
+          <MY_MACRO>Set by action</MY_MACRO>
+        </macros>
+        <target>replace</target>
+        <description>Change MY MACRO</description>
+      </action>
+    </actions>
+  </widget>
+  <widget type="action_button" version="2.0.0">
+    <name>Action Button_2</name>
+    <x>400</x>
+    <y>981</y>
+    <width>210</width>
+    <text>$(actions)</text>
+    <actions>
+      <action type="open_display">
+        <file>new_display.bob</file>
+        <macros>
+          <EXAMPLE_MACRO>Set by action</EXAMPLE_MACRO>
+        </macros>
+        <target>replace</target>
+        <description>Change EXAMPLE MACRO</description>
+      </action>
+    </actions>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <y>91</y>
+    <width>351</width>
+    <height>120</height>
+    <text>Each display receives initial macros
+from the display builder preferences:
+
+EXAMPLE_MACRO = $(EXAMPLE_MACRO)
+</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <x>371</x>
+    <y>91</y>
+    <width>420</width>
+    <height>120</height>
+    <text>An Embedded Display widget can define macros
+which are then passed to the embedded display.
+
+In this example, MY_MACRO is set to ".. from embedding widget"</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <y>191</y>
+    <width>169</width>
+    <height>30</height>
+    <text>3) Display</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <y>621</y>
+    <width>169</width>
+    <height>30</height>
+    <text>4) Group</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <y>841</y>
+    <width>169</width>
+    <height>30</height>
+    <text>5) Actions</text>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <y>391</y>
+    <width>341</width>
+    <height>190</height>
+    <text>Each display automatically defines a few macros.
+
+DID uniquely identifies the display.
+It can be used to create unique,
+display-specific local variables.
+
+DNAME provides the display name.
+
+For this display, DID = $(DID),
+and DNAME = $(DNAME).</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <y>361</y>
+    <width>241</width>
+    <height>30</height>
+    <text>Automatic Display  Macros</text>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+</display>

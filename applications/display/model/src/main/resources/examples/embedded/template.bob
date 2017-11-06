@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>template</name>
+  <width>400</width>
+  <height>500</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Master Display</text>
+    <width>281</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Group1</name>
+    <x>10</x>
+    <y>31</y>
+    <width>150</width>
+    <height>200</height>
+    <widget type="label" version="2.0.0">
+      <name>Label_2</name>
+      <text>Value of
+&lt;$(pv_name)&gt;</text>
+      <x>14</x>
+      <y>23</y>
+      <height>40</height>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update</name>
+      <pv_name>$(pv_name)</pv_name>
+      <x>14</x>
+      <y>73</y>
+    </widget>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>$(groupname)</name>
+    <x>230</x>
+    <y>31</y>
+    <width>160</width>
+    <height>200</height>
+    <widget type="progressbar" version="2.0.0">
+      <name>Progress Bar</name>
+      <pv_name>$(pv_name)</pv_name>
+      <x>14</x>
+      <y>133</y>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_3</name>
+      <text>This is
+the group
+'$(groupname)'
+with 
+PV $(pv_name)</text>
+      <y>23</y>
+      <width>130</width>
+      <height>100</height>
+    </widget>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Group2</name>
+    <x>10</x>
+    <y>231</y>
+    <width>150</width>
+    <height>200</height>
+    <style>3</style>
+    <widget type="label" version="2.0.0">
+      <name>Label_5</name>
+      <text>Hi!</text>
+      <x>14</x>
+      <y>63</y>
+    </widget>
+  </widget>
+</display>

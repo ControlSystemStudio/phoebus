@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Macros</name>
+  <width>1100</width>
+  <height>1050</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Macros</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>281</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <class>SECTION</class>
+    <text>Purpose</text>
+    <y>41</y>
+    <width>331</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Macros allow you to define generic displays.
+
+Typically, a macro is used instead of a PV name.
+The same display file can then be used for different PVs
+by opening the display with appropriate macro values.</text>
+    <y>71</y>
+    <width>451</width>
+    <height>120</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <class>SECTION</class>
+    <text>Defining Macros</text>
+    <y>191</y>
+    <width>331</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Macros can be defined at 
+
+ 1) In Preferences
+ 2) In the 'Embedded Display' widget that embeds other displays
+ 3) In the properties of each display 
+ 4) In each 'Group' widget
+ 5) On each 'Action' that opens a display
+
+Macros are added respectively overwritten in the above hierarchy.
+
+Example:
+
+An 'Action' of an Action Button widget opens display 'sub.bob' with macros "PV=MyPV, TITLE=Hello".
+
+That sub.bob display itself defines a macro "TITLE=Welcome".
+It includes a 'Group' widget that defines a macro "VISIBLE=true".
+
+Result:
+A widget inside that 'Group' widget will see macros "PV=MyPV, TITLE=Welcome, VISIBLE=true".</text>
+    <y>221</y>
+    <width>661</width>
+    <height>340</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <class>SECTION</class>
+    <text>Using Macros</text>
+    <y>631</y>
+    <width>331</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>When entering the property of a widget, most places
+allow using \$(MACRO_NAME).
+
+For example, the 'PV Name' can be entered as \$(PV).
+At runtime, the value of the macro "PV" will then be used as the PV Name.
+
+Similarly, properties for the 'X Position' or 'Width' of a widget can use macros,
+as long as the value of the macro evaluates to a number.
+The 'Visible' property can use a macro, as long as the value of the macro
+equals "true" resp. "false".</text>
+    <y>661</y>
+    <width>541</width>
+    <height>180</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <class>SECTION</class>
+    <text>Access to Widget Properties, Java Props and Environment</text>
+    <x>541</x>
+    <y>631</y>
+    <width>541</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>When evaluating a macro, if the macro has not been defined,
+the properties of the widget are searched.
+
+For example, when using the macro \$(x) while no value
+for the macro "x" has been defined, the 'x' property of the widget
+will be used: \$(x) = $(x).
+
+Note that this mechanism uses the internal, non-localized name of
+the property as it is for example found in the *.bob file.
+The 'X Position' property for example has an internal name 'x'.
+
+If there is no widget property for the requested macro name,
+Java system properties are used.
+
+For example, the \$(os.name) is currently: $(os.name).
+
+Finally, if neigher a widget property nor a Java system property
+matches the requested name, the environment variables are used.
+
+For example, \$(HOME) is:
+$(HOME)</text>
+    <x>541</x>
+    <y>661</y>
+    <width>541</width>
+    <height>379</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="open_display">
+        <file>macros/macros.bob</file>
+        <target>replace</target>
+        <description>More Macro Hierarchy Examples</description>
+      </action>
+    </actions>
+    <y>561</y>
+    <width>270</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

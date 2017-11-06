@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Toggle Buttons</name>
+  <grid_visible>true</grid_visible>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Button Widgets</text>
+    <width>181</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Boolean buttons toggle one bit in a PV</text>
+    <y>31</y>
+    <width>641</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Images</text>
+    <y>350</y>
+    <width>641</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <x>330</x>
+    <y>100</y>
+    <width>90</width>
+    <height>60</height>
+    <off_label>OFF</off_label>
+    <on_label>ON</on_label>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button_1</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>1</bit>
+    <x>220</x>
+    <y>100</y>
+    <width>90</width>
+    <height>60</height>
+    <off_label>OFF</off_label>
+    <on_label>ON</on_label>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Bit 0</text>
+    <x>330</x>
+    <y>170</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Bit 1</text>
+    <x>220</x>
+    <y>170</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>TextUpdate</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <x>110</x>
+    <y>61</y>
+    <width>280</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <format>4</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Numeric Value:</text>
+    <y>61</y>
+    <width>110</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button_2</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>2</bit>
+    <x>110</x>
+    <y>100</y>
+    <width>90</width>
+    <height>60</height>
+    <off_label>OFF</off_label>
+    <on_label>ON</on_label>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Bit 2</text>
+    <x>110</x>
+    <y>170</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button_3</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>3</bit>
+    <y>100</y>
+    <width>90</width>
+    <height>60</height>
+    <off_label>OFF</off_label>
+    <on_label>ON</on_label>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Bit 3</text>
+    <y>170</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button_4</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>-1</bit>
+    <y>230</y>
+    <width>90</width>
+    <height>60</height>
+    <off_label>OFF</off_label>
+    <off_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </off_color>
+    <on_label>ON</on_label>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Bit -1</text>
+    <y>300</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Bit -1 reads "true" for any bit enabed, and writes to bit 0.</text>
+    <y>200</y>
+    <width>410</width>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button_5</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>-1</bit>
+    <y>420</y>
+    <width>90</width>
+    <height>60</height>
+    <off_label></off_label>
+    <off_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </off_color>
+    <off_image>pic/switch_off.gif</off_image>
+    <on_label></on_label>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+    <on_image>pic/switch_on.gif</on_image>
+    <background_color>
+      <color name="Background" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Bit -1</text>
+    <y>490</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>The Boolean Button Widget can use two images
+to represent the on/off state.</text>
+    <y>380</y>
+    <width>410</width>
+    <height>40</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>The color of the on/off state is then ignored, it only applies to the LED-type blob used when no image is provided.</text>
+    <y>520</y>
+    <width>510</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+</display>

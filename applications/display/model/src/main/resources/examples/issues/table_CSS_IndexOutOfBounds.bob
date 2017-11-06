@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Table</name>
+  <width>1200</width>
+  <height>1100</height>
+  <widget type="table" version="2.0.0">
+    <name>user_table</name>
+    <width>340</width>
+    <height>429</height>
+    <columns>
+      <column>
+        <name>Item</name>
+        <width>130</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Small</name>
+        <width>100</width>
+        <editable>true</editable>
+        <options>
+          <option>false</option>
+          <option>true</option>
+        </options>
+      </column>
+      <column>
+        <name>Condition</name>
+        <width>100</width>
+        <editable>true</editable>
+        <options>
+          <option>Terrific</option>
+          <option>Adequate</option>
+          <option>Poor</option>
+          <option>Pathetic</option>
+        </options>
+      </column>
+    </columns>
+    <rules>
+      <rule name="Select Rows?" prop_id="row_selection_mode" out_exp="true">
+        <exp bool_exp="true">
+          <expression>pv0&gt;0</expression>
+        </exp>
+        <pv_name>loc://sel_rows(1)</pv_name>
+      </rule>
+    </rules>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+
+# Adjust options for the 3rd column
+print("Original Options: ")
+options = widget.getColumnOptions(2)
+print(options)
+options.insert(0, "Outstanding")
+widget.setColumnOptions(2, options)
+
+# Create matrix (2D array) of strings for initial table values
+data = [
+  [ "Container", "false",   "Poor" ],
+  [ "House",      "false", "Good" ],
+  [ "Shed",        "true",         "Excellent" ],
+]
+
+widget.setValue(data)]]></text>
+        <pv_name>loc://init(1)</pv_name>
+      </script>
+    </scripts>
+    <selection_pv>loc://table_selection&lt;VTable&gt;</selection_pv>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+
+rows = [    [ "1", "2", "3" ],
+                 [ "4", "5", "6" ]
+            ]
+
+table.setValue(rows)
+]]></text>
+        </script>
+        <description>Set Value</description>
+      </action>
+    </actions>
+    <y>440</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_3</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+headers = [ "A", "B", "C" ]
+table.setHeaders(headers)
+]]></text>
+        </script>
+        <description>Set header</description>
+      </action>
+    </actions>
+    <x>110</x>
+    <y>440</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+headers = [ "A", "B", "C" ]
+rows = [    [ "1", "2", "3" ],
+                 [ "4", "5", "6" ],
+                 [ "7", "8", "9" ]
+            ]
+table.setHeaders(headers)
+table.setValue(rows)
+]]></text>
+        </script>
+        <description>Set Both</description>
+      </action>
+    </actions>
+    <x>220</x>
+    <y>440</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <class>COMMENT</class>
+    <text>Pushing "Set header" creates #245</text>
+    <y>490</y>
+    <width>310</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+</display>

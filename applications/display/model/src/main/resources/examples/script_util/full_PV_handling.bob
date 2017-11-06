@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Full PV Handling</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Some Value:</text>
+    <y>50</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Some PV Name:</text>
+    <y>80</y>
+    <width>120</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>value</name>
+    <pv_name>loc://value(42)</pv_name>
+    <x>110</x>
+    <y>50</y>
+    <width>120</width>
+    <wrap_words>true</wrap_words>
+    <tooltip>loc://value(42)
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>name</name>
+    <pv_name>loc://name("loc://test(0)")</pv_name>
+    <x>110</x>
+    <y>80</y>
+    <width>120</width>
+    <wrap_words>true</wrap_words>
+    <tooltip>loc://name("loc://test(0)")
+VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Read a value from a 'value' widget
+# and write that to a PV whose name
+# is provided by a 'name' widget.
+from org.csstudio.display.builder.runtime.script import ScriptUtil, PVUtil
+
+value = PVUtil.getString(
+  ScriptUtil.getPrimaryPV(
+    ScriptUtil.findWidgetByName(widget, "value")
+  )
+)
+
+name = PVUtil.getString(
+  ScriptUtil.getPrimaryPV(
+    ScriptUtil.findWidgetByName(widget, "name")
+  )
+)
+
+print("Should write %s to %s" % (value, name))
+
+# Ideally, scripts receive the PVs to read or write as inputs PVs
+#  - for PVs to write typically without(!) configured to "[x] Trigger" -
+# and then you write via
+#    pvs[i].write(value)
+#
+# In this case, the script establishes the connection to a PV,
+# writes, and then closes the PV again
+
+from org.csstudio.display.builder.runtime.pv import PVFactory
+import time
+
+pv = PVFactory.getPV(name)
+try:
+    # Await connection
+    patience = 5
+    while pv.read() is None:
+        time.sleep(1)
+        patience -= 1
+        if patience < 0:
+            raise Exception("Timeout connecting to " + name)
+    print("Connected to %s, writing %s" % (name, value))
+    pv.write(value)
+finally:
+    PVFactory.releasePV(pv)
+]]></text>
+        </script>
+        <description>Write value to PV</description>
+      </action>
+    </actions>
+    <x>260</x>
+    <y>50</y>
+    <width>140</width>
+    <height>50</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

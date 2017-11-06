@@ -21,30 +21,31 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-        <classpathentry kind="lib" path="/dependencies/target/lib/activation-1.1.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/antlr-2.7.7.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/antlr-runtime-3.4.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/caj-1.1.14.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/datasource-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/datasource-formula-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/datasource-loc-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/datasource-sim-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/datasource-sys-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/datasource-vtype-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/diirt-ca-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/diirt-pva-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/diirt-util-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-all-1.3.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-core-1.3.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/javax.mail-1.6.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/jca-2.3.6.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/junit-4.12.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/mockito-core-1.9.5.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/objenesis-1.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/pvAccessJava-4.0.4.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/pvDataJava-4.0.3.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/service-3.0.0.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/stringtemplate-3.2.1.jar"/>
-        <classpathentry kind="lib" path="/dependencies/target/lib/vtype-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/activation-1.1.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/antlr-2.7.7.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/antlr-runtime-3.4.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/caj-1.1.14.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-formula-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-loc-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-sim-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-sys-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-vtype-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/diirt-ca-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/diirt-pva-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/diirt-util-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-all-1.3.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-core-1.3.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/javax.mail-1.6.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jca-2.3.6.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/junit-4.12.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/mockito-core-1.9.5.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/objenesis-1.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/pvAccessJava-4.0.4.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/pvDataJava-4.0.3.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/service-3.0.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/stringtemplate-3.2.1.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/vtype-3.0.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-runtime"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

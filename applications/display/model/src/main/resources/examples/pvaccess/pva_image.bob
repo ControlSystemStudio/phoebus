@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <width>570</width>
+    <height>31</height>
+    <text>Display of PV Access Image from 'NTNDTArray'</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image</name>
+    <y>70</y>
+    <width>504</width>
+    <height>430</height>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import PVUtil
+
+show = PVUtil.getLong(pvs[0]) > 0
+
+widget.setPropertyValue("rois[0].visible", show)
+
+]]></text>
+        <pv_name>loc://show_roi(1)</pv_name>
+      </script>
+    </scripts>
+    <pv_name>pva://IMAGE</pv_name>
+    <cursor_info_pv>loc://cursor_info</cursor_info_pv>
+    <rois>
+      <roi>
+        <visible>true</visible>
+        <name>Measure</name>
+        <color>
+          <color red="255" green="0" blue="0">
+          </color>
+        </color>
+        <x_pv>loc://roi_x(10)</x_pv>
+        <y_pv>loc://roi_y(10)</y_pv>
+        <width_pv>loc://roi_w(10)</width_pv>
+        <height_pv>loc://roi_h(10)</height_pv>
+      </roi>
+      <roi>
+        <visible>true</visible>
+        <name>Auto-Scale</name>
+        <color>
+          <color red="153" green="204" blue="153">
+          </color>
+        </color>
+        <x_pv></x_pv>
+        <y_pv></y_pv>
+        <width_pv></width_pv>
+        <height_pv></height_pv>
+      </roi>
+    </rois>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <y>31</y>
+    <width>144</width>
+    <pv_name>pva://IMAGE</pv_name>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <x>84</x>
+    <y>520</y>
+    <width>470</width>
+    <font>
+      <font family="Liberation Mono" style="REGULAR" size="14.0">
+      </font>
+    </font>
+    <pv_name>loc://cursor_info</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <y>520</y>
+    <width>84</width>
+    <text>Cursor Info:</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <x>84</x>
+    <y>550</y>
+    <width>406</width>
+    <scripts>
+      <script file="cursor_info.py">
+        <pv_name>loc://cursor_info</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <y>550</y>
+    <width>84</width>
+    <text>Cursor Info:</text>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>CheckBox</name>
+    <x>84</x>
+    <y>580</y>
+    <width>216</width>
+    <label>Show Region of Interest</label>
+    <pv_name>loc://show_roi(1)</pv_name>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <x>84</x>
+    <y>620</y>
+    <width>96</width>
+    <height>29</height>
+    <format>1</format>
+    <pv_name>loc://roi_x(10)</pv_name>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <y>620</y>
+    <width>84</width>
+    <text>R.O.I.:</text>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <x>84</x>
+    <y>659</y>
+    <width>96</width>
+    <height>29</height>
+    <format>1</format>
+    <pv_name>loc://roi_y(10)</pv_name>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <x>84</x>
+    <y>702</y>
+    <width>96</width>
+    <height>29</height>
+    <format>1</format>
+    <pv_name>loc://roi_w(10)</pv_name>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <x>84</x>
+    <y>742</y>
+    <width>96</width>
+    <height>29</height>
+    <format>1</format>
+    <pv_name>loc://roi_h(10)</pv_name>
+  </widget>
+</display>

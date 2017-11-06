@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="1.0.0">
+  <width>600</width>
+  <height>500</height>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle</name>
+    <width>500</width>
+    <height>500</height>
+    <transparent>1</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <x>230</x>
+    <y>220</y>
+    <text>500 x 500</text>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <x>100</x>
+    <width>30</width>
+    <text>100</text>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <transparent>0</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <x>200</x>
+    <width>30</width>
+    <text>200</text>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <transparent>0</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <x>300</x>
+    <width>30</width>
+    <text>300</text>
+    <background_color>
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </background_color>
+    <transparent>0</transparent>
+  </widget>
+</display>
