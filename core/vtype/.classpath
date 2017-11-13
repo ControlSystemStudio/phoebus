@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
-	<classpathentry kind="src" path="src/main/test"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
