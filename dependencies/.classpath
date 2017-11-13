@@ -27,4 +27,5 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/objenesis-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jython-standalone-2.7.1.jar"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
