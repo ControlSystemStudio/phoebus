@@ -7,11 +7,9 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
-import static org.phoebus.framework.util.ResourceParser.createAppURI;
-import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
-
+import java.net.URI;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.spi.AppInstance;
@@ -55,20 +53,26 @@ public class PVTreeApplication implements AppResourceDescriptor
     }
 
     @Override
-    public AppInstance create(final String resource)
+    public AppInstance create(final URI resource)
     {
         PVTree pv_tree = null;
 
-        final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
-        final List<String> pvs = args.get(ResourceParser.PV_ARG);
-        if (pvs == null)
-            pv_tree = create();
-        else
-            for (String pv : pvs)
-            {
+        try
+        {
+            final List<String> pvs = ResourceParser.parsePVs(resource);
+            if (pvs.isEmpty())
                 pv_tree = create();
-                pv_tree.setPVName(pv);
-            }
+            else
+                for (String pv : pvs)
+                {
+                    pv_tree = create();
+                    pv_tree.setPVName(pv);
+                }
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot create PV Tree", ex);
+        }
 
         return pv_tree;
     }

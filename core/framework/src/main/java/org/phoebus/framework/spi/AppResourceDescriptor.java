@@ -1,5 +1,6 @@
 package org.phoebus.framework.spi;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,6 +54,6 @@ public interface AppResourceDescriptor extends AppDescriptor {
      * path or url to a configuration file like .bob or .plt or it can be a list of
      * pv names, or a channelfinder query
      */
-    public AppInstance create(String resource);
+    public AppInstance create(URI resource);
 
 }

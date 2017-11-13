@@ -1,24 +1,19 @@
 package org.phoebus.framework.util;
 
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
-
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 /**
  * A utility class for parsing user defined resources
  *
@@ -26,7 +21,8 @@ import java.util.stream.Stream;
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ResourceParser {
+public class ResourceParser
+{
     /** URI schema for PV names */
     public static final String PV_SCHEMA = "pv";
 
@@ -85,7 +81,6 @@ public class ResourceParser {
         }
     }
 
-
     /** Get file for URI
      *  @return URI for the resource
      *  @return {@link File} if URL represents a file, otherwise <code>null</code>
@@ -104,6 +99,17 @@ public class ResourceParser {
     public static URI getURI(final File file)
     {
         return file.toURI();
+    }
+
+    /** Open a resource that can be read (file, web link)
+     *  @param resource URI for a resource
+     *  @return {@link InputStream} for the content of the resource
+     *  @throws Exception on error: Not a URI that can be read
+     */
+    public static InputStream getContent(final URI resource) throws Exception
+    {
+        final URL url = resource.toURL();
+        return url.openStream();
     }
 
     /** Get list of PVs from a "pv://?PV1&PV2" type URL
@@ -139,6 +145,36 @@ public class ResourceParser {
                                        .findFirst();
     }
 
+    /** Get stream of query items
+     *
+     *  <p>Filters the "app=.." item,
+     *  passing only the remaining query items
+     *
+     *  @param resource Resource with optional query
+     *  @return Stream of (name, null) or (name, value) entries
+     */
+    public static Stream<Map.Entry<String, String>> getQueryItemStream(final URI resource)
+    {
+        return getQueryStream(resource).filter(pv -> !pv.startsWith(APP_QUERY_TAG))
+                                       .map(ResourceParser::splitQueryParameter);
+    }
+
+    /** Get map of query items
+    *
+    *  <p>Filters the "app=.." item,
+    *  passing only the remaining query items
+    *
+    *  @param resource Resource with optional query
+    *  @return Map of query item names to list of values
+    */
+   public static Map<String, List<String>> parseQueryArgs(final URI resource)
+   {
+       return getQueryItemStream(resource)
+               .collect(Collectors.groupingBy(Map.Entry::getKey,
+                                              LinkedHashMap::new,
+                                              Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+   }
+
     /** @param resource URI for resource
      *  @return Stream for all query items
      */
@@ -150,109 +186,14 @@ public class ResourceParser {
         return Arrays.stream(query.split("&"));
     }
 
-    // ------------------------------------
-
-
-    /** Resource query key for PV names */
-    public static final String PV_ARG = "pv";
-
-    /** Resource query key for file names */
-    public static final String FILE_ARG = "file";
-
-    /**
-     * Creates a {@link URL} for the user entered resource path.
-     *
-     * @param resourcePath
-     * @return A URL representing the a resource location
+    /** @param item Query item "name" or "name=value"
+     *  @return Entry with (name, null) or (name, value)
      */
-    public static URL createResourceURL(String resourcePath) {
-        URI uri = URI.create(resourcePath);
-        try {
-            if (uri.getScheme() != null) {
-                return uri.toURL();
-            } else {
-                // Treat it like a file resource
-                //
-                // By default the following is used by the default Paths.get(...) which should
-                // be the directory from which the program was executed
-                // FileSystem fs = FileSystems.getDefault();
-                // System.out.println(fs.toString());
-                Path fileResource = Paths.get(resourcePath);
-                return fileResource.toUri().toURL();
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * Create a URI representing the user entered app launch string
-     *
-     * @param appLaunch
-     * @return A URI representing the app and its startup arguments.
-     */
-    public static URI createAppURI(String resourcePath) {
-        URI uri = URI.create(resourcePath);
-        return uri;
-    }
-
-    /**
-     * Get file for URLSN=220416
-     *
-     * @param url {@link URL}
-     * @return {@link File} if URL represents a file, otherwise <code>null</code>
-     */
-    public static File getFile(final URL url) throws Exception {
-        if (url == null || !url.getProtocol().equals("file"))
-            return null;
-        return new File(url.toURI());
-    }
-
-    /**
-     * @param file {@link File}
-     * @return {@link URL} for that file
-     */
-    public static URL getURL(final File file) {
-        return createResourceURL(file.getAbsolutePath());
-    }
-
-    /**
-     * Parse the app name from the given resource string
-     *
-     * @return String app name
-     */
-    public static String parseAppName(String resource) {
-        return parseAppName(createAppURI(resource));
-    }
-
-    /**
-     * Parse the app name from the given resource URL
-     *
-     * @return String app name
-     */
-    public static String parseAppName(URI resource) {
-        return resource.getPath();
-    }
-
-    /**
-     * Parse the query segment of a URI and return a {@link Map}
-     *
-     * @param uri resource path URI
-     * @return {@link Map} a map of all the query parameters
-     */
-    public static Map<String, List<String>> parseQueryArgs(URI uri) {
-        if (uri.getQuery() == null || uri.getQuery().isEmpty()) {
-            return Collections.emptyMap();
-        }
-        return Arrays.stream(uri.getQuery().split("&")).map(ResourceParser::splitQueryParameter).collect(Collectors
-                .groupingBy(SimpleImmutableEntry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
-    }
-
-    private static SimpleImmutableEntry<String, String> splitQueryParameter(String it) {
-        final int idx = it.indexOf("=");
-        final String key = idx > 0 ? it.substring(0, idx) : it;
-        final String value = idx > 0 && it.length() > idx + 1 ? it.substring(idx + 1) : null;
-        return new SimpleImmutableEntry<>(key, value);
+    private static Map.Entry<String, String> splitQueryParameter(final String item)
+    {
+        final int idx = item.indexOf("=");
+        final String key = idx > 0 ? item.substring(0, idx) : item;
+        final String value = idx > 0 && item.length() > idx + 1 ? item.substring(idx + 1) : null;
+        return new SimpleImmutableEntry<String, String>(key, value);
     }
 }

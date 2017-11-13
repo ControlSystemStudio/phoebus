@@ -12,7 +12,7 @@ import static org.phoebus.applications.pvtable.PVTableApplication.logger;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.net.URL;
+import java.net.URI;
 import java.util.logging.Level;
 
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -96,7 +96,7 @@ public class PVTableInstance implements AppInstance
         dock_item.setDirty(false);
     }
 
-    void loadResource(final URL input)
+    void loadResource(final URI input)
     {
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
@@ -110,7 +110,8 @@ public class PVTableInstance implements AppInstance
             try
             {
                 monitor.updateTaskName("Load " + input);
-                PVTablePersistence.forFilename(input.toString()).read(load_model, input.openStream());
+                PVTablePersistence.forFilename(input.getPath())
+                                  .read(load_model, ResourceParser.getContent(input));
 
                 // On success, update on UI
                 Platform.runLater(() ->
@@ -136,7 +137,7 @@ public class PVTableInstance implements AppInstance
             if (file == null)
                 return;
         }
-        dock_item.setInput(ResourceParser.getURL(file));
+        dock_item.setInput(ResourceParser.getURI(file));
         try
         (
             final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));

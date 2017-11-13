@@ -1,9 +1,10 @@
 /**
- * 
+ *
  */
 package org.phoebus.applications.email;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,12 +96,12 @@ public class EmailApp implements AppResourceDescriptor {
      * Handle resources like mailto:shroffk@....
      */
     @Override
-    public AppInstance create(String resource) {
+    public AppInstance create(URI resource) {
         return create();
     }
 
     /**
-     * 
+     *
      * @return {@link Session} connection factory needed to create and send emails.
      */
     public Session getSession() {

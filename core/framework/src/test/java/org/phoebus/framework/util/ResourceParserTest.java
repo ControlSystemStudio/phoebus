@@ -4,27 +4,20 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.phoebus.framework.util.ResourceParser.PV_SCHEMA;
-import static org.phoebus.framework.util.ResourceParser.createAppURI;
 import static org.phoebus.framework.util.ResourceParser.createResourceURI;
-import static org.phoebus.framework.util.ResourceParser.createResourceURL;
 import static org.phoebus.framework.util.ResourceParser.getAppName;
+import static org.phoebus.framework.util.ResourceParser.getContent;
 import static org.phoebus.framework.util.ResourceParser.getFile;
 import static org.phoebus.framework.util.ResourceParser.getURI;
-import static org.phoebus.framework.util.ResourceParser.parseAppName;
 import static org.phoebus.framework.util.ResourceParser.parsePVs;
 import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +31,8 @@ import org.junit.Test;
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ResourceParserTest {
+public class ResourceParserTest
+{
     @Test
     public void checkFileToURI() throws Exception
     {
@@ -78,12 +72,27 @@ public class ResourceParserTest {
         assertThat(getFile(uri), equalTo(file));
         assertThat(getURI(file), equalTo(uri));
 
+        // Read content
+        final InputStream stream = getContent(uri);
+        assertThat(stream, not(nullValue()));
+        stream.close();
+
         // Nonexisting file
         uri = createResourceURI("some/bogus/file");
         assertThat(uri, not(nullValue()));
         final File bogus = getFile(uri);
         System.out.println(bogus);
         assertThat(bogus.exists(), equalTo(false));
+
+        try
+        {
+            getContent(uri);
+            fail("Read nonexisting file?");
+        }
+        catch (Exception ex)
+        {
+            // Good, caught it
+        }
     }
 
     @Test
@@ -158,66 +167,24 @@ public class ResourceParserTest {
         assertThat(app.get(), equalTo("probe"));
     }
 
-
-    // ------------------------------------
-
     @Test
-    public void checkResourcePathUtil() {
-        // first check a valid http url
-        String resource = "http://localhost:80";
-        URL url = createResourceURL(resource);
-        try {
-            assertEquals("failed to parse http url:", new URL(resource), url);
-        } catch (MalformedURLException e) {
-            fail(e.getLocalizedMessage());
-            e.printStackTrace();
-        }
+    public void checkQueryItems() throws Exception
+    {
+        // URI with a bunch of query itens
+        URI uri = createResourceURI("file://some/file?Fred&X=1&Y=2&app=probe&Z=47");
 
-        // Check a relative path
-        resource = "src/test/resources/test.plt";
-        url = createResourceURL(resource);
-        assertEquals("Failed to parse relative file path: ", url.getProtocol(), "file");
-        assertTrue("Failed to parse relative file path: ", new File(url.getPath()).exists());
+        final Map<String, List<String>> items = parseQueryArgs(uri);
+        System.out.println(items);
 
+        assertThat(items.keySet(), hasItems("Fred", "X", "Y", "Z"));
+        assertThat(items.keySet(), not(hasItems("app")));
+
+        List<String> values = items.get("Fred");
+        assertThat(values.size(), equalTo(1));
+        assertThat(values.get(0), nullValue());
+
+        values = items.get("Y");
+        assertThat(values.size(), equalTo(1));
+        assertThat(values.get(0), equalTo("2"));
     }
-
-    @Test
-    public void checkAppNameParsing() {
-        // Only the app name is provided
-        String resourceURI = "probe";
-        assertEquals("Failed to parse app launcher string expected: probe returned: " + parseAppName(resourceURI),
-                "probe", parseAppName(resourceURI));
-
-        // the app name and arguments are provided
-        resourceURI = "probe?pv=sim://noise";
-
-        assertEquals("Failed to parse app launcher string expected: probe returned: " + parseAppName(resourceURI),
-                "probe", parseAppName(resourceURI));
-        Map<String, List<String>> queryArgs = new HashMap<>();
-        queryArgs.put("pv", Arrays.asList("sim://noise"));
-        assertEquals(
-                "Failed to parse app launcher string expected: " + queryArgs + " returned: "
-                        + parseQueryArgs(createAppURI(resourceURI)),
-                queryArgs, parseQueryArgs(createAppURI(resourceURI)));
-
-        // the app name and arguments are provided
-        resourceURI = "probe?pv=sim://noise&pv=sim://sine";
-        queryArgs = new HashMap<>();
-        queryArgs.put("pv", Arrays.asList("sim://noise","sim://sine"));
-        assertEquals(
-                "Failed to parse app launcher string expected: " + queryArgs + " returned: "
-                        + parseQueryArgs(createAppURI(resourceURI)),
-                queryArgs, parseQueryArgs(createAppURI(resourceURI)));
-
-    }
-
-    @Test
-    public void checkFileParsing() {
-//        File file = new File("test");
-//        String absolutePath = file.getAbsolutePath();
-//        URL url = createResourceURL(absolutePath);
-//        System.out.println(url);
-//        file.delete();
-    }
-
 }

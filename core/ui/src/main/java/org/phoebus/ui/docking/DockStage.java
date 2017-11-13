@@ -9,7 +9,7 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -184,7 +184,7 @@ public class DockStage
      *  @param input Input, must not be <code>null</code>
      *  @return {@link DockItemWithInput} or <code>null</code> if not found
      */
-    public static DockItemWithInput getDockItemWithInput(final String application_name, final URL input)
+    public static DockItemWithInput getDockItemWithInput(final String application_name, final URI input)
     {
         Objects.requireNonNull(input);
         for (Stage stage : getDockStages())
