@@ -1227,39 +1227,46 @@ public class ImagePlot extends PlotCanvasBase
         // Location as coordinate in image
         // No "+0.5" rounding! Truncate to get full pixel offsets,
         // don't jump to next pixel when mouse moves beyond 'half' of the current pixel.
+        // Use -1 to mark location outside of data width resp. height.
         int image_x = (int) (data_width * (x_val - min_x) / (max_x - min_x));
         if (image_x < 0)
-            image_x = 0;
+            image_x = -1;
         else if (image_x >= data_width)
-            image_x = data_width - 1;
+            image_x = -1;
 
         // Mouse and image coords for Y go 'down'
         int image_y = (int) (data_height * (max_y - y_val) / (max_y - min_y));
         if (image_y < 0)
-            image_y = 0;
+            image_y = -1;
         else if (image_y >= data_height)
-            image_y = data_height - 1;
+            image_y = -1;
 
         final ListNumber data = image_data;
-        final double pixel;
-        if (data == null)
-            pixel = Double.NaN;
-        else
+        double pixel = Double.NaN;
+        if (data != null  &&  image_x >= 0  &&  image_y >= 0)
         {
             final int offset = image_x + image_y * data_width;
-            if (unsigned_data)
+            try
             {
-                if (data instanceof ArrayByte)
-                    pixel = Byte.toUnsignedInt(data.getByte(offset));
-                else if (data instanceof ArrayShort)
+                if (unsigned_data)
+                {
+                    if (data instanceof ArrayByte)
+                        pixel = Byte.toUnsignedInt(data.getByte(offset));
+                    else if (data instanceof ArrayShort)
                         pixel = Short.toUnsignedInt(data.getShort(offset));
-                else if (data instanceof ArrayInt)
-                    pixel = Integer.toUnsignedLong(data.getInt(offset));
+                    else if (data instanceof ArrayInt)
+                        pixel = Integer.toUnsignedLong(data.getInt(offset));
+                    else
+                        pixel = data.getDouble(offset);
+                }
                 else
                     pixel = data.getDouble(offset);
             }
-            else
-                pixel = data.getDouble(offset);
+            catch (Throwable ex)
+            {   // Catch ArrayIndexOutOfBoundsException or other internal errors of ListNumber
+                logger.log(Level.WARNING, "Error accessing pixel " + image_x + ", " + image_y + " of data with size " + data.size());
+                // leave pixel == Double.NaN;
+            }
         }
         if (listener != null)
             listener.changedCursorInfo(x_val, y_val, image_x, image_y, pixel);
