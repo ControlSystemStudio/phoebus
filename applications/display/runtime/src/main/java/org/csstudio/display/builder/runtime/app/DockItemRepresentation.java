@@ -1,10 +1,12 @@
 package org.csstudio.display.builder.runtime.app;
 
+import java.net.URI;
 import java.util.function.Consumer;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.framework.workbench.ApplicationService;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -27,8 +29,10 @@ public class DockItemRepresentation extends JFXRepresentation
     public ToolkitRepresentation<Parent, Node> openNewWindow(DisplayModel model,
             Consumer<DisplayModel> close_handler) throws Exception
     {
-        // TODO DisplayRuntimeApplication.create().represent(model)
-        return super.openNewWindow(model, close_handler);
+        final DisplayRuntimeApplication app = ApplicationService.findApplication(DisplayRuntimeApplication.NAME);
+        final URI resource = DisplayInfo.forModel(model).toURI();
+        final DisplayRuntimeInstance instance = app.create(resource);
+        return instance.getRepresentation();
     }
 
     @Override
