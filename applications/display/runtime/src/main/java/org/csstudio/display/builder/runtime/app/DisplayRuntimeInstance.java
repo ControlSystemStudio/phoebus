@@ -232,6 +232,7 @@ public class DisplayRuntimeInstance implements AppInstance
           ( !old_info.getMacros().isEmpty()  &&  !old_info.getMacros().equals(info.getMacros())))
         {
             display_info = Optional.of(info);
+            dock_item.setInput(info.toURI());
         }
         dock_item.setLabel(info.getName());
 
