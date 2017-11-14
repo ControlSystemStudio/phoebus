@@ -168,7 +168,7 @@ public class ResourceParserTest
     public void checkQueryItems() throws Exception
     {
         // URI with a bunch of query itens
-        URI uri = createResourceURI("file://some/file?Fred&X=1&Y=2&app=probe&Z=47");
+        URI uri = createResourceURI("file://some/file?Fred&X=1&Y=2+3&app=probe&Z=2%2B3");
 
         final Map<String, List<String>> items = parseQueryArgs(uri);
         System.out.println(items);
@@ -182,6 +182,10 @@ public class ResourceParserTest
 
         values = items.get("Y");
         assertThat(values.size(), equalTo(1));
-        assertThat(values.get(0), equalTo("2"));
+        assertThat(values.get(0), equalTo("2 3"));
+
+        values = items.get("Z");
+        assertThat(values.size(), equalTo(1));
+        assertThat(values.get(0), equalTo("2+3"));
     }
 }

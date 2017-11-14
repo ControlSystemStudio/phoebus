@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -11,8 +12,11 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 /**
  * A utility class for parsing user defined resources
  *
@@ -22,6 +26,8 @@ import java.util.stream.Stream;
 @SuppressWarnings("nls")
 public class ResourceParser
 {
+    private static final String UTF_8 = "UTF-8";
+
     /** URI schema for PV names */
     public static final String PV_SCHEMA = "pv";
 
@@ -180,7 +186,7 @@ public class ResourceParser
      */
     private static Stream<String> getQueryStream(final URI resource)
     {
-        final String query = resource.getQuery();
+        final String query = resource.getRawQuery();
         if (query == null)
             return Stream.empty();
         return Arrays.stream(query.split("&"));
@@ -194,6 +200,24 @@ public class ResourceParser
         final int idx = item.indexOf("=");
         final String key = idx > 0 ? item.substring(0, idx) : item;
         final String value = idx > 0 && item.length() > idx + 1 ? item.substring(idx + 1) : null;
-        return new SimpleImmutableEntry<String, String>(key, value);
+        return new SimpleImmutableEntry<String, String>(decode(key), decode(value));
+    }
+
+    /** Decode URI text
+     *  @param text Text that may contain '+' or '%20' etc.
+     *  @return Decoded text
+     */
+    private static String decode(final String text)
+    {
+        try
+        {
+            return URLDecoder.decode(text, UTF_8);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger(ResourceParser.class.getPackageName())
+                  .log(Level.WARNING, "Error decoding '" + text + "'", ex);
+            return text;
+        }
     }
 }
