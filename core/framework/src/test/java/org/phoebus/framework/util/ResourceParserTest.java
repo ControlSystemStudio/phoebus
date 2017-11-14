@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.Test;
 
@@ -151,20 +150,18 @@ public class ResourceParserTest
     {
         // Plain URL, no application hint
         URI uri = createResourceURI("pv://?Fred");
-        Optional<String> app = getAppName(uri);
-        assertThat(app.isPresent(), equalTo(false));
+        String app = getAppName(uri);
+        assertThat(app, nullValue());
 
         // PVs with application hint
         uri = createResourceURI("pv://?Fred&app=probe");
         app = getAppName(uri);
-        assertThat(app.isPresent(), equalTo(true));
-        assertThat(app.get(), equalTo("probe"));
+        assertThat(app, equalTo("probe"));
 
         // File URL with application hint
         uri = createResourceURI("file:/path/to/file?app=probe");
         app = getAppName(uri);
-        assertThat(app.isPresent(), equalTo(true));
-        assertThat(app.get(), equalTo("probe"));
+        assertThat(app, equalTo("probe"));
     }
 
     @Test

@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 /**
@@ -136,13 +135,14 @@ public class ResourceParser
 
     /** Get application name hint from resource
      *  @param resource URI that might contain "?...app=the_app_name"
-     *  @return "the_app_name" or empty result.
+     *  @return "the_app_name" or <code>null</code>
      */
-    public static Optional<String> getAppName(final URI resource)
+    public static String getAppName(final URI resource)
     {
         return getQueryStream(resource).filter(q -> q.startsWith(APP_QUERY_TAG))
                                        .map(app_name -> app_name.substring(APP_QUERY_TAG.length()))
-                                       .findFirst();
+                                       .findFirst()
+                                       .orElse(null);
     }
 
     /** Get stream of query items
