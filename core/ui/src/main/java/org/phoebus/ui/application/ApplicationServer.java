@@ -42,7 +42,8 @@ import java.util.stream.Collectors;
  *  as one line, ending in '\n'.
  *  Parameters on that line are separated by '|'.
  *  Example:
- *  "-app|pv_tree?pv=some_pv\n".
+ *  "-resource|/some/example.pvs\n".
+ *  "-app|pv_tree\n".
  *
  *  XXX The serialization of parameters may change.
  *  The format

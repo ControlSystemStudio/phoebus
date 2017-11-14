@@ -218,9 +218,11 @@ public class PhoebusApplication extends Application {
     private void handleParameters(final List<String> parameters) throws Exception
     {
         // List of applications to launch as specified via cmd line args
-        final List<String> launchApps = new ArrayList<String>();
+        final List<String> launchApps = new ArrayList<>();
+
         // List of resources to launch as specified via cmd line args
-        final List<String> launchResources = new ArrayList<String>();
+        final List<URI> launchResources = new ArrayList<>();
+
         final Iterator<String> parametersIterator = parameters.iterator();
         while (parametersIterator.hasNext()) {
             final String cmd = parametersIterator.next();
@@ -232,8 +234,8 @@ public class PhoebusApplication extends Application {
             } else if (cmd.equals("-resource")) {
                 if (!parametersIterator.hasNext())
                     throw new Exception("Missing -resource resource file name");
-                final String filename = parametersIterator.next();
-                launchResources.add(filename);
+                final URI resource = ResourceParser.createResourceURI(parametersIterator.next());
+                launchResources.add(resource);
             }
         }
 
@@ -242,8 +244,8 @@ public class PhoebusApplication extends Application {
         Platform.runLater(() ->
         {
             // Handle requests to open resource from command line
-            for (String resource : launchResources)
-                openResource(URI.create(resource));
+            for (URI resource : launchResources)
+                openResource(resource);
 
             // Handle requests to open application from command line
             for (String app_name : launchApps)

@@ -130,7 +130,8 @@ public class ResourceParser
      */
     public static List<String> parsePVs(final URI resource) throws Exception
     {
-        if (! resource.getScheme().equals(PV_SCHEMA))
+        final String scheme = resource.getScheme();
+        if (! PV_SCHEMA.equals(scheme))
             return List.of();
         final List<String> pvs = getQueryStream(resource).filter(pv -> !pv.startsWith(APP_QUERY_TAG))
                                                          .collect(Collectors.toList());
