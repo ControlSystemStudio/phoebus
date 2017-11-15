@@ -8,6 +8,10 @@ import java.text.DecimalFormat;
 import java.time.Duration;
 
 /**
+ * A helper class to build instances for {@link Duration} using some non
+ * standard cases not covered in the list constructors in the {@link Duration}
+ * class itself, e.g. double representations of some time durations i.e. 3.2
+ * hours
  *
  * @author carcassi
  */
@@ -20,6 +24,16 @@ public class TimeDuration {
 
     public static Duration createDuration(long sec, int nanoSec) {
         return Duration.ofSeconds(sec).plusNanos(nanoSec);
+    }
+
+    /**
+     * A new duration in hours.
+     *
+     * @param hour hours
+     * @return a new duration
+     */
+    public static Duration ofDays(double day) {
+        return Duration.ofNanos((long) (day * 24 * 60 * 60 * NANOSEC_IN_SEC));
     }
 
     /**

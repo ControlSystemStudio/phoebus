@@ -39,16 +39,18 @@ import java.util.regex.Pattern;
  */
 public class TimeParser {
 
+    static final Pattern lastNUnitsPattern = Pattern
+            .compile("last\\s*(\\d*)\\s*(min|mins|hour|hours|day|days|week|weeks).*", Pattern.CASE_INSENSITIVE);
+
+    static final Pattern nUnitsAgoPattern = Pattern
+            .compile("(\\d*)\\s*(min|mins|hour|hours|day|days|week|weeks)\\s*ago", Pattern.CASE_INSENSITIVE);
+
     public static Duration getDuration(String time) {
         // TODO this regular expression needs to be reviewed and improved if
         // possible
         int quantity = 0;
         String unit = "";
 
-        Pattern lastNUnitsPattern = Pattern
-                .compile(
-                        "last\\s*(\\d*)\\s*(min|mins|hour|hours|day|days|week|weeks).*",
-                        Pattern.CASE_INSENSITIVE);
         Matcher lastNUnitsMatcher = lastNUnitsPattern.matcher(time);
         while (lastNUnitsMatcher.find()) {
             quantity = "".equals(lastNUnitsMatcher.group(1)) ? 1 : Integer
@@ -56,9 +58,6 @@ public class TimeParser {
             unit = lastNUnitsMatcher.group(2);
         }
 
-        Pattern nUnitsAgoPattern = Pattern.compile(
-                "(\\d*)\\s*(min|mins|hour|hours|day|days|week|weeks)\\s*ago",
-                Pattern.CASE_INSENSITIVE);
         Matcher nUnitsAgoMatcher = nUnitsAgoPattern.matcher(time);
         while (nUnitsAgoMatcher.find()) {
             quantity = "".equals(nUnitsAgoMatcher.group(1)) ? 1 : Integer
@@ -107,10 +106,6 @@ public class TimeParser {
         } else {
             int quantity = 0;
             String unit = "";
-            Pattern lastNUnitsPattern = Pattern
-                    .compile(
-                            "last\\s*(\\d*)\\s*(min|mins|hour|hours|day|days|week|weeks).*",
-                            Pattern.CASE_INSENSITIVE);
             Matcher lastNUnitsMatcher = lastNUnitsPattern.matcher(time);
             while (lastNUnitsMatcher.find()) {
                 quantity = "".equals(lastNUnitsMatcher.group(1)) ? 1 : Integer
@@ -134,11 +129,6 @@ public class TimeParser {
                     break;
                 }
             }
-
-            Pattern nUnitsAgoPattern = Pattern
-                    .compile(
-                            "(\\d*)\\s*(min|mins|hour|hours|day|days|week|weeks)\\s*ago",
-                            Pattern.CASE_INSENSITIVE);
             Matcher nUnitsAgoMatcher = nUnitsAgoPattern.matcher(time);
             while (nUnitsAgoMatcher.find()) {
                 quantity = "".equals(nUnitsAgoMatcher.group(1)) ? 1 : Integer
