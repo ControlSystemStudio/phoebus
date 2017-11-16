@@ -120,6 +120,12 @@ public class DisplayRuntimeInstance implements AppInstance
         dock_item.select();
     }
 
+    /** Close the dock item */
+    void close()
+    {
+        dock_item.close();
+    }
+
     /** Load display file, represent it, start runtime
      *  @param info Display file to load
      */
