@@ -61,7 +61,7 @@ import org.phoebus.vtype.VType;
 public class WidgetRuntime<MW extends Widget>
 {
     /** Suggested logger for all runtime logging */
-    public final static Logger logger = Logger.getLogger(WidgetRuntime.class.getName());
+    public final static Logger logger = Logger.getLogger(WidgetRuntime.class.getPackageName());
 
     /** Extension point for contributing custom widget runtime */
     public static final String EXTENSION_POINT = "org.csstudio.display.builder.runtime.widgets";
