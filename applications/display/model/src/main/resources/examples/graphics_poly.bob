@@ -1,24 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<display version="1.0.0">
+<display version="2.0.0">
   <name>Polygon,Line</name>
-  <x>-1</x>
-  <y>-1</y>
+  <width>750</width>
+  <height>800</height>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>In this mode each mouse click adds a new point
+to the end of the polygon or polyline.
+The 'Backspace' key deletes the last point.
+'Space' switches to EDIT mode.
+'Enter' or 'Escape' exits the point editor.</text>
+    <y>310</y>
+    <width>391</width>
+    <height>101</height>
+  </widget>
   <widget type="label" version="2.0.0">
     <name>Label</name>
+    <class>TITLE</class>
+    <text>Polygon, Polyline</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
     <width>211</width>
     <height>31</height>
-    <text>Polygon, Polyline</text>
-    <font>
+    <font use_class="true">
       <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
       </font>
     </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_1</name>
-    <y>251</y>
+    <text>APPEND Mode</text>
+    <y>280</y>
     <width>191</width>
     <height>30</height>
-    <text>APPEND Mode</text>
     <font>
       <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
       </font>
@@ -26,8 +45,8 @@
   </widget>
   <widget type="polyline" version="2.0.0">
     <name>Polyline_1</name>
-    <x>61</x>
-    <y>551</y>
+    <x>280</x>
+    <y>520</y>
     <width>175</width>
     <height>265</height>
     <points>
@@ -119,40 +138,37 @@
   </widget>
   <widget type="polygon" version="2.0.0">
     <name>Polygon</name>
-    <x>331</x>
-    <y>561</y>
-    <width>184</width>
+    <x>481</x>
+    <y>290</y>
+    <width>217</width>
     <height>241</height>
     <points>
       <point x="5.0" y="66.0">
       </point>
       <point x="92.0" y="0.0">
       </point>
-      <point x="163.0" y="13.0">
+      <point x="172.0" y="0.0">
       </point>
-      <point x="182.0" y="58.0">
+      <point x="217.0" y="64.0">
       </point>
-      <point x="184.0" y="163.0">
+      <point x="217.0" y="185.0">
       </point>
       <point x="107.0" y="241.0">
       </point>
       <point x="0.0" y="229.0">
       </point>
-      <point x="109.0" y="189.0">
+      <point x="4.0" y="170.0">
       </point>
-      <point x="119.0" y="128.0">
+      <point x="114.0" y="167.0">
       </point>
       <point x="99.0" y="79.0">
       </point>
-      <point x="58.0" y="80.0">
+      <point x="24.0" y="110.0">
       </point>
     </points>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_2</name>
-    <y>41</y>
-    <width>481</width>
-    <height>220</height>
     <text>The editor for polygon or polyline widget points has two modes,
 APPEND and EDIT mode.
 
@@ -164,34 +180,23 @@ When later editing an existing Polygon or Polyline, you start out in EDIT mode.
 
 Pressing the 'Space' key toggles between EDIT and APPEND mode.
 Pressing 'Enter' or 'Escape' exits either mode.</text>
+    <y>41</y>
+    <width>481</width>
+    <height>220</height>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_3</name>
-    <y>381</y>
+    <text>EDIT Mode</text>
+    <y>411</y>
     <width>191</width>
     <height>30</height>
-    <text>EDIT Mode</text>
     <font>
       <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
       </font>
     </font>
   </widget>
   <widget type="label" version="2.0.0">
-    <name>Label_4</name>
-    <y>281</y>
-    <width>391</width>
-    <height>120</height>
-    <text>In this mode each mouse click adds a new point
-to the end of the polygon or polyline.
-The 'Backspace' key deletes the last point.
-'Space' switches to EDIT mode.
-'Enter' or 'Escape' exits the point editor.</text>
-  </widget>
-  <widget type="label" version="2.0.0">
     <name>Label_5</name>
-    <y>411</y>
-    <width>421</width>
-    <height>160</height>
     <text>In this mode, a handle on each point allows moving the point.
 Clicking a handle with 'Control' pressed adds a new point
 next to the existing one.
@@ -200,6 +205,9 @@ Clicking with 'Shift' deletes the point.
 Space key switches to APPEND mode.
 'Enter' or 'Escape' exits the point editor.
 </text>
+    <y>450</y>
+    <width>421</width>
+    <height>160</height>
   </widget>
   <widget type="polygon" version="2.0.0">
     <name>Polygon_5</name>
@@ -207,15 +215,15 @@ Space key switches to APPEND mode.
     <y>130</y>
     <width>46</width>
     <height>21</height>
-    <background_color>
-      <color red="0" green="0" blue="255">
-      </color>
-    </background_color>
+    <line_width>0</line_width>
     <line_color>
       <color red="128" green="0" blue="255">
       </color>
     </line_color>
-    <line_width>0</line_width>
+    <background_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </background_color>
     <points>
       <point x="15.0" y="0.0">
       </point>
@@ -250,15 +258,15 @@ Space key switches to APPEND mode.
     <y>91</y>
     <width>37</width>
     <height>16</height>
-    <background_color>
-      <color red="0" green="0" blue="255">
-      </color>
-    </background_color>
+    <line_width>0</line_width>
     <line_color>
       <color red="128" green="0" blue="255">
       </color>
     </line_color>
-    <line_width>0</line_width>
+    <background_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </background_color>
     <rules>
       <rule name="OnOff Color Rule" prop_id="background_color" out_exp="false">
         <exp bool_exp="pv0&gt;0">
@@ -283,15 +291,15 @@ Space key switches to APPEND mode.
     <y>91</y>
     <width>46</width>
     <height>48</height>
-    <background_color>
-      <color red="0" green="0" blue="255">
-      </color>
-    </background_color>
+    <line_width>0</line_width>
     <line_color>
       <color red="128" green="0" blue="255">
       </color>
     </line_color>
-    <line_width>0</line_width>
+    <background_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </background_color>
     <rules>
       <rule name="OnOff Color Rule" prop_id="background_color" out_exp="false">
         <exp bool_exp="pv0&gt;0">
@@ -316,11 +324,11 @@ Space key switches to APPEND mode.
     <y>182</y>
     <width>1</width>
     <height>30</height>
+    <line_width>2</line_width>
     <line_color>
       <color name="Blue" red="0" green="0" blue="255">
       </color>
     </line_color>
-    <line_width>2</line_width>
     <points>
       <point x="1.0" y="30.0">
       </point>
@@ -334,12 +342,12 @@ Space key switches to APPEND mode.
     <y>181</y>
     <width>38</width>
     <height>21</height>
+    <total_angle>180.0</total_angle>
+    <line_width>0</line_width>
     <background_color>
       <color name="Blue" red="0" green="0" blue="255">
       </color>
     </background_color>
-    <line_width>0</line_width>
-    <total_angle>180</total_angle>
   </widget>
   <widget type="polygon" version="2.0.0">
     <name>Polygon_6</name>
