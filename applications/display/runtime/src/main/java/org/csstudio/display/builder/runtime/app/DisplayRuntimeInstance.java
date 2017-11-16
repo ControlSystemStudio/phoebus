@@ -131,7 +131,7 @@ public class DisplayRuntimeInstance implements AppInstance
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
         // another instance
-        dock_item.setInput(info.toURL());
+        dock_item.setInput(info.toURI());
 
         // Now that old model is no longer represented,
         // show info.
@@ -232,6 +232,7 @@ public class DisplayRuntimeInstance implements AppInstance
           ( !old_info.getMacros().isEmpty()  &&  !old_info.getMacros().equals(info.getMacros())))
         {
             display_info = Optional.of(info);
+            dock_item.setInput(info.toURI());
         }
         dock_item.setLabel(info.getName());
 

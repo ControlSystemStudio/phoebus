@@ -45,6 +45,7 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /** Item for a {@link DockPane}
  *
@@ -327,7 +328,15 @@ public class DockItem extends Tab
     /** Select this tab, i.e. raise it in case another tab is currently visible */
     public void select()
     {
-        getTabPane().getSelectionModel().select(this);
+        final TabPane pane = getTabPane();
+        final Window window = pane.getScene().getWindow();
+        if (window instanceof Stage)
+        {
+            Stage stage = (Stage) window;
+            if (stage.isShowing())
+                stage.toFront();
+        }
+        pane.getSelectionModel().select(this);
     }
 
     /** Register check for closing the tab

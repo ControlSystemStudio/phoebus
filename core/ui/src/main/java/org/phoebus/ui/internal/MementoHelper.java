@@ -9,14 +9,13 @@ package org.phoebus.ui.internal;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -33,7 +32,7 @@ public class MementoHelper
 {
     private static final String FULLSCREEN = "fullscreen";
     private static final String HEIGHT = "height";
-    private static final String INPUT_URL = "input_url";
+    private static final String INPUT_URI = "input_uri";
     private static final String MAXIMIZED = "maximized";
     private static final String MINIMIZED = "minimized";
     private static final String SELECTED = "selected";
@@ -83,9 +82,9 @@ public class MementoHelper
 
         if (item instanceof DockItemWithInput)
         {
-            final URL input = ((DockItemWithInput)item).getInput();
+            final URI input = ((DockItemWithInput)item).getInput();
             if (input != null)
-                item_memento.setString(INPUT_URL, input.toString());
+                item_memento.setString(INPUT_URI, input.toString());
         }
 
         try
@@ -141,8 +140,6 @@ public class MementoHelper
     {
         final String app_id = item_memento.getString(DockItem.KEY_APPLICATION).orElse(null);
 
-
-
         if (app_id == null)
             return false;
 
@@ -158,10 +155,10 @@ public class MementoHelper
         if (app instanceof AppResourceDescriptor)
         {
             final AppResourceDescriptor app_res = (AppResourceDescriptor) app;
-            final String input = item_memento.getString(INPUT_URL).orElse(null);
+            final String input = item_memento.getString(INPUT_URI).orElse(null);
             instance = input == null
                     ? app_res.create()
-                    : app_res.create(app_res.getName() + "?" + ResourceParser.FILE_ARG + "=" + input);
+                    : app_res.create(URI.create(input));
         }
         else
             instance = app.create();

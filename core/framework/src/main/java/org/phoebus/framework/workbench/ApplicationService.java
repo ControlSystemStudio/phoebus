@@ -60,8 +60,9 @@ public class ApplicationService
      *  @param name Application name
      *  @return {@link AppDescriptor} or <code>null</code> if not found
      */
-    public static AppDescriptor findApplication(final String name)
+    @SuppressWarnings("unchecked")
+    public static <AD extends AppDescriptor> AD findApplication(final String name)
     {
-        return INSTANCE.apps.get(name);
+        return (AD) INSTANCE.apps.get(name);
     }
 }

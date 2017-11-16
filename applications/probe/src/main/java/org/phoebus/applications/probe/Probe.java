@@ -1,11 +1,9 @@
 package org.phoebus.applications.probe;
 
-import static org.phoebus.framework.util.ResourceParser.createAppURI;
-import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
-
-import java.util.Collections;
+import java.net.URI;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -50,23 +48,30 @@ public class Probe implements AppResourceDescriptor {
     }
 
     @Override
-    public AppInstance create(String resource) {
+    public AppInstance create(URI resource) {
         final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
 
-        Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
-        List<String> pvs = args.getOrDefault(ResourceParser.PV_ARG, Collections.emptyList());
-        if (pvs.isEmpty()) {
-            // Open an empty probe
-            app.create();
-        } else {
-            // Open a probe for each pv
-            pvs.forEach(pv -> {
-                ProbeInstance probe = (ProbeInstance) app.create();
-                probe.setPV(pv);
-            });
+        ProbeInstance probe = null;
+        try
+        {
+            final List<String> pvs = ResourceParser.parsePVs(resource);
+            if (pvs.isEmpty()) {
+                // Open an empty probe
+                probe = (ProbeInstance) app.create();
+            } else {
+                // Open a probe for each pv
+                for (String pv : pvs)
+                {
+                    probe = (ProbeInstance) app.create();
+                    probe.setPV(pv);
+                }
+            }
         }
-        // TODO what should be returned when multiple instances are opened.
-        return null;
+        catch (Exception ex)
+        {
+            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot create probe instance", ex);
+        }
+        return probe;
     }
 
 }

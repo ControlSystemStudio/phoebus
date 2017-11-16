@@ -3,6 +3,7 @@ package org.phoebus.ui.application;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -217,22 +218,24 @@ public class PhoebusApplication extends Application {
     private void handleParameters(final List<String> parameters) throws Exception
     {
         // List of applications to launch as specified via cmd line args
-        final List<String> launchApps = new ArrayList<String>();
+        final List<String> launchApps = new ArrayList<>();
+
         // List of resources to launch as specified via cmd line args
-        final List<String> launchResources = new ArrayList<String>();
+        final List<URI> launchResources = new ArrayList<>();
+
         final Iterator<String> parametersIterator = parameters.iterator();
         while (parametersIterator.hasNext()) {
             final String cmd = parametersIterator.next();
             if (cmd.equals("-app")) {
                 if (!parametersIterator.hasNext())
                     throw new Exception("Missing -app application name");
-                final String filename = parametersIterator.next();
-                launchApps.add(filename);
+                final String app_name = parametersIterator.next();
+                launchApps.add(app_name);
             } else if (cmd.equals("-resource")) {
                 if (!parametersIterator.hasNext())
                     throw new Exception("Missing -resource resource file name");
-                final String filename = parametersIterator.next();
-                launchResources.add(filename);
+                final URI resource = ResourceParser.createResourceURI(parametersIterator.next());
+                launchResources.add(resource);
             }
         }
 
@@ -241,12 +244,12 @@ public class PhoebusApplication extends Application {
         Platform.runLater(() ->
         {
             // Handle requests to open resource from command line
-            for (String resource : launchResources)
+            for (URI resource : launchResources)
                 openResource(resource);
 
-            // Handle requests to open resource from command line
-            for (String appLaunchString : launchApps)
-                launchApp(appLaunchString);
+            // Handle requests to open application from command line
+            for (String app_name : launchApps)
+                launchApp(app_name);
         });
     }
 
@@ -260,7 +263,7 @@ public class PhoebusApplication extends Application {
             final File file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
             if (file == null)
                 return;
-            openResource(file.toString());
+            openResource(ResourceParser.getURI(file));
         });
         final MenuItem exit = new MenuItem("Exit");
         exit.setOnAction(event -> {
@@ -384,12 +387,38 @@ public class PhoebusApplication extends Application {
     /**
      * @param resource Resource received as command line argument
      */
-    private void openResource(final String resource) {
-        List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
-        if (applications.isEmpty()) {
-            logger.log(Level.WARNING, "No application found for opening " + resource);
-        } else {
-            final AppResourceDescriptor application;
+    private void openResource(final URI resource)
+    {
+        AppResourceDescriptor application = null;
+
+        // Does resource request a specific application?
+        String app_name = ResourceParser.getAppName(resource);
+        if (app_name != null)
+        {
+            final AppDescriptor app = ApplicationService.findApplication(app_name);
+            if (app == null)
+            {
+                logger.log(Level.WARNING, "Unknown application '" + app_name + "'");
+                return;
+            }
+            if (app instanceof AppResourceDescriptor)
+                application = (AppResourceDescriptor) app;
+            else
+            {
+                logger.log(Level.WARNING, "'" + app_name + "' application does not handle resources");
+                return;
+            }
+        }
+
+        if (application == null)
+        {   // Check all applications
+            final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+            if (applications.isEmpty())
+            {
+                logger.log(Level.WARNING, "No application found for opening " + resource);
+                return;
+            }
+
             if (applications.size() == 1)
                 application = applications.get(0);
             else
@@ -403,37 +432,25 @@ public class PhoebusApplication extends Application {
                     return;
                 application = applications.get(options.indexOf(result.get()));
             }
-
-            final String app_resource = application.getName() + "?" + ResourceParser.FILE_ARG + "=" + resource;
-            logger.log(Level.INFO, "Opening " + app_resource);
-            application.create(app_resource);
         }
+        logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
+        application.create(resource);
     }
 
     /**
-     * Launch applications with
+     * Launch application
      *
-     * @param appLaunchString
-     *            application launch string received as command line argument which
-     *            contains the app name and the arguments that the applications
-     *            should be launched with , this has to be in the format of a valid
-     *            URL. e.g. probe?pv=sim://noise&pv=sim://ramp
+     * @param appName
+     *            Application name received as '-app ..' command line argument
      */
-    private void launchApp(final String appLaunchString) {
-        String appName = ResourceParser.parseAppName(appLaunchString);
+    private void launchApp(final String appName) {
         final AppDescriptor app = ApplicationService.findApplication(appName);
         if (app == null)
         {
             logger.log(Level.SEVERE, "Unknown application '" + appName + "'");
             return;
         }
-        if (app instanceof AppResourceDescriptor)
-        {
-            ((AppResourceDescriptor)app).create(appLaunchString);
-        } else
-        {
-            app.create();
-        }
+        app.create();
     }
 
     /** @param monitor

@@ -7,12 +7,9 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable;
 
-import static org.phoebus.framework.util.ResourceParser.createAppURI;
-import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
-
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.pvtable.persistence.PVTableAutosavePersistence;
@@ -69,31 +66,24 @@ public class PVTableApplication implements AppResourceDescriptor
     }
 
     @Override
-    public PVTableInstance create(final String resource)
+    public PVTableInstance create(final URI resource)
     {
         PVTableInstance instance = null;
 
-        // Handles
-        // -app pv_table
-        // -app pv_table?pv=a&pv=b
-        // -app pv_table?file=/some/file
-        // but no mix of pv and file argument in one call
-        final Map<String, List<String>> args = parseQueryArgs(createAppURI(resource));
-        final List<String> pvs = args.get(ResourceParser.PV_ARG);
-        final List<String> files = args.get(ResourceParser.FILE_ARG);
-        if (pvs != null)
+        // Handles pv or file/http resource
+        try
         {
-            instance = create();
-            for (String pv : pvs)
-                instance.getModel().addItem(pv);
-        }
-        else if (files != null)
-        {
-            for (String file : files)
+            final List<String> pvs = ResourceParser.parsePVs(resource);
+            if (pvs.size() > 0)
             {
-                final URL input = ResourceParser.createResourceURL(file);
+                instance = create();
+                for (String pv : pvs)
+                    instance.getModel().addItem(pv);
+            }
+            else
+            {
                 // Check for existing instance with that input
-                final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, input);
+                final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, resource);
                 if (existing != null)
                 {   // Found one, raise it
                     instance = existing.getApplication();
@@ -102,12 +92,14 @@ public class PVTableApplication implements AppResourceDescriptor
                 else
                 {   // Nothing found, create new one
                     instance = create();
-                    instance.loadResource(input);
+                    instance.loadResource(resource);
                 }
             }
         }
-        else
-            instance = create();
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "PV Table cannot open '" + resource + "'", ex);
+        }
         return instance;
     }
 

@@ -9,7 +9,7 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
-import java.net.URL;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 
@@ -28,7 +28,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
 
-/** Item for a {@link DockPane} that has an 'input' file or URL.
+/** Item for a {@link DockPane} that has an 'input' file or URI.
  *
  *  <p>While technically a {@link Tab},
  *  only the methods declared in here and
@@ -46,7 +46,7 @@ public class DockItemWithInput extends DockItem
 
     private final JobRunnable save_handler;
 
-    private volatile URL input;
+    private volatile URI input;
 
     /** Create dock item
      *
@@ -62,10 +62,10 @@ public class DockItemWithInput extends DockItem
      *
      *  @param application {@link AppInstance}
      *  @param content Initial content
-     *  @param input URL for the input. May be <code>null</code>
+     *  @param input URI for the input. May be <code>null</code>
      *  @param save_handler Will be called to 'save' the content. May be <code>null</code> if never calling <code>setDirty(true)</code>
      */
-    public DockItemWithInput(final AppInstance application, final Node content, final URL input, final JobRunnable save_handler)
+    public DockItemWithInput(final AppInstance application, final Node content, final URI input, final JobRunnable save_handler)
     {
         super(application, content);
         this.save_handler = save_handler;
@@ -86,7 +86,7 @@ public class DockItemWithInput extends DockItem
     }
 
     /** @param input Input */
-    public void setInput(final URL input)
+    public void setInput(final URI input)
     {
         this.input = input;
         if (input == null)
@@ -96,7 +96,7 @@ public class DockItemWithInput extends DockItem
     }
 
     /** @return Input, which may be <code>null</code> (OK to call from any thread) */
-    public URL getInput()
+    public URI getInput()
     {
         return input;
     }

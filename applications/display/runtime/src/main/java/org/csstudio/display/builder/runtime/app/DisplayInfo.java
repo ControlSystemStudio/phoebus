@@ -10,15 +10,15 @@ package org.csstudio.display.builder.runtime.app;
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Objects;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.macros.Macros;
+import org.phoebus.framework.util.ResourceParser;
 
 /** Information about a display
  *  @author Kay Kasemir
@@ -32,7 +32,7 @@ public class DisplayInfo
     private final Macros macros;
     private final boolean resolve;
 
-    /** Parse URL for a display
+    /** Parse URI for a display
      *
      *  <p>Minimal example:
      *  <code>
@@ -44,58 +44,46 @@ public class DisplayInfo
      *  file://path/to/file.bob?MACRO1=value1&MACRO2=another%20value
      *  </code>
 
-     *  <p>Path of the URL is the file or http link to
+     *  <p>Path of the URI is the file or http link to
      *  the display.
      *
      *  <p>Optional query parameters, added via '?' to the path,
      *  and then separated by '&', provide macros.
      *
-     *  @param url
+     *  @param uri
      *  @return {@link DisplayInfo}
      */
-    public static DisplayInfo forURL(final URL url)
+    public static DisplayInfo forURI(final URI uri)
     {
         // Get basic file or http 'path' from path
-        final String path = url.getPath();
+        final String path;
+        if (uri.getScheme() == null  ||  uri.getScheme().equals("file"))
+            path = uri.getPath();
+        else
+        {
+            final StringBuilder buf = new StringBuilder();
+            buf.append(uri.getScheme()).append(':');
+            if (uri.getHost() != null)
+                buf.append("//").append(uri.getHost());
+            if (uri.getPort() >= 0)
+                buf.append(':').append(uri.getPort());
+            buf.append(uri.getPath());
+            path = buf.toString();
+        }
 
         // Check query for macros
         final Macros macros = new Macros();
-        final String query = url.getQuery();
-        if (query != null)
-            for (String macro_spec : query.split("&"))
-            {
-                final int mvsep = macro_spec.indexOf('=');
-                if (mvsep > 0)
-                {
-                    final String name = macro_spec.substring(0, mvsep);
-                    final String value = decode(macro_spec.substring(mvsep+1));
-                    macros.add(name, value);
-                }
-            }
+        ResourceParser.getQueryItemStream(uri)
+                      .filter(item -> item.getValue() != null)
+                      .forEach(item -> macros.add(item.getKey(),
+                                                  item.getValue()));
 
         return new DisplayInfo(path, null, macros, true);
     }
 
-    /** Decode URL text
-     *  @param text Text that may contain '+' or '%20' etc.
-     *  @return Decoded text
-     */
-    private static String decode(final String text)
-    {
-        try
-        {
-            return URLDecoder.decode(text, UTF_8);
-        }
-        catch (UnsupportedEncodingException ex)
-        {
-            logger.log(Level.WARNING, "Cannot decode " + text);
-        }
-        return text;
-    }
-
-    /** Encode URL text
+    /** Encode URI text
      *  @param text Text that may contain spaces etc. in UTF-8
-     *  @return URL-encoded text
+     *  @return URI-encoded text
      */
     private static String encode(final String text)
     {
@@ -194,8 +182,8 @@ public class DisplayInfo
                macros.equals(other.macros);
     }
 
-    /** @return URL representation of display info */
-    public URL toURL()
+    /** @return URI representation of display info */
+    public URI toURI()
     {
         final StringBuilder buf = new StringBuilder();
 
@@ -227,11 +215,11 @@ public class DisplayInfo
 
         try
         {
-            return new URL(buf.toString());
+            return new URI(buf.toString());
         }
-        catch (MalformedURLException ex)
+        catch (URISyntaxException ex)
         {
-            logger.log(Level.SEVERE, "Internal error in Display Info URL '" + buf.toString() + "'", ex);
+            logger.log(Level.SEVERE, "Internal error in Display Info URI '" + buf.toString() + "'", ex);
         }
         return null;
     }
