@@ -4,12 +4,14 @@
  */
 package org.phoebus.util.text;
 
-import java.text.NumberFormat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
-import org.phoebus.util.text.NumberFormats;
-import static org.hamcrest.Matchers.*;
 
 /**
  *
@@ -18,6 +20,7 @@ import static org.hamcrest.Matchers.*;
 public class NumberFormatsTest {
 
     public NumberFormatsTest() {
+        Locale.setDefault(Locale.US);
     }
 
     @Test
