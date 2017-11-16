@@ -55,7 +55,7 @@ public class Preferences
                         continue;
                     }
                     pv_name_patches.add(patch);
-                    logger.config(patch.toString());
+                    logger.log(Level.INFO, patch.toString());
                 }
             }
             else
