@@ -142,11 +142,25 @@ public class Launcher
         System.out.println("-settings settings.xml                  -  Import settings from file, either exported XML or property file format");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
         System.out.println("-list                                   -  List available application features");
-        System.out.println("-app \"probe?pv=pv_name1&pv=pv_name2\"    -  Launch an application with input arguments");
+        System.out.println("-app \"probe\"                           -  Launch an application with input arguments");
         System.out.println("-resource  /tmp/example.plt             -  Open an application configuration file with the default application");
         System.out.println("-server port                            -  Create instance server on given TCP port");
         System.out.println();
         System.out.println("In 'server' mode, first instance opens UI.");
         System.out.println("Additional calls to open resources are then forwarded to the initial instance.");
+        System.out.println();
+        System.out.println("The '-resource' parameter can be a URI for a file or web link.");
+        System.out.println("The schema 'pv://?PV1&PV2&PV3' is used to pass PV names,");
+        System.out.println("and the 'app=..' query parameter picks a specific app for opening the resource.");
+        System.out.println();
+        System.out.println("Examples:");
+        System.out.println("-resource /path/to/file                                                    - Opens that file with the default application.");
+        System.out.println("-resource file:/path/to/file                                               - Same, but makes the 'file' schema specific.");
+        System.out.println("-resource http://my.site/path/to/file                                      - Reads web link, opens with default application.");
+        System.out.println("-resource file:/path/to/file?app=display_runtime&MACRO1=value+1&MACRO2=abc - Opens file with 'display_runtime' app, passing macros.");
+        System.out.println("-resource pv://?sim://sine&app=probe                                       - Opens the 'sim://sine' PV with 'probe'.");
+        System.out.println("-resource pv://?Fred&sim://sine&app=pv_table                               - Opens two PVs PV with 'pv_table'.");
+
+
     }
 }

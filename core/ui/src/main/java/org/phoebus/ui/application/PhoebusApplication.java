@@ -396,6 +396,11 @@ public class PhoebusApplication extends Application {
         if (app_name != null)
         {
             final AppDescriptor app = ApplicationService.findApplication(app_name);
+            if (app == null)
+            {
+                logger.log(Level.WARNING, "Unknown application '" + app_name + "'");
+                return;
+            }
             if (app instanceof AppResourceDescriptor)
                 application = (AppResourceDescriptor) app;
             else
