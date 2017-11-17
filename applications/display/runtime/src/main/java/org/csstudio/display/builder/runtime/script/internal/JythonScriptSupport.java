@@ -90,7 +90,7 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // Add the examples/connect2j to path.
             // During development, examples are in
             // "file:/some/path/phoebus/applications/display/model/target/classes/examples"
-            final String examples = ModelPlugin.getExamples().toString();
+            final String examples = ModelPlugin.class.getResource("/examples").toString();
             if (examples.startsWith("file:"))
                 paths.add(examples.substring(5) + "/connect2j");
             // In the compiled version, examples are in

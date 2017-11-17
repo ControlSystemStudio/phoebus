@@ -31,6 +31,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Preferences;
 
 /** Helper for handling resources: File, web link.
@@ -345,6 +346,9 @@ public class ModelResourceUtil
 
     /** Open a file, web location, ..
      *
+     *  <p>In addition, understands "examples:"
+     *  to load a resource from the built-in examples.
+     *
      *  @param resource_name Path to file, "platform:", "http:/.."
      *  @return {@link InputStream}
      *  @throws Exception on error
@@ -358,6 +362,9 @@ public class ModelResourceUtil
 
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
+
+        if (resource_name.startsWith("examples:"))
+            return ModelPlugin.class.getResource("/examples/" + resource_name.substring(9)).openStream();
 
         return new FileInputStream(resource_name);
     }
