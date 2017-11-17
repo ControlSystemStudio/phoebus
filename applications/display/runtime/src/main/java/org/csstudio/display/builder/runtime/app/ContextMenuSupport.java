@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.csstudio.display.builder.model.Widget;
@@ -19,6 +20,9 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Targe
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
@@ -47,7 +51,7 @@ class ContextMenuSupport
             public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y)
             {
                 final Node node = JFXBaseRepresentation.getJFXNode(widget);
-                fillMenu(widget);
+                fillMenu(node, widget);
                 menu.show(node, screen_x, screen_y);
             }
         };
@@ -56,9 +60,10 @@ class ContextMenuSupport
     }
 
     /** Fill context menu with items for widget
+     *  @param node
      *  @param widget
      */
-    private void fillMenu(final Widget widget)
+    private void fillMenu(final Node node, final Widget widget)
     {
         menu.getItems().setAll(new WidgetInfoAction(widget));
 
@@ -83,21 +88,23 @@ class ContextMenuSupport
             }
             else
                 menu.getItems().add(createMenuItem(widget, info));
-
         }
 
         menu.getItems().add(new SeparatorMenuItem());
 
+        // Add PV-based contributions
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
         if (name_prop.isPresent())
         {
             final String pv_name = name_prop.get().getValue();
             if (!pv_name.isEmpty())
-                System.out.println("TODO: Set selection to PV " + pv_name);
+            {
+                // Set the 'selection' to the PV of this widget
+                SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, List.of(new ProcessVariable(pv_name)));
+                // Add PV-based menu entries
+                ContextMenuHelper.addSupportedEntries(node, menu);
+            }
         }
-        // Set selection to PV of the widget
-        // SelectionService.getInstance().setSelection(source, selection);
-        // TODO Add PV-based contributions
 
         // TODO Many more entrys, see RCP's ContextMenuSupport
         // TODO Save Snapshot

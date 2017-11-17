@@ -62,7 +62,7 @@ public class ContextMenuHelper
      *  @param parent_node Parent node, usually owner of the context menu
      *  @param menu Menu where selection-based entries will be added
      */
-    public static void addSupportedEntries(Node parent_node, ContextMenu menu)
+    public static void addSupportedEntries(final Node parent_node, final ContextMenu menu)
     {
         final Window window = parent_node.getScene().getWindow();
         if (! (window instanceof Stage))
