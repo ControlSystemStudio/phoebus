@@ -25,6 +25,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -106,18 +107,15 @@ class ContextMenuSupport
             }
         }
 
-        // TODO Many more entries, see RCP's ContextMenuSupport
-        // TODO Save Snapshot
+        menu.getItems().add(new SeparatorMenuItem());
+
+        final Scene scene = node.getScene();
+        menu.getItems().add(new SaveSnapshotAction(scene));
         // TODO Print
         // TODO SendEmail
         // TODO SendToLogbook
-        // TODO FullScreen
-
+        menu.getItems().add(new FullScreenAction(scene));
         // TODO Allow editor to add "Open in Editor"
-
-        menu.getItems().add(new SeparatorMenuItem());
-
-        menu.getItems().add(new FullScreenAction(widget));
         menu.getItems().add(new ReloadDisplayAction(instance));
     }
 

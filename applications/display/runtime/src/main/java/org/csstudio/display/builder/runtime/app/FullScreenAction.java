@@ -11,12 +11,10 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.util.logging.Level;
 
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.Messages;
 import org.phoebus.ui.application.ContextMenuHelper;
 
-import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -34,10 +32,9 @@ public class FullScreenAction extends MenuItem
     private static final Image enter = ContextMenuHelper.loadIcon(FullScreenAction.class, "/icons/fullscreen.png"),
                                exit = ContextMenuHelper.loadIcon(FullScreenAction.class, "/icons/exitfullscreen.png");
 
-    public FullScreenAction(final Widget widget)
+    public FullScreenAction(final Scene scene)
     {
-        final Node node = JFXBaseRepresentation.getJFXNode(widget);
-        final Window window = node.getScene().getWindow();
+        final Window window = scene.getWindow();
         if (! (window instanceof Stage))
         {
             logger.log(Level.WARNING, "Need 'Stage' for full-screen");

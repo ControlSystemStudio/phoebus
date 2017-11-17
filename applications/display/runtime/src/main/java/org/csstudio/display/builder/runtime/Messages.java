@@ -17,6 +17,8 @@ public class Messages
     public static String NavigateBack_TT;
     public static String NavigateForward_TT;
     public static String ReloadDisplay;
+    public static String SaveSnapshot;
+    public static String SaveSnapshotSelectFilename;
     public static String Toolbar_Hide;
     public static String Toolbar_Show;
 
