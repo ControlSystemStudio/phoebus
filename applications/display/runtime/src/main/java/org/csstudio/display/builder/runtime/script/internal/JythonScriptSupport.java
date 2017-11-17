@@ -81,11 +81,11 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
 
             // Options: error, warning, message (default), comment, debug
             // props.setProperty("python.verbose", "debug");
-            // Options.verbose = Py.DEBUG;
+            // org.python.core.Options.verbose = Py.DEBUG;
 
             PythonInterpreter.initialize(pre_props, props, new String[0]);
-
-            final PyList paths = Py.getSystemState().path;
+            final PySystemState state = Py.getSystemState();
+            final PyList paths = state.path;
 
             // Add the examples/connect2j to path.
             // During development, examples are in
@@ -102,6 +102,18 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
 
             final PyVersionInfo version = PySystemState.version_info;
             logger.log(Level.INFO, "Initial Paths for Jython " + version.major + "." + version.minor + "." + version.micro + ": " + paths);
+
+            // Scripts would sometimes fail in "from ... import ..." with this error:
+            //
+            // File "..jython-standalone-2.7.1.jar/Lib/warnings.py", line 226, in warn
+            // IndexError: index out of range: 0
+            //
+            // That version of Lib/warnings.py:226 tries to read sys.argv[0],
+            // so setting sys.argv[0] avoids the crash.
+            // Since state is shared by all scripts in a display,
+            // set it to a generic "DisplayBuilderScript"
+            state.argv.clear();
+            state.argv.add("DisplayBuilderScript");
 
             return true;
         }
