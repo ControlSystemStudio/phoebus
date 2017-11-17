@@ -8,11 +8,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
-
-import jnr.ffi.Struct.time_t;
 
 /**
  * A period of time where each end can either be an absolute moment in time
@@ -33,6 +30,7 @@ import jnr.ffi.Struct.time_t;
 public class TimeRelativeInterval {
 
     public static final String NOW = "Now";
+
     private final Object start;
     private final Object end;
 
