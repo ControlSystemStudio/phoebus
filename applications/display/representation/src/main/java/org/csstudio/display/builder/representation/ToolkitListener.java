@@ -34,8 +34,10 @@ public interface ToolkitListener
 
     /** User requested context menu for a widget
      *  @param widget Widget on which context menu was invoked
+     *  @param screen_x X coordinate of mouse when menu was invoked
+     *  @param screen_y Y coordinate of mouse when menu was invoked
      */
-    default public void handleContextMenu(Widget widget) {};
+    default public void handleContextMenu(Widget widget, int screen_x, int screen_y) {};
 
     /** User provided a new value that should be written to PV
      *  @param widget Widget that provided the value; Widget's (primary) PV should be written

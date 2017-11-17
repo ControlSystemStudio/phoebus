@@ -594,14 +594,16 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
 
     /** Notify listeners that context menu has been invoked
      *  @param widget Widget
+     *  @param screen_x X coordinate of mouse when menu was invoked
+     *  @param screen_y Y coordinate of mouse when menu was invoked
      */
-    public void fireContextMenu(final Widget widget)
+    public void fireContextMenu(final Widget widget, final int screen_x, final int screen_y)
     {
         for (final ToolkitListener listener : listeners)
         {
             try
             {
-                listener.handleContextMenu(widget);
+                listener.handleContextMenu(widget, screen_x, screen_y);
             }
             catch (final Throwable ex)
             {

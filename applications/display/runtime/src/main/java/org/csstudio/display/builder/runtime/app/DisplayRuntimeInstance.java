@@ -71,6 +71,9 @@ public class DisplayRuntimeInstance implements AppInstance
         RuntimeUtil.hookRepresentationListener(representation);
 
         toolbar = createToolbar();
+
+        new ContextMenuSupport(this);
+
         BorderPane.setMargin(toolbar, new Insets(5, 5, 0, 5));
         layout.setTop(toolbar);
         layout.setCenter(representation.createModelRoot());
@@ -80,13 +83,11 @@ public class DisplayRuntimeInstance implements AppInstance
         representation.getModelParent().getProperties().put(MODEL_PARENT_DISPLAY_RUNTIME, this);
         representation.getModelParent().setOnContextMenuRequested(event ->
         {
-            // TODO
-            System.out.println("SHOULD SHOW CONTEXT MENU!");
             final DisplayModel model = active_model;
             if (model != null)
             {
                 event.consume();
-                representation.fireContextMenu(model);
+                representation.fireContextMenu(model, (int)event.getScreenX(), (int)event.getScreenY());
             }
         });
 
@@ -124,6 +125,12 @@ public class DisplayRuntimeInstance implements AppInstance
     void close()
     {
         dock_item.close();
+    }
+
+    /** @return Current display info or <code>null</code> */
+    DisplayInfo getDisplayInfo()
+    {
+        return display_info.orElse(null);
     }
 
     /** Load display file, represent it, start runtime

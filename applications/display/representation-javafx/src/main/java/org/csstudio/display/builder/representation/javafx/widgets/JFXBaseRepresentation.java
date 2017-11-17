@@ -96,7 +96,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                 jfx_node.setOnContextMenuRequested((event) ->
                 {
                     event.consume();
-                    toolkit.fireContextMenu(model_widget);
+                    toolkit.fireContextMenu(model_widget, (int)event.getScreenX(), (int)event.getScreenY());
                 });
         }
         registerListeners();
