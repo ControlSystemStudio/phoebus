@@ -106,7 +106,7 @@ class ContextMenuSupport
             }
         }
 
-        // TODO Many more entrys, see RCP's ContextMenuSupport
+        // TODO Many more entries, see RCP's ContextMenuSupport
         // TODO Save Snapshot
         // TODO Print
         // TODO SendEmail
@@ -117,6 +117,7 @@ class ContextMenuSupport
 
         menu.getItems().add(new SeparatorMenuItem());
 
+        menu.getItems().add(new FullScreenAction(widget));
         menu.getItems().add(new ReloadDisplayAction(instance));
     }
 
