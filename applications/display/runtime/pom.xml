@@ -64,6 +64,11 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>types</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
