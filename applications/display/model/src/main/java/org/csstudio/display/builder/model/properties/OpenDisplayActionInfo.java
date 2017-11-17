@@ -31,13 +31,7 @@ public class OpenDisplayActionInfo extends ActionInfo
         WINDOW(Messages.Target_Window),
 
         /** Open standalone window
-         *
-         *  When running under RCP, this mode
-         *  opens a plain standalone window,
-         *  no context menu.
-         *
-         *  Support for this mode can be enabled
-         *  via a preference setting
+         *  @deprecated Was only used in RCP version.
          */
         @Deprecated
         STANDALONE(Messages.Target_Standalone);

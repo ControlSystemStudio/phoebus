@@ -11,12 +11,21 @@ import java.util.Optional;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
+import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
+import org.csstudio.display.builder.runtime.ActionUtil;
 
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 /** Context menu for a widget or the display
  *  @author Kay Kasemir
@@ -51,8 +60,33 @@ class ContextMenuSupport
      */
     private void fillMenu(final Widget widget)
     {
-        // TODO Auto-generated method stub
         menu.getItems().setAll(new WidgetInfoAction(widget));
+
+        // Widget actions
+        for (ActionInfo info : widget.propActions().getValue().getActions())
+        {
+            if (info.getType() == ActionType.OPEN_DISPLAY)
+            {
+                // Add variant for all the available Target types: Replace, new Tab, ...
+                final OpenDisplayActionInfo open_info = (OpenDisplayActionInfo) info;
+                for (Target target : Target.values())
+                {
+                    if (target == Target.STANDALONE)
+                        continue;
+                    final String desc = target == Target.REPLACE
+                                      ? open_info.getDescription()
+                                      : open_info.getDescription() + " (" + target + ")";
+                          menu.getItems().add(createMenuItem(widget,
+                                   new OpenDisplayActionInfo(desc, open_info.getFile(),
+                                                             open_info.getMacros(), target)));
+                }
+            }
+            else
+                menu.getItems().add(createMenuItem(widget, info));
+
+        }
+
+        menu.getItems().add(new SeparatorMenuItem());
 
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
         if (name_prop.isPresent())
@@ -63,9 +97,27 @@ class ContextMenuSupport
         }
         // Set selection to PV of the widget
         // SelectionService.getInstance().setSelection(source, selection);
+        // TODO Add PV-based contributions
 
         // TODO Many more entrys, see RCP's ContextMenuSupport
+        // TODO Save Snapshot
+        // TODO Print
+        // TODO SendEmail
+        // TODO SendToLogbook
+        // TODO FullScreen
+
+        // TODO Allow editor to add "Open in Editor"
+
+        menu.getItems().add(new SeparatorMenuItem());
 
         menu.getItems().add(new ReloadDisplayAction(instance));
+    }
+
+    private static MenuItem createMenuItem(final Widget widget, final ActionInfo info)
+    {
+        final ImageView icon = new ImageView(new Image(info.getType().getIconURL().toExternalForm()));
+        final MenuItem item = new MenuItem(info.getDescription(), icon);
+        item.setOnAction(event -> ActionUtil.handleAction(widget, info));
+        return item;
     }
 }
