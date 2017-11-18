@@ -29,20 +29,13 @@ public class Screenshot
      *
      *  <p>Must be called on UI thread
      *  @param scene Scene to capture
-     *  @throws Exception on error
      */
-    public Screenshot(final Scene scene) throws Exception
+    public Screenshot(final Scene scene)
     {
         image = fromNode(scene.getRoot());
-        // Create snapshot file
-        //        final WritableImage jfx = scene.snapshot(null);
-        //        image = new BufferedImage((int)jfx.getWidth(),
-        //                (int)jfx.getHeight(),
-        //                BufferedImage.TYPE_INT_ARGB);
-        //        SwingFXUtils.fromFXImage(jfx, image);
     }
 
-    public Screenshot(final Node node) throws Exception
+    public Screenshot(final Node node)
     {
         image = fromNode(node);
     }

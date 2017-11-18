@@ -25,6 +25,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -110,8 +111,10 @@ class ContextMenuSupport
         menu.getItems().add(new SeparatorMenuItem());
 
         final Scene scene = node.getScene();
-        menu.getItems().add(new SaveSnapshotAction(scene));
-        // TODO Print
+        final Parent model_parent = instance.getRepresentation().getModelParent();
+        
+        menu.getItems().add(new SaveSnapshotAction(model_parent));
+        menu.getItems().add(new PrintAction(model_parent));
         // TODO SendEmail
         // TODO SendToLogbook
         menu.getItems().add(new FullScreenAction(scene));

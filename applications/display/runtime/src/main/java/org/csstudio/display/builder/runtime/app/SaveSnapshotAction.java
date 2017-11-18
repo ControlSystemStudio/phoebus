@@ -16,6 +16,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.jobs.JobManager;
 
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
@@ -32,13 +33,13 @@ public class SaveSnapshotAction extends MenuItem
     private static final Image icon = ContextMenuHelper.loadIcon(SaveSnapshotAction.class, "/icons/save_edit.png");
     private static final ExtensionFilter image_file_extension = new ExtensionFilter("Image (*.png)", "*.png");
 
-    public SaveSnapshotAction(final Scene scene)
+    public SaveSnapshotAction(final Parent model_parent)
     {
         super(Messages.SaveSnapshot, new ImageView(icon));
-        setOnAction(event -> save(scene));
+        setOnAction(event -> save(model_parent));
     }
 
-    private void save(final Scene scene)
+    private void save(final Parent model_parent)
     {
         final FileChooser dialog = new FileChooser();
         dialog.setTitle(Messages.SaveSnapshotSelectFilename);
@@ -46,21 +47,11 @@ public class SaveSnapshotAction extends MenuItem
         dialog.getExtensionFilters().setAll(FilenameSupport.file_extensions[0]);
         dialog.getExtensionFilters().add(image_file_extension);
 
-        final File file = dialog.showSaveDialog(scene.getWindow());
+        final File file = dialog.showSaveDialog(model_parent.getScene().getWindow());
         if (file == null)
             return;
 
-        final Screenshot screenshot;
-        try
-        {
-            screenshot = new Screenshot(scene);
-        }
-        catch (Exception ex)
-        {
-            ExceptionDetailsErrorDialog.openError("Screenshot error", "Cannot obtain screenshot", ex);
-            return;
-        }
-
+        final Screenshot screenshot = new Screenshot(model_parent);
         JobManager.schedule(Messages.SaveSnapshot, monitor ->
         {
             monitor.beginTask(file.toString());
