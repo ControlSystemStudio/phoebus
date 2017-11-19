@@ -8,7 +8,6 @@
 package org.phoebus.ui;
 
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.ui.application.TopResources;
 
 /** Preference settings
  *
@@ -19,11 +18,11 @@ public class Preferences
 {
     public static final String TOP_RESOURCES = "top_resources";
 
-    public static TopResources top_resources;
+    public static String top_resources;
 
     static
     {
         final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/phoebus_ui_preferences.properties");
-        top_resources = TopResources.parse(prefs.get(TOP_RESOURCES));
+        top_resources = prefs.get(TOP_RESOURCES);
     }
 }

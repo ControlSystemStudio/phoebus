@@ -273,9 +273,7 @@ public class PhoebusApplication extends Application {
         });
         file.getItems().add(open);
 
-        final Menu top_resources = createTopResourcesMenu();
-        if (top_resources != null)
-                file.getItems().add(top_resources);
+        file.getItems().add(createTopResourcesMenu());
         
         final MenuItem exit = new MenuItem("Exit");
         exit.setOnAction(event ->
@@ -334,18 +332,34 @@ public class PhoebusApplication extends Application {
 
     private Menu createTopResourcesMenu()
     {
-        final TopResources tops = Preferences.top_resources;
-        final int N = tops.size();
-        if (N <= 0)
-            return null;
-        final Menu top_resources = new Menu("Top Resources");
-        for (int i=0; i<N; ++i)
-        {
-            final int index = i;
-            final MenuItem item = new MenuItem(tops.getDescription(index));
-            item.setOnAction(event -> openResource(tops.getResource(index)));
-            top_resources.getItems().add(item);
-        }
+    		final Menu top_resources = new Menu("Top Resources");
+    		top_resources.setDisable(true);
+    		
+    		// Create top resources menu items off UI thread
+    		JobManager.schedule("Get top resources", monitor->
+    		{
+    			final TopResources tops = TopResources.parse(Preferences.top_resources);
+    			final int N = tops.size();
+    			if (N <= 0)
+    				return;
+    			final MenuItem[] items = new MenuItem[N];
+    			for (int i=0; i<N; ++i)
+    			{
+    				final int index = i;
+    				// TODO Lookup application icon
+    				items[index] = new MenuItem(tops.getDescription(index));
+    				items[index].setOnAction(event -> openResource(tops.getResource(index)));
+    			}
+    			
+    			// TODO Also create toolbar entry?
+    			
+    			// Back to UI thread to hook into menu
+    			Platform.runLater(() ->
+    			{
+    				top_resources.getItems().setAll(items);
+    				top_resources.setDisable(false);
+    			});
+    		});
         
         return top_resources;
     }
