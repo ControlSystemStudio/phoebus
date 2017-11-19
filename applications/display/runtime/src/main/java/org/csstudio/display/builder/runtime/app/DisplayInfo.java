@@ -191,7 +191,8 @@ public class DisplayInfo
         if (! (path.startsWith("file:")  ||
                path.startsWith("http:")  ||
                path.startsWith("https:") ||
-               path.startsWith("ftp:")))
+               path.startsWith("ftp:")   ||
+               path.startsWith("examples:")))
             buf.append("file:");
 
         // In path, keep ':' and '/', but replace spaces
