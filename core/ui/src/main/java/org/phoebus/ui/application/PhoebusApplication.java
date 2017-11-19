@@ -34,6 +34,7 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.help.OpenAbout;
 import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
 import org.phoebus.ui.jobs.SubJobMonitor;
@@ -255,6 +256,9 @@ public class PhoebusApplication extends Application {
 
     private MenuBar createMenu(final Stage stage) {
         final MenuBar menuBar = new MenuBar();
+        // For Mac OS X, use it's menu bar on top of screen
+        if (PlatformInfo.is_mac_os_x)
+            menuBar.setUseSystemMenuBar(true);
 
         // File
         final MenuItem open = new MenuItem("Open");
@@ -265,12 +269,21 @@ public class PhoebusApplication extends Application {
                 return;
             openResource(ResourceParser.getURI(file));
         });
+        
+        // Top Resources
+        // TODO Extract into TopResources class with preference-based content
+        final MenuItem ex_main = new MenuItem("Example Display");
+        ex_main.setOnAction(event -> openResource(URI.create("examples:/01_main.bob")));
+        final Menu top_resources = new Menu("Top Files");
+        top_resources.getItems().setAll(ex_main);
+        
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event -> {
+        exit.setOnAction(event ->
+        {
             if (closeMainStage(null))
                 stop();
         });
-        menuBar.getMenus().add(new Menu("File", null, open, exit));
+        menuBar.getMenus().add(new Menu("File", null, open, top_resources, exit));
 
 
         // Application Contributions
