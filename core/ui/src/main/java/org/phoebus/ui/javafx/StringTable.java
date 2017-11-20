@@ -42,7 +42,6 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -299,7 +298,7 @@ public class StringTable extends BorderPane
         {
             // TODO Icons are not centered inside the button until the
             // button is once pressed, or at least focused via "tab"
-            button.setGraphic(new ImageView(JFXUtil.getIcon(id)));
+            button.setGraphic(ImageCache.getImageView(getClass(), "/icons/" + id + ".png"));
 
             // Using the image as a background like this centers the image,
             // but replaces the complete characteristic button outline with just the icon.

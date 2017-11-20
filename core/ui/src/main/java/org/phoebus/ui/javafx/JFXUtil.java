@@ -10,7 +10,6 @@ package org.phoebus.ui.javafx;
 import java.util.Locale;
 import java.util.logging.Logger;
 
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 /** JavaFX Helper
@@ -32,13 +31,5 @@ public class JFXUtil
         final int g = (int)Math.round(color.getGreen() * 255.0);
         final int b = (int)Math.round(color.getBlue() * 255.0);
         return String.format((Locale) null, "#%02x%02x%02x" , r, g, b);
-    }
-
-    /** @param base_name Icon base name (no path, no extension)
-     *  @return Image
-     */
-    static Image getIcon(final String base_name)
-    {
-        return new Image(JFXUtil.class.getResource("/icons/" + base_name + ".png").toExternalForm());
     }
 }
