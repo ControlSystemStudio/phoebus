@@ -98,7 +98,6 @@ public class DisplayInfo
         return text;
     }
 
-    // TODO Remove?
     private static String basename(final String path)
     {
         int sep = path.lastIndexOf('/');
