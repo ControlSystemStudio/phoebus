@@ -43,7 +43,7 @@ public class ModelLoader
         }
         catch (Exception ex)
         {
-            throw new Exception("Cannot load '" + display_file + "' (parent: '" + parent_display + "'");
+            throw new Exception("Cannot load '" + display_file + "' (parent: '" + parent_display + "'", ex);
         }
     }
 

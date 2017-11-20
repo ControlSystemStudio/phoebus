@@ -314,11 +314,12 @@ public class ModelResourceUtil
      */
     private static boolean canOpenUrl(final String resource_name)
     {
-        if (resource_name.startsWith("examples:"))
+        final URL example = getExampleURL(resource_name);
+        if (example != null)
         {
             try
             {
-                ModelPlugin.class.getResource("/examples/" + resource_name.substring(9)).openStream().close();
+                example.openStream().close();
                 return true;
             }
             catch (Exception ex)
@@ -358,12 +359,31 @@ public class ModelResourceUtil
         }
     }
 
+    /** Check for "examples:.."
+     *
+     *  @param resource_name Path to file that may be based on "examples:.."
+     *  @return URL for the example, or <code>null</code>
+     */
+    private static URL getExampleURL(final String resource_name)
+    {
+        if (resource_name.startsWith("examples:"))
+        {
+            String example = resource_name.substring(9);
+            if (example.startsWith("/"))
+                example = "/examples" + example;
+            else
+                example = "/examples/" + example;
+            return ModelPlugin.class.getResource(example);
+        }
+        return null;
+    }
+
     /** Open a file, web location, ..
      *
      *  <p>In addition, understands "examples:"
      *  to load a resource from the built-in examples.
      *
-     *  @param resource_name Path to file, "platform:", "http:/.."
+     *  @param resource_name Path to file, "examples:", "http:/.."
      *  @return {@link InputStream}
      *  @throws Exception on error
      */
@@ -377,16 +397,12 @@ public class ModelResourceUtil
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
 
-        if (resource_name.startsWith("examples:"))
+        final URL example = getExampleURL(resource_name);
+        if (example != null)
         {
-            String example = resource_name.substring(9);
-            if (example.startsWith("/"))
-                example = "/examples" + example;
-            else
-                example = "/examples/" + example;
             try
             {
-                return ModelPlugin.class.getResource(example).openStream();
+                return example.openStream();
             }
             catch (Exception ex)
             {
