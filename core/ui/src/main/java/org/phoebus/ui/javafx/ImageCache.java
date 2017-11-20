@@ -55,17 +55,37 @@ public class ImageCache
      */
     public static Image getImage(final Class<?> clazz, final String path)
     {
-        return cache.computeIfAbsent(path, p -> loadImage(clazz, path));
+        return cache.computeIfAbsent(path, p ->
+        {
+            final URL resource = clazz.getResource(path);
+            if (resource == null)
+            {
+                PhoebusApplication.logger.log(Level.WARNING, "Cannot load image '" + path + "' for " + clazz.getName());
+                return null;
+            }
+            return new Image(resource.toExternalForm());
+        });
     }
 
-    private static Image loadImage(final Class<?> clazz, final String path)
+    /** @param url Image URL
+     *  @return ImageView for image, always a new ImageView, even for cached Image
+     */
+    public static ImageView getImageView(final URL url)
     {
-        final URL resource = clazz.getResource(path);
-        if (resource == null)
-        {
-            PhoebusApplication.logger.log(Level.WARNING, "Cannot load image '" + path + "' for " + clazz.getName());
+        final Image image = getImage(url);
+        if (image != null)
+            return new ImageView(image);
+        return new ImageView();
+    }
+
+    /** @param url Image URL
+     *  @return Image, may be cached copy
+     */
+    public static Image getImage(final URL url)
+    {
+        if (url == null)
             return null;
-        }
-        return new Image(resource.toExternalForm());
+        final String path = url.toExternalForm();
+        return cache.computeIfAbsent(path, p -> new Image(path));
     }
 }

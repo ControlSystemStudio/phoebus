@@ -58,6 +58,8 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -356,13 +358,26 @@ public class PhoebusApplication extends Application {
             final MenuItem[] toolbar_items = new MenuItem[N];
             for (int i=0; i<N; ++i)
             {
-                final int index = i;
-                // TODO Lookup application icon
-                menu_items[index] = new MenuItem(tops.getDescription(index));
-                menu_items[index].setOnAction(event -> openResource(tops.getResource(index)));
+                final String description = tops.getDescription(i);
+                final URI resource = tops.getResource(i);
 
-                toolbar_items[index] = new MenuItem(tops.getDescription(index));
-                toolbar_items[index].setOnAction(event -> openResource(tops.getResource(index)));
+                menu_items[i] = new MenuItem(description);
+                menu_items[i].setOnAction(event -> openResource(resource));
+
+                toolbar_items[i] = new MenuItem(description);
+                toolbar_items[i].setOnAction(event -> openResource(resource));
+
+                // Lookup application icon
+                final AppResourceDescriptor application = findApplication(resource, false);
+                if (application != null)
+                {
+                    final Image icon = ImageCache.getImage(application.getIconURL());
+                    if (icon != null)
+                    {
+                        menu_items[i].setGraphic(new ImageView(icon));
+                        toolbar_items[i].setGraphic(new ImageView(icon));
+                    }
+                }
             }
 
             // Back to UI thread to hook into menu
@@ -449,55 +464,61 @@ public class PhoebusApplication extends Application {
         return toolBar;
     }
 
-    /**
-     * @param resource Resource received as command line argument
+    /** @param resource Resource
+     *  @param prompt Prompt if there are multiple applications, or use first one?
+     *  @return Application for opening resource, or <code>null</code> if none found
      */
-    private void openResource(final URI resource)
+    private AppResourceDescriptor findApplication(final URI resource, final boolean prompt)
     {
-        AppResourceDescriptor application = null;
-
         // Does resource request a specific application?
-        String app_name = ResourceParser.getAppName(resource);
+        final String app_name = ResourceParser.getAppName(resource);
         if (app_name != null)
         {
             final AppDescriptor app = ApplicationService.findApplication(app_name);
             if (app == null)
             {
                 logger.log(Level.WARNING, "Unknown application '" + app_name + "'");
-                return;
+                return null;
             }
             if (app instanceof AppResourceDescriptor)
-                application = (AppResourceDescriptor) app;
+                return (AppResourceDescriptor) app;
             else
             {
                 logger.log(Level.WARNING, "'" + app_name + "' application does not handle resources");
-                return;
+                return null;
             }
         }
 
+        // Check all applications
+        final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+        if (applications.isEmpty())
+        {
+            logger.log(Level.WARNING, "No application found for opening " + resource);
+            return null;
+        }
+
+        if (applications.size() == 1   ||   (applications.size() > 0  &&  !prompt))
+            return applications.get(0);
+
+        // Prompt user which application to use for this resource
+        final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
+        final ChoiceDialog<String> which = new ChoiceDialog<>(options.get(0), options);
+        which.setTitle("Open");
+        which.setHeaderText("Select application for opening\n" + resource);
+        final Optional<String> result = which.showAndWait();
+        if (! result.isPresent())
+            return null;
+        return applications.get(options.indexOf(result.get()));
+    }
+
+    /**
+     * @param resource Resource received as command line argument
+     */
+    private void openResource(final URI resource)
+    {
+        final AppResourceDescriptor application = findApplication(resource, true);
         if (application == null)
-        {   // Check all applications
-            final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
-            if (applications.isEmpty())
-            {
-                logger.log(Level.WARNING, "No application found for opening " + resource);
-                return;
-            }
-
-            if (applications.size() == 1)
-                application = applications.get(0);
-            else
-            {   // Prompt user which application to use for this resource
-                final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
-                final ChoiceDialog<String> which = new ChoiceDialog<>(options.get(0), options);
-                which.setTitle("Open");
-                which.setHeaderText("Select application for opening\n" + resource);
-                final Optional<String> result = which.showAndWait();
-                if (! result.isPresent())
-                    return;
-                application = applications.get(options.indexOf(result.get()));
-            }
-        }
+            return;
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
         application.create(resource);
     }

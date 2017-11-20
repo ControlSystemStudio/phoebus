@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -34,6 +35,12 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     public String getDisplayName()
     {
         return DISPLAY_NAME;
+    }
+
+    @Override
+    public URL getIconURL()
+    {
+        return DisplayModel.class.getResource("/icons/runtime.png");
     }
 
     @Override
