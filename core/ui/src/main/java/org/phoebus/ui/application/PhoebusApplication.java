@@ -53,6 +53,7 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.MouseEvent;
@@ -78,8 +79,14 @@ public class PhoebusApplication extends Application {
     /** Memento key to show/hide tabs */
     private static final String SHOW_TABS = "show_tabs";
 
+    /** Menu item for top resources */
+    private Menu top_resources_menu;
+
     /** Menu item to show/hide tabs */
     private CheckMenuItem show_tabs;
+
+    /** Toolbar button for top resources */
+    private MenuButton top_resources_button;
 
     /** JavaFX entry point
      *  @param initial_stage Initial Stage created by JavaFX
@@ -143,6 +150,7 @@ public class PhoebusApplication extends Application {
         final Stage main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
         final ToolBar toolBar = createToolbar();
+        createTopResourcesMenu();
 
         DockStage.configureStage(main_stage);
         // Patch ID of main window
@@ -262,20 +270,22 @@ public class PhoebusApplication extends Application {
             menuBar.setUseSystemMenuBar(true);
 
         // File
-        final Menu file = new Menu("File");
-        final MenuItem open = new MenuItem("Open");
+        final Menu file = new Menu(Messages.File);
+        final MenuItem open = new MenuItem(Messages.Open);
         open.setOnAction(event ->
         {
-            final File the_file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
+            final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, null, null);
             if (the_file == null)
                 return;
             openResource(ResourceParser.getURI(the_file));
         });
         file.getItems().add(open);
 
-        file.getItems().add(createTopResourcesMenu());
+        top_resources_menu = new Menu(Messages.TopResources);
+        top_resources_menu.setDisable(true);
+        file.getItems().add(top_resources_menu);
 
-        final MenuItem exit = new MenuItem("Exit");
+        final MenuItem exit = new MenuItem(Messages.Exit);
         exit.setOnAction(event ->
         {
             if (closeMainStage(null))
@@ -286,16 +296,16 @@ public class PhoebusApplication extends Application {
 
 
         // Application Contributions
-        final Menu applicationsMenu = new Menu("Applications");
+        final Menu applicationsMenu = new Menu(Messages.Applications);
         MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
         addMenuNode(applicationsMenu, node);
         menuBar.getMenus().add(applicationsMenu);
 
 
-        show_tabs = new CheckMenuItem("Always Show Tabs");
+        show_tabs = new CheckMenuItem(Messages.AlwaysShowTabs);
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
-        menuBar.getMenus().add(new Menu("Window", null, show_tabs));
+        menuBar.getMenus().add(new Menu(Messages.Window, null, show_tabs));
 
         // Help
         final MenuEntry content_entry = new OpenHelp();
@@ -325,16 +335,14 @@ public class PhoebusApplication extends Application {
                 logger.log(Level.WARNING, "Error invoking menu entry", ex);
             }
         });
-        menuBar.getMenus().add(new Menu("Help", null, about, content));
+        menuBar.getMenus().add(new Menu(Messages.Help, null, about, content));
 
         return menuBar;
     }
 
-    private Menu createTopResourcesMenu()
+    /** Fill the {@link #top_resources_menu} and {@link #top_resources_button} */
+    private void createTopResourcesMenu()
     {
-        final Menu top_resources = new Menu("Top Resources");
-        top_resources.setDisable(true);
-
         // Create top resources menu items off UI thread
         JobManager.schedule("Get top resources", monitor->
         {
@@ -342,26 +350,30 @@ public class PhoebusApplication extends Application {
             final int N = tops.size();
             if (N <= 0)
                 return;
-            final MenuItem[] items = new MenuItem[N];
+            final MenuItem[] menu_items = new MenuItem[N];
+            final MenuItem[] toolbar_items = new MenuItem[N];
             for (int i=0; i<N; ++i)
             {
                 final int index = i;
                 // TODO Lookup application icon
-                items[index] = new MenuItem(tops.getDescription(index));
-                items[index].setOnAction(event -> openResource(tops.getResource(index)));
-            }
+                menu_items[index] = new MenuItem(tops.getDescription(index));
+                menu_items[index].setOnAction(event -> openResource(tops.getResource(index)));
 
-            // TODO Also create toolbar entry?
+                toolbar_items[index] = new MenuItem(tops.getDescription(index));
+                toolbar_items[index].setOnAction(event -> openResource(tops.getResource(index)));
+            }
 
             // Back to UI thread to hook into menu
             Platform.runLater(() ->
             {
-                top_resources.getItems().setAll(items);
-                top_resources.setDisable(false);
+                top_resources_menu.getItems().setAll(menu_items);
+                top_resources_menu.setDisable(false);
+
+                top_resources_button.getItems().setAll(toolbar_items);
+                top_resources_button.setDisable(false);
+
             });
         });
-
-        return top_resources;
     }
 
     private void addMenuNode(Menu parent, MenuTreeNode node) {
@@ -387,6 +399,10 @@ public class PhoebusApplication extends Application {
 
     private ToolBar createToolbar() {
         final ToolBar toolBar = new ToolBar();
+
+        top_resources_button = new MenuButton(Messages.TopResources);
+        top_resources_button.setDisable(true);
+        toolBar.getItems().add(top_resources_button);
 
         // Contributed Entries
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
