@@ -7,6 +7,17 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.util;
 
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Locale;
+import org.csstudio.javafx.rtplot.internal.util.TemporalRounding;
+import org.junit.Test;
+
 import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.SUPPORTED_UNITS;
 import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.instanceRoundedToNextOrSame;
 import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.nextOrSameMidnight;
@@ -17,23 +28,17 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-
-import org.csstudio.javafx.rtplot.internal.util.TemporalRounding;
-import org.junit.Test;
-
 /** JUnit test of {@link TemporalRounding}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class TemporalRoundingTest
 {
+
+    public TemporalRoundingTest() {
+        Locale.setDefault(Locale.US);
+    }
+
     @Test
     public void testRounding()
     {
