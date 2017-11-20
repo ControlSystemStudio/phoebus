@@ -43,7 +43,7 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class DisplayRuntimeInstance implements AppInstance
 {
-    // TODO This is ~ RCP RuntimeViewPart
+    // Compare to RCP RuntimeViewPart
 
     /** Memento tags */
     private static final String TAG_ZOOM = "ZOOM";
@@ -276,10 +276,6 @@ public class DisplayRuntimeInstance implements AppInstance
             dock_item.setInput(info.toURI());
         }
         dock_item.setLabel(info.getName());
-
-        // TODO There's much more to tracking the current model,
-        // see RuntimeViewPart#trackCurrentModel()
-        // TODO Update 'input' for correct tool tip and, well, input for memento
 
         navigation.setCurrentDisplay(info);
         active_model = model;
