@@ -35,6 +35,7 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.help.OpenAbout;
 import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
@@ -56,6 +57,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -281,7 +283,7 @@ public class PhoebusApplication extends Application {
         });
         file.getItems().add(open);
 
-        top_resources_menu = new Menu(Messages.TopResources);
+        top_resources_menu = new Menu(Messages.TopResources, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_menu.setDisable(true);
         file.getItems().add(top_resources_menu);
 
@@ -400,7 +402,8 @@ public class PhoebusApplication extends Application {
     private ToolBar createToolbar() {
         final ToolBar toolBar = new ToolBar();
 
-        top_resources_button = new MenuButton(Messages.TopResources);
+        top_resources_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
         top_resources_button.setDisable(true);
         toolBar.getItems().add(top_resources_button);
 
