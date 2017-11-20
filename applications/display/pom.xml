@@ -8,6 +8,7 @@
     <module>representation</module>
     <module>representation-javafx</module>
     <module>runtime</module>
+    <module>editor</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
