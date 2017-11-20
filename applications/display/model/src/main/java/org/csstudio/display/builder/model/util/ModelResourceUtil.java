@@ -378,11 +378,25 @@ public class ModelResourceUtil
             return openURL(resource_name);
 
         if (resource_name.startsWith("examples:"))
-            return ModelPlugin.class.getResource("/examples/" + resource_name.substring(9)).openStream();
+        {
+            String example = resource_name.substring(9);
+            if (example.startsWith("/"))
+                example = "/examples" + example;
+            else
+                example = "/examples/" + example;
+            try
+            {
+                return ModelPlugin.class.getResource(example).openStream();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Cannot open example: '" + example + "'", ex);
+            }
+        }
 
         return new FileInputStream(resource_name);
     }
-    
+
     /** Open URL for "http", "https", "ftp", ..
      *  @param resource_name URL specification
      *  @return {@link InputStream}
