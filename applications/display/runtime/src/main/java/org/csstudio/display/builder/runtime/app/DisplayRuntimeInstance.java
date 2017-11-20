@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -43,6 +44,10 @@ import javafx.scene.layout.BorderPane;
 public class DisplayRuntimeInstance implements AppInstance
 {
     // TODO This is ~ RCP RuntimeViewPart
+
+    /** Memento tags */
+    private static final String TAG_ZOOM = "ZOOM";
+
     private final AppDescriptor app;
     private final BorderPane layout = new BorderPane();
     private final DockItemWithInput dock_item;
@@ -59,6 +64,9 @@ public class DisplayRuntimeInstance implements AppInstance
     private volatile Optional<DisplayInfo> display_info = Optional.empty();
 
     private DisplayModel active_model;
+
+    /** Toolbar button for zoom */
+    private ZoomAction zoom_action;
 
     DisplayRuntimeInstance(final AppDescriptor app)
     {
@@ -108,11 +116,26 @@ public class DisplayRuntimeInstance implements AppInstance
 
     private Node createToolbar()
     {
+        zoom_action = new ZoomAction(this);
         return new ToolBar(ToolbarHelper.createSpring(),
-                           new ZoomAction(this),
+                           zoom_action,
                            NavigationAction.createBackAction(this, navigation),
                            NavigationAction.createForewardAction(this, navigation)
                            );
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        memento.getString(TAG_ZOOM).ifPresent(level -> zoom_action.setValue(level));
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        final String zoom = representation.getZoomLevelSpec();
+        if (! JFXRepresentation.DEFAULT_ZOOM_LEVEL.equals(zoom))
+            memento.setString(TAG_ZOOM, zoom);
     }
 
     /** Select dock item, make visible */

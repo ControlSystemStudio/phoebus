@@ -247,7 +247,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         }
         zoom = setZoom(zoom);
 
-        return Math.round(zoom*100) + " %";
+        return getZoomLevelSpec();
     }
 
     /** Set zoom level
@@ -300,6 +300,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         final Scale scale = (Scale) transforms.get(0);
         // Expect scaling in X == Y, but just in case return average
         return ( scale.getX() + scale.getY() ) / 2.0;
+    }
+
+    /** @return Zoom level "100%", suitable for calling {@link #requestZoom(String)} */
+    public String getZoomLevelSpec()
+    {
+        return Math.round(getZoom()*100) + " %";
     }
 
     /** Obtain the 'children' of a Toolkit widget parent
