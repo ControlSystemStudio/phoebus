@@ -16,6 +16,7 @@ public class Messages
     public static String ExitFullscreen;
     public static String NavigateBack_TT;
     public static String NavigateForward_TT;
+    public static String Print;
     public static String ReloadDisplay;
     public static String SaveSnapshot;
     public static String SaveSnapshotSelectFilename;

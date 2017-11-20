@@ -27,6 +27,7 @@ import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
@@ -34,6 +35,7 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.help.OpenAbout;
 import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
 import org.phoebus.ui.jobs.SubJobMonitor;
@@ -255,22 +257,32 @@ public class PhoebusApplication extends Application {
 
     private MenuBar createMenu(final Stage stage) {
         final MenuBar menuBar = new MenuBar();
+        // For Mac OS X, use it's menu bar on top of screen
+        if (PlatformInfo.is_mac_os_x)
+            menuBar.setUseSystemMenuBar(true);
 
         // File
+        final Menu file = new Menu("File");
         final MenuItem open = new MenuItem("Open");
         open.setOnAction(event ->
         {
-            final File file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
-            if (file == null)
+            final File the_file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
+            if (the_file == null)
                 return;
-            openResource(ResourceParser.getURI(file));
+            openResource(ResourceParser.getURI(the_file));
         });
+        file.getItems().add(open);
+
+        file.getItems().add(createTopResourcesMenu());
+        
         final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event -> {
+        exit.setOnAction(event ->
+        {
             if (closeMainStage(null))
                 stop();
         });
-        menuBar.getMenus().add(new Menu("File", null, open, exit));
+        file.getItems().add(exit);
+        menuBar.getMenus().add(file);
 
 
         // Application Contributions
@@ -316,6 +328,40 @@ public class PhoebusApplication extends Application {
         menuBar.getMenus().add(new Menu("Help", null, about, content));
 
         return menuBar;
+    }
+
+    private Menu createTopResourcesMenu()
+    {
+    		final Menu top_resources = new Menu("Top Resources");
+    		top_resources.setDisable(true);
+    		
+    		// Create top resources menu items off UI thread
+    		JobManager.schedule("Get top resources", monitor->
+    		{
+    			final TopResources tops = TopResources.parse(Preferences.top_resources);
+    			final int N = tops.size();
+    			if (N <= 0)
+    				return;
+    			final MenuItem[] items = new MenuItem[N];
+    			for (int i=0; i<N; ++i)
+    			{
+    				final int index = i;
+    				// TODO Lookup application icon
+    				items[index] = new MenuItem(tops.getDescription(index));
+    				items[index].setOnAction(event -> openResource(tops.getResource(index)));
+    			}
+    			
+    			// TODO Also create toolbar entry?
+    			
+    			// Back to UI thread to hook into menu
+    			Platform.runLater(() ->
+    			{
+    				top_resources.getItems().setAll(items);
+    				top_resources.setDisable(false);
+    			});
+    		});
+        
+        return top_resources;
     }
 
     private void addMenuNode(Menu parent, MenuTreeNode node) {

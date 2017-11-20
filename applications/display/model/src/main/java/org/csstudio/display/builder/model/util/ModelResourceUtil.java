@@ -55,7 +55,8 @@ public class ModelResourceUtil
     private static boolean isURL(final String path)
     {
         return path.startsWith("http://")  ||
-               path.startsWith("https://");
+               path.startsWith("https://") ||
+               path.startsWith("ftp://");
     }
 
     private static boolean isAbsolute(final String path)
@@ -313,6 +314,19 @@ public class ModelResourceUtil
      */
     private static boolean canOpenUrl(final String resource_name)
     {
+        if (resource_name.startsWith("examples:"))
+        {
+            try
+            {
+                ModelPlugin.class.getResource("/examples/" + resource_name.substring(9)).openStream().close();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         if (! isURL(resource_name))
             return false;
         // This implementation is expensive:
@@ -368,7 +382,7 @@ public class ModelResourceUtil
 
         return new FileInputStream(resource_name);
     }
-
+    
     /** Open URL for "http", "https", "ftp", ..
      *  @param resource_name URL specification
      *  @return {@link InputStream}

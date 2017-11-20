@@ -2,20 +2,6 @@
 <classpath>
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-framework"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-logging"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-util"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-vtype"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-pv"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-types"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-ui"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-greetings"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-logbook-inmemory"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-probe"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtree"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/logConfiguration"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/email"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/applications-pvtable"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
 			<attribute name="module" value="true"/>
@@ -46,6 +32,24 @@
 	<classpathentry kind="lib" path="/dependencies/target/lib/service-3.0.0.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/stringtemplate-3.2.1.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/vtype-3.0.0.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-runtime"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-logging"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-util"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-vtype"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-pv"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-types"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-ui"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-greetings"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-logbook-inmemory"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-probe"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtree"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/logConfiguration"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/email"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtable"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-model"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-representation"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-rtplot"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-representation-javafx"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-runtime"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
