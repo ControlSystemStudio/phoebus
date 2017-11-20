@@ -15,7 +15,7 @@ import org.csstudio.display.builder.representation.javafx.WidgetInfoDialog;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
-import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -29,7 +29,7 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class WidgetInfoAction extends MenuItem
 {
-    private static final Image icon = ContextMenuHelper.loadIcon(WidgetInfoAction.class, "/icons/information.png");
+    private static final Image icon = ImageCache.getImage(WidgetInfoAction.class, "/icons/information.png");
 
     public WidgetInfoAction(final Widget widget)
     {

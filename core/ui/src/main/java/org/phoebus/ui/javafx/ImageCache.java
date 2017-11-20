@@ -23,6 +23,13 @@ import javafx.scene.image.ImageView;
  *  loaded by class A would later also be returned
  *  when queried by class B, since only the name is used.
  *
+ *  <p>Supports alternate resolution icons:
+ *  Given "icon-name.png", it will
+ *  actually load "icon-name@2x.png" or "icon-name@3x.png",
+ *  if available,
+ *  on high resolution displays.
+ *
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -46,7 +53,7 @@ public class ImageCache
      *  @param path Path to the image, based on clazz
      *  @return Image, may be cached copy
      */
-    private static Image getImage(final Class<?> clazz, final String path)
+    public static Image getImage(final Class<?> clazz, final String path)
     {
         return cache.computeIfAbsent(path, p -> loadImage(clazz, path));
     }

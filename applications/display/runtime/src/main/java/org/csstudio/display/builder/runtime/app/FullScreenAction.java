@@ -12,7 +12,7 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.runtime.Messages;
-import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
@@ -29,8 +29,8 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class FullScreenAction extends MenuItem
 {
-    private static final Image enter = ContextMenuHelper.loadIcon(FullScreenAction.class, "/icons/fullscreen.png"),
-                               exit = ContextMenuHelper.loadIcon(FullScreenAction.class, "/icons/exitfullscreen.png");
+    private static final Image enter = ImageCache.getImage(FullScreenAction.class, "/icons/fullscreen.png"),
+                               exit = ImageCache.getImage(FullScreenAction.class, "/icons/exitfullscreen.png");
 
     public FullScreenAction(final Scene scene)
     {

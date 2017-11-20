@@ -11,8 +11,8 @@ import java.io.File;
 
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.runtime.Messages;
-import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.jobs.JobManager;
 
@@ -29,7 +29,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 @SuppressWarnings("nls")
 public class SaveSnapshotAction extends MenuItem
 {
-    private static final Image icon = ContextMenuHelper.loadIcon(SaveSnapshotAction.class, "/icons/save_edit.png");
+    private static final Image icon = ImageCache.getImage(SaveSnapshotAction.class, "/icons/save_edit.png");
     private static final ExtensionFilter image_file_extension = new ExtensionFilter("Image (*.png)", "*.png");
 
     public SaveSnapshotAction(final Parent model_parent)

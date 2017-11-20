@@ -8,7 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import org.csstudio.display.builder.runtime.Messages;
-import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
@@ -20,7 +20,7 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class ReloadDisplayAction extends MenuItem
 {
-    private static final Image icon = ContextMenuHelper.loadIcon(WidgetInfoAction.class, "/icons/refresh.gif");
+    private static final Image icon = ImageCache.getImage(WidgetInfoAction.class, "/icons/refresh.gif");
 
     ReloadDisplayAction(DisplayRuntimeInstance instance)
     {

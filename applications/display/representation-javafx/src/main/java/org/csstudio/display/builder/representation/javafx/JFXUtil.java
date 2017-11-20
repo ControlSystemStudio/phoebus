@@ -13,9 +13,9 @@ import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Pos;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -187,15 +187,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
     public static ImageView getIcon(final String name)
     {
         final String image_path = "/icons/" + name;
-        try
-        {
-            return new ImageView(new Image(JFXUtil.class.getResource(image_path).toExternalForm()));
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot load " + image_path, ex);
-        }
-        return null;
+        return ImageCache.getImageView(JFXUtil.class, image_path);
     }
 
     /** Compute JFX alignment 'Pos' from widget properties
