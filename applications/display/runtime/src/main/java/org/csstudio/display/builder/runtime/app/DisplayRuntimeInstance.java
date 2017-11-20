@@ -127,7 +127,12 @@ public class DisplayRuntimeInstance implements AppInstance
     @Override
     public void restore(final Memento memento)
     {
-        memento.getString(TAG_ZOOM).ifPresent(level -> zoom_action.setValue(level));
+        memento.getString(TAG_ZOOM).ifPresent(level ->
+        {
+            // Simulate user input: Set value, invoke handler
+            zoom_action.setValue(level);
+            zoom_action.getOnAction().handle(null);
+        });
     }
 
     @Override
