@@ -11,7 +11,9 @@ import static org.csstudio.display.builder.editor.Plugin.logger;
 
 import java.util.logging.Level;
 
+import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.model.properties.Points;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -141,10 +143,10 @@ public class PointsEditor
             return;
         try
         {
-            Image image = new Image(ResourceUtil.openPlatformResource("platform:/plugin/org.csstudio.display.builder.editor/icons/add_cursor.png"));
+            Image image = ImageCache.getImage(DisplayEditor.class, "/icons/add_cursor.png");
             cursor_add = new ImageCursor(image, image.getWidth() / 2, image.getHeight() /2);
 
-            image = new Image(ResourceUtil.openPlatformResource("platform:/plugin/org.csstudio.display.builder.editor/icons/remove_cursor.png"));
+            image = ImageCache.getImage(DisplayEditor.class, "/icons/remove_cursor.png");
             cursor_remove = new ImageCursor(image, image.getWidth() / 2, image.getHeight() /2);
         }
         catch (Exception ex)

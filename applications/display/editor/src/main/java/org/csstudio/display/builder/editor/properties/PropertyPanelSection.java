@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,11 +17,11 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
+import org.csstudio.display.builder.editor.util.WidgetIcons;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
@@ -41,9 +41,9 @@ import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetClassProperty;
 import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
-import org.csstudio.display.builder.util.undo.UndoableActionManager;
-import org.csstudio.javafx.DialogHelper;
-import org.csstudio.javafx.MultiLineInputDialog;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.HPos;
 import javafx.scene.Node;
@@ -55,7 +55,6 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -191,9 +190,7 @@ public class PropertyPanelSection extends GridPane
                 final String type = widget.getType();
                 try
                 {
-                    final Image image = new Image(WidgetFactory.getInstance().getWidgetDescriptor(type).getIconStream());
-                    final ImageView icon = new ImageView(image);
-
+                    final ImageView icon = new ImageView(WidgetIcons.getIcon(type));
                     field = new Label(String.valueOf(property.getValue()), icon);
                 }
                 catch (Exception ex)

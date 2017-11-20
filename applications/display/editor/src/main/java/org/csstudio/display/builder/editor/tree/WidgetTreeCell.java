@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.tree;
 
-import static org.csstudio.display.builder.editor.Plugin.logger;
-
-import java.util.logging.Level;
-
+import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.util.WidgetIcons;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.util.ResourceUtil;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.TreeCell;
 import javafx.scene.image.Image;
@@ -25,20 +22,7 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 class WidgetTreeCell extends TreeCell<WidgetOrTab>
 {
-    private Image tab_icon;
-
-    WidgetTreeCell()
-    {
-        try
-        {
-            tab_icon = new Image(ResourceUtil.openPlatformResource("platform:/plugin/org.csstudio.display.builder.editor/icons/tab_item.png"));
-        }
-        catch (Exception ex)
-        {
-            tab_icon = null;
-            logger.log(Level.WARNING, "Cannot load tab icon", ex);
-        }
-    }
+    private Image tab_icon = ImageCache.getImage(DisplayEditor.class, "/icons/tab_item.png");
 
     @Override
     public void updateItem(final WidgetOrTab item, final boolean empty)

@@ -13,7 +13,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
-import org.csstudio.display.builder.util.undo.UndoableActionManager;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Application;
 import javafx.stage.Stage;

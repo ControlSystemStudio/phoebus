@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.properties;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,9 +19,8 @@ import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.ModalityHack;
-import org.csstudio.display.builder.util.undo.UndoableActionManager;
-import org.csstudio.javafx.DialogHelper;
-import org.eclipse.osgi.util.NLS;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -37,7 +37,7 @@ extends WidgetPropertyBinding<Button, RulesWidgetProperty>
     /** Update property panel field as model changes */
     private final WidgetPropertyListener<List<RuleInfo>> model_listener = (p, o, n) ->
     {
-        jfx_node.setText(NLS.bind(Messages.RuleCountFMT, widget_property.getValue().size()));
+        jfx_node.setText(MessageFormat.format(Messages.RuleCountFMT, widget_property.getValue().size()));
     };
 
     /** Update model from user input */

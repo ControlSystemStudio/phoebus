@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.properties;
 
-import static org.csstudio.display.builder.editor.Plugin.logger;
-
-import java.util.logging.Level;
-
+import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.util.ResourceUtil;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -46,15 +43,7 @@ public class ShowWidgetClassBinding extends WidgetPropertyBinding<Node, WidgetPr
 
     private static Image getClassIcon()
     {
-        try
-        {
-            return new Image(ResourceUtil.openPlatformResource("platform:/plugin/org.csstudio.display.builder.editor/icons/class_property.png"));
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot load icon", ex);
-        }
-        return null;
+        return ImageCache.getImage(DisplayEditor.class, "/icons/class_property.png");
     }
 
     @Override

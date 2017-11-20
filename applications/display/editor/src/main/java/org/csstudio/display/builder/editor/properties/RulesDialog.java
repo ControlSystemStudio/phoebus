@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,10 +28,10 @@ import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
-import org.csstudio.display.builder.util.undo.UndoableActionManager;
-import org.csstudio.javafx.DialogHelper;
-import org.csstudio.javafx.MultiLineInputDialog;
-import org.csstudio.javafx.TableHelper;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.javafx.TableHelper;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
