@@ -24,6 +24,10 @@ import org.phoebus.ui.jobs.JobMonitor;
  */
 public class DisplayEditorInstance implements AppInstance
 {
+    // TODO 'Save'
+    // TODO 'Save As'
+    // TODO Remove 'Debug' from toolbar
+    // TODO 'Run'
     private final AppDescriptor app;
     private final DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
@@ -40,6 +44,11 @@ public class DisplayEditorInstance implements AppInstance
 
         dock_item = new DockItemWithInput(this, editor_gui.getParentNode(), null, this::onSave);
         dock_pane.addTab(dock_item );
+
+        // Mark 'dirty' whenever there's a change, i.e. something to un-do
+        editor_gui.getDisplayEditor()
+                  .getUndoableActionManager()
+                  .addListener((to_undo, to_redo) -> dock_item.setDirty(to_undo != null));
     }
 
     @Override

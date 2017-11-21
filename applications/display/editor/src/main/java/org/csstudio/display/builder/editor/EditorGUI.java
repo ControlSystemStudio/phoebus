@@ -100,6 +100,12 @@ public class EditorGUI
         return layout;
     }
 
+    /** @return The {@link DisplayEditor} */
+    public DisplayEditor getDisplayEditor()
+    {
+        return editor;
+    }
+
     private Parent createElements()
     {
         editor = new DisplayEditor(toolkit, 50);
