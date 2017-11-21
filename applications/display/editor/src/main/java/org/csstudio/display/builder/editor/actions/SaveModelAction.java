@@ -10,7 +10,7 @@ package org.csstudio.display.builder.editor.actions;
 import java.io.File;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
-import org.csstudio.display.builder.editor.EditorDemoGUI;
+import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 
@@ -24,10 +24,10 @@ import javafx.stage.Window;
 public class SaveModelAction extends ActionDescription
 {
     private final Window window = null;
-    private final EditorDemoGUI editor;
+    private final EditorGUI editor;
 
     /** @param save_handler Will be invoked with file name */
-    public SaveModelAction(final EditorDemoGUI editor)
+    public SaveModelAction(final EditorGUI editor)
     {
         super("icons/save.png", Messages.SaveDisplay_TT);
         this.editor = editor;

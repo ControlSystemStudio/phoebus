@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,7 +29,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -40,27 +40,24 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 
-/** All the editor components for standalone test
+/** GUI with all editor components
  *
  *  <pre>
  *  Toolbar
  *  ------------------------------------------------
  *  WidgetTree | Editor (w/ palette) | PropertyPanel
- *  ------------------------------------------------
- *  Status
  *  </pre>
  *
  *  @author Kay Kasemir
  *  @author Claudio Rosati
  */
 @SuppressWarnings("nls")
-public class EditorDemoGUI
+public class EditorGUI
 {
-    private volatile File file = null;
-
     private final JFXRepresentation toolkit;
+
+    private final Parent layout;
 
     private DisplayEditor editor;
 
@@ -89,21 +86,27 @@ public class EditorDemoGUI
         event.consume();
     };
 
-    public EditorDemoGUI(final Stage stage)
+    private volatile File file = null;
+
+    public EditorGUI()
     {
         toolkit = new JFXRepresentation(true);
-        createElements(stage);
+        layout = createElements();
     }
 
-    private void createElements(final Stage stage)
+    /** @return Root node of the editor GUI */
+    public Parent getParentNode()
+    {
+        return layout;
+    }
+
+    private Parent createElements()
     {
         editor = new DisplayEditor(toolkit, 50);
 
         tree = new WidgetTree(editor);
 
         property_panel = new PropertyPanel(editor);
-
-        final Label status = new Label("Status");
 
         final SplitPane center = new SplitPane();
         final Node widgetsTree = tree.create();
@@ -130,22 +133,11 @@ public class EditorDemoGUI
 
         final BorderPane layout = new BorderPane();
         layout.setCenter(center);
-        layout.setBottom(status);
         BorderPane.setAlignment(center, Pos.TOP_LEFT);
 
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 
-        stage.setTitle("Editor");
-        stage.setWidth(1200);
-        stage.setHeight(600);
-        final Scene scene = new Scene(layout, 1200, 600);
-        stage.setScene(scene);
-        EditorUtil.setSceneStyle(scene);
-
-        // If ScenicView.jar is added to classpath, open it here
-        //ScenicView.show(scene);
-
-        stage.show();
+        return layout;
     }
 
     private void extendToolbar(final ToolBar toolbar)

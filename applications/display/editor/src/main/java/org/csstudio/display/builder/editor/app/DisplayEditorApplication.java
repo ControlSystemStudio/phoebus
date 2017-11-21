@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.display.builder.runtime.app;
+package org.csstudio.display.builder.editor.app;
 
 import java.net.URI;
 import java.net.URL;
@@ -20,10 +20,10 @@ import org.phoebus.ui.docking.DockStage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DisplayRuntimeApplication implements AppResourceDescriptor
+public class DisplayEditorApplication implements AppResourceDescriptor
 {
-    public static final String NAME = "display_runtime";
-    public static final String DISPLAY_NAME = "Display Runtime";
+    public static final String NAME = "display_editor";
+    public static final String DISPLAY_NAME = "Display Editor";
 
     @Override
     public String getName()
@@ -40,7 +40,7 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     @Override
     public URL getIconURL()
     {
-        return DisplayModel.class.getResource("/icons/runtime.png");
+        return DisplayModel.class.getResource("/icons/display.png");
     }
 
     @Override
@@ -50,26 +50,17 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     }
 
     @Override
-    public DisplayRuntimeInstance create()
+    public DisplayEditorInstance create()
     {
-        return new DisplayRuntimeInstance(this);
+        return new DisplayEditorInstance(this);
     }
 
     @Override
-    public DisplayRuntimeInstance create(final URI resource)
+    public DisplayEditorInstance create(final URI resource)
     {
-        // Create display info
-        final DisplayInfo info = DisplayInfo.forURI(resource);
-
-        // Convert back into URI
-        // Content should be very similar, but normalized such that for example macros
-        // are alphabetically sorted to uniquely identify an already running instance
-        // via its input
-        final URI input = info.toURI();
-
-        // Check for existing instance with that input, i.e. path & macros
-        final DisplayRuntimeInstance instance;
-        final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, input);
+        // Check for existing instance with that input
+        final DisplayEditorInstance instance;
+        final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, resource);
         if (existing != null)
         {   // Found one, raise it
             instance = existing.getApplication();
@@ -78,9 +69,8 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
         else
         {   // Nothing found, create new one
             instance = create();
-            instance.loadDisplayFile(info);
+            // TODO instance.loadDisplay(resource);
         }
-
         return instance;
     }
 }

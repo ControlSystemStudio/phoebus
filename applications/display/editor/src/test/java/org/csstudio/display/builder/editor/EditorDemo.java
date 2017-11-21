@@ -14,6 +14,7 @@ import java.util.logging.LogManager;
 import org.csstudio.display.builder.model.ModelPlugin;
 
 import javafx.application.Application;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -21,7 +22,7 @@ import javafx.stage.WindowEvent;
 public class EditorDemo extends Application
 {
     private static String display_file = "../model/src/main/resources/examples/01_main.bob";
-    private EditorDemoGUI editor;
+    private EditorGUI editor;
 
     /** JavaFX main
      *  @throws Exception
@@ -42,7 +43,25 @@ public class EditorDemo extends Application
     {
         // Call ModelPlugin to trigger its static loading of config file..
         ModelPlugin.logger.fine("Load configuration files");
-        editor = new EditorDemoGUI(stage);
+
+
+        editor = new EditorGUI();
+
+
+        stage.setTitle("Editor");
+        stage.setWidth(1200);
+        stage.setHeight(600);
+        final Scene scene = new Scene(editor.getParentNode(), 1200, 600);
+        stage.setScene(scene);
+        EditorUtil.setSceneStyle(scene);
+
+        // If ScenicView.jar is added to classpath, open it here
+        //ScenicView.show(scene);
+
+        stage.show();
+
+
+
         // .. before the model is loaded which may then use predefined colors etc.
         editor.loadModel(new File(display_file));
         stage.setOnCloseRequest((WindowEvent event) -> editor.dispose());
