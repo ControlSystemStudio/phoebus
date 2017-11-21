@@ -7,10 +7,11 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.undo;
 
+import java.text.MessageFormat;
+
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.phoebus.ui.undo.UndoableAction;
-import org.python.icu.text.MessageFormat;
 
 /** Action to update widget property
  *  @author Kay Kasemir
