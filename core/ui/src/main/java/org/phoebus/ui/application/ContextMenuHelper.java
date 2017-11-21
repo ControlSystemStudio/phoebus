@@ -9,7 +9,6 @@ package org.phoebus.ui.application;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
-import java.net.URL;
 import java.util.logging.Level;
 
 import org.phoebus.framework.selection.SelectionService;
@@ -30,29 +29,6 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class ContextMenuHelper
 {
-    /** Load icon from class resource
-     *
-     *  <p>Supports alternate resolution icons:
-     *  Given "icon-name.png", it will
-     *  actually load "icon-name@2x.png" or "icon-name@3x.png",
-     *  if available,
-     *  on high resolution displays.
-     *
-     *  @param clazz Class used to load the resource
-     *  @param icon_path Path to icon resource
-     *  @return Icon {@link Image} or <code>null</code> if not found
-     */
-    public static Image loadIcon(final Class<?> clazz, final String icon_path)
-    {
-        final URL resource = clazz.getResource(icon_path);
-        if (resource == null)
-        {
-            logger.log(Level.WARNING, "Cannot open '" + icon_path + "' for " + clazz);
-            return null;
-        }
-        return new Image(resource.toExternalForm());
-    }
-
     /** Add entries suitable for the current selection
      *
      *  <p>Invoke inside 'setOnContextMenuRequested' handler,
@@ -62,7 +38,7 @@ public class ContextMenuHelper
      *  @param parent_node Parent node, usually owner of the context menu
      *  @param menu Menu where selection-based entries will be added
      */
-    public static void addSupportedEntries(Node parent_node, ContextMenu menu)
+    public static void addSupportedEntries(final Node parent_node, final ContextMenu menu)
     {
         final Window window = parent_node.getScene().getWindow();
         if (! (window instanceof Stage))

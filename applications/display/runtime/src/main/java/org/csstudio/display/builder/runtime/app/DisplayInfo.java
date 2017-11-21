@@ -98,7 +98,6 @@ public class DisplayInfo
         return text;
     }
 
-    // TODO Remove?
     private static String basename(final String path)
     {
         int sep = path.lastIndexOf('/');
@@ -191,7 +190,8 @@ public class DisplayInfo
         if (! (path.startsWith("file:")  ||
                path.startsWith("http:")  ||
                path.startsWith("https:") ||
-               path.startsWith("ftp:")))
+               path.startsWith("ftp:")   ||
+               path.startsWith("examples:")))
             buf.append("file:");
 
         // In path, keep ':' and '/', but replace spaces

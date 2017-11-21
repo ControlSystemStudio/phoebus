@@ -8,6 +8,7 @@
 package org.phoebus.applications.pvtable;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,6 +52,12 @@ public class PVTableApplication implements AppResourceDescriptor
     public String getDisplayName()
     {
         return DISPLAY_NAME;
+    }
+
+    @Override
+    public URL getIconURL()
+    {
+        return getClass().getResource("/icons/pvtable.png");
     }
 
     @Override

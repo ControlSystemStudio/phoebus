@@ -31,6 +31,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Preferences;
 
 /** Helper for handling resources: File, web link.
@@ -54,7 +55,8 @@ public class ModelResourceUtil
     private static boolean isURL(final String path)
     {
         return path.startsWith("http://")  ||
-               path.startsWith("https://");
+               path.startsWith("https://") ||
+               path.startsWith("ftp://");
     }
 
     private static boolean isAbsolute(final String path)
@@ -312,6 +314,20 @@ public class ModelResourceUtil
      */
     private static boolean canOpenUrl(final String resource_name)
     {
+        final URL example = getExampleURL(resource_name);
+        if (example != null)
+        {
+            try
+            {
+                example.openStream().close();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         if (! isURL(resource_name))
             return false;
         // This implementation is expensive:
@@ -343,9 +359,31 @@ public class ModelResourceUtil
         }
     }
 
+    /** Check for "examples:.."
+     *
+     *  @param resource_name Path to file that may be based on "examples:.."
+     *  @return URL for the example, or <code>null</code>
+     */
+    private static URL getExampleURL(final String resource_name)
+    {
+        if (resource_name.startsWith("examples:"))
+        {
+            String example = resource_name.substring(9);
+            if (example.startsWith("/"))
+                example = "/examples" + example;
+            else
+                example = "/examples/" + example;
+            return ModelPlugin.class.getResource(example);
+        }
+        return null;
+    }
+
     /** Open a file, web location, ..
      *
-     *  @param resource_name Path to file, "platform:", "http:/.."
+     *  <p>In addition, understands "examples:"
+     *  to load a resource from the built-in examples.
+     *
+     *  @param resource_name Path to file, "examples:", "http:/.."
      *  @return {@link InputStream}
      *  @throws Exception on error
      */
@@ -358,6 +396,19 @@ public class ModelResourceUtil
 
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
+
+        final URL example = getExampleURL(resource_name);
+        if (example != null)
+        {
+            try
+            {
+                return example.openStream();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Cannot open example: '" + example + "'", ex);
+            }
+        }
 
         return new FileInputStream(resource_name);
     }

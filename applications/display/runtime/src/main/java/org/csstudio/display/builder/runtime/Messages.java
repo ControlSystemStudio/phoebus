@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,8 +12,14 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order and aligned with messages.properties
+    public static String EnterFullscreen;
+    public static String ExitFullscreen;
     public static String NavigateBack_TT;
     public static String NavigateForward_TT;
+    public static String Print;
+    public static String ReloadDisplay;
+    public static String SaveSnapshot;
+    public static String SaveSnapshotSelectFilename;
     public static String Toolbar_Hide;
     public static String Toolbar_Show;
 

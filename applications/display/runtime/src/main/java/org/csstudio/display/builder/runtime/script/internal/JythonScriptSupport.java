@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.runtime.Preferences;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
@@ -23,6 +24,7 @@ import org.python.core.Py;
 import org.python.core.PyCode;
 import org.python.core.PyList;
 import org.python.core.PySystemState;
+import org.python.core.PyVersionInfo;
 import org.python.util.PythonInterpreter;
 
 /** Jython script support
@@ -49,20 +51,15 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             final Properties pre_props = System.getProperties();
             final Properties props = new Properties();
 
-            // TODO Locate jython jar via org.phoebus.framework.workbench.Locations
-
+            // Jython 2.7(b3) needed these to set sys.prefix and sys.executable.
             // Locate the jython plugin for 'home' to allow use of /Lib in there
-            final String home = null; // getPluginPath("org.python.jython", "/");
+            // final String home = null; // getPluginPath("org.python.jython", "/");
 
-            if (home == null)
-                throw new Exception("Cannot locate jython bundle. No OSGi?");
-
-            // Jython 2.7(b3) needs these to set sys.prefix and sys.executable.
             // If left undefined, initialization of Lib/site.py fails with
             // posixpath.py", line 394, in normpath AttributeError:
             // 'NoneType' object has no attribute 'startswith'
-            props.setProperty("python.home", home);
-            props.setProperty("python.executable", "None");
+            // props.setProperty("python.home", home);
+            // props.setProperty("python.executable", "None");
 
             // Disable cachedir to avoid creation of cachedir folder.
             // See http://www.jython.org/jythonbook/en/1.0/ModulesPackages.html#java-package-scanning
@@ -84,13 +81,39 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
 
             // Options: error, warning, message (default), comment, debug
             // props.setProperty("python.verbose", "debug");
-            // Options.verbose = Py.DEBUG;
+            // org.python.core.Options.verbose = Py.DEBUG;
 
             PythonInterpreter.initialize(pre_props, props, new String[0]);
+            final PySystemState state = Py.getSystemState();
+            final PyList paths = state.path;
 
-            final PyList paths = Py.getSystemState().path;
-            // TODO Add more paths?
-            // paths.add(getPluginPath("org.csstudio.display.builder.runtime", "scripts"));
+            // Add the examples/connect2j to path.
+            // During development, examples are in
+            // "file:/some/path/phoebus/applications/display/model/target/classes/examples"
+            final String examples = ModelPlugin.class.getResource("/examples").toString();
+            if (examples.startsWith("file:"))
+                paths.add(examples.substring(5) + "/connect2j");
+            // In the compiled version, examples are in
+            // "jar:file:/some/path/display-model-0.0.1.jar!/examples"
+            else if (examples.startsWith("jar:file:"))
+                paths.add(examples.substring(9).replace("jar!/", "jar/") + "/connect2j");
+            else
+                logger.log(Level.WARNING, "Cannot locate examples/connect2j from " + examples);
+
+            final PyVersionInfo version = PySystemState.version_info;
+            logger.log(Level.INFO, "Initial Paths for Jython " + version.major + "." + version.minor + "." + version.micro + ": " + paths);
+
+            // Scripts would sometimes fail in "from ... import ..." with this error:
+            //
+            // File "..jython-standalone-2.7.1.jar/Lib/warnings.py", line 226, in warn
+            // IndexError: index out of range: 0
+            //
+            // That version of Lib/warnings.py:226 tries to read sys.argv[0],
+            // so setting sys.argv[0] avoids the crash.
+            // Since state is shared by all scripts in a display,
+            // set it to a generic "DisplayBuilderScript"
+            state.argv.clear();
+            state.argv.add("DisplayBuilderScript");
 
             return true;
         }
@@ -100,36 +123,6 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
         }
         return false;
     }
-
-    /** Locate a path inside a bundle.
-     *
-     *  <p>If the bundle is JAR-ed up, the {@link FileLocator} will
-     *  return a location with "file:" and "..jar!/path".
-     *  This method patches the location such that it can be used
-     *  on the Jython path.
-     *
-     *  @param bundle_name Name of bundle
-     *  @param path_in_bundle Path within bundle
-     *  @return Location of that path within bundle, or <code>null</code> if not found or no bundle support
-     *  @throws IOException on error
-     */
-//    private static String getPluginPath(final String bundle_name, final String path_in_bundle) throws IOException
-//    {
-//        final Bundle bundle = Platform.getBundle(bundle_name);
-//        if (bundle == null)
-//            return null;
-//        final URL url = FileLocator.find(bundle, new Path(path_in_bundle), null);
-//        if (url == null)
-//            return null;
-//        String path = FileLocator.resolve(url).getPath();
-//
-//        // Turn politically correct URL into path digestible by jython
-//        if (path.startsWith("file:/"))
-//           path = path.substring(5);
-//        path = path.replace(".jar!", ".jar");
-//
-//        return path;
-//    }
 
     /** Create executor for jython scripts
      *  @param support {@link ScriptSupport}

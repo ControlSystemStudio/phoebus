@@ -9,6 +9,8 @@ package org.csstudio.javafx.rtplot;
 
 import java.util.logging.Logger;
 
+import org.phoebus.ui.javafx.ImageCache;
+
 import javafx.scene.image.Image;
 
 /** Not an actual Plugin Activator, but providing plugin-related helpers
@@ -21,6 +23,6 @@ public class Activator
 
     public static Image getIcon(final String base_name) throws Exception
     {
-        return new Image(Activator.class.getResource("/icons/" + base_name + ".png").toExternalForm());
+        return ImageCache.getImage(Activator.class, "/icons/" + base_name + ".png");
     }
 }

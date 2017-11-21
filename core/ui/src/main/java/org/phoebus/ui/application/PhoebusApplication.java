@@ -27,6 +27,7 @@ import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
@@ -34,6 +35,8 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.help.OpenAbout;
 import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.jobs.JobManager;
 import org.phoebus.ui.jobs.JobMonitor;
 import org.phoebus.ui.jobs.SubJobMonitor;
@@ -51,8 +54,12 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -76,8 +83,14 @@ public class PhoebusApplication extends Application {
     /** Memento key to show/hide tabs */
     private static final String SHOW_TABS = "show_tabs";
 
+    /** Menu item for top resources */
+    private Menu top_resources_menu;
+
     /** Menu item to show/hide tabs */
     private CheckMenuItem show_tabs;
+
+    /** Toolbar button for top resources */
+    private MenuButton top_resources_button;
 
     /** JavaFX entry point
      *  @param initial_stage Initial Stage created by JavaFX
@@ -141,6 +154,7 @@ public class PhoebusApplication extends Application {
         final Stage main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
         final ToolBar toolBar = createToolbar();
+        createTopResourcesMenu();
 
         DockStage.configureStage(main_stage);
         // Patch ID of main window
@@ -255,35 +269,47 @@ public class PhoebusApplication extends Application {
 
     private MenuBar createMenu(final Stage stage) {
         final MenuBar menuBar = new MenuBar();
+        // For Mac OS X, use it's menu bar on top of screen
+        if (PlatformInfo.is_mac_os_x)
+            menuBar.setUseSystemMenuBar(true);
 
         // File
-        final MenuItem open = new MenuItem("Open");
+        final Menu file = new Menu(Messages.File);
+        final MenuItem open = new MenuItem(Messages.Open);
         open.setOnAction(event ->
         {
-            final File file = new OpenFileDialog().promptForFile(stage, "Open File", null, null);
-            if (file == null)
+            final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, null, null);
+            if (the_file == null)
                 return;
-            openResource(ResourceParser.getURI(file));
+            openResource(ResourceParser.getURI(the_file));
         });
-        final MenuItem exit = new MenuItem("Exit");
-        exit.setOnAction(event -> {
+        file.getItems().add(open);
+
+        top_resources_menu = new Menu(Messages.TopResources, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        top_resources_menu.setDisable(true);
+        file.getItems().add(top_resources_menu);
+
+        final MenuItem exit = new MenuItem(Messages.Exit);
+        exit.setOnAction(event ->
+        {
             if (closeMainStage(null))
                 stop();
         });
-        menuBar.getMenus().add(new Menu("File", null, open, exit));
+        file.getItems().add(exit);
+        menuBar.getMenus().add(file);
 
 
         // Application Contributions
-        final Menu applicationsMenu = new Menu("Applications");
+        final Menu applicationsMenu = new Menu(Messages.Applications);
         MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
         addMenuNode(applicationsMenu, node);
         menuBar.getMenus().add(applicationsMenu);
 
 
-        show_tabs = new CheckMenuItem("Always Show Tabs");
+        show_tabs = new CheckMenuItem(Messages.AlwaysShowTabs);
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
-        menuBar.getMenus().add(new Menu("Window", null, show_tabs));
+        menuBar.getMenus().add(new Menu(Messages.Window, null, show_tabs));
 
         // Help
         final MenuEntry content_entry = new OpenHelp();
@@ -313,9 +339,58 @@ public class PhoebusApplication extends Application {
                 logger.log(Level.WARNING, "Error invoking menu entry", ex);
             }
         });
-        menuBar.getMenus().add(new Menu("Help", null, about, content));
+        menuBar.getMenus().add(new Menu(Messages.Help, null, about, content));
 
         return menuBar;
+    }
+
+    /** Fill the {@link #top_resources_menu} and {@link #top_resources_button} */
+    private void createTopResourcesMenu()
+    {
+        // Create top resources menu items off UI thread
+        JobManager.schedule("Get top resources", monitor->
+        {
+            final TopResources tops = TopResources.parse(Preferences.top_resources);
+            final int N = tops.size();
+            if (N <= 0)
+                return;
+            final MenuItem[] menu_items = new MenuItem[N];
+            final MenuItem[] toolbar_items = new MenuItem[N];
+            for (int i=0; i<N; ++i)
+            {
+                final String description = tops.getDescription(i);
+                final URI resource = tops.getResource(i);
+
+                menu_items[i] = new MenuItem(description);
+                menu_items[i].setOnAction(event -> openResource(resource));
+
+                toolbar_items[i] = new MenuItem(description);
+                toolbar_items[i].setOnAction(event -> openResource(resource));
+
+                // Lookup application icon
+                final AppResourceDescriptor application = findApplication(resource, false);
+                if (application != null)
+                {
+                    final Image icon = ImageCache.getImage(application.getIconURL());
+                    if (icon != null)
+                    {
+                        menu_items[i].setGraphic(new ImageView(icon));
+                        toolbar_items[i].setGraphic(new ImageView(icon));
+                    }
+                }
+            }
+
+            // Back to UI thread to hook into menu
+            Platform.runLater(() ->
+            {
+                top_resources_menu.getItems().setAll(menu_items);
+                top_resources_menu.setDisable(false);
+
+                top_resources_button.getItems().setAll(toolbar_items);
+                top_resources_button.setDisable(false);
+
+            });
+        });
     }
 
     private void addMenuNode(Menu parent, MenuTreeNode node) {
@@ -341,6 +416,11 @@ public class PhoebusApplication extends Application {
 
     private ToolBar createToolbar() {
         final ToolBar toolBar = new ToolBar();
+
+        top_resources_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
+        top_resources_button.setDisable(true);
+        toolBar.getItems().add(top_resources_button);
 
         // Contributed Entries
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
@@ -384,55 +464,61 @@ public class PhoebusApplication extends Application {
         return toolBar;
     }
 
-    /**
-     * @param resource Resource received as command line argument
+    /** @param resource Resource
+     *  @param prompt Prompt if there are multiple applications, or use first one?
+     *  @return Application for opening resource, or <code>null</code> if none found
      */
-    private void openResource(final URI resource)
+    private AppResourceDescriptor findApplication(final URI resource, final boolean prompt)
     {
-        AppResourceDescriptor application = null;
-
         // Does resource request a specific application?
-        String app_name = ResourceParser.getAppName(resource);
+        final String app_name = ResourceParser.getAppName(resource);
         if (app_name != null)
         {
             final AppDescriptor app = ApplicationService.findApplication(app_name);
             if (app == null)
             {
                 logger.log(Level.WARNING, "Unknown application '" + app_name + "'");
-                return;
+                return null;
             }
             if (app instanceof AppResourceDescriptor)
-                application = (AppResourceDescriptor) app;
+                return (AppResourceDescriptor) app;
             else
             {
                 logger.log(Level.WARNING, "'" + app_name + "' application does not handle resources");
-                return;
+                return null;
             }
         }
 
+        // Check all applications
+        final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+        if (applications.isEmpty())
+        {
+            logger.log(Level.WARNING, "No application found for opening " + resource);
+            return null;
+        }
+
+        if (applications.size() == 1   ||   (applications.size() > 0  &&  !prompt))
+            return applications.get(0);
+
+        // Prompt user which application to use for this resource
+        final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
+        final ChoiceDialog<String> which = new ChoiceDialog<>(options.get(0), options);
+        which.setTitle("Open");
+        which.setHeaderText("Select application for opening\n" + resource);
+        final Optional<String> result = which.showAndWait();
+        if (! result.isPresent())
+            return null;
+        return applications.get(options.indexOf(result.get()));
+    }
+
+    /**
+     * @param resource Resource received as command line argument
+     */
+    private void openResource(final URI resource)
+    {
+        final AppResourceDescriptor application = findApplication(resource, true);
         if (application == null)
-        {   // Check all applications
-            final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
-            if (applications.isEmpty())
-            {
-                logger.log(Level.WARNING, "No application found for opening " + resource);
-                return;
-            }
-
-            if (applications.size() == 1)
-                application = applications.get(0);
-            else
-            {   // Prompt user which application to use for this resource
-                final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
-                final ChoiceDialog<String> which = new ChoiceDialog<>(options.get(0), options);
-                which.setTitle("Open");
-                which.setHeaderText("Select application for opening\n" + resource);
-                final Optional<String> result = which.showAndWait();
-                if (! result.isPresent())
-                    return;
-                application = applications.get(options.indexOf(result.get()));
-            }
-        }
+            return;
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
         application.create(resource);
     }

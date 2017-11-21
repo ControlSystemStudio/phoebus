@@ -54,7 +54,7 @@ public class Locations
             }
             else
             {   // Move up to the 'phoebus' directory
-                path = path.getParentFile().getParentFile().getParentFile();
+                path = path.getParentFile().getParentFile().getParentFile().getParentFile();
             }
 
             phoenix_install = path.getAbsolutePath();

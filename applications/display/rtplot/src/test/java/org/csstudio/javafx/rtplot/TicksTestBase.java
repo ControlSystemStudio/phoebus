@@ -14,12 +14,14 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import org.csstudio.javafx.rtplot.internal.LinearTicks;
 import org.csstudio.javafx.rtplot.internal.MajorTick;
 import org.csstudio.javafx.rtplot.internal.MinorTick;
 import org.csstudio.javafx.rtplot.internal.Ticks;
 import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /** Helper for testing ticks
@@ -31,8 +33,15 @@ public class TicksTestBase
     final BufferedImage buf = new BufferedImage(400, 50, BufferedImage.TYPE_INT_ARGB);
     final Graphics2D gc = buf.createGraphics();
 
+    @BeforeClass
+    public static void setup()
+    {
+        // Set locate for predictable formatting results
+        Locale.setDefault(Locale.US);
+    }
+
     @After
-    public void setup()
+    public void cleanup()
     {
         gc.dispose();
     }

@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -42,7 +43,11 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class DisplayRuntimeInstance implements AppInstance
 {
-    // TODO This is ~ RCP RuntimeViewPart
+    // Compare to RCP RuntimeViewPart
+
+    /** Memento tags */
+    private static final String TAG_ZOOM = "ZOOM";
+
     private final AppDescriptor app;
     private final BorderPane layout = new BorderPane();
     private final DockItemWithInput dock_item;
@@ -60,6 +65,9 @@ public class DisplayRuntimeInstance implements AppInstance
 
     private DisplayModel active_model;
 
+    /** Toolbar button for zoom */
+    private ZoomAction zoom_action;
+
     DisplayRuntimeInstance(final AppDescriptor app)
     {
         this.app = app;
@@ -71,6 +79,9 @@ public class DisplayRuntimeInstance implements AppInstance
         RuntimeUtil.hookRepresentationListener(representation);
 
         toolbar = createToolbar();
+
+        new ContextMenuSupport(this);
+
         BorderPane.setMargin(toolbar, new Insets(5, 5, 0, 5));
         layout.setTop(toolbar);
         layout.setCenter(representation.createModelRoot());
@@ -80,13 +91,11 @@ public class DisplayRuntimeInstance implements AppInstance
         representation.getModelParent().getProperties().put(MODEL_PARENT_DISPLAY_RUNTIME, this);
         representation.getModelParent().setOnContextMenuRequested(event ->
         {
-            // TODO
-            System.out.println("SHOULD SHOW CONTEXT MENU!");
             final DisplayModel model = active_model;
             if (model != null)
             {
                 event.consume();
-                representation.fireContextMenu(model);
+                representation.fireContextMenu(model, (int)event.getScreenX(), (int)event.getScreenY());
             }
         });
 
@@ -107,17 +116,49 @@ public class DisplayRuntimeInstance implements AppInstance
 
     private Node createToolbar()
     {
+        zoom_action = new ZoomAction(this);
         return new ToolBar(ToolbarHelper.createSpring(),
-                           new ZoomAction(this),
+                           zoom_action,
                            NavigationAction.createBackAction(this, navigation),
                            NavigationAction.createForewardAction(this, navigation)
                            );
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        memento.getString(TAG_ZOOM).ifPresent(level ->
+        {
+            // Simulate user input: Set value, invoke handler
+            zoom_action.setValue(level);
+            zoom_action.getOnAction().handle(null);
+        });
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        final String zoom = representation.getZoomLevelSpec();
+        if (! JFXRepresentation.DEFAULT_ZOOM_LEVEL.equals(zoom))
+            memento.setString(TAG_ZOOM, zoom);
     }
 
     /** Select dock item, make visible */
     public void raise()
     {
         dock_item.select();
+    }
+
+    /** Close the dock item */
+    void close()
+    {
+        dock_item.close();
+    }
+
+    /** @return Current display info or <code>null</code> */
+    DisplayInfo getDisplayInfo()
+    {
+        return display_info.orElse(null);
     }
 
     /** Load display file, represent it, start runtime
@@ -235,10 +276,6 @@ public class DisplayRuntimeInstance implements AppInstance
             dock_item.setInput(info.toURI());
         }
         dock_item.setLabel(info.getName());
-
-        // TODO There's much more to tracking the current model,
-        // see RuntimeViewPart#trackCurrentModel()
-        // TODO Update 'input' for correct tool tip and, well, input for memento
 
         navigation.setCurrentDisplay(info);
         active_model = model;

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.csstudio.display.builder.runtime.Messages;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.MenuItem;
@@ -30,8 +31,8 @@ public abstract class NavigationAction extends SplitMenuButton
 
     static
     {
-        backward = new Image(NavigationAction.class.getResource("/icons/backward_nav.png").toExternalForm());
-        forward = new Image(NavigationAction.class.getResource("/icons/forward_nav.png").toExternalForm());
+        backward = ImageCache.getImage(NavigationAction.class, "/icons/backward_nav.png");
+        forward = ImageCache.getImage(NavigationAction.class, "/icons/forward_nav.png");
     }
 
     /** @param instance {@link DisplayRuntimeInstance}

@@ -210,6 +210,8 @@ public class ResourceParser
      */
     private static String decode(final String text)
     {
+        if (text == null)
+            return null;
         try
         {
             return URLDecoder.decode(text, UTF_8);

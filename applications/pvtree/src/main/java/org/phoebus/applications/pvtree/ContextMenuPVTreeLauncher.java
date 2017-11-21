@@ -12,7 +12,7 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.scene.image.Image;
@@ -26,7 +26,7 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
 {
     private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
 
-    private static final Image icon = ContextMenuHelper.loadIcon(ContextMenuPVTreeLauncher.class, "/icons/pvtree.png");
+    private static final Image icon = ImageCache.getImage(ContextMenuPVTreeLauncher.class, "/icons/pvtree.png");
 
     @Override
     public String getName()

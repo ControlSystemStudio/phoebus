@@ -15,6 +15,7 @@ import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.jobs.JobManager;
 
 import javafx.beans.value.ObservableValue;
@@ -26,8 +27,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -231,7 +230,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
                 {
                     HBox.setHgrow(control, Priority.NEVER);
                     //add graphics/text to buttons
-                    ((ButtonBase)control).setGraphic(new ImageView(new Image(ModelPlugin.class.getResource("/icons/browser/" + iconFiles[i]).toExternalForm())));
+                    ((ButtonBase)control).setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/" + iconFiles[i]));
                 }
                 else
                     HBox.setHgrow(control, Priority.ALWAYS);

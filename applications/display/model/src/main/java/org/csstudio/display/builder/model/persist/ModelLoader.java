@@ -22,6 +22,7 @@ import org.csstudio.display.builder.model.util.ModelResourceUtil;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ModelLoader
 {
     /** Load model, resolved relative to parent, with classes applied (except for *.bcf itself)
@@ -35,8 +36,15 @@ public class ModelLoader
      */
     public static DisplayModel resolveAndLoadModel(final String parent_display, final String display_file) throws Exception
     {
-        final String resolved_name = ModelResourceUtil.resolveResource(parent_display, display_file);
-        return loadModel(resolved_name);
+        try
+        {
+            final String resolved_name = ModelResourceUtil.resolveResource(parent_display, display_file);
+            return loadModel(resolved_name);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Cannot load '" + display_file + "' (parent: '" + parent_display + "'", ex);
+        }
     }
 
     /** Load model, with classes applied (except for *.bcf itself)

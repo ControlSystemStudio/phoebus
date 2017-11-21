@@ -1,5 +1,7 @@
 package org.phoebus.framework.spi;
 
+import java.net.URL;
+
 /**
  * Basic interface for defining phoebus applications via java services
  *
@@ -28,6 +30,15 @@ public interface AppDescriptor {
      */
     public default String getDisplayName() {
         return getName();
+    }
+
+    /**
+     * Icon for the application
+     *
+     * @return Icon URL, or <code>null</code> if no icon desired
+     */
+    public default URL getIconURL() {
+        return null;
     }
 
     /**
