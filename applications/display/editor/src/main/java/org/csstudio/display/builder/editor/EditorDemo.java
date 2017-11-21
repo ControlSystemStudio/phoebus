@@ -11,9 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.logging.LogManager;
 
-import org.csstudio.display.builder.model.persist.WidgetClassesService;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.ModelPlugin;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -42,16 +40,10 @@ public class EditorDemo extends Application
     @Override
     public void start(final Stage stage)
     {
-        final File classes_file = new File("../org.csstudio.display.builder.model/examples/classes.bcf");
-        WidgetClassesService.loadWidgetClasses(new String[] { classes_file.getPath() }, file -> new FileInputStream(file));
-
-        final File color_file = new File("../org.csstudio.display.builder.model/examples/color.def");
-        WidgetColorService.loadColors(new String[] { color_file.getPath() }, file -> new FileInputStream(file));
-
-        final File font_file = new File("../org.csstudio.display.builder.model/examples/font.def");
-        WidgetFontService.loadFonts(new String[] { font_file.getPath() }, file -> new FileInputStream(file));
-
+        // Call ModelPlugin to trigger its static loading of config file..
+        ModelPlugin.logger.fine("Load configuration files");
         editor = new EditorDemoGUI(stage);
+        // .. before the model is loaded which may then use predefined colors etc.
         editor.loadModel(new File(display_file));
         stage.setOnCloseRequest((WindowEvent event) -> editor.dispose());
     }
