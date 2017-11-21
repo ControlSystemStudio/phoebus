@@ -37,7 +37,7 @@ public class LinearMeterWidget extends BaseMeterWidget {
         "linear-meter",
         WidgetCategory.MONITOR,
         "Linear Meter",
-        "/icons/linear-meter.png",
+        "platform:/plugin/org.csstudio.display.builder.model/icons/linear-meter.png",
         "Linear meter that can read a numeric PV"
     ) {
         @Override
@@ -51,21 +51,18 @@ public class LinearMeterWidget extends BaseMeterWidget {
         VERTICAL
     }
 
-    public static final WidgetPropertyDescriptor<Orientation> propOrientation  = new WidgetPropertyDescriptor<Orientation>(WidgetPropertyCategory.WIDGET,   "orientation",  Messages.WidgetProperties_Orientation) {
+    public static final WidgetPropertyDescriptor<Orientation> propOrientation = new WidgetPropertyDescriptor<Orientation>(WidgetPropertyCategory.WIDGET,   "orientation",  Messages.WidgetProperties_Orientation) {
         @Override
         public EnumWidgetProperty<Orientation> createProperty ( Widget widget, Orientation defaultValue ) {
             return new EnumWidgetProperty<>(this, widget, defaultValue);
         }
     };
 
-    public static final WidgetPropertyDescriptor<Boolean>     propHighlightBar = newBooleanPropertyDescriptor             (WidgetPropertyCategory.BEHAVIOR, "highligh_bar", Messages.WidgetProperties_HighlightBar);
-
-    public static final WidgetPropertyDescriptor<WidgetColor> propBarColor     = newColorPropertyDescriptor               (WidgetPropertyCategory.MISC,     "bar_color",    Messages.WidgetProperties_BarColor);
-    public static final WidgetPropertyDescriptor<Boolean>     propFlatBar      = newBooleanPropertyDescriptor             (WidgetPropertyCategory.MISC,     "flat_bar",     Messages.WidgetProperties_FlatBar);
+    public static final WidgetPropertyDescriptor<WidgetColor> propBarColor    = newColorPropertyDescriptor               (WidgetPropertyCategory.MISC,     "bar_color",    Messages.WidgetProperties_BarColor);
+    public static final WidgetPropertyDescriptor<Boolean>     propFlatBar     = newBooleanPropertyDescriptor             (WidgetPropertyCategory.MISC,     "flat_bar",     Messages.WidgetProperties_FlatBar);
 
     private volatile WidgetProperty<WidgetColor> bar_color;
     private volatile WidgetProperty<Boolean>     flat_bar;
-    private volatile WidgetProperty<Boolean>     highligh_bar;
     private volatile WidgetProperty<Orientation> orientation;
 
     public LinearMeterWidget ( ) {
@@ -80,10 +77,6 @@ public class LinearMeterWidget extends BaseMeterWidget {
         return flat_bar;
     }
 
-    public WidgetProperty<Boolean> propHighlightBar ( ) {
-        return highligh_bar;
-    }
-
     public WidgetProperty<Orientation> propOrientation ( ) {
         return orientation;
     }
@@ -93,12 +86,10 @@ public class LinearMeterWidget extends BaseMeterWidget {
 
         super.defineProperties(properties);
 
-        properties.add(orientation    = propOrientation.createProperty(this, Orientation.HORIZONTAL));
+        properties.add(orientation = propOrientation.createProperty(this, Orientation.HORIZONTAL));
 
-        properties.add(highligh_bar   = propHighlightBar.createProperty(this, true));
-
-        properties.add(bar_color      = propBarColor.createProperty(this, new WidgetColor(0, 183, 0)));
-        properties.add(flat_bar       = propFlatBar.createProperty(this, false));
+        properties.add(bar_color   = propBarColor.createProperty(this, new WidgetColor(0, 183, 0)));
+        properties.add(flat_bar    = propFlatBar.createProperty(this, false));
 
     }
 
