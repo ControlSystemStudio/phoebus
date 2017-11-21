@@ -246,11 +246,17 @@ public class WidgetTransfer {
 
     }
 
+    /** @param file File
+     *  @return File extension or ""
+     */
     private static String getExtension(final File file)
     {
         return getExtension(file.getName());
     }
 
+    /** @param name File name
+     *  @return File extension or ""
+     */
     private static String getExtension(final String name)
     {
         final int sep = name.lastIndexOf('.');
@@ -258,6 +264,7 @@ public class WidgetTransfer {
             return name.substring(sep+1);
         return "";
     }
+
 
     /**
      * Return {@code true} if there is a {@link File} in {@code files}
@@ -271,14 +278,13 @@ public class WidgetTransfer {
      * @return {@code true} if a file existing whose extension is
      *         contained in {@link #SUPPORTED_EXTENSIONS}.
      */
-    private static boolean canAcceptFiles ( final List<File> files )
-    {
+    private static boolean canAcceptFiles ( final List<File> files ) {
+
         for (File file : files)
             if (SUPPORTED_EXTENSIONS.contains(getExtension(file).toUpperCase()))
                 return true;
 
         return false;
-
     }
 
     /**
@@ -766,7 +772,7 @@ public class WidgetTransfer {
             dialog.setY(event.getScreenY());
 
             dialog.setTitle(Messages.WT_FromURL_dialog_title);
-            dialog.setHeaderText(MessageFormat.format(Messages.WT_FromURL_dialog_headerFMT, reduceURL(url)));
+            dialog.setHeaderText(MessageFormat.format(Messages.WT_FromURL_dialog_headerFMT, reduceString(url)));
             dialog.setContentText(Messages.WT_FromURL_dialog_content);
 
             final Optional<String> result = dialog.showAndWait();
@@ -825,7 +831,7 @@ public class WidgetTransfer {
         if ( text.length() <= 64 ) {
             return text;
         } else {
-            return StringUtils.join(StringUtils.left(text, 32), "...", StringUtils.right(text, 32));
+            return text.substring(0, 32) + "..." + text.substring(text.length() - 32);
         }
     }
 
@@ -860,91 +866,13 @@ public class WidgetTransfer {
     }
 
     /**
-     * Return a reduced version of the given {@code url}.
-     *
-     * @param url An URL string that, if long, must be reduced
-     *            to a shorter version to be displayed.
-     * @return A reduced version of the given {@code url}.
-     */
-    private static String reduceURL ( String url ) {
-
-        if ( url.length() > 64 ) {
-
-            String shortURL = url;
-            int leftSlash = 2;
-            int rightSlash = 2;
-
-            if ( url.contains("://") ) {
-                leftSlash += 2;
-            } else if ( url.startsWith("/") ) {
-                leftSlash += 1;
-            }
-
-            if ( StringUtils.countMatches(url, '/') > ( leftSlash + rightSlash ) ) {
-
-                shortURL = reduceURL(url, leftSlash, rightSlash);
-
-                if ( shortURL.length() <= 80 ) {
-                    return shortURL;
-                }
-
-            }
-
-            if ( shortURL.length() > 64 ) {
-
-                leftSlash--;
-                rightSlash--;
-
-                if ( StringUtils.countMatches(url, '/') > ( leftSlash + rightSlash ) ) {
-
-                    shortURL = reduceURL(url, leftSlash, rightSlash);
-
-                    if ( shortURL.length() <= 80 ) {
-                        return shortURL;
-                    }
-
-                }
-
-            }
-
-            if ( shortURL.length() > 64 ) {
-                return StringUtils.join(StringUtils.left(url, 32), "...", StringUtils.right(url, 32));
-            }
-
-        }
-
-        return url;
-
-    }
-
-    private static String reduceURL ( String url, int leftSlash, int rightSlash ) {
-
-        int leftSlashIndex = StringUtils.ordinalIndexOf(url, "/", leftSlash);
-        int rightSlashIndex = StringUtils.ordinalIndexOf(StringUtils.reverse(url), "/", rightSlash);
-
-        return StringUtils.join(StringUtils.left(url, leftSlashIndex + 1), "...", StringUtils.right(url, rightSlashIndex + 1));
-
-    }
-
-    /**
      * @param file The {@link File} to be resolved.
      * @param model Used to get user's data.
      * @return The resolved file's pathname.
      */
     private static String resolveFile ( File file, final DisplayModel model ) {
-
         String fileName = file.toString();
-
-        // If running under RCP, try to convert dropped files which are
-        // always absolute file system locations into workspace resource
-        final String workspace_file = ModelResourceUtil.getWorkspacePath(fileName);
-
-        if ( workspace_file != null ) {
-            fileName = workspace_file;
-        }
-
         return ModelResourceUtil.getRelativePath(model.getUserData(DisplayModel.USER_DATA_INPUT_FILE), fileName);
-
     }
 
     /**
