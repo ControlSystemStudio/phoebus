@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.ui.dialog;
 
-import com.sun.tools.javac.util.List;
+import java.util.List;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
