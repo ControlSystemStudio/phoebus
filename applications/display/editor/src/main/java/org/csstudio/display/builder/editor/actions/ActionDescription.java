@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.actions;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -426,9 +427,9 @@ public abstract class ActionDescription
         return icon;
     }
 
-    public String getIconResourcePath()
+    public URL getIconResourcePath()
     {
-        return "platform:/plugin/org.csstudio.display.builder.editor/" + icon;
+        return DisplayEditor.class.getResource("/" + icon);
     }
 
     /** @return Tool tip */

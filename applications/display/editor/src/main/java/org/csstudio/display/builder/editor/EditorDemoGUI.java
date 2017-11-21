@@ -24,7 +24,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
-import org.csstudio.display.builder.util.ResourceUtil;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -36,8 +36,6 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -168,7 +166,7 @@ public class EditorDemoGUI
         final Button button = new Button();
         try
         {
-            button.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(action.getIconResourcePath()))));
+            button.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
         }
         catch (final Exception ex)
         {

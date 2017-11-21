@@ -38,6 +38,7 @@ import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Point2D;
@@ -55,8 +56,6 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyEvent;
@@ -232,10 +231,10 @@ public class DisplayEditor
         // Use the first item as the icon for the drop-down...
         try
         {
-            order.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(ActionDescription.TO_BACK.getIconResourcePath()))));
-            align.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(ActionDescription.ALIGN_LEFT.getIconResourcePath()))));
-            size.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(ActionDescription.MATCH_WIDTH.getIconResourcePath()))));
-            dist.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(ActionDescription.DIST_HORIZ.getIconResourcePath()))));
+            order.setGraphic(ImageCache.getImageView(ActionDescription.TO_BACK.getIconResourcePath()));
+            align.setGraphic(ImageCache.getImageView(ActionDescription.ALIGN_LEFT.getIconResourcePath()));
+            size.setGraphic(ImageCache.getImageView(ActionDescription.MATCH_WIDTH.getIconResourcePath()));
+            dist.setGraphic(ImageCache.getImageView(ActionDescription.DIST_HORIZ.getIconResourcePath()));
         }
         catch (Exception ex)
         {
@@ -264,7 +263,7 @@ public class DisplayEditor
         final MenuItem item = new MenuItem();
         try
         {
-            item.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(action.getIconResourcePath()))));
+            item.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
         }
         catch (final Exception ex)
         {
@@ -280,7 +279,7 @@ public class DisplayEditor
         final Button button = new Button();
         try
         {
-            button.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(action.getIconResourcePath()))));
+            button.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
         }
         catch (final Exception ex)
         {
@@ -296,7 +295,7 @@ public class DisplayEditor
         final ToggleButton button = new ToggleButton();
         try
         {
-            button.setGraphic(new ImageView(new Image(ResourceUtil.openPlatformResource(action.getIconResourcePath()))));
+            button.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
         }
         catch (final Exception ex)
         {

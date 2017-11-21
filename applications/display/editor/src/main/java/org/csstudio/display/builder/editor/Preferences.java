@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,7 @@ package org.csstudio.display.builder.editor;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.preferences.IPreferencesService;
+import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Editor preferences
  *  @author Kay Kasemir
@@ -19,20 +18,18 @@ import org.eclipse.core.runtime.preferences.IPreferencesService;
 @SuppressWarnings("nls")
 public class Preferences
 {
-    public static Set<String> getHiddenWidgets()
+    public static Set<String> hidden_widget_types = new HashSet<>();
+
+    static
     {
-        final Set<String> deprecated = new HashSet<>();
-        final IPreferencesService prefs = Platform.getPreferencesService();
-        if (prefs != null)
+        final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/display_editor_preferences.properties");
+
+        final String list = prefs.get("hidden_widget_types");
+        for (String item : list.split(" *, *"))
         {
-            final String list = prefs.getString(Plugin.ID, "hidden_widget_types", "", null);
-            for (String item : list.split(" *, *"))
-            {
-                final String type = item.trim();
-                if (! type.isEmpty())
-                    deprecated.add(type);
-            }
+            final String type = item.trim();
+            if (! type.isEmpty())
+                hidden_widget_types.add(type);
         }
-        return deprecated;
     }
 }

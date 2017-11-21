@@ -22,8 +22,7 @@ import javafx.stage.WindowEvent;
 @SuppressWarnings("nls")
 public class EditorDemo extends Application
 {
-    // private static String display_file = "../org.csstudio.display.builder.runtime.test/examples/my_rules_example.opi";
-    private static String display_file = "../org.csstudio.display.builder.model/examples/01_main.bob";
+    private static String display_file = "../model/src/main/resources/examples/01_main.bob";
     private EditorDemoGUI editor;
 
     /** JavaFX main
@@ -34,7 +33,7 @@ public class EditorDemo extends Application
         if (args.length == 1)
             display_file = args[0];
 
-        LogManager.getLogManager().readConfiguration(new FileInputStream("../org.csstudio.display.builder.runtime.test/examples/logging.properties"));
+        LogManager.getLogManager().readConfiguration(new FileInputStream("../../../phoebus-product/src/main/resources/logging.properties"));
 
         launch(args);
     }

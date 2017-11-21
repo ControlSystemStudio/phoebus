@@ -109,7 +109,7 @@ public class Palette
      */
     private void createWidgetEntries(final Map<WidgetCategory, Pane> palette_groups)
     {
-        final Set<String> deprecated = Preferences.getHiddenWidgets();
+        final Set<String> deprecated = Preferences.hidden_widget_types;
 
         //  Sort alphabetically-case-insensitive widgets inside their group
         //  based on the widget's name, instead of the original set order or class name.
