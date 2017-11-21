@@ -29,6 +29,7 @@ import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ListPickerDialog;
 import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
@@ -50,7 +51,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -82,6 +83,7 @@ public class PhoebusApplication extends Application {
 
     /** Memento keys */
     private static final String LAST_OPENED_FILE = "last_opened_file",
+                                DEFAULT_APPLICATION = "default_application",
                                 SHOW_TABS = "show_tabs";
 
     /** Menu item for top resources */
@@ -97,6 +99,12 @@ public class PhoebusApplication extends Application {
      *  (the _directory_ is actually used by the file-open dialog)
      */
     private File last_opened_file = null;
+
+    /** Application last picked when prompted for app to use */
+    private String default_application;
+
+    private Stage main_stage;
+
 
     /** JavaFX entry point
      *  @param initial_stage Initial Stage created by JavaFX
@@ -157,7 +165,7 @@ public class PhoebusApplication extends Application {
     {
         monitor.beginTask("Start UI", 4);
 
-        final Stage main_stage = new Stage();
+        main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
         final ToolBar toolBar = createToolbar();
         createTopResourcesMenu();
@@ -509,12 +517,15 @@ public class PhoebusApplication extends Application {
 
         // Prompt user which application to use for this resource
         final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
-        final ChoiceDialog<String> which = new ChoiceDialog<>(options.get(0), options);
+        final Dialog<String> which = new ListPickerDialog(main_stage.getScene().getRoot(), options, default_application);
         which.setTitle("Open");
         which.setHeaderText("Select application for opening\n" + resource);
+        which.setWidth(300);
+        which.setHeight(300);
         final Optional<String> result = which.showAndWait();
         if (! result.isPresent())
             return null;
+        default_application = result.get();
         return applications.get(options.indexOf(result.get()));
     }
 
@@ -583,6 +594,7 @@ public class PhoebusApplication extends Application {
         try {
             // Global settings
             memento.getString(LAST_OPENED_FILE).ifPresent(path -> last_opened_file = new File(path));
+            memento.getString(DEFAULT_APPLICATION).ifPresent(app -> default_application = app);
             memento.getBoolean(SHOW_TABS).ifPresent(show ->
             {
                 DockPane.alwaysShowTabs(show);
@@ -618,6 +630,8 @@ public class PhoebusApplication extends Application {
 
             if (last_opened_file != null)
                 memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
+            if (default_application != null)
+                memento.setString(DEFAULT_APPLICATION, default_application);
             memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
 
             for (Stage stage : DockStage.getDockStages())
