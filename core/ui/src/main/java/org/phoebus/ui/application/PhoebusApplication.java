@@ -80,8 +80,9 @@ public class PhoebusApplication extends Application {
     /** Logger for all application messages */
     public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
 
-    /** Memento key to show/hide tabs */
-    private static final String SHOW_TABS = "show_tabs";
+    /** Memento keys */
+    private static final String LAST_OPENED_FILE = "last_opened_file",
+                                SHOW_TABS = "show_tabs";
 
     /** Menu item for top resources */
     private Menu top_resources_menu;
@@ -91,6 +92,11 @@ public class PhoebusApplication extends Application {
 
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
+
+    /** Last file used by 'File, Open' menu
+     *  (the _directory_ is actually used by the file-open dialog)
+     */
+    private File last_opened_file = null;
 
     /** JavaFX entry point
      *  @param initial_stage Initial Stage created by JavaFX
@@ -278,9 +284,10 @@ public class PhoebusApplication extends Application {
         final MenuItem open = new MenuItem(Messages.Open);
         open.setOnAction(event ->
         {
-            final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, null, null);
+            final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, last_opened_file, null);
             if (the_file == null)
                 return;
+            last_opened_file = the_file;
             openResource(ResourceParser.getURI(the_file));
         });
         file.getItems().add(open);
@@ -575,6 +582,7 @@ public class PhoebusApplication extends Application {
 
         try {
             // Global settings
+            memento.getString(LAST_OPENED_FILE).ifPresent(path -> last_opened_file = new File(path));
             memento.getBoolean(SHOW_TABS).ifPresent(show ->
             {
                 DockPane.alwaysShowTabs(show);
@@ -608,6 +616,8 @@ public class PhoebusApplication extends Application {
         try {
             final XMLMementoTree memento = XMLMementoTree.create();
 
+            if (last_opened_file != null)
+                memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
             memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
 
             for (Stage stage : DockStage.getDockStages())
