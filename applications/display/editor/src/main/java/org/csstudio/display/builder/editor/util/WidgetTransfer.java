@@ -157,7 +157,7 @@ public class WidgetTransfer {
             final int width = widget.propWidth().getValue();
             final int height = widget.propHeight().getValue();
 
-            db.setDragView(createDragImage(widget, image, width, height), width / 2, -height / 2);
+            db.setDragView(createDragImage(widget, image, width, height), 0, 0);
             event.consume();
 
         });
