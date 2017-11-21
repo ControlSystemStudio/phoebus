@@ -7,12 +7,15 @@
  ******************************************************************************/
 package org.csstudio.display.builder.editor.app;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockStage;
 
@@ -58,9 +61,28 @@ public class DisplayEditorApplication implements AppResourceDescriptor
     @Override
     public DisplayEditorInstance create(final URI resource)
     {
+        // Turn URI into the actual file,
+        // so that existing instance can be uniquely identified
+        File file;
+        try
+        {
+            file = ModelResourceUtil.getFile(resource);
+            if (file == null)
+            {
+                // TODO For http:, offer download and the open local file
+                throw new Exception("Cannot determine local file");
+            }
+        }
+        catch (Exception ex)
+        {
+            ExceptionDetailsErrorDialog.openError("Error", "Cannot load " + resource, ex);
+            return null;
+        }
+        final URI file_resource = file.toURI();
+
         // Check for existing instance with that input
         final DisplayEditorInstance instance;
-        final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, resource);
+        final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, file_resource);
         if (existing != null)
         {   // Found one, raise it
             instance = existing.getApplication();
@@ -69,7 +91,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         else
         {   // Nothing found, create new one
             instance = create();
-            // TODO instance.loadDisplay(resource);
+            instance.loadDisplay(file_resource);
         }
         return instance;
     }

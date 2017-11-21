@@ -7,11 +7,14 @@
  ******************************************************************************/
 package org.csstudio.display.builder.editor.app;
 
+import java.io.File;
+import java.net.URI;
+
 import org.csstudio.display.builder.editor.EditorGUI;
+import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.jobs.JobMonitor;
@@ -22,7 +25,7 @@ import org.phoebus.ui.jobs.JobMonitor;
 public class DisplayEditorInstance implements AppInstance
 {
     private final AppDescriptor app;
-    private final DockItem dock_item;
+    private final DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
 
     DisplayEditorInstance(final DisplayEditorApplication app)
@@ -31,6 +34,7 @@ public class DisplayEditorInstance implements AppInstance
 
         final DockPane dock_pane = DockPane.getActiveDockPane();
         JFXRepresentation.setSceneStyle(dock_pane.getScene());
+        EditorUtil.setSceneStyle(dock_pane.getScene());
 
         editor_gui = new EditorGUI();
 
@@ -49,6 +53,15 @@ public class DisplayEditorInstance implements AppInstance
     {
         dock_item.select();
     }
+
+    public void loadDisplay(final URI resource)
+    {
+        // Set input ASAP to prevent opening another instance for same input
+        dock_item.setInput(resource);
+        editor_gui.loadModel(new File(resource));
+    }
+
+    // TODO save/restore the BorderPane sizes (tree view, properties)
 
     private void onSave(final JobMonitor monitor)
     {

@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.util;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import java.io.File;
+import java.net.URI;
+
+import org.junit.Test;
 
 /** JUnit test of the {@link ModelResourceUtil}
  *  @author Kay Kasemir
@@ -25,11 +28,14 @@ public class ModelResourceUtilTest
         final String display_path = "monitors_textupdate.bob";
         String combined = ModelResourceUtil.combineDisplayPaths(parent_display, display_path);
         assertThat(combined, equalTo("examples:/monitors_textupdate.bob"));
-        
+
         ModelResourceUtil.openResourceStream(parent_display).close();
         ModelResourceUtil.openResourceStream(combined).close();
-        
+
         combined = ModelResourceUtil.resolveResource(parent_display, display_path);
         assertThat(combined, equalTo("examples:/monitors_textupdate.bob"));
+
+        final File file = ModelResourceUtil.getFile(URI.create("examples:/monitors_textupdate.bob"));
+        assertThat(file.canRead(), equalTo(true));
     }
 }
