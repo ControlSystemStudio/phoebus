@@ -628,15 +628,18 @@ public class PhoebusApplication extends Application {
         try {
             final XMLMementoTree memento = XMLMementoTree.create();
 
+            // Persist global settings
             if (last_opened_file != null)
                 memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
             if (default_application != null)
                 memento.setString(DEFAULT_APPLICATION, default_application);
             memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
 
+            // Persist each stage (window) and its tabs
             for (Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);
 
+            // Write the memento file
             if (!memfile.getParentFile().exists())
                 memfile.getParentFile().mkdirs();
             memento.write(new FileOutputStream(memfile));
