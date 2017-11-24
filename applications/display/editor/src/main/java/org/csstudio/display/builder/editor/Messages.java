@@ -29,6 +29,7 @@ public class Messages
     public static String Grid;
     public static String LoadDisplay;
     public static String LoadDisplay_TT;
+    public static String MacroEditButton;
     public static String MatchHeight;
     public static String MatchWidth;
     public static String MoveDown;
