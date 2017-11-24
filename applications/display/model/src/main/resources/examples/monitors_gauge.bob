@@ -71,12 +71,12 @@
       <color red="26" green="26" blue="26">
       </color>
     </background_color>
+    <foreground_color>
+      <color red="255" green="255" blue="255">
+      </color>
+    </foreground_color>
     <transparent>false</transparent>
     <title>MODERN</title>
-    <title_color>
-      <color name="Background" red="255" green="255" blue="255">
-      </color>
-    </title_color>
   </widget>
   <widget type="gauge" version="2.0.0">
     <name>Gauge_4</name>
@@ -118,10 +118,6 @@
     <x>10</x>
     <y>500</y>
     <title>DASHBOARD</title>
-    <value_color>
-      <color red="51" green="77" blue="179">
-      </color>
-    </value_color>
     <bar_color>
       <color red="77" green="102" blue="204">
       </color>
@@ -161,12 +157,12 @@
       <color red="26" green="26" blue="26">
       </color>
     </background_color>
+    <foreground_color>
+      <color red="255" green="255" blue="204">
+      </color>
+    </foreground_color>
     <transparent>false</transparent>
     <title>MODERN</title>
-    <title_color>
-      <color name="Background" red="255" green="255" blue="255">
-      </color>
-    </title_color>
   </widget>
   <widget type="gauge" version="2.0.0">
     <name>Gauge_15</name>
@@ -175,11 +171,11 @@
     <x>10</x>
     <y>670</y>
     <title>DASHBOARD</title>
+    <start_from_zero>false</start_from_zero>
     <bar_background_color>
       <color red="153" green="153" blue="0">
       </color>
     </bar_background_color>
-    <start_from_zero>false</start_from_zero>
   </widget>
   <widget type="gauge" version="2.0.0">
     <name>Gauge_16</name>
@@ -209,12 +205,12 @@
       <color red="77" green="0" blue="26">
       </color>
     </background_color>
+    <foreground_color>
+      <color red="255" green="230" blue="204">
+      </color>
+    </foreground_color>
     <transparent>false</transparent>
     <title>MODERN</title>
-    <title_color>
-      <color name="Background" red="255" green="255" blue="255">
-      </color>
-    </title_color>
     <start_from_zero>false</start_from_zero>
   </widget>
 </display>
