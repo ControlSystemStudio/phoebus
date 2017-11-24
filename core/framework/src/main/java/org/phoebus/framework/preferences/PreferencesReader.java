@@ -43,7 +43,7 @@ public class PreferencesReader
      *                       and its class loader is used to read the property file.
      *  @param preferences_properties_filename Name of the property file
      */
-    public PreferencesReader(Class<?> package_class, String preferences_properties_filename)
+    public PreferencesReader(final Class<?> package_class, final String preferences_properties_filename)
     {
         try
         {

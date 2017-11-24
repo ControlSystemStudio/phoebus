@@ -55,6 +55,9 @@ public class DisplayModel extends Widget
     /** File extension used for legacy display files */
     public static final String LEGACY_FILE_EXTENSION = "opi";
 
+    /** All supported file extensions */
+    public static final List<String> FILE_EXTENSIONS = List.of(FILE_EXTENSION, LEGACY_FILE_EXTENSION);
+
     /** Widget type used by the display model */
     public static final String WIDGET_TYPE = "display";
 

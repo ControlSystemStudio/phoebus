@@ -51,5 +51,6 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-rtplot"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-representation-javafx"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-runtime"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-editor"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -16,6 +16,18 @@ import javafx.scene.control.Dialog;
  */
 public class DialogHelper
 {
+    /** Get outermost container of a node
+     *  @param node JFX Node
+     *  @return Outermost container
+     */
+    public static Node getContainer(final Node node)
+    {
+        Node container = node;
+        while (container.getParent() != null)
+            container = container.getParent();
+        return container;
+    }
+
     /** Position dialog relative to another widget
      *
      *  <p>By default, dialogs seem to pop up in the center of the first monitor.

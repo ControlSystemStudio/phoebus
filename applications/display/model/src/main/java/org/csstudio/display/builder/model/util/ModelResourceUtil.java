@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.CertificateException;
@@ -33,6 +34,7 @@ import javax.net.ssl.X509TrustManager;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Preferences;
+import org.phoebus.framework.util.ResourceParser;
 
 /** Helper for handling resources: File, web link.
  *  @author Kay Kasemir
@@ -40,6 +42,9 @@ import org.csstudio.display.builder.model.Preferences;
 @SuppressWarnings("nls")
 public class ModelResourceUtil
 {
+    /** Schema used for the built-in display examples */
+    public static final String EXAMPLES_SCHEMA = "examples";
+
     /** Used by trustAnybody() to only initialize once */
     private static boolean trusting_anybody = false;
 
@@ -366,7 +371,7 @@ public class ModelResourceUtil
      */
     private static URL getExampleURL(final String resource_name)
     {
-        if (resource_name.startsWith("examples:"))
+        if (resource_name.startsWith(EXAMPLES_SCHEMA + ":"))
         {
             String example = resource_name.substring(9);
             if (example.startsWith("/"))
@@ -376,6 +381,13 @@ public class ModelResourceUtil
             return ModelPlugin.class.getResource(example);
         }
         return null;
+    }
+
+    public static File getFile(final URI resource) throws Exception
+    {
+        if (EXAMPLES_SCHEMA.equals(resource.getScheme()))
+            return new File(getExampleURL(resource.toString()).toURI());
+        return ResourceParser.getFile(resource);
     }
 
     /** Open a file, web location, ..

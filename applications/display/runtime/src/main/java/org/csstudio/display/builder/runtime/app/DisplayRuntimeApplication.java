@@ -46,7 +46,7 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     @Override
     public List<String> supportedFileExtentions()
     {
-        return List.of(DisplayModel.FILE_EXTENSION, DisplayModel.LEGACY_FILE_EXTENSION);
+        return DisplayModel.FILE_EXTENSIONS;
     }
 
     @Override

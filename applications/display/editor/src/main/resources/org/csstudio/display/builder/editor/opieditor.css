@@ -1,0 +1,162 @@
+/* Style sheet used by Editor
+ */
+
+.rubberband
+{
+    -fx-stroke-width: 1;
+    -fx-fill: rgb(0, 0, 255, 0.05);
+    -fx-stroke: blue;
+    -fx-stroke-dash-array: 5.0, 5.0;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 0, 0, 0);
+}
+
+.parent_highlight
+{
+    -fx-fill: rgb(255, 0, 0, 0.05);
+}
+
+
+/** PointsEditor */
+.points_edit_line
+{
+    -fx-stroke: gold;
+    -fx-stroke-width: 2;
+}
+
+.points_edit_handle
+{
+    -fx-stroke: rgb(255, 215, 0);
+    -fx-stroke-width: 2;
+    -fx-fill: rgb(255, 215, 0, 0.25);
+    -fx-arc-height: 5;
+    -fx-arc-width: 5;
+}
+
+
+/** Snap-to-Objects guide line */
+.guide_line
+{
+    -fx-stroke-width: 1;
+    -fx-stroke: aqua;
+}
+
+/** DisplayModel bounds */
+.display_model_bounds
+{
+    -fx-stroke-width: 1.777;
+    -fx-stroke: indianred;
+    -fx-stroke-dash-array: 5 4
+}
+
+/* Header on top of palette and property panel */
+.header
+{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-color: darkslateblue ;
+    -fx-padding: 2 5 2 5;
+    -fx-background-radius: 0;
+}
+
+.palette_category > .title 
+{
+    -fx-font-weight: bold;
+    -fx-font-size: 10px;
+    -fx-background-color: moccasin;
+    -fx-padding: 2 5 2 5;
+	-fx-background-radius: 0;
+}
+
+.palette_group
+{
+     -fx-padding: 2 5 2 5;
+     -fx-vgap: 2;
+}
+
+.property_category
+{
+    -fx-font-weight: bold;
+    -fx-font-size: 10px;
+    -fx-background-color: moccasin;
+    -fx-padding: 2 5 2 5;
+    -fx-background-radius: 0;
+}
+
+.structure_property_name
+{
+    -fx-font-weight: bold;
+    -fx-font-size: 10px;
+    -fx-background-color: ivory;
+    -fx-padding: 2 5 2 5;
+    -fx-background-radius: 0;
+}
+
+.array_property_name
+{
+    -fx-background-color: lemonchiffon; 
+    -fx-padding: 2 5 2 5;
+    -fx-background-radius: 0;
+}
+
+.array_property_filler
+{
+    -fx-font-size: 1px;
+    -fx-background-color: lemonchiffon; 
+    -fx-padding: 0 0 0 0;
+    -fx-background-radius: 0;
+}
+
+.array_property_end
+{
+    -fx-font-size: 3px;
+    -fx-background-color: lemonchiffon;
+    -fx-padding: 2 5 2 5;
+    -fx-background-radius: 0;
+}
+
+.array_property_elements
+{
+    -fx-background-color: lightgoldenrodyellow;
+    -fx-padding: 0 0 0 10;
+}
+
+.property_name
+{
+    -fx-padding: 2 5 2 5;
+}
+
+.property_value
+{
+}
+
+.property_separator:horizontal .line {
+    -fx-background-color: null;
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em; /* 1 0 0 0 */
+    -fx-border-color: derive(-fx-background,-2%);
+}
+
+.property_separator_filler:horizontal .line {
+    -fx-background-color: null;
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em; /* 1 0 0 0 */
+    -fx-border-color: lemonchiffon;
+}
+
+.color_icon
+{
+	-fx-stroke: black;
+	-fx-stroke-width: 1;
+}
+
+/* WidgetTree: Currently selected widgets */
+.tree-cell:selected
+{
+    -fx-background-color: rgb(180, 180, 255);
+}
+
+/* Tracker: Individually selected widget within the tracker rectangle */
+.tracker_highlight
+{
+    -fx-stroke-width: 1.5;
+    -fx-fill: transparent;
+    -fx-stroke: pink;
+}
