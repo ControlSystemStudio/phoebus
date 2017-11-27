@@ -25,10 +25,6 @@ public class ReloadDisplayAction extends MenuItem
     ReloadDisplayAction(DisplayRuntimeInstance instance)
     {
         super(Messages.ReloadDisplay, new ImageView(icon));
-
-        setOnAction(event ->
-        {
-            instance.loadDisplayFile(instance.getDisplayInfo());
-        });
+        setOnAction(event -> instance.reload());
     }
 }

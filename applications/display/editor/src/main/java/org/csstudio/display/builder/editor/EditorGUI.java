@@ -15,27 +15,19 @@ import java.io.FileOutputStream;
 import java.util.Random;
 import java.util.logging.Level;
 
-import org.csstudio.display.builder.editor.actions.ActionDescription;
-import org.csstudio.display.builder.editor.actions.LoadModelAction;
-import org.csstudio.display.builder.editor.actions.SaveModelAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
-import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -132,7 +124,6 @@ public class EditorGUI
 
 
         final Node editor_scene = editor.create();
-        extendToolbar(editor.getToolBar());
 
         center.getItems().addAll(widgetsTree, editor_scene, propertiesBox);
         center.setDividerPositions(0.2, 0.8);
@@ -146,33 +137,9 @@ public class EditorGUI
         return layout;
     }
 
-    private void extendToolbar(final ToolBar toolbar)
-    {   // TODO Move to EditorDemo
-        toolbar.getItems().add(0, createButton(new LoadModelAction(this)));
-        toolbar.getItems().add(1, createButton(new SaveModelAction(this)));
-        toolbar.getItems().add(2, new Separator());
-    }
-
-
-    private Button createButton(final ActionDescription action)
-    {
-        final Button button = new Button();
-        try
-        {
-            button.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
-        }
-        catch (final Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot load action icon", ex);
-        }
-        button.setTooltip(new Tooltip(action.getToolTip()));
-        button.setOnAction(event -> action.run(editor));
-        return button;
-    }
-
     /** @return Currently edited file */
     public File getFile()
-    {   // TODO Move to EditorDemo
+    {
         return file;
     }
 
@@ -201,22 +168,20 @@ public class EditorGUI
      */
     public void saveModelAs(final File file)
     {
-        EditorUtil.getExecutor().execute(() ->
+        logger.log(Level.FINE, "Save as {0}", file);
+        try
+        (
+            final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
+        )
         {
-            logger.log(Level.FINE, "Save as {0}", file);
-            try
-            (
-                final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
-            )
-            {
-                writer.writeModel(editor.getModel());
-                this.file = file;
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.SEVERE, "Cannot save as " + file, ex);
-            }
-        });
+            writer.writeModel(editor.getModel());
+            this.file = file;
+            editor.getUndoableActionManager().clear();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot save as " + file, ex);
+        }
     }
 
     private void setModel(final DisplayModel model)

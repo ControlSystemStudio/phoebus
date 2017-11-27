@@ -612,26 +612,6 @@ public class DisplayEditor
         }
     }
 
-    /** Recursively dump nodes
-     *  @param parent {@link Parent}
-     *  @param level Indentation level
-     *  @return Number of nodes and sub-nodes
-     */
-    private int countAndDumpNodes(final Parent parent, final int level)
-    {
-        int count = 0;
-        for (Node node : parent.getChildrenUnmodifiable())
-        {
-            ++count;
-            for (int i=0; i<level; ++i)
-                System.out.print("  ");
-            System.out.println(node.getClass().getSimpleName());
-            if (node instanceof Parent)
-                count += countAndDumpNodes((Parent) node, level + 1);
-        }
-        return count;
-    }
-
     public void dispose()
     {
         if (model != null)

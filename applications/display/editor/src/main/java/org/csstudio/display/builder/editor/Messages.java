@@ -42,6 +42,7 @@ public class Messages
     public static String RemoveGroup;
     public static String RemoveWidgets;
     public static String RuleCountFMT;
+    public static String Run;
     public static String SaveDisplay;
     public static String SaveDisplay_TT;
     public static String ScriptCountFMT;

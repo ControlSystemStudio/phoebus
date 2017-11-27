@@ -8,13 +8,11 @@
 package org.csstudio.display.builder.editor.app;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.Objects;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
-import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -23,16 +21,16 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ToolbarHelper;
+
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
  */
 public class DisplayEditorInstance implements AppInstance
 {
-    // TODO 'Save'
-    // TODO 'Save As'
-    // TODO Remove 'Debug' from toolbar
-    // TODO 'Run'
     private final AppDescriptor app;
     private final DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
@@ -47,6 +45,8 @@ public class DisplayEditorInstance implements AppInstance
 
         editor_gui = new EditorGUI();
 
+        extendToolbar();
+
         dock_item = new DockItemWithInput(this, editor_gui.getParentNode(), null, FilenameSupport.file_extensions, this::doSave);
         dock_pane.addTab(dock_item );
 
@@ -56,6 +56,13 @@ public class DisplayEditorInstance implements AppInstance
                   .addListener((to_undo, to_redo) -> dock_item.setDirty(to_undo != null));
     }
 
+    private void extendToolbar()
+    {
+        final ObservableList<Node> toolbar = editor_gui.getDisplayEditor().getToolBar().getItems();
+        toolbar.add(ToolbarHelper.createSpring());
+        toolbar.add(new RunDisplayAction(this));
+    }
+
     @Override
     public AppDescriptor getAppDescriptor()
     {
@@ -63,12 +70,17 @@ public class DisplayEditorInstance implements AppInstance
     }
 
     /** Select dock item, make visible */
-    public void raise()
+    void raise()
     {
         dock_item.select();
     }
 
-    public void loadDisplay(final URI resource)
+    EditorGUI getEditorGUI()
+    {
+        return editor_gui;
+    }
+
+    void loadDisplay(final URI resource)
     {
         // Set input ASAP to prevent opening another instance for same input
         dock_item.setInput(resource);
@@ -77,17 +89,9 @@ public class DisplayEditorInstance implements AppInstance
 
     // TODO save/restore the BorderPane sizes (tree view, properties)
 
-    private void doSave(final JobMonitor monitor) throws Exception
+    void doSave(final JobMonitor monitor) throws Exception
     {
         final File file = Objects.requireNonNull(ResourceParser.getFile(dock_item.getInput()));
-        try
-        (
-            final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
-        )
-        {
-            writer.writeModel(editor_gui.getDisplayEditor().getModel());
-        }
-        // TODO Update model and editor to track this file, because "Save As" might have changed it
-        editor_gui.getDisplayEditor().getUndoableActionManager().clear();
+        editor_gui.saveModelAs(file);
     }
 }

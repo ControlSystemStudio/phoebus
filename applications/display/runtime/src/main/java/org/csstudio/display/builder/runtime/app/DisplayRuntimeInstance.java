@@ -187,6 +187,12 @@ public class DisplayRuntimeInstance implements AppInstance
         JobManager.schedule("Load Display", monitor -> loadModel(monitor, info));
     }
 
+    /** Re-load the current input */
+    public void reload()
+    {
+        loadDisplayFile(getDisplayInfo());
+    }
+
     /** Load display model, schedule representation
      *  @param info Display to load
      */
