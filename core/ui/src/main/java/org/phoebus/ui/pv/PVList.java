@@ -9,10 +9,10 @@ package org.phoebus.ui.pv;
 
 import java.util.Collection;
 
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
-import org.phoebus.ui.jobs.JobManager;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;

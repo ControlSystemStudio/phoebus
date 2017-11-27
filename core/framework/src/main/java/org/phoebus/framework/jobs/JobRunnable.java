@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.ui.jobs;
+package org.phoebus.framework.jobs;
 
 /** Runnable for a {@link Job}
  *  @author Kay Kasemir

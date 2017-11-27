@@ -5,15 +5,14 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.ui.jobs;
-
-import static org.phoebus.ui.application.PhoebusApplication.logger;
+package org.phoebus.framework.jobs;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Job Manager
  *  @author Kay Kasemir
@@ -21,6 +20,8 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class JobManager
 {
+    static final Logger logger = Logger.getLogger(JobManager.class.getPackageName());
+
     private static final ConcurrentSkipListSet<Job> active_jobs =
         new ConcurrentSkipListSet<>((job1, job2) -> System.identityHashCode(job2) - System.identityHashCode(job1));
 

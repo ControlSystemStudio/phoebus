@@ -13,12 +13,12 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.jobs.JobManager;
-import org.phoebus.ui.jobs.JobMonitor;
-import org.phoebus.ui.jobs.JobRunnable;
 
 import javafx.application.Platform;
 import javafx.scene.Node;

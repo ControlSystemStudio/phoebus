@@ -8,8 +8,8 @@
 package org.csstudio.display.builder.runtime.app;
 
 import org.csstudio.display.builder.runtime.Messages;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.jobs.JobManager;
 
 import javafx.print.PageLayout;
 import javafx.print.PageOrientation;
