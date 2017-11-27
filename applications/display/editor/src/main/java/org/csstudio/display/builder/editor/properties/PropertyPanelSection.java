@@ -48,6 +48,8 @@ import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -67,6 +69,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 
 /** Section of Property panel
  *
@@ -247,24 +250,21 @@ public class PropertyPanelSection extends GridPane
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
 
-            final BorderPane pane = new BorderPane(combo, null, macroButton, null, null);
-            final EnumWidgetPropertyBinding binding = new EnumWidgetPropertyBinding(undo, combo, enum_prop, other);
-
-            macroButton.selectedProperty().addListener(( observable, oldValue, newValue ) ->
+            final EventHandler<ActionEvent> macro_handler = event ->
             {
-                int selectedIndex = combo.getSelectionModel().getSelectedIndex();
-
-                binding.unbind();
-                combo.setEditable(newValue);
-                combo.getSelectionModel().clearAndSelect(selectedIndex);
-                binding.bind();
-
-            });
+                final boolean use_macro = macroButton.isSelected() ||
+                                          MacroHandler.containsMacros(enum_prop.getSpecification());
+                combo.setEditable(use_macro);
+            };
+            macroButton.setOnAction(macro_handler);
             macroButton.setSelected(MacroHandler.containsMacros(enum_prop.getSpecification()));
+            macro_handler.handle(null);
 
+            final EnumWidgetPropertyBinding binding = new EnumWidgetPropertyBinding(undo, combo, enum_prop, other);
             bindings.add(binding);
             binding.bind();
-            field = pane;
+
+            field = new BorderPane(combo, null, macroButton, null, null);
         }
         else if (property instanceof BooleanWidgetProperty)
         {
@@ -274,31 +274,23 @@ public class PropertyPanelSection extends GridPane
             combo.getItems().addAll("true", "false");
             combo.setMaxWidth(Double.MAX_VALUE);
             combo.setMaxHeight(Double.MAX_VALUE);
+            combo.setEditable(true);
 
-            // TODO Instead of toggling combo edit mode, toggle checkbox vs. editable combo
+            // BooleanWidgetPropertyBinding makes either check or combo visible
+            // for plain boolean vs. macro-based value
+            final CheckBox check = new CheckBox();
+            StackPane.setAlignment(check, Pos.CENTER_LEFT);
             final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
             macroButton.getStyleClass().add("macro_button");
             macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
 
-            final BorderPane pane = new BorderPane(combo, null, macroButton, null, null);
-            final BooleanWidgetPropertyBinding binding = new BooleanWidgetPropertyBinding(undo, combo, bool_prop, other);
-
-            macroButton.selectedProperty().addListener(( observable, oldValue, newValue ) ->
-            {
-                int selectedIndex = combo.getSelectionModel().getSelectedIndex();
-
-                binding.unbind();
-                combo.setEditable(newValue);
-                combo.getSelectionModel().clearAndSelect(selectedIndex);
-                binding.bind();
-            });
-            macroButton.setSelected(MacroHandler.containsMacros(bool_prop.getSpecification()));
-
+            final BooleanWidgetPropertyBinding binding = new BooleanWidgetPropertyBinding(undo, check, combo, macroButton, bool_prop, other);
             bindings.add(binding);
             binding.bind();
-            field = pane;
+
+            field = new BorderPane(new StackPane(combo, check), null, macroButton, null, null);
         }
         else if (property instanceof ColorMapWidgetProperty)
         {
