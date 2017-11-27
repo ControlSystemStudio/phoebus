@@ -23,13 +23,15 @@ public class SaveAsDialog
 {
     /** Prompt for file name
      *
+     *  <p>May be called from any thread.
+     *
      *  @param window Parent window for the modal dialog
      *  @param title Title
      *  @param file Suggested file, may be <code>null</code>
      *  @param filters Filters, may be <code>null</code>
      *  @return
      */
-    public File promptForFile(final Window window, final String title, File file, final ExtensionFilter[] filters)
+    public File promptForFile(final Window window, final String title, final File file, final ExtensionFilter[] filters)
     {
         if (Platform.isFxApplicationThread())
             return doPromptForFile(window, title, file, filters);

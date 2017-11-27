@@ -12,6 +12,7 @@ import java.net.URI;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
+import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -42,7 +43,7 @@ public class DisplayEditorInstance implements AppInstance
 
         editor_gui = new EditorGUI();
 
-        dock_item = new DockItemWithInput(this, editor_gui.getParentNode(), null, this::onSave);
+        dock_item = new DockItemWithInput(this, editor_gui.getParentNode(), null, FilenameSupport.file_extensions, this::onSave);
         dock_pane.addTab(dock_item );
 
         // Mark 'dirty' whenever there's a change, i.e. something to un-do

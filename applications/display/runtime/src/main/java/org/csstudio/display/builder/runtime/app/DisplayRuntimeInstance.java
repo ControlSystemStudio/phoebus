@@ -85,7 +85,7 @@ public class DisplayRuntimeInstance implements AppInstance
         BorderPane.setMargin(toolbar, new Insets(5, 5, 0, 5));
         layout.setTop(toolbar);
         layout.setCenter(representation.createModelRoot());
-        dock_item = new DockItemWithInput(this, layout, null, null);
+        dock_item = new DockItemWithInput(this, layout, null, null, null);
         dock_pane.addTab(dock_item);
 
         representation.getModelParent().getProperties().put(MODEL_PARENT_DISPLAY_RUNTIME, this);

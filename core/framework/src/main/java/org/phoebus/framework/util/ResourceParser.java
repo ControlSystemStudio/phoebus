@@ -88,7 +88,7 @@ public class ResourceParser
 
     /** Get file for URI
      *  @return URI for the resource
-     *  @return {@link File} if URL represents a file, otherwise <code>null</code>
+     *  @return {@link File} if URI represents a file, otherwise <code>null</code>
      */
     public static File getFile(final URI resource) throws Exception
     {

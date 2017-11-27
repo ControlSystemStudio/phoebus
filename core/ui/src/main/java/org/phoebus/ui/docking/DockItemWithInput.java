@@ -9,17 +9,21 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.io.File;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.dialog.SaveAsDialog;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -28,6 +32,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /** Item for a {@link DockPane} that has an 'input' file or URI.
  *
@@ -36,6 +41,15 @@ import javafx.scene.control.Tooltip;
  *  in {@link DockItem} should be called
  *  to assert compatibility with future updates.
  *
+ *  <p>Tracks the current 'input' and the 'dirty' state.
+ *  When the item becomes 'dirty', 'Save' or 'Save As'
+ *  are supported via the provided list of file extensions
+ *  and a 'save_handler'.
+ *  User will be asked to save a dirty tab when the tab is closed.
+ *  Saving can also be initiated from the 'File' menu.
+ *  If the 'input' is <code>null</code>, 'Save' automatically
+ *  invokes 'Save As' to prompt for a file name.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -43,7 +57,12 @@ public class DockItemWithInput extends DockItem
 {
     private static final String DIRTY = "* ";
 
-    private boolean is_dirty = false;
+    private AtomicBoolean is_dirty = new AtomicBoolean(false);
+
+    /** The one item that should always be included in 'file_extensions' */
+    public static final ExtensionFilter ALL_FILES = new ExtensionFilter("All", "*.*");
+
+    private final ExtensionFilter[] file_extensions;
 
     private final JobRunnable save_handler;
 
@@ -54,9 +73,8 @@ public class DockItemWithInput extends DockItem
      *  <p>The 'save_handler' will be called to save the content.
      *  It will be called in a background job, because writing files
      *  might be slow.
-     *  Implementation would typically use the current input.
-     *  If <code>null</code>, it might prompt for another input,
-     *  for which it might have to return to the UI thread.
+     *
+     *  <p>When 'save_handler' is called, the 'input' will be set to a file-based URI.
      *  On success, or if for some reason there is nothing to save,
      *  the 'save_handler' returns.
      *  On error, the 'save_handler' throws an exception.
@@ -64,11 +82,15 @@ public class DockItemWithInput extends DockItem
      *  @param application {@link AppInstance}
      *  @param content Initial content
      *  @param input URI for the input. May be <code>null</code>
+     *  @param file_extensions File extensions for "Save As". May be <code>null</code> if never calling <code>setDirty(true)</code>
      *  @param save_handler Will be called to 'save' the content. May be <code>null</code> if never calling <code>setDirty(true)</code>
      */
-    public DockItemWithInput(final AppInstance application, final Node content, final URI input, final JobRunnable save_handler)
+    public DockItemWithInput(final AppInstance application, final Node content, final URI input,
+                             final ExtensionFilter[] file_extensions,
+                             final JobRunnable save_handler)
     {
         super(application, content);
+        this.file_extensions =  file_extensions;
         this.save_handler = save_handler;
         setInput(input);
 
@@ -80,7 +102,7 @@ public class DockItemWithInput extends DockItem
     public void setLabel(final String label)
     {
         name = label;
-        if (is_dirty)
+        if (isDirty())
             name_tab.setText(DIRTY + label);
         else
             name_tab.setText(label);
@@ -105,16 +127,26 @@ public class DockItemWithInput extends DockItem
     /** @return Current 'dirty' state */
     public boolean isDirty()
     {
-        return is_dirty;
+        return is_dirty.get();
     }
 
-    /** @param dirty Updated 'dirty' state */
+    /** Update 'dirty' state.
+     *
+     *  <p>May be called from any thread
+     *  @param dirty Updated 'dirty' state
+     */
     public void setDirty(final boolean dirty)
     {
-        if (dirty == is_dirty)
+        if (is_dirty.getAndSet(dirty) == dirty)
             return;
-        is_dirty = dirty;
-        setLabel(name);
+        // Dirty state changed. Update label on UI thread
+        Platform.runLater(() -> setLabel(name));
+    }
+
+    /** @return Is "Save As" supported, i.e. have file extensions and a save handler? */
+    public boolean isSaveAsSupported()
+    {
+        return file_extensions != null  &&  save_handler != null;
     }
 
     /** Called when user tries to close the tab
@@ -125,7 +157,7 @@ public class DockItemWithInput extends DockItem
      */
     protected boolean okToClose()
     {
-        if (! is_dirty)
+        if (! isDirty())
             return true;
 
         final String text = MessageFormat.format("The {0} has been modified.\n\nSave before closing?", getLabel());
@@ -156,26 +188,28 @@ public class DockItemWithInput extends DockItem
 
     /** Save the content of the item to its current 'input'
      *
-     *  <p>Called by the framework when user invokes the 'Save'
+     *  <p>Called by the framework when user invokes the 'Save*'
      *  menu items or when a 'dirty' tab is closed.
      *
      *  <p>Will never be called when the item remains clean,
      *  i.e. never called {@link #setDirty(true)}.
      *
-     *  <p>Base implementation calls the <code>save_handler</code>
-     *  and clears the dirty flag.
-     *  Derived class may override by calling base implementation
-     *  and then for example clearing the 'undo' history.
-     *
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success
      */
-    public boolean save(final JobMonitor monitor)
+    public final boolean save(final JobMonitor monitor)
     {
+        // 'final' because any save customization should be possible
+        // inside the save_handler
         monitor.beginTask(MessageFormat.format("Saving {0}...", input));
 
         try
-        {
+        {   // If there is no file (input is null or for example http:),
+            // call save_as to prompt for file
+            File file = ResourceParser.getFile(getInput());
+            if (file == null)
+                return save_as(monitor);
+
             if (save_handler == null)
                 throw new Exception("No save_handler provided for 'dirty' " + toString());
             save_handler.run(monitor);
@@ -194,12 +228,43 @@ public class DockItemWithInput extends DockItem
         return true;
     }
 
-    public void save_as(final JobMonitor monitor)
+    /** Prompt for new file, then save the content of the item that file.
+     *
+     *  <p>Called by the framework when user invokes the 'Save As'
+     *  menu item.
+     *
+     *  <p>Will never be called when the item does not report
+     *  {@link #isSaveAsSupported()}.
+     *
+     *  @param monitor {@link JobMonitor} for reporting progress
+     *  @return <code>true</code> on success
+     */
+    public final boolean save_as(final JobMonitor monitor)
     {
-        // TODO Prompt for file
-        // TODO Save in that file
-        // TODO Update input
-        save(monitor);
+        // 'final' because any save customization should be possible
+        // inside the save_handler
+        try
+        {
+            // Prompt for file
+            File file = ResourceParser.getFile(getInput());
+            file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
+                                                    Messages.SaveAs, file, file_extensions);
+            if (file == null)
+                return false;
+
+            // Update input
+            setInput(ResourceParser.getURI(file));
+            // Save in that file
+            return save(monitor);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Save-As error", ex);
+            Platform.runLater(() ->
+                ExceptionDetailsErrorDialog.openError("Save-As error",
+                                                      "Error saving " + getLabel(), ex));
+        }
+        return false;
     }
 
     @Override

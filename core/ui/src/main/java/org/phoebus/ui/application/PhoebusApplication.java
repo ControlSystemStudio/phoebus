@@ -354,16 +354,15 @@ public class PhoebusApplication extends Application {
         file.setOnShowing(event ->
         {
             final DockItemWithInput input_item = active_item_with_input.get();
-            if (input_item == null  ||  !input_item.isDirty())
+            if (input_item == null)
             {
                 file_save.setDisable(true);
                 file_save_as.setDisable(true);
             }
             else
             {
-                file_save.setDisable(false);
-                // TODO canSaveAs()
-                file_save_as.setDisable(false);
+                file_save.setDisable(! input_item.isDirty());
+                file_save_as.setDisable(! input_item.isSaveAsSupported());
             }
         });
         menuBar.getMenus().add(file);
