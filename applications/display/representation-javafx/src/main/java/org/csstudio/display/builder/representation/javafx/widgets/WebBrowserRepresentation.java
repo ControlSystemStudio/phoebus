@@ -15,8 +15,8 @@ import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.jobs.JobManager;
 
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;

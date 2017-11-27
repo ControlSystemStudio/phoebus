@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.ui.jobs;
+package org.phoebus.framework.jobs;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
+import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.jobs.JobManager;
 
 /** Demo of the Job API
  *  @author Kay Kasemir

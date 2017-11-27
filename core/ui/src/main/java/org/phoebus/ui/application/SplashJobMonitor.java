@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.application;
 
-import org.phoebus.ui.jobs.JobMonitor;
+import org.phoebus.framework.jobs.JobMonitor;
 
 /** {@link JobMonitor} that updates {@link Splash}
  *

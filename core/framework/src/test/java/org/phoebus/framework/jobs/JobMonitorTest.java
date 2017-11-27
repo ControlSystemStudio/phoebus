@@ -5,12 +5,15 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.ui.jobs;
+package org.phoebus.framework.jobs;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
+import org.phoebus.framework.jobs.BasicJobMonitor;
+import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.jobs.SubJobMonitor;
 
 /** Demo of the JobMonitor API
  *  @author Kay Kasemir

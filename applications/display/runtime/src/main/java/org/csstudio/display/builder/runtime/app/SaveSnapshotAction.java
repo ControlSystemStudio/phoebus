@@ -11,10 +11,10 @@ import java.io.File;
 
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.runtime.Messages;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
-import org.phoebus.ui.jobs.JobManager;
 
 import javafx.scene.Parent;
 import javafx.scene.control.MenuItem;

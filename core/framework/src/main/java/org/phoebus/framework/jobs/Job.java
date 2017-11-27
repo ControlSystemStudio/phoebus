@@ -5,9 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.ui.jobs;
+package org.phoebus.framework.jobs;
 
-import static org.phoebus.ui.application.PhoebusApplication.logger;
+import static org.phoebus.framework.jobs.JobManager.logger;
 
 import java.util.logging.Level;
 
