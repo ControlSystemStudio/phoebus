@@ -13,11 +13,11 @@ import java.net.URI;
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.jobs.JobMonitor;
 
 /** Display Editor Instance
  *  @author Kay Kasemir

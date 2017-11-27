@@ -12,13 +12,13 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.util.logging.Level;
 
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.jobs.JobManager;
-import org.phoebus.ui.jobs.JobMonitor;
 
 import javafx.application.Platform;
 import javafx.scene.layout.BorderPane;
