@@ -3,6 +3,7 @@ package org.phoebus.ui.application;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +35,10 @@ import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ListPickerDialog;
 import org.phoebus.ui.dialog.OpenFileDialog;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.docking.DockPaneListener;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.help.OpenAbout;
 import org.phoebus.ui.help.OpenHelp;
@@ -57,6 +61,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -104,6 +109,29 @@ public class PhoebusApplication extends Application {
     private String default_application;
 
     private Stage main_stage;
+
+    private static final WeakReference<DockItemWithInput> NO_ACTIVE_ITEM_WITH_INPUT = new WeakReference<>(null);
+
+    /** Active {@link DockItemWithInput}
+     *
+     *  <p><code>null</code> when there's no active item with input.
+     *  Weak reference so that we don't hold on to a closed tab
+     *  (although closing a tab does tend to activate another tab,
+     *   so that is an unlikely scenario)
+     */
+    private WeakReference<DockItemWithInput> active_item_with_input = NO_ACTIVE_ITEM_WITH_INPUT;
+
+    private final DockPaneListener dock_pane_listener = new DockPaneListener()
+    {
+        @Override
+        public void activeDockItemChanged(final DockItem item)
+        {
+            if (item instanceof DockItemWithInput)
+                active_item_with_input = new WeakReference<>((DockItemWithInput) item);
+            else
+                active_item_with_input = NO_ACTIVE_ITEM_WITH_INPUT;
+        }
+    };
 
 
     /** JavaFX entry point
@@ -220,6 +248,7 @@ public class PhoebusApplication extends Application {
             event.consume();
         });
 
+        DockPane.addListener(dock_pane_listener);
         DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
         monitor.done();
     }
@@ -288,8 +317,7 @@ public class PhoebusApplication extends Application {
             menuBar.setUseSystemMenuBar(true);
 
         // File
-        final Menu file = new Menu(Messages.File);
-        final MenuItem open = new MenuItem(Messages.Open);
+        final MenuItem open = new MenuItem(Messages.Open, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         open.setOnAction(event ->
         {
             final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, last_opened_file, null);
@@ -298,11 +326,15 @@ public class PhoebusApplication extends Application {
             last_opened_file = the_file;
             openResource(ResourceParser.getURI(the_file));
         });
-        file.getItems().add(open);
 
         top_resources_menu = new Menu(Messages.TopResources, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_menu.setDisable(true);
-        file.getItems().add(top_resources_menu);
+
+        final MenuItem file_save = new MenuItem(Messages.Save, ImageCache.getImageView(getClass(), "/icons/save_edit.png"));
+        file_save.setOnAction(event -> JobManager.schedule(Messages.Save, monitor -> active_item_with_input.get().save(monitor)));
+
+        final MenuItem file_save_as = new MenuItem(Messages.SaveAs, ImageCache.getImageView(getClass(), "/icons/saveas_edit.png"));
+        file_save_as.setOnAction(event ->JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor)));
 
         final MenuItem exit = new MenuItem(Messages.Exit);
         exit.setOnAction(event ->
@@ -310,7 +342,30 @@ public class PhoebusApplication extends Application {
             if (closeMainStage(null))
                 stop();
         });
-        file.getItems().add(exit);
+
+        final Menu file = new Menu(Messages.File, null,
+                                   open,
+                                   top_resources_menu,
+                                   new SeparatorMenuItem(),
+                                   file_save,
+                                   file_save_as,
+                                   new SeparatorMenuItem(),
+                                   exit);
+        file.setOnShowing(event ->
+        {
+            final DockItemWithInput input_item = active_item_with_input.get();
+            if (input_item == null  ||  !input_item.isDirty())
+            {
+                file_save.setDisable(true);
+                file_save_as.setDisable(true);
+            }
+            else
+            {
+                file_save.setDisable(false);
+                // TODO canSaveAs()
+                file_save_as.setDisable(false);
+            }
+        });
         menuBar.getMenus().add(file);
 
 

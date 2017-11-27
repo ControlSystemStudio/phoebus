@@ -8,6 +8,7 @@
 package org.phoebus.ui.docking;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -35,9 +36,29 @@ public class DockPane extends TabPane
     /** Logger for all docking related messages */
     public static final Logger logger = Logger.getLogger(DockPane.class.getName());
 
+    private static CopyOnWriteArrayList<DockPaneListener> listeners = new CopyOnWriteArrayList<>();
+
     private static DockPane active = null;
 
     private static boolean always_show_tabs = true;
+
+    /** @param listener Listener to add
+     *  @throws IllegalStateException if listener already added
+     */
+    public static void addListener(final DockPaneListener listener)
+    {
+        if (! listeners.addIfAbsent(listener))
+            throw new IllegalStateException("Duplicate listener");
+    }
+
+    /** @param listener Listener to remove
+     *  @throws IllegalStateException if listener not known
+     */
+    public static void removeListener(final DockPaneListener listener)
+    {
+        if (! listeners.remove(listener))
+            throw new IllegalStateException("Unknown listener");
+    }
 
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
@@ -55,10 +76,24 @@ public class DockPane extends TabPane
         return active;
     }
 
-    // Called by DockStage within package
+    /** Set the 'active' dock stage
+     *
+     *  <p>Called within the phoebus framework,
+     *  for example by DockStage or when restoring
+     *  memento.
+     *  User code should not call, because framework
+     *  automatically tracks the current dock pane
+     *  and item.
+     *
+     *  @param pane Active DockPane
+     */
     public static void setActiveDockPane(final DockPane pane)
     {
         active = pane;
+
+        final DockItem item = (DockItem) pane.getSelectionModel().getSelectedItem();
+        for (DockPaneListener listener : listeners)
+            listener.activeDockItemChanged(item);
     }
 
     /** @return true if even single tab is shown */

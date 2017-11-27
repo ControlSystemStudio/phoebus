@@ -85,6 +85,8 @@ public class DockStage
         // Track active pane via focus
         stage.focusedProperty().addListener((prop, old, focus) ->
         {
+            // Note: Is called twice when window gains focus (true).
+            //       Unclear why, but doesn't cause harm, either.
             if (focus)
                 DockPane.setActiveDockPane(tab_pane);
         });

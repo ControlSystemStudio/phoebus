@@ -17,6 +17,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -101,6 +102,12 @@ public class DockItemWithInput extends DockItem
         return input;
     }
 
+    /** @return Current 'dirty' state */
+    public boolean isDirty()
+    {
+        return is_dirty;
+    }
+
     /** @param dirty Updated 'dirty' state */
     public void setDirty(final boolean dirty)
     {
@@ -138,14 +145,34 @@ public class DockItemWithInput extends DockItem
             return true;
 
         // Save in background job ...
-        JobManager.schedule(MessageFormat.format("Saving {0}...", input), this::do_save);
+        JobManager.schedule(Messages.Save, monitor ->
+        {
+            if (save(monitor))
+                Platform.runLater(this::close);
+        });
         // .. and leave the tab open..
         return false;
     }
 
-    private void do_save(final JobMonitor monitor)
+    /** Save the content of the item to its current 'input'
+     *
+     *  <p>Called by the framework when user invokes the 'Save'
+     *  menu items or when a 'dirty' tab is closed.
+     *
+     *  <p>Will never be called when the item remains clean,
+     *  i.e. never called {@link #setDirty(true)}.
+     *
+     *  <p>Base implementation calls the <code>save_handler</code>
+     *  and clears the dirty flag.
+     *  Derived class may override by calling base implementation
+     *  and then for example clearing the 'undo' history.
+     *
+     *  @param monitor {@link JobMonitor} for reporting progress
+     *  @return <code>true</code> on success
+     */
+    public boolean save(final JobMonitor monitor)
     {
-        monitor.beginTask("Saving...");
+        monitor.beginTask(MessageFormat.format("Saving {0}...", input));
 
         try
         {
@@ -159,12 +186,20 @@ public class DockItemWithInput extends DockItem
             Platform.runLater(() ->
                 ExceptionDetailsErrorDialog.openError("Save error",
                                                       "Error saving " + getLabel(), ex));
-            return;
+            return false;
         }
 
         // Successfully saved the file
-        is_dirty = false;
-        Platform.runLater(this::close);
+        setDirty(false);
+        return true;
+    }
+
+    public void save_as(final JobMonitor monitor)
+    {
+        // TODO Prompt for file
+        // TODO Save in that file
+        // TODO Update input
+        save(monitor);
     }
 
     @Override
