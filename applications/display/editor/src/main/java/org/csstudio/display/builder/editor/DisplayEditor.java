@@ -612,14 +612,6 @@ public class DisplayEditor
         }
     }
 
-    /** Print debug info */
-    public void debug()
-    {
-        System.out.println("JavaFX Nodes for Model's Representation");
-        final int nodes = countAndDumpNodes(widget_parent, 1);
-        System.out.println("Node Count: " + nodes);
-    }
-
     /** Recursively dump nodes
      *  @param parent {@link Parent}
      *  @param level Indentation level

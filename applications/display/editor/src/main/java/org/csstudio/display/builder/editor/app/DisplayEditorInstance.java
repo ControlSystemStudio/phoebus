@@ -8,15 +8,19 @@
 package org.csstudio.display.builder.editor.app;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
+import java.util.Objects;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
+import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
@@ -43,7 +47,7 @@ public class DisplayEditorInstance implements AppInstance
 
         editor_gui = new EditorGUI();
 
-        dock_item = new DockItemWithInput(this, editor_gui.getParentNode(), null, FilenameSupport.file_extensions, this::onSave);
+        dock_item = new DockItemWithInput(this, editor_gui.getParentNode(), null, FilenameSupport.file_extensions, this::doSave);
         dock_pane.addTab(dock_item );
 
         // Mark 'dirty' whenever there's a change, i.e. something to un-do
@@ -73,9 +77,17 @@ public class DisplayEditorInstance implements AppInstance
 
     // TODO save/restore the BorderPane sizes (tree view, properties)
 
-    private void onSave(final JobMonitor monitor)
+    private void doSave(final JobMonitor monitor) throws Exception
     {
-        // TODO
-        System.out.println("Save...");
+        final File file = Objects.requireNonNull(ResourceParser.getFile(dock_item.getInput()));
+        try
+        (
+            final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
+        )
+        {
+            writer.writeModel(editor_gui.getDisplayEditor().getModel());
+        }
+        // TODO Update model and editor to track this file, because "Save As" might have changed it
+        editor_gui.getDisplayEditor().getUndoableActionManager().clear();
     }
 }

@@ -147,15 +147,10 @@ public class EditorGUI
     }
 
     private void extendToolbar(final ToolBar toolbar)
-    {
-        final Button debug = new Button("Debug");
-        debug.setOnAction(event -> editor.debug());
-
+    {   // TODO Move to EditorDemo
         toolbar.getItems().add(0, createButton(new LoadModelAction(this)));
         toolbar.getItems().add(1, createButton(new SaveModelAction(this)));
         toolbar.getItems().add(2, new Separator());
-        toolbar.getItems().add(new Separator());
-        toolbar.getItems().add(debug);
     }
 
 
@@ -177,7 +172,7 @@ public class EditorGUI
 
     /** @return Currently edited file */
     public File getFile()
-    {
+    {   // TODO Move to EditorDemo
         return file;
     }
 
