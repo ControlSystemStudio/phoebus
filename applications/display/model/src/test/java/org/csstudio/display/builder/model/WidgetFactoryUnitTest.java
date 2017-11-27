@@ -166,7 +166,7 @@ public class WidgetFactoryUnitTest
             System.out.println("  Icon URL : " + descriptor.getIconURL());
             if (descriptor.getIconURL() == null)
                 continue;
-//            assertThat(descriptor.getIconURL(), not(nullValue()));
+            assertThat(descriptor.getIconURL(), not(nullValue()));
 
             try
             (
