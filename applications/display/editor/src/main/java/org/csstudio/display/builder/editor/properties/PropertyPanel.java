@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -134,10 +133,13 @@ public class PropertyPanel extends BorderPane
                 properties = commonProperties(primary, other);
             }
 
-            properties = properties.stream()
-                                   .filter(widgetProperty -> widgetProperty.getDescription().toLowerCase().contains(search.toLowerCase()))
-                                   .collect(Collectors.toSet());
-            updatePropertiesView(properties, other);
+            // Filter properties, but preserve order (LinkedHashSet)
+            final Set<WidgetProperty<?>> filtered = new LinkedHashSet<>();
+            for (WidgetProperty<?> prop : properties)
+                if (prop.getDescription().toLowerCase().contains(search.toLowerCase()))
+                    filtered.add(prop);
+
+            updatePropertiesView(filtered, other);
         }
     }
 
