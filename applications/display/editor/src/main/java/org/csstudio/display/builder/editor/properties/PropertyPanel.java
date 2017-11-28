@@ -25,6 +25,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -51,6 +52,14 @@ public class PropertyPanel extends BorderPane
 
         final TextField searchField = new TextField();
         searchField.setPromptText(Messages.SearchTextField);
+        searchField.setOnKeyPressed(event ->
+        {
+            if (event.getCode() == KeyCode.ESCAPE)
+            {
+                searchField.setText("");
+                event.consume();
+            }
+        });
         searchField.textProperty().addListener( ( observable, oldValue, newValue ) -> filterProperties(newValue));
         HBox.setHgrow(searchField, Priority.NEVER);
 
