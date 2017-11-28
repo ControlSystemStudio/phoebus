@@ -80,6 +80,8 @@ public class EditorGUI
 
     private volatile File file = null;
 
+    private SplitPane center_split;
+
     public EditorGUI()
     {
         toolkit = new JFXRepresentation(true);
@@ -98,6 +100,20 @@ public class EditorGUI
         return editor;
     }
 
+    /** @return Divider positions for the 'tree', 'editor' and 'properties' */
+    public double[] getDividerPositions()
+    {
+        return center_split.getDividerPositions();
+    }
+
+    /** @param left Divider positions for 'tree' to 'editor'
+     *  @param right Divider positions for 'editor' to  'properties'
+     */
+    public void setDividerPositions(final double left, final double right)
+    {
+        center_split.setDividerPositions(left, right);
+    }
+
     private Parent createElements()
     {
         editor = new DisplayEditor(toolkit, 50);
@@ -106,7 +122,7 @@ public class EditorGUI
 
         property_panel = new PropertyPanel(editor);
 
-        final SplitPane center = new SplitPane();
+        center_split = new SplitPane();
         final Node widgetsTree = tree.create();
         final Label widgetsHeader = new Label("Widgets");
 
@@ -125,12 +141,12 @@ public class EditorGUI
 
         final Node editor_scene = editor.create();
 
-        center.getItems().addAll(widgetsTree, editor_scene, propertiesBox);
-        center.setDividerPositions(0.2, 0.8);
+        center_split.getItems().addAll(widgetsTree, editor_scene, propertiesBox);
+        center_split.setDividerPositions(0.2, 0.8);
 
         final BorderPane layout = new BorderPane();
-        layout.setCenter(center);
-        BorderPane.setAlignment(center, Pos.TOP_LEFT);
+        layout.setCenter(center_split);
+        BorderPane.setAlignment(center_split, Pos.TOP_LEFT);
 
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 

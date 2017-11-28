@@ -10,12 +10,14 @@ package org.csstudio.display.builder.editor.app;
 import java.io.File;
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.util.ResourceParser;
@@ -29,8 +31,12 @@ import javafx.scene.Node;
 /** Display Editor Instance
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class DisplayEditorInstance implements AppInstance
 {
+    /** Memento tags */
+    private static final String LEFT_DIVIDER = "LEFT_DIVIDER",
+                                RIGHT_DIVIDER = "RIGHT_DIVIDER";
     private final AppDescriptor app;
     private final DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
@@ -75,6 +81,26 @@ public class DisplayEditorInstance implements AppInstance
         dock_item.select();
     }
 
+    @Override
+    public void restore(final Memento memento)
+    {
+        final Optional<Number> left = memento.getNumber(LEFT_DIVIDER);
+        final Optional<Number> right = memento.getNumber(RIGHT_DIVIDER);
+        if (left.isPresent()  &&  right.isPresent())
+            editor_gui.setDividerPositions(left.get().doubleValue(),
+                                           right.get().doubleValue());
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        final double[] dividers = editor_gui.getDividerPositions();
+        if (dividers.length != 2)
+            throw new IllegalStateException("Expect left, right");
+        memento.setNumber(LEFT_DIVIDER, dividers[0]);
+        memento.setNumber(RIGHT_DIVIDER, dividers[1]);
+    }
+
     EditorGUI getEditorGUI()
     {
         return editor_gui;
@@ -86,8 +112,6 @@ public class DisplayEditorInstance implements AppInstance
         dock_item.setInput(resource);
         editor_gui.loadModel(new File(resource));
     }
-
-    // TODO save/restore the BorderPane sizes (tree view, properties)
 
     void doSave(final JobMonitor monitor) throws Exception
     {
