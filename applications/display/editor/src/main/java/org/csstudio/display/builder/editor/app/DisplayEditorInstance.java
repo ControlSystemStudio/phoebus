@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -35,6 +36,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
+import javafx.scene.control.MenuItem;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -84,22 +86,26 @@ public class DisplayEditorInstance implements AppInstance
 
     private void handleContextMenu(final ContextMenu menu)
     {
-        menu.getItems().clear();
-        menu.getItems().add(RunDisplayAction.asMenuItem(this));
+        final ObservableList<MenuItem> items = menu.getItems();
+        items.clear();
+        items.add(RunDisplayAction.asMenuItem(this));
 
-        // TODO Create Group
-        // TODO Remove Group
+        // Depending on number of selected widgets,
+        // allow grouping, ungrouping, morphing
+        final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
+        if (selection.size() > 1)
+            items.add(new CreateGroupAction(editor_gui.getDisplayEditor(), selection));
+        if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
+            items.add(new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0)));
+        if (selection.size() > 0)
+            items.add(new MorphWidgetsMenu(editor_gui.getDisplayEditor()));
         // TODO Edit Embedded
 
-        final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
-        if (selection.size() > 0)
-            menu.getItems().add(new MorphWidgetsMenu(editor_gui.getDisplayEditor()));
-
-        menu.getItems().add(new ReloadDisplayAction(this));
+        items.add(new ReloadDisplayAction(this));
 
         final DisplayModel model = editor_gui.getDisplayEditor().getModel();
         if (model != null  &&  !model.isClassModel())
-            menu.getItems().add(new ReloadClassesAction(this));
+            items.add(new ReloadClassesAction(this));
     }
 
     @Override
