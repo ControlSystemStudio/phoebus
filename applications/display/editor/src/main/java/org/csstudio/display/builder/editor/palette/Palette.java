@@ -7,12 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.palette;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
+import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.Preferences;
 import org.csstudio.display.builder.editor.util.WidgetIcons;
 import org.csstudio.display.builder.editor.util.WidgetTransfer;
@@ -20,16 +24,22 @@ import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 
@@ -62,6 +72,7 @@ public class Palette
     /** Create UI elements
      *  @return Top-level Node of the UI
      */
+    @SuppressWarnings("unchecked")
     public Node create()
     {
         final VBox palette = new VBox();
@@ -78,7 +89,54 @@ public class Palette
         // Using 2*PREFERRED_WIDTH was determined by trial and error
         palette_scroll.setMinWidth(PREFERRED_WIDTH + 12);
         palette_scroll.setPrefWidth(PREFERRED_WIDTH);
-        return palette_scroll;
+
+        // Copy the widgets, i.e. the children of each palette_group,
+        // to the userData.
+        // Actual children are now updated based on search by widget name
+        palette_groups.values().forEach(group -> group.setUserData(new ArrayList<Node>(group.getChildren())));
+
+        final TextField searchField = new TextField();
+        searchField.setPromptText(Messages.SearchTextField);
+        searchField.setPrefColumnCount(9);
+        searchField.setOnKeyPressed(event ->
+        {
+            if (event.getCode() == KeyCode.ESCAPE)
+            {
+                searchField.setText("");
+                event.consume();
+            }
+        });
+        searchField.textProperty().addListener( ( observable, oldValue, search_text ) ->
+        {
+            final String search = search_text.toLowerCase().trim();
+            palette_groups.values().stream().forEach(group ->
+            {
+                group.getChildren().clear();
+                final List<Node> all_widgets = (List<Node>)group.getUserData();
+                if (search.isEmpty())
+                    group.getChildren().setAll(all_widgets);
+                else
+                    group.getChildren().setAll(all_widgets.stream()
+                                                          .filter(node ->
+                                                          {
+                                                             final String text = ((ToggleButton) node).getText().toLowerCase();
+                                                             return text.contains(search);
+                                                          })
+                                                         .collect(Collectors.toList()));
+            });
+        });
+        HBox.setHgrow(searchField, Priority.NEVER);
+
+        final HBox toolsPane = new HBox(6);
+        toolsPane.setAlignment(Pos.CENTER_RIGHT);
+        toolsPane.setPadding(new Insets(6));
+        toolsPane.getChildren().add(searchField);
+
+        BorderPane paletteContainer = new BorderPane();
+        paletteContainer.setTop(toolsPane);
+        paletteContainer.setCenter(palette_scroll);
+
+        return paletteContainer;
     }
 
     /** Create a TilePane for each WidgetCategory
