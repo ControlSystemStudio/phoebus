@@ -615,88 +615,67 @@ public class PropertyPanelSection extends GridPane
         add(separator, 0 + indentationLevel, getNextGridRow(), 7 - 2 * indentationLevel, 1);
     }
 
-    private void fillHeaderIndent ( final int indentationLevel, final int row ) {
-
-        if ( indentationLevel >= 0 ) {
-
-            if ( indentationLevel > 0 ) {
-
-                Label indent = new Label();
-
+    private void fillHeaderIndent(final int indentationLevel, final int row)
+    {
+        if (indentationLevel >= 0)
+        {
+            if (indentationLevel > 0)
+            {
+                final Label indent = new Label();
                 indent.getStyleClass().add("array_property_filler");
                 indent.setMaxWidth(Double.MAX_VALUE);
                 indent.setMaxHeight(Double.MAX_VALUE);
                 indent.setMinWidth(0);
                 indent.setMinHeight(0);
-
                 add(indent, 0, row, indentationLevel, 1);
-
             }
 
             Label indent = new Label();
-
             indent.getStyleClass().add("array_property_filler");
             indent.setMaxWidth(Double.MAX_VALUE);
             indent.setMaxHeight(Double.MAX_VALUE);
             indent.setMinWidth(0);
             indent.setMinHeight(0);
-
             add(indent, 7 - indentationLevel - 1, row, indentationLevel + 1, 1);
 
             Separator separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 0, row + 1, indentationLevel + 1, 1);
 
             separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 7 - indentationLevel - 1, row + 1, indentationLevel + 1, 1);
-
         }
-
     }
 
-    private void fillIndent ( final int indentationLevel, final int row ) {
-
-        if ( indentationLevel > 0 ) {
-
+    private void fillIndent(final int indentationLevel, final int row )
+    {
+        if (indentationLevel > 0)
+        {
             Label indent = new Label();
-
             indent.getStyleClass().add("array_property_filler");
             indent.setMaxWidth(Double.MAX_VALUE);
             indent.setMaxHeight(Double.MAX_VALUE);
             indent.setMinWidth(0);
             indent.setMinHeight(0);
-
             add(indent, 0, row, indentationLevel, 1);
 
             indent = new Label();
-
             indent.getStyleClass().add("array_property_filler");
             indent.setMaxWidth(Double.MAX_VALUE);
             indent.setMaxHeight(Double.MAX_VALUE);
             indent.setMinWidth(0);
             indent.setMinHeight(0);
-
             add(indent, 7 - indentationLevel, row, indentationLevel, 1);
 
             Separator separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 0, row + 1, indentationLevel, 1);
 
             separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 7 - indentationLevel, row + 1, indentationLevel, 1);
-
         }
-
     }
 
     AutocompleteMenu getAutocompleteMenu()
