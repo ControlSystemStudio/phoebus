@@ -46,6 +46,7 @@ public class Messages
     public static String SaveDisplay;
     public static String SaveDisplay_TT;
     public static String ScriptCountFMT;
+    public static String SearchTextField;
     public static String SetPropertyFmt;
     public static String SetWidgetPoints;
     public static String ShowCoordinates;

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
+import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -49,7 +50,7 @@ public class PropertyPanel extends BorderPane
         section = new PropertyPanelSection();
 
         final TextField searchField = new TextField();
-        searchField.setPromptText("Search");
+        searchField.setPromptText(Messages.SearchTextField);
         searchField.textProperty().addListener( ( observable, oldValue, newValue ) -> filterProperties(newValue));
         HBox.setHgrow(searchField, Priority.NEVER);
 
