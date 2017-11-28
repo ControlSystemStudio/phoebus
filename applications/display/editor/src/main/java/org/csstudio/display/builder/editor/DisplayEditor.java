@@ -48,6 +48,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -312,6 +313,12 @@ public class DisplayEditor
     public ToolBar getToolBar()
     {
         return toolbar;
+    }
+
+    /** @return Control in the central editor region to which a context menu could be attached */
+    public Control getContextMenuNode()
+    {
+        return model_root;
     }
 
     /** @return Selection tracker */

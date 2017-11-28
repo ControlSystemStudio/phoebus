@@ -17,25 +17,45 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
 import javafx.scene.control.Button;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 /** Action to save display and execute it
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class RunDisplayAction extends Button
+public class RunDisplayAction implements Runnable
 {
+    private static final Image icon = ImageCache.getImage(DisplayEditor.class, "/icons/run_tool.png");
     private final DisplayEditorInstance editor;
 
-    RunDisplayAction(DisplayEditorInstance editor)
+    public static Button asButton(final DisplayEditorInstance editor)
     {
-        this.editor = editor;
-        setGraphic(ImageCache.getImageView(DisplayEditor.class, "/icons/run_tool.png"));
-        setTooltip(new Tooltip(Messages.Run));
-        setOnAction(event -> run());
+        final Runnable action = new RunDisplayAction(editor);
+        final Button button = new Button();
+        button.setGraphic(new ImageView(icon));
+        button.setTooltip(new Tooltip(Messages.Run));
+        button.setOnAction(event -> action.run());
+        return button;
     }
 
-    private void run()
+    public static MenuItem asMenuItem(final DisplayEditorInstance editor)
+    {
+        final Runnable action = new RunDisplayAction(editor);
+        final MenuItem item = new MenuItem(Messages.Run, new ImageView(icon));
+        item.setOnAction(event -> action.run());
+        return item;
+    }
+
+    private RunDisplayAction(final DisplayEditorInstance editor)
+    {
+        this.editor = editor;
+    }
+
+    @Override
+    public void run()
     {
         JobManager.schedule(Messages.Run, monitor ->
         {

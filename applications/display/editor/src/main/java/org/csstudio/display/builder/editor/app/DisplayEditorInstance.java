@@ -9,11 +9,17 @@ package org.csstudio.display.builder.editor.app;
 
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
+import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.ModelPlugin;
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.persist.WidgetClassesService;
+import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -27,6 +33,9 @@ import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Control;
+import javafx.scene.control.MenuItem;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -60,13 +69,29 @@ public class DisplayEditorInstance implements AppInstance
         editor_gui.getDisplayEditor()
                   .getUndoableActionManager()
                   .addListener((to_undo, to_redo) -> dock_item.setDirty(to_undo != null));
+
+        final ContextMenu menu = new ContextMenu();
+        final Control menu_node = editor_gui.getDisplayEditor().getContextMenuNode();
+        menu_node.setOnContextMenuRequested(event -> handleContextMenu(menu));
+        menu_node.setContextMenu(menu);
     }
 
     private void extendToolbar()
     {
         final ObservableList<Node> toolbar = editor_gui.getDisplayEditor().getToolBar().getItems();
         toolbar.add(ToolbarHelper.createSpring());
-        toolbar.add(new RunDisplayAction(this));
+        toolbar.add(RunDisplayAction.asButton(this));
+    }
+
+    private void handleContextMenu(final ContextMenu menu)
+    {
+        menu.getItems().clear();
+        menu.getItems().add(RunDisplayAction.asMenuItem(this));
+        final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
+        if (selection.size() > 0)
+            menu.getItems().add(new MenuItem("TODO Replace With"));
+        menu.getItems().add(new ReloadDisplayAction(this));
+        menu.getItems().add(new ReloadClassesAction(this));
     }
 
     @Override
@@ -111,6 +136,25 @@ public class DisplayEditorInstance implements AppInstance
         // Set input ASAP to prevent opening another instance for same input
         dock_item.setInput(resource);
         editor_gui.loadModel(new File(resource));
+    }
+
+    void reloadDisplay()
+    {
+        loadDisplay(dock_item.getInput());
+    }
+
+    void loadWidgetClasses()
+    {
+        // Trigger re-load of classes
+        ModelPlugin.reloadConfigurationFiles();
+        // On separate thread..
+        ModelThreadPool.getExecutor().execute(() ->
+        {
+            // get widget classes and apply to model
+            final DisplayModel model = editor_gui.getDisplayEditor().getModel();
+            if (model != null)
+                WidgetClassesService.getWidgetClasses().apply(model);
+        });
     }
 
     void doSave(final JobMonitor monitor) throws Exception

@@ -38,6 +38,8 @@ public class Messages
     public static String MoveUp;
     public static String PointCount_Fmt;
     public static String Redo_TT;
+    public static String ReloadClasses;
+    public static String ReloadDisplay;
     public static String RemoveElement;
     public static String RemoveGroup;
     public static String RemoveWidgets;
