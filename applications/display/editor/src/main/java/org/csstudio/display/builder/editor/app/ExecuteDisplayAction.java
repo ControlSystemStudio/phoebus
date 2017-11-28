@@ -26,14 +26,14 @@ import javafx.scene.image.ImageView;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class RunDisplayAction implements Runnable
+public class ExecuteDisplayAction implements Runnable
 {
     private static final Image icon = ImageCache.getImage(DisplayEditor.class, "/icons/run_tool.png");
     private final DisplayEditorInstance editor;
 
     public static Button asButton(final DisplayEditorInstance editor)
     {
-        final Runnable action = new RunDisplayAction(editor);
+        final Runnable action = new ExecuteDisplayAction(editor);
         final Button button = new Button();
         button.setGraphic(new ImageView(icon));
         button.setTooltip(new Tooltip(Messages.Run));
@@ -43,13 +43,13 @@ public class RunDisplayAction implements Runnable
 
     public static MenuItem asMenuItem(final DisplayEditorInstance editor)
     {
-        final Runnable action = new RunDisplayAction(editor);
+        final Runnable action = new ExecuteDisplayAction(editor);
         final MenuItem item = new MenuItem(Messages.Run, new ImageView(icon));
         item.setOnAction(event -> action.run());
         return item;
     }
 
-    private RunDisplayAction(final DisplayEditorInstance editor)
+    private ExecuteDisplayAction(final DisplayEditorInstance editor)
     {
         this.editor = editor;
     }

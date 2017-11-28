@@ -26,6 +26,7 @@ public class Messages
     public static String CreateGroup;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
+    public static String EditEmbededDisplay;
     public static String Grid;
     public static String LoadDisplay;
     public static String LoadDisplay_TT;

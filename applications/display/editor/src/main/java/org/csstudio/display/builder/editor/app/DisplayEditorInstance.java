@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
@@ -27,6 +28,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -47,7 +49,7 @@ public class DisplayEditorInstance implements AppInstance
     /** Memento tags */
     private static final String LEFT_DIVIDER = "LEFT_DIVIDER",
                                 RIGHT_DIVIDER = "RIGHT_DIVIDER";
-    private final AppDescriptor app;
+    private final AppResourceDescriptor app;
     private final DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
 
@@ -81,25 +83,28 @@ public class DisplayEditorInstance implements AppInstance
     {
         final ObservableList<Node> toolbar = editor_gui.getDisplayEditor().getToolBar().getItems();
         toolbar.add(ToolbarHelper.createSpring());
-        toolbar.add(RunDisplayAction.asButton(this));
+        toolbar.add(ExecuteDisplayAction.asButton(this));
     }
 
     private void handleContextMenu(final ContextMenu menu)
     {
         final ObservableList<MenuItem> items = menu.getItems();
-        items.clear();
-        items.add(RunDisplayAction.asMenuItem(this));
+        items.setAll(ExecuteDisplayAction.asMenuItem(this));
 
         // Depending on number of selected widgets,
         // allow grouping, ungrouping, morphing
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
         if (selection.size() > 1)
             items.add(new CreateGroupAction(editor_gui.getDisplayEditor(), selection));
+
         if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
             items.add(new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0)));
+
+        if (selection.size() == 1  &&  selection.get(0) instanceof EmbeddedDisplayWidget)
+            items.add(new EditEmbeddedDisplayAction(app, (EmbeddedDisplayWidget)selection.get(0)));
+
         if (selection.size() > 0)
             items.add(new MorphWidgetsMenu(editor_gui.getDisplayEditor()));
-        // TODO Edit Embedded
 
         items.add(new ReloadDisplayAction(this));
 
