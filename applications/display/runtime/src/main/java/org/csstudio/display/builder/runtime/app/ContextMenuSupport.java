@@ -22,8 +22,11 @@ import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseReprese
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -36,6 +39,7 @@ import javafx.scene.image.ImageView;
 /** Context menu for a widget or the display
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 class ContextMenuSupport
 {
     private final DisplayRuntimeInstance instance;
@@ -67,7 +71,8 @@ class ContextMenuSupport
      */
     private void fillMenu(final Node node, final Widget widget)
     {
-        menu.getItems().setAll(new WidgetInfoAction(widget));
+        final ObservableList<MenuItem> items = menu.getItems();
+        items.setAll(new WidgetInfoAction(widget));
 
         // Widget actions
         for (ActionInfo info : widget.propActions().getValue().getActions())
@@ -83,16 +88,16 @@ class ContextMenuSupport
                     final String desc = target == Target.REPLACE
                                       ? open_info.getDescription()
                                       : open_info.getDescription() + " (" + target + ")";
-                          menu.getItems().add(createMenuItem(widget,
+                    items.add(createMenuItem(widget,
                                    new OpenDisplayActionInfo(desc, open_info.getFile(),
                                                              open_info.getMacros(), target)));
                 }
             }
             else
-                menu.getItems().add(createMenuItem(widget, info));
+                items.add(createMenuItem(widget, info));
         }
 
-        menu.getItems().add(new SeparatorMenuItem());
+        items.add(new SeparatorMenuItem());
 
         // Add PV-based contributions
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
@@ -106,20 +111,28 @@ class ContextMenuSupport
                 // Add PV-based menu entries
                 ContextMenuHelper.addSupportedEntries(node, menu);
             }
+            items.add(new SeparatorMenuItem());
         }
-
-        menu.getItems().add(new SeparatorMenuItem());
 
         final Scene scene = node.getScene();
         final Parent model_parent = instance.getRepresentation().getModelParent();
-        
-        menu.getItems().add(new SaveSnapshotAction(model_parent));
-        menu.getItems().add(new PrintAction(model_parent));
+        items.add(new SaveSnapshotAction(model_parent));
+        items.add(new PrintAction(model_parent));
         // TODO SendEmail
         // TODO SendToLogbook
-        menu.getItems().add(new FullScreenAction(scene));
-        // TODO Allow editor to add "Open in Editor"
-        menu.getItems().add(new ReloadDisplayAction(instance));
+
+        items.add(new SeparatorMenuItem());
+
+        items.add(new FullScreenAction(scene));
+
+        // If the editor is available, add "Open in Editor"
+        final AppResourceDescriptor editor = ApplicationService.findApplication("display_editor");
+        if (editor != null)
+            items.add(new OpenInEditorAction(editor, instance.getDisplayInfo()));
+
+        items.add(new SeparatorMenuItem());
+
+        items.add(new ReloadDisplayAction(instance));
     }
 
     private static MenuItem createMenuItem(final Widget widget, final ActionInfo info)

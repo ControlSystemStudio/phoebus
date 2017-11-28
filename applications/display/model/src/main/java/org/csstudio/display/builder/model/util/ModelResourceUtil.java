@@ -387,7 +387,9 @@ public class ModelResourceUtil
     {
         if (EXAMPLES_SCHEMA.equals(resource.getScheme()))
             return new File(getExampleURL(resource.toString()).toURI());
-        return ResourceParser.getFile(resource);
+        // To get a file, strip query information,
+        // because new File("file://xxxx?with_query") will throw exception
+        return ResourceParser.getFile(new URI(resource.getScheme(), null, null, -1, resource.getRawPath(), null, null));
     }
 
     /** Open a file, web location, ..
