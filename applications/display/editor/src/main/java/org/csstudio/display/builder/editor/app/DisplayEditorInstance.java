@@ -35,7 +35,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
-import javafx.scene.control.MenuItem;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -87,11 +86,20 @@ public class DisplayEditorInstance implements AppInstance
     {
         menu.getItems().clear();
         menu.getItems().add(RunDisplayAction.asMenuItem(this));
+
+        // TODO Create Group
+        // TODO Remove Group
+        // TODO Edit Embedded
+
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
         if (selection.size() > 0)
-            menu.getItems().add(new MenuItem("TODO Replace With"));
+            menu.getItems().add(new MorphWidgetsMenu(editor_gui.getDisplayEditor()));
+
         menu.getItems().add(new ReloadDisplayAction(this));
-        menu.getItems().add(new ReloadClassesAction(this));
+
+        final DisplayModel model = editor_gui.getDisplayEditor().getModel();
+        if (model != null  &&  !model.isClassModel())
+            menu.getItems().add(new ReloadClassesAction(this));
     }
 
     @Override

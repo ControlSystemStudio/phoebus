@@ -43,6 +43,7 @@ public class Messages
     public static String RemoveElement;
     public static String RemoveGroup;
     public static String RemoveWidgets;
+    public static String ReplaceWith;
     public static String RuleCountFMT;
     public static String Run;
     public static String SaveDisplay;
