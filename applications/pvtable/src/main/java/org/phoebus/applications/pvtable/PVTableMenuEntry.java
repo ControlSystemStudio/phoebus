@@ -33,6 +33,6 @@ public class PVTableMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Display.Utility";
+        return "Display";
     }
 }
