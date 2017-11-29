@@ -37,6 +37,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -75,21 +76,44 @@ public class EditorGUI
 
     private PropertyPanel property_panel;
 
-    final EventHandler<KeyEvent> key_handler = (event) ->
+    // Need mouse location to 'paste' widget,
+    // but key handler does not receive it.
+    // So track mouse in separate mouse listener
+
+    /** Last known mouse location */
+    private int mouse_x, mouse_y;
+
+    /** Track current mouse location inside editor */
+    private final EventHandler<MouseEvent> mouse_tracker = event ->
+    {
+        mouse_x = (int) event.getX();
+        mouse_y = (int) event.getY();
+    };
+
+    private final EventHandler<KeyEvent> key_handler = event ->
     {
         final KeyCode code = event.getCode();
-        if (event.isControlDown()  &&  code == KeyCode.Z)
+        // Use Ctrl-C .. except on Mac, where it's Command-C ..
+        final boolean meta = event.isShortcutDown();
+        if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
-        else if (event.isControlDown()  &&  code == KeyCode.Y)
+        else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (event.isControlDown()  &&  code == KeyCode.X)
+        else if (meta  &&  code == KeyCode.X)
             editor.cutToClipboard();
-        else if (event.isControlDown()  &&  code == KeyCode.C)
+        else if (meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
-        else if (event.isControlDown()  &&  code == KeyCode.V)
-        {   // Pasting somewhere in upper left corner
-            final Random random = new Random();
-            editor.pasteFromClipboard(random.nextInt(100), random.nextInt(100));
+        else if (meta  &&  code == KeyCode.V)
+        {   // Is mouse inside editor?
+            if (! editor.getContextMenuNode()
+                        .getLayoutBounds()
+                        .contains(mouse_x, mouse_y))
+            {   // Pasting somewhere in upper left corner
+                final Random random = new Random();
+                mouse_x = random.nextInt(100);
+                mouse_y = random.nextInt(100);
+            }
+            editor.pasteFromClipboard(mouse_x, mouse_y);
         }
         else // Pass on, don't consume
             return;
@@ -173,6 +197,8 @@ public class EditorGUI
         final BorderPane layout = new BorderPane();
         layout.setCenter(center_split);
         BorderPane.setAlignment(center_split, Pos.TOP_LEFT);
+
+        editor_scene.addEventFilter(MouseEvent.MOUSE_MOVED, mouse_tracker);
 
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 
