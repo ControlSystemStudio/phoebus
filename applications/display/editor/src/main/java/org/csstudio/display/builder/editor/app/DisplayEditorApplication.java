@@ -105,10 +105,15 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         return instance;
     }
 
-    private URI getFileResource(final URI resource)
+    private URI getFileResource(final URI original_resource)
     {
         try
-        {   // Does the resource already point to a local file?
+        {
+            // Strip query from resource, because macros etc.
+            // are only relevant to runtime, not to editor
+            final URI resource = new URI(original_resource.getScheme(), null, original_resource.getPath(), null, null);
+
+            // Does the resource already point to a local file?
             File file = ModelResourceUtil.getFile(resource);
             if (file != null)
             {
@@ -164,7 +169,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         }
         catch (Exception ex)
         {
-            ExceptionDetailsErrorDialog.openError("Error", "Cannot load " + resource, ex);
+            ExceptionDetailsErrorDialog.openError("Error", "Cannot load " + original_resource, ex);
         }
         return null;
     }
