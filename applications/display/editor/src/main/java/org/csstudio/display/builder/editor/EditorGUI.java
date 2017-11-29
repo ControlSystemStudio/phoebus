@@ -22,6 +22,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -175,16 +176,21 @@ public class EditorGUI
     {
         EditorUtil.getExecutor().execute(() ->
         {
+            DisplayModel model;
             try
             {
-                final DisplayModel model = ModelLoader.loadModel(new FileInputStream(file), file.getCanonicalPath());
-                setModel(model);
-                this.file = file;
+                model = ModelLoader.loadModel(new FileInputStream(file), file.getCanonicalPath());
             }
             catch (final Exception ex)
             {
-                logger.log(Level.SEVERE, "Cannot start", ex);
+                logger.log(Level.SEVERE, "Cannot load model from " + file, ex);
+                ExceptionDetailsErrorDialog.openError("Creating empty file",
+                        "Cannot load model from\n" + file + "\n\nCreating new, empty file", ex);
+                model = new DisplayModel();
+                model.propName().setValue("Empty");
             }
+            setModel(model);
+            this.file = file;
         });
     }
 
