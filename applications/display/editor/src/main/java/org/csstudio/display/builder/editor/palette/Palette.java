@@ -23,6 +23,7 @@ import org.csstudio.display.builder.editor.util.WidgetTransfer;
 import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
+import org.phoebus.ui.javafx.ClearingTextField;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -95,17 +96,9 @@ public class Palette
         // Actual children are now updated based on search by widget name
         palette_groups.values().forEach(group -> group.setUserData(new ArrayList<Node>(group.getChildren())));
 
-        final TextField searchField = new TextField();
+        final TextField searchField = new ClearingTextField();
         searchField.setPromptText(Messages.SearchTextField);
         searchField.setPrefColumnCount(9);
-        searchField.setOnKeyPressed(event ->
-        {
-            if (event.getCode() == KeyCode.ESCAPE)
-            {
-                searchField.setText("");
-                event.consume();
-            }
-        });
         searchField.textProperty().addListener( ( observable, oldValue, search_text ) ->
         {
             final String search = search_text.toLowerCase().trim();

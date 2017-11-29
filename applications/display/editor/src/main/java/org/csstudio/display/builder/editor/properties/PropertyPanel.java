@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
+import org.phoebus.ui.javafx.ClearingTextField;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -50,16 +51,8 @@ public class PropertyPanel extends BorderPane
         this.editor = editor;
         section = new PropertyPanelSection();
 
-        final TextField searchField = new TextField();
+        final TextField searchField = new ClearingTextField();
         searchField.setPromptText(Messages.SearchTextField);
-        searchField.setOnKeyPressed(event ->
-        {
-            if (event.getCode() == KeyCode.ESCAPE)
-            {
-                searchField.setText("");
-                event.consume();
-            }
-        });
         searchField.textProperty().addListener( ( observable, oldValue, newValue ) -> filterProperties(newValue));
         HBox.setHgrow(searchField, Priority.NEVER);
 
