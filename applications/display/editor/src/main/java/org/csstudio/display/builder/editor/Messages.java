@@ -23,7 +23,9 @@ public class Messages
     public static String AlignMiddle;
     public static String AlignRight;
     public static String AlignTop;
+    public static String Copy;
     public static String CreateGroup;
+    public static String Delete;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
     public static String DownloadPromptFMT;

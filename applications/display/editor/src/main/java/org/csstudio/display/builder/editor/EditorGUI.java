@@ -16,6 +16,7 @@ import java.util.Random;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -23,16 +24,21 @@ import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 /** GUI with all editor components
@@ -49,6 +55,16 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class EditorGUI
 {
+    private class ActionWapper extends MenuItem
+    {
+        ActionWapper(ActionDescription action)
+        {
+            super(action.getToolTip(),
+                  ImageCache.getImageView(action.getIconResourcePath()));
+            setOnAction(event -> action.run(editor));
+        }
+    }
+
     private final JFXRepresentation toolkit;
 
     private final Parent layout;
@@ -132,26 +148,26 @@ public class EditorGUI
 
         property_panel = new PropertyPanel(editor);
 
-        center_split = new SplitPane();
-        final Node widgetsTree = tree.create();
-        final Label widgetsHeader = new Label("Widgets");
+        // Left: Widget tree
+        Label header = new Label("Widgets");
+        header.setMaxWidth(Double.MAX_VALUE);
+        header.getStyleClass().add("header");
 
-        widgetsHeader.setMaxWidth(Double.MAX_VALUE);
-        widgetsHeader.getStyleClass().add("header");
+        final Control tree_control = tree.create();
+        VBox.setVgrow(tree_control, Priority.ALWAYS);
+        hookWidgetTreeContextMenu(tree_control);
+        final VBox tree_box = new VBox(header, tree_control);
 
-        ((VBox) widgetsTree).getChildren().add(0, widgetsHeader);
-
-        final Label propertiesHeader = new Label("Properties");
-
-        propertiesHeader.setMaxWidth(Double.MAX_VALUE);
-        propertiesHeader.getStyleClass().add("header");
-
-        final VBox propertiesBox = new VBox(propertiesHeader, property_panel);
-
-
+        // Center: Editor
         final Node editor_scene = editor.create();
 
-        center_split.getItems().addAll(widgetsTree, editor_scene, propertiesBox);
+        // Right: Properties
+        header = new Label("Properties");
+        header.setMaxWidth(Double.MAX_VALUE);
+        header.getStyleClass().add("header");
+        final VBox properties_box = new VBox(header, property_panel);
+
+        center_split = new SplitPane(tree_box, editor_scene, properties_box);
         center_split.setDividerPositions(0.2, 0.8);
 
         final BorderPane layout = new BorderPane();
@@ -161,6 +177,18 @@ public class EditorGUI
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 
         return layout;
+    }
+
+    private void hookWidgetTreeContextMenu(final Control node)
+    {
+        final ContextMenu menu = new ContextMenu(
+            new ActionWapper(ActionDescription.COPY),
+            new ActionWapper(ActionDescription.DELETE),
+            new ActionWapper(ActionDescription.TO_BACK),
+            new ActionWapper(ActionDescription.MOVE_UP),
+            new ActionWapper(ActionDescription.MOVE_DOWN),
+            new ActionWapper(ActionDescription.TO_FRONT));
+        node.setContextMenu(menu);
     }
 
     /** @return Currently edited file */
