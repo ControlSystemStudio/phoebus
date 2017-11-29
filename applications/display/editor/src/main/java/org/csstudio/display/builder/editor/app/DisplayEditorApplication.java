@@ -105,6 +105,32 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         return instance;
     }
 
+    /** Prompt for a file name to "save".
+     *
+     *  <p>Used to download a remote file,
+     *  or to create a new file.
+     *
+     *  <p>File extension will be enforced.
+     *
+     *  @param title Dialog title
+     *  @return File with proper file extension, or <code>null</code>
+     */
+    static File promptForFilename(final String title)
+    {
+        final FileChooser dialog = new FileChooser();
+        dialog.setTitle(title);
+        if (last_local_file != null)
+            dialog.setInitialDirectory(last_local_file.getParentFile());
+        dialog.getExtensionFilters().setAll(FilenameSupport.file_extensions);
+        final Window window = DockPane.getActiveDockPane().getScene().getWindow();
+        File file = dialog.showSaveDialog(window);
+        if (file == null)
+            return null;
+        file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        last_local_file = file;
+        return file;
+    }
+
     private URI getFileResource(final URI original_resource)
     {
         try
@@ -138,20 +164,11 @@ public class DisplayEditorApplication implements AppResourceDescriptor
                 return null;
 
             // Prompt for local file
-            final FileChooser dialog = new FileChooser();
-            dialog.setTitle(Messages.DownloadTitle);
-            if (last_local_file != null)
-                dialog.setInitialDirectory(last_local_file.getParentFile());
-            dialog.getExtensionFilters().setAll(FilenameSupport.file_extensions);
-            final Window window = DockPane.getActiveDockPane().getScene().getWindow();
-            file = dialog.showSaveDialog(window);
-            if (file == null)
+            final File local_file = promptForFilename(Messages.DownloadTitle);
+            if (local_file == null)
                 return null;
 
-            file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
-
             // In background thread, ..
-            final File local_file = last_local_file = file;
             JobManager.schedule(Messages.DownloadTitle, monitor ->
             {
                 monitor.beginTask("Download " + resource);

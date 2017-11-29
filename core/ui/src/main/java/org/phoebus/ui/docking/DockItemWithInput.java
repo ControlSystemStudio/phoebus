@@ -252,6 +252,8 @@ public class DockItemWithInput extends DockItem
             if (file == null)
                 return false;
 
+            // TODO Enforce one of the file extensions, but ignore "*.*"
+
             // Update input
             setInput(ResourceParser.getURI(file));
             // Save in that file
