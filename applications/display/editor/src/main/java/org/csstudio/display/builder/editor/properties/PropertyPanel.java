@@ -26,7 +26,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -41,6 +40,7 @@ public class PropertyPanel extends BorderPane
 {
     private final DisplayEditor        editor;
     private final PropertyPanelSection section;
+    private final TextField            searchField = new ClearingTextField();
 
     /** @param selection Selection handler
      *  @param undo 'Undo' manager
@@ -51,9 +51,8 @@ public class PropertyPanel extends BorderPane
         this.editor = editor;
         section = new PropertyPanelSection();
 
-        final TextField searchField = new ClearingTextField();
         searchField.setPromptText(Messages.SearchTextField);
-        searchField.textProperty().addListener( ( observable, oldValue, newValue ) -> filterProperties(newValue));
+        searchField.textProperty().addListener( ( observable, oldValue, newValue ) -> setSelectedWidgets(editor.getWidgetSelectionHandler().getSelection()));
         HBox.setHgrow(searchField, Priority.NEVER);
 
         final HBox toolsPane = new HBox(6);
@@ -71,11 +70,6 @@ public class PropertyPanel extends BorderPane
 
         // Track currently selected widgets
         editor.getWidgetSelectionHandler().addListener(this::setSelectedWidgets);
-        editor.getWidgetSelectionHandler().addListener(widgets ->
-        {
-            searchField.setDisable(widgets.isEmpty() && editor.getModel() == null);
-            searchField.setText(null);
-        });
 
         setMinHeight(0);
     }
@@ -83,6 +77,29 @@ public class PropertyPanel extends BorderPane
     public AutocompleteMenu getAutocompleteMenu ()
     {
         return section.getAutocompleteMenu();
+    }
+
+    /** Populate UI with properties of widgets
+     *  @param widgets Widgets to configure
+     */
+    private void setSelectedWidgets(final List<Widget> widgets)
+    {
+        final DisplayModel model = editor.getModel();
+
+        searchField.setDisable(widgets.isEmpty() && model == null);
+
+        if (widgets.isEmpty())
+        {   // Use the DisplayModel
+            if (model != null)
+                updatePropertiesView(model.getProperties(), Collections.emptyList());
+        }
+        else
+        {   // Determine common properties
+            final List<Widget> other = new ArrayList<>(widgets);
+            final Widget primary = other.remove(0);
+            final Set<WidgetProperty<?>> properties = commonProperties(primary, other);
+            updatePropertiesView(properties, other);
+        }
     }
 
     /** Determine common properties
@@ -107,73 +124,24 @@ public class PropertyPanel extends BorderPane
         return common;
     }
 
-    private void filterProperties(final String search)
+    private void updatePropertiesView(final Set<WidgetProperty<?>> properties, final List<Widget> other)
     {
-        final List<Widget> selection = editor.getWidgetSelectionHandler().getSelection();
+        final String search = searchField.getText().trim();
+        final Set<WidgetProperty<?>> filtered;
 
-        if (search == null || search.trim().isEmpty())
-            setSelectedWidgets(selection);
+        if (search.trim().isEmpty())
+            filtered = properties;
         else
-        {
-            List<Widget> other;
-            Set<WidgetProperty<?>> properties;
-            final DisplayModel model = editor.getModel();
-
-            if (selection.isEmpty())
-            {
-                if (model != null)
-                {
-                    other = Collections.emptyList();
-                    properties = model.getProperties();
-                }
-                else
-                    return;
-            }
-            else
-            {
-                other = new ArrayList<>(selection);
-                final Widget primary = other.remove(0);
-                properties = commonProperties(primary, other);
-            }
-
-            // Filter properties, but preserve order (LinkedHashSet)
-            final Set<WidgetProperty<?>> filtered = new LinkedHashSet<>();
+        {   // Filter properties, but preserve order (LinkedHashSet)
+            filtered = new LinkedHashSet<>();
             for (WidgetProperty<?> prop : properties)
                 if (prop.getDescription().toLowerCase().contains(search.toLowerCase()))
                     filtered.add(prop);
-
-            updatePropertiesView(filtered, other);
         }
-    }
-
-    /** Populate UI with properties of widgets
-     *  @param widgets Widgets to configure
-     */
-    private void setSelectedWidgets(final List<Widget> widgets)
-    {
-        final DisplayModel model = editor.getModel();
-
-        if (widgets.isEmpty())
-        {   // Use the DisplayModel
-            if (model != null)
-                updatePropertiesView(model.getProperties(), Collections.emptyList());
-        }
-        else
-        {   // Determine common properties
-            final List<Widget> other = new ArrayList<>(widgets);
-            final Widget primary = other.remove(0);
-            final Set<WidgetProperty<?>> properties = commonProperties(primary, other);
-
-            updatePropertiesView(properties, other);
-        }
-    }
-
-    private void updatePropertiesView(final Set<WidgetProperty<?>> properties, final List<Widget> other)
-    {
         final DisplayModel model = editor.getModel();
 
         section.clear();
         section.setClassMode(model != null && model.isClassModel());
-        section.fill(editor.getUndoableActionManager(), properties, other);
+        section.fill(editor.getUndoableActionManager(), filtered, other);
     }
 }
