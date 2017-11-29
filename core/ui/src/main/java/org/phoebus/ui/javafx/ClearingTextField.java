@@ -17,13 +17,14 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 
 /** TextField with 'clear' button
- * 
+ *
  *  <p>As soon as text is entered, a 'clear' button
  *  appears at the right edge.
  *  Clicking it, or pressing 'escape', will clear the text.
- *  
+ *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ClearingTextField extends TextField
 {
     private class CustomSkin extends TextFieldSkin
@@ -31,10 +32,10 @@ public class ClearingTextField extends TextField
         public CustomSkin(TextField text)
         {
             super(text);
-            
+
             // Circle with central 'x' as clear button
             final Circle circle = new Circle();
-            circle.setFill(Color.GRAY);       
+            circle.setFill(Color.GRAY);
             circle.radiusProperty().bind(text.heightProperty().multiply(0.325));
             circle.setFocusTraversable(false);
 
@@ -54,7 +55,7 @@ public class ClearingTextField extends TextField
 
             final Group clear_button = new Group(circle, line1, line2);
             // Move clear button from center of text field to right edge
-            clear_button.translateXProperty().bind(text.widthProperty().subtract(text.heightProperty()).divide(2.0));        
+            clear_button.translateXProperty().bind(text.widthProperty().subtract(text.heightProperty()).divide(2.0));
 
             // Appear as soon as text is entered
             clear_button.visibleProperty().bind(text.textProperty().greaterThan(""));
@@ -64,7 +65,7 @@ public class ClearingTextField extends TextField
             clear_button.setOnMouseClicked(event -> text.setText(""));
         }
     };
-    
+
     public ClearingTextField()
     {
         // Pressing 'escape' clears text

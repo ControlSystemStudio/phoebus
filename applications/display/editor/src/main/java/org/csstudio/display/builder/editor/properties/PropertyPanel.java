@@ -26,6 +26,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -52,6 +53,7 @@ public class PropertyPanel extends BorderPane
         section = new PropertyPanelSection();
 
         searchField.setPromptText(Messages.SearchTextField);
+        searchField.setTooltip(new Tooltip(Messages.PropertyFilterTT));
         searchField.textProperty().addListener( ( observable, oldValue, newValue ) -> setSelectedWidgets(editor.getWidgetSelectionHandler().getSelection()));
         HBox.setHgrow(searchField, Priority.NEVER);
 

@@ -36,7 +36,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -98,6 +97,7 @@ public class Palette
 
         final TextField searchField = new ClearingTextField();
         searchField.setPromptText(Messages.SearchTextField);
+        searchField.setTooltip(new Tooltip(Messages.WidgetFilterTT));
         searchField.setPrefColumnCount(9);
         searchField.textProperty().addListener( ( observable, oldValue, search_text ) ->
         {

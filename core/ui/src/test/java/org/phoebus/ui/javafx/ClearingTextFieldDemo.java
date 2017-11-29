@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.ui.docking;
+package org.phoebus.ui.javafx;
 
 import org.phoebus.ui.javafx.ClearingTextField;
 import javafx.application.Application;
