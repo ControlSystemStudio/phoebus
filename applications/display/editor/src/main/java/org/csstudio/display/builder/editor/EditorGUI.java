@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Random;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
@@ -82,10 +83,18 @@ public class EditorGUI
 
     private SplitPane center_split;
 
+    private volatile Consumer<DisplayModel> model_listener = null;
+
     public EditorGUI()
     {
         toolkit = new JFXRepresentation(true);
         layout = createElements();
+    }
+
+    /** @param listener Listener to call once a new model has been loaded and represented */
+    public void setModelListener(final Consumer<DisplayModel> listener)
+    {
+        model_listener = listener;
     }
 
     /** @return Root node of the editor GUI */
@@ -207,6 +216,10 @@ public class EditorGUI
         {
             editor.setModel(model);
             tree.setModel(model);
+
+            final Consumer<DisplayModel> listener = model_listener;
+            if (listener != null)
+                listener.accept(model);
         });
     }
 

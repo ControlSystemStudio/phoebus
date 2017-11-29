@@ -18,6 +18,7 @@ import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
@@ -34,6 +35,7 @@ import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
@@ -50,8 +52,11 @@ public class DisplayEditorInstance implements AppInstance
     private static final String LEFT_DIVIDER = "LEFT_DIVIDER",
                                 RIGHT_DIVIDER = "RIGHT_DIVIDER";
     private final AppResourceDescriptor app;
-    private final DockItemWithInput dock_item;
+    private DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
+
+    private final WidgetPropertyListener<String> model_name_listener = (property, old_value, new_value) ->
+        Platform.runLater(() -> dock_item.setLabel(property.getValue()));
 
     DisplayEditorInstance(final DisplayEditorApplication app)
     {
@@ -66,7 +71,10 @@ public class DisplayEditorInstance implements AppInstance
         extendToolbar();
 
         dock_item = new DockItemWithInput(this, editor_gui.getParentNode(), null, FilenameSupport.file_extensions, this::doSave);
-        dock_pane.addTab(dock_item );
+        dock_pane.addTab(dock_item);
+
+        // Update tab's title when model has been loaded
+        editor_gui.setModelListener(this::handleNewModel);
 
         // Mark 'dirty' whenever there's a change, i.e. something to un-do
         editor_gui.getDisplayEditor()
@@ -152,9 +160,22 @@ public class DisplayEditorInstance implements AppInstance
 
     void loadDisplay(final URI resource)
     {
+        final DisplayModel old_model = editor_gui.getDisplayEditor().getModel();
+        if (old_model != null)
+            old_model.propName().removePropertyListener(model_name_listener);
+
         // Set input ASAP to prevent opening another instance for same input
         dock_item.setInput(resource);
         editor_gui.loadModel(new File(resource));
+
+        // New model is now loaded in background thread,
+        // and handleNewModel will be invoked when done
+    }
+
+    private void handleNewModel(final DisplayModel model)
+    {
+        model.propName().addPropertyListener(model_name_listener);
+        model_name_listener.propertyChanged(model.propName(), null, null);
     }
 
     void reloadDisplay()
