@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -52,6 +52,25 @@ public class ModelResourceUtil
     private static final Cache<byte[]> url_cache = new Cache<>(Duration.ofSeconds(Preferences.cache_timeout));
 
     private static int timeout_ms = Preferences.read_timeout;
+
+    /** Enforce a file extension
+     *
+     *  @param file File with any or no extension
+     *  @param desired_extension Desired file extension
+     *  @return {@link File} with the desired file extension
+     */
+    public static File enforceFileExtension(final File file, final String desired_extension)
+    {
+        final String path = file.getPath();
+        final int sep = path.lastIndexOf('.');
+        if (sep < 0)
+            return new File(path + "." + desired_extension);
+        final String ext = path.substring(sep + 1);
+        if (! ext.equals(desired_extension))
+            return new File(path.substring(0, sep) + "." + desired_extension);
+
+        return file;
+    }
 
     // Many basic String operations since paths
     // may include " ", which URL won't handle,
@@ -383,6 +402,14 @@ public class ModelResourceUtil
         return null;
     }
 
+    /** Open the file for a resource
+     *
+     *  <p>Handles "example:" and "file:" resources.
+     *
+     *  @param resource A resource for which there is a local file
+     *  @return That {@link File}, otherwise <code>null</code>
+     *  @throws Exception on error
+     */
     public static File getFile(final URI resource) throws Exception
     {
         if (EXAMPLES_SCHEMA.equals(resource.getScheme()))

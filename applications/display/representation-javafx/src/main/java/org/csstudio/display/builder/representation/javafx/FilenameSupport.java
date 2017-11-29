@@ -31,7 +31,7 @@ public class FilenameSupport
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
     {
         new ExtensionFilter(Messages.FileTypeAll, "*.*"),
-        new ExtensionFilter(Messages.FileTypeDisplays, "*.bob")
+        new ExtensionFilter(Messages.FileTypeDisplays, "*." + DisplayModel.FILE_EXTENSION)
     };
 
     /** Default file prompt that uses local file system */
