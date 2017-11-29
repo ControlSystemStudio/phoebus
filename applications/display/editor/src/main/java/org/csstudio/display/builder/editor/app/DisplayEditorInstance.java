@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
@@ -199,7 +200,16 @@ public class DisplayEditorInstance implements AppInstance
 
     void doSave(final JobMonitor monitor) throws Exception
     {
-        final File file = Objects.requireNonNull(ResourceParser.getFile(dock_item.getInput()));
-        editor_gui.saveModelAs(file);
+        final URI orig_input = dock_item.getInput();
+        final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
+        final File proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        if (file.equals(proper))
+            editor_gui.saveModelAs(file);
+        else
+        {   // Save-As with proper file name
+            dock_item.setInput(proper.toURI());
+            if (! dock_item.save_as(monitor))
+                dock_item.setInput(orig_input);
+        }
     }
 }

@@ -25,6 +25,7 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
@@ -32,7 +33,6 @@ import org.phoebus.ui.docking.DockStage;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 /** Display Runtime Application
@@ -117,13 +117,8 @@ public class DisplayEditorApplication implements AppResourceDescriptor
      */
     static File promptForFilename(final String title)
     {
-        final FileChooser dialog = new FileChooser();
-        dialog.setTitle(title);
-        if (last_local_file != null)
-            dialog.setInitialDirectory(last_local_file.getParentFile());
-        dialog.getExtensionFilters().setAll(FilenameSupport.file_extensions);
         final Window window = DockPane.getActiveDockPane().getScene().getWindow();
-        File file = dialog.showSaveDialog(window);
+        File file = new SaveAsDialog().promptForFile(window, title, last_local_file, FilenameSupport.file_extensions);
         if (file == null)
             return null;
         file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);

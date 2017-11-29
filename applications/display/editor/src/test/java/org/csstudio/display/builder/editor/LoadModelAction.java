@@ -10,9 +10,11 @@ package org.csstudio.display.builder.editor;
 import java.io.File;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
+import org.phoebus.ui.dialog.OpenFileDialog;
 
-import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 /** Prompt for file name to save model
@@ -34,26 +36,12 @@ public class LoadModelAction extends ActionDescription
     @Override
     public void run(final DisplayEditor ignored, final boolean selected)
     {
-        final FileChooser dialog = new FileChooser();
-        dialog.setTitle(Messages.LoadDisplay);
-
-        File file = editor.getFile();
-        if (file != null)
-        {
-            dialog.setInitialDirectory(file.getParentFile());
-            dialog.setInitialFileName(file.getName());
-        }
-        dialog.getExtensionFilters().addAll(FilenameSupport.file_extensions);
-        file = dialog.showOpenDialog(window);
+        File file = new OpenFileDialog().promptForFile(window, Messages.LoadDisplay,
+                                                             editor.getFile(), FilenameSupport.file_extensions);
         if (file == null)
             return;
 
-        // If file has no extension, use *.bob.
-        // Check only the filename, not the complete path for '.'!
-        int sep = file.getName().lastIndexOf('.');
-        if (sep < 0)
-            file = new File(file.getPath() + ".bob");
-
+        file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
         editor.loadModel(file);
     }
 }

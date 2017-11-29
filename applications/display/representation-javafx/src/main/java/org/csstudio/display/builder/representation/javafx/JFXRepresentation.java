@@ -36,6 +36,7 @@ import org.csstudio.javafx.rtplot.ColorMappingFunction;
 import org.csstudio.javafx.rtplot.NamedColorMapping;
 import org.csstudio.javafx.rtplot.NamedColorMappings;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
@@ -64,7 +65,6 @@ import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Line;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
-import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 /** Represent model items in JavaFX toolkit
@@ -586,16 +586,9 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     @Override
     public String showSaveAsDialog(final Widget widget, final String initial_value)
     {
-        final FileChooser dialog = new FileChooser();
-        if (initial_value != null)
-        {
-            final File file = new File(initial_value);
-            dialog.setInitialDirectory(file.getParentFile());
-            dialog.setInitialFileName(file.getName());
-        }
-        dialog.getExtensionFilters().addAll(FilenameSupport.file_extensions);
+        File file = (initial_value != null) ? new File(initial_value) : null;
         final Window window = null;
-        final File file = dialog.showSaveDialog(window);
+        file = new SaveAsDialog().promptForFile(window, "Save As", file, FilenameSupport.file_extensions);
         return file == null ? null : file.toString();
     }
 
