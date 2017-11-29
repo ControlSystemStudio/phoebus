@@ -8,10 +8,14 @@
 package org.csstudio.display.builder.editor.app;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
@@ -32,6 +36,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -39,6 +44,9 @@ import org.phoebus.ui.javafx.ToolbarHelper;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
@@ -58,6 +66,9 @@ public class DisplayEditorInstance implements AppInstance
 
     private final WidgetPropertyListener<String> model_name_listener = (property, old_value, new_value) ->
         Platform.runLater(() -> dock_item.setLabel(property.getValue()));
+
+    /** Last time the file was modified */
+    private volatile FileTime modification_marker = null;
 
     DisplayEditorInstance(final DisplayEditorApplication app)
     {
@@ -167,7 +178,17 @@ public class DisplayEditorInstance implements AppInstance
 
         // Set input ASAP to prevent opening another instance for same input
         dock_item.setInput(resource);
-        editor_gui.loadModel(new File(resource));
+
+        final File file = new File(resource);
+        try
+        {
+            modification_marker = Files.getLastModifiedTime(file.toPath());
+        }
+        catch (IOException ex)
+        {
+            modification_marker = null;
+        }
+        editor_gui.loadModel(file);
 
         // New model is now loaded in background thread,
         // and handleNewModel will be invoked when done
@@ -202,9 +223,43 @@ public class DisplayEditorInstance implements AppInstance
     {
         final URI orig_input = dock_item.getInput();
         final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
+
         final File proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
         if (file.equals(proper))
+        {
+            // Check if file has been changed outside of this editor
+            final FileTime as_loaded = modification_marker;
+            if (as_loaded != null)
+            {
+                final FileTime current = Files.getLastModifiedTime(file.toPath());
+                if (! current.equals(as_loaded))
+                {
+                    final CompletableFuture<ButtonType> response = new CompletableFuture<>();
+                    // Prompt on UI thread
+                    Platform.runLater(() ->
+                    {
+                        final Alert prompt = new Alert(AlertType.CONFIRMATION);
+                        prompt.setTitle("File has changed");
+                        prompt.setResizable(true);
+                        prompt.setHeaderText(
+                            "The file\n   " + file.toString() + "\n" +
+                            "has been changed while you were editing it.\n\n" +
+                            "'OK' to save and thus overwrite what somebody else has written,\n" +
+                            "or\n" +
+                            "'Cancel' and then re-load the file or save it under a different name.");
+                        DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
+                        response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
+                    });
+
+                    // If user doesn't want to overwrite, abort the save
+                    if (response.get() != ButtonType.OK)
+                        return;
+                }
+            }
+
             editor_gui.saveModelAs(file);
+            modification_marker = Files.getLastModifiedTime(file.toPath());
+        }
         else
         {   // Save-As with proper file name
             dock_item.setInput(proper.toURI());
