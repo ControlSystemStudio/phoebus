@@ -132,9 +132,9 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         {
             // Strip query from resource, because macros etc.
             // are only relevant to runtime, not to editor
-            final URI resource = new URI(original_resource.getScheme(), original_resource.getRawUserInfo(),
+            final URI resource = new URI(original_resource.getScheme(), original_resource.getUserInfo(),
                                          original_resource.getHost(), original_resource.getPort(),
-                                         original_resource.getRawPath(), null, null);
+                                         original_resource.getPath(), null, null);
 
             // Does the resource already point to a local file?
             File file = ModelResourceUtil.getFile(resource);
