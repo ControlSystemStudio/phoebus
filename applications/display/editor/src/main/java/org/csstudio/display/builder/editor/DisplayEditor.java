@@ -41,6 +41,7 @@ import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -201,7 +202,15 @@ public class DisplayEditor
         zoom_levels.setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
         zoom_levels.setTooltip(new Tooltip("Select Zoom Level"));
         zoom_levels.setPrefWidth(100.0);
-        zoom_levels.setOnAction(event -> zoom_levels.setValue(requestZoom(zoom_levels.getValue())));
+        zoom_levels.setOnAction(event ->
+        {
+            final String actual = requestZoom(zoom_levels.getValue());
+            // Java 9 results in IndexOutOfBoundException
+            // when combo is updated within the action handler,
+            // so defer to another UI tick
+            Platform.runLater(() ->
+                zoom_levels.setValue(actual));
+        });
 
         final MenuButton order = new MenuButton(null, null,
             createMenuItem(ActionDescription.TO_BACK),
