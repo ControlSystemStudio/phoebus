@@ -41,6 +41,7 @@ public class ClearingTextField extends TextField
 
             final Line line1 = new Line();
             line1.setStroke(Color.WHITE);
+            line1.setStrokeWidth(1.7);
             line1.startXProperty().bind(text.heightProperty().multiply(-0.1));
             line1.startYProperty().bind(text.heightProperty().multiply(-0.1));
             line1.endXProperty().bind(text.heightProperty().multiply(0.1));
@@ -48,6 +49,7 @@ public class ClearingTextField extends TextField
 
             final Line line2 = new Line();
             line2.setStroke(Color.WHITE);
+            line2.setStrokeWidth(1.7);
             line2.startXProperty().bind(text.heightProperty().multiply(0.1));
             line2.startYProperty().bind(text.heightProperty().multiply(-0.1));
             line2.endXProperty().bind(text.heightProperty().multiply(-0.1));
