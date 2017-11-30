@@ -413,7 +413,23 @@ public class ModelResourceUtil
     public static File getFile(final URI resource) throws Exception
     {
         if (EXAMPLES_SCHEMA.equals(resource.getScheme()))
-            return new File(getExampleURL(resource.toString()).toURI());
+        {
+            // While examples are in a local directory,
+            // we can get the associated file
+            final URL url = getExampleURL(resource.toString());
+            try
+            {
+                return new File(url.toURI());
+            }
+            catch (Exception ex)
+            {
+                // .. but once examples are inside the jar,
+                // we can only read them as a stream.
+                // There is no File access.
+                logger.log(Level.WARNING, "Cannot get `File` for " + url);
+                return null;
+            }
+        }
         // To get a file, strip query information,
         // because new File("file://xxxx?with_query") will throw exception
         return ResourceParser.getFile(new URI(resource.getScheme(), null, null, -1, resource.getRawPath(), null, null));
@@ -434,7 +450,6 @@ public class ModelResourceUtil
 //            final long milli = Math.round(1000 + Math.random()*4000);
 //            Thread.sleep(milli);
 //        }
-
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
 
