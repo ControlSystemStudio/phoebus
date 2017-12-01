@@ -120,15 +120,14 @@ public class InstallExamplesMenuEntry implements MenuEntry
                     final FileSystem fs = FileSystems.newFileSystem(jar, null);
                 )
                 {
-                    copy(fs.getPath("examples"), examples, monitor);
+                    copy(1, fs.getPath("examples"), examples, monitor);
                 }
             }
             else
             {   // Copy from local filesystem
                 final Path resource_path = Paths.get(resource.toURI());
                 logger.log(Level.INFO, "Install " + resource_path + " into " + examples);
-                // TODO Need to strip the leading directories from resource_path
-                copy(resource_path, examples, monitor);
+                copy(resource_path.getNameCount(), resource_path, examples, monitor);
             }
             // Open editor on UI thread
             Platform.runLater(() ->
@@ -142,12 +141,13 @@ public class InstallExamplesMenuEntry implements MenuEntry
     }
 
     /** Copy all files, recursively
+     *  @param strip Leading path segments to strip from source when creating destination path
      *  @param source Source directory in local file system or inside JAR file
      *  @param destination Destination directory
      *  @param monitor
      *  @throws Exception
      */
-    private static void copy(final Path source, final File destination, final JobMonitor monitor) throws Exception
+    private static void copy(final int strip, final Path source, final File destination, final JobMonitor monitor) throws Exception
     {
         try
         {
@@ -160,11 +160,11 @@ public class InstallExamplesMenuEntry implements MenuEntry
                          if (Files.isDirectory(item))
                          {  // Prevent endless recursion on 'source' itself
                             if (! item.equals(source))
-                                copy(item, destination, monitor);
+                                copy(strip, item, destination, monitor);
                          }
                          else
                          {
-                             final File dest_file = new File(destination, item.subpath(1, item.getNameCount()).toString());
+                             final File dest_file = new File(destination, item.subpath(strip, item.getNameCount()).toString());
                              dest_file.getParentFile().mkdirs();
                              Files.copy(item, dest_file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         }
