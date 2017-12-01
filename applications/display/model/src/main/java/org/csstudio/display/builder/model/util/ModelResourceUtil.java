@@ -17,9 +17,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -285,6 +287,18 @@ public class ModelResourceUtil
         return resource_name;
     }
 
+    private static String URLdecode(final String text)
+    {
+        try
+        {
+            return URLDecoder.decode(text, "UTF-8");
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            return text;
+        }
+    }
+
     /** Attempt to resolve a resource relative to a display
      *
      *  <p>Checks for URL, including somewhat expensive access test,
@@ -313,14 +327,14 @@ public class ModelResourceUtil
         }
 
         // Can display be opened as file?
-        File file = new File(resource_name);
+        File file = new File(URLdecode(resource_name));
         if (file.exists())
         {
             logger.log(Level.FINE, "Found file {0}", file);
             return file.getAbsolutePath();
         }
 
-        file = new File(combined);
+        file = new File(URLdecode(combined));
         if (file.exists())
         {
             logger.log(Level.FINE, "Found file {0}", file);

@@ -92,6 +92,13 @@ public class ResourceParserTest
         {
             // Good, caught it
         }
+
+        // File with space
+        final File spacey = new File("/some/dir with space/file.abc");
+        uri = createResourceURI(spacey.getPath());
+        assertThat(uri, not(nullValue()));
+        assertThat(new File(uri), equalTo(spacey));
+        assertThat(uri.toString(), equalTo("file:/some/dir%20with%20space/file.abc"));
     }
 
     @Test

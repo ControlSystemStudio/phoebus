@@ -32,6 +32,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 
 import javafx.application.Platform;
@@ -74,6 +75,7 @@ public class InstallExamplesMenuEntry implements MenuEntry
         if (examples.exists())
         {   // Prompt user: OK to overwrite?
             final Alert confirm = new Alert(AlertType.CONFIRMATION);
+            DialogHelper.positionDialog(confirm, DockPane.getActiveDockPane(), -300, -200);
             confirm.setTitle(Messages.InstallExamples);
             confirm.setHeaderText(MessageFormat.format(Messages.ReplaceExamplesWarningFMT, examples.toString()));
             if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
