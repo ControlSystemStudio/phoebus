@@ -60,16 +60,14 @@ public class AutocompleteMenu
                     current_field = field;
             };
 
-            text_listener = (obs, oldval, newval) ->
+            text_listener = (obs, oldval, text) ->
             {
-                if (field.isFocused())
-                {
-                    //TODO: could make use of cursor position for more intelligent suggestions
-                    if (updater != null)
-                        updater.requestEntries(field.getText());
-                    if (!menu.isShowing())
-                        menu.show(field, Side.BOTTOM, 0, 0);
-                }
+                if (! field.isFocused())
+                    return;
+                if (updater != null)
+                    updater.requestEntries(text);
+                if (!menu.isShowing())
+                    menu.show(field, Side.BOTTOM, 0, 0);
             };
 
             submit_handler = (event) ->
