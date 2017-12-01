@@ -39,6 +39,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Control;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 
@@ -48,6 +49,16 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class InstallExamplesMenuEntry implements MenuEntry
 {
+    // In principle, this code could turn into a more generic 'Example Install Service'.
+    //
+    // It installs examples into the following directory,
+    // then opens one of the examples with a certain application
+    private static final String EXAMPLE_DIRECTORY = "Display Builder",
+                                INITIAL_EXAMPLE_TO_OPEN = "01_main.bob",
+                                INITIAL_EXAMPLE_APPLICATION = DisplayEditorApplication.NAME;
+    // What's currently specific to the Display Builder is the handling
+    // of the "examples:" URL used for display examples,
+
     @Override
     public String getName()
     {
@@ -64,18 +75,19 @@ public class InstallExamplesMenuEntry implements MenuEntry
     public Void call() throws Exception
     {
         // Prompt for installation directory
-        final Window window = DockPane.getActiveDockPane().getScene().getWindow();
+        final Control pane = DockPane.getActiveDockPane();
+        final Window window = pane.getScene().getWindow();
         final DirectoryChooser select = new DirectoryChooser();
         select.setTitle(Messages.InstallExamplesTitle);
         final File dir = select.showDialog(window);
         if (dir == null)
             return null;
 
-        final File examples = new File(dir, "Display Builder");
+        final File examples = new File(dir, EXAMPLE_DIRECTORY);
         if (examples.exists())
         {   // Prompt user: OK to overwrite?
             final Alert confirm = new Alert(AlertType.CONFIRMATION);
-            DialogHelper.positionDialog(confirm, DockPane.getActiveDockPane(), -300, -200);
+            DialogHelper.positionDialog(confirm, pane, -300, -200);
             confirm.setTitle(Messages.InstallExamples);
             confirm.setHeaderText(MessageFormat.format(Messages.ReplaceExamplesWarningFMT, examples.toString()));
             if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
@@ -134,8 +146,15 @@ public class InstallExamplesMenuEntry implements MenuEntry
             // Open editor on UI thread
             Platform.runLater(() ->
             {
-                final AppResourceDescriptor editor = ApplicationService.findApplication(DisplayEditorApplication.NAME);
-                editor.create(new File(examples, "01_main.bob").toURI());
+                final AppResourceDescriptor editor = ApplicationService.findApplication(INITIAL_EXAMPLE_APPLICATION);
+                editor.create(new File(examples, INITIAL_EXAMPLE_TO_OPEN).toURI());
+
+                // Tell user what was done
+                final Alert info = new Alert(AlertType.INFORMATION);
+                DialogHelper.positionDialog(info, pane, -300, -200);
+                info.setTitle(Messages.InstallExamples);
+                info.setHeaderText(MessageFormat.format(Messages.InstallExamplesDoneFMT, examples.toString()));
+                info.showAndWait();
             });
         });
 

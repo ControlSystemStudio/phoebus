@@ -33,6 +33,7 @@ public class Messages
     public static String EditEmbededDisplay;
     public static String Grid;
     public static String InstallExamples;
+    public static String InstallExamplesDoneFMT;
     public static String InstallExamplesTitle;
     public static String LoadDisplay;
     public static String LoadDisplay_TT;
