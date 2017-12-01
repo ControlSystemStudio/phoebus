@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.autocomplete;
+package org.csstudio.display.builder.representation.javafx.autocomplete;
 
 import java.util.ArrayList;
 import java.util.Collection;

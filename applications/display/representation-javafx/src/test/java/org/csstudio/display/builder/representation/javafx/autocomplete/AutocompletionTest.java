@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.autocomplete;
+package org.csstudio.display.builder.representation.javafx.autocomplete;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -70,10 +70,41 @@ public class AutocompletionTest
         assertThat(entries, hasItems("sim://flipflop"));
     }
 
-    @Test
-    public void testService()
+    // Simulate slow AutocompletionProvider
+    private static class Slowdown implements AutocompletionProvider
     {
-        final AutocompletionService service = new AutocompletionService(SimPVAutocompletion.INSTANCE);
+        private final AutocompletionProvider base;
+
+        public Slowdown(AutocompletionProvider base)
+        {
+            this.base = base;
+        }
+
+        @Override
+        public String getName()
+        {
+            return base.getName();
+        }
+
+        @Override
+        public List<String> getEntries(final String text)
+        {
+            try
+            {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e)
+            {
+                // Ignore
+            }
+            return base.getEntries(text);
+        }
+    }
+
+    @Test
+    public void testService() throws Exception
+    {
+        final AutocompletionService service = new AutocompletionService(new Slowdown(SimPVAutocompletion.INSTANCE));
 
         // Populate some historic entries
         service.addToHistory("Test 2");
@@ -87,17 +118,17 @@ public class AutocompletionTest
         };
 
         service.lookup("est", response_handler);
-        // TODO Service may return items at any time
+        service.awaitCompletion();
         assertThat(result, hasItems("Test 1", "Test 2"));
         result.clear();
 
         service.lookup("flip", response_handler);
-        // TODO Service may return items at any time
+        service.awaitCompletion();
         assertThat(result, hasItems("sim://flipflop"));
         result.clear();
 
         service.lookup("e", response_handler);
-        // TODO Service may return items at any time
+        service.awaitCompletion();
         assertThat(result, hasItems("sim://sine", "Test 1", "Test 2"));
         result.clear();
     }

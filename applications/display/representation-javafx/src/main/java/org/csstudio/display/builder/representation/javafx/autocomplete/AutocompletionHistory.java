@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.autocomplete;
+package org.csstudio.display.builder.representation.javafx.autocomplete;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -14,7 +14,7 @@ import java.util.LinkedList;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class AutocompletionHistory extends CollectionBasedAutocompletionProvider
+public class AutocompletionHistory extends CollectionBasedAutocompletionProvider
 {
     private final LinkedList<String> history = new LinkedList<>();
     private final int max_size;

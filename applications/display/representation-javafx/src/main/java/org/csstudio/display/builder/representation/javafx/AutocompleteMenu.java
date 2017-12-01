@@ -47,11 +47,22 @@ public class AutocompleteMenu
         private final TextInputControl field;
         private final ChangeListener<Boolean> focused_listener;
         private final ChangeListener<String> text_listener;
+        private final EventHandler<KeyEvent> key_handler;
         private final EventHandler<KeyEvent> submit_handler;
 
         ControlWrapper(final TextInputControl field)
         {
             this.field = field;
+
+            // Toggle menu on Ctrl/Command-Space
+            key_handler = event ->
+            {
+                if (event.isShortcutDown()  &&  event.getCode() == KeyCode.SPACE)
+                    if (menu.isShowing())
+                        menu.hide();
+                    else
+                        menu.show(field, Side.BOTTOM, 0, 0);
+            };
 
             focused_listener = (obs, oldval, newval) ->
             {
@@ -76,6 +87,7 @@ public class AutocompleteMenu
                     updateHistory(field.getText());
             };
 
+            field.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
             field.focusedProperty().addListener(focused_listener);
             field.addEventHandler(KeyEvent.KEY_RELEASED, submit_handler);
             field.textProperty().addListener(text_listener);
@@ -86,6 +98,7 @@ public class AutocompleteMenu
             field.textProperty().removeListener(text_listener);
             field.removeEventHandler(KeyEvent.KEY_RELEASED, submit_handler);
             field.focusedProperty().removeListener(focused_listener);
+            field.removeEventFilter(KeyEvent.KEY_PRESSED, key_handler);
         }
     }
 

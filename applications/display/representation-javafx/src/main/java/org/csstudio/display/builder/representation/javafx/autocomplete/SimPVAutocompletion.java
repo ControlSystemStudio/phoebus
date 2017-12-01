@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.autocomplete;
+package org.csstudio.display.builder.representation.javafx.autocomplete;
 
 import java.util.Collection;
 
@@ -15,7 +15,7 @@ import com.sun.tools.javac.util.List;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class SimPVAutocompletion extends CollectionBasedAutocompletionProvider
+public class SimPVAutocompletion extends CollectionBasedAutocompletionProvider
 {
     public static final AutocompletionProvider INSTANCE = new SimPVAutocompletion();
     private static final List<String> pvs = List.of(
