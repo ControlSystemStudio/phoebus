@@ -160,3 +160,12 @@
     -fx-fill: transparent;
     -fx-stroke: pink;
 }
+
+.macro_button
+{
+	-fx-padding: 3.75 3.75 3.75 3.75;
+	-fx-background-radius: 20;
+	-fx-graphic-text-gap: 0;
+	-fx-content-display: graphic-only;
+	-fx-snap-to-pixel: false
+}

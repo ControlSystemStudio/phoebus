@@ -20,14 +20,14 @@ import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ToolbarHelper;
-import org.phoebus.ui.jobs.JobManager;
-import org.phoebus.ui.jobs.JobMonitor;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -85,7 +85,7 @@ public class DisplayRuntimeInstance implements AppInstance
         BorderPane.setMargin(toolbar, new Insets(5, 5, 0, 5));
         layout.setTop(toolbar);
         layout.setCenter(representation.createModelRoot());
-        dock_item = new DockItemWithInput(this, layout, null, null);
+        dock_item = new DockItemWithInput(this, layout, null, null, null);
         dock_pane.addTab(dock_item);
 
         representation.getModelParent().getProperties().put(MODEL_PARENT_DISPLAY_RUNTIME, this);
@@ -185,6 +185,12 @@ public class DisplayRuntimeInstance implements AppInstance
         display_info = Optional.of(info);
         // load model off UI thread
         JobManager.schedule("Load Display", monitor -> loadModel(monitor, info));
+    }
+
+    /** Re-load the current input */
+    public void reload()
+    {
+        loadDisplayFile(getDisplayInfo());
     }
 
     /** Load display model, schedule representation

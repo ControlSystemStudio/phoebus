@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,9 +17,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -52,6 +54,25 @@ public class ModelResourceUtil
     private static final Cache<byte[]> url_cache = new Cache<>(Duration.ofSeconds(Preferences.cache_timeout));
 
     private static int timeout_ms = Preferences.read_timeout;
+
+    /** Enforce a file extension
+     *
+     *  @param file File with any or no extension
+     *  @param desired_extension Desired file extension
+     *  @return {@link File} with the desired file extension
+     */
+    public static File enforceFileExtension(final File file, final String desired_extension)
+    {
+        final String path = file.getPath();
+        final int sep = path.lastIndexOf('.');
+        if (sep < 0)
+            return new File(path + "." + desired_extension);
+        final String ext = path.substring(sep + 1);
+        if (! ext.equals(desired_extension))
+            return new File(path.substring(0, sep) + "." + desired_extension);
+
+        return file;
+    }
 
     // Many basic String operations since paths
     // may include " ", which URL won't handle,
@@ -266,6 +287,18 @@ public class ModelResourceUtil
         return resource_name;
     }
 
+    private static String URLdecode(final String text)
+    {
+        try
+        {
+            return URLDecoder.decode(text, "UTF-8");
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            return text;
+        }
+    }
+
     /** Attempt to resolve a resource relative to a display
      *
      *  <p>Checks for URL, including somewhat expensive access test,
@@ -294,14 +327,14 @@ public class ModelResourceUtil
         }
 
         // Can display be opened as file?
-        File file = new File(resource_name);
+        File file = new File(URLdecode(resource_name));
         if (file.exists())
         {
             logger.log(Level.FINE, "Found file {0}", file);
             return file.getAbsolutePath();
         }
 
-        file = new File(combined);
+        file = new File(URLdecode(combined));
         if (file.exists())
         {
             logger.log(Level.FINE, "Found file {0}", file);
@@ -383,11 +416,37 @@ public class ModelResourceUtil
         return null;
     }
 
+    /** Open the file for a resource
+     *
+     *  <p>Handles "example:" and "file:" resources.
+     *
+     *  @param resource A resource for which there is a local file
+     *  @return That {@link File}, otherwise <code>null</code>
+     *  @throws Exception on error
+     */
     public static File getFile(final URI resource) throws Exception
     {
         if (EXAMPLES_SCHEMA.equals(resource.getScheme()))
-            return new File(getExampleURL(resource.toString()).toURI());
-        return ResourceParser.getFile(resource);
+        {
+            // While examples are in a local directory,
+            // we can get the associated file
+            final URL url = getExampleURL(resource.toString());
+            try
+            {
+                return new File(url.toURI());
+            }
+            catch (Exception ex)
+            {
+                // .. but once examples are inside the jar,
+                // we can only read them as a stream.
+                // There is no File access.
+                logger.log(Level.WARNING, "Cannot get `File` for " + url);
+                return null;
+            }
+        }
+        // To get a file, strip query information,
+        // because new File("file://xxxx?with_query") will throw exception
+        return ResourceParser.getFile(new URI(resource.getScheme(), null, null, -1, resource.getPath(), null, null));
     }
 
     /** Open a file, web location, ..
@@ -405,7 +464,6 @@ public class ModelResourceUtil
 //            final long milli = Math.round(1000 + Math.random()*4000);
 //            Thread.sleep(milli);
 //        }
-
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
 

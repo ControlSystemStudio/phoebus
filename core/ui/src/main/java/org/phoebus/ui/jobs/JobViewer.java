@@ -13,6 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;

@@ -20,6 +20,7 @@ import java.util.logging.Level;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.beans.property.StringProperty;
 import javafx.event.Event;
@@ -29,9 +30,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -73,21 +74,7 @@ public class DockItem extends Tab
     /** Property key used for the {@link AppDescriptor} */
     public static final String KEY_APPLICATION = "application";
 
-    private final static ImageView detach_icon;
-
-    static
-    {
-        ImageView icon = null;
-        try
-        {
-            icon = new ImageView(new Image(DockItem.class.getResourceAsStream("/icons/detach.png")));
-        }
-        catch (Throwable ex)
-        {
-            logger.log(Level.WARNING, "Cannot obtain icon", ex);
-        }
-        detach_icon = icon;
-    }
+    private final static ImageView detach_icon = ImageCache.getImageView(DockItem.class, "/icons/detach.png");
 
     /** The item that's currently being dragged
      *
@@ -152,9 +139,40 @@ public class DockItem extends Tab
         name_tab.setOnDragDropped(this::handleDrop);
         name_tab.setOnDragDone(this::handleDragDone);
 
+        createContextMenu();
+    }
+
+    private void createContextMenu()
+    {
         final MenuItem detach = new MenuItem("Detach", detach_icon);
         detach.setOnAction(event -> detach());
-        final ContextMenu menu = new ContextMenu(detach);
+
+        final MenuItem close = new MenuItem("Close");
+        close.setOnAction(event -> close());
+
+        final MenuItem close_other = new MenuItem("Close Others");
+        close_other.setOnAction(event ->
+        {
+            for (Tab tab : new ArrayList<>(getTabPane().getTabs()))
+                if ((tab instanceof DockItem)  &&  tab != DockItem.this)
+                    ((DockItem)tab).close();
+        });
+
+        final MenuItem close_all = new MenuItem("Close All");
+        close_all.setOnAction(event ->
+        {
+            for (Tab tab : new ArrayList<>(getTabPane().getTabs()))
+                if ((tab instanceof DockItem))
+                    ((DockItem)tab).close();
+        });
+
+
+        final ContextMenu menu = new ContextMenu(detach,
+                                                 new SeparatorMenuItem(),
+                                                 close,
+                                                 close_other,
+                                                 new SeparatorMenuItem(),
+                                                 close_all);
         name_tab.setContextMenu(menu );
     }
 

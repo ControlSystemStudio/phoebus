@@ -34,7 +34,7 @@ public class PVTableApplication implements AppResourceDescriptor
 
     static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
     {
-        new ExtensionFilter("All", "*.*"),
+        DockItemWithInput.ALL_FILES,
         new ExtensionFilter("PV Table", "*." + PVTableXMLPersistence.FILE_EXTENSION),
         new ExtensionFilter("Autosave", "*." + PVTableAutosavePersistence.FILE_EXTENSION)
     };

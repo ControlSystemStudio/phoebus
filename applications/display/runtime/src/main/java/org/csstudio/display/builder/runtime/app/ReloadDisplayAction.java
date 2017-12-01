@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import org.csstudio.display.builder.runtime.Messages;
+import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -20,15 +21,11 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class ReloadDisplayAction extends MenuItem
 {
-    private static final Image icon = ImageCache.getImage(WidgetInfoAction.class, "/icons/refresh.gif");
+    private static final Image icon = ImageCache.getImage(DockStage.class, "/icons/refresh.png");
 
     ReloadDisplayAction(DisplayRuntimeInstance instance)
     {
         super(Messages.ReloadDisplay, new ImageView(icon));
-
-        setOnAction(event ->
-        {
-            instance.loadDisplayFile(instance.getDisplayInfo());
-        });
+        setOnAction(event -> instance.reload());
     }
 }

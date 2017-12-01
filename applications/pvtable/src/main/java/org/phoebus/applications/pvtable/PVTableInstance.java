@@ -13,6 +13,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
+import java.util.Objects;
 import java.util.logging.Level;
 
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -20,15 +21,14 @@ import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.ui.PVTable;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.jobs.JobManager;
-import org.phoebus.ui.jobs.JobMonitor;
 
 import javafx.application.Platform;
 import javafx.scene.layout.BorderPane;
@@ -51,7 +51,7 @@ public class PVTableInstance implements AppInstance
         final PVTable table = new PVTable(model);
 
         final BorderPane layout = new BorderPane(table);
-        dock_item = new DockItemWithInput(this, layout, null, this::doSave);
+        dock_item = new DockItemWithInput(this, layout, null, PVTableApplication.file_extensions, this::doSave);
         DockPane.getActiveDockPane().addTab(dock_item);
 
         model.addListener(new PVTableModelListener()
@@ -130,14 +130,7 @@ public class PVTableInstance implements AppInstance
 
     private void doSave(final JobMonitor monitor) throws Exception
     {
-        File file = ResourceParser.getFile(dock_item.getInput());
-        if (file == null)
-        {
-            file = new SaveAsDialog().promptForFile(dock_item.getTabPane().getScene().getWindow(), "Save PV Table", null, PVTableApplication.file_extensions);
-            if (file == null)
-                return;
-        }
-        dock_item.setInput(ResourceParser.getURI(file));
+        final File file = Objects.requireNonNull(ResourceParser.getFile(dock_item.getInput()));
         try
         (
             final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));

@@ -12,6 +12,7 @@ import java.util.List;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.properties.BooleanWidgetProperty;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -19,7 +20,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
@@ -29,16 +32,21 @@ import javafx.scene.input.KeyEvent;
 public class BooleanWidgetPropertyBinding
        extends WidgetPropertyBinding<ComboBox<String>, BooleanWidgetProperty>
 {
-    // Checkbox would be more natural for most boolean properties,
-    // but also need to support macros.
-    // ComboBox allows selecting true/false, but can also enter "$(SomeMacro)".
+    /** Checkbox used for plain boolean properties
+     *
+     *  <p>ComboBox is used for macro-based values, "$(SomeMacro)".
+     */
+    private CheckBox check;
+
+    /** Enable macro editing? */
+    private final ToggleButton macroButton;
 
     // Would be nice to just listen to jfx_node.valueProperty(),
     // but want to support 'escape' and loss of focus to revert,
     // and only complete text confirmed with Enter is submitted as an undoable action,
     // not each key stroke.
 
-    /** Update control if model changes */
+    /** Update controls if model changes */
     private final WidgetPropertyListener<Boolean> model_listener = (p, o, n) ->
     {
         if (updating)
@@ -46,13 +54,29 @@ public class BooleanWidgetPropertyBinding
         updating = true;
         try
         {
-            jfx_node.setValue(widget_property.getSpecification());
+            restore();
         }
         finally
         {
             updating = false;
         }
     };
+
+    private final EventHandler<ActionEvent> macro_button_handler = event -> restore();
+
+
+    private final EventHandler<ActionEvent> check_handler = event ->
+    {
+        if (updating)
+            return;
+
+        // Update combo (see restore()), then update model
+        final String spec = Boolean.toString(check.isSelected());
+        jfx_node.setValue(spec);
+        jfx_node.getEditor().setText(spec);
+        submit(spec);
+    };
+
 
     /** When loosing focus, restore control to current value of property.
      *  (If user just submitted a new value, that's a NOP)
@@ -69,13 +93,18 @@ public class BooleanWidgetPropertyBinding
     /** Submit new value, either selected from list or typed with 'Enter' */
     private final EventHandler<ActionEvent> combo_handler = (final ActionEvent event) ->
     {
-        submit();
+        // Get value from combo,
+        // send to check box and model
+        final String spec = jfx_node.getValue();
+        check.setSelected(Boolean.parseBoolean(spec));
+        submit(spec);
     };
 
     /** Revert on Escape, otherwise mark as active to prevent model updates */
     private final EventHandler<KeyEvent> key_filter = (final KeyEvent t) ->
     {
-        if (t.getCode() == KeyCode.ESCAPE)
+        if (t.getCode() == KeyCode.ESCAPE ||
+            t.getCode() == KeyCode.TAB)
         {
             // Revert original value, leave active state
             if (updating)
@@ -90,11 +119,14 @@ public class BooleanWidgetPropertyBinding
     };
 
     public BooleanWidgetPropertyBinding(final UndoableActionManager undo,
-                                        final ComboBox<String> field,
+                                        final CheckBox check, final ComboBox<String> field,
+                                        final ToggleButton macroButton,
                                         final BooleanWidgetProperty widget_property,
                                         final List<Widget> other)
     {
         super(undo, field, widget_property, other);
+        this.check = check;
+        this.macroButton = macroButton;
     }
 
     @Override
@@ -105,20 +137,28 @@ public class BooleanWidgetPropertyBinding
         jfx_node.focusedProperty().addListener(focus_handler);
         jfx_node.addEventFilter(KeyEvent.KEY_PRESSED, key_filter);
         jfx_node.setOnAction(combo_handler);
+        check.setOnAction(check_handler);
+        macroButton.setOnAction(macro_button_handler);
     }
 
     @Override
     public void unbind()
     {
+        macroButton.setOnAction(null);
+        check.setOnAction(null);
         jfx_node.setOnAction(null);
         jfx_node.removeEventFilter(KeyEvent.KEY_PRESSED, key_filter);
         jfx_node.focusedProperty().removeListener(focus_handler);
         widget_property.removePropertyListener(model_listener);
     }
 
-    private void submit()
+    /** Submit value to model
+     *
+     *  @param value Value to submit
+     */
+    private void submit(final String value)
     {
-        final String value = jfx_node.getValue();
+        updating = true;
         undo.execute(new SetMacroizedWidgetPropertyAction(widget_property, value));
         final String path = widget_property.getPath();
         for (Widget w : other)
@@ -132,10 +172,16 @@ public class BooleanWidgetPropertyBinding
     private void restore()
     {
         final String orig = widget_property.getSpecification();
+        check.setSelected(Boolean.parseBoolean(orig));
+
         // 'value' is the internal value of the combo box
         jfx_node.setValue(orig);
         // Also need to update the editor, which will otherwise
         // soon set the 'value'
         jfx_node.getEditor().setText(orig);
+
+        final boolean use_macro = MacroHandler.containsMacros(orig) || macroButton.isSelected();
+        jfx_node.setVisible(use_macro);
+        check.setVisible(! use_macro);
     }
 }

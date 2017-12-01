@@ -16,8 +16,8 @@ import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import org.phoebus.applications.pvtable.Settings;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.jobs.JobManager;
 
 import javafx.application.Platform;
 

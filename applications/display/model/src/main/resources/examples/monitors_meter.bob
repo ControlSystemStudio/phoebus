@@ -2,7 +2,7 @@
 <display version="2.0.0">
   <name>Meter Widgets</name>
   <width>980</width>
-  <height>910</height>
+  <height>1000</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -161,7 +161,7 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_4</name>
-    <text>Mean Value &amp; Needle Type &amp; Tick Mark Ring</text>
+    <text>Mean Value &amp; Tick Mark Ring &amp; Foreground Colour</text>
     <y>610</y>
     <width>580</width>
     <font>
@@ -176,9 +176,9 @@
     <y>640</y>
     <width>200</width>
     <height>100</height>
+    <title>Meter #2</title>
     <average>true</average>
     <average_samples>50</average_samples>
-    <needle_type>1</needle_type>
     <tick_mark_ring_visible>true</tick_mark_ring_visible>
   </widget>
   <widget type="meter" version="2.0.0">
@@ -190,9 +190,13 @@
     <y>640</y>
     <width>200</width>
     <height>200</height>
+    <foreground_color>
+      <color red="51" green="102" blue="51">
+      </color>
+    </foreground_color>
+    <title>Meter #3</title>
     <average>true</average>
     <average_samples>50</average_samples>
-    <needle_type>3</needle_type>
     <tick_mark_ring_visible>true</tick_mark_ring_visible>
   </widget>
   <widget type="meter" version="2.0.0">
@@ -204,9 +208,13 @@
     <y>640</y>
     <width>200</width>
     <height>200</height>
+    <foreground_color>
+      <color red="51" green="77" blue="179">
+      </color>
+    </foreground_color>
+    <title>Meter #1</title>
     <average>true</average>
     <average_samples>50</average_samples>
-    <needle_type>0</needle_type>
     <tick_mark_ring_visible>true</tick_mark_ring_visible>
   </widget>
   <widget type="meter" version="2.0.0">
@@ -218,9 +226,13 @@
     <y>640</y>
     <width>200</width>
     <height>200</height>
+    <foreground_color>
+      <color red="102" green="26" blue="51">
+      </color>
+    </foreground_color>
+    <title>Meter #4</title>
     <average>true</average>
     <average_samples>50</average_samples>
-    <needle_type>5</needle_type>
     <scale_direction>1</scale_direction>
     <tick_mark_ring_visible>true</tick_mark_ring_visible>
   </widget>
@@ -233,10 +245,48 @@
     <y>640</y>
     <width>100</width>
     <height>200</height>
+    <foreground_color>
+      <color red="153" green="153" blue="0">
+      </color>
+    </foreground_color>
+    <title>Meter #5</title>
     <value_visible>false</value_visible>
     <average>true</average>
     <average_samples>50</average_samples>
-    <needle_type>2</needle_type>
     <tick_mark_ring_visible>true</tick_mark_ring_visible>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Linear Meters</text>
+    <y>870</y>
+    <width>580</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="linear-meter" version="2.0.0">
+    <name>Linear Meter</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <x>10</x>
+    <y>900</y>
+    <title>Linear Meter #1</title>
+  </widget>
+  <widget type="linear-meter" version="2.0.0">
+    <name>Linear Meter_1</name>
+    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
+    <x>370</x>
+    <y>900</y>
+    <foreground_color>
+      <color red="26" green="51" blue="153">
+      </color>
+    </foreground_color>
+    <title>Linear Meter #2</title>
+    <lcd_design>28</lcd_design>
+    <bar_color>
+      <color red="179" green="77" blue="26">
+      </color>
+    </bar_color>
+    <flat_bar>true</flat_bar>
   </widget>
 </display>

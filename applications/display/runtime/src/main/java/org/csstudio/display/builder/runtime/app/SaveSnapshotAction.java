@@ -11,17 +11,18 @@ import java.io.File;
 
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.runtime.Messages;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
-import org.phoebus.ui.jobs.JobManager;
 
 import javafx.scene.Parent;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Window;
 
 /** Action for saving snapshot of display
  *  @author Kay Kasemir
@@ -40,13 +41,15 @@ public class SaveSnapshotAction extends MenuItem
 
     private void save(final Parent model_parent)
     {
-        final FileChooser dialog = new FileChooser();
-        dialog.setTitle(Messages.SaveSnapshotSelectFilename);
+        final Window window = model_parent.getScene().getWindow();
+        final ExtensionFilter[] file_extensions = new ExtensionFilter[]
+        {
+            FilenameSupport.file_extensions[0],
+            image_file_extension
+        };
 
-        dialog.getExtensionFilters().setAll(FilenameSupport.file_extensions[0]);
-        dialog.getExtensionFilters().add(image_file_extension);
-
-        final File file = dialog.showSaveDialog(model_parent.getScene().getWindow());
+        final File file = new SaveAsDialog().promptForFile(window, Messages.SaveSnapshotSelectFilename,
+                                                           null, file_extensions);
         if (file == null)
             return;
 

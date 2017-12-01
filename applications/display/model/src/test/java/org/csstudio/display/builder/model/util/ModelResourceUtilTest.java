@@ -13,6 +13,7 @@ import static org.junit.Assert.assertThat;
 import java.io.File;
 import java.net.URI;
 
+import org.csstudio.display.builder.model.DisplayModel;
 import org.junit.Test;
 
 /** JUnit test of the {@link ModelResourceUtil}
@@ -21,6 +22,25 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class ModelResourceUtilTest
 {
+    @Test
+    public void testFile() throws Exception
+    {
+        File bob = new File("/some/path/file.bob");
+
+        // Change from no file extension
+        File file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file"), DisplayModel.FILE_EXTENSION);
+        assertThat(file, equalTo(bob));
+
+        // Change from other file extension
+        file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file.abc"), DisplayModel.FILE_EXTENSION);
+        assertThat(file, equalTo(bob));
+
+        // Leave matching extension
+        file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file.bob"), DisplayModel.FILE_EXTENSION);
+        assertThat(file, equalTo(bob));
+    }
+
+
     @Test
     public void testExamples() throws Exception
     {

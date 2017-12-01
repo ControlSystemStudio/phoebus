@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
+import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
 import org.csstudio.display.builder.editor.util.WidgetIcons;
@@ -24,6 +25,7 @@ import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
 import org.csstudio.display.builder.model.properties.BooleanWidgetProperty;
@@ -43,9 +45,14 @@ import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -54,12 +61,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 
 /** Section of Property panel
  *
@@ -107,7 +117,7 @@ public class PropertyPanelSection extends GridPane
         getColumnConstraints().add(new ColumnConstraints( 6));                                                                          //  column 0 is 3 pixels wide
         getColumnConstraints().add(new ColumnConstraints( 6));                                                                          //  column 1 is 3 pixels wide
         getColumnConstraints().add(new ColumnConstraints(32, USE_COMPUTED_SIZE, Integer.MAX_VALUE, Priority.ALWAYS, HPos.LEFT, true));  //  column 2
-        getColumnConstraints().add(new ColumnConstraints( 3, USE_COMPUTED_SIZE, 16));                                                   //  column 3 is 3 pixels wide
+        getColumnConstraints().add(new ColumnConstraints( 0, USE_COMPUTED_SIZE, Integer.MAX_VALUE));                                    //  column 3 is 3 pixels wide
         getColumnConstraints().add(new ColumnConstraints(32, USE_COMPUTED_SIZE, Integer.MAX_VALUE, Priority.ALWAYS, HPos.LEFT, true));  //  column 4
         getColumnConstraints().add(new ColumnConstraints( 6));                                                                          //  column 5 is 3 pixels wide
         getColumnConstraints().add(new ColumnConstraints( 6));                                                                          //  column 6 is 3 pixels wide
@@ -230,27 +240,57 @@ public class PropertyPanelSection extends GridPane
             final EnumWidgetProperty<?> enum_prop = (EnumWidgetProperty<?>) property;
             final ComboBox<String> combo = new ComboBox<>();
             combo.setPromptText(property.getDefaultValue().toString());
-            combo.setEditable(true);
             combo.getItems().addAll(enum_prop.getLabels());
             combo.setMaxWidth(Double.MAX_VALUE);
-            final EnumWidgetPropertyBinding binding =
-                    new EnumWidgetPropertyBinding(undo, combo, enum_prop, other);
+            combo.setMaxHeight(Double.MAX_VALUE);
+
+            final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
+            macroButton.getStyleClass().add("macro_button");
+            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
+            BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
+            BorderPane.setAlignment(macroButton, Pos.CENTER);
+
+            final EventHandler<ActionEvent> macro_handler = event ->
+            {
+                final boolean use_macro = macroButton.isSelected() ||
+                                          MacroHandler.containsMacros(enum_prop.getSpecification());
+                combo.setEditable(use_macro);
+            };
+            macroButton.setOnAction(macro_handler);
+            macroButton.setSelected(MacroHandler.containsMacros(enum_prop.getSpecification()));
+            macro_handler.handle(null);
+
+            final EnumWidgetPropertyBinding binding = new EnumWidgetPropertyBinding(undo, combo, enum_prop, other);
             bindings.add(binding);
             binding.bind();
-            field = combo;
+
+            field = new BorderPane(combo, null, macroButton, null, null);
         }
         else if (property instanceof BooleanWidgetProperty)
         {
+            final BooleanWidgetProperty bool_prop = (BooleanWidgetProperty) property;
             final ComboBox<String> combo = new ComboBox<>();
             combo.setPromptText(property.getDefaultValue().toString());
-            combo.setEditable(true);
             combo.getItems().addAll("true", "false");
             combo.setMaxWidth(Double.MAX_VALUE);
-            final BooleanWidgetPropertyBinding binding =
-                    new BooleanWidgetPropertyBinding(undo, combo, (BooleanWidgetProperty)property, other);
+            combo.setMaxHeight(Double.MAX_VALUE);
+            combo.setEditable(true);
+
+            // BooleanWidgetPropertyBinding makes either check or combo visible
+            // for plain boolean vs. macro-based value
+            final CheckBox check = new CheckBox();
+            StackPane.setAlignment(check, Pos.CENTER_LEFT);
+            final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
+            macroButton.getStyleClass().add("macro_button");
+            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
+            BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
+            BorderPane.setAlignment(macroButton, Pos.CENTER);
+
+            final BooleanWidgetPropertyBinding binding = new BooleanWidgetPropertyBinding(undo, check, combo, macroButton, bool_prop, other);
             bindings.add(binding);
             binding.bind();
-            field = combo;
+
+            field = new BorderPane(new StackPane(combo, check), null, macroButton, null, null);
         }
         else if (property instanceof ColorMapWidgetProperty)
         {
@@ -575,88 +615,67 @@ public class PropertyPanelSection extends GridPane
         add(separator, 0 + indentationLevel, getNextGridRow(), 7 - 2 * indentationLevel, 1);
     }
 
-    private void fillHeaderIndent ( final int indentationLevel, final int row ) {
-
-        if ( indentationLevel >= 0 ) {
-
-            if ( indentationLevel > 0 ) {
-
-                Label indent = new Label();
-
+    private void fillHeaderIndent(final int indentationLevel, final int row)
+    {
+        if (indentationLevel >= 0)
+        {
+            if (indentationLevel > 0)
+            {
+                final Label indent = new Label();
                 indent.getStyleClass().add("array_property_filler");
                 indent.setMaxWidth(Double.MAX_VALUE);
                 indent.setMaxHeight(Double.MAX_VALUE);
                 indent.setMinWidth(0);
                 indent.setMinHeight(0);
-
                 add(indent, 0, row, indentationLevel, 1);
-
             }
 
             Label indent = new Label();
-
             indent.getStyleClass().add("array_property_filler");
             indent.setMaxWidth(Double.MAX_VALUE);
             indent.setMaxHeight(Double.MAX_VALUE);
             indent.setMinWidth(0);
             indent.setMinHeight(0);
-
             add(indent, 7 - indentationLevel - 1, row, indentationLevel + 1, 1);
 
             Separator separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 0, row + 1, indentationLevel + 1, 1);
 
             separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 7 - indentationLevel - 1, row + 1, indentationLevel + 1, 1);
-
         }
-
     }
 
-    private void fillIndent ( final int indentationLevel, final int row ) {
-
-        if ( indentationLevel > 0 ) {
-
+    private void fillIndent(final int indentationLevel, final int row )
+    {
+        if (indentationLevel > 0)
+        {
             Label indent = new Label();
-
             indent.getStyleClass().add("array_property_filler");
             indent.setMaxWidth(Double.MAX_VALUE);
             indent.setMaxHeight(Double.MAX_VALUE);
             indent.setMinWidth(0);
             indent.setMinHeight(0);
-
             add(indent, 0, row, indentationLevel, 1);
 
             indent = new Label();
-
             indent.getStyleClass().add("array_property_filler");
             indent.setMaxWidth(Double.MAX_VALUE);
             indent.setMaxHeight(Double.MAX_VALUE);
             indent.setMinWidth(0);
             indent.setMinHeight(0);
-
             add(indent, 7 - indentationLevel, row, indentationLevel, 1);
 
             Separator separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 0, row + 1, indentationLevel, 1);
 
             separator = new Separator();
-
             separator.getStyleClass().add("property_separator_filler");
-
             add(separator, 7 - indentationLevel, row + 1, indentationLevel, 1);
-
         }
-
     }
 
     AutocompleteMenu getAutocompleteMenu()

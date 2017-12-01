@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,24 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor;
 
+import static org.csstudio.display.builder.editor.Plugin.logger;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 
+import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.ModelPlugin;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Application;
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -23,18 +33,12 @@ public class EditorDemo extends Application
 {
     private static String display_file = "../model/src/main/resources/examples/01_main.bob";
     private EditorGUI editor;
+    private volatile File file = null;
 
-    /** JavaFX main
-     *  @throws Exception
-     */
-    public static void main(final String[] args) throws Exception
+    /** @return Currently edited file */
+    public File getFile()
     {
-        if (args.length == 1)
-            display_file = args[0];
-
-        LogManager.getLogManager().readConfiguration(new FileInputStream("../../../phoebus-product/src/main/resources/logging.properties"));
-
-        launch(args);
+        return file;
     }
 
     /** JavaFX Start */
@@ -47,6 +51,10 @@ public class EditorDemo extends Application
 
         editor = new EditorGUI();
 
+        final ObservableList<Node> toolbar = editor.getDisplayEditor().getToolBar().getItems();
+        toolbar.add(0, createButton(new LoadModelAction(editor)));
+        toolbar.add(1, createButton(new SaveModelAction(editor)));
+        toolbar.add(2, new Separator());
 
         stage.setTitle("Editor");
         stage.setWidth(1200);
@@ -65,5 +73,34 @@ public class EditorDemo extends Application
         // .. before the model is loaded which may then use predefined colors etc.
         editor.loadModel(new File(display_file));
         stage.setOnCloseRequest((WindowEvent event) -> editor.dispose());
+    }
+
+    private Button createButton(final ActionDescription action)
+    {
+        final Button button = new Button();
+        try
+        {
+            button.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
+        }
+        catch (final Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot load action icon", ex);
+        }
+        button.setTooltip(new Tooltip(action.getToolTip()));
+        button.setOnAction(event -> action.run(editor.getDisplayEditor()));
+        return button;
+    }
+
+    /** JavaFX main
+     *  @throws Exception
+     */
+    public static void main(final String[] args) throws Exception
+    {
+        if (args.length == 1)
+            display_file = args[0];
+
+        LogManager.getLogManager().readConfiguration(new FileInputStream("../../../phoebus-product/src/main/resources/logging.properties"));
+
+        launch(args);
     }
 }

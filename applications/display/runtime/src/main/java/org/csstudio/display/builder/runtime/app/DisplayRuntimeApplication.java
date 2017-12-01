@@ -74,6 +74,13 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
         {   // Found one, raise it
             instance = existing.getApplication();
             instance.raise();
+
+            // Re-load because
+            // a) Editor re-opened this for a file that was just changed
+            // b) Somebody decided to open it again to force a re-load
+            // c) Somebody forgot where the panel is, opened it again,
+            //    so re-load isn't necessary, but also doesn't hurt?
+            instance.reload();
         }
         else
         {   // Nothing found, create new one

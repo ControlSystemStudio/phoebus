@@ -9,10 +9,11 @@ package org.phoebus.ui.pv;
 
 import java.util.Collection;
 
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
-import org.phoebus.ui.jobs.JobManager;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -94,7 +95,7 @@ public class PVList extends BorderPane
     private Node createToolbar()
     {
         final Button refresh = new Button();
-        refresh.setGraphic(new ImageView(new Image(PVList.class.getResourceAsStream("/icons/refresh.png"))));
+        refresh.setGraphic(ImageCache.getImageView(PVList.class, "/icons/refresh.png"));
         refresh.setTooltip(new Tooltip("Refresh the PV Information"));
         refresh.setOnAction(event -> triggerRefresh());
         return refresh;

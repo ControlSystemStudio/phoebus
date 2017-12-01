@@ -15,9 +15,9 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.FilenameWidgetProperty;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
+import org.phoebus.ui.dialog.OpenFileDialog;
 
 import javafx.scene.Node;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.Window;;
@@ -31,30 +31,24 @@ public class FilenameSupport
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
     {
         new ExtensionFilter(Messages.FileTypeAll, "*.*"),
-        new ExtensionFilter(Messages.FileTypeDisplays, "*.bob")
+        new ExtensionFilter(Messages.FileTypeDisplays, "*." + DisplayModel.FILE_EXTENSION)
     };
 
     /** Default file prompt that uses local file system */
     private static final BiFunction<Widget, String, String>  local_file_prompt = (widget, initial) ->
     {
-        final FileChooser dialog = new FileChooser();
+        File file = null;
         try
         {
             final DisplayModel model = widget.getDisplayModel();
-            final File file = new File(ModelResourceUtil.resolveResource(model, initial));
-            if (file.exists())
-            {
-                dialog.setInitialDirectory(file.getParentFile());
-                dialog.setInitialFileName(file.getName());
-            }
+            file = new File(ModelResourceUtil.resolveResource(model, initial));
         }
         catch (Exception ex)
         {
             // Can't set initial file name, ignore.
         }
-        dialog.getExtensionFilters().addAll(file_extensions);
         final Window window = JFXBaseRepresentation.getJFXNode(widget).getScene().getWindow();
-        final File selected = dialog.showOpenDialog(window);
+        final File selected = new OpenFileDialog().promptForFile(window, "Open File", file, file_extensions);
         if (selected == null)
             return null;
         return selected.getPath();

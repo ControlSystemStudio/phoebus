@@ -31,6 +31,28 @@ import org.phoebus.ui.undo.UndoableActionManager;
 @SuppressWarnings("nls")
 public abstract class ActionDescription
 {
+    /** Copy selected widgets */
+    public static final ActionDescription COPY =
+        new ActionDescription("icons/copy_edit.png", Messages.Copy)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            editor.copyToClipboard();
+        }
+    };
+
+    /** Delete selected widgets */
+    public static final ActionDescription DELETE =
+        new ActionDescription("icons/delete.png", Messages.Delete)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            editor.cutToClipboard();
+        }
+    };
+
     /** Enable/disable grid */
     public static final ActionDescription ENABLE_GRID =
         new ActionDescription("icons/grid.png", Messages.Grid)

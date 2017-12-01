@@ -82,13 +82,20 @@ public class ResourceParser
         }
         catch (Throwable ex)
         {
-            throw new Exception("Cannot create URI for '" + resource + "'", ex);
+            try
+            {
+                return new File(resource).toURI();
+            }
+            catch (Exception file_ex)
+            {
+                throw new Exception("Cannot create URI for '" + resource + "'", ex);
+            }
         }
     }
 
     /** Get file for URI
      *  @return URI for the resource
-     *  @return {@link File} if URL represents a file, otherwise <code>null</code>
+     *  @return {@link File} if URI represents a file, otherwise <code>null</code>
      */
     public static File getFile(final URI resource) throws Exception
     {

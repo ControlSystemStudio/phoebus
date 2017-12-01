@@ -41,6 +41,7 @@ import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -48,6 +49,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -200,7 +202,15 @@ public class DisplayEditor
         zoom_levels.setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
         zoom_levels.setTooltip(new Tooltip("Select Zoom Level"));
         zoom_levels.setPrefWidth(100.0);
-        zoom_levels.setOnAction(event -> zoom_levels.setValue(requestZoom(zoom_levels.getValue())));
+        zoom_levels.setOnAction(event ->
+        {
+            final String actual = requestZoom(zoom_levels.getValue());
+            // Java 9 results in IndexOutOfBoundException
+            // when combo is updated within the action handler,
+            // so defer to another UI tick
+            Platform.runLater(() ->
+                zoom_levels.setValue(actual));
+        });
 
         final MenuButton order = new MenuButton(null, null,
             createMenuItem(ActionDescription.TO_BACK),
@@ -312,6 +322,12 @@ public class DisplayEditor
     public ToolBar getToolBar()
     {
         return toolbar;
+    }
+
+    /** @return Control in the central editor region to which a context menu could be attached */
+    public Control getContextMenuNode()
+    {
+        return model_root;
     }
 
     /** @return Selection tracker */
@@ -610,34 +626,6 @@ public class DisplayEditor
         {
             logger.log(Level.WARNING, "Failed to paste content of clipboard", ex);
         }
-    }
-
-    /** Print debug info */
-    public void debug()
-    {
-        System.out.println("JavaFX Nodes for Model's Representation");
-        final int nodes = countAndDumpNodes(widget_parent, 1);
-        System.out.println("Node Count: " + nodes);
-    }
-
-    /** Recursively dump nodes
-     *  @param parent {@link Parent}
-     *  @param level Indentation level
-     *  @return Number of nodes and sub-nodes
-     */
-    private int countAndDumpNodes(final Parent parent, final int level)
-    {
-        int count = 0;
-        for (Node node : parent.getChildrenUnmodifiable())
-        {
-            ++count;
-            for (int i=0; i<level; ++i)
-                System.out.print("  ");
-            System.out.println(node.getClass().getSimpleName());
-            if (node instanceof Parent)
-                count += countAndDumpNodes((Parent) node, level + 1);
-        }
-        return count;
     }
 
     public void dispose()

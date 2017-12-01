@@ -34,15 +34,13 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.collections.ObservableList;
-import javafx.scene.Node;
+import javafx.scene.control.Control;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
 /** Tree view of widget hierarchy
@@ -162,23 +160,18 @@ public class WidgetTree
     }
 
     /** Create UI components
-     *  @return Root {@link Node}
+     *  @return Root {@link Control}
      */
-    public Node create()
+    public Control create()
     {
-        final VBox box = new VBox();
-
         tree_view.setShowRoot(false);
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tree_view.setCellFactory(cell_factory);
 
-        VBox.setVgrow(tree_view, Priority.ALWAYS);
-        box.getChildren().addAll(tree_view);
-
         bindSelections();
         tree_view.setOnKeyPressed(this::handleKeyPress);
 
-        return box;
+        return tree_view;
     }
 
     private void handleKeyPress(final KeyEvent event)

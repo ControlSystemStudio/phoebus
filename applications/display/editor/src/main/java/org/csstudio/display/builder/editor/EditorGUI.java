@@ -13,32 +13,33 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Random;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
-import org.csstudio.display.builder.editor.actions.LoadModelAction;
-import org.csstudio.display.builder.editor.actions.SaveModelAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 /** GUI with all editor components
@@ -55,6 +56,16 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class EditorGUI
 {
+    private class ActionWapper extends MenuItem
+    {
+        ActionWapper(ActionDescription action)
+        {
+            super(action.getToolTip(),
+                  ImageCache.getImageView(action.getIconResourcePath()));
+            setOnAction(event -> action.run(editor));
+        }
+    }
+
     private final JFXRepresentation toolkit;
 
     private final Parent layout;
@@ -65,21 +76,44 @@ public class EditorGUI
 
     private PropertyPanel property_panel;
 
-    final EventHandler<KeyEvent> key_handler = (event) ->
+    // Need mouse location to 'paste' widget,
+    // but key handler does not receive it.
+    // So track mouse in separate mouse listener
+
+    /** Last known mouse location */
+    private int mouse_x, mouse_y;
+
+    /** Track current mouse location inside editor */
+    private final EventHandler<MouseEvent> mouse_tracker = event ->
+    {
+        mouse_x = (int) event.getX();
+        mouse_y = (int) event.getY();
+    };
+
+    private final EventHandler<KeyEvent> key_handler = event ->
     {
         final KeyCode code = event.getCode();
-        if (event.isControlDown()  &&  code == KeyCode.Z)
+        // Use Ctrl-C .. except on Mac, where it's Command-C ..
+        final boolean meta = event.isShortcutDown();
+        if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
-        else if (event.isControlDown()  &&  code == KeyCode.Y)
+        else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (event.isControlDown()  &&  code == KeyCode.X)
+        else if (meta  &&  code == KeyCode.X)
             editor.cutToClipboard();
-        else if (event.isControlDown()  &&  code == KeyCode.C)
+        else if (meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
-        else if (event.isControlDown()  &&  code == KeyCode.V)
-        {   // Pasting somewhere in upper left corner
-            final Random random = new Random();
-            editor.pasteFromClipboard(random.nextInt(100), random.nextInt(100));
+        else if (meta  &&  code == KeyCode.V)
+        {   // Is mouse inside editor?
+            if (! editor.getContextMenuNode()
+                        .getLayoutBounds()
+                        .contains(mouse_x, mouse_y))
+            {   // Pasting somewhere in upper left corner
+                final Random random = new Random();
+                mouse_x = random.nextInt(100);
+                mouse_y = random.nextInt(100);
+            }
+            editor.pasteFromClipboard(mouse_x, mouse_y);
         }
         else // Pass on, don't consume
             return;
@@ -88,10 +122,20 @@ public class EditorGUI
 
     private volatile File file = null;
 
+    private SplitPane center_split;
+
+    private volatile Consumer<DisplayModel> model_listener = null;
+
     public EditorGUI()
     {
         toolkit = new JFXRepresentation(true);
         layout = createElements();
+    }
+
+    /** @param listener Listener to call once a new model has been loaded and represented */
+    public void setModelListener(final Consumer<DisplayModel> listener)
+    {
+        model_listener = listener;
     }
 
     /** @return Root node of the editor GUI */
@@ -106,6 +150,20 @@ public class EditorGUI
         return editor;
     }
 
+    /** @return Divider positions for the 'tree', 'editor' and 'properties' */
+    public double[] getDividerPositions()
+    {
+        return center_split.getDividerPositions();
+    }
+
+    /** @param left Divider positions for 'tree' to 'editor'
+     *  @param right Divider positions for 'editor' to  'properties'
+     */
+    public void setDividerPositions(final double left, final double right)
+    {
+        center_split.setDividerPositions(left, right);
+    }
+
     private Parent createElements()
     {
         editor = new DisplayEditor(toolkit, 50);
@@ -114,65 +172,49 @@ public class EditorGUI
 
         property_panel = new PropertyPanel(editor);
 
-        final SplitPane center = new SplitPane();
-        final Node widgetsTree = tree.create();
-        final Label widgetsHeader = new Label("Widgets");
+        // Left: Widget tree
+        Label header = new Label("Widgets");
+        header.setMaxWidth(Double.MAX_VALUE);
+        header.getStyleClass().add("header");
 
-        widgetsHeader.setMaxWidth(Double.MAX_VALUE);
-        widgetsHeader.getStyleClass().add("header");
+        final Control tree_control = tree.create();
+        VBox.setVgrow(tree_control, Priority.ALWAYS);
+        hookWidgetTreeContextMenu(tree_control);
+        final VBox tree_box = new VBox(header, tree_control);
 
-        ((VBox) widgetsTree).getChildren().add(0, widgetsHeader);
-
-        final Label propertiesHeader = new Label("Properties");
-
-        propertiesHeader.setMaxWidth(Double.MAX_VALUE);
-        propertiesHeader.getStyleClass().add("header");
-
-        final VBox propertiesBox = new VBox(propertiesHeader, property_panel);
-
-
+        // Center: Editor
         final Node editor_scene = editor.create();
-        extendToolbar(editor.getToolBar());
 
-        center.getItems().addAll(widgetsTree, editor_scene, propertiesBox);
-        center.setDividerPositions(0.2, 0.8);
+        // Right: Properties
+        header = new Label("Properties");
+        header.setMaxWidth(Double.MAX_VALUE);
+        header.getStyleClass().add("header");
+        final VBox properties_box = new VBox(header, property_panel);
+
+        center_split = new SplitPane(tree_box, editor_scene, properties_box);
+        center_split.setDividerPositions(0.2, 0.8);
 
         final BorderPane layout = new BorderPane();
-        layout.setCenter(center);
-        BorderPane.setAlignment(center, Pos.TOP_LEFT);
+        layout.setCenter(center_split);
+        BorderPane.setAlignment(center_split, Pos.TOP_LEFT);
+
+        editor_scene.addEventFilter(MouseEvent.MOUSE_MOVED, mouse_tracker);
 
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 
         return layout;
     }
 
-    private void extendToolbar(final ToolBar toolbar)
+    private void hookWidgetTreeContextMenu(final Control node)
     {
-        final Button debug = new Button("Debug");
-        debug.setOnAction(event -> editor.debug());
-
-        toolbar.getItems().add(0, createButton(new LoadModelAction(this)));
-        toolbar.getItems().add(1, createButton(new SaveModelAction(this)));
-        toolbar.getItems().add(2, new Separator());
-        toolbar.getItems().add(new Separator());
-        toolbar.getItems().add(debug);
-    }
-
-
-    private Button createButton(final ActionDescription action)
-    {
-        final Button button = new Button();
-        try
-        {
-            button.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
-        }
-        catch (final Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot load action icon", ex);
-        }
-        button.setTooltip(new Tooltip(action.getToolTip()));
-        button.setOnAction(event -> action.run(editor));
-        return button;
+        final ContextMenu menu = new ContextMenu(
+            new ActionWapper(ActionDescription.COPY),
+            new ActionWapper(ActionDescription.DELETE),
+            new ActionWapper(ActionDescription.TO_BACK),
+            new ActionWapper(ActionDescription.MOVE_UP),
+            new ActionWapper(ActionDescription.MOVE_DOWN),
+            new ActionWapper(ActionDescription.TO_FRONT));
+        node.setContextMenu(menu);
     }
 
     /** @return Currently edited file */
@@ -188,16 +230,21 @@ public class EditorGUI
     {
         EditorUtil.getExecutor().execute(() ->
         {
+            DisplayModel model;
             try
             {
-                final DisplayModel model = ModelLoader.loadModel(new FileInputStream(file), file.getCanonicalPath());
-                setModel(model);
-                this.file = file;
+                model = ModelLoader.loadModel(new FileInputStream(file), file.getCanonicalPath());
             }
             catch (final Exception ex)
             {
-                logger.log(Level.SEVERE, "Cannot start", ex);
+                logger.log(Level.SEVERE, "Cannot load model from " + file, ex);
+                ExceptionDetailsErrorDialog.openError("Creating empty file",
+                        "Cannot load model from\n" + file + "\n\nCreating new, empty file", ex);
+                model = new DisplayModel();
+                model.propName().setValue("Empty");
             }
+            setModel(model);
+            this.file = file;
         });
     }
 
@@ -206,22 +253,20 @@ public class EditorGUI
      */
     public void saveModelAs(final File file)
     {
-        EditorUtil.getExecutor().execute(() ->
+        logger.log(Level.FINE, "Save as {0}", file);
+        try
+        (
+            final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
+        )
         {
-            logger.log(Level.FINE, "Save as {0}", file);
-            try
-            (
-                final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
-            )
-            {
-                writer.writeModel(editor.getModel());
-                this.file = file;
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.SEVERE, "Cannot save as " + file, ex);
-            }
-        });
+            writer.writeModel(editor.getModel());
+            this.file = file;
+            editor.getUndoableActionManager().clear();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot save as " + file, ex);
+        }
     }
 
     private void setModel(final DisplayModel model)
@@ -231,6 +276,10 @@ public class EditorGUI
         {
             editor.setModel(model);
             tree.setModel(model);
+
+            final Consumer<DisplayModel> listener = model_listener;
+            if (listener != null)
+                listener.accept(model);
         });
     }
 
