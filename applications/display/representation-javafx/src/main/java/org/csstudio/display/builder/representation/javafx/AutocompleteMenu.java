@@ -206,11 +206,16 @@ public class AutocompleteMenu
      *
      * @param results_updater
      */
-    public void setUpdater(AutocompleteMenuUpdater results_updater)
+    public void setUpdater(final AutocompleteMenuUpdater results_updater)
     {
         updater = results_updater;
     }
 
+    /** To be called from {@link AutocompleteMenuUpdater}
+     *
+     *  @param label Label for this result set, for example "History"
+     *  @param results Results
+     */
     public void setResults(final String label, final List<String> results)
     {
         setResults(label, results, 0);
