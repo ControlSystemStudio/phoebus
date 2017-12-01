@@ -15,22 +15,23 @@ import java.util.List;
 import java.util.logging.Level;
 
 /** Top Resources
- * 
+ *
  *  URIs with description,
  *  shown in "File" menu to allow
  *  quick access to "main" display etc.
- *  
+ *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class TopResources
 {
     private final List<URI> resources;
     private final List<String> descriptions;
-    
+
     /** Parse top resources from specification
-     * 
+     *
      *  <p>Format: <code>uri|uri,Display name</code>
-     *  
+     *
      * @param specification
      * @return
      */
@@ -47,13 +48,14 @@ public class TopResources
                     final int sep = item.lastIndexOf(',');
                     if (sep > 0)
                     {
-                        resources.add(new URI(item.substring(0, sep)));
-                        descriptions.add(item.substring(sep+1));
+                        resources.add(new URI(item.substring(0, sep).trim()));
+                        descriptions.add(item.substring(sep+1).trim());
                     }
                     else
                     {
-                        resources.add(new URI(item));
-                        descriptions.add(item);
+                        final URI uri = new URI(item.trim());
+                        resources.add(uri);
+                        descriptions.add(uri.getPath());
                     }
                 }
                 catch (Exception ex)
@@ -63,7 +65,7 @@ public class TopResources
             }
         return new TopResources(resources, descriptions);
     }
-    
+
     private TopResources(final List<URI> resources, final List<String> descriptions)
     {
         this.resources = resources;
