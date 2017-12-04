@@ -44,7 +44,6 @@ import javafx.scene.shape.StrokeType;
 /** Dialog for selecting a {@link WidgetColor}
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class WidgetColorDialog extends Dialog<WidgetColor>
 {
     private final static ButtonType DEFAULT = new ButtonType(Messages.ColorDialog_Default, ButtonData.OTHER);
@@ -262,6 +261,7 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
             green_spinner.getValueFactory().setValue(g);
             blue_spinner.getValueFactory().setValue(b);
             alpha_spinner.getValueFactory().setValue(a);
+            current_indicator.setFill(value);
 
             color = new WidgetColor(r, g, b, a);
             updating = false;
