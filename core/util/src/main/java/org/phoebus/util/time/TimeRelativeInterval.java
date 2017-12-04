@@ -43,10 +43,8 @@ public class TimeRelativeInterval {
      * Create a {@link TimeRelativeInterval} with an absolute start time and an
      * absolute end time.
      *
-     * @param start
-     *            the absolute start time of the this time interval
-     * @param end
-     *            the absolute end time of this time interval
+     * @param start the absolute start time of the this time interval
+     * @param end the absolute end time of this time interval
      * @return a {@link TimeRelativeInterval} object starting at Instance start
      *         and ending at Instance end
      */
@@ -61,10 +59,8 @@ public class TimeRelativeInterval {
      * e.g. TimeRelativeInterval.of(TimeParser.parse("last 5 days"),
      * TimeParser.parse("2 days ago"))
      * 
-     * @param start
-     *            the relative start
-     * @param end
-     *            the relative end
+     * @param start the relative start
+     * @param end the relative end
      * @return a
      */
     public static TimeRelativeInterval of(TemporalAmount start, TemporalAmount end) {
@@ -79,10 +75,8 @@ public class TimeRelativeInterval {
      * e.g. TimeRelativeInterval.of(TimeParser.parse("last 5 days"),
      * Instant.now())
      * 
-     * @param start
-     *            the relative start
-     * @param end
-     *            the absolute end
+     * @param start the relative start
+     * @param end the absolute end
      * @return
      */
     public static TimeRelativeInterval of(TemporalAmount start, Instant end) {
@@ -97,10 +91,8 @@ public class TimeRelativeInterval {
      * e.g. TimeRelativeInterval.of(TimeParser.parse("2017/01/17 13:45"),
      * TimeParser.parse("+2 days"))
      * 
-     * @param start
-     *            the relative start
-     * @param end
-     *            the absolute end
+     * @param start the relative start
+     * @param end the absolute end
      * @return
      */
     public static TimeRelativeInterval of(Instant start, TemporalAmount end) {
@@ -172,11 +164,11 @@ public class TimeRelativeInterval {
             absoluteEnd = getAbsoluteEnd();
         } else {
             if (getRelativeEnd() instanceof Duration) {
-                absoluteEnd = absoluteStart.plus(getRelativeEnd());
+                absoluteEnd = reference.minus(getRelativeEnd());
             } else {
                 absoluteEnd = LocalDateTime
-                        .ofInstant(absoluteStart, ZoneOffset.UTC)
-                        .plus(getRelativeEnd())
+                        .ofInstant(reference, ZoneOffset.UTC)
+                        .minus(getRelativeEnd())
                         .toInstant(ZoneOffset.UTC);
             }
         }

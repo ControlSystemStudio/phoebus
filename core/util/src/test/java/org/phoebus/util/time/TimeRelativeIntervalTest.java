@@ -73,8 +73,32 @@ public class TimeRelativeIntervalTest {
         assertEquals(expectedTimeInterval, timeInterval);
     }
 
+    /**
+     * The {@link TimeRelativeInterval} is defined with both the start and the end as relative definition.
+     * The below tests create an interval which represents a single month.
+     * 
+     */
     @Test
-    public void relativeIntervalinDays() {
+    public void relativeIntervalinDays1() {
+        // Create an interval for January
+        TimeRelativeInterval interval = 
+                TimeRelativeInterval.of(
+                        ofMonths(1),
+                        ofMonths(0));
+        // Check jan it is 31 days
+        TimeInterval jan = interval.toAbsoluteInterval(LocalDateTime.parse("2011-02-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC));
+        assertEquals(31L, Duration.between(jan.getStart(), jan.getEnd()).toDays());
+
+        // Check February is 28 days
+        TimeInterval feb = interval.toAbsoluteInterval(LocalDateTime.parse("2011-03-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC));
+        assertEquals(28L, Duration.between(feb.getStart(), feb.getEnd()).toDays());
+
+        // Check February is 29 days because it is a leap year
+        TimeInterval leapFeb = interval.toAbsoluteInterval(LocalDateTime.parse("2012-03-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC));
+        assertEquals(29L, Duration.between(leapFeb.getStart(), leapFeb.getEnd()).toDays());
+    }
+
+    public void relativeIntervalinDays2() {
         // Create an interval for January
         TimeRelativeInterval interval = 
                 TimeRelativeInterval.of(
