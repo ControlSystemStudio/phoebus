@@ -8,8 +8,7 @@
 package org.csstudio.display.builder.representation.javafx.autocomplete;
 
 import java.util.Collection;
-
-import com.sun.tools.javac.util.List;
+import java.util.List;
 
 /** Autocompletion for simulated PVs
  *  @author Kay Kasemir
@@ -18,16 +17,15 @@ import com.sun.tools.javac.util.List;
 public class SimPVAutocompletion extends CollectionBasedAutocompletionProvider
 {
     public static final AutocompletionProvider INSTANCE = new SimPVAutocompletion();
-    private static final List<String> pvs = List.of(
-        "sim://sine",
-        "sim://sine(min, max, update_seconds)",
-        "sim://sine(min, max, steps, update_seconds)",
-        "sim://ramp",
-        "sim://ramp(min, max, update_seconds)",
-        "sim://ramp(min, max, step, update_seconds)",
-        "sim://noise",
-        "sim://flipflop",
-        "sim://flipflop(update_seconds)"
+    private static final List<Suggestion> pvs = List.of(
+        new Suggestion("sim://sine"),
+        new Suggestion("sim://sine", "(min, max, update_seconds)"),
+        new Suggestion("sim://sine", "(min, max, steps, update_seconds)"),
+        new Suggestion("sim://ramp"),
+        new Suggestion("sim://ramp", "(min, max, update_seconds)"),
+        new Suggestion("sim://ramp", "(min, max, step, update_seconds)"),
+        new Suggestion("sim://noise", "(min, max, update_seconds)"),
+        new Suggestion("sim://flipflop", "(update_seconds)")
         );
 
     private SimPVAutocompletion()
@@ -36,7 +34,7 @@ public class SimPVAutocompletion extends CollectionBasedAutocompletionProvider
     }
 
     @Override
-    protected Collection<String> getAllEntries()
+    protected Collection<Suggestion> getAllEntries()
     {
         return pvs;
     }

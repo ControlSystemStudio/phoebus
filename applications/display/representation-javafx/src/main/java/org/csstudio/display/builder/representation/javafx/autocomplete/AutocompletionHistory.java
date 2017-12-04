@@ -7,14 +7,15 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.autocomplete;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 /** Autocompletion based on previously entered values
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AutocompletionHistory extends CollectionBasedAutocompletionProvider
+public class AutocompletionHistory implements AutocompletionProvider
 {
     private final LinkedList<String> history = new LinkedList<>();
     private final int max_size;
@@ -26,14 +27,13 @@ public class AutocompletionHistory extends CollectionBasedAutocompletionProvider
 
     public AutocompletionHistory(final int max_size)
     {
-        super("History");
         this.max_size = max_size;
     }
 
     @Override
-    protected synchronized Collection<String> getAllEntries()
+    public String getName()
     {
-        return history;
+        return "History";
     }
 
     public synchronized void add(final String entry)
@@ -42,5 +42,17 @@ public class AutocompletionHistory extends CollectionBasedAutocompletionProvider
             history.removeLast();
         history.remove(entry);
         history.addFirst(entry);
+    }
+
+    @Override
+    public synchronized List<Suggestion> getEntries(String text)
+    {
+        // Ignore case in search
+        text = text.toLowerCase();
+        final List<Suggestion> matches = new ArrayList<>();
+        for (String item : history)
+            if (item.toLowerCase().contains(text))
+                matches.add(new Suggestion(item));
+        return matches;
     }
 }

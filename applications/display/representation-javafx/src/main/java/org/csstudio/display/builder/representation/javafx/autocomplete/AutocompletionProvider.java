@@ -26,7 +26,7 @@ public interface AutocompletionProvider
      *  makes the ongoing request obsolete.
      *
      *  @param text Text entered by the user
-     *  @return Suitable entries
+     *  @return Suitable {@link Suggestion}s
      */
-    public List<String> getEntries(String text);
+    public List<Suggestion> getEntries(String text);
 }

@@ -11,19 +11,25 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.Collectors;
+
+import org.csstudio.display.builder.representation.javafx.autocomplete.Suggestion;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
+import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 /** Creates a menu for use with auto-completion. Fields which edit
  *  auto-completeable properties should use attachField on the related
@@ -37,6 +43,12 @@ import javafx.scene.text.Text;
 @SuppressWarnings("nls")
 public class AutocompleteMenu
 {
+    public static void attachStylesheet(final Scene scene)
+    {
+        scene.getStylesheets().add(AutocompleteMenu.class.getResource("opibuilder.css").toExternalForm());
+    }
+
+
     private final ContextMenu menu = new ContextMenu();
     private AutocompleteMenuUpdater updater = null;
     private List<ControlWrapper> fields = new ArrayList<ControlWrapper>();
@@ -225,11 +237,13 @@ public class AutocompleteMenu
     /** To be called from {@link AutocompleteMenuUpdater}
      *
      *  @param label Label for this result set, for example "History"
-     *  @param results Results
+     *  @param entries Results
      */
-    public void setResults(final String label, final List<String> results)
+    // TODO Delete, use next one with List<Suggestion>
+    public void setResults(final String label, final List<Suggestion> suggestions)
     {
-        setResults(label, results, 0);
+        final List<String> entries = suggestions.stream().map(Suggestion::getValue).collect(Collectors.toList());
+        setResults(label, entries, 0);
     }
 
     /**
@@ -239,6 +253,7 @@ public class AutocompleteMenu
      * @param results List of results to be shown
      * @param index Expected index (with respect to labels) of results
      */
+    // TODO use 'priority' to place result in order
     public void setResults(final String label, final List<String> results, int index)
     {
         if (label == null)
@@ -317,16 +332,21 @@ public class AutocompleteMenu
 
     private final CustomMenuItem createHeaderItem(final String header)
     {
+        // Use CustomMenuItem so that 'selecting' this item doesn't hide the menu.
         final CustomMenuItem item = new CustomMenuItem(new Text(header), false);
         item.getStyleClass().add("ac-menu-label");
-        item.setHideOnClick(false);
         item.setMnemonicParsing(false);
+        item.setDisable(true);
         return item;
     }
 
     private final MenuItem createMenuItem(final String text)
     {
-        final MenuItem item = new MenuItem(text);
+        // TODO Use actual comment from Suggestion
+        final Text comment = new Text("Comment");
+        comment.setFill(Color.BLUE);
+        final TextFlow flow = new TextFlow(new Text(text), comment);
+        final MenuItem item = new MenuItem("", flow);
         item.setOnAction((event) ->
         {
             if (current_field == null)

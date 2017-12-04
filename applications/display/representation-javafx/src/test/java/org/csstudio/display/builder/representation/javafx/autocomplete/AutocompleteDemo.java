@@ -26,6 +26,8 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class AutocompleteDemo  extends Application
 {
+    // TODO Extract into API
+    // Singleton, with some way to add site-specific PV name completion
     private static class PVNameCompletion extends AutocompletionService implements AutocompleteMenuUpdater
     {
         private final AutocompleteMenu menu;
@@ -39,7 +41,7 @@ public class AutocompleteDemo  extends Application
         @Override
         public void requestEntries(final String content)
         {
-            lookup(content, (name, entries) -> menu.setResults(name, entries));
+            lookup(content, (name, priority, entries) -> menu.setResults(name, entries));
          }
 
         @Override
@@ -72,6 +74,7 @@ public class AutocompleteDemo  extends Application
         box.setAlignment(Pos.CENTER);
         final BorderPane layout = new BorderPane(box);
         final Scene scene = new Scene(layout);
+        AutocompleteMenu.attachStylesheet(scene);
         stage.setScene(scene);
         stage.show();
     }

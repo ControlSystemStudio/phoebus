@@ -21,9 +21,14 @@
 {
 }
 
-.ac-menu-label /* result provider labels (e.g. "History") */
+/* result provider labels (e.g. "History") 
+ * Is ':disabled', but setting opacity
+ * to still show with full color.
+ */
+.ac-menu-label
 {
     -fx-font-weight:bold;
+    -fx-opacity: 1.0;
 }
 
 /* Default button padding in modena.css:

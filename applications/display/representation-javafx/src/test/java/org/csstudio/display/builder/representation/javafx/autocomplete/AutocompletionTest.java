@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -24,11 +24,16 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class AutocompletionTest
 {
+    static List<String> getValues(final List<Suggestion> entries)
+    {
+        return entries.stream().map(Suggestion::getValue).collect(Collectors.toList());
+    }
+
     @Test
     public void testHistory()
     {
         final AutocompletionHistory history = new AutocompletionHistory();
-        List<String> entries = history.getEntries("e");
+        List<Suggestion> entries = history.getEntries("e");
         assertThat(entries, equalTo(List.of()));
 
         history.add("Test 1");
@@ -38,12 +43,12 @@ public class AutocompletionTest
 
         entries = history.getEntries("e");
         // List is most-recent-first
-        assertThat(entries, equalTo(List.of("Fred", "Test 2", "Test 1")));
+        assertThat(getValues(entries), equalTo(List.of("Fred", "Test 2", "Test 1")));
 
         history.add("Test 1");
         entries = history.getEntries("e");
         // List is most-recent-first
-        assertThat(entries, equalTo(List.of("Test 1", "Fred", "Test 2")));
+        assertThat(getValues(entries), equalTo(List.of("Test 1", "Fred", "Test 2")));
 
 
         // History is size-limited
@@ -52,20 +57,20 @@ public class AutocompletionTest
         // Should include "Test 099" entered last
         entries = history.getEntries("Test");
         // List is most-recent-first
-        assertThat(entries, hasItems("Test 099"));
+        assertThat(getValues(entries), hasItems("Test 099"));
         // "Test 000" should have dropped off the list
-        assertThat(entries, not(hasItems("Test 000")));
+        assertThat(getValues(entries), not(hasItems("Test 000")));
     }
 
     @Test
     public void testSimPVs()
     {
         final AutocompletionProvider auto = SimPVAutocompletion.INSTANCE;
-        List<String> entries = auto.getEntries("e");
+        List<String> entries = getValues(auto.getEntries("e"));
         System.out.println(entries);
         assertThat(entries, hasItems("sim://sine"));
 
-        entries = auto.getEntries("flop");
+        entries = getValues(auto.getEntries("flop"));
         System.out.println(entries);
         assertThat(entries, hasItems("sim://flipflop"));
     }
@@ -87,7 +92,7 @@ public class AutocompletionTest
         }
 
         @Override
-        public List<String> getEntries(final String text)
+        public List<Suggestion> getEntries(final String text)
         {
             try
             {
@@ -111,10 +116,11 @@ public class AutocompletionTest
         service.addToHistory("Test 1");
 
         final CopyOnWriteArrayList<String> result = new CopyOnWriteArrayList<>();
-        final BiConsumer<String, List<String>> response_handler = (name, entries) ->
+        final AutocompletionService.Handler response_handler = (name, priority, entries) ->
         {
-            System.out.println(name + " returns " + entries);
-            result.addAll(entries);
+            System.out.println(name + "(" + priority + ") returns " + entries);
+            for (Suggestion suggestion : entries)
+                result.add(suggestion.getValue());
         };
 
         service.lookup("est", response_handler);

@@ -12,13 +12,34 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
 
-/** Autocompletion Provider
+/** Autocompletion Service
+ *
+ *  <p>When asked to lookup suggestions for some partial text,
+ *  the service will query one or more providers,
+ *  and return their replies as they arrive.
+ *
+ *  <p>The response from the in-memory {@link AutocompletionHistory}
+ *  will be very quick, while site-specific database lookups
+ *  may take longer to reply.
+ *
  *  @author Kay Kasemir
  */
 public class AutocompletionService
 {
+    /** Handler for suggestions */
+    @FunctionalInterface
+    public interface Handler
+    {
+        /** Called when the {@link AutocompletionService} has new suggestions
+         *
+         *  @param name Name of the suggestion provider ("History", "Simulated PVs", ..)
+         *  @param priority Suggested priority for listing this result compared to others
+         *  @param suggestions {@link Suggestion}s
+         */
+        public void handleSuggestions(String name, int priority, List<Suggestion> suggestions);
+    }
+
     private final ExecutorService pool = Executors.newCachedThreadPool();
     private final AutocompletionHistory history = new AutocompletionHistory();
     private final List<AutocompletionProvider> providers;
@@ -44,7 +65,7 @@ public class AutocompletionService
      *  @param text Text entered by user
      *  @param response_handler will be called with name of provider and suggested completions
      */
-    public synchronized void lookup(final String text, final BiConsumer<String, List<String>> response_handler)
+    public synchronized void lookup(final String text, final Handler response_handler)
     {
         // Typically called from the UI thread
         // when user enters text, but sync'ed
@@ -56,8 +77,12 @@ public class AutocompletionService
         submitted.clear();
 
         // Start new lookup
+        int i = 0;
         for (AutocompletionProvider provider : providers)
-            submitted.add(pool.submit(() -> lookup(provider, text, response_handler)));
+        {
+            final int priority = i++;
+            submitted.add(pool.submit(() -> lookup(provider, text, priority, response_handler)));
+        }
     }
 
     /** Await completion of ongoing lookup
@@ -75,10 +100,11 @@ public class AutocompletionService
 
     private static void lookup(final AutocompletionProvider provider,
                                final String text,
-                               final BiConsumer<String, List<String>> response_handler)
+                               final int priority,
+                               final Handler response_handler)
     {
-        final List<String> entries = provider.getEntries(text);
+        final List<Suggestion> entries = provider.getEntries(text);
         if (! Thread.currentThread().isInterrupted())
-            response_handler.accept(provider.getName(), entries);
+            response_handler.handleSuggestions(provider.getName(), priority, entries);
     }
 }

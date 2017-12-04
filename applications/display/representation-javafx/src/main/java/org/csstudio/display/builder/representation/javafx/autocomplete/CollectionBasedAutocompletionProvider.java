@@ -31,15 +31,16 @@ public abstract class CollectionBasedAutocompletionProvider implements Autocompl
     }
 
     /** @return Entries from which matching entries will be fetched */
-    protected abstract Collection<String> getAllEntries();
+    protected abstract Collection<Suggestion> getAllEntries();
 
     @Override
-    public List<String> getEntries(final String text)
+    public List<Suggestion> getEntries(String text)
     {
-        final List<String> matches = new ArrayList<>();
-        for (String item : getAllEntries())
-            if (item.contains(text))
-                matches.add(item);
+        text = text.toLowerCase();
+        final List<Suggestion> matches = new ArrayList<>();
+        for (Suggestion suggestion : getAllEntries())
+            if (suggestion.getValue().toLowerCase().contains(text))
+                matches.add(suggestion);
         return matches;
     }
 }
