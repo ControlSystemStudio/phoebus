@@ -33,10 +33,13 @@ public class Messages
     public static String Add;
     public static String Alpha;
     public static String Blue;
+    public static String ColorDialog_Current;
     public static String ColorDialog_Custom;
+    public static String ColorDialog_Default;
     public static String ColorDialog_Info;
+    public static String ColorDialog_Original;
     public static String ColorDialog_Predefined;
-    public static String ColorDialog_Title;
+    public static String ColorDialog_Title_FMT;
     public static String ColorMap_Custom;
     public static String ColorMapDialog_Add;
     public static String ColorMapDialog_Color;
