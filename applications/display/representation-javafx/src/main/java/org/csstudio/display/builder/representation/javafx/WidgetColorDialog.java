@@ -39,6 +39,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeType;
 
 /** Dialog for selecting a {@link WidgetColor}
  *  @author Kay Kasemir
@@ -169,22 +170,32 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
         content.add(new Label(Messages.ColorDialog_Original), 1, 7);
         content.add(new Label(Messages.ColorDialog_Current), 1, 8);
 
+        // Indicators: Size to match sliders (using red slider as example)
+        // Use _inside_ stroke.
+        // Outside stroke would grow the rectangle,
+        // which then grows the grid column,
+        // which grows the slider -> endless loop
         default_indicator.setArcWidth(10);
         default_indicator.setArcHeight(10);
         default_indicator.widthProperty().bind(red_slider.widthProperty());
         default_indicator.setFill(JFXUtil.convert(default_color));
+        default_indicator.setStrokeType(StrokeType.INSIDE);
+        default_indicator.setStroke(Color.GRAY);
         content.add(default_indicator, 2, 6);
 
         original_indicator.setArcWidth(10);
         original_indicator.setArcHeight(10);
         original_indicator.widthProperty().bind(red_slider.widthProperty());
         original_indicator.setFill(JFXUtil.convert(initial_color));
-
+        original_indicator.setStrokeType(StrokeType.INSIDE);
+        original_indicator.setStroke(Color.GRAY);
         content.add(original_indicator, 2, 7);
 
         current_indicator.setArcWidth(10);
         current_indicator.setArcHeight(10);
         current_indicator.widthProperty().bind(red_slider.widthProperty());
+        current_indicator.setStrokeType(StrokeType.INSIDE);
+        current_indicator.setStroke(Color.GRAY);
         content.add(current_indicator, 2, 8);
 
         // Placeholder that fills the lower right corner
