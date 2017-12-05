@@ -29,24 +29,29 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class RTPlotUpdateThrottle
 {
-    final private ScheduledExecutorService timer =
+    /** One timer thread is shared by all throttles
+     *  to further limit CPU load
+     */
+    private static final ScheduledExecutorService timer =
             Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("RTPlotUpdateThrottle"));
 
     /** How long to stay dormant after an update */
     private volatile long dormant_ms;
 
     /** The update to perform */
-    final private Runnable update_then_wake;
+    private final Runnable update_then_wake;
 
     /** Are updates currently suppressed? */
-    final private AtomicBoolean dormant = new AtomicBoolean();
+    private final AtomicBoolean dormant = new AtomicBoolean();
 
     /** Scheduled wakeUp call when no longer dormant */
     private ScheduledFuture<?> scheduled_wakeup;
 
     /** Any pending triggers while dormant */
-    final private AtomicBoolean pending_trigger = new AtomicBoolean();
+    private final AtomicBoolean pending_trigger = new AtomicBoolean();
 
+    /** Stop ongoing activity because throttle was disposed? */
+    private volatile boolean disposed = false;
 
     /** Initialize
      *  @param dormant_time How long throttle remains dormant after a trigger
@@ -63,7 +68,8 @@ public class RTPlotUpdateThrottle
                 // Wait a little to allow more updates to accumulate
                 Thread.sleep(20);
                 pending_trigger.set(false);
-                update.run();
+                if (! disposed)
+                    update.run();
             }
             catch (InterruptedException ex)
             {
@@ -75,7 +81,8 @@ public class RTPlotUpdateThrottle
                 logger.log(Level.WARNING, "Update failed", ex);
             }
             // Schedule wakeup
-            scheduled_wakeup = timer.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
+            if (! disposed)
+                scheduled_wakeup = timer.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
         };
     }
 
@@ -96,6 +103,8 @@ public class RTPlotUpdateThrottle
      */
     public void trigger()
     {
+        if (disposed)
+            return;
         if (dormant.getAndSet(true))
         {   // In dormant period, note additional triggers but don't act
             pending_trigger.set(true);
@@ -129,15 +138,7 @@ public class RTPlotUpdateThrottle
     /** Call to cancel scheduled updates */
     public void dispose()
     {
-        // In case an update is running right now, terminate()
-        timer.shutdownNow();
-        // Waiting for updates to complete via
-        //  timer.shutdown();
-        //  timer.awaitTermination(2, TimeUnit.SECONDS)
-        // doesn't help because threads may be in BufferUtil.getBufferedImage(),
-        // waiting on UI thread, i.e. the current thread, and would need some time to time out.
-        // terminate() is faster.
-
+        disposed = true;
         pending_trigger.set(false);
         if (scheduled_wakeup != null)
             scheduled_wakeup.cancel(false);
