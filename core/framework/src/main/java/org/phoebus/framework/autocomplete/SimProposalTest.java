@@ -1,0 +1,50 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+package org.phoebus.framework.autocomplete;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
+
+/** JUnit test of {@link SimProposal}
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
+public class SimProposalTest
+{
+    @Test
+    public void testSimProposal()
+    {
+        // Proposal for sim://sine with arguments
+        Proposal proposal = new SimProposal("sim://sine", "min", "max", "update_seconds");
+
+        // Description list arguments
+        assertThat(proposal.getDescription(),
+                   equalTo("sim://sine(min, max, update_seconds)"));
+
+        // Partial "sine" turns into complete PV
+        assertThat(proposal.apply("sine"),
+                   equalTo("sim://sine"));
+        // Arguments are preserved
+        assertThat(proposal.apply("sim://sine(-10, 10, 2)"),
+                   equalTo("sim://sine(-10, 10, 2)"));
+
+        // Partial "sin" with arguments preserves the args
+        assertThat(proposal.apply("sin(-10, 10, 2)"),
+                equalTo("sim://sine(-10, 10, 2)"));
+
+        // The other form of sim://sine
+        proposal = new SimProposal("sim://sine", "min", "max", "steps", "update_seconds");
+        assertThat(proposal.getDescription(),
+                equalTo("sim://sine(min, max, steps, update_seconds)"));
+        // Arguments are fully preserved, incl. spacing
+        assertThat(proposal.apply("sin(-10,10,    0.1, 2  )"),
+                equalTo("sim://sine(-10,10,    0.1, 2  )"));
+    }
+}
