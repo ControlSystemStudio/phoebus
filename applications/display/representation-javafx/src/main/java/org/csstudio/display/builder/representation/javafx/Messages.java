@@ -60,7 +60,6 @@ public class Messages
     public static String FontDialog_Preview;
     public static String FontDialog_Size;
     public static String FontDialog_Style;
-    public static String FontDialog_Title;
     public static String Green;
     public static String MacrosDialog_Info;
     public static String MacrosDialog_NameCol;
