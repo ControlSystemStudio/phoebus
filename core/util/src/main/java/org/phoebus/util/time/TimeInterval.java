@@ -114,24 +114,42 @@ public class TimeInterval {
         return String.valueOf(start) + " - " + String.valueOf(end);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof TimeInterval) {
-            TimeInterval other = (TimeInterval) obj;
-            boolean startEqual = (getStart() == other.getStart()) || (getStart() != null && getStart().equals(other.getStart()));
-            boolean endEqual = (getEnd() == other.getEnd()) || (getEnd() != null && getEnd().equals(other.getEnd()));
-            return startEqual && endEqual;
-        }
-
-        return false;
-    }
-
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 29 * hash + (this.start != null ? this.start.hashCode() : 0);
-        hash = 29 * hash + (this.end != null ? this.end.hashCode() : 0);
-        return hash;
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((end == null) ? 0 : end.hashCode());
+        result = prime * result + ((start == null) ? 0 : start.hashCode());
+        return result;
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (!(obj instanceof TimeInterval))
+            return false;
+        TimeInterval other = (TimeInterval) obj;
+        if (end == null) {
+            if (other.end != null)
+                return false;
+        } else if (!end.equals(other.end))
+            return false;
+        if (start == null) {
+            if (other.start != null)
+                return false;
+        } else if (!start.equals(other.start))
+            return false;
+        return true;
+    }
+
 
 }
