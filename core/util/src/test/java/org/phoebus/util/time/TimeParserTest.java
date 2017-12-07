@@ -5,9 +5,13 @@
 package org.phoebus.util.time;
 
 import static java.time.Duration.between;
+import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 
 import org.junit.Assert;
@@ -33,18 +37,12 @@ public class TimeParserTest {
     @Test
     public void getDuration() {
         // "last min", "last hour", "last day", "last week"
-        TemporalAmount lastMin = TimeParser.getDuration("last min");
+        Duration lastMin = TimeParser.getDuration("last min");
         Assert.assertEquals("Failed to get Duration for last min", Duration.ofSeconds(60),
                 lastMin);
-        TemporalAmount lastHour = TimeParser.getDuration("last hour");
+        Duration lastHour = TimeParser.getDuration("last hour");
         Assert.assertEquals("Failed to get Duration for last hour",
                 Duration.ofHours(1), lastHour);
-//        Duration lastDay = TimeParser.getDuration("last day");
-//        Assert.assertEquals("Failed to get Duration for last day",
-//                60 * 60 * 24, lastDay.getSeconds());
-//        Duration lastWeek = TimeParser.getDuration("last week");
-//        Assert.assertEquals("Failed to get Duration for last week",
-//                60 * 60 * 24 * 7, lastWeek.getSeconds());
 
         // "last 5 mins", "last 5 hours", "last 5 days", "last 5 weeks"
         TemporalAmount last5Min = TimeParser.getDuration("last 5 mins");
@@ -176,11 +174,6 @@ public class TimeParserTest {
                 (60 * 60 * 24),
                 between(lastDay.getStart(), lastDay.getEnd()).getSeconds(),
                 0);
-        TimeInterval lastWeek = TimeParser.getTimeInterval("last week");
-        Assert.assertEquals("Failed to get TimeInterval for last week",
-                (60 * 60 * 24 * 7),
-                between(lastWeek.getStart(), lastWeek.getEnd())
-                        .getSeconds(), 0);
 
         // "last 5 mins", "last 5 hours", "last 5 days", "last 5 weeks"
         TimeInterval last5Min = TimeParser.getTimeInterval("last 5 mins");
@@ -198,11 +191,6 @@ public class TimeParserTest {
                 (60 * 60 * 24 * 5),
                 between(last5Day.getStart(), last5Day.getEnd())
                         .getSeconds(), 0);
-        TimeInterval last5Week = TimeParser.getTimeInterval("last 5 weeks");
-        Assert.assertEquals("Failed to get TimeInterval for last 5 weeks",
-                (60 * 60 * 24 * 7 * 5),
-                between(last5Week.getStart(), last5Week.getEnd())
-                        .getSeconds(), 0);
 
         // "1 min ago", "1 hours ago", "1 days ago", "1 weeks ago"
         TimeInterval oneMinAgo = TimeParser.getTimeInterval("1 min ago");
@@ -218,11 +206,6 @@ public class TimeParserTest {
         Assert.assertEquals("Failed to get TimeInterval for 1 days ago",
                 (60 * 60 * 24),
                 between(oneDayAgo.getStart(), oneDayAgo.getEnd())
-                        .getSeconds(), 0);
-        TimeInterval oneWeekAgo = TimeParser.getTimeInterval("1 week ago");
-        Assert.assertEquals("Failed to get TimeInterval for 1 week ago",
-                (60 * 60 * 24 * 7),
-                between(oneWeekAgo.getStart(), oneWeekAgo.getEnd())
                         .getSeconds(), 0);
 
         // "5 mins ago", "5 hours ago", "5 days ago", "5 weeks ago"
@@ -241,10 +224,6 @@ public class TimeParserTest {
                 (60 * 60 * 24 * 5),
                 between(fiveDaysAgo.getStart(), fiveDaysAgo.getEnd())
                         .getSeconds(), 0);
-        TimeInterval fiveWeeksAgo = TimeParser.getTimeInterval("5 weeks ago");
-        Assert.assertEquals("Failed to get TimeInterval for 5 week ago",
-                (60 * 60 * 24 * 7 * 5), between(fiveWeeksAgo.getStart()
-                        , fiveWeeksAgo.getEnd()).getSeconds(), 0);
 
         // Check case insensitivity Last 4 Mins, Last 4 Hours, Last 4 Days, Last
         // 4 WEEKS
@@ -263,11 +242,6 @@ public class TimeParserTest {
                 (60 * 60 * 24 * 4),
                 between(last4Day.getStart(), last4Day.getEnd())
                         .getSeconds(), 0);
-        TimeInterval last4Week = TimeParser.getTimeInterval("Last 4 WEEKS");
-        Assert.assertEquals("Failed to get TimeInterval for Last 4 WEEKS",
-                (60 * 60 * 24 * 7 * 4),
-                between(last4Week.getStart(), last4Week.getEnd())
-                        .getSeconds(), 0);
 
         // Check incorrect units in terms of plurality last 3 min, last 3 hour,
         // last 3 day, last 3 week
@@ -285,11 +259,6 @@ public class TimeParserTest {
         Assert.assertEquals("Failed to get TimeInterval for last 3 day",
                 (60 * 60 * 24 * 3),
                 between(last3Day.getStart(), last3Day.getEnd())
-                        .getSeconds(), 0);
-        TimeInterval last3Week = TimeParser.getTimeInterval("last 3 week");
-        Assert.assertEquals("Failed to get TimeInterval for last 3 week",
-                (60 * 60 * 24 * 7 * 3),
-                between(last3Week.getStart(), last3Week.getEnd())
                         .getSeconds(), 0);
 
         // Check missing space between time quantity and unit last 2mins, last
@@ -310,11 +279,6 @@ public class TimeParserTest {
                 (60 * 60 * 24 * 2),
                 between(last2Days.getStart(), last2Days.getEnd())
                         .getSeconds(), 0);
-        TimeInterval last2Weeks = TimeParser.getTimeInterval("last 2weeks");
-        Assert.assertEquals("Failed to get TimeInterval for last 2weeks",
-                (60 * 60 * 24 * 7 * 2),
-                between(last2Weeks.getStart(), last2Weeks.getEnd())
-                        .getSeconds(), 0);
         TimeInterval twoMinsAgo = TimeParser.getTimeInterval("2mins ago");
         Assert.assertEquals("Failed to get TimeInterval for 2mins ago",
                 (60 * 2),
@@ -330,10 +294,6 @@ public class TimeParserTest {
                 (60 * 60 * 24 * 2),
                 between(twoDaysAgo.getStart(), twoDaysAgo.getEnd())
                         .getSeconds(), 0);
-        TimeInterval twoWeeksAgo = TimeParser.getTimeInterval("2weeks ago");
-        Assert.assertEquals("Failed to get TimeInterval for 2weeks ago",
-                (60 * 60 * 24 * 7 * 2),
-                between(twoWeeksAgo.getStart(), twoWeeksAgo.getEnd()).getSeconds(), 0);
     }
 
     /**
@@ -368,5 +328,30 @@ public class TimeParserTest {
         TemporalAmount last3Hours5Mins30Secs = TimeParser.getDuration("last 3 hours 5 mins 30 secs");
         Assert.assertEquals("Failed to get Duration for last 5 mins",
                 Duration.ofHours(3).plusMinutes(5).plusSeconds(30), last3Hours5Mins30Secs);
+    }
+    
+
+    /**
+     * Test the creation prasing of string representations of time to create {@link TimeRelativeInterval}
+     *
+     * The below tests create an interval which represents a single month.
+     * 
+     */
+    @Test
+    public void parseRelativeInterval() {
+        // Create an interval for January
+        TimeRelativeInterval interval = TimeParser.getTimeRelativeInterval("1 months ago", "0 month ago");
+        
+        // Check jan it is 31 days
+        TimeInterval jan = interval.toAbsoluteInterval(LocalDateTime.parse("2011-02-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC));
+        assertEquals(31L, Duration.between(jan.getStart(), jan.getEnd()).toDays());
+
+        // Check February is 28 days
+        TimeInterval feb = interval.toAbsoluteInterval(LocalDateTime.parse("2011-03-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC));
+        assertEquals(28L, Duration.between(feb.getStart(), feb.getEnd()).toDays());
+
+        // Check February is 29 days because it is a leap year
+        TimeInterval leapFeb = interval.toAbsoluteInterval(LocalDateTime.parse("2012-03-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC));
+        assertEquals(29L, Duration.between(leapFeb.getStart(), leapFeb.getEnd()).toDays());
     }
 }
