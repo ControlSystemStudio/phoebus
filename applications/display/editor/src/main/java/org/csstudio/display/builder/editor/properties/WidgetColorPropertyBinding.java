@@ -38,8 +38,8 @@ public class WidgetColorPropertyBinding
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final WidgetColorDialog dialog = new WidgetColorDialog(widget_property.getValue());
-        DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
+        final WidgetColorDialog dialog = new WidgetColorDialog(widget_property.getValue(), widget_property.getDescription(), widget_property.getDefaultValue());
+        DialogHelper.positionDialog(dialog, jfx_node, -200, -200);
         ModalityHack.forDialog(dialog);
         final Optional<WidgetColor> result = dialog.showAndWait();
         if (result.isPresent())

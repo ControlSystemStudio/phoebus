@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
@@ -16,10 +17,12 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Dialog;
@@ -27,17 +30,23 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeType;
 
 /** Dialog for selecting a {@link WidgetColor}
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class WidgetColorDialog extends Dialog<WidgetColor>
 {
+    private final static ButtonType DEFAULT = new ButtonType(Messages.ColorDialog_Default, ButtonData.OTHER);
     private WidgetColor color;
 
     private final ListView<NamedWidgetColor> color_names = new ListView<>();
@@ -49,13 +58,18 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
     private final Slider blue_slider = new Slider(0, 255, 50);
     private final Slider alpha_slider = new Slider(0, 255, 50);
 
-    private final TextField red_text = new TextField();
-    private final TextField green_text = new TextField();
-    private final TextField blue_text = new TextField();
-    private final TextField alpha_text = new TextField();
+    private final Spinner<Integer> red_spinner = new Spinner<Integer>();
+    private final Spinner<Integer> green_spinner = new Spinner<Integer>();
+    private final Spinner<Integer> blue_spinner = new Spinner<Integer>();
+    private final Spinner<Integer> alpha_spinner = new Spinner<Integer>();
+
+    private final Rectangle default_indicator = new Rectangle(100, 30),
+                            original_indicator = new Rectangle(100,  30),
+                            current_indicator = new Rectangle(100,  30);
 
     /** Prevent circular updates */
     private boolean updating = false;
+
 
     /** List cell for a NamedWidgetColor: Color 'blob' and color's name */
     private static class NamedWidgetColorCell extends ListCell<NamedWidgetColor>
@@ -83,11 +97,14 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
 
     /** Create dialog
      *  @param initial_color Initial {@link WidgetColor}
+     *  @param name Name of the color property (used in title)
+     *  @param default_color Default {@link WidgetColor}
      */
-    public WidgetColorDialog(final WidgetColor initial_color)
+    public WidgetColorDialog(final WidgetColor initial_color, final String name, final WidgetColor default_color)
     {
-        setTitle(Messages.ColorDialog_Title);
+        setTitle(MessageFormat.format(Messages.ColorDialog_Title_FMT, name));
         setHeaderText(Messages.ColorDialog_Info);
+        setResizable(true);
 
         /* Predefined Colors   Custom Color
          * [               ]   Picker
@@ -124,10 +141,10 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
                 }
             });
         });
-        content.add(color_names, 0, 1, 1, 6);
+        content.add(color_names, 0, 1, 1, 9);
 
         content.add(new Label(Messages.ColorDialog_Custom), 1, 0, 3, 1);
-        content.add(picker, 1, 1, 3, 1);
+        content.add(picker, 1, 1, 5, 1);
 
         content.add(new Label(Messages.Red), 1, 2);
         content.add(new Label(Messages.Green), 1, 3);
@@ -138,24 +155,68 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
         content.add(green_slider, 2, 3);
         content.add(blue_slider, 2, 4);
         content.add(alpha_slider, 2, 5);
-        red_slider.setBlockIncrement(1);
 
-        red_text.setPrefColumnCount(3);
-        green_text.setPrefColumnCount(3);
-        blue_text.setPrefColumnCount(3);
-        alpha_text.setPrefColumnCount(3);
-        content.add(red_text, 3, 2);
-        content.add(green_text, 3, 3);
-        content.add(blue_text, 3, 4);
-        content.add(alpha_text, 3, 5);
+        configureSpinner(red_spinner);
+        configureSpinner(green_spinner);
+        configureSpinner(blue_spinner);
+        configureSpinner(alpha_spinner);
+        content.add(red_spinner, 3, 2);
+        content.add(green_spinner, 3, 3);
+        content.add(blue_spinner, 3, 4);
+        content.add(alpha_spinner, 3, 5);
+
+        content.add(new Label(Messages.ColorDialog_Default), 1, 6);
+        content.add(new Label(Messages.ColorDialog_Original), 1, 7);
+        content.add(new Label(Messages.ColorDialog_Current), 1, 8);
+
+        // Indicators: Size to match sliders (using red slider as example)
+        // Use _inside_ stroke.
+        // Outside stroke would grow the rectangle,
+        // which then grows the grid column,
+        // which grows the slider -> endless loop
+        default_indicator.setArcWidth(10);
+        default_indicator.setArcHeight(10);
+        default_indicator.widthProperty().bind(red_slider.widthProperty());
+        default_indicator.setFill(JFXUtil.convert(default_color));
+        default_indicator.setStrokeType(StrokeType.INSIDE);
+        default_indicator.setStroke(Color.GRAY);
+        content.add(default_indicator, 2, 6);
+
+        original_indicator.setArcWidth(10);
+        original_indicator.setArcHeight(10);
+        original_indicator.widthProperty().bind(red_slider.widthProperty());
+        original_indicator.setFill(JFXUtil.convert(initial_color));
+        original_indicator.setStrokeType(StrokeType.INSIDE);
+        original_indicator.setStroke(Color.GRAY);
+        content.add(original_indicator, 2, 7);
+
+        current_indicator.setArcWidth(10);
+        current_indicator.setArcHeight(10);
+        current_indicator.widthProperty().bind(red_slider.widthProperty());
+        current_indicator.setStrokeType(StrokeType.INSIDE);
+        current_indicator.setStroke(Color.GRAY);
+        content.add(current_indicator, 2, 8);
 
         // Placeholder that fills the lower right corner
         final Label dummy = new Label();
-        content.add(dummy, 1, 6, 3, 1);
+        content.add(dummy, 1, 8, 3, 1);
 
         getDialogPane().setContent(content);
 
-        getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        // Buttons: Add DEFAULT to OK and CANCEL
+        getDialogPane().getButtonTypes().addAll(DEFAULT, ButtonType.OK, ButtonType.CANCEL);
+        final Button default_button = (Button) getDialogPane().lookupButton(DEFAULT);
+        default_button.addEventFilter(ActionEvent.ACTION, event ->
+        {
+            setColor(default_color);
+            event.consume();
+        });
+        // Close dialog on 'Escape'
+        getDialogPane().addEventFilter(KeyEvent.KEY_PRESSED, event ->
+        {
+            if (event.getCode() == KeyCode.ESCAPE)
+                close();
+        });
 
         // User selects named color -> Update picker, sliders, texts
         color_names.getSelectionModel().selectedItemProperty().addListener((l, old, value) ->
@@ -175,10 +236,10 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
         });
 
         // User changes slider or text -> Update picker
-        bind(red_slider,   red_text);
-        bind(green_slider, green_text);
-        bind(blue_slider,  blue_text);
-        bind(alpha_slider, alpha_text);
+        bind(red_slider,   red_spinner);
+        bind(green_slider, green_spinner);
+        bind(blue_slider,  blue_spinner);
+        bind(alpha_slider, alpha_spinner);
 
         // User configures color in picker -> Update sliders, texts
         picker.setOnAction(event ->
@@ -196,10 +257,11 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
             green_slider.setValue(g);
             blue_slider.setValue(b);
             alpha_slider.setValue(a);
-            red_text.setText(Integer.toString(r));
-            green_text.setText(Integer.toString(g));
-            blue_text.setText(Integer.toString(b));
-            alpha_text.setText(Integer.toString(a));
+            red_spinner.getValueFactory().setValue(r);
+            green_spinner.getValueFactory().setValue(g);
+            blue_spinner.getValueFactory().setValue(b);
+            alpha_spinner.getValueFactory().setValue(a);
+            current_indicator.setFill(value);
 
             color = new WidgetColor(r, g, b, a);
             updating = false;
@@ -220,50 +282,44 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
         setColor(initial_color);
     }
 
+    private void configureSpinner(final Spinner<Integer> spinner)
+    {
+        spinner.setPrefWidth(80);
+        spinner.setEditable(true);
+        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255, 50));
+    }
+
     /** Bidirectionally bind slider and text, also update picker and color
      *  @param slider {@link Slider}
      *  @param text {@link TextField}
      */
-    private void bind(final Slider slider, final TextField text)
+    private void bind(final Slider slider, final Spinner<Integer> text)
     {
         slider.valueProperty().addListener((s, old, value) ->
         {
             if (updating)
                 return;
             updating = true;
-            text.setText(Integer.toString(value.intValue()));
+            text.getValueFactory().setValue(value.intValue());
             final Color jfx_col = getSliderColor();
             picker.setValue(jfx_col);
+            current_indicator.setFill(jfx_col);
             color = JFXUtil.convert(jfx_col);
             updating = false;
         });
 
-        text.textProperty().addListener((t, old, value) ->
+        text.valueProperty().addListener((t, old, value) ->
         {
             if (updating)
                 return;
             updating = true;
             try
             {
-                int num = Integer.parseInt(value);
-                if (num > 255)
-                {
-                    num = 255;
-                    text.setText("255");
-                }
-                if (num < 0)
-                {
-                    num = 0;
-                    text.setText("0");
-                }
-                slider.setValue(num);
+                slider.setValue(value);
                 final Color jfx_col = getSliderColor();
                 picker.setValue(jfx_col);
+                current_indicator.setFill(jfx_col);
                 color = JFXUtil.convert(jfx_col);
-            }
-            catch (Throwable ex)
-            {
-                text.setText(Integer.toString((int)slider.getValue()));
             }
             finally
             {
@@ -286,15 +342,17 @@ public class WidgetColorDialog extends Dialog<WidgetColor>
      */
     private void setColor(final WidgetColor color)
     {
-        picker.setValue(JFXUtil.convert(color));
+        final Color paint = JFXUtil.convert(color);
+        picker.setValue(paint);
         red_slider.setValue(color.getRed());
         green_slider.setValue(color.getGreen());
         blue_slider.setValue(color.getBlue());
         alpha_slider.setValue(color.getAlpha());
-        red_text.setText(Integer.toString(color.getRed()));
-        green_text.setText(Integer.toString(color.getGreen()));
-        blue_text.setText(Integer.toString(color.getBlue()));
-        alpha_text.setText(Integer.toString(color.getAlpha()));
+        red_spinner.getValueFactory().setValue(color.getRed());
+        green_spinner.getValueFactory().setValue(color.getGreen());
+        blue_spinner.getValueFactory().setValue(color.getBlue());
+        alpha_spinner.getValueFactory().setValue(color.getAlpha());
+        current_indicator.setFill(paint);
         this.color = color;
     }
 }

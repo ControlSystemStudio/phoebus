@@ -32,6 +32,8 @@ import javafx.stage.Window;
  */
 public class ModalityHack implements Runnable
 {
+    /** @deprecated No longer needed, only for SWT-hosted JFX content */
+    @Deprecated
     public static ModalityHack forDialog(final Dialog<?> dialog)
     {
         final Window window = dialog.getDialogPane().getContent().getScene().getWindow();
@@ -53,7 +55,8 @@ public class ModalityHack implements Runnable
     private ModalityHack(final Stage stage)
     {
         this.stage = stage;
-        schedule();
+        // Disable the hack, it's no longer needed
+        // schedule();
     }
 
     private void stop()

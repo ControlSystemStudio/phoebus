@@ -51,6 +51,12 @@ class ContextMenuSupport
         this.instance = instance;
         menu.setAutoHide(true);
 
+        // Menu inherits styling of widget's node.
+        // Some widgets update the background color
+        // (TextEntryRepresentation).
+        // No way to prevent inheritance, so reset to the modena.css default:
+        menu.setStyle("-fx-control-inner-background: derive(-fx-base,80%);");
+
         final ToolkitListener tkl = new ToolkitListener()
         {
             @Override
