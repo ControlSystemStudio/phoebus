@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.TreeSet;
 
 import org.phoebus.framework.autocomplete.Proposal;
+import org.phoebus.framework.autocomplete.SimProposal;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -31,7 +32,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -199,9 +199,16 @@ public class AutocompleteMenu
         synchronized (results)
         {
             // Merge proposals
-            results.add(new Result("History", 3, List.of(new Proposal("Ene"), new Proposal("Mene"))));
-            results.add(new Result("sim", 1, List.of(new Proposal("sim://sine"), new Proposal("sim://noise"))));
-            results.add(new Result("Local", 2, List.of(new Proposal("Uno"), new Proposal("Due"))));
+            results.add(new Result("History", 3, List.of(
+                new Proposal("Ene"),
+                new Proposal("Mene"))));
+            results.add(new Result("sim", 1, List.of(
+                new SimProposal("sim://sine", "min", "max", "update_seconds"),
+                new SimProposal("sim://sine", "min", "max", "steps", "update_seconds"),
+                new Proposal("sim://noise"))));
+            results.add(new Result("Local", 2, List.of(
+                new Proposal("Uno"),
+                new Proposal("Due"))));
         }
 
         // Create menu items: Header for each result,
@@ -245,8 +252,8 @@ public class AutocompleteMenu
             item = new MenuItem(null, new Label(description));
         else
         {   // Create formatted text
-            
-            // Highlight the matching section 
+
+            // Highlight the matching section
             // start of proposal .. matching text .. rest of proposal
             final TextFlow markup = new TextFlow();
             if (pos > 0)
@@ -262,7 +269,7 @@ public class AutocompleteMenu
                 markup.getChildren().add(new Label(description.substring(rest)));
 
             // TODO Add parameter info
-            
+
             item = new MenuItem(null, markup);
         }
 

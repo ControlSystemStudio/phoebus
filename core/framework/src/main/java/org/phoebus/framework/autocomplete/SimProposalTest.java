@@ -10,6 +10,8 @@ package org.phoebus.framework.autocomplete;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
+
 import org.junit.Test;
 
 /** JUnit test of {@link SimProposal}
@@ -46,5 +48,26 @@ public class SimProposalTest
         // Arguments are fully preserved, incl. spacing
         assertThat(proposal.apply("sin(-10,10,    0.1, 2  )"),
                 equalTo("sim://sine(-10,10,    0.1, 2  )"));
+    }
+
+    @Test
+    public void testMatch()
+    {
+        Proposal proposal = new SimProposal("sim://sine", "min", "max", "update_seconds");
+
+        List<MatchSegment> match = proposal.getMatch("sine");
+        assertThat(match, equalTo(List.of(MatchSegment.normal("sim://"),
+                                          MatchSegment.match("sine"),
+                                          MatchSegment.comment("(min, max, update_seconds)"))));
+
+        match = proposal.getMatch("sim://sine");
+        assertThat(match, equalTo(List.of(MatchSegment.match("sim://sine"),
+                                          MatchSegment.comment("(min, max, update_seconds)"))));
+
+        match = proposal.getMatch("sine(2, 4,");
+        assertThat(match, equalTo(List.of(MatchSegment.normal("sim://"),
+                                          MatchSegment.match("sine"),
+                                          MatchSegment.match("(2, 4,"),
+                                          MatchSegment.comment("update_seconds)"))));
     }
 }

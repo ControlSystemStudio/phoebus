@@ -7,6 +7,9 @@
  *******************************************************************************/
 package org.phoebus.framework.autocomplete;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Proposal for "sim://..." PVs
  *
  *  <p>Description includes the optional parameters.
@@ -44,6 +47,81 @@ public class SimProposal extends Proposal
             buf.append(')');
         }
         return buf.toString();
+    }
+
+    @Override
+    public List<MatchSegment> getMatch(final String text)
+    {
+        final List<MatchSegment> segs = new ArrayList<>();
+
+        // Does text contain parameters?
+        final int parm_start = text.indexOf('(');
+
+        // First compare text up to optional parameters
+        final String noparm_text = parm_start < 0 ? text : text.substring(0, parm_start);
+
+        final int match = value.indexOf(noparm_text);
+        // Text does not match the proposal??
+        if (match < 0)
+            segs.add(MatchSegment.normal(value));
+        else
+        {
+            // Start of proposal ..
+            if (match > 0)
+                segs.add(MatchSegment.normal(value.substring(0, match)));
+
+            // .. matching text ..
+            segs.add(MatchSegment.match(noparm_text));
+
+            // .. rest of proposal
+            final int rest = match + noparm_text.length();
+            if (value.length() > rest)
+                segs.add(MatchSegment.normal(value.substring(rest)));
+        }
+
+        int parm = 0;
+        if (parm_start >= 0)
+        {
+            // Handle parameters that already MATCH
+            final StringBuilder buf = new StringBuilder();
+            buf.append("(");
+            String parm_text = text.substring(parm_start+1);
+            int sep = findSep(parm_text);
+            while (sep >= 0  &&  parm < arguments.length)
+            {   // text contains parameter for another argument
+                buf.append(parm_text.substring(0, sep+1));
+                parm_text = parm_text.substring(sep+1);
+                ++parm;
+                sep = findSep(parm_text);
+            }
+            if (buf.length() > 0)
+                segs.add(MatchSegment.match(buf.toString()));
+        }
+
+        // Add remaining parameters as COMMENT
+        final StringBuilder buf = new StringBuilder();
+        if (arguments.length > 0)
+        {
+            if (parm == 0)
+                buf.append('(');
+            for (/**/; parm<arguments.length; ++parm)
+            {
+                buf.append(arguments[parm]);
+                if (parm < arguments.length-1)
+                    buf.append(", ");
+            }
+            buf.append(')');
+        }
+        if (buf.length() > 0)
+            segs.add(MatchSegment.comment(buf.toString()));
+
+        return segs;
+    }
+
+    private static int findSep(final String text)
+    {
+        // TODO Skip comma in quotes
+        return text.indexOf(',');
     }
 
     @Override
