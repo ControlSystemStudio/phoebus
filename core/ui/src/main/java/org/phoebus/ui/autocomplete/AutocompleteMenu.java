@@ -24,9 +24,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
@@ -34,7 +34,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 /** Menu for use with auto-completion.
@@ -51,17 +50,21 @@ public class AutocompleteMenu
     /** Result of a lookup, packaged for display in menu. */
     private class Result
     {
-        final MenuItem header;
+        final SeparatorMenuItem header;
         final int priority;
         final List<Proposal> proposals;
 
         Result(final String name, final int priority, final List<Proposal> proposals)
         {
-            // Ideally, use item that can not be selected, like SeparatorMenuItem..
-            final Text label = new Text(name);
-            header = new CustomMenuItem(label, false);
+            // Create non-selectable menu item
+            // CustomMenuItem seems natural, but it's traversed when using menu.
+            // http://tiwulfx.panemu.com/2013/01/02/creating-custom-menu-separator-in-javafx
+            // describes use of SeparatorMenuItem.setContent().
+            final Label label = new Label(name);
             label.setFont(header_font);
-            label.setUnderline(true);
+            header = new SeparatorMenuItem();
+            header.setContent(label);
+
             this.priority = priority;
             this.proposals = proposals;
         }
