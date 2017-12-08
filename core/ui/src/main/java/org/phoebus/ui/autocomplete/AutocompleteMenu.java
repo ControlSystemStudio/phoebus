@@ -172,7 +172,16 @@ public class AutocompleteMenu
         header_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize()+1);
         highlight_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize());
 
-        menu.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
+        menu.addEventFilter(KeyEvent.KEY_PRESSED, event ->
+        {
+            // Toggle on Ctrl-space
+            key_handler.handle(event);
+            // Pressing space in the active TextInputControl
+            // would be caught by the menu and activate the first menu item?!
+            // --> Filter plain SPACE
+            if (! event.isConsumed()  &&  event.getCode() == KeyCode.SPACE)
+                event.consume();
+        });
     }
 
     /** @param field Field for which autocompletion is requested */
@@ -268,7 +277,9 @@ public class AutocompleteMenu
         final MenuItem item = new MenuItem(null, markup);
         item.setOnAction(event ->
         {
-            field.setText(proposal.apply(text));
+            final String value = proposal.apply(text);
+            field.setText(value);
+            field.positionCaret(value.length());
             // Menu's key_pressed handler will send ENTER on to current_field
         });
 
