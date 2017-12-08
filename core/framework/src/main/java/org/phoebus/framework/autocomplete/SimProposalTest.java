@@ -65,9 +65,22 @@ public class SimProposalTest
                                           MatchSegment.comment("(min, max, update_seconds)"))));
 
         match = proposal.getMatch("sine(2, 4,");
+        System.out.println("sine(2, 4,");
+        for (MatchSegment m : match)
+            System.out.println(m);
         assertThat(match, equalTo(List.of(MatchSegment.normal("sim://"),
                                           MatchSegment.match("sine"),
-                                          MatchSegment.match("(2, 4,"),
+                                          MatchSegment.match("(2,", "(min, "),
+                                          MatchSegment.match(" 4,", "max, "),
                                           MatchSegment.comment("update_seconds)"))));
+
+        match = proposal.getMatch("sim://sine(-10, 10, 2)");
+        System.out.println("sim://sine(-10, 10, 2)");
+        for (MatchSegment m : match)
+            System.out.println(m);
+        assertThat(match, equalTo(List.of(MatchSegment.match("sim://sine"),
+                                          MatchSegment.match("(-10,", "(min, "),
+                                          MatchSegment.match(" 10,", "max, "),
+                                          MatchSegment.match(" 2)", "update_seconds)"))));
     }
 }

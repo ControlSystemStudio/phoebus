@@ -33,11 +33,18 @@ public class MatchSegment
     }
 
     private final String text;
+    private final String description;
     private final Type type;
 
     private MatchSegment(final String text, final Type type)
     {
+        this(text, text, type);
+    }
+
+    private MatchSegment(final String text, final String description, final Type type)
+    {
         this.text = text;
+        this.description = description;
         this.type = type;
     }
 
@@ -45,6 +52,12 @@ public class MatchSegment
     public String getText()
     {
         return text;
+    }
+
+    /** @return Description of the test segment. May match text, or be a parameter name for the text */
+    public String getDescription()
+    {
+        return description;
     }
 
     /** @return Information about that text segment from proposal */
@@ -70,11 +83,29 @@ public class MatchSegment
     }
 
     /** @param text Text segment from proposal
+     *  @param description Description for text
+     *  @return {@link Type#MATCH} segment
+     */
+    public static MatchSegment match(final String text, final String description)
+    {
+        return new MatchSegment(text, description, Type.MATCH);
+    }
+
+    /** @param text Text segment from proposal
      *  @return {@link Type#COMMENT} segment
      */
     public static MatchSegment comment(final String text)
     {
         return new MatchSegment(text, Type.COMMENT);
+    }
+
+    /** @param text Text segment from proposal
+     *  @param description Description for text
+     *  @return {@link Type#COMMENT} segment
+     */
+    public static MatchSegment comment(final String text, final String description)
+    {
+        return new MatchSegment(text, description, Type.COMMENT);
     }
 
     @Override
@@ -83,12 +114,19 @@ public class MatchSegment
         if (! (obj instanceof MatchSegment))
             return false;
         final MatchSegment other = (MatchSegment) obj;
-        return type == other.type  &&  text.equals(other.text);
+        return type == other.type       &&
+               text.equals(other.text)  &&
+               description.equals(other.description);
     }
 
     @Override
     public String toString()
     {
-        return type.name() + " '" + text + "'";
+        final StringBuilder buf = new StringBuilder();
+        buf.append(type.name())
+           .append(" '").append(text).append("'");
+        if (! text.equals(description))
+            buf.append(" - '").append(description).append("'");
+        return buf.toString();
     }
 }

@@ -83,24 +83,26 @@ public class SimProposal extends Proposal
         if (parm_start >= 0)
         {
             // Handle parameters that already MATCH
-            final StringBuilder buf = new StringBuilder();
-            buf.append("(");
             String parm_text = text.substring(parm_start+1);
             int sep = findSep(parm_text);
             while (sep >= 0  &&  parm < arguments.length)
-            {   // text contains parameter for another argument
-                buf.append(parm_text.substring(0, sep+1));
+            {   // text matches another argument
+                final String another = parm < arguments.length-1 ? ", " : ")";
+                if (parm == 0)
+                    segs.add(MatchSegment.match("(" + parm_text.substring(0, sep+1),
+                                                "(" + arguments[parm] + another));
+                else
+                    segs.add(MatchSegment.match(parm_text.substring(0, sep+1),
+                                                arguments[parm] + another));
                 parm_text = parm_text.substring(sep+1);
                 ++parm;
                 sep = findSep(parm_text);
             }
-            if (buf.length() > 0)
-                segs.add(MatchSegment.match(buf.toString()));
         }
 
         // Add remaining parameters as COMMENT
         final StringBuilder buf = new StringBuilder();
-        if (arguments.length > 0)
+        if (parm < arguments.length)
         {
             if (parm == 0)
                 buf.append('(');
@@ -121,19 +123,10 @@ public class SimProposal extends Proposal
     private static int findSep(final String text)
     {
         // TODO Skip comma in quotes
-        return text.indexOf(',');
-    }
+        int comma = text.indexOf(',');
 
-    @Override
-    public String apply(String text)
-    {
-        // Text could be "sine" or "sim://sine(-10, 10, 2)"
-        final int arg_start = text.indexOf('(');
-        // No arguments?
-        if (arg_start < 0)
-            return super.apply(text);
-
-        // Preserve arguments
-        return value + text.substring(arg_start);
+        if (comma < 0)
+            return text.length()-1;
+        return comma;
     }
 }

@@ -39,7 +39,16 @@ public class Proposal
         return value;
     }
 
-    // TODO Better name
+    /** Determine match between text and this proposal
+     *
+     *  <p>Assuming a proposal for "Hello, Dolly" and
+     *  the user entered "Hello", this will return
+     *  a 'MATCH' segment for "Hello", followed by a
+     *  'NORMAL' segment for ", Dolly".
+     *
+     *  @param text Original text entered by user
+     *  @return {@link MatchSegment}s
+     */
     public List<MatchSegment> getMatch(final String text)
     {
         final int match = value.indexOf(text);
@@ -71,6 +80,11 @@ public class Proposal
      */
     public String apply(final String text)
     {
-        return value;
+        final StringBuilder result = new StringBuilder();
+        final List<MatchSegment> match = getMatch(text);
+        for (MatchSegment seg : match)
+            if (seg.getType() != MatchSegment.Type.COMMENT)
+                result.append(seg.getText());
+        return result.toString();
     }
 }

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
 
+import org.phoebus.framework.autocomplete.MatchSegment;
 import org.phoebus.framework.autocomplete.Proposal;
 import org.phoebus.framework.autocomplete.SimProposal;
 
@@ -242,37 +243,26 @@ public class AutocompleteMenu
     private MenuItem createMenuItem(final TextInputControl field,
                                     final String text, final Proposal proposal)
     {
-        // Determine which section of proposal matches text
-        final String description = proposal.getDescription();
-        final int pos = description.indexOf(text);
-
-        final MenuItem item;
-        // Text does not match the verbatim proposal?!
-        if (pos < 0)
-            item = new MenuItem(null, new Label(description));
-        else
-        {   // Create formatted text
-
-            // Highlight the matching section
-            // start of proposal .. matching text .. rest of proposal
-            final TextFlow markup = new TextFlow();
-            if (pos > 0)
-                markup.getChildren().add(new Label(description.substring(0, pos)));
-
-            final Label match = new Label(text);
-            match.setTextFill(Color.BLUE);
-            match.setFont(highlight_font);
+        final TextFlow markup = new TextFlow();
+        for (MatchSegment seg: proposal.getMatch(text))
+        {
+            final Label match = new Label(seg.getDescription());
+            switch (seg.getType())
+            {
+            case MATCH:
+                match.setTextFill(Color.BLUE);
+                match.setFont(highlight_font);
+                break;
+            case COMMENT:
+                match.setTextFill(Color.GRAY);
+                match.setFont(highlight_font);
+                break;
+            case NORMAL:
+                default:
+            }
             markup.getChildren().add(match);
-
-            final int rest = pos + text.length();
-            if (description.length() > rest)
-                markup.getChildren().add(new Label(description.substring(rest)));
-
-            // TODO Add parameter info
-
-            item = new MenuItem(null, markup);
         }
-
+        final MenuItem item = new MenuItem(null, markup);
         item.setOnAction(event ->
         {
             field.setText(proposal.apply(text));
