@@ -31,6 +31,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -58,7 +59,8 @@ public class AutocompleteMenu
             // Ideally, use item that can not be selected, like SeparatorMenuItem..
             final Text label = new Text(name);
             header = new CustomMenuItem(label, false);
-            label.setFont(highlight_font);
+            label.setFont(header_font);
+            label.setUnderline(true);
             this.priority = priority;
             this.proposals = proposals;
         }
@@ -71,10 +73,14 @@ public class AutocompleteMenu
      */
     private final ContextMenu menu = new ContextMenu();
 
-    /** Toggle menu on Ctrl/Command-Space */
+    /** Toggle menu on Ctrl-Space */
     private final EventHandler<KeyEvent> key_handler = event ->
     {
-        if (event.isShortcutDown()  &&  event.getCode() == KeyCode.SPACE)
+        // For Mac, isShortcutDown() to detect Command-SPACE
+        // seemed natural, but that is already captured by OS
+        // for 'Spotlight Search',
+        // so use Ctrl-Space on all OS
+        if (event.isControlDown()  &&  event.getCode() == KeyCode.SPACE)
         {
             if (menu.isShowing())
                 menu.hide();
@@ -153,13 +159,14 @@ public class AutocompleteMenu
     private final Map<TextInputControl, FieldHandler> handlers = new HashMap<>();
 
     /** Font used to highlight section of proposal */
-    private final Font highlight_font;
+    private final Font header_font, highlight_font;
 
     /** Create autocomplete menu */
     public AutocompleteMenu()
     {
         final Font default_font = Font.getDefault();
-        highlight_font = Font.font(default_font.getFamily(), FontWeight.BOLD, default_font.getSize());
+        header_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize()+1);
+        highlight_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize());
 
         menu.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
     }
@@ -238,6 +245,8 @@ public class AutocompleteMenu
             item = new MenuItem(null, new Label(description));
         else
         {   // Create formatted text
+            
+            // Highlight the matching section 
             // start of proposal .. matching text .. rest of proposal
             final TextFlow markup = new TextFlow();
             if (pos > 0)
@@ -251,6 +260,9 @@ public class AutocompleteMenu
             final int rest = pos + text.length();
             if (description.length() > rest)
                 markup.getChildren().add(new Label(description.substring(rest)));
+
+            // TODO Add parameter info
+            
             item = new MenuItem(null, markup);
         }
 
