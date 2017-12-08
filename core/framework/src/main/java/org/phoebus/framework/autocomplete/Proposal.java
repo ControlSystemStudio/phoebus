@@ -17,6 +17,7 @@ import java.util.List;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class Proposal
 {
     protected final String value;
@@ -86,5 +87,14 @@ public class Proposal
             if (seg.getType() != MatchSegment.Type.COMMENT)
                 result.append(seg.getText());
         return result.toString();
+    }
+
+    @Override
+    public String toString()
+    {
+        if (getDescription().equals(getValue()))
+            return "Proposal '" + getValue() + "'";
+        else
+            return "Proposal '" + getValue() + "' (" + getDescription() + ")";
     }
 }
