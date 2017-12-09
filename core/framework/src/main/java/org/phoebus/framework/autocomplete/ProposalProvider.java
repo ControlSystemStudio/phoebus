@@ -20,5 +20,5 @@ public interface ProposalProvider
      *  @param text Text entered by user
      *  @return {@link Proposal}s that could be applied to the text
      */
-    public List<Proposal> lookup(String text);
+    public List<? extends Proposal> lookup(String text);
 }

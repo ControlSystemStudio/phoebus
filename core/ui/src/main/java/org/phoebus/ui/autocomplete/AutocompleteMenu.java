@@ -17,6 +17,7 @@ import java.util.TreeSet;
 import org.phoebus.framework.autocomplete.MatchSegment;
 import org.phoebus.framework.autocomplete.Proposal;
 import org.phoebus.framework.autocomplete.SimProposal;
+import org.phoebus.framework.autocomplete.SimProposalProvider;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -206,19 +207,20 @@ public class AutocompleteMenu
 
     private void lookup(final TextInputControl field)
     {
+        final String text = field.getText();
+        
         // TODO Actual lookup...
-
-
+        // TODO Query each provider in background
         synchronized (results)
         {
+            results.clear();
             // Merge proposals
+            // TODO History
             results.add(new Result("History", 3, List.of(
                 new Proposal("Ene"),
                 new Proposal("Mene"))));
-            results.add(new Result("sim", 1, List.of(
-                new SimProposal("sim://sine", "min", "max", "update_seconds"),
-                new SimProposal("sim://sine", "min", "max", "steps", "update_seconds"),
-                new Proposal("sim://noise"))));
+            results.add(new Result("sim", 1, SimProposalProvider.INSTANCE.lookup(text)));
+            // TODO LocProposalProvider
             results.add(new Result("Local", 2, List.of(
                 new Proposal("Uno"),
                 new Proposal("Due"))));
@@ -226,7 +228,6 @@ public class AutocompleteMenu
 
         // Create menu items: Header for each result,
         // then list proposals
-        final String text = field.getText();
         final List<MenuItem> items = new ArrayList<>();
         synchronized (results)
         {

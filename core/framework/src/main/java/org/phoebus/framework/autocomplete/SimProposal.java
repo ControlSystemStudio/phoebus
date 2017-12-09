@@ -48,6 +48,36 @@ public class SimProposal extends Proposal
         }
         return buf.toString();
     }
+    
+    public String[] getArguments()
+    {
+        return arguments;
+    }
+    
+    /** @param text Sim PV text with optional parameters
+     *  @return [ name, parameters-without-'(' or null ]
+     */
+    static String[] splitBaseAndParameters(final String text)
+    {
+        final int parm_start = text.indexOf('(');
+        final String noparm_text = parm_start < 0 ? text : text.substring(0, parm_start);
+        final String parm_text = parm_start < 0 ? null : text.substring(parm_start+1);
+        return new String[] { noparm_text, parm_text };
+    }
+
+    /** @param text Parameter text
+     *  @param start Start position of search
+     *  @return End of parameter, i.e. location of next comma or end of text 
+     */
+    static int findSep(final String text, final int start)
+    {
+        // TODO Skip comma in quotes
+        int comma = text.indexOf(',', start);
+
+        if (comma < 0)
+            return text.length()-1;
+        return comma;
+    }
 
     @Override
     public List<MatchSegment> getMatch(final String text)
@@ -55,11 +85,11 @@ public class SimProposal extends Proposal
         final List<MatchSegment> segs = new ArrayList<>();
 
         // Does text contain parameters?
-        final int parm_start = text.indexOf('(');
+        String[] split = splitBaseAndParameters(text);
+        final String noparm_text = split[0];
+        String parm_text = split[1];
 
         // First compare text up to optional parameters
-        final String noparm_text = parm_start < 0 ? text : text.substring(0, parm_start);
-
         final int match = value.indexOf(noparm_text);
         // Text does not match the proposal??
         if (match < 0)
@@ -80,11 +110,10 @@ public class SimProposal extends Proposal
         }
 
         int parm = 0;
-        if (parm_start >= 0)
+        if (parm_text != null)
         {
             // Handle parameters that already MATCH
-            String parm_text = text.substring(parm_start+1);
-            int sep = findSep(parm_text);
+            int sep = findSep(parm_text, 0);
             while (sep >= 0  &&  parm < arguments.length)
             {   // text matches another argument
                 final String another = parm < arguments.length-1 ? ", " : ")";
@@ -96,7 +125,7 @@ public class SimProposal extends Proposal
                                                 arguments[parm] + another));
                 parm_text = parm_text.substring(sep+1);
                 ++parm;
-                sep = findSep(parm_text);
+                sep = findSep(parm_text, 0);
             }
         }
 
@@ -118,15 +147,5 @@ public class SimProposal extends Proposal
             segs.add(MatchSegment.comment(buf.toString()));
 
         return segs;
-    }
-
-    private static int findSep(final String text)
-    {
-        // TODO Skip comma in quotes
-        int comma = text.indexOf(',');
-
-        if (comma < 0)
-            return text.length()-1;
-        return comma;
     }
 }

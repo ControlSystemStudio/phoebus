@@ -8,9 +8,11 @@
 package org.phoebus.framework.autocomplete;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -40,6 +42,10 @@ public class SimProposalTest
         // Partial "sin" with arguments preserves the args
         assertThat(proposal.apply("sin(-10, 10, 2)"),
                 equalTo("sim://sine(-10, 10, 2)"));
+        
+        // TODO Adds missing ")"
+//        assertThat(proposal.apply("sin(-10, 10, 2"),
+//                equalTo("sim://sine(-10, 10, 2)"));
 
         // The other form of sim://sine
         proposal = new SimProposal("sim://sine", "min", "max", "steps", "update_seconds");
@@ -82,5 +88,33 @@ public class SimProposalTest
                                           MatchSegment.match("(-10,", "(min, "),
                                           MatchSegment.match(" 10,", "max, "),
                                           MatchSegment.match(" 2)", "update_seconds)"))));
+    }
+
+    @Test
+    public void testParameterParsing()
+    {
+        String text = "10, \"Apples, Two\"";
+        // TODO Split into parameters
+    }
+    
+    @Test
+    public void testLookup()
+    {
+        // Basic lookup by name
+        List<Proposal> proposals = SimProposalProvider.INSTANCE.lookup("ine");
+        List<String> names = proposals.stream().map(Proposal::getValue).collect(Collectors.toList());
+        List<String> descr = proposals.stream().map(Proposal::getDescription).collect(Collectors.toList());
+        assertThat(names, hasItems("sim://sine"));
+        assertThat(descr, hasItems("sim://sine(min, max, update_seconds)",
+                                   "sim://sine(min, max, steps, update_seconds)"));
+
+        proposals = SimProposalProvider.INSTANCE.lookup("op");
+        names = proposals.stream().map(Proposal::getValue).collect(Collectors.toList());
+        assertThat(names, hasItems("sim://flipflop"));
+
+        // Check number of parameters
+        proposals = SimProposalProvider.INSTANCE.lookup("ine(-50, 50, 0.5)");
+        descr = proposals.stream().map(Proposal::getDescription).collect(Collectors.toList());
+        assertThat(descr, equalTo(List.of("sim://sine(min, max, update_seconds)")));
     }
 }
