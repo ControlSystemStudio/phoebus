@@ -7,21 +7,15 @@
  *******************************************************************************/
 package org.phoebus.framework.autocomplete;
 
-import java.util.List;
-
-/** Provider of {@link Proposal}s
- *
+/** Autocompletion Service for PVs
  *  @author Kay Kasemir
  */
-public interface ProposalProvider
+public class PVProposalService extends ProposalService
 {
-    /** @return Name of this provider */
-    public String getName();
+    public static final PVProposalService INSTANCE = new PVProposalService();
 
-    /** Get proposals
-     *
-     *  @param text Text entered by user
-     *  @return {@link Proposal}s that could be applied to the text
-     */
-    public List<Proposal> lookup(String text);
+    private PVProposalService()
+    {
+        super(SimProposalProvider.INSTANCE);
+    }
 }

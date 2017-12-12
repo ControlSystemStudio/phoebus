@@ -23,6 +23,7 @@ import java.util.List;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class History implements ProposalProvider
 {
     private final LinkedList<String> history = new LinkedList<>();
@@ -37,6 +38,12 @@ public class History implements ProposalProvider
     public History(final int max_size)
     {
         this.max_size = max_size;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "History";
     }
 
     /** @param proposal Proposal to add to history */

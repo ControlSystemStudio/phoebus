@@ -5,23 +5,19 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.framework.autocomplete;
+package org.phoebus.ui.autocomplete;
 
-import java.util.List;
+import org.phoebus.framework.autocomplete.PVProposalService;
 
-/** Provider of {@link Proposal}s
- *
+/** Auto-completion menu for PV names
  *  @author Kay Kasemir
  */
-public interface ProposalProvider
+public class PVAutocompleteMenu extends AutocompleteMenu
 {
-    /** @return Name of this provider */
-    public String getName();
+    public static final PVAutocompleteMenu INSTANCE = new PVAutocompleteMenu();
 
-    /** Get proposals
-     *
-     *  @param text Text entered by user
-     *  @return {@link Proposal}s that could be applied to the text
-     */
-    public List<Proposal> lookup(String text);
+    private PVAutocompleteMenu()
+    {
+        super(PVProposalService.INSTANCE);
+    }
 }

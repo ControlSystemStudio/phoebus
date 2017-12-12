@@ -45,6 +45,12 @@ public class SimProposalProvider implements ProposalProvider
         // Singleton
     }
 
+    @Override
+    public String getName()
+    {
+        return "Simulated PV";
+    }
+
     /** Get proposals
      *
      *  @param text Text entered by user

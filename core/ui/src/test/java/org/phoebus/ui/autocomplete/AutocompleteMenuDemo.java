@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 /** Autocompletion demo
@@ -23,25 +24,25 @@ public class AutocompleteMenuDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final AutocompleteMenu menu = new AutocompleteMenu();
-
         final GridPane layout = new GridPane();
         layout.setHgap(5);
         layout.setVgap(5);
 
         Label label = new Label("PV 1:");
         TextField text = new TextField();
-        menu.attachField(text);
+        GridPane.setHgrow(text, Priority.ALWAYS);
+        PVAutocompleteMenu.INSTANCE.attachField(text);
         layout.add(label, 0, 0);
         layout.add(text, 1, 0);
 
         label = new Label("PV 2:");
         text = new TextField();
-        menu.attachField(text);
+        GridPane.setHgrow(text, Priority.ALWAYS);
+        PVAutocompleteMenu.INSTANCE.attachField(text);
         layout.add(label, 0, 1);
         layout.add(text, 1, 1);
 
-        final Scene scene = new Scene(layout);
+        final Scene scene = new Scene(layout, 300, 200);
         stage.setScene(scene);
         stage.show();
     }

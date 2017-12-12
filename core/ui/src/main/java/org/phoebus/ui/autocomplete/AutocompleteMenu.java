@@ -16,8 +16,7 @@ import java.util.TreeSet;
 
 import org.phoebus.framework.autocomplete.MatchSegment;
 import org.phoebus.framework.autocomplete.Proposal;
-import org.phoebus.framework.autocomplete.SimProposal;
-import org.phoebus.framework.autocomplete.SimProposalProvider;
+import org.phoebus.framework.autocomplete.ProposalService;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -70,6 +69,8 @@ public class AutocompleteMenu
             this.proposals = proposals;
         }
     }
+
+    private final ProposalService proposal_service;
 
     private final TreeSet<Result> results = new TreeSet<>((a, b) -> a.priority - b.priority);
 
@@ -167,8 +168,10 @@ public class AutocompleteMenu
     private final Font header_font, highlight_font;
 
     /** Create autocomplete menu */
-    public AutocompleteMenu()
+    public AutocompleteMenu(final ProposalService service)
     {
+        this.proposal_service = service;
+
         final Font default_font = Font.getDefault();
         header_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize()+1);
         highlight_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize());
@@ -201,36 +204,31 @@ public class AutocompleteMenu
 
     private void updateHistory(final String text)
     {
-        // TODO
-        System.out.println("Add to history: " + text);
+        proposal_service.addToHistory(text);
     }
 
     private void lookup(final TextInputControl field)
     {
         final String text = field.getText();
-        
-        // TODO Actual lookup...
-        // TODO Query each provider in background
+
         synchronized (results)
         {
             results.clear();
-            // Merge proposals
-            // TODO History
-            results.add(new Result("History", 3, List.of(
-                new Proposal("Ene"),
-                new Proposal("Mene"))));
-            results.add(new Result("sim", 1, SimProposalProvider.INSTANCE.lookup(text)));
-            // TODO LocProposalProvider
-            results.add(new Result("Local", 2, List.of(
-                new Proposal("Uno"),
-                new Proposal("Due"))));
         }
+        proposal_service.lookup(text, (name, priority, proposals) -> handleLookupResult(field, text, name, priority, proposals));
+    }
 
-        // Create menu items: Header for each result,
-        // then list proposals
+    private void handleLookupResult(final TextInputControl field, final String text, final String name, final int priority, final List<Proposal> proposals)
+    {
         final List<MenuItem> items = new ArrayList<>();
+
         synchronized (results)
         {
+            // Merge proposals
+            results.add(new Result(name, priority, proposals));
+
+            // Create menu items: Header for each result,
+            // then list proposals
             for (Result result : results)
             {
                 items.add(result.header);
