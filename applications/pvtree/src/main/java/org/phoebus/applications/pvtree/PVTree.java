@@ -18,6 +18,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dnd.DataFormats;
 
 import javafx.geometry.Insets;
@@ -61,6 +62,8 @@ public class PVTree implements AppInstance
         final Label label = new Label(Messages.PV_Label);
         pv_name.setOnAction(event -> setPVName(pv_name.getText()));
         pv_name.setTooltip(new Tooltip(Messages.PV_TT));
+
+        PVAutocompleteMenu.INSTANCE.attachField(pv_name);
 
         final ToggleButton latch = new ToggleButton(null, getImageView("run.png"));
         latch.setTooltip(new Tooltip(Messages.LatchTT));
@@ -148,6 +151,7 @@ public class PVTree implements AppInstance
     public void dispose()
     {
         logger.log(Level.INFO, "Stopping PV Tree...");
+        PVAutocompleteMenu.INSTANCE.detachField(pv_name);
         tree.shutdown();
         // System.out.println("Remaining PVs " + PVPool.getPVReferences());
     }
