@@ -14,71 +14,75 @@ import java.util.List;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class SimProposalProvider implements ProposalProvider
 {
     public static final SimProposalProvider INSTANCE = new SimProposalProvider();
-    
+
     private static final List<SimProposal> proposals = List.of(
-        new SimProposal("sim://sine", "min", "max", "update_seconds"),
-        new SimProposal("sim://sine", "min", "max", "steps", "update_seconds"),
+        new SimProposal("sim://flipflop", "update_seconds"),
+        new SimProposal("sim://gaussianNoise", "center", "std_dev", "update_seconds"),
+        new SimProposal("sim://gaussianwave", "period_seconds", "std_dev", "size", "update_seconds"),
+        new SimProposal("sim://intermittent", "update_seconds" ),
+        new SimProposal("sim://intermittent", "update_seconds", "value" ),
+        new SimProposal("sim://intermittent", "update_seconds", "min", "max" ),
+        new SimProposal("sim://noise", "min", "max", "update_seconds"),
+        new SimProposal("sim://noisewave", "min", "max", "update_seconds"),
+        new SimProposal("sim://noisewave", "min", "max", "size", "update_seconds"),
         new SimProposal("sim://ramp", "min", "max", "update_seconds"),
         new SimProposal("sim://ramp", "min", "max", "steps", "update_seconds"),
-        new SimProposal("sim://flipflop", "update_seconds"),
-        new SimProposal("sim://noise", "min", "max", "update_seconds"));
+        new SimProposal("sim://sawtooth", "period_seconds", "wavelength", "size", "update_seconds"),
+        new SimProposal("sim://sawtooth", "period_seconds", "wavelength", "size", "update_seconds", "min", "max"),
+        new SimProposal("sim://sine", "min", "max", "update_seconds"),
+        new SimProposal("sim://sine", "min", "max", "steps", "update_seconds"),
+        new SimProposal("sim://sinewave", "period_seconds", "wavelength", "size", "update_seconds"),
+        new SimProposal("sim://sinewave", "period_seconds", "wavelength", "size", "update_seconds", "min", "max"),
+        new SimProposal("sim://strings", "update_seconds"),
+        new SimProposal("sim://strings", "length", "update_seconds"));
 
     private SimProposalProvider()
     {
         // Singleton
     }
-    
-    private static int countArgs(final String text)
-    {
-        int count = 1;
-        int start = 0;
-        int sep = SimProposal.findSep(text, start);
-        while (sep >= 0  &&  sep < text.length()-1)
-        {
-            ++count;
-            start = sep+1;
-            sep = SimProposal.findSep(text, start);
-        }
-        return count;
-    }
-    
+
     /** Get proposals
      *
      *  @param text Text entered by user
      *  @return {@link Proposal}s that could be applied to the text
      */
-    public List<Proposal> lookup(String text)
+    @Override
+    public List<Proposal> lookup(final String text)
     {
         final List<Proposal> result = new ArrayList<>();
-        
+
         // Does text contain parameters?
-        final String[] split = SimProposal.splitBaseAndParameters(text);
-        final String noparm_text = split[0];
-        final String parm_text = split[1];
+        final List<String> split = SimProposal.splitNameAndParameters(text);
+        final String noparm_text = split.get(0);
+
+        final int given = SimProposal.hasOpeningBacket(text)
+                        ? split.size() - 1
+                        : -1;
+        final boolean complete_args = SimProposal.hasClosingBacket(text);
 
         // First compare text up to optional parameters
         for (SimProposal proposal : proposals)
             if (proposal.getValue().contains(noparm_text))
             {
                 // If text contains arguments, check them
-                if (parm_text != null)
+                if (given >= 0)
                 {
-                    final int given = countArgs(parm_text);
                     final int required = proposal.getArguments().length;
                     // Skip if text contains more arguments than proposal allows
                     if (given > required)
                         continue;
                     // Skip if text contains complete arguments "(...)" but wrong number
-                    if (given != required  &&  text.trim().endsWith(")"))
+                    if (given != required  &&  complete_args)
                         continue;
                     // Text has fewer arguments, or not ending in "..)"
                 }
                 result.add(proposal);
             }
-        
+
         return result;
     }
 }

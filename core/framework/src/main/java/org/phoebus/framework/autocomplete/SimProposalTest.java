@@ -22,6 +22,38 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class SimProposalTest
 {
+
+    @Test
+    public void testArguments()
+    {
+        List<String> split = SimProposal.splitNameAndParameters("sim://sine");
+        assertThat(split, equalTo(List.of("sim://sine")));
+
+        split = SimProposal.splitNameAndParameters("abcxyz");
+        assertThat(split, equalTo(List.of("abcxyz")));
+
+        split = SimProposal.splitNameAndParameters("sim://sine( 1, 2, 3, \"Fred\")");
+        assertThat(split, equalTo(List.of("sim://sine", " 1", " 2", " 3", " \"Fred\"")));
+
+        // Ignore comma in quotes
+        split = SimProposal.splitNameAndParameters("sim://bogus(\"Hello, Dolly\")");
+        assertThat(split, equalTo(List.of("sim://bogus", "\"Hello, Dolly\"")));
+
+        // Get same result when final ')' is missing
+        split = SimProposal.splitNameAndParameters("sim://sine( 1, 2, 3, \"Fred\"");
+        assertThat(split, equalTo(List.of("sim://sine", " 1", " 2", " 3", " \"Fred\"")));
+
+        // Ignore comma in quotes
+        split = SimProposal.splitNameAndParameters("sim://bogus(\"Hello, Dolly\"");
+        assertThat(split, equalTo(List.of("sim://bogus", "\"Hello, Dolly\"")));
+
+        assertThat(SimProposal.hasOpeningBacket("sim://sine( 1, 2, 3, \"Fred\")"), equalTo(true));
+        assertThat(SimProposal.hasOpeningBacket("abcxyz"), equalTo(false));
+
+        assertThat(SimProposal.hasClosingBacket("sim://sine( 1, 2, 3, \"Fred\")"), equalTo(true));
+        assertThat(SimProposal.hasClosingBacket("sim://sine( 1, 2, 3, \"Fred\""), equalTo(false));
+    }
+
     @Test
     public void testSimProposal()
     {
@@ -41,19 +73,20 @@ public class SimProposalTest
 
         // Partial "sin" with arguments preserves the args
         assertThat(proposal.apply("sin(-10, 10, 2)"),
-                equalTo("sim://sine(-10, 10, 2)"));
-        
-        // TODO Adds missing ")"
-//        assertThat(proposal.apply("sin(-10, 10, 2"),
-//                equalTo("sim://sine(-10, 10, 2)"));
+                   equalTo("sim://sine(-10, 10, 2)"));
+
+        // Adds missing ")"
+        assertThat(proposal.apply("sin(-10, 10, 2"),
+                   equalTo("sim://sine(-10, 10, 2)"));
 
         // The other form of sim://sine
         proposal = new SimProposal("sim://sine", "min", "max", "steps", "update_seconds");
         assertThat(proposal.getDescription(),
-                equalTo("sim://sine(min, max, steps, update_seconds)"));
+                   equalTo("sim://sine(min, max, steps, update_seconds)"));
+
         // Arguments are fully preserved, incl. spacing
         assertThat(proposal.apply("sin(-10,10,    0.1, 2  )"),
-                equalTo("sim://sine(-10,10,    0.1, 2  )"));
+                   equalTo("sim://sine(-10,10,    0.1, 2  )"));
     }
 
     @Test
@@ -76,8 +109,8 @@ public class SimProposalTest
             System.out.println(m);
         assertThat(match, equalTo(List.of(MatchSegment.normal("sim://"),
                                           MatchSegment.match("sine"),
-                                          MatchSegment.match("(2,", "(min, "),
-                                          MatchSegment.match(" 4,", "max, "),
+                                          MatchSegment.match("(2,", "(min,"),
+                                          MatchSegment.match(" 4,", "max,"),
                                           MatchSegment.comment("update_seconds)"))));
 
         match = proposal.getMatch("sim://sine(-10, 10, 2)");
@@ -85,18 +118,11 @@ public class SimProposalTest
         for (MatchSegment m : match)
             System.out.println(m);
         assertThat(match, equalTo(List.of(MatchSegment.match("sim://sine"),
-                                          MatchSegment.match("(-10,", "(min, "),
-                                          MatchSegment.match(" 10,", "max, "),
+                                          MatchSegment.match("(-10,", "(min,"),
+                                          MatchSegment.match(" 10,", "max,"),
                                           MatchSegment.match(" 2)", "update_seconds)"))));
     }
 
-    @Test
-    public void testParameterParsing()
-    {
-        String text = "10, \"Apples, Two\"";
-        // TODO Split into parameters
-    }
-    
     @Test
     public void testLookup()
     {

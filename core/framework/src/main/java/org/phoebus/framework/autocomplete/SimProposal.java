@@ -48,48 +48,95 @@ public class SimProposal extends Proposal
         }
         return buf.toString();
     }
-    
+
     public String[] getArguments()
     {
         return arguments;
     }
-    
-    /** @param text Sim PV text with optional parameters
-     *  @return [ name, parameters-without-'(' or null ]
+
+    /** Split complete PV into base name and each argument
+     *
+     *  @param text
+     *  @return
      */
-    static String[] splitBaseAndParameters(final String text)
+    static List<String> splitNameAndParameters(final String text)
     {
-        final int parm_start = text.indexOf('(');
-        final String noparm_text = parm_start < 0 ? text : text.substring(0, parm_start);
-        final String parm_text = parm_start < 0 ? null : text.substring(parm_start+1);
-        return new String[] { noparm_text, parm_text };
+        // Locate start of parameters
+        int sep = text.indexOf('(');
+        if (sep < 0)
+            return List.of(text);
+
+        // Collect all comma-separated parameters
+        final List<String> result = new ArrayList<>();
+        result.add(text.substring(0, sep));
+        int pos = sep+1;
+        sep = nextSep(text, pos);
+        while (sep >= 0)
+        {
+            result.add(text.substring(pos, sep));
+            pos = sep + 1;
+            sep = nextSep(text, pos);
+        }
+        // Handle remaining "xyz" or "xyz)"
+        if (pos < text.length())
+        {
+            final String rest = text.substring(pos);
+            sep = rest.lastIndexOf(')');
+            if (sep < 0)
+                result.add(rest);
+            else
+                result.add(rest.substring(0, sep));
+        }
+        return result;
     }
 
-    /** @param text Parameter text
-     *  @param start Start position of search
-     *  @return End of parameter, i.e. location of next comma or end of text 
-     */
-    static int findSep(final String text, final int start)
+    private static int nextSep(final String text, final int start)
     {
-        // TODO Skip comma in quotes
-        int comma = text.indexOf(',', start);
+        final int N = text.length();
+        for (int pos = start;  pos < N;  ++pos)
+        {
+            char c = text.charAt(pos);
+            if (c == ',')
+                return pos;
+            // Skip "text, quoted"
+            if (c == '"'  &&   (pos <= 0  ||  text.charAt(pos-1) != '\\'))
+            {
+                while (pos+1 < N)
+                {
+                    c = text.charAt(++pos);
+                    if (c == '"'  &&   (pos <= 0  ||  text.charAt(pos-1) != '\\'))
+                        break;
+                }
+                // Unterminated quote?
+                if (pos >= N)
+                    return -1;
+            }
+        }
+        return -1;
+    }
 
-        if (comma < 0)
-            return text.length()-1;
-        return comma;
+    static boolean hasOpeningBacket(final String text)
+    {
+        return text.indexOf('(') >= 0;
+    }
+
+    static boolean hasClosingBacket(final String text)
+    {
+        return text.trim().lastIndexOf(')') >= 0;
     }
 
     @Override
     public List<MatchSegment> getMatch(final String text)
     {
-        final List<MatchSegment> segs = new ArrayList<>();
-
         // Does text contain parameters?
-        String[] split = splitBaseAndParameters(text);
-        final String noparm_text = split[0];
-        String parm_text = split[1];
+        final List<String> split = splitNameAndParameters(text);
+        if (split.isEmpty())
+            return List.of();
+
+        final List<MatchSegment> segs = new ArrayList<>(split.size());
 
         // First compare text up to optional parameters
+        final String noparm_text = split.get(0);
         final int match = value.indexOf(noparm_text);
         // Text does not match the proposal??
         if (match < 0)
@@ -109,24 +156,17 @@ public class SimProposal extends Proposal
                 segs.add(MatchSegment.normal(value.substring(rest)));
         }
 
-        int parm = 0;
-        if (parm_text != null)
+        final int common = Math.min(split.size()-1, arguments.length);
+        int parm;
+        for (parm = 0;  parm < common; ++parm)
         {
-            // Handle parameters that already MATCH
-            int sep = findSep(parm_text, 0);
-            while (sep >= 0  &&  parm < arguments.length)
-            {   // text matches another argument
-                final String another = parm < arguments.length-1 ? ", " : ")";
-                if (parm == 0)
-                    segs.add(MatchSegment.match("(" + parm_text.substring(0, sep+1),
-                                                "(" + arguments[parm] + another));
-                else
-                    segs.add(MatchSegment.match(parm_text.substring(0, sep+1),
-                                                arguments[parm] + another));
-                parm_text = parm_text.substring(sep+1);
-                ++parm;
-                sep = findSep(parm_text, 0);
-            }
+            final String another = parm < arguments.length-1 ? "," : ")";
+            if (parm == 0)
+                segs.add(MatchSegment.match("(" + split.get(parm+1) + another,
+                                            "(" + arguments[parm] + another));
+            else
+                segs.add(MatchSegment.match(split.get(parm+1) + another,
+                                            arguments[parm] + another));
         }
 
         // Add remaining parameters as COMMENT
