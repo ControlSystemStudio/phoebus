@@ -11,6 +11,8 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectPropertyBase;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Side;
@@ -31,6 +33,7 @@ import javafx.stage.Window;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PopOver extends PopupControl
 {
    /** Root of content scene graph */
@@ -77,12 +80,45 @@ public class PopOver extends PopupControl
    };
    private final WeakInvalidationListener weak_update_position = new WeakInvalidationListener(update_position);
 
+   /** Hide popup when active owner looses focus */
+   private final ChangeListener<Boolean> focus_listener = (p, old, focus) ->
+   {
+       if (! focus)
+           hide();
+   };
+   private final WeakChangeListener<Boolean> weak_focus_listener = new WeakChangeListener<>(focus_listener);
+
    /** Create popover
+   *
+   *   <p>Derived class must call {@link #setContent(Node)}
+   *   in its constructor!
+   */
+  public PopOver()
+  {
+  }
+
+  /** Create popover
     *
     *  @param content Root of content scene graph
     */
    public PopOver(final Node content)
    {
+       setContent(content);
+   }
+
+   /** Derived class must either use the
+    *  {@link PopOver#PopOver(Node)} constructor
+    *  or call this to set the content.
+    *
+    *  <p>Must not be called to change the content
+    *  at a later time.
+    *
+    *  @param content
+    */
+   protected void setContent(final Node content)
+   {
+       if (this.content != null)
+           throw new IllegalStateException("Must set content exactly once");
        this.content = content;
        content.boundsInLocalProperty().addListener(weak_update_position);
    }
@@ -151,11 +187,17 @@ public class PopOver extends PopupControl
     *  <p>Moving the node or window will result
     *  in move of the PopOver.
     *
+    *  <p>When the owner looses focus,
+    *  the popup will hide.
+    *
     *  @param owner Owner node relative to which the PopOver will be located
     *  @see {@link PopupControl#hide()}
     */
    public void show(final Region owner)
    {
+       if (content == null)
+           throw new IllegalStateException("Must set content exactly once");
+
        // Unhook from previous owner
        if (active_owner != null)
        {
@@ -164,6 +206,7 @@ public class PopOver extends PopupControl
            window.yProperty().removeListener(weak_update_position);
            active_owner.layoutXProperty().removeListener(weak_update_position);
            active_owner.layoutYProperty().removeListener(weak_update_position);
+           active_owner.focusedProperty().removeListener(weak_focus_listener);
        }
 
        // Track movement of owner resp. its window
@@ -173,10 +216,11 @@ public class PopOver extends PopupControl
        window.yProperty().addListener(weak_update_position);
        owner.layoutXProperty().addListener(weak_update_position);
        owner.layoutYProperty().addListener(weak_update_position);
+       owner.focusedProperty().addListener(weak_focus_listener);
 
        // Show relative to owner
        update_position.invalidated(null);
-       show(window);
+       show(owner, getAnchorX(), getAnchorY());
    }
 }
 
