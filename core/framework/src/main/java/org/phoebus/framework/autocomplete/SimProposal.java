@@ -12,7 +12,9 @@ import java.util.List;
 
 /** Proposal for "sim://..." PVs
  *
- *  <p>Description includes the optional parameters.
+ *  <p>Description includes the optional parameters,
+ *  which are shown as {@link MatchSegment#COMMENT}
+ *  until the user provides a value for a parameter.
  *
  *  <p>When applied to user text,
  *  it will preserve parameters that the user had
@@ -49,7 +51,7 @@ public class SimProposal extends Proposal
         return buf.toString();
     }
 
-    public String[] getArguments()
+    String[] getArguments()
     {
         return arguments;
     }

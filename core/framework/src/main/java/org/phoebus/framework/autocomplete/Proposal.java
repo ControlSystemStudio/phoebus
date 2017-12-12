@@ -10,10 +10,11 @@ package org.phoebus.framework.autocomplete;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Basic value-based proposal
+/** Proposal, a suggested completion for text that user has entered.
  *
- *  <p>Holds a plain string,
+ *  <p>Base class holds a plain string,
  *  which will be used to replace entered text.
+ *  Derived classes implement more sophisticated proposals.
  *
  *  @author Kay Kasemir
  */
@@ -34,7 +35,7 @@ public class Proposal
         return value;
     }
 
-    /** @return Text to display when showing the proposal for user to select it */
+    /** @return Text to display when showing the proposal, allowing user to select it */
     public String getDescription()
     {
         return value;
@@ -83,6 +84,7 @@ public class Proposal
     {
         final StringBuilder result = new StringBuilder();
         final List<MatchSegment> match = getMatch(text);
+        // Use text of segments except 'COMMENT' segments
         for (MatchSegment seg : match)
             if (seg.getType() != MatchSegment.Type.COMMENT)
                 result.append(seg.getText());

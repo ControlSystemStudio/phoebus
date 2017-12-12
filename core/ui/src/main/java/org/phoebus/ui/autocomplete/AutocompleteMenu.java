@@ -161,6 +161,8 @@ public class AutocompleteMenu
         }
     }
 
+
+    // TODO Use WeakHashMap? Assert that menu gets detached from fields
     /** Map of handlers for known fields */
     private final Map<TextInputControl, FieldHandler> handlers = new HashMap<>();
 

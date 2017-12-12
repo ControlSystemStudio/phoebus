@@ -13,14 +13,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/** Autocompletion Service
-*
-*  <p>When asked to lookup suggestions for some partial text,
-*  the service will query one or more providers,
-*  and return their replies as they arrive.
-*
-*  @author Kay Kasemir
-*/
+/** Proposal Service
+ *
+ *  <p>When asked to lookup proposals for some text entered by user,
+ *  the service will query one or more providers,
+ *  and return their replies as they arrive.
+ *
+ *  @see PVProposalService
+ *  @author Kay Kasemir
+ */
 public class ProposalService
 {
     @FunctionalInterface
@@ -77,27 +78,22 @@ public class ProposalService
         }
     }
 
-
-    /** Await completion of ongoing lookup
+    /** Lookup text in one provider
      *
-     *  <p>For testing.
+     *  <p>Called from pool
      *
-     *  <p>Code that uses the service should simply
-     *  handle calls to the response handler.
+     *  @param provider {@link ProposalProvider} to use
+     *  @param text Text to look up
+     *  @param priority Priority of the results
+     *  @param response_handler {@link Handler} to call
      */
-    public synchronized void awaitCompletion() throws Exception
-    {
-        for (Future<?> running : submitted)
-            running.get();
-    }
-
     private static void lookup(final ProposalProvider provider,
                                final String text,
                                final int priority,
                                final Handler response_handler)
     {
         final List<Proposal> entries = provider.lookup(text);
-        if (! Thread.currentThread().isInterrupted())
+        if (entries.size() > 0  &&  ! Thread.currentThread().isInterrupted())
             response_handler.handleProposals(provider.getName(), priority, entries);
     }
 }

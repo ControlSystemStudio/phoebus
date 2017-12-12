@@ -69,7 +69,7 @@ public class MatchSegment
     /** @param text Text segment from proposal
      *  @return {@link Type#NORMAL} segment
      */
-    public static MatchSegment normal(final String text)
+    static MatchSegment normal(final String text)
     {
         return new MatchSegment(text, Type.NORMAL);
     }
@@ -77,7 +77,7 @@ public class MatchSegment
     /** @param text Text segment from proposal
      *  @return {@link Type#MATCH} segment
      */
-    public static MatchSegment match(final String text)
+    static MatchSegment match(final String text)
     {
         return new MatchSegment(text, Type.MATCH);
     }
@@ -86,7 +86,7 @@ public class MatchSegment
      *  @param description Description for text
      *  @return {@link Type#MATCH} segment
      */
-    public static MatchSegment match(final String text, final String description)
+    static MatchSegment match(final String text, final String description)
     {
         return new MatchSegment(text, description, Type.MATCH);
     }
@@ -94,7 +94,7 @@ public class MatchSegment
     /** @param text Text segment from proposal
      *  @return {@link Type#COMMENT} segment
      */
-    public static MatchSegment comment(final String text)
+    static MatchSegment comment(final String text)
     {
         return new MatchSegment(text, Type.COMMENT);
     }
@@ -103,7 +103,7 @@ public class MatchSegment
      *  @param description Description for text
      *  @return {@link Type#COMMENT} segment
      */
-    public static MatchSegment comment(final String text, final String description)
+    static MatchSegment comment(final String text, final String description)
     {
         return new MatchSegment(text, description, Type.COMMENT);
     }
