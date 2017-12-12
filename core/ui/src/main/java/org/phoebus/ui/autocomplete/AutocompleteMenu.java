@@ -8,10 +8,7 @@
 package org.phoebus.ui.autocomplete;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.TreeSet;
 
 import org.phoebus.framework.autocomplete.MatchSegment;
@@ -19,7 +16,6 @@ import org.phoebus.framework.autocomplete.Proposal;
 import org.phoebus.framework.autocomplete.ProposalService;
 
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
@@ -44,7 +40,6 @@ import javafx.scene.text.TextFlow;
  *  @author Amanda Carpenter - Original version in Display Builder
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class AutocompleteMenu
 {
     /** Result of a lookup, packaged for display in menu. */
@@ -80,7 +75,7 @@ public class AutocompleteMenu
     private final ContextMenu menu = new ContextMenu();
 
     /** Toggle menu on Ctrl-Space */
-    private final EventHandler<KeyEvent> key_handler = event ->
+    private final EventHandler<KeyEvent> key_press_filter = event ->
     {
         // For Mac, isShortcutDown() to detect Command-SPACE
         // seemed natural, but that is already captured by OS
@@ -105,6 +100,35 @@ public class AutocompleteMenu
         }
     };
 
+    /** On 'ENTER', add the manually entered value to history.
+     *  Most other keys trigger a lookup.
+     *  Listening to the 'text' of a text field would trigger
+     *  the lookup and thus menu whenever the text is set,
+     *  but want to only perform lookup when user enters text,
+     *  i.e. when keys are pressed.
+     */
+    private final EventHandler<KeyEvent> key_release_handler = event ->
+    {
+        if (! (event.getSource() instanceof TextField))
+            return;
+        final TextField field = (TextField) event.getSource();
+
+        final KeyCode code = event.getCode();
+        if (code == KeyCode.ENTER)
+        {
+            updateHistory(field.getText());
+            menu.hide();
+        }
+        else if (code != KeyCode.ESCAPE   &&
+                 ! code.isArrowKey()      &&
+                 ! code.isFunctionKey()   &&
+                 ! code.isMediaKey()      &&
+                 ! code.isModifierKey()   &&
+                 ! code.isNavigationKey()
+                )
+            lookup(field);
+    };
+
     /** Hide and clear menu as well as results when field looses focus */
     private final ChangeListener<Boolean> focused_listener = (p, old, focus) ->
     {
@@ -118,53 +142,6 @@ public class AutocompleteMenu
             }
         }
     };
-
-    /** On 'ENTER', add the manually entered value to history */
-    private final EventHandler<KeyEvent> submit_handler = event ->
-    {
-        if (event.getCode() == KeyCode.ENTER  &&
-            event.getSource() instanceof TextField)
-        {
-            final TextField field = (TextField) event.getSource();
-            updateHistory(field.getText());
-            menu.hide();
-        }
-    };
-
-    /** Handler for autocompletion on one field
-     *
-     *  Since not all event handlers receive the 'field',
-     *  this field-specific wrapper is required.
-     */
-    private class FieldHandler
-    {
-        private TextInputControl field;
-
-        /** As user types, fetch proposals */
-        private final InvalidationListener text_listener = prop -> lookup(field);
-
-        FieldHandler(final TextInputControl field)
-        {
-            this.field = field;
-            field.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
-            field.addEventHandler(KeyEvent.KEY_RELEASED, submit_handler);
-            field.textProperty().addListener(text_listener);
-            field.focusedProperty().addListener(focused_listener);
-        }
-
-        void unbind()
-        {
-            field.focusedProperty().removeListener(focused_listener);
-            field.textProperty().removeListener(text_listener);
-            field.removeEventHandler(KeyEvent.KEY_RELEASED, submit_handler);
-            field.removeEventFilter(KeyEvent.KEY_PRESSED, key_handler);
-        }
-    }
-
-
-    // TODO Use WeakHashMap? Assert that menu gets detached from fields
-    /** Map of handlers for known fields */
-    private final Map<TextInputControl, FieldHandler> handlers = new HashMap<>();
 
     /** Font used to highlight section of proposal */
     private final Font header_font, highlight_font;
@@ -181,7 +158,7 @@ public class AutocompleteMenu
         menu.addEventFilter(KeyEvent.KEY_PRESSED, event ->
         {
             // Toggle on Ctrl-space
-            key_handler.handle(event);
+            key_press_filter.handle(event);
             // Pressing space in the active TextInputControl
             // would be caught by the menu and activate the first menu item?!
             // --> Filter plain SPACE
@@ -193,15 +170,17 @@ public class AutocompleteMenu
     /** @param field Field for which autocompletion is requested */
     public void attachField(final TextInputControl field)
     {
-        final FieldHandler previous = handlers.put(field, new FieldHandler(field));
-        if (previous != null)
-            throw new IllegalStateException();
+        field.addEventFilter(KeyEvent.KEY_PRESSED, key_press_filter);
+        field.addEventHandler(KeyEvent.KEY_RELEASED, key_release_handler);
+        field.focusedProperty().addListener(focused_listener);
     }
 
     /** @param field Field for which autocompletion is no longer desired */
     public void detachField(final TextInputControl field)
     {
-        Objects.requireNonNull(handlers.get(field), "Unknown field").unbind();
+        field.focusedProperty().removeListener(focused_listener);
+        field.removeEventHandler(KeyEvent.KEY_RELEASED, key_release_handler);
+        field.removeEventFilter(KeyEvent.KEY_PRESSED, key_press_filter);
     }
 
     private void updateHistory(final String text)
