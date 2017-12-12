@@ -33,7 +33,7 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
-import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.javafx.Tracker;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableAction;
@@ -73,8 +73,6 @@ public class SelectedWidgetUITracker extends Tracker
 
     /** Inline editor for widget's PV name or text */
     private TextField inline_editor = null;
-    /** Autocomplete menu for PV name inline editor */
-    private final AutocompleteMenu autocomplete_menu = new AutocompleteMenu();
 
     /** Widgets to track */
     private List<Widget> widgets = Collections.emptyList();
@@ -304,7 +302,7 @@ public class SelectedWidgetUITracker extends Tracker
 
         //add autocomplete menu if editing property PVName
         if (property.getName().equals(CommonWidgetProperties.propPVName.getName()))
-            autocomplete_menu.attachField(inline_editor);
+            PVAutocompleteMenu.INSTANCE.attachField(inline_editor);
 
         // On enter, update the property. On Escape, just close
         inline_editor.setOnKeyPressed(event ->
@@ -331,16 +329,11 @@ public class SelectedWidgetUITracker extends Tracker
         inline_editor.requestFocus();
     }
 
-    public AutocompleteMenu getAutocompleteMenu()
-    {
-        return autocomplete_menu;
-    }
-
     private void closeInlineEditor()
     {
         getChildren().remove(inline_editor);
         inline_editor = null;
-        autocomplete_menu.removeField(inline_editor);
+        PVAutocompleteMenu.INSTANCE.detachField(inline_editor);
     }
 
     /** Tracker is in front of the widgets that it handles,

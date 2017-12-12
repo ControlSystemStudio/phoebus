@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
+import org.phoebus.ui.autocomplete.AutocompleteMenu;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.TableHelper;
@@ -60,8 +62,6 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     // If already "EmbeddedJS", ..
 
     private final Widget widget;
-
-    private final AutocompleteMenu menu;
 
     /** ScriptPV info as property-based item for table */
     public static class PVItem
@@ -171,19 +171,12 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
     private ScriptItem selected_script_item = null;
 
-    public ScriptsDialog(final Widget widget, final List<ScriptInfo> scripts)
-    {
-        this(widget, scripts, new AutocompleteMenu());
-    }
-
     /** @param widget Widget
      *  @param scripts Scripts to show/edit in the dialog
-     *  @param menu AutocompleteMenu
      */
-    public ScriptsDialog(final Widget widget, final List<ScriptInfo> scripts, final AutocompleteMenu menu)
+    public ScriptsDialog(final Widget widget, final List<ScriptInfo> scripts)
     {
         this.widget = widget;
-        this.menu = menu;
 
         setTitle(Messages.ScriptsDialog_Title);
         setHeaderText(Messages.ScriptsDialog_Info);
@@ -385,12 +378,6 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     private class AutoCompletedTableCell extends TableCell<PVItem, String>
     {
         private TextField textField;
-        private final AutocompleteMenu menu;
-
-        public AutoCompletedTableCell(final AutocompleteMenu menu)
-        {
-            this.menu = menu;
-        }
 
         @Override
         public void startEdit()
@@ -401,7 +388,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                 createTextField();
                 setText(null);
                 setGraphic(textField);
-                menu.attachField(textField);
+                PVAutocompleteMenu.INSTANCE.attachField(textField);
                 textField.selectAll();
             }
         }
@@ -422,18 +409,20 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             {
                 setText(null);
                 setGraphic(null);
-            } else if (isEditing())
+            }
+            else if (isEditing())
             {
                 if (textField != null)
                     textField.setText(getItem() == null ? "" : getItem());
                 setText(null);
                 setGraphic(textField);
-            } else
+            }
+            else
             {
                 setText(getItem() == null ? "" : getItem());
                 setGraphic(null);
                 if (textField != null)
-                    menu.removeField(textField);
+                    PVAutocompleteMenu.INSTANCE.detachField(textField);
             }
         }
 
@@ -446,7 +435,8 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                 {
                     commitEdit(textField.getText());
                 });
-            } else
+            }
+            else
                 textField.setText(getItem() == null ? "" : getItem());
             textField.setMinWidth(getWidth() - getGraphicTextGap() * 2);
         }
@@ -458,7 +448,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         // Create table with editable 'name' column
         final TableColumn<PVItem, String> name_col = new TableColumn<>(Messages.ScriptsDialog_ColPV);
         name_col.setCellValueFactory(new PropertyValueFactory<PVItem, String>("name"));
-        name_col.setCellFactory((col) -> new AutoCompletedTableCell(menu));
+        name_col.setCellFactory((col) -> new AutoCompletedTableCell());
         name_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();

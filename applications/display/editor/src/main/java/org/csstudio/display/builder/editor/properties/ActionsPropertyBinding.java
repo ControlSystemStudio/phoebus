@@ -16,7 +16,6 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.ActionsDialog;
-import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.ModalityHack;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -31,8 +30,6 @@ import javafx.scene.control.Button;
 public class ActionsPropertyBinding
        extends WidgetPropertyBinding<Button, ActionsWidgetProperty>
 {
-    private AutocompleteMenu menu = null;
-
     /** Update property panel field as model changes */
     private final WidgetPropertyListener<ActionInfos> model_listener = (p, o, n) ->
     {
@@ -42,7 +39,7 @@ public class ActionsPropertyBinding
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final ActionsDialog dialog = new ActionsDialog(widget_property.getWidget(), widget_property.getValue(), menu);
+        final ActionsDialog dialog = new ActionsDialog(widget_property.getWidget(), widget_property.getValue());
         DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
         ModalityHack.forDialog(dialog);
         final Optional<ActionInfos> result = dialog.showAndWait();
@@ -59,18 +56,11 @@ public class ActionsPropertyBinding
     };
 
     public ActionsPropertyBinding(final UndoableActionManager undo,
-            final Button field, final ActionsWidgetProperty widget_property, final List<Widget> other)
-    {
-        this(undo, field, widget_property, other, new AutocompleteMenu());
-    }
-
-    public ActionsPropertyBinding(final UndoableActionManager undo,
                                   final Button field,
                                   final ActionsWidgetProperty widget_property,
-            final List<Widget> other, final AutocompleteMenu menu)
+                                  final List<Widget> other)
     {
         super(undo, field, widget_property, other);
-        this.menu = menu;
     }
 
     @Override

@@ -41,8 +41,8 @@ import org.csstudio.display.builder.model.properties.PointsWidgetProperty;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetClassProperty;
-import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -102,7 +102,6 @@ import javafx.scene.layout.StackPane;
 @SuppressWarnings("nls")
 public class PropertyPanelSection extends GridPane
 {
-    private static final AutocompleteMenu autocomplete_menu = new AutocompleteMenu();
     private static final Tooltip use_class_tooltip = new Tooltip(Messages.UseWidgetClass_TT);
     private static final Tooltip using_class_tooltip = new Tooltip(Messages.UsingWidgetClass_TT);
 
@@ -355,14 +354,14 @@ public class PropertyPanelSection extends GridPane
                 public void bind()
                 {
                     super.bind();
-                    autocomplete_menu.attachField(text);
+                    PVAutocompleteMenu.INSTANCE.attachField(text);
                 }
 
                 @Override
                 public void unbind()
                 {
                     super.unbind();
-                    autocomplete_menu.removeField(text);
+                    PVAutocompleteMenu.INSTANCE.detachField(text);
                 }
             };
             bindings.add(binding);
@@ -457,8 +456,7 @@ public class PropertyPanelSection extends GridPane
             final ActionsWidgetProperty actions_prop = (ActionsWidgetProperty) property;
             final Button actions_field = new Button();
             actions_field.setMaxWidth(Double.MAX_VALUE);
-            final ActionsPropertyBinding binding = new ActionsPropertyBinding(undo, actions_field, actions_prop, other,
-                    autocomplete_menu);
+            final ActionsPropertyBinding binding = new ActionsPropertyBinding(undo, actions_field, actions_prop, other);
             bindings.add(binding);
             binding.bind();
             field = actions_field;
@@ -468,8 +466,7 @@ public class PropertyPanelSection extends GridPane
             final ScriptsWidgetProperty scripts_prop = (ScriptsWidgetProperty) property;
             final Button scripts_field = new Button();
             scripts_field.setMaxWidth(Double.MAX_VALUE);
-            final ScriptsPropertyBinding binding = new ScriptsPropertyBinding(undo, scripts_field, scripts_prop, other,
-                    autocomplete_menu);
+            final ScriptsPropertyBinding binding = new ScriptsPropertyBinding(undo, scripts_field, scripts_prop, other);
             bindings.add(binding);
             binding.bind();
             field = scripts_field;
@@ -479,7 +476,7 @@ public class PropertyPanelSection extends GridPane
             final RulesWidgetProperty rules_prop = (RulesWidgetProperty) property;
             final Button rules_field = new Button();
             rules_field.setMaxWidth(Double.MAX_VALUE);
-            final RulesPropertyBinding binding = new RulesPropertyBinding(undo, rules_field, rules_prop, other, autocomplete_menu);
+            final RulesPropertyBinding binding = new RulesPropertyBinding(undo, rules_field, rules_prop, other);
             bindings.add(binding);
             binding.bind();
             field = rules_field;
@@ -676,11 +673,6 @@ public class PropertyPanelSection extends GridPane
             separator.getStyleClass().add("property_separator_filler");
             add(separator, 7 - indentationLevel, row + 1, indentationLevel, 1);
         }
-    }
-
-    AutocompleteMenu getAutocompleteMenu()
-    {
-        return autocomplete_menu;
     }
 
     /** Clear the property UI

@@ -12,7 +12,6 @@ import java.util.List;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Application;
@@ -27,11 +26,10 @@ public class RulesDialogDemo extends Application
     @Override
     public void start(final Stage stage)
     {
-        final AutocompleteMenu menu = new AutocompleteMenu();
         final UndoableActionManager undo = new UndoableActionManager(10);
         final Widget widget = new LabelWidget();
         final List<RuleInfo> rules = widget.propRules().getValue();
-        final RulesDialog dialog = new RulesDialog(undo, rules, widget, menu);
+        final RulesDialog dialog = new RulesDialog(undo, rules, widget);
         System.out.println(dialog.showAndWait());
     }
 
