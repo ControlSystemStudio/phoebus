@@ -456,7 +456,7 @@ else:
     <name>Label_20</name>
     <text>ScriptUtil: Displays</text>
     <x>530</x>
-    <y>860</y>
+    <y>910</y>
     <width>170</width>
     <font>
       <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
@@ -467,7 +467,7 @@ else:
     <name>Label_21</name>
     <text>Scripts can replace a display or open another one.</text>
     <x>530</x>
-    <y>880</y>
+    <y>930</y>
     <width>385</width>
     <height>40</height>
   </widget>
@@ -484,7 +484,7 @@ ScriptUtil.openDisplay(widget, "../01_main.bob", "TAB", None)]]></text>
       </action>
     </actions>
     <x>530</x>
-    <y>920</y>
+    <y>970</y>
     <width>150</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -501,7 +501,7 @@ ScriptUtil.openDisplay(widget, "../01_main.bob", "REPLACE", None)]]></text>
       </action>
     </actions>
     <x>530</x>
-    <y>960</y>
+    <y>1010</y>
     <width>150</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -518,7 +518,7 @@ ScriptUtil.closeDisplay(widget)]]></text>
       </action>
     </actions>
     <x>700</x>
-    <y>920</y>
+    <y>970</y>
     <width>150</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -770,5 +770,46 @@ if ScriptUtil.showConfirmationDialog(widget, "Dude, this was just meant as an ex
     <y>960</y>
     <width>150</width>
     <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_38</name>
+    <text>PV to write:</text>
+    <x>530</x>
+    <y>850</y>
+    <width>80</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <x>821</x>
+    <y>1086</y>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>loc://anyPV&lt;String&gt;("loc://test_pv(40)")</pv_name>
+    <x>640</x>
+    <y>840</y>
+    <width>140</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>loc://any_value(42)</pv_name>
+    <x>880</x>
+    <y>840</y>
+    <width>90</width>
+    <height>30</height>
+    <scripts>
+      <script file="write_any_pv.py">
+        <pv_name>loc://anyPV&lt;String&gt;("loc://test_pv(40)")</pv_name>
+        <pv_name>loc://any_value(42)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_39</name>
+    <text>Value:</text>
+    <x>810</x>
+    <y>850</y>
+    <width>60</width>
   </widget>
 </display>

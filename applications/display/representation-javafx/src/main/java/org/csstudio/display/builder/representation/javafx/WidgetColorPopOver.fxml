@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
+
+<GridPane fx:id="root" hgap="12.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="455.0" prefWidth="637.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.WidgetColorPopOverController">
+  <columnConstraints>
+    <ColumnConstraints hgrow="NEVER" percentWidth="50.0" />
+    <ColumnConstraints hgrow="NEVER" percentWidth="50.0" />
+  </columnConstraints>
+  <rowConstraints>
+      <RowConstraints fillHeight="false" vgrow="NEVER" />
+    <RowConstraints fillHeight="false" valignment="TOP" vgrow="NEVER" />
+      <RowConstraints fillHeight="false" maxHeight="69.0" minHeight="12.0" prefHeight="12.0" vgrow="NEVER" />
+      <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" prefHeight="96.0" vgrow="ALWAYS" />
+  </rowConstraints>
+   <padding>
+      <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+   </padding>
+   <children>
+      <TitledPane alignment="CENTER" animated="false" collapsible="false" maxWidth="1.7976931348623157E308" text="%WidgetColorPopOver_PredefinedColors" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="2147483647" GridPane.vgrow="ALWAYS">
+         <content>
+            <VBox>
+               <children>
+                  <ListView fx:id="colorNames" />
+               </children>
+               <padding>
+                  <Insets bottom="-1.0" left="-1.0" right="-1.0" top="-1.0" />
+               </padding>
+            </VBox>
+         </content>
+      </TitledPane>
+      <TitledPane alignment="CENTER" animated="false" collapsible="false" text="%WidgetColorPopOver_CustomColor" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
+         <content>
+            <GridPane hgap="6.0" vgap="6.0">
+              <columnConstraints>
+                <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="45.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="80.0" prefWidth="100.0" />
+                  <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="60.0" prefWidth="80.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints fillHeight="false" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" maxHeight="6.0" minHeight="6.0" prefHeight="6.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" vgrow="NEVER" />
+                  <RowConstraints fillHeight="false" vgrow="NEVER" />
+                  <RowConstraints fillHeight="false" vgrow="NEVER" />
+                  <RowConstraints fillHeight="false" vgrow="NEVER" />
+                  <RowConstraints fillHeight="false" vgrow="NEVER" />
+              </rowConstraints>
+               <padding>
+                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+               </padding>
+               <children>
+                  <Label text="%WidgetColorPopOver_Color" GridPane.halignment="RIGHT" />
+                  <ColorPicker fx:id="picker" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+                  <Label text="%WidgetColorPopOver_Red" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+                  <Slider fx:id="redSlider" max="255.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <Spinner fx:id="redSpinner" editable="true" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                  <Label text="%WidgetColorPopOver_Green" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
+                  <Slider fx:id="greenSlider" max="255.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  <Spinner fx:id="greenSpinner" editable="true" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                  <Label text="%WidgetColorPopOver_Blue" GridPane.halignment="RIGHT" GridPane.rowIndex="4" />
+                  <Slider fx:id="blueSlider" max="255.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                  <Spinner fx:id="blueSpinner" editable="true" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                  <Label text="%WidgetColorPopOver_Alpha" GridPane.halignment="RIGHT" GridPane.rowIndex="6" />
+                  <Slider fx:id="alphaSlider" max="255.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                  <Spinner fx:id="alphaSpinner" editable="true" GridPane.columnIndex="2" GridPane.rowIndex="6" />
+               </children>
+            </GridPane>
+         </content>
+      </TitledPane>
+      <Label fx:id="infoLabel" text="%WidgetColorPopOver_Info" GridPane.columnSpan="2147483647">
+         <font>
+            <Font size="18.0" />
+         </font>
+         <GridPane.margin>
+            <Insets bottom="12.0" />
+         </GridPane.margin>
+      </Label>
+      <BorderPane GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+         <bottom>
+            <ButtonBar fx:id="buttonBar" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">   
+               <BorderPane.margin>
+                  <Insets top="6.0" />
+               </BorderPane.margin>
+               <buttons>
+                  <Button fx:id="defaultButton" alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#defaultPressed" text="D" />
+                  <Button fx:id="cancelButton" alignment="CENTER" cancelButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#cancelPressed" text="C" />
+                  <Button fx:id="okButton" alignment="CENTER" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#okPressed" text="O" />
+               </buttons>
+            </ButtonBar>
+         </bottom>
+         <center>
+            <AnchorPane BorderPane.alignment="CENTER">
+               <BorderPane.margin>
+                  <Insets bottom="12.0" />
+               </BorderPane.margin>
+               <children>
+                  <Circle fill="#abaaaa" layoutX="120.0" layoutY="45.0" radius="45.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" style="-fx-fill: -fx-outer-border;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="41.0" AnchorPane.topAnchor="0.0" />
+                  <Circle fill="#c6c5c5" layoutX="224.0" layoutY="60.0" radius="45.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" style="-fx-fill: -fx-outer-border;" AnchorPane.rightAnchor="41.0" AnchorPane.topAnchor="0.0" />
+                  <Circle fill="#c6c5c5" layoutX="153.0" layoutY="43.0" radius="45.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" style="-fx-fill: -fx-outer-border;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="105.0" AnchorPane.rightAnchor="105.0" AnchorPane.topAnchor="0.0" />
+                  <Circle fill="#abaaaa" layoutX="130.0" layoutY="55.0" radius="43.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" style="-fx-fill: repeating-image-pattern(&quot;com/sun/javafx/scene/control/skin/modena/pattern-transparent.png&quot;);" AnchorPane.leftAnchor="43.0" AnchorPane.topAnchor="2.0" />
+                  <Circle fill="#abaaaa" layoutX="140.0" layoutY="65.0" radius="43.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" style="-fx-fill: repeating-image-pattern(&quot;com/sun/javafx/scene/control/skin/modena/pattern-transparent.png&quot;);" AnchorPane.rightAnchor="43.0" AnchorPane.topAnchor="2.0" />
+                  <Circle fx:id="originalColorCircle" fill="#f2f2f2" layoutX="140.0" layoutY="65.0" onMouseClicked="#originalColorClicked" radius="44.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" AnchorPane.leftAnchor="42.0" AnchorPane.topAnchor="1.0">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Circle>
+                  <Circle fx:id="defaultColorCircle" fill="#f2f2f2" layoutX="150.0" layoutY="75.0" onMouseClicked="#defaultColorClicked" radius="44.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" AnchorPane.rightAnchor="42.0" AnchorPane.topAnchor="1.0">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Circle>
+                  <Circle fill="#abaaaa" layoutX="140.0" layoutY="65.0" radius="43.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" style="-fx-fill: repeating-image-pattern(&quot;com/sun/javafx/scene/control/skin/modena/pattern-transparent.png&quot;);" AnchorPane.leftAnchor="107.0" AnchorPane.rightAnchor="107.0" AnchorPane.topAnchor="2.0" />
+                  <Circle fx:id="currentColorCircle" fill="#f2f2f2" layoutX="160.0" layoutY="85.0" radius="44.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" AnchorPane.leftAnchor="106.0" AnchorPane.rightAnchor="106.0" AnchorPane.topAnchor="1.0" />
+                  <Label alignment="TOP_CENTER" layoutX="36.0" layoutY="95.0" onMouseClicked="#originalColorClicked" prefWidth="100.0" text="%WidgetColorPopOver_Original" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="36.0">
+                     <font>
+                        <Font size="10.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Label>
+                  <Label alignment="TOP_CENTER" layoutX="164.0" layoutY="95.0" onMouseClicked="#defaultColorClicked" prefWidth="100.0" text="%WidgetColorPopOver_Default" AnchorPane.bottomAnchor="2.0" AnchorPane.rightAnchor="36.0">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                     <font>
+                        <Font size="10.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+         </center>
+      </BorderPane>
+   </children>
+</GridPane>

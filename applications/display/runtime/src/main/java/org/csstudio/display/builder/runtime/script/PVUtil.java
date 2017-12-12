@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,12 @@ package org.csstudio.display.builder.runtime.script;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
+import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
 import org.phoebus.pv.format.TimestampFormats;
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
@@ -347,5 +351,81 @@ public class PVUtil
     public static Object getStructureElement(final RuntimePV pv, final String name, final int index)
     {
     	return ValueUtil.getStructureElement(getVType(pv), name, index);
+    }
+
+    /** Create a PV.
+     *
+     *  <p>Ideally, scripts use the PVs of widgets or the script 'input' PVs,
+     *  where the display runtime handles the PV connection.
+     *  In rare cases it might be necessary to create a PV in a script,
+     *  in which case the script <b>must</b> then also release the PV.
+     *
+     *  @param pv_name Mame of the PV
+     *  @param timeout Connection timeout in milliseconds
+     *  @return PV
+     *  @throws Exception on error
+     *  @see #releasePV(RuntimePV)
+     */
+    public static RuntimePV createPV(final String pv_name, final int timeout_ms) throws Exception
+    {
+        final CountDownLatch connected = new CountDownLatch(1);
+        final RuntimePVListener await_connection = new RuntimePVListener()
+        {
+            @Override
+            public void valueChanged(final RuntimePV pv, final VType value)
+            {
+                if (value != null)
+                    connected.countDown();
+            }
+        };
+
+        final RuntimePV pv = PVFactory.getPV(pv_name);
+        pv.addListener(await_connection);
+        try
+        {
+            if (! connected.await(timeout_ms, TimeUnit.MILLISECONDS))
+            {
+                PVFactory.releasePV(pv);
+                throw new Exception("Failed to connect to '" + pv_name + "' within " + timeout_ms + " ms");
+            }
+        }
+        finally
+        {
+            pv.removeListener(await_connection);
+        }
+        return pv;
+    }
+
+    /** @param pv PV to release
+     *  @see #createPV(String, int)
+     */
+    public static void releasePV(final RuntimePV pv)
+    {
+        PVFactory.releasePV(pv);
+    }
+
+    /** Write a value to a PV
+     *
+     *  <p>Ideally, scripts use the PVs of widgets or the script 'input' PVs,
+     *  where the display runtime handles the PV connection.
+     *  In rare cases it might be necessary to create a PV in a script,
+     *  write a value, and then release the PV, which is done by this method.
+     *
+     *  @param pv_name Mame of the PV
+     *  @param value Value to write
+     *  @param timeout Connection timeout in milliseconds
+     *  @throws Exception
+     */
+    public final static void writePV(final String pv_name, final Object value, final int timeout_ms) throws Exception
+    {
+        final RuntimePV pv = createPV(pv_name, timeout_ms);
+        try
+        {
+            pv.write(value);
+        }
+        finally
+        {
+            releasePV(pv);
+        }
     }
 }
