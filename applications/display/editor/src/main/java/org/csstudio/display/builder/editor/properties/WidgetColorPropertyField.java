@@ -44,6 +44,12 @@ public class WidgetColorPropertyField extends HBox
         getChildren().addAll(blob, button);
     }
 
+    /** @return Button that can be used by popup to hide when focus is lost */
+    Button getButton()
+    {
+        return button;
+    }
+
     /** @param color Color to display */
     public void setColor(final WidgetColor color)
     {

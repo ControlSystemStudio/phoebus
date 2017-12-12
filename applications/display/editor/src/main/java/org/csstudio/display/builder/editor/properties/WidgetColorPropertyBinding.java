@@ -8,16 +8,13 @@
 package org.csstudio.display.builder.editor.properties;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ColorWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.representation.javafx.ModalityHack;
-import org.csstudio.display.builder.representation.javafx.WidgetColorDialog;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.csstudio.display.builder.representation.javafx.WidgetColorPopOver;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -29,6 +26,8 @@ import javafx.event.EventHandler;
 public class WidgetColorPropertyBinding
        extends WidgetPropertyBinding<WidgetColorPropertyField, ColorWidgetProperty>
 {
+    private WidgetColorPopOver popover;
+
     /** Update property panel field as model changes */
     private final WidgetPropertyListener<WidgetColor> model_listener = (p, o, n) ->
     {
@@ -38,20 +37,28 @@ public class WidgetColorPropertyBinding
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final WidgetColorDialog dialog = new WidgetColorDialog(widget_property.getValue(), widget_property.getDescription(), widget_property.getDefaultValue());
-        DialogHelper.positionDialog(dialog, jfx_node, -200, -200);
-        ModalityHack.forDialog(dialog);
-        final Optional<WidgetColor> result = dialog.showAndWait();
-        if (result.isPresent())
+        final WidgetColorPopOver previous = popover;
+        popover = null;
+        if (previous != null)
         {
-            undo.execute(new SetWidgetPropertyAction<WidgetColor>(widget_property, result.get()));
+            if (previous.isShowing())
+            {
+                previous.hide();
+                return;
+            }
+        }
+        popover = new WidgetColorPopOver(widget_property,
+                                         wColor ->
+        {
+            undo.execute(new SetWidgetPropertyAction<WidgetColor>(widget_property, wColor));
             final String path = widget_property.getPath();
             for (Widget w : other)
             {
                 final ColorWidgetProperty other_prop = (ColorWidgetProperty) w.getProperty(path);
-                undo.execute(new SetWidgetPropertyAction<WidgetColor>(other_prop, result.get()));
+                undo.execute(new SetWidgetPropertyAction<WidgetColor>(other_prop, wColor));
             }
-        }
+        });
+        popover.show(jfx_node.getButton());
     };
 
     public WidgetColorPropertyBinding(final UndoableActionManager undo,
