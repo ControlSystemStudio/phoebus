@@ -43,6 +43,10 @@ public class ProbeController {
     @FXML
     TextField txtTimeStamp;
 
+    public TextField getPVField() {
+        return txtPVName;
+    }
+
     public String getPVName() {
         return txtPVName.getText();
     }

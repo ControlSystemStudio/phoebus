@@ -10,6 +10,7 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 /**
@@ -43,7 +44,11 @@ public class Probe implements AppResourceDescriptor {
     @Override
     public AppInstance create() {
         ProbeInstance probeInstance = new ProbeInstance(this);
-        DockPane.getActiveDockPane().addTab(new DockItem(probeInstance, probeInstance.create()));
+        final DockItem tab = new DockItem(probeInstance, probeInstance.create());
+        DockPane.getActiveDockPane().addTab(tab);
+
+        PVAutocompleteMenu.INSTANCE.attachField(probeInstance.getPVField());
+        tab.addClosedNotification(() ->  PVAutocompleteMenu.INSTANCE.detachField(probeInstance.getPVField())   );
         return probeInstance;
     }
 

@@ -9,11 +9,12 @@ import org.phoebus.framework.spi.AppInstance;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 
 /**
  * This class describes and instance of the the probe application
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -44,12 +45,17 @@ public class ProbeInstance implements AppInstance {
         return null;
     }
 
+    public TextField getPVField()
+    {
+        ProbeController controller = (ProbeController) loader.getController();
+        return controller.getPVField();
+    }
 
     public String getPV() {
         ProbeController controller = (ProbeController) loader.getController();
         return controller.getPVName();
     }
-    
+
     public void setPV(String pv) {
         ProbeController controller = (ProbeController) loader.getController();
         controller.setPVName(pv);
