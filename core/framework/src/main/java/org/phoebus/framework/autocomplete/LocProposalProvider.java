@@ -19,7 +19,7 @@ public class LocProposalProvider implements ProposalProvider
 {
     public static final LocProposalProvider INSTANCE = new LocProposalProvider();
 
-    private static final List<Proposal> GENERIC = List.of(new LocProposal("loc://name", "VType", "initial values..."));
+    private static final List<Proposal> generic = List.of(new LocProposal("loc://name", "VType", "initial value..."));
 
     private LocProposalProvider()
     {
@@ -41,23 +41,36 @@ public class LocProposalProvider implements ProposalProvider
     public List<Proposal> lookup(final String text)
     {
         if (! text.startsWith("loc://"))
-            return GENERIC;
+            return generic;
 
         final List<Proposal> result = new ArrayList<>();
         final List<String> split = LocProposal.splitNameTypeAndInitialValues(text);
+
+        // Use the entered name, but add "loc://".
+        // Default to just "loc://name"
         String name = split.get(0).trim();
         if (name.isEmpty())
             name = "loc://name";
         else if (! name.startsWith("loc://"))
             name = "loc://" + name;
 
-        final String type = split.get(1);
-        if (type == null)
+        // Use the entered type, or default to "VType"
+        String type = split.get(1);
+        if (type != null)
         {
-            result.add(new LocProposal(name, null, "number"));
-            result.add(new LocProposal(name, null, "\"string\""));
+            result.add(new LocProposal(name, "VDouble", "number"));
+            result.add(new LocProposal(name, "VLong", "number"));
+            result.add(new LocProposal(name, "VString", "\"string\""));
+            result.add(new LocProposal(name, "VEnum", "index", "\"Label 1\"", "\"Label 2\", ..."));
+            result.add(new LocProposal(name, "VDoubleArray", "number", "number, ..."));
+            result.add(new LocProposal(name, "VStringArray", "\"string\"", "\"string\", ..."));
+            result.add(new LocProposal(name, "VTable"));
         }
-
+        else
+        {
+            result.add(new LocProposal(name, "VType", "number"));
+            result.add(new LocProposal(name, "VType", "\"string\""));
+        }
         return result;
     }
 }

@@ -65,7 +65,8 @@ public class Proposal
                 segs.add(MatchSegment.normal(value.substring(0, match)));
 
             // .. matching text ..
-            segs.add(MatchSegment.match(text));
+            if (! text.isEmpty())
+                segs.add(MatchSegment.match(text));
 
             // .. rest of proposal
             final int rest = match + text.length();

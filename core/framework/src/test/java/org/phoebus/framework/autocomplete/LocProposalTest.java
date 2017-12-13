@@ -64,7 +64,7 @@ public class LocProposalTest
     @Test
     public void testMatch()
     {
-        Proposal proposal = new LocProposal("loc://name", "Type", "initial value");
+        Proposal proposal = new LocProposal("loc://x", "Type", "initial value");
 
         List<MatchSegment> match = proposal.getMatch("loc://x");
         assertThat(match, equalTo(List.of(
@@ -74,10 +74,9 @@ public class LocProposalTest
 
         match = proposal.getMatch("");
         assertThat(match, equalTo(List.of(
-                MatchSegment.normal("loc://name"),
+                MatchSegment.normal("loc://x"),
                 MatchSegment.comment("<VType>"),
                 MatchSegment.comment("(initial value)"))));
-
 
         match = proposal.getMatch("loc://x<VLong>");
         assertThat(match, equalTo(List.of(
@@ -90,8 +89,5 @@ public class LocProposalTest
                 MatchSegment.match("loc://x"),
                 MatchSegment.comment("<VType>"),
                 MatchSegment.match("(42)", "(initial value)"))));
-
-
-
     }
 }

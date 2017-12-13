@@ -150,24 +150,27 @@ public class LocProposal extends Proposal
             return List.of();
 
         final List<MatchSegment> segs = new ArrayList<>(split.size());
+
         String name = split.get(0).trim();
-        if (! name.startsWith("loc://"))
-            segs.add(MatchSegment.normal("loc://name"));
-        else
-        {
-            if (name.equals("loc://"))
-            {
-                segs.add(MatchSegment.match(name));
-                segs.add(MatchSegment.normal("name"));
-            }
-            else
-                segs.add(MatchSegment.match(name));
+        if (name.equals("loc://"))
+        {   // Just "loc://" matches, add "name"
+            segs.add(MatchSegment.match(name));
+            segs.add(MatchSegment.normal("name"));
         }
+        else // Show (partial) match between entered name and this proposal
+            segs.addAll(super.getMatch(name));
+
+        // No type provided?
         if (split.get(1) == null)
             segs.add(MatchSegment.comment("<VType>"));
+        else if (type.toLowerCase().indexOf(split.get(1).toLowerCase()) >= 0)
+            // Recognize piece of type, accept for full type
+            segs.add(MatchSegment.match("<" + type + ">"));
         else
-            segs.add(MatchSegment.match("<" + split.get(1) + ">"));
+            // No type entered, would use this proposal's type when accepted
+            segs.add(MatchSegment.normal("<" + type + ">"));
 
+        // Add initial values
         final int common = Math.min(split.size()-2, initial_values.length);
         int parm;
         for (parm = 0;  parm < common; ++parm)

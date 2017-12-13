@@ -19,6 +19,9 @@ public class SimProposalProvider implements ProposalProvider
 {
     public static final SimProposalProvider INSTANCE = new SimProposalProvider();
 
+    private static final List<Proposal> generic = List.of(
+        new SimProposal("sim://name", "parameters..."));
+
     private static final List<SimProposal> proposals = List.of(
         new SimProposal("sim://flipflop", "update_seconds"),
         new SimProposal("sim://gaussianNoise", "center", "std_dev", "update_seconds"),
@@ -59,6 +62,10 @@ public class SimProposalProvider implements ProposalProvider
     @Override
     public List<Proposal> lookup(final String text)
     {
+        // When nothing has been entered, suggest a simulated PV
+        if (text.isEmpty())
+            return generic;
+
         final List<Proposal> result = new ArrayList<>();
 
         // Does text contain parameters?
