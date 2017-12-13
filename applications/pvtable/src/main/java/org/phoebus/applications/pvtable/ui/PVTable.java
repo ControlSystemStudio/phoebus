@@ -22,6 +22,7 @@ import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -125,36 +126,90 @@ public class PVTable extends BorderPane
     /** Table cell for 'name' column, colors comments */
     private static class PVNameTableCell extends TextFieldTableCell<TableItemProxy, String>
     {
+        private TextField textField;
+
         public PVNameTableCell()
         {
             super(new DefaultStringConverter());
         }
 
         @Override
+        public void startEdit()
+        {
+            super.startEdit();
+            textField = new TextField();
+            textField.setOnAction(event -> commitEdit(textField.getText()));
+            PVAutocompleteMenu.INSTANCE.attachField(textField);
+            showCurrentValue();
+        }
+
+        private void showCurrentValue()
+        {
+            final ObservableList<TableItemProxy> items = getTableView().getItems();
+            final int index = getIndex();
+            if (index < 0  ||  index >= items.size())
+            {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            final TableItemProxy item = items.get(index);
+            if (isEditing())
+            {
+                if (item == TableItemProxy.NEW_ITEM)
+                    textField.setText("");
+                else
+                    textField.setText(item.item.getName());
+                setText(null);
+                setGraphic(textField);
+            }
+            else
+            {
+                setGraphic(null);
+                if (isEmpty())
+                    setText(null);
+                else
+                {
+                    if (item == TableItemProxy.NEW_ITEM)
+                    {
+                        setStyle(new_item_style);
+                        setText(Messages.EnterNewPV);
+                    }
+                    else if (item.item.isComment())
+                    {
+                        setStyle(comment_style);
+                        setText(item.item.getComment());
+                    }
+                    else
+                    {
+                        setStyle(null);
+                        setText(item.item.getName());
+                    }
+                }
+            }
+        }
+
+        @Override
         public void updateItem(final String name, final boolean empty)
         {
             super.updateItem(name, empty);
-            if (empty)
-                setText(null);
-            else
-            {
-                final TableItemProxy item = getTableView().getItems().get(getIndex());
-                if (item == TableItemProxy.NEW_ITEM)
-                {
-                    setStyle(new_item_style);
-                    setText(Messages.EnterNewPV);
-                }
-                else if (item.item.isComment())
-                {
-                    setStyle(comment_style);
-                    setText(item.item.getComment());
-                }
-                else
-                {
-                    setStyle(null);
-                    setText(name);
-                }
-            }
+            showCurrentValue();
+        }
+
+        @Override
+        public void commitEdit(final String newValue)
+        {
+            PVAutocompleteMenu.INSTANCE.detachField(textField);
+            textField = null;
+            super.commitEdit(newValue);
+        }
+
+        @Override
+        public void cancelEdit()
+        {
+            PVAutocompleteMenu.INSTANCE.detachField(textField);
+            textField = null;
+            super.cancelEdit();
         }
     }
 
