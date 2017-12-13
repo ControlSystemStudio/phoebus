@@ -16,7 +16,7 @@ public class PVProposalService extends ProposalService
 
     private PVProposalService()
     {
-        super(SimProposalProvider.INSTANCE);
+        super(SimProposalProvider.INSTANCE, LocProposalProvider.INSTANCE);
         // TODO Could use SPI to add site-specific PV name providers
     }
 }

@@ -92,7 +92,7 @@ public class SimProposal extends Proposal
         return result;
     }
 
-    private static int nextSep(final String text, final int start)
+    static int nextSep(final String text, final int start)
     {
         final int N = text.length();
         for (int pos = start;  pos < N;  ++pos)
