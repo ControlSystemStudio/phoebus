@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
  *  @see PVProposalService
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ProposalService
 {
     @FunctionalInterface
@@ -52,7 +53,7 @@ public class ProposalService
     public void addToHistory(String entry)
     {
         entry = entry.trim();
-        if (! entry.isEmpty())
+        if (! entry.isEmpty()  &&  ! entry.startsWith("#"))
             history.add(new Proposal(entry));
     }
 

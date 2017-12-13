@@ -17,6 +17,7 @@ import org.phoebus.framework.autocomplete.ProposalService;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
@@ -71,61 +72,53 @@ public class AutocompleteMenu
 
     /** Context menu, shared by all attached fields,
      *  because shown for at most one field at a time.
+     *
+     *  <p>User data is set to the field that 'show()'s the menu.
      */
     private final ContextMenu menu = new ContextMenu();
 
-    /** Toggle menu on Ctrl-Space */
-    private final EventHandler<KeyEvent> key_press_filter = event ->
-    {
-        // For Mac, isShortcutDown() to detect Command-SPACE
-        // seemed natural, but that is already captured by OS
-        // for 'Spotlight Search',
-        // so use Ctrl-Space on all OS
-        if (event.isControlDown()  &&  event.getCode() == KeyCode.SPACE)
-        {
-            if (menu.isShowing())
-                menu.hide();
-            else if (event.getSource() instanceof TextField)
-            {
-                final TextField field = (TextField) event.getSource();
-                // Show menu with current content,
-                // in case we were hiding and how showing the menu
-                // for the same field, not loosing focus,
-                // menu already populated
-                menu.show(field, Side.BOTTOM, 0, 0);
-                // If menu is empty, otherwise to 'refresh', start a lookup
-                lookup(field);
-            }
-            event.consume();
-        }
-    };
+    private boolean selected_menu_item = false;
 
-    /** On 'ENTER', add the manually entered value to history.
-     *  Most other keys trigger a lookup.
-     *  Listening to the 'text' of a text field would trigger
-     *  the lookup and thus menu whenever the text is set,
-     *  but want to only perform lookup when user enters text,
-     *  i.e. when keys are pressed.
-     */
-    private final EventHandler<KeyEvent> key_release_handler = event ->
+
+    /** Toggle menu. On 'ENTER', add the manually entered value to history */
+    private final EventHandler<KeyEvent> key_pressed_filter = event ->
     {
-        if (! (event.getSource() instanceof TextField))
+        // System.out.println("Text field Key press " + event.getCode() + " on " + event.getSource());
+        toggleMenu(event);
+        if (event.isConsumed())
             return;
         final TextField field = (TextField) event.getSource();
-
         final KeyCode code = event.getCode();
         if (code == KeyCode.ENTER)
         {
             updateHistory(field.getText());
             menu.hide();
         }
-        else if (code != KeyCode.ESCAPE   &&
-                 ! code.isArrowKey()      &&
-                 ! code.isFunctionKey()   &&
-                 ! code.isMediaKey()      &&
-                 ! code.isModifierKey()   &&
-                 ! code.isNavigationKey()
-                )
+    };
+
+    /** Trigger lookup for most keys
+     *
+     *  .. _after_ they're released, and the field has the updated text.
+     *
+     *  Listening to the 'text' of a text field would trigger
+     *  the lookup and thus menu whenever the text is set,
+     *  but want to only perform lookup when user enters text,
+     *  i.e. when keys are pressed/released.
+     */
+    private final EventHandler<KeyEvent> key_released_filter = event ->
+    {
+        // System.out.println("Text field Key release " + event.getCode() + " on " + event.getSource());
+        final TextField field = (TextField) event.getSource();
+        final KeyCode code = event.getCode();
+        if (code != KeyCode.SPACE    &&
+            code != KeyCode.ENTER    &&
+            code != KeyCode.ESCAPE   &&
+            ! code.isArrowKey()      &&
+            ! code.isFunctionKey()   &&
+            ! code.isMediaKey()      &&
+            ! code.isModifierKey()   &&
+            ! code.isNavigationKey()
+           )
             lookup(field);
     };
 
@@ -157,21 +150,38 @@ public class AutocompleteMenu
 
         menu.addEventFilter(KeyEvent.KEY_PRESSED, event ->
         {
-            // Toggle on Ctrl-space
-            key_press_filter.handle(event);
-            // Pressing space in the active TextInputControl
-            // would be caught by the menu and activate the first menu item?!
-            // --> Filter plain SPACE
-            if (! event.isConsumed()  &&  event.getCode() == KeyCode.SPACE)
-                event.consume();
+            // System.out.println("Menu Key press " + event.getCode() + " on " + event.getSource());
+            if (event.getCode() == KeyCode.ENTER)
+            {   // The menu will see 'ENTER' keys.
+                selected_menu_item = false;
+                // Let menu react, then check later
+                Platform.runLater(() ->
+                {
+                    // If that key invokes a menu item -> Done.
+                    // Sometimes, however, when no menu item is active,
+                    // the ENTER key goes nowhere.
+                    // In that case, simulate 'enter' on the text field.
+                    if (selected_menu_item == false)
+                        invokeAction((TextInputControl) menu.getUserData());
+                });
+            }
+            else
+            {
+                toggleMenu(event);
+                // Pressing space in the active TextInputControl
+                // would be caught by the menu and activate the first menu item?!
+                // --> Filter plain SPACE
+                if (! event.isConsumed()  &&  event.getCode() == KeyCode.SPACE)
+                    event.consume();
+            }
         });
     }
 
     /** @param field Field for which autocompletion is requested */
     public void attachField(final TextInputControl field)
     {
-        field.addEventFilter(KeyEvent.KEY_PRESSED, key_press_filter);
-        field.addEventHandler(KeyEvent.KEY_RELEASED, key_release_handler);
+        field.addEventFilter(KeyEvent.KEY_PRESSED, key_pressed_filter);
+        field.addEventFilter(KeyEvent.KEY_RELEASED, key_released_filter);
         field.focusedProperty().addListener(focused_listener);
     }
 
@@ -179,8 +189,38 @@ public class AutocompleteMenu
     public void detachField(final TextInputControl field)
     {
         field.focusedProperty().removeListener(focused_listener);
-        field.removeEventHandler(KeyEvent.KEY_RELEASED, key_release_handler);
-        field.removeEventFilter(KeyEvent.KEY_PRESSED, key_press_filter);
+        field.removeEventFilter(KeyEvent.KEY_RELEASED, key_released_filter);
+        field.removeEventFilter(KeyEvent.KEY_PRESSED, key_pressed_filter);
+    }
+
+    /** Toggle menu on Ctrl-Space
+     *
+     *  <p>Called by both the text field and the context menu
+     */
+    private void toggleMenu(final KeyEvent event)
+    {
+        // For Mac, isShortcutDown() to detect Command-SPACE
+        // seemed natural, but that is already captured by OS
+        // for 'Spotlight Search',
+        // so use Ctrl-Space on all OS
+        if (event.isControlDown()  &&  event.getCode() == KeyCode.SPACE)
+        {
+            if (menu.isShowing())
+                menu.hide();
+            else if (event.getSource() instanceof TextField)
+            {
+                final TextInputControl field = (TextInputControl) event.getSource();
+                // Show menu with current content,
+                // in case we were hiding and how showing the menu
+                // for the same field, not loosing focus,
+                // menu already populated
+                menu.setUserData(field);
+                menu.show(field, Side.BOTTOM, 0, 0);
+                // If menu is empty, otherwise to 'refresh', start a lookup
+                lookup(field);
+            }
+            event.consume();
+        }
     }
 
     private void updateHistory(final String text)
@@ -223,7 +263,10 @@ public class AutocompleteMenu
         {
             menu.getItems().setAll(items);
             if (! menu.isShowing())
+            {
+                menu.setUserData(field);
                 menu.show(field, Side.BOTTOM, 0, 0);
+            }
         });
     }
 
@@ -257,12 +300,28 @@ public class AutocompleteMenu
         final MenuItem item = new MenuItem(null, markup);
         item.setOnAction(event ->
         {
+            selected_menu_item = true;
             final String value = proposal.apply(text);
             field.setText(value);
             field.positionCaret(value.length());
-            // Menu's key_pressed handler will send ENTER on to current_field
+            invokeAction(field);
         });
 
         return item;
+    }
+
+    /** Try to invoke 'onAction' handler
+     *  @param field Potential {@link TextField}
+     */
+    private void invokeAction(final TextInputControl field)
+    {
+        if (field != null)
+            proposal_service.addToHistory(field.getText());
+        if (field instanceof TextField)
+        {
+            final EventHandler<ActionEvent> action = ((TextField)field).getOnAction();
+            if (action != null)
+                action.handle(new ActionEvent(field, null));
+        }
     }
 }
