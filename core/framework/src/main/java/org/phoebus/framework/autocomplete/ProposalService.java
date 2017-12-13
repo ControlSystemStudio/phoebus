@@ -49,9 +49,11 @@ public class ProposalService
     }
 
     /** @param entry Entry that user selected so it needs to be added to history */
-    public void addToHistory(final String entry)
+    public void addToHistory(String entry)
     {
-        history.add(new Proposal(entry));
+        entry = entry.trim();
+        if (! entry.isEmpty())
+            history.add(new Proposal(entry));
     }
 
     /** Perform lookup of completions
