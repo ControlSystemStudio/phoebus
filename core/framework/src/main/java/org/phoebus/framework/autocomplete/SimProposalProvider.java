@@ -22,7 +22,8 @@ public class SimProposalProvider implements ProposalProvider
     private static final List<Proposal> generic = List.of(
         new SimProposal("sim://name", "parameters..."));
 
-    private static final List<SimProposal> proposals = List.of(
+    /** All the simulated PVs with supported variations of their arguments */
+    private static final List<SimProposal> all_proposals = List.of(
         new SimProposal("sim://flipflop", "update_seconds"),
         new SimProposal("sim://gaussianNoise", "center", "std_dev", "update_seconds"),
         new SimProposal("sim://gaussianwave", "period_seconds", "std_dev", "size", "update_seconds"),
@@ -43,6 +44,38 @@ public class SimProposalProvider implements ProposalProvider
         new SimProposal("sim://strings", "update_seconds"),
         new SimProposal("sim://strings", "length", "update_seconds"));
 
+    /** All SimProposals but using only the version with shortest argument list */
+    private static final List<SimProposal> essential_proposals;
+
+    /** Search lists from 'all' to smaller ones */
+    private static final List<List<SimProposal>> search_lists;
+
+    static
+    {
+        essential_proposals = new ArrayList<>();
+
+        check_proposals:
+        for (SimProposal proposal : all_proposals)
+        {
+            // Is there already a proposal by that name?
+            for (int i=0; i<essential_proposals.size(); ++i)
+                if (essential_proposals.get(i).getValue().equals(proposal.getValue()))
+                {   // Does new one have a shorter argument list?
+                    if (proposal.getArguments().length < essential_proposals.get(i).getArguments().length)
+                        essential_proposals.set(i, proposal);
+                    // Check next proposal, done with this one
+                    continue check_proposals;
+                }
+            // New proposal, add
+            essential_proposals.add(proposal);
+        }
+
+        System.out.println("Essential: ");
+        essential_proposals.forEach(p -> System.out.println(p));
+
+        search_lists = List.of(all_proposals, essential_proposals);
+    }
+
     private SimProposalProvider()
     {
         // Singleton
@@ -62,11 +95,9 @@ public class SimProposalProvider implements ProposalProvider
     @Override
     public List<Proposal> lookup(final String text)
     {
-        // When nothing has been entered, suggest a simulated PV
+        // When nothing has been entered, suggest a generic simulated PV
         if (text.isEmpty())
             return generic;
-
-        final List<Proposal> result = new ArrayList<>();
 
         // Does text contain parameters?
         final List<String> split = SimProposal.splitNameAndParameters(text);
@@ -77,25 +108,35 @@ public class SimProposalProvider implements ProposalProvider
                         : -1;
         final boolean complete_args = SimProposal.hasClosingBacket(text);
 
-        // First compare text up to optional parameters
-        for (SimProposal proposal : proposals)
-            if (proposal.getValue().contains(noparm_text))
-            {
-                // If text contains arguments, check them
-                if (given >= 0)
-                {
-                    final int required = proposal.getArguments().length;
-                    // Skip if text contains more arguments than proposal allows
-                    if (given > required)
-                        continue;
-                    // Skip if text contains complete arguments "(...)" but wrong number
-                    if (given != required  &&  complete_args)
-                        continue;
-                    // Text has fewer arguments, or not ending in "..)"
-                }
-                result.add(proposal);
-            }
+        // Search 'all' proposals for match
+        final List<Proposal> result = new ArrayList<>();
 
+        for (List<SimProposal> proposals : search_lists)
+        {
+            // First compare text up to optional parameters
+            for (SimProposal proposal : proposals)
+                if (proposal.getValue().contains(noparm_text))
+                {
+                    // If text contains arguments, check them
+                    if (given >= 0)
+                    {
+                        final int required = proposal.getArguments().length;
+                        // Skip if text contains more arguments than proposal allows
+                        if (given > required)
+                            continue;
+                        // Skip if text contains complete arguments "(...)" but wrong number
+                        if (given != required  &&  complete_args)
+                            continue;
+                        // Text has fewer arguments, or not ending in "..)"
+                    }
+                    result.add(proposal);
+                }
+
+            if (result.size() <= essential_proposals.size())
+                break;
+            // If too many results, try again with shorter list
+            result.clear();
+        }
         return result;
     }
 }
