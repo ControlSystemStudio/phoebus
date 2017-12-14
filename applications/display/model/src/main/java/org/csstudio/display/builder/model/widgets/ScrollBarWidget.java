@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.XMLUtil;
+import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.w3c.dom.Element;
 
 /** Widget that can read/write numeric PV via scrollbar
@@ -94,6 +96,7 @@ public class ScrollBarWidget extends WritablePVWidget
     private volatile WidgetProperty<Double> bar_length;
     private volatile WidgetProperty<Double> increment;
     private volatile WidgetProperty<Boolean> enabled;
+    private volatile RuntimeEventProperty configure;
 
     public ScrollBarWidget()
     {
@@ -112,6 +115,7 @@ public class ScrollBarWidget extends WritablePVWidget
         properties.add(bar_length = propBarLength.createProperty(this, 10.0));
         properties.add(increment = propIncrement.createProperty(this, 1.0));
         properties.add(enabled = propEnabled.createProperty(this, true));
+        properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
     }
 
     @Override
@@ -166,5 +170,11 @@ public class ScrollBarWidget extends WritablePVWidget
     public WidgetProperty<Boolean> propEnabled()
     {
         return enabled;
+    }
+
+    /** @return 'configure' property */
+    public RuntimeEventProperty runtimePropConfigure()
+    {
+        return configure;
     }
 }

@@ -18,6 +18,8 @@ import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.KnobWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
+import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
+import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
@@ -41,6 +43,8 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
             entry(KnobWidget.WIDGET_DESCRIPTOR.getType(),            () -> new KnobWidgetRuntime()),
             entry(ImageWidget.WIDGET_DESCRIPTOR.getType(),           () -> new ImageWidgetRuntime()),
             entry(NavigationTabsWidget.WIDGET_DESCRIPTOR.getType(),  () -> new NavigationTabsRuntime()),
+            entry(ScaledSliderWidget.WIDGET_DESCRIPTOR.getType(),    () -> new SliderWidgetRuntime()),
+            entry(ScrollBarWidget.WIDGET_DESCRIPTOR.getType(),       () -> new SliderWidgetRuntime()),
             entry(TableWidget.WIDGET_DESCRIPTOR.getType(),           () -> new TableWidgetRuntime()),
             entry(TabsWidget.WIDGET_DESCRIPTOR.getType(),            () -> new TabsWidgetRuntime()),
             entry(XYPlotWidget.WIDGET_DESCRIPTOR.getType(),          () -> new XYPlotWidgetRuntime())

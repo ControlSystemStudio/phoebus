@@ -55,7 +55,7 @@ public class XYPlotWidgetRuntime  extends WidgetRuntime<XYPlotWidget>
     public void initialize(final XYPlotWidget widget)
     {
         super.initialize(widget);
-        runtime_actions.add(new ConfigurePlotAction(widget));
+        runtime_actions.add(new ConfigureAction("Configure Plot", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
     }
 
