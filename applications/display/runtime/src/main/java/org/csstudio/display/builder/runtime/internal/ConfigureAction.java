@@ -21,7 +21,7 @@ class ConfigureAction extends RuntimeAction
     public ConfigureAction(final String description, final RuntimeEventProperty configure_prop)
     {
         super(description,
-              "platform:/plugin/org.csstudio.javafx.rtplot/icons/configure.png");
+              "/icons/configure.png");
         this.configure_prop = configure_prop;
     }
 

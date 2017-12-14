@@ -20,11 +20,15 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Targe
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
+import org.csstudio.display.builder.runtime.RuntimeAction;
+import org.csstudio.display.builder.runtime.RuntimeUtil;
+import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -101,6 +105,19 @@ class ContextMenuSupport
             }
             else
                 items.add(createMenuItem(widget, info));
+        }
+
+        // Actions of the widget runtime
+        final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(widget);
+        if (runtime == null)
+            throw new NullPointerException("Missing runtime for " + widget);
+        for (RuntimeAction info : runtime.getRuntimeActions())
+        {
+            // Load image for action from that action's class loader
+            final ImageView icon = ImageCache.getImageView(info.getClass(), info.getIconPath());
+            final MenuItem item = new MenuItem(info.getDescription(), icon);
+            item.setOnAction(event -> info.run());
+            items.add(item);
         }
 
         items.add(new SeparatorMenuItem());
