@@ -81,7 +81,7 @@ public class LocProposalTest
         match = proposal.getMatch("loc://x<VLong>");
         assertThat(match, equalTo(List.of(
                 MatchSegment.match("loc://x"),
-                MatchSegment.match("<VLong>"),
+                MatchSegment.normal("<Type>"),
                 MatchSegment.comment("(initial value)"))));
 
         match = proposal.getMatch("loc://x(42)");
