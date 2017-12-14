@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 /** Proposal Service
  *
@@ -25,6 +26,9 @@ import java.util.concurrent.Future;
 @SuppressWarnings("nls")
 public class ProposalService
 {
+    /** Logger for autocompletion */
+    public static final Logger logger = Logger.getLogger(ProposalService.class.getPackageName());
+
     @FunctionalInterface
     public interface Handler
     {
@@ -79,6 +83,21 @@ public class ProposalService
             final int priority = i++;
             submitted.add(pool.submit(() -> lookup(provider, text, priority, response_handler)));
         }
+    }
+
+    /** Wait until the last lookup() completes.
+     *
+     *  <p>Only for tests.
+     *  In a production setup, all providers triggered by lookup()
+     *  run as long as they need and invoke the response_handler when done.
+     *  A new lookup cancels ongoing lookups.
+     *
+     *  @throws Exception on error
+     */
+    public synchronized void waitForCompletion() throws Exception
+    {
+        for (Future<?> running : submitted)
+            running.get();
     }
 
     /** Lookup text in one provider

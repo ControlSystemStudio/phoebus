@@ -10,12 +10,14 @@ package org.phoebus.framework.autocomplete;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.phoebus.framework.spi.PVProposalProvider;
+
 /** Provider of {@link SimProposal}s
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class SimProposalProvider implements ProposalProvider
+public class SimProposalProvider implements PVProposalProvider
 {
     public static final SimProposalProvider INSTANCE = new SimProposalProvider();
 
@@ -69,9 +71,6 @@ public class SimProposalProvider implements ProposalProvider
             // New proposal, add
             essential_proposals.add(proposal);
         }
-
-        System.out.println("Essential: ");
-        essential_proposals.forEach(p -> System.out.println(p));
 
         search_lists = List.of(all_proposals, essential_proposals);
     }

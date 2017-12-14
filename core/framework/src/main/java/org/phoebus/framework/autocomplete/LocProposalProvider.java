@@ -10,12 +10,14 @@ package org.phoebus.framework.autocomplete;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.phoebus.framework.spi.PVProposalProvider;
+
 /** Provider of {@link LocProposal}s
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class LocProposalProvider implements ProposalProvider
+public class LocProposalProvider implements PVProposalProvider
 {
     public static final LocProposalProvider INSTANCE = new LocProposalProvider();
 

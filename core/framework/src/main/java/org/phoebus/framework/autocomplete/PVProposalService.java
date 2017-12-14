@@ -7,9 +7,15 @@
  *******************************************************************************/
 package org.phoebus.framework.autocomplete;
 
+
+import java.util.ServiceLoader;
+
+import org.phoebus.framework.spi.PVProposalProvider;
+
 /** Autocompletion Service for PVs
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PVProposalService extends ProposalService
 {
     public static final PVProposalService INSTANCE = new PVProposalService();
@@ -17,6 +23,12 @@ public class PVProposalService extends ProposalService
     private PVProposalService()
     {
         super(SimProposalProvider.INSTANCE, LocProposalProvider.INSTANCE);
+
         // TODO Could use SPI to add site-specific PV name providers
+        for (PVProposalProvider add : ServiceLoader.load(PVProposalProvider.class))
+        {
+            logger.config("Adding PV Proposal Provider '" + add.getName() + "'");
+            providers.add(add);
+        }
     }
 }
