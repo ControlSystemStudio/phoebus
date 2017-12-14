@@ -38,9 +38,6 @@ import org.csstudio.display.builder.model.spi.WidgetsService;
 @SuppressWarnings("nls")
 public class WidgetFactory
 {
-    /** Extension point that allows contributing widgets */
-    public static final String EXTENSION_POINT_ID = "org.csstudio.display.builder.model.widgets";
-
     /** Exception that indicates an unknown widget type */
     public static class WidgetTypeException extends Exception
     {
