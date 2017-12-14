@@ -31,7 +31,7 @@ public class History implements ProposalProvider
 
     public History()
     {
-        this(20);
+        this(10);
     }
 
     /** @param max_size Number of entries to keep in history */
