@@ -19,7 +19,6 @@ import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.phoebus.ui.javafx.ClearingTextField;
 
 import javafx.geometry.Insets;
@@ -74,11 +73,6 @@ public class PropertyPanel extends BorderPane
         editor.getWidgetSelectionHandler().addListener(this::setSelectedWidgets);
 
         setMinHeight(0);
-    }
-
-    public AutocompleteMenu getAutocompleteMenu ()
-    {
-        return section.getAutocompleteMenu();
     }
 
     /** Populate UI with properties of widgets

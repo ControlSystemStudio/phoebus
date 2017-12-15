@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,6 +21,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.FontWidgetProperty;
+import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.w3c.dom.Element;
@@ -207,6 +209,7 @@ public class ScaledSliderWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> show_hihi;
     private volatile WidgetProperty<Boolean> show_low;
     private volatile WidgetProperty<Boolean> show_lolo;
+    private volatile RuntimeEventProperty configure;
 
     public ScaledSliderWidget()
     {
@@ -239,6 +242,7 @@ public class ScaledSliderWidget extends WritablePVWidget
         properties.add(show_high = propShowHigh.createProperty(this, true));
         properties.add(show_low = propShowLow.createProperty(this, true));
         properties.add(show_lolo = propShowLoLo.createProperty(this, true));
+        properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
     }
 
     @Override
@@ -377,5 +381,11 @@ public class ScaledSliderWidget extends WritablePVWidget
     public WidgetProperty<Boolean> propShowLoLo()
     {
         return show_lolo;
+    }
+
+    /** @return 'configure' property */
+    public RuntimeEventProperty runtimePropConfigure()
+    {
+        return configure;
     }
 }

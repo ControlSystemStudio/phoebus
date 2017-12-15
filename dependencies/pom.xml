@@ -8,6 +8,31 @@
       <diirt.version>3.0.0</diirt.version>
   </properties>
 
+  <profiles>
+    <!-- Oracle JDBC is only available from an Oracle maven repo
+         which requires registration, user, password
+         ( https://blogs.oracle.com/dev2dev/get-oracle-jdbc-drivers-and-ucp-from-oracle-maven-repository-without-ides )
+         
+         Since only few sites need Oracle support,
+         have them set environment variable
+         ORACLE_JDBC_JAR=/path/to/ojdbc8-12.2.0.1.jar 
+      -->
+    <profile>
+      <activation>
+        <property><name>env.ORACLE_JDBC_JAR</name></property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle.jdbc</groupId>
+          <artifactId>ojdbc8</artifactId>
+          <version>12.2.0.1</version>
+          <scope>system</scope>
+          <systemPath>${env.ORACLE_JDBC_JAR}</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
   <dependencies>
     <!-- For testing.
          mockito-all contains hamcrest packages,
@@ -73,6 +98,19 @@
       <groupId>net.sf.py4j</groupId>
       <artifactId>py4j</artifactId>
       <version>0.10.2.1</version>
+    </dependency>
+    <!-- JDBC connectors
+         For Oracle, see ORACLE_JDBC_JAR
+      -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.45</version>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.1.4</version>
     </dependency>
   </dependencies>
 

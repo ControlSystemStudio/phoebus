@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -100,7 +100,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         //written to independently during runtime, both must be listened to.
         model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
         jfx_node.valueProperty().addListener(this::nodeValueChanged);
-
+        model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> openConfigurationPanel());
     }
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -206,5 +206,17 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
                     active = false;
             }
         }
+    }
+
+    private SliderConfigPopOver config_popover = null;
+
+    private void openConfigurationPanel()
+    {
+        if (config_popover == null)
+            config_popover = new SliderConfigPopOver(model_widget.propIncrement());
+        if (config_popover.isShowing())
+            config_popover.hide();
+        else
+            config_popover.show(jfx_node);
     }
 }

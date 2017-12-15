@@ -26,6 +26,7 @@ import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
 import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
@@ -65,8 +66,6 @@ public class ActionsDialog extends Dialog<ActionInfos>
     // Read existing file into embedded text when switching from file to embedded
 
     private final Widget widget;
-
-    private final AutocompleteMenu menu;
 
     /** Actions edited by the dialog */
     private final ObservableList<ActionInfo> actions = FXCollections.observableArrayList();
@@ -135,18 +134,7 @@ public class ActionsDialog extends Dialog<ActionInfos>
      */
     public ActionsDialog(final Widget widget, final ActionInfos initial_actions)
     {
-        this(widget, initial_actions, new AutocompleteMenu());
-    }
-
-    /** Create dialog
-     *  @param widget Widget
-     *  @param initial_actions Initial list of actions
-     *  @param menu {@link AutocompleteMenu} to use for PV names (must not be null)
-     */
-    public ActionsDialog(final Widget widget, final ActionInfos initial_actions, final AutocompleteMenu menu)
-    {
         this.widget = widget;
-        this.menu = menu;
 
         actions.addAll(initial_actions.getActions());
 
@@ -466,8 +454,8 @@ public class ActionsDialog extends Dialog<ActionInfos>
 
         write_pv_details.add(new Label(Messages.ActionsDialog_PVName), 0, 1);
         write_pv_name = new TextField();
-        menu.attachField(write_pv_name);
-        setOnHidden((event) -> menu.removeField(write_pv_name));
+        PVAutocompleteMenu.INSTANCE.attachField(write_pv_name);
+        setOnHidden((event) -> PVAutocompleteMenu.INSTANCE.detachField(write_pv_name));
         write_pv_name.textProperty().addListener(update);
         write_pv_details.add(write_pv_name, 1, 1);
 

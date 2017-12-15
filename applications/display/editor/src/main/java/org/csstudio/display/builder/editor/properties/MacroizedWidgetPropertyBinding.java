@@ -17,7 +17,9 @@ import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyEvent;
 
@@ -89,6 +91,11 @@ public class MacroizedWidgetPropertyBinding
         }
     };
 
+    private final EventHandler<ActionEvent> action_handler = event ->
+    {
+        submit();
+        updating = false;
+    };
 
     public MacroizedWidgetPropertyBinding(final UndoableActionManager undo,
                                           final TextInputControl field,
@@ -103,6 +110,8 @@ public class MacroizedWidgetPropertyBinding
     {
         widget_property.addUntypedPropertyListener(model_listener);
         jfx_node.setOnKeyPressed(key_press_handler);
+        if (jfx_node instanceof TextField)
+            ((TextField)jfx_node).setOnAction(action_handler);
         jfx_node.focusedProperty().addListener(focus_handler);
         restore();
     }
@@ -111,6 +120,8 @@ public class MacroizedWidgetPropertyBinding
     public void unbind()
     {
         jfx_node.focusedProperty().removeListener(focus_handler);
+        if (jfx_node instanceof TextField)
+            ((TextField)jfx_node).setOnAction(null);
         jfx_node.setOnKeyPressed(null);
         widget_property.removePropertyListener(model_listener);
     }

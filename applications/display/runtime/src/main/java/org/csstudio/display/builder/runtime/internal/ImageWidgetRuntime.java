@@ -162,7 +162,7 @@ public class ImageWidgetRuntime extends WidgetRuntime<ImageWidget>
     public void initialize(final ImageWidget widget)
     {
         super.initialize(widget);
-        runtime_actions.add(new ConfigureImageAction(widget));
+        runtime_actions.add(new ConfigureAction("Configure Image", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
     }
 

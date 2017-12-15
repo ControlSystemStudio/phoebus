@@ -28,7 +28,7 @@ public class ToggleToolbarAction extends RuntimeAction
     public ToggleToolbarAction(final Widget widget)
     {
         super(Messages.Toolbar_Hide,
-              "platform:/plugin/org.csstudio.javafx.rtplot/icons/toolbar.png");
+              "/icons/toolbar.png");
         this.widget = widget;
         updateDescription();
     }

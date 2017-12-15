@@ -17,7 +17,6 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.ModalityHack;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -32,8 +31,6 @@ import javafx.scene.control.Button;
 public class RulesPropertyBinding
 extends WidgetPropertyBinding<Button, RulesWidgetProperty>
 {
-    private AutocompleteMenu menu = null;
-
     /** Update property panel field as model changes */
     private final WidgetPropertyListener<List<RuleInfo>> model_listener = (p, o, n) ->
     {
@@ -43,7 +40,7 @@ extends WidgetPropertyBinding<Button, RulesWidgetProperty>
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final RulesDialog dialog = new RulesDialog(undo, widget_property.getValue(), widget_property.getWidget(), menu);
+        final RulesDialog dialog = new RulesDialog(undo, widget_property.getValue(), widget_property.getWidget());
         DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
         ModalityHack.forDialog(dialog);
         //ScenicView.show(dialog.getDialogPane());
@@ -64,10 +61,9 @@ extends WidgetPropertyBinding<Button, RulesWidgetProperty>
     public RulesPropertyBinding(final UndoableActionManager undo,
             final Button field,
             final RulesWidgetProperty widget_property,
-            final List<Widget> other, final AutocompleteMenu menu)
+            final List<Widget> other)
     {
         super(undo, field, widget_property, other);
-        this.menu = menu;
     }
 
     @Override

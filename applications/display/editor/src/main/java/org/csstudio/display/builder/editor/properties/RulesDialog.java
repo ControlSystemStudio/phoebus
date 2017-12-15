@@ -24,10 +24,11 @@ import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoString;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoValue;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo.PropInfo;
-import org.csstudio.display.builder.representation.javafx.AutocompleteMenu;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
+import org.phoebus.ui.autocomplete.AutocompleteMenu;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.TableHelper;
@@ -437,8 +438,6 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     private final Widget attached_widget;
     /** Undo actions for choosing property values in expressions **/
     private final UndoableActionManager undo;
-    /** Autocomplete menu for pv names */
-    private final AutocompleteMenu menu;
 
     /** Property options for target of expression **/
     private final List<PropInfo> propinfo_ls;
@@ -457,12 +456,11 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     }
 
     /** @param rules Rules to show/edit in the dialog */
-    public RulesDialog(final UndoableActionManager undo, final List<RuleInfo> rules, final Widget attached_widget, final AutocompleteMenu menu)
+    public RulesDialog(final UndoableActionManager undo, final List<RuleInfo> rules, final Widget attached_widget)
     {
         setTitle(Messages.RulesDialog_Title);
         this.undo = undo;
         this.attached_widget = attached_widget;
-        this.menu = menu;
 
         propinfo_ls = RuleInfo.getTargettableProperties(attached_widget);
         setHeaderText(Messages.RulesDialog_Info + ": " +
@@ -813,15 +811,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
      */
     private class AutoCompletedTableCell extends TableCell<PVItem, String>
     {
-        //TODO: make autocomplete menu styling consistent with other menus
-        //(stylesheet in representation.javafx package is not applied)
         private TextField textField;
-        private final AutocompleteMenu menu;
-
-        public AutoCompletedTableCell(final AutocompleteMenu menu)
-        {
-            this.menu = menu;
-        }
 
         @Override
         public void startEdit()
@@ -832,7 +822,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 createTextField();
                 setText(null);
                 setGraphic(textField);
-                menu.attachField(textField);
+                PVAutocompleteMenu.INSTANCE.attachField(textField);
                 textField.selectAll();
             }
         }
@@ -853,18 +843,20 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             {
                 setText(null);
                 setGraphic(null);
-            } else if (isEditing())
+            }
+            else if (isEditing())
             {
                 if (textField != null)
                     textField.setText(getItem() == null ? "" : getItem());
                 setText(null);
                 setGraphic(textField);
-            } else
+            }
+            else
             {
                 setText(getItem() == null ? "" : getItem());
                 setGraphic(null);
                 if (textField != null)
-                    menu.removeField(textField);
+                    PVAutocompleteMenu.INSTANCE.detachField(textField);
             }
         }
 
@@ -889,7 +881,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         // Create table with editable 'name' column
         final TableColumn<PVItem, String> name_col = new TableColumn<>(Messages.ScriptsDialog_ColPV);
         name_col.setCellValueFactory(new PropertyValueFactory<PVItem, String>("name"));
-        name_col.setCellFactory((col) -> new AutoCompletedTableCell(menu));
+        name_col.setCellFactory((col) -> new AutoCompletedTableCell());
         name_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();

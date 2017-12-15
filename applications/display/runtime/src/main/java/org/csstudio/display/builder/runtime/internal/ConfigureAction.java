@@ -7,27 +7,27 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.internal;
 
-import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
+import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 
-/** RuntimeAction to trigger the configuration dialog of the XYPlot
+/** RuntimeAction to trigger a configuration dialog
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class ConfigurePlotAction extends RuntimeAction
+class ConfigureAction extends RuntimeAction
 {
-    private final XYPlotWidget plot;
+    private final RuntimeEventProperty configure_prop;
 
-    public ConfigurePlotAction(final XYPlotWidget plot)
+    public ConfigureAction(final String description, final RuntimeEventProperty configure_prop)
     {
-        super("Configure Plot",
-              "platform:/plugin/org.csstudio.javafx.rtplot/icons/configure.png");
-        this.plot = plot;
+        super(description,
+              "/icons/configure.png");
+        this.configure_prop = configure_prop;
     }
 
     @Override
     public void run()
     {
-        plot.runtimePropConfigure().trigger();
+        configure_prop.trigger();
     }
 }
