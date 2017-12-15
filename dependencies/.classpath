@@ -27,5 +27,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/objenesis-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jython-standalone-2.7.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/postgresql-42.1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/mysql-connector-java-5.1.45.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
