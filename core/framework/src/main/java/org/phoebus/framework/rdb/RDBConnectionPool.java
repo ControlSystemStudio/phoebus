@@ -41,23 +41,23 @@ public class RDBConnectionPool
 
     private volatile int timeout = 10;
 
-    /** Create conneciton pool
-    *
-    *  <p>URL format depends on the database dialect.
-    *
-    *  <p>For MySQL resp. Oracle, the formats are:
-    *  <pre>
-    *     jdbc:mysql://[host]:[port]/[database]?user=[user]&password=[password]
-    *     jdbc:oracle:thin:[user]/[password]@//[host]:[port]/[database]
-    *  </pre>
-    *
-    *  For Oracle, the port is usually 1521.
-    *
-    *  @param url Database URL
-    *  @param user User name or <code>null</code> if part of URL
-    *  @param password Password or <code>null</code> if part of URL
-    *  @throws Exception on error
-    */
+    /** Create connection pool
+     *
+     *  <p>URL format depends on the database dialect.
+     *
+     *  <p>For MySQL resp. Oracle, the formats are:
+     *  <pre>
+     *     jdbc:mysql://[host]:[port]/[database]?user=[user]&password=[password]
+     *     jdbc:oracle:thin:[user]/[password]@//[host]:[port]/[database]
+     *  </pre>
+     *
+     *  For Oracle, the port is usually 1521.
+     *
+     *  @param url Database URL
+     *  @param user User name or <code>null</code> if part of URL
+     *  @param password Password or <code>null</code> if part of URL
+     *  @throws Exception on error
+     */
     public RDBConnectionPool(final String url, final String user, final String password) throws Exception
     {
         this.info = new RDBInfo(url, user, password);
