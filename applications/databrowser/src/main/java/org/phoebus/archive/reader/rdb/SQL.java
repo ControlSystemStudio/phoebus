@@ -22,6 +22,11 @@ class SQL
     // 'severity' table
     final public String sel_severities;
 
+    // 'channel' table
+    final public String channel_sel_by_like;
+    final public String channel_sel_by_name;
+
+
     SQL(final Dialect dialect, final String prefix)
     {
         // 'status' table
@@ -29,5 +34,18 @@ class SQL
 
         // 'severity' table
         sel_severities = "SELECT severity_id, name FROM " + prefix + "severity";
+
+        // 'channel' table
+        if (dialect == Dialect.Oracle)
+        {   // '\\' because Java swallows one '\', be case-insensitive by using all lowercase
+            channel_sel_by_like = "SELECT name FROM " + prefix + "channel WHERE LOWER(name) LIKE LOWER(?) ESCAPE '\\' ORDER BY name";
+        }
+        else
+        {   // MySQL uses '\' by default, and everything is  by default case-insensitive
+            channel_sel_by_like = "SELECT name FROM " + prefix + "channel WHERE name LIKE ? ORDER BY name";
+        }
+
+        channel_sel_by_name = "SELECT channel_id FROM " + prefix + "channel WHERE name=?";
+
     }
 }

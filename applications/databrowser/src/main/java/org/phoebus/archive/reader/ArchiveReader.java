@@ -53,38 +53,17 @@ public interface ArchiveReader extends Closeable
 
     /** Find channel in given sub-archive via "file glob" pattern search.
      *  <p>
-     *  In principle, globs can be translated into regular expressions,
-     *  then use <code>getNamesByRegExp()</code>. But file globs
-     *  can be a lot faster for some implementations, and are also known
-     *  by more users, so a designated call appeared appropriate.
+     *  The search should be case-insensitive.
      *  <p>
-     *  The search should be case-insensitive, but details can depend
-     *  on the implementation.
-     *  <p>
-     *  It is not fully defined how to handle an empty pattern.
-     *  Ideally, the result would be empty.
-     *  To locate <u>all</u> channels in the archive, the user
-     *  needs to specifically search for "*".
-     *  But some existing implementations return all channels
-     *  for an empty pattern...
+     *  An empty pattern should return an empty result.
+     *  To locate <u>all</u> channels in the archive,
+     *  search for "*".
      *
      *  @param glob_pattern Pattern for channel name with '*' or '?'.
      *  @return List of matching channel names. Might be empty.
      *  @throws Exception on wrong key or internal error.
      */
     public List<String> getNamesByPattern(String glob_pattern)
-        throws Exception;
-
-    /** Find channel in given sub-archive via regular expression search.
-     *  <p>
-     *  For case-sensitivity and handling of empty regular expression refer to
-     *  <code>getNamesByPattern</code>
-     *
-     *  @param reg_exp Regular Expression for channel name.
-     *  @return List of matching channel names. Might be empty.
-     *  @throws Exception on wrong key or internal error.
-     */
-    public List<String> getNamesByRegExp(String reg_exp)
         throws Exception;
 
     /** Read original, raw samples from the archive

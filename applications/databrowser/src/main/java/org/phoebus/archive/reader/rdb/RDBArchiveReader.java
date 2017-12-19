@@ -8,9 +8,11 @@
 package org.phoebus.archive.reader.rdb;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -36,6 +38,9 @@ public class RDBArchiveReader implements ArchiveReader
 {
     public static final Logger logger = Logger.getLogger(RDBArchiveReader.class.getPackageName());
 
+    /** Oracle error code for canceled statements */
+    private static final String ORACLE_CANCELLATION = "ORA-01013";
+
     static final String USER = "user";
     static final String PASSWORD = "password";
     static final String PREFIX = "prefix";
@@ -57,6 +62,9 @@ public class RDBArchiveReader implements ArchiveReader
     /** Map of severity IDs to Severities */
     private final Map<Integer, AlarmSeverity> severities;
 
+    /** Active statements to cancel in cancel() */
+    private final List<Statement> cancellable_statements = new ArrayList<>();
+
     private void initialize()
     {
         final PreferencesReader prefs = new PreferencesReader(RDBArchiveReader.class, "/archive_reader_rdb_preferences.properties");
@@ -74,9 +82,6 @@ public class RDBArchiveReader implements ArchiveReader
         sql = new SQL(pool.getDialect(), prefix);
         stati = getStatusValues();
         severities = getSeverityValues();
-
-        System.out.println(stati);
-        System.out.println(severities);
     }
 
     /** @return Map of all status ID/Text mappings
@@ -171,17 +176,51 @@ public class RDBArchiveReader implements ArchiveReader
     }
 
     @Override
-    public List<String> getNamesByPattern(String glob_pattern) throws Exception
+    public List<String> getNamesByPattern(final String glob_pattern) throws Exception
     {
-        // TODO Auto-generated method stub
-        return null;
-    }
+        // Escape underscores because they are SQL patterns
+        String sql_pattern = glob_pattern.replace("_", "\\_");
+        // Glob '?' -> SQL '_'
+        sql_pattern = sql_pattern.replace('?', '_');
+        // Glob '*' -> SQL '%'
+        sql_pattern = sql_pattern.replace('*', '%');
 
-    @Override
-    public List<String> getNamesByRegExp(String reg_exp) throws Exception
-    {
-        // TODO Auto-generated method stub
-        return null;
+        final List<String> names = new ArrayList<>();
+
+        final Connection connection = pool.getConnection();
+        try
+        {
+            final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_like);
+            addForCancellation(statement);
+            try
+            {
+                statement.setString(1, sql_pattern);
+                final ResultSet result = statement.executeQuery();
+                while (result.next())
+                    names.add(result.getString(1));
+            }
+            catch (Exception ex)
+            {
+                if (ex.getMessage().startsWith(ORACLE_CANCELLATION) || ex.getMessage().contains("user request"))
+                {
+                    // Ignore Oracle/PostgreSQL error: user requested cancel of current operation
+                }
+                else
+                    throw ex;
+            }
+            finally
+            {
+                removeFromCancellation(statement);
+                statement.close();
+            }
+
+        }
+        finally
+        {
+            pool.releaseConnection(connection);
+        }
+
+        return names;
     }
 
     @Override
@@ -192,17 +231,58 @@ public class RDBArchiveReader implements ArchiveReader
         return null;
     }
 
+    /** Add a statement to the list of statements-to-cancel in cancel()
+     *  @param statement Statement to cancel
+     *  @see #cancel()
+     */
+    void addForCancellation(final Statement statement)
+    {
+        synchronized (cancellable_statements)
+        {
+            cancellable_statements.add(statement);
+        }
+    }
+
+    /** Remove a statement from the list of statements-to-cancel in cancel()
+     *  @param statement Statement that should no longer be cancelled
+     *  @see #cancel()
+     */
+    void removeFromCancellation(final Statement statement)
+    {
+        synchronized (cancellable_statements)
+        {
+            cancellable_statements.remove(statement);
+        }
+    }
+
     @Override
     public void cancel()
     {
-        // TODO Auto-generated method stub
+        synchronized (cancellable_statements)
+        {
+            for (Statement statement : cancellable_statements)
+            {
+                try
+                {
+                    // Note that
+                    //    statement.getConnection().close()
+                    // does NOT stop an ongoing Oracle query!
+                    // Only this seems to do it:
+                    statement.cancel();
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Failed to cancel statement " + statement, ex);
+                }
+            }
+        }
 
     }
 
     @Override
     public void close()
     {
-        // TODO Auto-generated method stub
-
+        cancel();
+        pool.clear();
     }
 }
