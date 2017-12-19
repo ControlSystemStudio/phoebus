@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
-import org.phoebus.pv.format.TimestampFormats;
+import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VEnum;

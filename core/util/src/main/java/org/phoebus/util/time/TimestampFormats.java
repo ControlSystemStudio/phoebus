@@ -27,12 +27,14 @@ import java.time.format.DateTimeFormatter;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class TimestampFormats
 {
     final private static ZoneId zone = ZoneId.systemDefault();
     final private static String FULL_PATTERN = "yyyy-MM-dd HH:mm:ss.nnnnnnnnn";
     final private static String MILLI_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
     final private static String SECONDS_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    final private static String DATETIME_PATTERN = "yyyy-MM-dd HH:mm";
     final private static String DATE_PATTERN = "yyyy-MM-dd";
     final private static String TIME_PATTERN = "HH:mm:ss";
 
@@ -44,6 +46,9 @@ public class TimestampFormats
 
     /** Time stamp format for time stamp up to seconds, but not nanoseconds */
     final public static DateTimeFormatter SECONDS_FORMAT = DateTimeFormatter.ofPattern(SECONDS_PATTERN).withZone(zone);
+
+    /** Time stamp format for time date and time, no seconds */
+    final public static DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern(DATETIME_PATTERN).withZone(zone);
 
     /** Time stamp format for time stamp up to seconds, but no date */
     final public static DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern(TIME_PATTERN).withZone(zone);

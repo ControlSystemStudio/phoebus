@@ -9,7 +9,8 @@ package org.phoebus.applications.pvtable.model;
 
 import java.time.Instant;
 
-import org.phoebus.pv.format.TimestampFormats;
+import org.phoebus.util.time.TimestampFormats;
+
 
 /** Time stamp gymnastics
  *
