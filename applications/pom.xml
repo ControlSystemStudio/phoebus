@@ -15,6 +15,7 @@
   	<module>pvtree</module>
   	<module>logConfiguration</module>
   	<module>email</module>
+  	<module>databrowser</module>
   	<module>display</module>
   </modules>
 </project>
