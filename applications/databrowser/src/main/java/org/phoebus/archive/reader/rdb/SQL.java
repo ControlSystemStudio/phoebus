@@ -30,13 +30,12 @@ class SQL
     final public String channel_sel_by_like;
     final public String channel_sel_by_name;
 
-
     // 'sample' table
     final public String sample_sel_initial_time;
     final public String sample_sel_by_id_start_end;
     final public String sample_sel_by_id_start_end_with_blob;
     final public String sample_sel_array_vals;
-
+    final public String sample_count_by_id_start_end;
 
 
     SQL(final Dialect dialect, final String prefix)
@@ -112,5 +111,8 @@ class SQL
             sample_sel_array_vals = "SELECT float_val FROM " + prefix + "array_val" +
                 " WHERE channel_id=? AND smpl_time=? AND nanosecs=? ORDER BY seq_nbr";
         }
+        // Rough count, ignoring nanosecs for the non-Oracle dialects
+        sample_count_by_id_start_end = "SELECT COUNT(*) FROM " + prefix + "sample" +
+          "   WHERE channel_id=? AND smpl_time BETWEEN ? AND ?";
     }
 }

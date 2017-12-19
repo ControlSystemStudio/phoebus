@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,10 +23,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.archive.reader.ArchiveReader;
+import org.phoebus.archive.reader.AveragedValueIterator;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.rdb.RDBConnectionPool;
+import org.phoebus.util.time.TimeDuration;
 import org.phoebus.vtype.AlarmSeverity;
 
 /** {@link ArchiveReader} for RDB
@@ -48,6 +52,7 @@ public class RDBArchiveReader implements ArchiveReader
     static final String PREFIX = "prefix";
     static final String TIMEOUT_SECS = "timeout_secs";
     static final String USE_ARRAY_BLOB = "use_array_blob";
+    static final String STORED_PROCEDURE = "stored_procedure";
     static final String STARTTIME_FUNCTION = "starttime_function";
     static final String FETCH_SIZE = "fetch_size";
 
@@ -55,7 +60,7 @@ public class RDBArchiveReader implements ArchiveReader
     private static String user, password, prefix;
     private static int timeout;
     static boolean use_array_blob;
-    static String starttime_function;
+    static String stored_procedure, starttime_function;
     static int fetch_size;
 
     /** Connection pool */
@@ -76,13 +81,14 @@ public class RDBArchiveReader implements ArchiveReader
     private void initialize()
     {
         final PreferencesReader prefs = new PreferencesReader(RDBArchiveReader.class, "/archive_reader_rdb_preferences.properties");
-        user = prefs.get(USER);
-        password = prefs.get(PASSWORD);
-        prefix = prefs.get(PREFIX);
-        timeout = prefs.getInt(TIMEOUT_SECS);
-        use_array_blob = prefs.getBoolean(USE_ARRAY_BLOB);
+        user               = prefs.get(USER);
+        password           = prefs.get(PASSWORD);
+        prefix             = prefs.get(PREFIX);
+        timeout            = prefs.getInt(TIMEOUT_SECS);
+        use_array_blob     = prefs.getBoolean(USE_ARRAY_BLOB);
+        stored_procedure   = prefs.get(STORED_PROCEDURE);
         starttime_function = prefs.get(STARTTIME_FUNCTION);
-        fetch_size = prefs.getInt(FETCH_SIZE);
+        fetch_size         = prefs.getInt(FETCH_SIZE);
     }
 
     public RDBArchiveReader(final String description, final String url) throws Exception
@@ -294,8 +300,46 @@ public class RDBArchiveReader implements ArchiveReader
     public ValueIterator getOptimizedValues(final String name,
                                             final Instant start, final Instant end, int count) throws UnknownChannelException, Exception
     {
-        // TODO Implement
-        return getRawValues(name, start, end);
+        // MySQL version of the stored proc. requires count > 1
+        if (count <= 1)
+            throw new Exception("Count must be > 1");
+        final int channel_id = getChannelID(name);
+
+        // Use stored procedure in RDB server?
+        if (! stored_procedure.isEmpty())
+            return new StoredProcedureValueIterator(this, stored_procedure, channel_id, start, end, count);
+
+        // Else: Determine how many samples there are
+        final Connection connection = pool.getConnection();
+        final int counted;
+        try
+        (
+            final PreparedStatement count_samples = connection.prepareStatement(sql.sample_count_by_id_start_end);
+        )
+        {
+            count_samples.setInt(1, channel_id);
+            count_samples.setTimestamp(2, Timestamp.from(start));
+            count_samples.setTimestamp(3, Timestamp.from(end));
+            final ResultSet result = count_samples.executeQuery();
+            if (! result.next())
+                throw new Exception("Cannot count samples");
+            counted = result.getInt(1);
+            result.close();
+        }
+        finally
+        {
+            pool.releaseConnection(connection);
+        }
+        // Fetch raw data and perform averaging
+        final ValueIterator raw_data = getRawValues(channel_id, start, end);
+
+        // If there weren't that many, that's it
+        if (counted < count)
+            return raw_data;
+
+        // Else: Perform averaging to reduce sample count
+        final double seconds = TimeDuration.toSecondsDouble(Duration.between(start, end)) / count;
+        return new AveragedValueIterator(raw_data, seconds);
     }
 
     /** @param name Channel name
