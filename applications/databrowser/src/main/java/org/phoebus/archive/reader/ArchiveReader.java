@@ -9,37 +9,45 @@ package org.phoebus.archive.reader;
 
 import java.io.Closeable;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.List;
-
-import org.phoebus.vtype.VType;
 
 /** Interface to archive data retrieval.
  *
- *  <p>Historic remark:
  *  Based on the org.csstudio.archive.reader.ArchiveReader
  *  which evolved from contributions and ideas by
  *  Craig McChesney, Sergei Chevtsov, Peregrine McGehee,
  *  Jan Hatje, Albert Kagarmanov, Blaz Lipuscek.
  *
- *  <p>
- *  Key differences to the previous CS-Studio API:
- *  <ul>
- *  <li>No more 'key'.
- *      Only the Channel Archiver network data server uses
- *      a 'key' to identify one of its sub-archives.
- *      All other data servers simply provide data for
- *      a given channel name and time range.
- *      To map to a channel archiver network data server with N
- *      different 'keys', N different Archive Reader URLs
- *      will need to be used which then include the key.
- *  <li>Values are returned as plain {@link Iterator}.
- *  </ul>
- *
  *  @author Kay Kasemir
  */
 public interface ArchiveReader extends Closeable
 {
+    // Comparison with previous CS-Studio API:
+    //
+    // No more 'key'.
+    // Only the Channel Archiver network data server uses
+    // a 'key' to identify one of its sub-archives.
+    // All other data servers simply provide data for
+    // a given channel name and time range.
+    // To map to a channel archiver network data server with N
+    // different 'keys', N different Archive Reader URLs
+    // need to be used which now include the key.
+    //
+    // ValueIterator is based on plain {@link Iterator},
+    // no longer using a custom ValueIterator where
+    // next() throws Exception.
+    // The plain Iterator is generally known.
+    // The get*() calls can still throw an Exception
+    // when data simply cannot be fetched.
+    // When there is a problem later on while iterating
+    // over the samples, they can log an error message
+    // and return hasNext() == false.
+    //
+    // A Stream or Spliterator<VType> was considered but abandoned.
+    // Main use case is plain iteration over all samples to add them to plot
+    // or to export them, and a plain iterator is faster than Stream:
+    // https://jaxenter.com/java-performance-tutorial-how-fast-are-the-java-8-streams-118830.html
+
     /** Arbitrary description string, may span multiple lines,
      *  with details left to the implementation.
      *  @return Description string.
@@ -70,24 +78,11 @@ public interface ArchiveReader extends Closeable
      *  @param name Channel name
      *  @param start Start time
      *  @param end End time
-     *  @return ValueIterator for the 'raw' samples in the archive
+     *  @return {@link ValueIterator} for the 'raw' samples in the archive
      *  @throws UnknownChannelException when channel is not known
      *  @throws Exception on error
      */
-
-    // Custom ValueIterator where
-    //       public VType next() throws Exception;
-    // -> OK to use plain Iterator<VType>.
-    // Exception when cannot be created,
-    // then on error during iteration just log message and return hasNext() == false.
-
-    // Spliterator<VType> ?
-    // Good for Stream, but 'split' is not possible with RDB-based ResultSet.
-    // Main use case is plain iteration over all samples to
-    // add them to plot.
-    // Plain iterator is faster than Stream:
-    // https://jaxenter.com/java-performance-tutorial-how-fast-are-the-java-8-streams-118830.html
-    public Iterator<VType> getRawValues(String name,
+    public ValueIterator getRawValues(String name,
             Instant start, Instant end) throws UnknownChannelException, Exception;
 
     /** Read optimized samples from the archive.
@@ -107,11 +102,11 @@ public interface ArchiveReader extends Closeable
      *  @param start Start time
      *  @param end End time
      *  @param count Hint for number of values
-     *  @return ValueIterator for the 'optimized' samples in the archive
+     *  @return {@link ValueIterator} for the 'optimized' samples in the archive
      *  @throws UnknownChannelException when channel is not known
      *  @throws Exception on error
      */
-    public default Iterator<VType> getOptimizedValues(String name,
+    public default ValueIterator getOptimizedValues(String name,
         Instant start, Instant end, int count) throws UnknownChannelException, Exception
     {
         return getRawValues(name, start, end);

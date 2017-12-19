@@ -14,7 +14,6 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,10 +22,10 @@ import java.util.logging.Logger;
 
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
+import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.rdb.RDBConnectionPool;
 import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
 
 /** {@link ArchiveReader} for RDB
  *  @author Kay Kasemir
@@ -41,14 +40,23 @@ public class RDBArchiveReader implements ArchiveReader
     /** Oracle error code for canceled statements */
     private static final String ORACLE_CANCELLATION = "ORA-01013";
 
+    /** Oracle error code "error occurred at recursive SQL level ...: */
+    final private static String ORACLE_RECURSIVE_ERROR = "ORA-00604"; //$NON-NLS-1$
+
     static final String USER = "user";
     static final String PASSWORD = "password";
     static final String PREFIX = "prefix";
     static final String TIMEOUT_SECS = "timeout_secs";
+    static final String USE_ARRAY_BLOB = "use_array_blob";
+    static final String STARTTIME_FUNCTION = "starttime_function";
+    static final String FETCH_SIZE = "fetch_size";
 
     private static AtomicBoolean initialized = new AtomicBoolean();
     private static String user, password, prefix;
     private static int timeout;
+    static boolean use_array_blob;
+    static String starttime_function;
+    static int fetch_size;
 
     /** Connection pool */
     private final RDBConnectionPool pool;
@@ -72,6 +80,9 @@ public class RDBArchiveReader implements ArchiveReader
         password = prefs.get(PASSWORD);
         prefix = prefs.get(PREFIX);
         timeout = prefs.getInt(TIMEOUT_SECS);
+        use_array_blob = prefs.getBoolean(USE_ARRAY_BLOB);
+        starttime_function = prefs.get(STARTTIME_FUNCTION);
+        fetch_size = prefs.getInt(FETCH_SIZE);
     }
 
     public RDBArchiveReader(final String description, final String url) throws Exception
@@ -82,6 +93,42 @@ public class RDBArchiveReader implements ArchiveReader
         sql = new SQL(pool.getDialect(), prefix);
         stati = getStatusValues();
         severities = getSeverityValues();
+    }
+
+    /** @return Connection pool */
+    RDBConnectionPool getPool()
+    {
+        return pool;
+    }
+
+    /** @return SQL statements */
+    SQL getSQL()
+    {
+        return sql;
+    }
+
+    /** @param status_id Numeric status ID
+     *  @return Status string for ID
+     */
+    String getStatus(int status_id)
+    {
+        final String status = stati.get(status_id);
+        if (status == null)
+            return "<" + status_id + ">";
+        return status;
+    }
+
+    /** @param severity_id Numeric severity ID
+     *  @return ISeverity for ID
+     */
+    AlarmSeverity getSeverity(int severity_id)
+    {
+        final AlarmSeverity severity = severities.get(severity_id);
+        if (severity != null)
+            return severity;
+        logger.log(Level.WARNING, "Undefined alarm severity ID {0}", severity_id);
+        severities.put(severity_id, AlarmSeverity.UNDEFINED);
+        return AlarmSeverity.UNDEFINED;
     }
 
     /** @return Map of all status ID/Text mappings
@@ -224,11 +271,61 @@ public class RDBArchiveReader implements ArchiveReader
     }
 
     @Override
-    public Iterator<VType> getRawValues(String name, Instant start, Instant end)
+    public ValueIterator getRawValues(final String name, final Instant start, final Instant end)
             throws UnknownChannelException, Exception
     {
-        // TODO Auto-generated method stub
-        return null;
+        return getRawValues(getChannelID(name), start, end);
+    }
+
+    /** Fetch raw samples
+     *  @param channel_id Channel ID in RDB
+     *  @param start Start time
+     *  @param end End time
+     *  @return {@link ValueIterator} for raw samples
+     *  @throws Exception on error
+     */
+    public ValueIterator getRawValues(final int channel_id,
+                                      final Instant start, final Instant end) throws Exception
+    {
+        return new RawSampleIterator(this, channel_id, start, end);
+    }
+
+    @Override
+    public ValueIterator getOptimizedValues(final String name,
+                                            final Instant start, final Instant end, int count) throws UnknownChannelException, Exception
+    {
+        // TODO Implement
+        return getRawValues(name, start, end);
+    }
+
+    /** @param name Channel name
+     *  @return Numeric channel ID
+     *  @throws UnknownChannelException when channel not known
+     *  @throws Exception on error
+     */
+    // Allow access from 'package' for tests
+    int getChannelID(final String name) throws UnknownChannelException, Exception
+    {
+        final Connection connection = pool.getConnection();
+        try
+        (
+            final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
+        )
+        {
+            if (timeout > 0)
+                statement.setQueryTimeout(timeout);
+            statement.setString(1, name);
+            final ResultSet result = statement.executeQuery();
+            if (!result.next())
+                throw new UnknownChannelException(name);
+            final int channel_id = result.getInt(1);
+            result.close();
+            return channel_id;
+        }
+        finally
+        {
+            pool.releaseConnection(connection);
+        }
     }
 
     /** Add a statement to the list of statements-to-cancel in cancel()
@@ -255,6 +352,27 @@ public class RDBArchiveReader implements ArchiveReader
         }
     }
 
+    /** Check if an exception indicates Oracle operation was canceled,
+     *  i.e. this program requested the operation to abort
+     *  @param ex Exception (Throwable) to test
+     *  @return <code>true</code> if it looks like the result of cancellation.
+     */
+    public static boolean isCancellation(final Throwable ex)
+    {
+        final String message = ex.getMessage();
+        if (message == null)
+            return false;
+        if (message.startsWith(ORACLE_CANCELLATION))
+            return true;
+        if (message.startsWith(ORACLE_RECURSIVE_ERROR))
+        {
+            final Throwable cause = ex.getCause();
+            if (cause != null)
+                return isCancellation(cause);
+        }
+        return false;
+    }
+
     @Override
     public void cancel()
     {
@@ -275,8 +393,8 @@ public class RDBArchiveReader implements ArchiveReader
                     logger.log(Level.WARNING, "Failed to cancel statement " + statement, ex);
                 }
             }
+            cancellable_statements.clear();
         }
-
     }
 
     @Override
