@@ -21,6 +21,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
@@ -165,6 +166,13 @@ public class PhoebusApplication extends Application {
 
         Locations.initialize();
 
+        // Check for site-specific settings.ini bundled into distribution
+        final File site_settings = new File(Locations.install(), "settings.ini");
+        if (site_settings.canRead())
+        {
+            logger.log(Level.CONFIG, "Loading settings from " + site_settings);
+            PropertyPreferenceLoader.load(new FileInputStream(site_settings));
+        }
         // Locate registered applications and start them, allocating 30% to that
         startApplications(new SubJobMonitor(monitor, 30));
 
