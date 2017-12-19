@@ -18,6 +18,7 @@ import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,9 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class ResourceParserTest
 {
+
+    private static String OS = System.getProperty("os.name").toLowerCase();
+
     @Test
     public void checkFileToURI() throws Exception
     {
@@ -59,13 +63,13 @@ public class ResourceParserTest
         uri = createResourceURI(absolute);
         System.out.println(uri);
         assertThat(uri.getScheme(), equalTo("file"));
-        assertThat(uri.getPath(), equalTo(absolute));
+        assertThat(Paths.get(uri).toString(), equalTo(absolute));
 
         // Turn relative file path into URI, which should then be absolute
         uri = createResourceURI(relative);
         System.out.println(uri);
         assertThat(uri.getScheme(), equalTo("file"));
-        assertThat(uri.getPath(), equalTo(absolute));
+        assertThat(Paths.get(uri).toString(), equalTo(absolute));
 
         // Convert between File and URI
         assertThat(getFile(uri), equalTo(file));
@@ -97,8 +101,13 @@ public class ResourceParserTest
         final File spacey = new File("/some/dir with space/file.abc");
         uri = createResourceURI(spacey.getPath());
         assertThat(uri, not(nullValue()));
-        assertThat(new File(uri), equalTo(spacey));
-        assertThat(uri.toString(), equalTo("file:/some/dir%20with%20space/file.abc"));
+        assertThat(new File(uri).getCanonicalFile(), equalTo(spacey.getCanonicalFile()));
+        assertThat(uri.getScheme(), equalTo("file"));
+        if(OS.indexOf("win") >= 0) {
+            assertThat(uri.toString(), equalTo("file:/C:/some/dir%20with%20space/file.abc"));
+        } else {
+            assertThat(uri.toString(), equalTo("file:/some/dir%20with%20space/file.abc"));
+        }
     }
 
     @Test
