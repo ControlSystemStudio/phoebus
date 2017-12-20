@@ -74,6 +74,7 @@ public class ArchiveFileReader implements ArchiveReader
             throws UnknownChannelException, Exception
     {
         final List<DataFileEntry> entries = indexReader.getEntries(name, start, end);
+        entries.forEach(System.out::println);
         return new ArchiveFileSampleReader(start, end, entries);
     }
 

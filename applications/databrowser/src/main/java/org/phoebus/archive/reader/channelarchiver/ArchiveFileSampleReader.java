@@ -83,7 +83,7 @@ public class ArchiveFileSampleReader implements ValueIterator
      *  @return Samples left after 'next', with 'next' set to the first one, and buffer just after that sample,
      *          or -1 if no sample found.
      */
-    private long binarySearchSamples(final Instant time) throws IOException
+    private long binarySearchSamples(final Instant time) throws Exception
     {
         final int size = header.dbrType.getSize(header.dbrCount);
         final long initOffset = buffer.offset();
@@ -136,7 +136,7 @@ public class ArchiveFileSampleReader implements ValueIterator
         return -1;
     }
 
-    private ArchiveVType nextSample() throws IOException
+    private ArchiveVType nextSample() throws Exception
     {
         if (samples_left <= 0)
         {
@@ -175,7 +175,7 @@ public class ArchiveFileSampleReader implements ValueIterator
         {
             next = nextSample();
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
             logger.log(Level.WARNING, "Error reading next sample", ex);
             next = null;
@@ -198,12 +198,20 @@ public class ArchiveFileSampleReader implements ValueIterator
 
     /** Read sample at current 'buffer' offset */
     private static ArchiveVType getSample(DbrType dbrType, short dbrCount,
-            CtrlInfoReader info, ArchiveFileBuffer dataBuff) throws IOException
+            CtrlInfoReader info, ArchiveFileBuffer dataBuff) throws Exception
     {
+        // All data is of type dbr_time_* and starts with
+        // dbr_short_t     status
+        // dbr_short_t     severity
+        // epicsTimeStamp  stamp
         short statusCode = dataBuff.getShort();
         short severity = dataBuff.getShort();
         Instant timestamp = dataBuff.getEpicsTime();
+
+        // Next is a type-specific padding, example for dbr_time_double:
+        // dbr_long_t      RISC_pad;
         dataBuff.skip(dbrType.padding);
+
         AlarmSeverity sev = getSeverity(severity);
         String stat = getStatus(severity, statusCode);
         Display display = info.getDisplay(dataBuff);
@@ -211,8 +219,10 @@ public class ArchiveFileSampleReader implements ValueIterator
         switch (dbrType)
         {
             case DBR_TIME_STRING:
-                assert dbrCount == 1 : "String type DBR value must be scalar (count = 1).";
+                if (dbrCount != 1)
+                    throw new Exception("String type DBR value must be scalar (count = 1), got " + dbrCount);
                 dbrCount = 40; //read as a string of 40 chars
+                // Fall through to char
             case DBR_TIME_CHAR:
                 byte valueBytes [] = new byte [dbrCount];
                 dataBuff.get(valueBytes);
@@ -221,7 +231,8 @@ public class ArchiveFileSampleReader implements ValueIterator
                 sample = new ArchiveVString(timestamp, sev, stat, strValue);
                 break;
             case DBR_TIME_ENUM:
-                assert dbrCount == 1 : "Enum type DBR value must be scalar (count = 1).";
+                if (dbrCount != 1)
+                    throw new Exception("Enum type DBR value must be scalar (count = 1), got " + dbrCount);
                 List<String> labels = info.getLabels(dataBuff);
                 int index = dataBuff.getShort();
                 sample = new ArchiveVEnum(timestamp, sev, stat, labels, index);

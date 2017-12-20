@@ -8,7 +8,6 @@
 package org.phoebus.archive.reader.channelarchiver;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 
 import org.phoebus.archive.reader.channelarchiver.ArchiveFileSampleReader.DbrType;
@@ -66,13 +65,11 @@ class DataHeader
     }
 
     //assumes buffer is already opened and positioned
-    public static DataHeader readDataHeader(ArchiveFileBuffer buffer, CtrlInfoReader info) throws IOException
+    public static DataHeader readDataHeader(ArchiveFileBuffer buffer, CtrlInfoReader info) throws Exception
     {
         final File file = buffer.getFile();
         final long offset = buffer.offset();
 
-        buffer.skip(4);
-        byte nameBytes [] = new byte [40];
         // first part of data file header:
         //    4 bytes directory_offset (skipped)
         //    "        next_offset (offset of next entry in its file)
@@ -84,24 +81,6 @@ class DataHeader
         //    "        buff_free (number of un-used, allocated bytes for this header)
         //  2 bytes DbrType (type of data stored in buffer)
         //    2 bytes    DbrCount (count of values for each buffer element, i.e. 1 for scalar types, >1 for array types)
-        long nextOffset = buffer.getUnsignedInt();
-        buffer.skip(8);
-        long numSamples = buffer.getUnsignedInt();
-        long ctrlInfoOffset = buffer.getUnsignedInt();
-        // compute amount of data in this data file entry: (bytes allocated) - (bytes free) - (bytes in header)
-        long buffDataSize = buffer.getUnsignedInt() - buffer.getUnsignedInt() - 152;
-        short dbrTypeCode = buffer.getShort();
-        short dbrCount = buffer.getShort();
-
-
-        if (!info.isOffset(ctrlInfoOffset))
-            info = new CtrlInfoReader(ctrlInfoOffset);
-        DbrType dbrType = DbrType.forValue(dbrTypeCode);
-        assert (12 + dbrType.padding + (dbrCount - 1) * dbrType.valueSize + dbrType.getValuePad(dbrCount)) *
-                        numSamples == buffDataSize :
-                            String.format("Anticipated size of type %s (%d) with count %d does not match size of data",
-                                    dbrType.toString(), dbrTypeCode, dbrCount);
-        // last part of data file header:
         //    4 bytes padding (used to align the period)
         //    8 bytes (double) period
         //    8 bytes (epicsTimeStamp) begin_time
@@ -109,12 +88,53 @@ class DataHeader
         //    "                        end_time
         //    char [40] prev_file
         //    char [40] next_file
-        buffer.skip(20);
-        Instant nextTime = buffer.getEpicsTime();
-        buffer.skip(48);
+        // --> Total of 152 bytes in data header
+        buffer.skip(4);
+        final long nextOffset = buffer.getUnsignedInt();
+        buffer.skip(4);
+        buffer.skip(4);
+        final long numSamples = buffer.getUnsignedInt();
+        final long ctrlInfoOffset = buffer.getUnsignedInt();
+        final long buff_size = buffer.getUnsignedInt();
+        final long buff_free = buffer.getUnsignedInt();
+        final short dbrTypeCode = buffer.getShort();
+        final short dbrCount = buffer.getShort();
+        buffer.skip(4);
+        buffer.skip(8);
+        final Instant beginTime = buffer.getEpicsTime();
+        final Instant nextTime = buffer.getEpicsTime();
+        final Instant endTime = buffer.getEpicsTime();
+
+        buffer.skip(40);
+        final byte nameBytes [] = new byte [40];
         buffer.get(nameBytes);
+
+        if (!info.isOffset(ctrlInfoOffset))
+            info = new CtrlInfoReader(ctrlInfoOffset);
+        final DbrType dbrType = DbrType.forValue(dbrTypeCode);
+
+        // compute amount of data in this data file entry: (bytes allocated) - (bytes free) - (bytes in header)
+        final long buffDataSize = buff_size - buff_free - 152;
+        System.out.println(buffDataSize);
+
+        // Size of samples:
+        // 12 bytes for status/severity/timestamp,
+        // padding, value, padding
+        final long dbr_size = 12 + dbrType.padding + dbrCount * dbrType.valueSize + dbrType.getValuePad(dbrCount);
+        final long expected = dbr_size * numSamples;
+        System.out.println(dbr_size);
+        System.out.println(expected);
+
+        if (expected != buffDataSize)
+            throw new Exception("Expected " + expected + " byte buffer, got " + buffDataSize);
+
         String nextFilename = nextOffset != 0 ? new String(nameBytes).split("\0", 2)[0] : "*";
         File nextFile = new File(buffer.getFile().getParentFile(), nextFilename);
+
+        System.out.println("Datablock\n" +
+                "Buffer  : '" + file + "' @ 0x" + Long.toHexString(offset) + "\n" +
+                "Time    : " + beginTime + "\n" +
+                "...     : " + endTime);
 
         return new DataHeader(file, offset, nextFile, nextOffset, nextTime, info, dbrType, dbrCount, numSamples);
     }
