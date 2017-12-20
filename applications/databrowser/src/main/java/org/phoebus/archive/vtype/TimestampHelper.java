@@ -9,8 +9,8 @@ package org.phoebus.archive.vtype;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 
 public class TimestampHelper
@@ -63,23 +63,17 @@ public class TimestampHelper
         // The addition of leap seconds can further confuse matters,
         // so perform computations that go beyond an hour in local time,
         // relative to midnight of the given time stamp.
-
-        // TODO Use new API, not Calendar
-        final Calendar cal = Calendar.getInstance();
-        cal.clear();
-        cal.setTime(Date.from(time));
+        final ZonedDateTime local = ZonedDateTime.ofInstant(time, ZoneId.systemDefault());
+        final ZonedDateTime midnight = ZonedDateTime.of(local.getYear(), local.getMonthValue(), local.getDayOfMonth(),
+                                                        0, 0, 0, 0, local.getZone());
 
         // Round the HH:MM within the day
-        long secs = cal.get(Calendar.HOUR_OF_DAY) * SECS_PER_HOUR +
-                    cal.get(Calendar.MINUTE) * SECS_PER_MINUTE;
+        long secs = local.getHour()* SECS_PER_HOUR +
+                    local.getMinute() * SECS_PER_MINUTE;
         final long periods = secs / seconds;
         secs = (periods + 1) * seconds;
 
         // Create time for rounded HH:MM
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        final long midnight = cal.getTimeInMillis() / 1000;
-        return Instant.ofEpochSecond(midnight + secs, 0);
+        return midnight.toInstant().plus(Duration.ofSeconds(secs));
     }
 }
