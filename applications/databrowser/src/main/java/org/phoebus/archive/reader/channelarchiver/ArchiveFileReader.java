@@ -1,0 +1,98 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ ******************************************************************************/
+package org.phoebus.archive.reader.channelarchiver;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import org.phoebus.archive.reader.ArchiveReader;
+import org.phoebus.archive.reader.UnknownChannelException;
+import org.phoebus.archive.reader.ValueIterator;
+
+/** ArchiveReader for Channel Archiver index & data files.
+ *  @author Kay Kasemir
+ *  @author Amanda Carpenter
+ */
+@SuppressWarnings("nls")
+public class ArchiveFileReader implements ArchiveReader
+{
+    public static final Logger logger = Logger.getLogger(ArchiveFileReader.class.getPackageName());
+
+    private final File index;
+    private final ArchiveFileIndexReader indexReader;
+
+    /** Construct an ArchiveFileReader.
+     *  @param index Path to  Channel Archiver index file
+     *  @throws IOException
+     */
+    public ArchiveFileReader(final File index) throws IOException
+    {
+        this.index = index;
+        indexReader = new ArchiveFileIndexReader(index);
+    }
+
+    @Override
+    public String getURL()
+    {
+        return ArchiveFileReaderFactory.PREFIX + index.getAbsolutePath();
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "Data File";
+    }
+
+    @Override
+    public List<String> getNamesByPattern(final String glob_pattern) throws Exception
+    {
+        final String reg_exp = glob_pattern.replace("\\", "\\\\")
+                                           .replace(".", "\\.")
+                                           .replace("*", ".*")
+                                           .replace("?", ".");
+        final Pattern pattern = Pattern.compile(reg_exp, Pattern.CASE_INSENSITIVE);
+        final List<String> result = new ArrayList<>();
+        for (String name : indexReader.getChannelNames())
+            if (pattern.matcher(name).matches())
+                result.add(name);
+        return result;
+    }
+
+    @Override
+    public ValueIterator getRawValues(final String name, final Instant start, final Instant end)
+            throws UnknownChannelException, Exception
+    {
+        final List<DataFileEntry> entries = indexReader.getEntries(name, start, end);
+        return new ArchiveFileSampleReader(start, end, entries);
+    }
+
+    @Override
+    public void cancel()
+    {
+        //no-op
+    }
+
+    @Override
+    public void close()
+    {
+        try
+        {
+            indexReader.close();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot close index", ex);
+        }
+    }
+}
