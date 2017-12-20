@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.channelarchiver;
 
-import static org.phoebus.archive.reader.channelarchiver.ArchiveFileReader.logger;
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
 import java.io.File;
 import java.io.IOException;

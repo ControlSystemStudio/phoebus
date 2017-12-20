@@ -7,8 +7,11 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.channelarchiver;
 
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
+
 import java.io.File;
 import java.time.Instant;
+import java.util.logging.Level;
 
 import org.phoebus.archive.reader.channelarchiver.ArchiveFileSampleReader.DbrType;
 
@@ -131,7 +134,7 @@ class DataHeader
         String nextFilename = nextOffset != 0 ? new String(nameBytes).split("\0", 2)[0] : "*";
         File nextFile = new File(buffer.getFile().getParentFile(), nextFilename);
 
-        System.out.println("Datablock\n" +
+        logger.log(Level.FINE, "Datablock\n" +
                 "Buffer  : '" + file + "' @ 0x" + Long.toHexString(offset) + "\n" +
                 "Time    : " + beginTime + "\n" +
                 "...     : " + endTime);

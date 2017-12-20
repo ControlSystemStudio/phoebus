@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.rdb;
 
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.AveragedValueIterator;
@@ -39,8 +40,6 @@ import org.phoebus.vtype.AlarmSeverity;
 @SuppressWarnings("nls")
 public class RDBArchiveReader implements ArchiveReader
 {
-    public static final Logger logger = Logger.getLogger(RDBArchiveReader.class.getPackageName());
-
     /** Oracle error code for canceled statements */
     private static final String ORACLE_CANCELLATION = "ORA-01013";
 
@@ -91,7 +90,7 @@ public class RDBArchiveReader implements ArchiveReader
         fetch_size         = prefs.getInt(FETCH_SIZE);
     }
 
-    public RDBArchiveReader(final String description, final String url) throws Exception
+    public RDBArchiveReader(final String url) throws Exception
     {
         if (! initialized.getAndSet(true))
             initialize();

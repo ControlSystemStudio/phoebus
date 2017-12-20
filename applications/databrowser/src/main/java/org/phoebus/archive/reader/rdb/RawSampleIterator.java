@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.rdb;
 
-import static org.phoebus.archive.reader.rdb.RDBArchiveReader.logger;
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

@@ -5,30 +5,26 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.archive.reader.channelarchiver;
-
-import java.io.File;
+package org.phoebus.archive.reader.rdb;
 
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 
-/** SPI for "cadf:" archive URLs
+/** SPI for "jdbc:" archive URLs
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ArchiveFileReaderFactory implements ArchiveReaderFactory
+public class RDBArchiveReaderFactory implements ArchiveReaderFactory
 {
-    public final static String PREFIX = "cadf:";
-
     @Override
     public String getPrefix()
     {
-        return PREFIX;
+        return "jdbc:";
     }
 
     @Override
     public ArchiveReader createReader(final String url) throws Exception
     {
-        return new ArchiveFileReader(new File(url.substring(PREFIX.length())));
+        return new RDBArchiveReader(url);
     }
 }

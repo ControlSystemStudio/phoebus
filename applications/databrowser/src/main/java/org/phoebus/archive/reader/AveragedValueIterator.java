@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.archive.reader;
 
-import static org.phoebus.archive.reader.rdb.RDBArchiveReader.logger;
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
 import java.io.IOException;
 import java.time.Duration;

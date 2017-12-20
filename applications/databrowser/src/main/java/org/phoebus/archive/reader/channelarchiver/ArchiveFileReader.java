@@ -7,13 +7,14 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.channelarchiver;
 
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.phoebus.archive.reader.ArchiveReader;
@@ -27,8 +28,6 @@ import org.phoebus.archive.reader.ValueIterator;
 @SuppressWarnings("nls")
 public class ArchiveFileReader implements ArchiveReader
 {
-    public static final Logger logger = Logger.getLogger(ArchiveFileReader.class.getPackageName());
-
     private final File index;
     private final ArchiveFileIndexReader indexReader;
 
