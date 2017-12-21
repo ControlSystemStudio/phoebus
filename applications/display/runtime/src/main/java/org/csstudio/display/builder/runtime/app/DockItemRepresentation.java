@@ -39,8 +39,16 @@ public class DockItemRepresentation extends JFXRepresentation
 
         // Configure for docking, i.e. with DockPane
         DockStage.configureStage(new_stage);
-        new_stage.setWidth(model.propWidth().getValue());
-        new_stage.setHeight(model.propHeight().getValue());
+
+        // Use location and size from model for the window
+        new_stage.setX(model.propX().getValue());
+        new_stage.setY(model.propY().getValue());
+        // Size needs to account for the border and toolbar.
+        // Using fixed numbers, exact size of border and toolbar unknown
+        // at this time in the code
+        new_stage.setWidth(model.propWidth().getValue() + 20);
+        new_stage.setHeight(model.propHeight().getValue() + 70);
+
         new_stage.show();
 
         // New DockPane is now the 'active' one,
