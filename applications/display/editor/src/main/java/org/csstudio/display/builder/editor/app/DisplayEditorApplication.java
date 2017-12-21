@@ -118,6 +118,12 @@ public class DisplayEditorApplication implements AppResourceDescriptor
     static File promptForFilename(final String title)
     {
         final Window window = DockPane.getActiveDockPane().getScene().getWindow();
+        // Prevent error in dialog when it cannot navigate to the 'initial' file
+        if (last_local_file != null)
+        {
+            if (! last_local_file.canRead())
+                last_local_file = null;
+        }
         File file = new SaveAsDialog().promptForFile(window, title, last_local_file, FilenameSupport.file_extensions);
         if (file == null)
             return null;
