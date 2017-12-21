@@ -1,0 +1,10 @@
+<project default="module-databrowser">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-databrowser" depends="compile-app">
+    <jar destfile="${build}/databrowser-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

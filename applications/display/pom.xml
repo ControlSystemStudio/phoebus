@@ -3,7 +3,6 @@
   <artifactId>display</artifactId>
   <packaging>pom</packaging>
   <modules>
-    <module>rtplot</module>
     <module>model</module>
     <module>representation</module>
     <module>representation-javafx</module>

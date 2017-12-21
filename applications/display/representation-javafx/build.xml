@@ -8,7 +8,7 @@
       <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../rtplot/${build}/display-rtplot-${version}.jar"/>
+        <pathelement path="../../rtplot/${build}/rtplot-${version}.jar"/>
         <pathelement path="../model/${build}/display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/display-representation-${version}.jar"/>
       </classpath>
@@ -24,7 +24,7 @@
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../rtplot/${build}/display-rtplot-${version}.jar"/>
+        <pathelement path="../../rtplot/${build}/rtplot-${version}.jar"/>
         <pathelement path="../model/${build}/display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/display-representation-${version}.jar"/>
         <pathelement path="${build}/display-representation-javafx-${version}.jar"/>
@@ -40,7 +40,7 @@
     <java classname="org.csstudio.display.builder.representation.test.RepresentationDemoJavaFX" fork="true">
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../rtplot/${build}/display-rtplot-${version}.jar"/>
+        <pathelement path="../../rtplot/${build}/rtplot-${version}.jar"/>
         <pathelement path="../model/${build}/display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/display-representation-${version}.jar"/>
         <pathelement path="${build}/display-representation-javafx-${version}.jar"/>
