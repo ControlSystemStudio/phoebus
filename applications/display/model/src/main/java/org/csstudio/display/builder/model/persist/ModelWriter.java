@@ -22,6 +22,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.phoebus.framework.persistence.XMLUtil;
 
 /** Write model as XML.
  *

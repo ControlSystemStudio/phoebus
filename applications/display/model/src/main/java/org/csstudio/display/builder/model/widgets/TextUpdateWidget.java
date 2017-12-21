@@ -37,7 +37,6 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.FormatOption;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.RotationStep;
@@ -45,6 +44,7 @@ import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Widget that displays a changing text
@@ -123,12 +123,10 @@ public class TextUpdateWidget extends PVWidget
     // package-level access for TextEntryWidget
     static void readLegacyFormat(final Element xml, final WidgetProperty<FormatOption> format,
                                  final WidgetProperty<Integer> precision,
-                                 final WidgetProperty<String> pv_name)
+                                 final WidgetProperty<String> pv_name) throws Exception
     {
-        Element element = XMLUtil.getChildElement(xml, "format_type");
-        if (element != null)
+        XMLUtil.getChildInteger(xml, "format_type").ifPresent(legacy_format ->
         {
-            final int legacy_format = Integer.parseInt(XMLUtil.getString(element));
             switch (legacy_format)
             {
             case 1: // DECIMAL
@@ -166,10 +164,10 @@ public class TextUpdateWidget extends PVWidget
             default:
                 format.setValue(FormatOption.DEFAULT);
             }
-        }
+        });
 
         // If legacy requested precision-from-PV, mark that in precision
-        element = XMLUtil.getChildElement(xml, "precision_from_pv");
+        final Element element = XMLUtil.getChildElement(xml, "precision_from_pv");
         if (element != null  &&  Boolean.parseBoolean(XMLUtil.getString(element)))
             precision.setValue(-1);
 

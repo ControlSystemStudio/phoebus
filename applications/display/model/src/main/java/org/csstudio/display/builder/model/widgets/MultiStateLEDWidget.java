@@ -28,10 +28,10 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Widget that displays an LED which reflects the enumerated state of a PV

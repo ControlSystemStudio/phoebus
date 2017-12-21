@@ -37,7 +37,6 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.ColorMap;
 import org.csstudio.display.builder.model.properties.ColorMapWidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -48,6 +47,7 @@ import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.PVWidget;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
 

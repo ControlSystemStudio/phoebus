@@ -16,9 +16,9 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Base for {@link LEDWidget} and {@link MultiStateLEDWidget}

@@ -17,7 +17,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.persist.XMLUtil;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Read/write macros as XML
@@ -33,7 +33,6 @@ public class MacroXMLUtil
      */
     public static void writeMacros(final XMLStreamWriter writer, final Macros macros) throws Exception
     {
-        // XXX Write if parent macros are inherited (or forget about that concept, they're always inherited)
         for (String name : macros.getNames())
         {
             writer.writeStartElement(name);
@@ -48,9 +47,7 @@ public class MacroXMLUtil
     public static Macros readMacros(final Element macros_xml)
     {
         final Macros macros = new Macros();
-        for (Element element = XMLUtil.findElement(macros_xml.getFirstChild());
-             element != null;
-             element = XMLUtil.findElement(element.getNextSibling()))
+        for (Element element : XMLUtil.getChildElements(macros_xml))
         {
             final String name = element.getTagName();
             final String value = XMLUtil.getString(element);

@@ -34,10 +34,10 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -83,8 +83,9 @@ public class ComboWidget extends WritablePVWidget
                 //Menu buttons used "actions_from_pv" instead of "items_from_pv"
                 if (frompv_el != null)
                 {
-                    //Legacy Menu Buttons with actions from PV=false should be processed as action buttons, not combo boxes
-                    if ( XMLUtil.getString(frompv_el).equalsIgnoreCase("false") )
+                    // Legacy Menu Buttons with actions from PV=false should be processed as action buttons,
+                    // not combo boxes
+                    if (XMLUtil.getString(frompv_el).equalsIgnoreCase("false"))
                         return false;
 
                     final Document doc = xml.getOwnerDocument();

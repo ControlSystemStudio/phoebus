@@ -27,8 +27,8 @@ import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

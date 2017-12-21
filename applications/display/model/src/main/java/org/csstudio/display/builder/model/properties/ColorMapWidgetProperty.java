@@ -20,7 +20,7 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.persist.XMLUtil;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Widget property with ColorMap as value.

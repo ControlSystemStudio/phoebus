@@ -18,6 +18,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.junit.Test;
+import org.phoebus.framework.persistence.XMLUtil;
 
 /** JUnit test/demo of writing XML
  *  @author Kay Kasemir

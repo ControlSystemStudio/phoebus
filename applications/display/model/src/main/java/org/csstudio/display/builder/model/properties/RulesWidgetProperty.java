@@ -26,11 +26,11 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoString;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoValue;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Widget property that describes rules
@@ -172,10 +172,8 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
     @Override
     public void readFromXML(final ModelReader model_reader, final Element property_xml) throws Exception
     {
-        final Iterable<Element> rule_xml = XMLUtil.getChildElements(property_xml, XMLTags.RULE);
-
         final List<RuleInfo> rules = new ArrayList<>();
-        for (final Element xml : rule_xml)
+        for (final Element xml : XMLUtil.getChildElements(property_xml, XMLTags.RULE))
         {
             String name, prop_id, out_exp_str;
 
@@ -246,10 +244,8 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
         final boolean patch_severity = model_reader.getVersion().getMajor() < 2;
 
         final List<ExpressionInfo<?>> exprs = new ArrayList<>();
-        final Iterable<Element> exprs_xml = XMLUtil.getChildElements(xml, "exp");
         final String tagstr = (prop_as_expr) ? "expression" : "value";
-
-        for (final Element exp_xml : exprs_xml)
+        for (final Element exp_xml : XMLUtil.getChildElements(xml, "exp"))
         {
             String bool_exp = exp_xml.getAttribute("bool_exp");
             if (bool_exp.isEmpty())

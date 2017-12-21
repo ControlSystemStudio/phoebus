@@ -37,8 +37,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.persist.XMLUtil;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
 
@@ -328,13 +328,14 @@ public class KnobWidget extends WritablePVWidget {
 
                 KnobWidget knob = (KnobWidget) widget;
 
-                XMLUtil.getChildColor(xml, "knob_color").ifPresent(value -> knob.propColor().setValue(value));
+                final Element el = XMLUtil.getChildElement(xml, "knob_color");
+                if (el != null)
+                    knob.propColor().readFromXML(reader, el);
                 XMLUtil.getChildDouble(xml, "level_hi").ifPresent(value -> knob.propLevelHigh().setValue(value));
                 XMLUtil.getChildDouble(xml, "level_lo").ifPresent(value -> knob.propLevelLow().setValue(value));
                 XMLUtil.getChildBoolean(xml, "show_hi").ifPresent(show -> knob.propShowHigh().setValue(show));
                 XMLUtil.getChildBoolean(xml, "show_lo").ifPresent(show -> knob.propShowLow().setValue(show));
                 XMLUtil.getChildBoolean(xml, "transparent_background").ifPresent(trans -> knob.propTransparent().setValue(trans));
-
             }
 
             return true;

@@ -26,6 +26,7 @@ import org.csstudio.display.builder.model.WidgetConfigurator.ParseAgainException
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetFactory.WidgetTypeException;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Read model from XML.
