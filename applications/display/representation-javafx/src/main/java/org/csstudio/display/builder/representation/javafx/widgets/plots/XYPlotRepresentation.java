@@ -45,6 +45,7 @@ import org.phoebus.vtype.VNumberArray;
 import org.phoebus.vtype.VType;
 
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
@@ -485,7 +486,9 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
     private void updateConfig()
     {
-        plot.setForeground(JFXUtil.convert(model_widget.propForeground().getValue()));
+        final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
+        plot.setForeground(foreground);
+        plot.getXAxis().setColor(foreground);
         plot.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
         plot.setGridColor(JFXUtil.convert(model_widget.propGridColor().getValue()));
         plot.setTitleFont(JFXUtil.convert(model_widget.propTitleFont().getValue()));
@@ -526,6 +529,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         for (Trace<?> trace : plot.getTraces())
             if (trace.getYAxis() == index)
                 trace.setVisible(visible);
+        final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
+        plot_axis.setColor(foreground);
         plot_axis.setVisible(visible);
     }
 
