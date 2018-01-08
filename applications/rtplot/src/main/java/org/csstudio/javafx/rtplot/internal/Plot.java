@@ -603,13 +603,11 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         // Fetch x_axis transformation and use that to paint all traces,
         // because X Axis tends to change from scrolling
         // while we're painting traces
-        x_axis.setColor(foreground);
         x_axis.setGridColor(grid);
         x_axis.paint(gc, plot_bounds);
         final ScreenTransform<XTYPE> x_transform = x_axis.getScreenTransform();
         for (YAxisImpl<XTYPE> y_axis : y_axes)
         {
-            y_axis.setColor(foreground);
             y_axis.setGridColor(grid);
             y_axis.paint(gc, plot_bounds);
         }
