@@ -30,6 +30,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -69,6 +70,34 @@ public class ActionButtonWidget extends VisibleWidget
         }
     };
 
+    /** Check if XML describes a legacy Menu Button */
+    static boolean isMenuButton(final Element xml)
+    {
+        final String typeId = xml.getAttribute("typeId");
+        return typeId.equals("org.csstudio.opibuilder.widgets.MenuButton");
+    }
+
+    /** Should legacy Menu Button be converted into Combo? */
+    static boolean shouldUseCombo(final Element xml)
+    {
+        // Legacy Menu Button with actions_from_pv set should be handled as combo
+        if (XMLUtil.getChildBoolean(xml, "actions_from_pv").orElse(true))
+            return true;
+
+        // Check for actions
+        final Element el = XMLUtil.getChildElement(xml, "actions");
+        if (el != null  &&
+            XMLUtil.getChildElement(el, XMLTags.ACTION) != null)
+        {
+            // There are actions, so use Action Button
+            return false;
+        }
+        // There are no actions.
+        // Use combo because that will at least show a value for a PV,
+        // while Action Button would do nothing at all.
+        return true;
+    }
+
     /** Custom configurator to read legacy *.opi files */
     private static class ActionButtonConfigurator extends WidgetConfigurator
     {
@@ -81,28 +110,21 @@ public class ActionButtonWidget extends VisibleWidget
         public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element xml)
                 throws Exception
         {
-            final String typeId = xml.getAttribute("typeId");
-            final boolean is_menu = typeId.equals("org.csstudio.opibuilder.widgets.MenuButton");
-
-            if (is_menu)
+            if (isMenuButton(xml))
             {
-                //Legacy Menu Buttons with actions from PV should be processed as combo boxes, not action buttons
-                final Element frompv_el = XMLUtil.getChildElement(xml, "actions_from_pv");
-                if ((frompv_el == null) || (XMLUtil.getString(frompv_el).equals("true")))
+                if (shouldUseCombo(xml))
                     return false;
 
-                //Menu buttons used "label" instead of text
+                // Menu buttons used "label" instead of text
                 final Element label_el = XMLUtil.getChildElement(xml, "label");
 
                 if (label_el != null)
                 {
                     final Document doc = xml.getOwnerDocument();
-                    Element the_text = doc.createElement(propText.getName());
+                    final Element the_text = doc.createElement(propText.getName());
 
                     if (label_el.getFirstChild() != null)
-                    {
                         the_text.appendChild(label_el.getFirstChild().cloneNode(true));
-                    }
                     else
                     {
                         Text the_label = doc.createTextNode("Menu Button Label");

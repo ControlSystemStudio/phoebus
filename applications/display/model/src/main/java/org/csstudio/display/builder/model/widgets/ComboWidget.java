@@ -75,34 +75,23 @@ public class ComboWidget extends WritablePVWidget
         public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element xml)
                 throws Exception
         {
-            final String typeId = xml.getAttribute("typeId");
-            final boolean is_menu = typeId.equals("org.csstudio.opibuilder.widgets.MenuButton");
-            if (is_menu)
+            if (ActionButtonWidget.isMenuButton(xml))
             {
+                if (! ActionButtonWidget.shouldUseCombo(xml))
+                    return false;
+                // Legacy menu button used "actions_from_pv" instead of "items_from_pv"
                 final Element frompv_el = XMLUtil.getChildElement(xml, "actions_from_pv");
-                //Menu buttons used "actions_from_pv" instead of "items_from_pv"
                 if (frompv_el != null)
                 {
-                    // Legacy Menu Buttons with actions from PV=false should be processed as action buttons,
-                    // not combo boxes
-                    if (XMLUtil.getString(frompv_el).equalsIgnoreCase("false"))
-                        return false;
-
                     final Document doc = xml.getOwnerDocument();
-                    Element items_from = doc.createElement(propItemsFromPV.getName());
+                    final Element items_from = doc.createElement(propItemsFromPV.getName());
 
                     if (frompv_el.getFirstChild() != null)
-                    {
                         items_from.appendChild(frompv_el.getFirstChild().cloneNode(true));
-                    }
                     else
-                    {
                         items_from.appendChild(doc.createTextNode("true"));
-                    }
                     xml.appendChild(items_from);
                 }
-
-                //TODO: read in actions as items? or just remove actions, let rep. handle? actions get written?
             }
 
             super.configureFromXML(model_reader, widget, xml);
