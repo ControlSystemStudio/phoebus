@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.preferences;
 
+import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.trends.databrowser3.Activator;
 import org.phoebus.framework.preferences.PreferencesReader;
 
@@ -48,6 +49,12 @@ public class Preferences
 
     public static boolean use_auto_scale;
     public static boolean use_trace_names;
+
+
+    public static TraceType trace_type;
+
+
+    public static int line_width;
 
     static
     {

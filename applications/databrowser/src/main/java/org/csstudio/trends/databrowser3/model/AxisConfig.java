@@ -12,6 +12,8 @@ import static org.csstudio.trends.databrowser3.persistence.XMLPersistence.loadFo
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.xml.stream.XMLStreamWriter;
+
 //import org.csstudio.javafx.rtplot.SWTMediaPool;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
@@ -105,8 +107,6 @@ public class AxisConfig
         this.log_scale = log_scale;
     }
 
-
-
     /** @param model Model to which this item belongs */
     void setModel(final Model model)
     {
@@ -135,10 +135,9 @@ public class AxisConfig
     /** @return Axis title, macros have been resolved */
     public String getResolvedName()
     {
-// TODO
-//        if (model.isPresent())
-//            return model.get().resolveMacros(name);
-//        else
+        if (model.isPresent())
+            return model.get().resolveMacros(name);
+        else
             return name;
     }
 
@@ -276,38 +275,64 @@ public class AxisConfig
     /** Notify model about changes */
     private void fireAxisChangeEvent()
     {
-// TODO        if (model.isPresent())
-//            model.get().fireAxisChangedEvent(Optional.of(this));
+        if (model.isPresent())
+            model.get().fireAxisChangedEvent(Optional.of(this));
     }
 
-//    /** Write XML formatted axis configuration
-//     *  @param writer PrintWriter
-//     */
-//    public void write(final PrintWriter writer)
-//    {
-//        XMLWriter.start(writer, 2, XMLPersistence.TAG_AXIS);
-//        writer.println();
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_VISIBLE, Boolean.toString(visible));
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_NAME, name);
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_USE_AXIS_NAME, Boolean.toString(use_axis_name));
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_USE_TRACE_NAMES, Boolean.toString(use_trace_names));
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_RIGHT, Boolean.toString(is_right));
-//        if (color != null)
-//        {
-//            final RGB rgb = new RGB((int)(color.getRed()*255),
-//                                    (int)(color.getGreen()*255),
-//                                    (int)(color.getBlue()*255));
-//            XMLPersistence.writeColor(writer, 3, XMLPersistence.TAG_COLOR, rgb);
-//        }
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_MIN, min);
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_MAX, max);
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_GRID, Boolean.toString(show_grid));
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_AUTO_SCALE, Boolean.toString(auto_scale));
-//        XMLWriter.XML(writer, 3, XMLPersistence.TAG_LOG_SCALE, Boolean.toString(log_scale));
-//
-//        XMLWriter.end(writer, 2, XMLPersistence.TAG_AXIS);
-//        writer.println();
-//    }
+    /** Write XML formatted axis configuration
+     *  @param writer {@link XMLStreamWriter}
+     *  @throws Exception on error
+     */
+    public void write(final XMLStreamWriter writer) throws Exception
+    {
+        writer.writeStartElement(XMLPersistence.TAG_AXIS);
+
+
+        writer.writeStartElement(XMLPersistence.TAG_VISIBLE);
+        writer.writeCharacters(Boolean.toString(visible));
+        writer.writeEndElement();
+
+
+        writer.writeStartElement(XMLPersistence.TAG_NAME);
+        writer.writeCharacters(name);
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_USE_AXIS_NAME);
+        writer.writeCharacters(Boolean.toString(use_axis_name));
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_USE_TRACE_NAMES);
+        writer.writeCharacters(Boolean.toString(use_trace_names));
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_RIGHT);
+        writer.writeCharacters(Boolean.toString(is_right));
+        writer.writeEndElement();
+        if (color != null)
+            XMLPersistence.writeColor(writer, XMLPersistence.TAG_COLOR, color);
+
+        writer.writeStartElement(XMLPersistence.TAG_MIN);
+        writer.writeCharacters(Double.toString(min));
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_MAX);
+        writer.writeCharacters(Double.toString(max));
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_GRID);
+        writer.writeCharacters(Boolean.toString(show_grid));
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_AUTO_SCALE);
+        writer.writeCharacters(Boolean.toString(auto_scale));
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_LOG_SCALE);
+        writer.writeCharacters(Boolean.toString(log_scale));
+        writer.writeEndElement();
+
+        writer.writeEndElement();
+    }
 
     /** Create Axis info from XML document
      *  @param node

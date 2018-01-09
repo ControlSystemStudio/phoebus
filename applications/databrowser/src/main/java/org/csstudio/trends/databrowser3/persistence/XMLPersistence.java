@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -441,22 +442,26 @@ public class XMLPersistence
 //        XMLWriter.end(writer, 0, TAG_DATABROWSER);
 //        writer.flush();
 //    }
-//
-//    /** Write RGB color to XML document
-//     *  @param writer
-//     *  @param level Indentation level
-//     *  @param tag_name
-//     *  @param color
-//     */
-//    public static void writeColor(final PrintWriter writer, final int level,
-//            final String tag_name, final RGB color)
-//    {
-//        XMLWriter.start(writer, level, tag_name);
-//        writer.println();
-//        XMLWriter.XML(writer, level+1, TAG_RED, color.red);
-//        XMLWriter.XML(writer, level+1, TAG_GREEN, color.green);
-//        XMLWriter.XML(writer, level+1, TAG_BLUE, color.blue);
-//        XMLWriter.end(writer, level, tag_name);
-//        writer.println();
-//    }
+
+    /** Write RGB color to XML document
+     *  @param writer
+     *  @param tag_name
+     *  @param color
+     *  @throws Exception
+     */
+    public static void writeColor(final XMLStreamWriter writer,
+                                  final String tag_name, final Color color) throws Exception
+    {
+        writer.writeStartElement(tag_name);
+        writer.writeStartElement(TAG_RED);
+        writer.writeCharacters(Integer.toString((int) (color.getRed()*255)));
+        writer.writeEndElement();
+        writer.writeStartElement(TAG_GREEN);
+        writer.writeCharacters(Integer.toString((int) (color.getGreen()*255)));
+        writer.writeEndElement();
+        writer.writeStartElement(TAG_BLUE);
+        writer.writeCharacters(Integer.toString((int) (color.getBlue()*255)));
+        writer.writeEndElement();
+        writer.writeEndElement();
+    }
 }
