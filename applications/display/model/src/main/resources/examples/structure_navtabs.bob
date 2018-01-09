@@ -2,7 +2,7 @@
 <display version="2.0.0">
   <name>Navigation Tabs</name>
   <width>600</width>
-  <height>650</height>
+  <height>700</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -45,10 +45,13 @@ Tabs can be switched programmatically by updating the
 In this example, the last tab allows setting a local PV
 to the desired tab index (0, 1, ..).
 A script attached to the navigation widget updates its "active_tab"
-property from that local PV.</text>
+property from that local PV.
+
+Finally, in special cases it is possible to change the tab content
+at runtime from a script, as shown in this button.</text>
     <y>390</y>
     <width>510</width>
-    <height>260</height>
+    <height>330</height>
     <font use_class="true">
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
@@ -123,5 +126,43 @@ widget.setPropertyValue("active_tab", PVUtil.getInt(pvs[0]))
         <pv_name>loc://active_tab(0)</pv_name>
       </script>
     </scripts>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Example that adds a tab
+
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+nt = ScriptUtil.findWidgetByName(widget, "Navigation Tabs")
+tabs = nt.propTabs()
+print("There are %d tabs" % tabs.size())
+
+if tabs.size() > 5:
+    tabs.removeElement()
+    tabs.removeElement()
+else:
+    tab = tabs.addElement()
+    tab.name().setValue("Motor 5")
+    tab.file().setValue("embedded/motor.bob")
+    tab.macros().getValue().add("M", "Mot5")
+
+    tab = tabs.addElement()
+    tab.name().setValue("Motor 6")
+    tab.file().setValue("embedded/motor.bob")
+    tab.macros().getValue().add("M", "Mot6")
+
+
+]]></text>
+        </script>
+        <description>Change Tabs</description>
+      </action>
+    </actions>
+    <x>460</x>
+    <y>670</y>
+    <width>130</width>
+    <tooltip>$(actions)</tooltip>
   </widget>
 </display>
