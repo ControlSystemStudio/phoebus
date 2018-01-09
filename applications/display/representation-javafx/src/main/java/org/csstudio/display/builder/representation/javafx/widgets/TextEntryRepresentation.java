@@ -128,6 +128,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         return text;
     }
 
+    @Override
+    protected boolean isFilteringEditModeClicks()
+    {
+        return true;
+    }
+
     private void setActive(final boolean active)
     {
         if (this.active == active)
