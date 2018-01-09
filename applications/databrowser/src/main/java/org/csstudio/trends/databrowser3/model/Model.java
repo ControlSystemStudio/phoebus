@@ -18,15 +18,15 @@ import org.csstudio.trends.databrowser3.Messages;
 import javafx.scene.paint.Color;
 
 /** Data Browser model
- *  <p>
- *  Maintains a list of {@link ModelItem}s
+ *
+ *  <p>Maintains a list of {@link ModelItem}s
  *
  *  @author Kay Kasemir
  *  @author Takashi Nakamoto changed the model to accept multiple items with
  *                           the same name so that Data Browser can show the
  *                           trend of the same PV in different axes or with
  *                           different waveform indexes.
- *  @author Megan Grodowitz ported from databrowser 2 to databrowser 3
+ *  @author Megan Grodowitz ported from databrowser 2 (SWT) to databrowser 3 (JFX under RCP)
  */
 @SuppressWarnings("nls")
 public class Model

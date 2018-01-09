@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.preferences;
 
+import java.util.logging.Level;
+
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.trends.databrowser3.Activator;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -22,6 +24,8 @@ public class Preferences
      *  For explanation of the settings see preferences.ini
      */
     final public static String
+        LINE_WIDTH = "line_width",
+        TRACE_TYPE = "trace_type",
         USE_AUTO_SCALE = "use_auto_scale",
         USE_TRACE_NAMES = "use_trace_names",
 
@@ -30,9 +34,7 @@ public class Preferences
         SCAN_PERIOD = "scan_period",
         BUFFER_SIZE = "live_buffer_size",
         UPDATE_PERIOD = "update_period",
-        LINE_WIDTH = "line_width",
         OPACITY = "opacity",
-        TRACE_TYPE = "trace_type",
         ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
         PLOT_BINS = "plot_bins",
         URLS = "urls",
@@ -47,18 +49,25 @@ public class Preferences
         ;
 
 
+    public static int line_width;
+    public static TraceType trace_type;
     public static boolean use_auto_scale;
     public static boolean use_trace_names;
-
-
-    public static TraceType trace_type;
-
-
-    public static int line_width;
 
     static
     {
         final PreferencesReader prefs = new PreferencesReader(Activator.class, "databrowser_preferences.properties");
+
+        line_width = prefs.getInt(LINE_WIDTH);
+        final String type_name = prefs.get(TRACE_TYPE);
+        try
+        {
+            trace_type = TraceType.valueOf(type_name);
+        }
+        catch (Exception ex)
+        {
+            Activator.logger.log(Level.WARNING, "Undefined trace type option '" + type_name + "'", ex);
+        }
         use_auto_scale = prefs.getBoolean(USE_AUTO_SCALE);
         use_trace_names = prefs.getBoolean(USE_TRACE_NAMES);
     }
