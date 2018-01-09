@@ -120,6 +120,18 @@
     -fx-background-insets: 0 1 -1 0, 1 2 -1 1, 2 3 -1 2;
 }
 
+.navtab_scroll
+{
+    /* Color of the scroll pane's border */
+    -fx-background-color: transparent;
+}
+
+.navtab_scroll > .viewport
+{
+    /* Color of the scroll pane's content */
+    -fx-background-color: transparent;
+}
+
 .navtab_body
 {   
     -fx-border-color: -fx-outer-border;

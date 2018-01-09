@@ -18,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -93,9 +94,14 @@ public class NavigationTabs extends BorderPane
     /** Constructor */
     public NavigationTabs()
     {
-        // Border pane to auto-resize 'body' and add border + padding via style sheet
-        final BorderPane border_wrapper = new BorderPane(body);
+        // Scroll pane in case body exceeds size of this, the other BorderPane
+        final ScrollPane scroll = new ScrollPane(body);
+        scroll.getStyleClass().add("navtab_scroll");
+
+        // Inner border pane to auto-resize 'body' and add border + padding via style sheet
+        final BorderPane border_wrapper = new BorderPane(scroll);
         border_wrapper.getStyleClass().add("navtab_body");
+
         setCenter(border_wrapper);
     }
 
