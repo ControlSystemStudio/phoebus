@@ -15,12 +15,12 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.List;
 
-import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
+import org.phoebus.framework.macros.Macros;
 
 /** Display Model.
  *
