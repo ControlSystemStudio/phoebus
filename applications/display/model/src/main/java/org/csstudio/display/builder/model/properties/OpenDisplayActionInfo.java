@@ -10,7 +10,7 @@ package org.csstudio.display.builder.model.properties;
 import java.util.Objects;
 
 import org.csstudio.display.builder.model.Messages;
-import org.csstudio.display.builder.model.macros.Macros;
+import org.phoebus.framework.macros.Macros;
 
 /** Information about an action that opens a display
  *

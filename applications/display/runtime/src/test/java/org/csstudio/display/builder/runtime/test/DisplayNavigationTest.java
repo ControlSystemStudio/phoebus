@@ -13,11 +13,11 @@ import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.csstudio.display.builder.runtime.app.DisplayNavigation;
 import org.csstudio.display.builder.runtime.app.DisplayNavigation.Listener;
 import org.junit.Test;
+import org.phoebus.framework.macros.Macros;
 
 /** JUnit test for {@link DisplayNavigation}
  *  @author Kay Kasemir

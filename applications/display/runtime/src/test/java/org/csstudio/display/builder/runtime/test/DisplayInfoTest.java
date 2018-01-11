@@ -14,9 +14,9 @@ import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 
-import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.junit.Test;
+import org.phoebus.framework.macros.Macros;
 
 /** JUnit test of the {@link DisplayInfo}
  *  @author Kay Kasemir

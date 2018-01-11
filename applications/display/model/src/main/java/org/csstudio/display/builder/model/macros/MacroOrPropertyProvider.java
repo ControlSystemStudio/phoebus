@@ -15,6 +15,8 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.framework.macros.Macros;
 
 /** Provides values from macros, falling back to widget properties
  *  @author Kay Kasemir

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.model.properties.ActionInfos;
@@ -26,6 +25,7 @@ import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
 import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 
 import javafx.beans.InvalidationListener;
