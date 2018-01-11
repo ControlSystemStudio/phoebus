@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
-import org.csstudio.display.builder.model.macros.Macros;
+import org.phoebus.framework.macros.Macros;
 
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;

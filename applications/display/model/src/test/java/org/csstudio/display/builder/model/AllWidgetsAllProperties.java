@@ -11,12 +11,12 @@ package org.csstudio.display.builder.model;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 
-import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
+import org.phoebus.framework.macros.Macros;
 
 /** Tool that creates demo file with all widget types and all properties
  *  @author Kay Kasemir

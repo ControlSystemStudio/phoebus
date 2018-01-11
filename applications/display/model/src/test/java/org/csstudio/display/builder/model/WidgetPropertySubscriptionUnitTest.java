@@ -16,9 +16,9 @@ import static org.junit.Assert.assertThat;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.junit.Test;
+import org.phoebus.framework.macros.Macros;
 
 /** JUnit test of widget property subscriptions
  *  @author Kay Kasemir

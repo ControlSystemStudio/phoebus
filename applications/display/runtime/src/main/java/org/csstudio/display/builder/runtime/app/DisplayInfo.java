@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.macros.Macros;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.util.ResourceParser;
 
 /** Information about a display

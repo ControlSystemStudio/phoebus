@@ -17,6 +17,8 @@ import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.junit.Test;
+import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.framework.macros.Macros;
 
 /** JUnit test of macro hierarchy
  *  @author Kay Kasemir
