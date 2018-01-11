@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -342,6 +342,14 @@ public class CommonWidgetProperties
     /** 'border_alarm_sensitive' property */
     public static final WidgetPropertyDescriptor<Boolean> propBorderAlarmSensitive =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "border_alarm_sensitive", Messages.WidgetProperties_BorderAlarmSensitive);
+
+    /** 'border_color' property (for custom border, secondary to border_alarm_sensitive') */
+    public static final WidgetPropertyDescriptor<WidgetColor> propBorderColor =
+            newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "border_color", Messages.WidgetProperties_BorderColor);
+
+    /** 'border_width' property (for custom border, secondary to border_alarm_sensitive') */
+    public static final WidgetPropertyDescriptor<Integer> propBorderWidth =
+            newIntegerPropertyDescriptor(WidgetPropertyCategory.MISC, "border_width", Messages.WidgetProperties_BorderWidth);
 
     /** 'foreground_color' property */
     public static final WidgetPropertyDescriptor<WidgetColor> propForegroundColor =

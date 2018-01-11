@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
@@ -36,6 +37,7 @@ import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.w3c.dom.Element;
 
 /** Widget that displays a static text
  *  @author Kay Kasemir
@@ -47,7 +49,7 @@ public class LabelWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("label", WidgetCategory.GRAPHIC,
             "Label",
-            "/icons/label.png",
+            "platform:/plugin/org.csstudio.display.builder.model/icons/label.png",
             "Label displays one or more lines of text",
             Arrays.asList("org.csstudio.opibuilder.widgets.Label"))
     {
@@ -57,6 +59,35 @@ public class LabelWidget extends VisibleWidget
             return new LabelWidget();
         }
     };
+
+
+    /** Handle legacy widget config */
+    static class CustomConfigurator extends WidgetConfigurator
+    {
+        public CustomConfigurator(final Version xml_version)
+        {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element xml)
+                throws Exception
+        {
+            final boolean is_legacy = xml_version.getMajor() < 2;
+
+            // Default used to be 'middle'
+            if (is_legacy)
+                widget.getProperty(propVerticalAlignment).setValue(VerticalAlignment.MIDDLE);
+
+            if (! super.configureFromXML(model_reader, widget, xml))
+                return false;
+
+            if (is_legacy)
+                BorderSupport.handleLegacyBorder(widget, xml);
+            return true;
+        }
+    }
+
 
     private volatile WidgetProperty<String> text;
     private volatile WidgetProperty<WidgetColor> foreground;
@@ -88,17 +119,14 @@ public class LabelWidget extends VisibleWidget
         properties.add(rotation_step = propRotationStep.createProperty(this, RotationStep.NONE));
         properties.add(auto_size = propAutoSize.createProperty(this, false));
         properties.add(wrap_words = propWrapWords.createProperty(this, true));
+        BorderSupport.addBorderProperties(this, properties);
     }
 
     @Override
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception
     {
-        if (persisted_version.getMajor() < 2)
-        {   // Default used to be 'middle'
-            vertical_alignment.setValue(VerticalAlignment.MIDDLE);
-        }
-        return super.getConfigurator(persisted_version);
+        return new CustomConfigurator(persisted_version);
     }
 
     /** @return 'text' property */
