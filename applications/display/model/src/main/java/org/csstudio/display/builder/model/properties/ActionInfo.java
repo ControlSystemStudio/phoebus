@@ -11,8 +11,8 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Objects;
 
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
-import org.phoebus.framework.macros.Macros;
 
 /** Information about an action
  *

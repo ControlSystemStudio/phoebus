@@ -14,10 +14,10 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
-import org.phoebus.framework.macros.MacroHandler;
 
 import javafx.scene.Group;
 import javafx.scene.image.Image;

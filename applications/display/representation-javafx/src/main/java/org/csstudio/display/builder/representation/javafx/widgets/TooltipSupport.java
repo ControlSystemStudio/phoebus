@@ -15,9 +15,9 @@ import java.util.regex.Pattern;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.macros.MacroHandler;
+import org.csstudio.display.builder.model.macros.MacroValueProvider;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
-import org.phoebus.framework.macros.MacroHandler;
-import org.phoebus.framework.macros.MacroValueProvider;
 
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;

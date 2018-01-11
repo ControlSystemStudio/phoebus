@@ -12,7 +12,7 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.macros.MacroXMLUtil;
-import org.phoebus.framework.macros.Macros;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Preference settings

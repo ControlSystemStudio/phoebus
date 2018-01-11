@@ -28,6 +28,8 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.macros.MacroHandler;
+import org.csstudio.display.builder.model.macros.MacroValueProvider;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
@@ -40,8 +42,6 @@ import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.script.internal.RuntimeScriptHandler;
 import org.csstudio.display.builder.runtime.script.internal.Script;
 import org.csstudio.display.builder.runtime.script.internal.ScriptSupport;
-import org.phoebus.framework.macros.MacroHandler;
-import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.vtype.VType;
 
 /** Common Widget runtime.

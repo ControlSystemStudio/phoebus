@@ -11,9 +11,9 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.util.logging.Level;
 
+import org.csstudio.display.builder.model.macros.MacroHandler;
+import org.csstudio.display.builder.model.macros.MacroValueProvider;
 import org.csstudio.display.builder.model.properties.IntegerWidgetProperty;
-import org.phoebus.framework.macros.MacroHandler;
-import org.phoebus.framework.macros.MacroValueProvider;
 
 /** Base for Property that supports macros.
  *

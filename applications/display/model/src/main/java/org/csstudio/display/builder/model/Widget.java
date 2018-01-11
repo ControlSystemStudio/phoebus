@@ -32,12 +32,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.macros.MacroOrPropertyProvider;
+import org.csstudio.display.builder.model.macros.MacroValueProvider;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
-import org.phoebus.framework.macros.MacroValueProvider;
-import org.phoebus.framework.macros.Macros;
 
 /** Base class for all widgets.
  *

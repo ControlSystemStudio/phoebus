@@ -13,9 +13,9 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.macros.MacroXMLUtil;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.phoebus.framework.macros.Macros;
 import org.w3c.dom.Element;
 
 /** Widget property that describes macros.

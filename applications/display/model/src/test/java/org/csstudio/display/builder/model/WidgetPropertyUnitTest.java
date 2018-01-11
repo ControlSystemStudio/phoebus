@@ -19,13 +19,13 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.List;
 
+import org.csstudio.display.builder.model.macros.MacroHandler;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.junit.Test;
-import org.phoebus.framework.macros.MacroHandler;
-import org.phoebus.framework.macros.Macros;
 
 /** JUnit test of widget properties
  *  @author Kay Kasemir

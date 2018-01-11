@@ -10,7 +10,7 @@ package org.csstudio.display.builder.representation.javafx;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.phoebus.framework.macros.Macros;
+import org.csstudio.display.builder.model.macros.Macros;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyStringWrapper;

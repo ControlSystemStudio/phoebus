@@ -15,13 +15,13 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
-import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;

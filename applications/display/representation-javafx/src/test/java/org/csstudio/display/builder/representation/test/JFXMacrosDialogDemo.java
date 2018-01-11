@@ -7,8 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.test;
 
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.representation.javafx.MacrosDialog;
-import org.phoebus.framework.macros.Macros;
 
 import javafx.application.Application;
 import javafx.stage.Stage;

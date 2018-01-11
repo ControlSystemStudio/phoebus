@@ -12,8 +12,8 @@ import java.util.List;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.properties.BooleanWidgetProperty;
-import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.beans.value.ChangeListener;

@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.macros.Macros;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
@@ -21,7 +22,6 @@ import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.representation.javafx.ActionsDialog;
 import org.csstudio.display.builder.representation.javafx.MacrosDialog;
-import org.phoebus.framework.macros.Macros;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
