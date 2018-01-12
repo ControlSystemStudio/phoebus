@@ -10,6 +10,8 @@ package org.csstudio.trends.databrowser3.model;
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.text.MessageFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,6 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
@@ -48,6 +51,15 @@ public class Model
 
     /** All the items in this model */
     final private List<ModelItem> items = new CopyOnWriteArrayList<ModelItem>();
+
+    /** <code>true</code> if scrolling is enabled */
+    private volatile boolean scroll_enabled = true;
+
+    /** Time span of data in seconds */
+    private volatile Duration time_span = Preferences.time_span;
+
+    /** End time of the data range */
+    private volatile Instant end_time = Instant.now();
 
     /** @param macroValueProvider Macros to use in this model */
     public void setMacros(final MacroValueProvider macroValueProvider)
@@ -177,6 +189,24 @@ public class Model
         fireAxisChangedEvent(Optional.empty());
     }
 
+    /** @return Start time of the data range
+     *  @see #isScrollEnabled()
+     */
+    synchronized public Instant getStartTime()
+    {
+        return getEndTime().minus(time_span);
+    }
+
+    /** @return End time of the data range
+     *  @see #isScrollEnabled()
+     */
+    synchronized public Instant getEndTime()
+    {
+        if (scroll_enabled)
+            end_time = Instant.now();
+        return end_time;
+    }
+
     /** Notify listeners of changed axis configuration
      *  @param axis Axis that changed, empty to add/remove
      */
@@ -204,20 +234,20 @@ public class Model
             listener.changedItemLook(item);
     }
 
-//    /** Notify listeners of changed item configuration
-//     *  @param item Item that changed
-//     */
-//    void fireItemDataConfigChanged(final PVItem item)
-//    {
-//        for (ModelListener listener : listeners)
-//            listener.changedItemDataConfig(item);
-//    }
-//
-//    void fireItemRefreshRequested(final PVItem item)
-//    {
-//        for (ModelListener listener : listeners)
-//            listener.itemRefreshRequested(item);
-//    }
+    /** Notify listeners of changed item configuration
+     *  @param item Item that changed
+     */
+    void fireItemDataConfigChanged(final PVItem item)
+    {
+        for (ModelListener listener : listeners)
+            listener.changedItemDataConfig(item);
+    }
+
+    void fireItemRefreshRequested(final PVItem item)
+    {
+        for (ModelListener listener : listeners)
+            listener.itemRefreshRequested(item);
+    }
 
     public void fireSelectedSamplesChanged()
     {

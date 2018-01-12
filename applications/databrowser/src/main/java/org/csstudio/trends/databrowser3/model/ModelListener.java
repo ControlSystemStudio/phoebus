@@ -60,7 +60,7 @@ public interface ModelListener
     /** @param item Item that changed its data configuration:
      *              Archives, request method.
      */
-// TODO    void changedItemDataConfig(PVItem item);
+    void changedItemDataConfig(PVItem item);
 
     /** @param scroll_enabled <code>true</code> when scrolling was turned 'on' */
     void scrollEnabled(boolean scroll_enabled);
@@ -73,7 +73,7 @@ public interface ModelListener
      *
      * @param item the item to refresh the history data for
      */
-// TODO    void itemRefreshRequested(PVItem item);
+    void itemRefreshRequested(PVItem item);
 
     /** ModelItems have new selected sample */
     void selectedSamplesChanged();

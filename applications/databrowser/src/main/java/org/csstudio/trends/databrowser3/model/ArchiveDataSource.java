@@ -60,7 +60,10 @@ public class ArchiveDataSource implements Serializable
         return url;
     }
 
-    /** @return Key of the archive under the url. */
+    /** @return Key of the archive under the url.
+     *  @deprecated Remove the Key. Only used by Channel Archiver, include in the URL
+     */
+    @Deprecated
     public final int getKey()
     {
         return key;
