@@ -65,11 +65,13 @@ class JavaScriptSupport extends BaseScriptSupport
      */
     public Future<Object> submit(final JavaScript script, final Widget widget, final RuntimePV... pvs)
     {
-        if (markAsScheduled(script))
+        // Skip script that's already in the queue.
+        if (! markAsScheduled(script))
             return null;
 
         return support.submit(() ->
         {
+            // Script may be queued again
             removeScheduleMarker(script);
             try
             {
