@@ -7,13 +7,19 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.framework.macros.Macros;
 
 import javafx.scene.paint.Color;
 
@@ -31,6 +37,9 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class Model
 {
+    /** Macros */
+    private volatile MacroValueProvider macros = new Macros();
+
     /** Listeners to model changes */
     final private List<ModelListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -40,10 +49,27 @@ public class Model
     /** All the items in this model */
     final private List<ModelItem> items = new CopyOnWriteArrayList<ModelItem>();
 
-    public String resolveMacros(String name)
+    /** @param macroValueProvider Macros to use in this model */
+    public void setMacros(final MacroValueProvider macroValueProvider)
     {
-        // TODO Move MacroHandler to shared module
-        return null;
+        this.macros = Objects.requireNonNull(macroValueProvider);
+    }
+
+    /** Resolve macros
+     *  @param text Text that might contain "$(macro)"
+     *  @return Text with all macros replaced by their value
+     */
+    public String resolveMacros(final String text)
+    {
+        try
+        {
+            return MacroHandler.replace(macros, text);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Problem in macro " + text, ex);
+            return text;
+        }
     }
 
     /** @param listener New listener to notify */
