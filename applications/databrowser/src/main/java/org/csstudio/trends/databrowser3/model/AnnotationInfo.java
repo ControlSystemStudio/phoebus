@@ -8,11 +8,13 @@
 package org.csstudio.trends.databrowser3.model;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 
 import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.time.TimestampFormats;
 import org.w3c.dom.Element;
 
 import javafx.geometry.Point2D;
@@ -131,7 +133,7 @@ public class AnnotationInfo
             writer.writeCharacters(Integer.toString(item_index));
             writer.writeEndElement();
             writer.writeStartElement(XMLPersistence.TAG_TIME);
-            writer.writeCharacters(TimeHelper.format(time));
+            writer.writeCharacters(TimestampFormats.MILLI_FORMAT.format(time));
             writer.writeEndElement();
             writer.writeStartElement(XMLPersistence.TAG_VALUE);
             writer.writeCharacters(Double.toString(value));
@@ -164,7 +166,7 @@ public class AnnotationInfo
     {
         final int item_index = XMLUtil.getChildInteger(node, XMLPersistence.TAG_PV).orElse(-1);
         final String timetext = XMLUtil.getChildString(node, XMLPersistence.TAG_TIME).orElse(null);
-        final Instant time = TimeHelper.parse(timetext);
+        final Instant time = ZonedDateTime.parse(timetext, TimestampFormats.MILLI_FORMAT).toInstant();
         final double value = XMLUtil.getChildDouble(node, XMLPersistence.TAG_VALUE).orElse(0.0);
         final String text = XMLUtil.getChildString(node, XMLPersistence.TAG_TEXT).orElse("");
 
@@ -183,6 +185,6 @@ public class AnnotationInfo
     public String toString()
     {
         return (internal ? "Internal Annotation for item " : "Annotation for item ") + item_index + ": '" +
-               text + "' @ " + TimeHelper.format(time) + ", " + value;
+               text + "' @ " +  TimestampFormats.MILLI_FORMAT.format(time) + ", " + value;
     }
 }

@@ -64,7 +64,7 @@ public class Preferences
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Activator.class, "databrowser_preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(Activator.class, "/databrowser_preferences.properties");
 
         // TODO Read archives
         archives = List.of();
