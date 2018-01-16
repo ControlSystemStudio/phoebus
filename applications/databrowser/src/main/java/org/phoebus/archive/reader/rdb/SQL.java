@@ -38,8 +38,13 @@ class SQL
     final public String sample_count_by_id_start_end;
 
 
-    SQL(final Dialect dialect, final String prefix)
+    SQL(final Dialect dialect, String prefix)
     {
+        // MySQL never uses prefix.
+        // This allows setting a prefix for Oracle,
+        // but then still access some MySQL URLs.
+        if (dialect == Dialect.MySQL)
+            prefix = "";
         // 'status' table
         sel_stati = "SELECT status_id, name FROM " + prefix + "status";
 
