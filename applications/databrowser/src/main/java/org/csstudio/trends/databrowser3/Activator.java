@@ -9,12 +9,26 @@ package org.csstudio.trends.databrowser3;
 
 import java.util.logging.Logger;
 
+import org.phoebus.ui.javafx.ImageCache;
+
+import javafx.scene.image.Image;
+
 /** Global Data Browser helper
  *  @author Kay Kasemir
  */
 // TODO Rename
+@SuppressWarnings("nls")
 public class Activator
 {
     /** Logger for all Data Browser code */
     public static final Logger logger = Logger.getLogger(Activator.class.getPackageName());
+
+    /** @param base_name Icon base name (no path, no extension)
+     *  @return Image
+     *  @throws Exception on error
+     */
+    public static Image getIcon(final String base_name)
+    {
+        return ImageCache.getImage(Activator.class, "/icons/" + base_name + ".png");
+    }
 }
