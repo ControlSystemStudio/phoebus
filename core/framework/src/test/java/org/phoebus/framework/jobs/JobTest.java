@@ -14,8 +14,6 @@ import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
-import org.phoebus.framework.jobs.Job;
-import org.phoebus.framework.jobs.JobManager;
 
 /** Demo of the Job API
  *  @author Kay Kasemir
@@ -64,7 +62,7 @@ public class JobTest
     {
         final CountDownLatch did_some_steps = new CountDownLatch(2);
 
-        JobManager.schedule("Demo", monitor ->
+        final Job the_job = JobManager.schedule("Demo", monitor ->
         {
             monitor.beginTask("Wasting time");
             while (true)
@@ -80,6 +78,8 @@ public class JobTest
             }
         });
 
+        assertThat(the_job.getMonitor().isDone(), equalTo(false));
+
         // Wait for job to perform a few steps
         did_some_steps.await();
 
@@ -94,5 +94,7 @@ public class JobTest
                 break;
             System.out.println(jobs);
         }
+
+        assertThat(the_job.getMonitor().isDone(), equalTo(true));
    }
 }

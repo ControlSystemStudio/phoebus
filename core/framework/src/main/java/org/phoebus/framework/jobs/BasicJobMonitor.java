@@ -82,6 +82,12 @@ class BasicJobMonitor implements JobMonitor
     }
 
     @Override
+    public boolean isDone()
+    {
+        return state != State.RUNNING;
+    }
+
+    @Override
     public String toString()
     {
         if (isCancelled())
