@@ -67,6 +67,9 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     private volatile Color background = Color.WHITE,
                            grid = Color.DARK_GRAY;
 
+    /** Opacity (0 .. 100 %) of 'area' */
+    private volatile int opacity = 20;
+
     public static final String FONT_FAMILY = "Liberation Sans";
 
     /** Font to use for, well, title */
@@ -172,6 +175,14 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     public void setBackground(final Color color)
     {
         background = color;
+    }
+
+    /** Opacity (0 .. 100 %) of 'area' */
+    // 'setOpacity', as used in original SWT implementation,
+    // is already used by JFX Node base class
+    public void setAreaOpacity(final int opacity)
+    {
+        this.opacity = opacity;
     }
 
     /** @param color Grid color */
@@ -617,7 +628,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
         for (YAxisImpl<XTYPE> y_axis : y_axes)
             for (Trace<XTYPE> trace : y_axis.getTraces())
-                trace_painter.paint(gc, plot_area.getBounds(), x_transform, y_axis, trace);
+                trace_painter.paint(gc, plot_area.getBounds(), opacity, x_transform, y_axis, trace);
 
         drawPlotMarkers(gc);
         gc.setClip(null);
