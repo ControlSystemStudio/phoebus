@@ -28,7 +28,7 @@ import org.phoebus.framework.jobs.JobRunnable;
  */
 public class SearchJob implements JobRunnable
 {
-    private final ArchiveDataSource archives[];
+    private final List<ArchiveDataSource> archives;
     private final String pattern;
     private final Consumer<List<ChannelInfo>> channel_handler;
     private final BiConsumer<String, Exception> error_handler;
@@ -40,7 +40,7 @@ public class SearchJob implements JobRunnable
      *  @param error_handler Invoked with URL and Exception when the job failed
      *  @return {@link Job}
      */
-    public static Job submit(final ArchiveDataSource archives[], final String pattern,
+    public static Job submit(List<ArchiveDataSource> archives, final String pattern,
                              final Consumer<List<ChannelInfo>> channel_handler,
                              final BiConsumer<String, Exception> error_handler)
     {
@@ -48,7 +48,7 @@ public class SearchJob implements JobRunnable
                                    new SearchJob(archives, pattern, channel_handler, error_handler));
     }
 
-    private SearchJob(final ArchiveDataSource archives[], final String pattern,
+    private SearchJob(final List<ArchiveDataSource> archives, final String pattern,
                       final Consumer<List<ChannelInfo>> channel_handler,
                       final BiConsumer<String, Exception> error_handler)
     {
@@ -62,7 +62,7 @@ public class SearchJob implements JobRunnable
     public void run(final JobMonitor monitor) throws Exception
     {
         final List<ChannelInfo> channels = new ArrayList<>();
-        monitor.beginTask(Messages.Search, archives.length);
+        monitor.beginTask(Messages.Search, archives.size());
         for (ArchiveDataSource archive : archives)
         {
             try

@@ -15,6 +15,6 @@ public class DemoSettings
 {
     // For now you need to update these when trying to execute the demo code.
     // Could read these from environment variables, local file..
-    public static final String url = "jdbc:mysql://localhost/archive";
+    public static final String url = "jdbc:mysql://ics-web.sns.ornl.gov/archive";
     public static final String name_pattern = "*B*";
 }

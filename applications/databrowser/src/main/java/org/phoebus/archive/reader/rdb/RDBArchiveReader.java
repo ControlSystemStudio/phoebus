@@ -216,15 +216,7 @@ public class RDBArchiveReader implements ArchiveReader
     @Override
     public String getDescription()
     {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public String getURL()
-    {
-        // TODO Auto-generated method stub
-        return null;
+        return "RDB Archive Data Source for " + pool.getDialect();
     }
 
     @Override

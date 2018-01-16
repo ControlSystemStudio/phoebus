@@ -16,6 +16,8 @@ import org.junit.Test;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 
+import com.sun.tools.javac.util.List;
+
 @SuppressWarnings("nls")
 public class SearchJobDemo
 {
@@ -24,7 +26,7 @@ public class SearchJobDemo
     {
         final ArchiveDataSource archive = new ArchiveDataSource(DemoSettings.url, 0, "Test");
 
-        final Job job = SearchJob.submit(new ArchiveDataSource[] { archive },
+        final Job job = SearchJob.submit(List.of(archive),
                                          DemoSettings.name_pattern,
                                          channels ->
                                          {

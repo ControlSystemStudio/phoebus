@@ -8,6 +8,7 @@
 package org.csstudio.trends.databrowser3.preferences;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -33,6 +34,7 @@ public class Preferences
         OPACITY = "opacity",
         TIME_SPAN = "time_span",
         TRACE_TYPE = "trace_type",
+        URLS = "urls",
         USE_AUTO_SCALE = "use_auto_scale",
         USE_DEFAULT_ARCHIVES = "use_default_archives",
         USE_TRACE_NAMES = "use_trace_names",
@@ -42,7 +44,6 @@ public class Preferences
         UPDATE_PERIOD = "update_period",
         ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
         PLOT_BINS = "plot_bins",
-        URLS = "urls",
         ARCHIVES = "archives",
         PROMPT_FOR_ERRORS = "prompt_for_errors",
         ARCHIVE_RESCALE = "archive_rescale",
@@ -58,6 +59,8 @@ public class Preferences
     public static int opacity;
     public static Duration time_span;
     public static TraceType trace_type;
+
+    public static List<ArchiveDataSource> archive_urls;
     public static boolean use_auto_scale;
     public static boolean use_default_archives;
     public static boolean use_trace_names;
@@ -84,6 +87,16 @@ public class Preferences
         catch (Exception ex)
         {
             Activator.logger.log(Level.WARNING, "Undefined trace type option '" + type_name + "'", ex);
+        }
+
+        archive_urls = new ArrayList<>();
+        for (String fragment : prefs.get(URLS).split("\\*"))
+        {
+            final String[] strs = fragment.split("\\|");
+            if (strs.length == 1)
+                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[0]));
+            else if (strs.length >= 2)
+                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[1]));
         }
 
         use_auto_scale = prefs.getBoolean(USE_AUTO_SCALE);

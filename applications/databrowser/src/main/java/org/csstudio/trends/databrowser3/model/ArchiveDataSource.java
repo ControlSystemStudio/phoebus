@@ -23,35 +23,19 @@ public class ArchiveDataSource implements Serializable
     /** Key of the archive under the url. */
     final private int key;
 
-    /** Archive name, derived from key. */
+    /** Archive name. */
     final private String name;
 
-    /** Description of the data source. */
-    final private String description;
-
     /** Initialize
      *  @param url Data server URL.
      *  @param key Archive key.
-     *  @param name Archive name, derived from key.
+     *  @param name Archive name.
      */
     public ArchiveDataSource(final String url, final int key, final String name)
-    {
-        this(url, key, name, name);
-    }
-
-    /** Initialize
-     *  @param url Data server URL.
-     *  @param key Archive key.
-     *  @param name Archive name, derived from key.
-     *  @param description Description, up to archive data server
-     */
-    public ArchiveDataSource(final String url, final int key, final String name,
-            final String description)
     {
         this.url = url;
         this.key = key;
         this.name = name;
-        this.description = description;
     }
 
     /** @return URL of the archive data server. */
@@ -75,13 +59,7 @@ public class ArchiveDataSource implements Serializable
         return name;
     }
 
-    /** @return Description */
-    public final String getDescription()
-    {
-        return description;
-    }
-
-    /** Compare ArchiveDataSource by URL and key, ignoring the description
+    /** Compare ArchiveDataSource by URL and key, ignoring the name
      *  {@inheritDoc}
      */
     @Override
