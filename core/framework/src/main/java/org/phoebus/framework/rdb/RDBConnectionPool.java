@@ -28,12 +28,19 @@ import org.phoebus.framework.rdb.RDBInfo.Dialect;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class RDBConnectionPool
 {
     /** Logger for the package */
     public static final Logger logger = Logger.getLogger(RDBConnectionPool.class.getPackageName());
 
-    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(target ->
+    {
+        final Thread thread = new Thread(target, "RDBConnectionPool");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     private final RDBInfo info;
     private final List<Connection> pool = new ArrayList<>();
 
