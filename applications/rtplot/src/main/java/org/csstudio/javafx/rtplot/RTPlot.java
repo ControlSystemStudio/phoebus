@@ -39,6 +39,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -381,9 +382,19 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
      *  @param tool_tip Tool tip text
      *  @return {@link Button}
      */
-    public Button addToolItem(final Image icon, final String tool_tip)
+    public Button addToolItem(final ImageView icon, final String tool_tip)
     {
         return toolbar.addItem(icon, tool_tip);
+    }
+
+    /** Add a custom tool bar button
+     *  @param icon Icon {@link Image}
+     *  @param tool_tip Tool tip text
+     *  @return {@link Button}
+     */
+    public Button addToolItem(final Image icon, final String tool_tip)
+    {
+        return addToolItem(new ImageView(icon), tool_tip);
     }
 
     /** @param show Show the cross-hair cursor? */

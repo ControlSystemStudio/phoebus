@@ -53,7 +53,7 @@ abstract public class ModelItem
      *  As long as the Model can still run without a Display
      *  or Shell, this might be OK.
      */
-    private volatile Color color = null;
+    private volatile Color color = Color.BLUE;
 
     /** How to display the trace */
     private volatile TraceType trace_type = Preferences.trace_type;
