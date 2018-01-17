@@ -19,9 +19,9 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class Activator
 {
-    final public static Logger logger = Logger.getLogger("org.csstudio.javafx.rtplot");
+    final public static Logger logger = Logger.getLogger(Activator.class.getPackageName());
 
-    public static Image getIcon(final String base_name) throws Exception
+    public static Image getIcon(final String base_name)
     {
         return ImageCache.getImage(Activator.class, "/icons/" + base_name + ".png");
     }

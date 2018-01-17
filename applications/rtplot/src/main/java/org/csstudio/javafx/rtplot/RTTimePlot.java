@@ -49,7 +49,7 @@ public class RTTimePlot extends RTPlot<Instant>
     /** Constructor
      *  @param active Active mode where plot reacts to mouse/keyboard?
      */
-    public RTTimePlot(final boolean active) throws Exception
+    public RTTimePlot(final boolean active)
     {
         super(Instant.class, active);
 
