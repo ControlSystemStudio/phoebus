@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface ModelListener
 {
     /** @param save_changes Should UI ask to save changes to the model? */
-    void changedSaveChangesBehavior(final boolean save_changes);
+    default void changedSaveChangesBehavior(final boolean save_changes) {};
 
     /** Title changed */
     void changedTitle();
@@ -27,7 +27,7 @@ public interface ModelListener
     void changedTiming();
 
     /** The archive-rescale configuration has changed */
-    void changedArchiveRescale();
+    default void changedArchiveRescale() {};
 
     /** One of the colors (background, ...) or overall fonts changed */
     void changedColorsOrFonts();
@@ -76,5 +76,5 @@ public interface ModelListener
     void itemRefreshRequested(PVItem item);
 
     /** ModelItems have new selected sample */
-    void selectedSamplesChanged();
+    default void selectedSamplesChanged() {};
 }

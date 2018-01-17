@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -133,7 +134,7 @@ public class Controller
         }
     };
 
-//    abstract class BasePlotListener implements PlotListener
+//    TODO abstract class BasePlotListener implements PlotListener
 //    {
 //        //abstract Shell getShell();
 //        abstract protected void executeOnUIThread(Runnable func);
@@ -251,139 +252,139 @@ public class Controller
 
         createPlotTraces();
 
-//        model_listener = new ModelListener()
-//        {
-//            @Override
-//            public void changedTitle()
-//            {
+        model_listener = new ModelListener()
+        {
+            @Override
+            public void changedTitle()
+            {
 //                plot.getPlot().setTitle(model.getTitle().orElse(null));
-//            }
-//
-//            @Override
-//            public void changedLayout()
-//            {
+            }
+
+            @Override
+            public void changedLayout()
+            {
 //                plot.getPlot().showToolbar(model.isToolbarVisible());
 //                plot.getPlot().showLegend(model.isLegendVisible());
-//            }
-//
-//            @Override
-//            public void changedTiming()
-//            {
+            }
+
+            @Override
+            public void changedTiming()
+            {
 //                plot.getPlot().setScrollStep(model.getScrollStep());
-//                if (update_task != null)
-//                    createUpdateTask();
-//            }
-//
-//            @Override
-//            public void changedColorsOrFonts()
-//            {
+                if (update_task != null)
+                    createUpdateTask();
+            }
+
+            @Override
+            public void changedColorsOrFonts()
+            {
 //                plot.getPlot().setBackground(SWTMediaPool.getJFX(model.getPlotBackground()));
 //                plot.getPlot().setTitleFont(SWTMediaPool.getJFX(model.getTitleFont()));
 //                plot.getPlot().setLegendFont(SWTMediaPool.getJFX(model.getLegendFont()));
-//                setAxisFonts();
-//            }
-//
-//            @Override
-//            public void scrollEnabled(boolean scroll_enabled)
-//            {
-//                plot.getPlot().setScrolling(scroll_enabled);
-//            }
-//
-//            @Override
-//            public void changedTimerange()
-//            {
-//                // Update plot's time range
+                setAxisFonts();
+            }
+
+            @Override
+            public void scrollEnabled(boolean scroll_enabled)
+            {
+                plot.getPlot().setScrolling(scroll_enabled);
+            }
+
+            @Override
+            public void changedTimerange()
+            {
+                // Update plot's time range
 //                if (model.isScrollEnabled())
 //                    plot.setTimeRange(model.getStartTime(), model.getEndTime().plus(model.getScrollStep()));
 //                else
 //                    plot.setTimeRange(model.getStartTime(), model.getEndTime());
-//
-//                // Get matching archived data
-//                scheduleArchiveRetrieval();
-//            }
-//
-//            @Override
-//            public void changeTimeAxisConfig()
-//            {
+
+                // Get matching archived data
+                scheduleArchiveRetrieval();
+            }
+
+            @Override
+            public void changeTimeAxisConfig()
+            {
 //                plot.getPlot().getXAxis().setGridVisible(model.isGridVisible());
-//            }
-//
-//            @Override
-//            public void changedAxis(final Optional<AxisConfig> axis)
-//            {
-//                if (axis.isPresent())
-//                {   // Update specific axis
-//                    final AxisConfig the_axis = axis.get();
-//                    int i = 0;
-//                    for (AxisConfig axis_config : model.getAxes())
-//                    {
-//                        if (axis_config == the_axis)
-//                        {
-//                            plot.updateAxis(i, the_axis);
-//                            return;
-//                        }
-//                        ++i;
-//                    }
-//                }
-//                else  // New or removed axis: Recreate the whole plot
-//                    createPlotTraces();
-//            }
-//
-//            @Override
-//            public void itemAdded(final ModelItem item)
-//            {
-//                // Item may be added in 'middle' of existing traces
-//                createPlotTraces();
-//                // Get archived data for new item (NOP for non-PVs)
-//                getArchivedData(item, model.getStartTime(), model.getEndTime());
-//            }
-//
-//            @Override
-//            public void itemRemoved(final ModelItem item)
-//            {
-//                plot.removeTrace(item);
-//            }
-//
-//            @Override
-//            public void changedItemVisibility(final ModelItem item)
-//            {   // Add/remove from plot, but don't need to get archived data
-//                // When made visible, note that item could be in 'middle'
-//                // of existing traces, so need to re-create all
-//                if (item.isVisible())
-//                    createPlotTraces();
-//                else // To hide, simply remove
-//                    plot.removeTrace(item);
-//            }
-//
-//            @Override
-//            public void changedItemLook(final ModelItem item)
-//            {
-//                plot.updateTrace(item);
-//            }
-//
-//            @Override
-//            public void changedItemDataConfig(final PVItem item)
-//            {
-//                getArchivedData(item, model.getStartTime(), model.getEndTime());
-//            }
-//
-//            @Override
-//            public void itemRefreshRequested(final PVItem item)
-//            {
-//                getArchivedData(item, model.getStartTime(), model.getEndTime());
-//            }
-//
-//            @Override
-//            public void changedAnnotations()
-//            {
-//                if (changing_annotations)
-//                    return;
-//                changing_annotations = true;
+            }
+
+            @Override
+            public void changedAxis(final Optional<AxisConfig> axis)
+            {
+                if (axis.isPresent())
+                {   // Update specific axis
+                    final AxisConfig the_axis = axis.get();
+                    int i = 0;
+                    for (AxisConfig axis_config : model.getAxes())
+                    {
+                        if (axis_config == the_axis)
+                        {
+                            plot.updateAxis(i, the_axis);
+                            return;
+                        }
+                        ++i;
+                    }
+                }
+                else  // New or removed axis: Recreate the whole plot
+                    createPlotTraces();
+            }
+
+            @Override
+            public void itemAdded(final ModelItem item)
+            {
+                // Item may be added in 'middle' of existing traces
+                createPlotTraces();
+                // Get archived data for new item (NOP for non-PVs)
+                getArchivedData(item, model.getStartTime(), model.getEndTime());
+            }
+
+            @Override
+            public void itemRemoved(final ModelItem item)
+            {
+                plot.removeTrace(item);
+            }
+
+            @Override
+            public void changedItemVisibility(final ModelItem item)
+            {   // Add/remove from plot, but don't need to get archived data
+                // When made visible, note that item could be in 'middle'
+                // of existing traces, so need to re-create all
+                if (item.isVisible())
+                    createPlotTraces();
+                else // To hide, simply remove
+                    plot.removeTrace(item);
+            }
+
+            @Override
+            public void changedItemLook(final ModelItem item)
+            {
+                plot.updateTrace(item);
+            }
+
+            @Override
+            public void changedItemDataConfig(final PVItem item)
+            {
+                getArchivedData(item, model.getStartTime(), model.getEndTime());
+            }
+
+            @Override
+            public void itemRefreshRequested(final PVItem item)
+            {
+                getArchivedData(item, model.getStartTime(), model.getEndTime());
+            }
+
+            @Override
+            public void changedAnnotations()
+            {
+                if (changing_annotations)
+                    return;
+                changing_annotations = true;
 //                plot.setAnnotations(model.getAnnotations());
-//                changing_annotations = false;
-//            }
-//        };
-//        model.addListener(model_listener);
+                changing_annotations = false;
+            }
+        };
+        model.addListener(model_listener);
     }
 
     /** @return Data Browser model */
@@ -419,7 +420,7 @@ public class Controller
         // Compiler error "schedule(Runnable, long, TimeUnit) is ambiguous"
         // unless specifically casting getArchivedData to Runnable.
         final Runnable fetch = this::getArchivedData;
-//        archive_fetch_delay_task = update_timer.schedule(fetch, archive_fetch_delay, TimeUnit.MILLISECONDS);
+        archive_fetch_delay_task = update_timer.schedule(fetch, archive_fetch_delay, TimeUnit.MILLISECONDS);
     }
 
     /** Start model items and initiate scrolling/updates
@@ -457,7 +458,7 @@ public class Controller
         // Initial time range setup, schedule archive fetch
 //        if (!model.isScrollEnabled())
 //            plot.getPlot().setScrolling(false);
-//        model_listener.changedTimerange();
+        model_listener.changedTimerange();
     }
 
     /** @return <code>true</code> while running
