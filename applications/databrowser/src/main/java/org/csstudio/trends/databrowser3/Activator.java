@@ -7,8 +7,11 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import org.csstudio.javafx.rtplot.util.NamedThreadFactory;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -23,6 +26,9 @@ public class Activator
 {
     /** Logger for all Data Browser code */
     public static final Logger logger = Logger.getLogger(Activator.class.getPackageName());
+
+    /** Thread pool, mostly for fetching archived data */
+    public static final ExecutorService thread_pool = Executors.newCachedThreadPool(new NamedThreadFactory("DataBrowserJobs"));
 
     /** @param base_name Icon base name (no path, no extension)
      *  @return {@link Image}

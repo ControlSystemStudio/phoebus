@@ -34,6 +34,7 @@ public class Preferences
         BUFFER_SIZE = "live_buffer_size",
         LINE_WIDTH = "line_width",
         OPACITY = "opacity",
+        PLOT_BINS = "plot_bins",
         TIME_SPAN = "time_span",
         TRACE_TYPE = "trace_type",
         UPDATE_PERIOD = "update_period",
@@ -43,7 +44,6 @@ public class Preferences
 
         // Later...
         SCAN_PERIOD = "scan_period",
-        PLOT_BINS = "plot_bins",
         ARCHIVES = "archives",
         PROMPT_FOR_ERRORS = "prompt_for_errors",
         ARCHIVE_RESCALE = "archive_rescale",
@@ -59,6 +59,7 @@ public class Preferences
     public static int buffer_size;
     public static int line_width;
     public static int opacity;
+    public static int plot_bins;
     public static Duration time_span;
     public static TraceType trace_type;
     public static double update_period;
@@ -89,6 +90,7 @@ public class Preferences
         buffer_size = prefs.getInt(BUFFER_SIZE);
         line_width = prefs.getInt(LINE_WIDTH);
         opacity = prefs.getInt(OPACITY);
+        plot_bins = prefs.getInt(PLOT_BINS);
         time_span = Duration.ofSeconds( Math.round( Math.max(prefs.getDouble(TIME_SPAN), 1.0) ) );
 
         final String type_name = prefs.get(TRACE_TYPE);

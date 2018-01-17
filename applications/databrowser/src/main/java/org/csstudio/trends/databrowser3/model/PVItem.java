@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.model;
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -219,9 +220,9 @@ public class PVItem extends ModelItem
     }
 
     /** @return Archive data sources for this item */
-    public ArchiveDataSource[] getArchiveDataSources()
+    public Collection<ArchiveDataSource> getArchiveDataSources()
     {
-        return archives.toArray(new ArchiveDataSource[archives.size()]);
+        return archives;
     }
 
     /** Replace archives with settings from preferences */

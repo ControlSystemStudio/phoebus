@@ -579,7 +579,7 @@ public class Controller
         if (!(item instanceof PVItem))
             return;
         final PVItem pv_item = (PVItem) item;
-        if (pv_item.getArchiveDataSources().length <= 0)
+        if (pv_item.getArchiveDataSources().isEmpty())
             return;
 
         // Determine ongoing jobs for this item
