@@ -49,6 +49,7 @@ public class ArchiveListPane extends BorderPane
 
         final TableColumn<ArchiveDataSource, String> arch_col = new TableColumn<>(Messages.ArchiveName);
         arch_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
+        arch_col.setMinWidth(0);
         archive_list.getColumns().add(arch_col);
 
         final MenuItem item_info = new MenuItem(Messages.ArchiveServerInfo, new ImageView(Activator.getIcon("info_obj")));

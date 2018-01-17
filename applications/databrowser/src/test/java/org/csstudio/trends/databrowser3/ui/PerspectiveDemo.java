@@ -7,26 +7,20 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
-import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
-import org.csstudio.trends.databrowser3.ui.search.SearchView;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-/** Demo of the {@link ModelBasedPlot}
+/** Demo of the {@link Perspective}
  *  @author Kay Kasemir
  */
-public class SearchViewDemo extends Application
+public class PerspectiveDemo extends Application
 {
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final SearchView search_view = new SearchView();
-
-        final BorderPane layout = new BorderPane(search_view);
-        final Scene scene = new Scene(layout, 300, 900);
+        final Perspective perspective = new Perspective();
+        final Scene scene = new Scene(perspective, 1000, 900);
         stage.setScene(scene);
         stage.show();
     }

@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.trends.databrowser3.ui;
+package org.csstudio.trends.databrowser3.ui.plot;
 
 import java.time.Instant;
 import java.util.List;

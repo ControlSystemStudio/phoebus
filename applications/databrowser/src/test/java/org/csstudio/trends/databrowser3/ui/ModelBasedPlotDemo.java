@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 
 import javafx.application.Application;
 import javafx.application.Platform;
