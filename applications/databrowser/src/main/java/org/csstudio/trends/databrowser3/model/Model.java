@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
+import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
@@ -40,6 +41,9 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class Model
 {
+    /** Default colors for newly added item */
+    final private RGBFactory default_colors = new RGBFactory();
+
     /** Macros */
     private volatile MacroValueProvider macros = new Macros();
 
@@ -51,6 +55,15 @@ public class Model
 
     /** All the items in this model */
     final private List<ModelItem> items = new CopyOnWriteArrayList<ModelItem>();
+
+    /** 'run' flag
+     *  @see #start()
+     *  @see #stop()
+     */
+    private volatile boolean is_running = false;
+
+    /** Period in seconds for scrolling or refreshing */
+    private volatile double update_period = Preferences.update_period;
 
     /** <code>true</code> if scrolling is enabled */
     private volatile boolean scroll_enabled = true;
@@ -189,6 +202,167 @@ public class Model
         fireAxisChangedEvent(Optional.empty());
     }
 
+    /** @return {@link ModelItem}s as thread-safe read-only {@link Iterable} */
+    public Iterable<ModelItem> getItems()
+    {
+        return items;
+    }
+
+    /** Called by items to set their initial color
+     *  @return 'Next' suggested item color
+     */
+    private Color getNextItemColor()
+    {
+        boolean already_used;
+        Color color;
+        int attempts = 10;
+        do
+        {
+            -- attempts;
+            color = default_colors.next();
+            already_used = false;
+            for (ModelItem item : items)
+                if (color.equals(item.getPaintColor()))
+                {
+                    already_used = true;
+                    break;
+                }
+        }
+        while (attempts > 0  &&  already_used);
+        return color;
+    }
+
+    /** Add item to the model.
+     *  <p>
+     *  If the item has no color, this will define its color based
+     *  on the model's next available color.
+     *  <p>
+     *  If the model is already 'running', the item will be 'start'ed.
+     *
+     *  @param item {@link ModelItem} to add
+     *  @throws RuntimeException if item is already in model
+     */
+    public void addItem(final ModelItem item) throws Exception
+    {
+        Objects.requireNonNull(item);
+        // A new item with the same PV name are allowed to be added in the
+        // model. This way Data Browser can show the trend of the same PV
+        // in different axes or with different waveform indexes. For example,
+        // one may want to show the first element of epics://aaa:bbb in axis 1
+        // while showing the third element of the same PV in axis 2 to compare
+        // their trends in one chart.
+        // But, if exactly the same instance of the given ModelItem already exists in this
+        // model, it will not be added.
+        if (items.indexOf(item) != -1)
+            throw new RuntimeException("Item " + item.getName() + " already in Model");
+
+        // Assign default color
+        if (item.getPaintColor() == null)
+            item.setColor(getNextItemColor());
+
+        // Force item to be on an axis
+        if (item.getAxis() == null)
+            item.setAxis(axes.get(0));
+        // Check item axis
+        if (! axes.contains(item.getAxis()))
+            throw new Exception("Item " + item.getName() + " added with invalid axis " + item.getAxis());
+
+        // Add to model
+        items.add(item);
+        item.setModel(this);
+        // Notify listeners of new item
+        // This allows controller to add item to plot
+        for (ModelListener listener : listeners)
+            listener.itemAdded(item);
+        // Now start PV, which might update the plot's labels to
+        // reflect units and thus must happen after listeners have been called
+        if (is_running  &&  item instanceof PVItem)
+            ((PVItem)item).start();
+    }
+
+    /** Remove item from the model.
+     *  <p>
+     *  If the model and thus item are 'running',
+     *  the item will be 'stopped'.
+     *  @param item
+     *  @throws RuntimeException if item not in model
+     */
+    public void removeItem(final ModelItem item)
+    {
+        Objects.requireNonNull(item);
+        if (is_running  &&  item instanceof PVItem)
+        {
+            final PVItem pv = (PVItem)item;
+            pv.stop();
+            // Delete its samples:
+            // For one, so save memory.
+            // Also, in case item is later added back in, its old samples
+            // will have gaps because the item was stopped
+            pv.getSamples().clear();
+        }
+        if (! items.remove(item))
+            throw new RuntimeException("Unknown item " + item.getName());
+        // Detach item from model
+        item.setModel(null);
+
+        // Notify listeners of removed item
+        for (ModelListener listener : listeners)
+            listener.itemRemoved(item);
+    }
+
+    /** Move item in model.
+     *  <p>
+     *  @param item
+     *  @param up Up? Otherwise down
+     *  @throws RuntimeException if item null or not in model
+     */
+    public void moveItem(final ModelItem item, final boolean up)
+    {
+        final int pos = items.indexOf(Objects.requireNonNull(item));
+        if (pos < 0)
+            throw new RuntimeException("Unknown item " + item.getName());
+        if (up)
+        {
+            if (pos == 0)
+                return;
+            items.remove(pos);
+            items.add(pos-1, item);
+        }
+        else
+        {    // Move down
+            if (pos >= items.size() -1)
+                return;
+            items.remove(pos);
+            items.add(pos+1, item);
+        }
+
+        // Notify listeners of moved item
+        for (ModelListener listener : listeners)
+        {
+            listener.itemRemoved(item);
+            listener.itemAdded(item);
+        }
+    }
+
+    /** @return Period in seconds for scrolling or refreshing */
+    public double getUpdatePeriod()
+    {
+        return update_period;
+    }
+
+    /** @param period_secs New update period in seconds */
+    public void setUpdatePeriod(final double period_secs)
+    {
+        // Don't allow updates faster than 10Hz (0.1 seconds)
+        if (period_secs < 0.1)
+            update_period = 0.1;
+        else
+            update_period = period_secs;
+        // Notify listeners
+        for (ModelListener listener : listeners)
+            listener.changedTiming();
+    }
+
     /** @return Start time of the data range
      *  @see #isScrollEnabled()
      */
@@ -205,6 +379,64 @@ public class Model
         if (scroll_enabled)
             end_time = Instant.now();
         return end_time;
+    }
+
+    /** Start all items: Connect PVs, initiate scanning, ...
+     *  @throws Exception on error
+     */
+    public void start() throws Exception
+    {
+        if (is_running)
+            throw new RuntimeException("Model already started");
+        for (ModelItem item : items)
+        {
+            if (!(item instanceof PVItem))
+                continue;
+            final PVItem pv_item = (PVItem) item;
+            pv_item.start();
+        }
+        is_running = true;
+    }
+
+    /** Stop all items: Disconnect PVs, ... */
+    public void stop()
+    {
+        if (!is_running)
+            throw new RuntimeException("Model wasn't started");
+        is_running = false;
+        for (ModelItem item : items)
+        {
+            if (!(item instanceof PVItem))
+                continue;
+            final PVItem pv_item = (PVItem) item;
+            pv_item.stop();
+            // TODO ImportArchiveReaderFactory.removeCachedArchives(pv_item.getArchiveDataSources());
+        }
+    }
+
+    /** Test if any ModelItems received new samples,
+     *  if formulas need to be re-computed,
+     *  since the last time this method was called.
+     *  @return <code>true</code> if there were new samples
+     */
+    public boolean updateItemsAndCheckForNewSamples()
+    {
+        boolean anything_new = false;
+        // Update any formulas
+        for (ModelItem item : items)
+        {
+//            if (item instanceof FormulaItem  &&
+//                    ((FormulaItem)item).reevaluate())
+//                anything_new = true;
+        }
+        // Check and reset PV Items
+        for (ModelItem item : items)
+        {
+            if (item instanceof PVItem  &&
+                    item.getSamples().testAndClearNewSamplesFlag())
+                anything_new = true;
+        }
+        return anything_new;
     }
 
     /** Notify listeners of changed axis configuration

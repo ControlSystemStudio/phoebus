@@ -28,21 +28,21 @@ public class Preferences
      *  For explanation of the settings see preferences.ini
      */
     final public static String
+        ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
+        URLS = "urls",
         AUTOMATIC_HISTORY_REFRESH = "automatic_history_refresh",
         BUFFER_SIZE = "live_buffer_size",
         LINE_WIDTH = "line_width",
         OPACITY = "opacity",
         TIME_SPAN = "time_span",
         TRACE_TYPE = "trace_type",
-        URLS = "urls",
+        UPDATE_PERIOD = "update_period",
         USE_AUTO_SCALE = "use_auto_scale",
         USE_DEFAULT_ARCHIVES = "use_default_archives",
         USE_TRACE_NAMES = "use_trace_names",
 
         // Later...
         SCAN_PERIOD = "scan_period",
-        UPDATE_PERIOD = "update_period",
-        ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
         PLOT_BINS = "plot_bins",
         ARCHIVES = "archives",
         PROMPT_FOR_ERRORS = "prompt_for_errors",
@@ -52,6 +52,8 @@ public class Preferences
         SCROLL_STEP = "scroll_step"
         ;
 
+    public static int archive_fetch_delay;
+    public static List<ArchiveDataSource> archive_urls;
     public static List<ArchiveDataSource> archives;
     public static boolean automatic_history_refresh;
     public static int buffer_size;
@@ -59,8 +61,7 @@ public class Preferences
     public static int opacity;
     public static Duration time_span;
     public static TraceType trace_type;
-
-    public static List<ArchiveDataSource> archive_urls;
+    public static double update_period;
     public static boolean use_auto_scale;
     public static boolean use_default_archives;
     public static boolean use_trace_names;
@@ -69,6 +70,17 @@ public class Preferences
     static
     {
         final PreferencesReader prefs = new PreferencesReader(Activator.class, "/databrowser_preferences.properties");
+
+        archive_fetch_delay = prefs.getInt(ARCHIVE_FETCH_DELAY);
+        archive_urls = new ArrayList<>();
+        for (String fragment : prefs.get(URLS).split("\\*"))
+        {
+            final String[] strs = fragment.split("\\|");
+            if (strs.length == 1)
+                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[0]));
+            else if (strs.length >= 2)
+                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[1]));
+        }
 
         // TODO Read archives
         archives = List.of();
@@ -89,16 +101,7 @@ public class Preferences
             Activator.logger.log(Level.WARNING, "Undefined trace type option '" + type_name + "'", ex);
         }
 
-        archive_urls = new ArrayList<>();
-        for (String fragment : prefs.get(URLS).split("\\*"))
-        {
-            final String[] strs = fragment.split("\\|");
-            if (strs.length == 1)
-                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[0]));
-            else if (strs.length >= 2)
-                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[1]));
-        }
-
+        update_period = prefs.getDouble(UPDATE_PERIOD);
         use_auto_scale = prefs.getBoolean(USE_AUTO_SCALE);
         use_default_archives = prefs.getBoolean(USE_DEFAULT_ARCHIVES);
         use_trace_names = prefs.getBoolean(USE_TRACE_NAMES);

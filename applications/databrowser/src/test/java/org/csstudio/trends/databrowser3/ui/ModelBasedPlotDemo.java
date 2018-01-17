@@ -33,6 +33,7 @@ public class ModelBasedPlotDemo extends Application
     {
         // Standalone item, not in Model
         final PVItem item = new PVItem("sim://sine(-10, 10, 0.2)", 0.0);
+        item.setColor(Color.BLUE);
         item.start();
 
         // Plot for just that item

@@ -36,6 +36,12 @@ public class DataBrowserInstance implements AppInstance
 
         dock_item = new DockItemWithInput(this, perspective, null, file_extensions, this::doSave);
         dock_pane.addTab(dock_item);
+
+        dock_item.addCloseCheck(() ->
+        {
+            dispose();
+            return true;
+        });
     }
 
     @Override
@@ -59,5 +65,10 @@ public class DataBrowserInstance implements AppInstance
     void doSave(final JobMonitor monitor) throws Exception
     {
 
+    }
+
+    private void dispose()
+    {
+        perspective.dispose();
     }
 }

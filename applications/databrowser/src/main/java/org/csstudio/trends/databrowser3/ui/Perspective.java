@@ -7,8 +7,12 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
+import java.util.logging.Level;
+
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.phoebus.framework.persistence.Memento;
@@ -20,6 +24,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.paint.Color;
 
 /** Combined layout of all data browser components
  *  @author Kay Kasemir
@@ -33,7 +38,9 @@ public class Perspective extends SplitPane
             SHOW_EXPORT = "show_export";
 
     private final SearchView search = new SearchView();
+    private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
+    private final Controller controller;
     private final TabPane tabs = new TabPane();
     private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), tabs);
     private Tab properties_tab, export_tab;
@@ -56,6 +63,28 @@ public class Perspective extends SplitPane
         setDividerPositions(0.2);
 
         createContextMenu();
+
+        try
+        {
+            // TODO Remove dummy model items
+            model.addAxis().setColor(Color.BLUE);
+            model.addItem(new PVItem("sim://sine(-10, 10, 0.1)", 0.0));
+            model.addItem(new PVItem("DTL_LLRF:IOC1:Load", 0.0));
+        }
+        catch (Exception ex)
+        {
+            Activator.logger.log(Level.SEVERE, "Cannot fake content", ex);
+        }
+
+        controller = new Controller(model, plot);
+        try
+        {
+            controller.start();
+        }
+        catch (Exception ex)
+        {
+            Activator.logger.log(Level.SEVERE, "Cannot start data browser", ex);
+        }
     }
 
     private void createContextMenu()
@@ -125,5 +154,11 @@ public class Perspective extends SplitPane
         memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
         memento.setBoolean(SHOW_PROPERTIES, tabs.getTabs().contains(properties_tab));
         memento.setBoolean(SHOW_EXPORT, tabs.getTabs().contains(export_tab));
+    }
+
+    public void dispose()
+    {
+        plot.dispose();
+        controller.stop();
     }
 }
