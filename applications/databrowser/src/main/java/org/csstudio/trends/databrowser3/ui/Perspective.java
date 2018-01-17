@@ -7,9 +7,11 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
+import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
+import org.phoebus.framework.persistence.Memento;
 
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
@@ -24,6 +26,12 @@ import javafx.scene.control.TabPane;
  */
 public class Perspective extends SplitPane
 {
+    /** Memento tags */
+    private static final String LEFT_RIGHT_SPLIT = "left_right_split",
+            PLOT_TABS_SPLIT = "plot_tabs_split",
+            SHOW_PROPERTIES = "show_properties",
+            SHOW_EXPORT = "show_export";
+
     private final SearchView search = new SearchView();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private final TabPane tabs = new TabPane();
@@ -33,16 +41,16 @@ public class Perspective extends SplitPane
     public Perspective()
     {
         properties_tab = new Tab("Properties");
+        properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimizeTabs());
         export_tab = new Tab("Export");
+        export_tab.setGraphic(Activator.getIcon("export"));
         export_tab.setOnClosed(event -> autoMinimizeTabs());
 
         tabs.getTabs().setAll(properties_tab);
 
         plot_and_tabs.setOrientation(Orientation.VERTICAL);
         plot_and_tabs.setDividerPositions(0.8);
-
-
 
         getItems().setAll(search, plot_and_tabs);
         setDividerPositions(0.2);
@@ -52,19 +60,19 @@ public class Perspective extends SplitPane
 
     private void createContextMenu()
     {
-        final MenuItem show_properties = new MenuItem(Messages.OpenPropertiesView);
+        final MenuItem show_properties = new MenuItem(Messages.OpenPropertiesView, Activator.getIcon("properties"));
         show_properties.setOnAction(event -> showTab(properties_tab));
 
-        final MenuItem show_export = new MenuItem(Messages.OpenExportView);
+        final MenuItem show_export = new MenuItem(Messages.OpenExportView, Activator.getIcon("export"));
         show_export.setOnAction(event -> showTab(export_tab));
 
+        // TODO Open Inspect Samples
+
+        // TODO Open Waveform View
 
         final ContextMenu menu = new ContextMenu(show_properties, show_export);
-
         plot.getPlot().setOnContextMenuRequested(event ->
-        {
-            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        });
+            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY()));
     }
 
     /** If there are no tabs, minimize that part of the split pane */
@@ -97,5 +105,25 @@ public class Perspective extends SplitPane
         // If tab was just added, its header won't show
         // correctly unless we schedule a re-layout
         Platform.runLater(() -> plot_and_tabs.layout() );
+    }
+
+    /** @param memento From where to restore previously saved settings */
+    public void restore(final Memento memento)
+    {
+        search.restore(memento);
+        memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
+        memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
+        memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) tabs.getTabs().remove(properties_tab); });
+        memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) tabs.getTabs().add(export_tab); });
+    }
+
+    /** @param memento Where to store current settings */
+    public void save(final Memento memento)
+    {
+        search.save(memento);
+        memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
+        memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
+        memento.setBoolean(SHOW_PROPERTIES, tabs.getTabs().contains(properties_tab));
+        memento.setBoolean(SHOW_EXPORT, tabs.getTabs().contains(export_tab));
     }
 }

@@ -76,6 +76,7 @@ public class Messages
     public static String CursorTimestampTT;
     public static String CursorValue;
     public static String CursorValueTT;
+    public static String DataBrowser;
     public static String DeleteArchive;
     public static String DeleteAxis;
     public static String DeleteAxisWarningFmt;

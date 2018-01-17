@@ -32,7 +32,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 
 /** Pane with list of archives
@@ -52,7 +51,7 @@ public class ArchiveListPane extends BorderPane
         arch_col.setMinWidth(0);
         archive_list.getColumns().add(arch_col);
 
-        final MenuItem item_info = new MenuItem(Messages.ArchiveServerInfo, new ImageView(Activator.getIcon("info_obj")));
+        final MenuItem item_info = new MenuItem(Messages.ArchiveServerInfo, Activator.getIcon("info_obj"));
         item_info.setOnAction(event -> showArchiveInfo());
         ContextMenu menu = new ContextMenu(item_info);
         archive_list.setContextMenu(menu);

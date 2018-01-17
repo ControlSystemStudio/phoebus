@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 /** Global Data Browser helper
  *  @author Kay Kasemir
@@ -24,11 +25,21 @@ public class Activator
     public static final Logger logger = Logger.getLogger(Activator.class.getPackageName());
 
     /** @param base_name Icon base name (no path, no extension)
-     *  @return Image
+     *  @return {@link Image}
      *  @throws Exception on error
      */
-    public static Image getIcon(final String base_name)
+    public static Image getImage(final String base_name)
     {
         return ImageCache.getImage(Activator.class, "/icons/" + base_name + ".png");
     }
+
+    /** @param base_name Icon base name (no path, no extension)
+     *  @return {@link ImageView}
+     *  @throws Exception on error
+     */
+    public static ImageView getIcon(final String base_name)
+    {
+        return new ImageView(getImage(base_name));
+    }
+
 }

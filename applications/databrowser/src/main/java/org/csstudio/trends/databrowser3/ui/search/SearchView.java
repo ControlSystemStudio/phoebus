@@ -43,7 +43,7 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class SearchView extends SplitPane
 {
-    private static final String SEARCH_PANEL_SPLILT = "search_panel_split";
+    private static final String SEARCH_PANEL_SPLIT = "search_panel_split";
 
     private final ArchiveListPane archive_list = new ArchiveListPane();
     private final TextField pattern = new TextField();
@@ -116,11 +116,13 @@ public class SearchView extends SplitPane
 
     private void searchForChannels()
     {
+        // In case 'replace' is selected, clear the list
+        displayChannelInfos(List.of());
+
         final String pattern_txt = pattern.getText().trim();
         // Nothing to search?
         if (pattern_txt.length() <= 0)
         {
-            displayChannelInfos(List.of());
             // Move focus to search pattern
             pattern.requestFocus();
             return;
@@ -150,15 +152,15 @@ public class SearchView extends SplitPane
                     items.add(channel);
     }
 
-    /** @param memento Where to store current settings */
-    public void save(final Memento memento)
-    {
-        memento.setNumber(SEARCH_PANEL_SPLILT, getDividers().get(0).getPosition());
-    }
-
     /** @param memento From where to restore previously saved settings */
     public void restore(final Memento memento)
     {
-        memento.getNumber(SEARCH_PANEL_SPLILT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
+        memento.getNumber(SEARCH_PANEL_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
+    }
+
+    /** @param memento Where to store current settings */
+    public void save(final Memento memento)
+    {
+        memento.setNumber(SEARCH_PANEL_SPLIT, getDividers().get(0).getPosition());
     }
 }
