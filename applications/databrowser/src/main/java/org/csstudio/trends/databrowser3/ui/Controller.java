@@ -11,6 +11,7 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,6 +21,10 @@ import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.util.NamedThreadFactory;
+import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
+import org.csstudio.trends.databrowser3.archive.ArchiveFetchJobListener;
+import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
+import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
@@ -27,6 +32,8 @@ import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+
+import javafx.application.Platform;
 
 /** Controller that interfaces the {@link Model} with the {@link ModelBasedPlotSWT}:
  *  <ul>
@@ -72,7 +79,7 @@ public class Controller
     /** Currently active archive jobs, used to prevent multiple requests
      *  for the same model item.
      */
-//    final private List<ArchiveFetchJob> archive_fetch_jobs = new ArrayList<ArchiveFetchJob>();
+    final private List<ArchiveFetchJob> archive_fetch_jobs = new ArrayList<>();
 
     /** Is the window (shell) iconized? */
     protected volatile boolean window_is_iconized = false;
@@ -80,65 +87,51 @@ public class Controller
     /** Should we perform redraws, or is the window hidden and we should suppress them? */
     private boolean suppress_redraws = false;
 
-//    abstract class BaseArchiveFetchJobListener implements ArchiveFetchJobListener
-//    {
-//        abstract protected void executeOnUIThread(Consumer<Void> consumer);
-//        abstract protected void displayError(final String message, final Exception error);
-//
-//        @Override
-//        public void fetchCompleted(final ArchiveFetchJob job)
-//        {
-//            synchronized (archive_fetch_jobs)
-//            {
-//                archive_fetch_jobs.remove(job);
-//                // System.out.println("Completed " + job + ", " + archive_fetch_jobs.size() + " left");
-//                if (!archive_fetch_jobs.isEmpty())
-//                    return;
-//            }
-//            // All completed. Do something to the plot?
-//            final ArchiveRescale rescale = model.getArchiveRescale();
-//            if (rescale == ArchiveRescale.STAGGER)
-//                plot.getPlot().stagger(false);
-//            else
-//                doUpdate();
-//        }
-//
-//        private void reportError(final String displayName, final Exception error)
-//        {
-//            final String message = MessageFormat.format(Messages.ArchiveAccessMessageFmt, displayName);
-//            displayError(message, error);
-//        }
-//
-//        @Override
-//        public void archiveFetchFailed(final ArchiveFetchJob job,
-//                final ArchiveDataSource archive, final Exception error)
-//        {
-//            if (Preferences.doPromptForErrors())
-//                reportError(job.getPVItem().getResolvedDisplayName(), error);
-//            else
-//                logger.log(Level.WARNING, "No archived data for " + job.getPVItem().getDisplayName(), error);
-//            // always remove the problematic archive data source, but has to happen in UI thread
-//            executeOnUIThread(e -> job.getPVItem().removeArchiveDataSource(archive));
-//        }
-//
-//        @Override
-//        public void channelNotFound(final ArchiveFetchJob job, final boolean channelFoundAtLeastOnce,
-//                final ArchiveDataSource[] archivesThatFailed)
-//        {
-//            // no need to reuse this source if the channel is not in it, but it has to happen in the UI thread, because
-//            // of the way the listeners of the pv item are implemented
-//            executeOnUIThread(e -> job.getPVItem().removeArchiveDataSource(archivesThatFailed));
-//            // if channel was found at least once, we do not need to report anything
-//            if (!channelFoundAtLeastOnce)
-//            {
-//                if (Preferences.doPromptForErrors())
-//                    reportError(job.getPVItem().getResolvedDisplayName(), null);
-//                else
-//                    logger.log(Level.FINE,
-//                            "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
-//            }
-//        }
-//    };
+    private final ArchiveFetchJobListener archive_fetch_job_listener = new ArchiveFetchJobListener()
+    {
+        @Override
+        public void fetchCompleted(final ArchiveFetchJob job)
+        {
+            synchronized (archive_fetch_jobs)
+            {
+                archive_fetch_jobs.remove(job);
+                // System.out.println("Completed " + job + ", " + archive_fetch_jobs.size() + " left");
+                if (!archive_fetch_jobs.isEmpty())
+                    return;
+            }
+            // All completed. Do something to the plot?
+            final ArchiveRescale rescale = model.getArchiveRescale();
+            if (rescale == ArchiveRescale.STAGGER)
+                plot.getPlot().stagger(false);
+            else
+                doUpdate();
+        }
+
+        @Override
+        public void archiveFetchFailed(final ArchiveFetchJob job,
+                final ArchiveDataSource archive, final Exception error)
+        {
+            logger.log(Level.WARNING, "No archived data for " + job.getPVItem().getDisplayName(), error);
+            // Remove the problematic archive data source, but has to happen in UI thread
+            Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archive));
+        }
+
+        @Override
+        public void channelNotFound(final ArchiveFetchJob job, final boolean channelFoundAtLeastOnce,
+                final List<ArchiveDataSource> archivesThatFailed)
+        {
+            // no need to reuse this source if the channel is not in it, but it has to happen in the UI thread, because
+            // of the way the listeners of the pv item are implemented
+            Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archivesThatFailed));
+
+            // if channel was found at least once, we do not need to report anything
+            if (!channelFoundAtLeastOnce)
+            {
+                logger.log(Level.WARNING,
+                          "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
+            }
+        }
+    };
 
 //    abstract class BasePlotListener implements PlotListener
 //    {
@@ -516,12 +509,12 @@ public class Controller
         if (! isRunning())
             throw new IllegalStateException("Not started");
         // Stop ongoing archive access
-//        synchronized (archive_fetch_jobs)
-//        {
-//            for (ArchiveFetchJob job : archive_fetch_jobs)
-//                job.cancel();
-//            archive_fetch_jobs.clear();
-//        }
+        synchronized (archive_fetch_jobs)
+        {
+            for (ArchiveFetchJob job : archive_fetch_jobs)
+                job.cancel();
+            archive_fetch_jobs.clear();
+        }
         // Stop update task
         model.stop();
         model.removeListener(model_listener);
@@ -582,40 +575,22 @@ public class Controller
         if (pv_item.getArchiveDataSources().isEmpty())
             return;
 
-        // Determine ongoing jobs for this item
-//        final List<ArchiveFetchJob> ongoing = new ArrayList<>();
-//        final ArchiveFetchJob new_job = makeArchiveFetchJob(pv_item, start, end);
-//        synchronized (archive_fetch_jobs)
-//        {
-//            for (Iterator<ArchiveFetchJob> iter = archive_fetch_jobs.iterator();  iter.hasNext();  /**/)
-//            {
-//                final ArchiveFetchJob job = iter.next();
-//                if (job.getPVItem() == pv_item)
-//                {
-//                    ongoing.add(job);
-//                    iter.remove();
-//                }
-//            }
-//            // Track new job
-//            archive_fetch_jobs.add(new_job);
-//        }
-//        Activator.getThreadPool().execute(() ->
-//        {
-//            // In background, stop ongoing jobs
-//            for (ArchiveFetchJob running : ongoing)
-//            {
-//                try
-//                {
-//                    running.cancel();
-//                    running.join(10000, null);
-//                }
-//                catch (Exception ex)
-//                {
-//                    logger.log(Level.WARNING, "Cannot cancel " + running, ex);
-//                }
-//            }
-//            // .. then start new one
-//            new_job.schedule();
-//        });
+        synchronized (archive_fetch_jobs)
+        {
+            // Cancel ongoing jobs for this item
+            for (Iterator<ArchiveFetchJob> iter = archive_fetch_jobs.iterator();  iter.hasNext();  /**/)
+            {
+                final ArchiveFetchJob job = iter.next();
+                if (job.getPVItem() == pv_item)
+                {
+                    job.cancel();
+                    iter.remove();
+                }
+            }
+
+            // Track new job
+            final ArchiveFetchJob new_job = new ArchiveFetchJob(pv_item, start, end, archive_fetch_job_listener);
+            archive_fetch_jobs.add(new_job);
+        }
     }
 }

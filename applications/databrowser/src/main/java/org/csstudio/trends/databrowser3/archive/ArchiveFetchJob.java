@@ -29,6 +29,8 @@ import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.ArchiveReaders;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.util.time.TimestampFormats;
@@ -55,6 +57,8 @@ public class ArchiveFetchJob implements JobRunnable
 
     /** Listener that's notified when (if) we completed OK */
     private final ArchiveFetchJobListener listener;
+
+    private Job job;
 
     /** Thread that performs the actual background work.
      *
@@ -169,7 +173,7 @@ public class ArchiveFetchJob implements JobRunnable
         }
     }
 
-    /** Construct a new job.
+    /** Schedule a new job.
      *
      *  @param item the item for which the data are fetched
      *  @param start the lower time boundary for the historic data
@@ -184,6 +188,7 @@ public class ArchiveFetchJob implements JobRunnable
         this.start = start;
         this.end = end;
         this.listener = listener;
+        this.job = JobManager.schedule(toString(), this);
     }
 
     /** @return PVItem for which this job was created */
@@ -223,6 +228,18 @@ public class ArchiveFetchJob implements JobRunnable
             if (monitor.isCancelled())
                 worker.cancel();
         }
+    }
+
+    /** Programmatically cancel job
+     *
+     *  <p>.. because a new job for the same item
+     *  replaces existing one.
+     *  In addition, job may be cancelled by user
+     *  from job UI.
+     */
+    public void cancel()
+    {
+        job.cancel();
     }
 
     /** @return Debug string */

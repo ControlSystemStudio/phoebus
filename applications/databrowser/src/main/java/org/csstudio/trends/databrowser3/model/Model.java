@@ -74,6 +74,13 @@ public class Model
     /** End time of the data range */
     private volatile Instant end_time = Instant.now();
 
+    /** How should plot rescale when archived data arrives? */
+    private volatile ArchiveRescale archive_rescale = Preferences.archive_rescale;
+
+    public Model()
+    {
+    }
+
     /** @param macroValueProvider Macros to use in this model */
     public void setMacros(final MacroValueProvider macroValueProvider)
     {
@@ -200,6 +207,22 @@ public class Model
         axis.setModel(null);
         axes.remove(axis);
         fireAxisChangedEvent(Optional.empty());
+    }
+
+    /** @return How should plot rescale after archived data arrived? */
+    public ArchiveRescale getArchiveRescale()
+    {
+        return archive_rescale;
+    }
+
+    /** @param archive_rescale How should plot rescale after archived data arrived? */
+    public void setArchiveRescale(final ArchiveRescale archive_rescale)
+    {
+        if (this.archive_rescale == archive_rescale)
+            return;
+        this.archive_rescale = archive_rescale;
+        for (ModelListener listener : listeners)
+            listener.changedArchiveRescale();
     }
 
     /** @return {@link ModelItem}s as thread-safe read-only {@link Iterable} */

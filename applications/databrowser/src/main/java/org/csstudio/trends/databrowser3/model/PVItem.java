@@ -278,7 +278,7 @@ public class PVItem extends ModelItem
     }
 
     /** @param archive Archives to remove as a source from this item. Ignored when not used. */
-    public void removeArchiveDataSource(final ArchiveDataSource archs[])
+    public void removeArchiveDataSource(final List<ArchiveDataSource> archs)
     {
         boolean change = false;
         for (ArchiveDataSource archive : archs)
