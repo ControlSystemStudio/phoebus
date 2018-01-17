@@ -14,16 +14,20 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.archive.SearchJob;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -36,18 +40,26 @@ import javafx.scene.layout.VBox;
 /** Panel for searching the archive
  *  @author Kay Kasemir
  */
-public class SearchView extends VBox
+@SuppressWarnings("nls")
+public class SearchView extends SplitPane
 {
+    private static final String SEARCH_PANEL_SPLILT = "search_panel_split";
+
     private final ArchiveListPane archive_list = new ArchiveListPane();
-
     private final TextField pattern = new TextField();
-
+    private RadioButton result_replace;
     private final TableView<ChannelInfo> channel_table = new TableView<>();
 
+    private Job active_job = null;
+
+    /** Create search view
+     *
+     *  <p>While technically a {@link SplitPane},
+     *  should be treated as generic {@link Node},
+     *  using only the API defined in here
+     */
     public SearchView()
     {
-        super(5.0);
-
         // Archive List
 
         // Pattern: ____________ [Search]
@@ -64,64 +76,89 @@ public class SearchView extends VBox
         //  ( ) Add .. (x) Replace search result
         final RadioButton result_add = new RadioButton(Messages.AppendSearchResults);
         result_add.setTooltip(new Tooltip(Messages.AppendSearchResultsTT));
-        final RadioButton result_replace = new RadioButton(Messages.ReplaceSearchResults);
+        result_replace = new RadioButton(Messages.ReplaceSearchResults);
         result_replace.setTooltip(new Tooltip(Messages.ReplaceSearchResultsTT));
         final ToggleGroup result_handling = new ToggleGroup();
         result_add.setToggleGroup(result_handling);
         result_replace.setToggleGroup(result_handling);
         result_replace.setSelected(true);
+        final HBox replace_row = new HBox(5.0, result_add, result_replace);
+        replace_row.setAlignment(Pos.CENTER_RIGHT);
 
         // PV Name  |  Source
         // ---------+--------
         //          |
         final TableColumn<ChannelInfo, String> pv_col = new TableColumn<>(Messages.PVName);
         pv_col.setCellValueFactory(cell ->  new SimpleStringProperty(cell.getValue().getProcessVariable().getName()));
+        pv_col.setReorderable(false);
         channel_table.getColumns().add(pv_col);
 
         final TableColumn<ChannelInfo, String> archive_col = new TableColumn<>(Messages.ArchiveName);
         archive_col.setCellValueFactory(cell ->  new SimpleStringProperty(cell.getValue().getArchiveDataSource().getName()));
+        archive_col.setReorderable(false);
         channel_table.getColumns().add(archive_col);
+        channel_table.setPlaceholder(new Label(Messages.SearchPatternTT));
 
-        channel_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        channel_table.setPlaceholder(new Label(""));
+        // PV name column uses most of the space, archive column the rest
+        pv_col.prefWidthProperty().bind(channel_table.widthProperty().multiply(0.8));
+        archive_col.prefWidthProperty().bind(channel_table.widthProperty().subtract(pv_col.widthProperty()));
 
-        getChildren().setAll(archive_list,
-                             search_row,
-                             new HBox(5.0, result_add, result_replace),
-                             channel_table);
+        VBox.setVgrow(channel_table, Priority.ALWAYS);
+        final VBox bottom = new VBox(5, search_row,
+                                        replace_row,
+                                        channel_table);
+        setOrientation(Orientation.VERTICAL);
+        getItems().setAll(archive_list, bottom);
+        setDividerPositions(0.2f);
 
         Platform.runLater(() -> pattern.requestFocus());
     }
 
     private void searchForChannels()
     {
-        final List<ArchiveDataSource> archives = archive_list.getSelectedArchives();
-
         final String pattern_txt = pattern.getText().trim();
-        // Warn when searching without pattern
+        // Nothing to search?
         if (pattern_txt.length() <= 0)
         {
-            final Alert dialog = new Alert(Alert.AlertType.WARNING);
-            DialogHelper.positionDialog(dialog, pattern, -200, -200);
-            dialog.setTitle(Messages.Search);
-            dialog.setContentText(Messages.SearchPatternEmptyMessage);
-            dialog.showAndWait();
-            // Aborted, move focus to search pattern
+            displayChannelInfos(List.of());
+            // Move focus to search pattern
             pattern.requestFocus();
             return;
         }
 
-        // TODO Cancel ongoing Search
+        // Cancel ongoing Search
+        if (active_job != null  &&  !active_job.getMonitor().isDone())
+            active_job.cancel();
 
-        SearchJob.submit(archives, pattern_txt,
-                         channels -> Platform.runLater( () -> displayChannelInfos(channels)),
-                         (url, ex) -> ExceptionDetailsErrorDialog.openError(Messages.Error,
-                                                                            MessageFormat.format(Messages.ArchiveServerErrorFmt, url), ex));
+        final List<ArchiveDataSource> archives = archive_list.getSelectedArchives();
+        active_job  = SearchJob.submit(archives, pattern_txt,
+            channels -> Platform.runLater( () -> displayChannelInfos(channels)),
+            (url, ex) -> ExceptionDetailsErrorDialog.openError(Messages.Error,
+                                                               MessageFormat.format(Messages.ArchiveServerErrorFmt, url), ex));
     }
 
     private void displayChannelInfos(final List<ChannelInfo> channels)
     {
-        // TODO Check add-or-replace mode
-        channel_table.getItems().setAll(channels);
+        final ObservableList<ChannelInfo> items = channel_table.getItems();
+        if (result_replace.isSelected())
+            // Replace displayed channels
+            items.setAll(channels);
+        else
+            // Add new channels but avoid duplicates
+            for (ChannelInfo channel : channels)
+                if (! items.contains(channel))
+                    items.add(channel);
+    }
+
+    /** @param memento Where to store current settings */
+    public void save(final Memento memento)
+    {
+        memento.setNumber(SEARCH_PANEL_SPLILT, getDividers().get(0).getPosition());
+    }
+
+    /** @param memento From where to restore previously saved settings */
+    public void restore(final Memento memento)
+    {
+        memento.getNumber(SEARCH_PANEL_SPLILT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
     }
 }

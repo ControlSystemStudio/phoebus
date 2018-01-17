@@ -243,7 +243,6 @@ public class Messages
     public static String SearchArchiveConfirmFmt;
     public static String SearchChannelFmt;
     public static String SearchPattern;
-    public static String SearchPatternEmptyMessage;
     public static String SearchPatternTT;
     public static String SearchTT;
     public static String Search_URL;

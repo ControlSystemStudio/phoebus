@@ -18,7 +18,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class SearchDemo extends Application
+public class SearchViewDemo extends Application
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -26,7 +26,7 @@ public class SearchDemo extends Application
         final SearchView search_view = new SearchView();
 
         final BorderPane layout = new BorderPane(search_view);
-        final Scene scene = new Scene(layout, 800, 600);
+        final Scene scene = new Scene(layout, 300, 900);
         stage.setScene(scene);
         stage.show();
     }

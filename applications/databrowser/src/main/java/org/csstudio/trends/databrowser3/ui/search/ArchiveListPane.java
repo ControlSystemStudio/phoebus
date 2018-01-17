@@ -47,7 +47,7 @@ public class ArchiveListPane extends BorderPane
     {
         archive_list = new TableView<>(FXCollections.observableArrayList(Preferences.archive_urls));
 
-        final TableColumn<ArchiveDataSource, String> arch_col = new TableColumn<>("Archive");
+        final TableColumn<ArchiveDataSource, String> arch_col = new TableColumn<>(Messages.ArchiveName);
         arch_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
         archive_list.getColumns().add(arch_col);
 

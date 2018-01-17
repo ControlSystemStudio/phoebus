@@ -17,6 +17,9 @@ import org.junit.Test;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 
+/** Demo of {@link SearchJob}
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 public class SearchJobDemo
 {
