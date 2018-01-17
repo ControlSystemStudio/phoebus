@@ -34,6 +34,7 @@ public class Perspective extends SplitPane
     /** Memento tags */
     private static final String LEFT_RIGHT_SPLIT = "left_right_split",
             PLOT_TABS_SPLIT = "plot_tabs_split",
+            SHOW_SEARCH = "show_search",
             SHOW_PROPERTIES = "show_properties",
             SHOW_EXPORT = "show_export";
 
@@ -41,25 +42,31 @@ public class Perspective extends SplitPane
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private final Controller controller;
-    private final TabPane tabs = new TabPane();
-    private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), tabs);
-    private Tab properties_tab, export_tab;
+    private final TabPane left_tabs = new TabPane(),
+                          bottom_tabs = new TabPane();
+    private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
+    private Tab search_tab, properties_tab, export_tab;
 
     public Perspective()
     {
+        search_tab = new Tab(Messages.Search, search);
+        search_tab.setGraphic(Activator.getIcon("search"));
+        search_tab.setOnClosed(event -> autoMinimize(left_tabs, this, 0.0));
+        left_tabs.getTabs().setAll(search_tab);
+
         properties_tab = new Tab("Properties");
         properties_tab.setGraphic(Activator.getIcon("properties"));
-        properties_tab.setOnClosed(event -> autoMinimizeTabs());
+        properties_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
         export_tab = new Tab("Export");
         export_tab.setGraphic(Activator.getIcon("export"));
-        export_tab.setOnClosed(event -> autoMinimizeTabs());
+        export_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
 
-        tabs.getTabs().setAll(properties_tab);
+        bottom_tabs.getTabs().setAll(properties_tab);
 
         plot_and_tabs.setOrientation(Orientation.VERTICAL);
         plot_and_tabs.setDividerPositions(0.8);
 
-        getItems().setAll(search, plot_and_tabs);
+        getItems().setAll(left_tabs, plot_and_tabs);
         setDividerPositions(0.2);
 
         createContextMenu();
@@ -89,43 +96,72 @@ public class Perspective extends SplitPane
 
     private void createContextMenu()
     {
+        final MenuItem show_search = new MenuItem(Messages.OpenSearchView, Activator.getIcon("search"));
+        show_search.setOnAction(event -> showSearchTab());
+
         final MenuItem show_properties = new MenuItem(Messages.OpenPropertiesView, Activator.getIcon("properties"));
-        show_properties.setOnAction(event -> showTab(properties_tab));
+        show_properties.setOnAction(event -> showBottomTab(properties_tab));
 
         final MenuItem show_export = new MenuItem(Messages.OpenExportView, Activator.getIcon("export"));
-        show_export.setOnAction(event -> showTab(export_tab));
+        show_export.setOnAction(event -> showBottomTab(export_tab));
 
         // TODO Open Inspect Samples
 
         // TODO Open Waveform View
 
-        final ContextMenu menu = new ContextMenu(show_properties, show_export);
+        final ContextMenu menu = new ContextMenu(show_search, show_properties, show_export);
         plot.getPlot().setOnContextMenuRequested(event ->
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY()));
     }
 
-    /** If there are no tabs, minimize that part of the split pane */
-    private void autoMinimizeTabs()
+    /** If there are no tabs, minimize that part of the split pane
+     *  @param tabs TabPane to check if it's empty
+     *  @param pane SplitPane to adjust if there are no tabs
+     *  @param pos Divider position to use if there are no tabs
+     */
+    private void autoMinimize(final TabPane tabs, final SplitPane pane, final double pos)
     {
         if (tabs.getTabs().isEmpty())
-            plot_and_tabs.setDividerPositions(1.0);
+            pane.setDividerPositions(pos);
+    }
+
+    /** Show search tab:
+     *  Assert it's there, select it,
+     *  make lower split pane large enough
+     */
+    private void showSearchTab()
+    {
+        // If tab not on screen, add it
+        if (! left_tabs.getTabs().contains(search_tab))
+            left_tabs.getTabs().add(search_tab);
+
+        // Select the requested tab
+        left_tabs.getSelectionModel().select(search_tab);
+
+        // Assert that the tabs section is visible
+        if (getDividers().get(0).getPosition() < 0.2)
+            setDividerPositions(0.2);
+
+        // If tab was just added, its header won't show
+        // correctly unless we schedule a re-layout
+        Platform.runLater(() -> layout() );
     }
 
     /** @param tab Tab to show:
      *             Assert it's there, select it,
      *             make lower split pane large enough
      */
-    private void showTab(final Tab tab)
+    private void showBottomTab(final Tab tab)
     {
         // If tab not on screen, add it
-        if (! tabs.getTabs().contains(tab))
+        if (! bottom_tabs.getTabs().contains(tab))
             if (tab == properties_tab)
-                tabs.getTabs().add(0, tab);
+                bottom_tabs.getTabs().add(0, tab);
             else
-                tabs.getTabs().add(tab);
+                bottom_tabs.getTabs().add(tab);
 
         // Select the requested tab
-        tabs.getSelectionModel().select(tab);
+        bottom_tabs.getSelectionModel().select(tab);
 
         // Assert that the tabs section is visible
         if (plot_and_tabs.getDividers().get(0).getPosition() > 0.9)
@@ -142,8 +178,9 @@ public class Perspective extends SplitPane
         search.restore(memento);
         memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
         memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
-        memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) tabs.getTabs().remove(properties_tab); });
-        memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) tabs.getTabs().add(export_tab); });
+        memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
+        memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
+        memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) bottom_tabs.getTabs().add(export_tab); });
     }
 
     /** @param memento Where to store current settings */
@@ -152,8 +189,9 @@ public class Perspective extends SplitPane
         search.save(memento);
         memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
         memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
-        memento.setBoolean(SHOW_PROPERTIES, tabs.getTabs().contains(properties_tab));
-        memento.setBoolean(SHOW_EXPORT, tabs.getTabs().contains(export_tab));
+        memento.setBoolean(SHOW_SEARCH, left_tabs.getTabs().contains(search_tab));
+        memento.setBoolean(SHOW_PROPERTIES, bottom_tabs.getTabs().contains(properties_tab));
+        memento.setBoolean(SHOW_EXPORT, bottom_tabs.getTabs().contains(export_tab));
     }
 
     public void dispose()
