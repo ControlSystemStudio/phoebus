@@ -14,6 +14,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPVName;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRotationStep;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propText;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVWritable;
 
 import java.util.Arrays;
@@ -161,8 +162,9 @@ public class ActionButtonWidget extends VisibleWidget
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<String> text;
     private volatile WidgetProperty<WidgetFont> font;
-    private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetColor> foreground;
+    private volatile WidgetProperty<WidgetColor> background;
+    private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<RotationStep> rotation_step;
     private volatile WidgetProperty<Boolean> pv_writable;
 
@@ -190,6 +192,7 @@ public class ActionButtonWidget extends VisibleWidget
         properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(transparent = propTransparent.createProperty(this, false));
         properties.add(rotation_step = propRotationStep.createProperty(this, RotationStep.NONE));
         properties.add(enabled = propEnabled.createProperty(this, true));
         properties.add(pv_writable = runtimePropPVWritable.createProperty(this, true));
@@ -220,16 +223,22 @@ public class ActionButtonWidget extends VisibleWidget
         return font;
     }
 
+    /** @return 'foreground_color' property */
+    public WidgetProperty<WidgetColor> propForegroundColor()
+    {
+        return foreground;
+    }
+
     /** @return 'background_color' property */
     public WidgetProperty<WidgetColor> propBackgroundColor()
     {
         return background;
     }
 
-    /** @return 'foreground_color' property */
-    public WidgetProperty<WidgetColor> propForegroundColor()
+    /** @return 'transparent' property */
+    public WidgetProperty<Boolean> propTransparent()
     {
-        return foreground;
+        return transparent;
     }
 
     /** @return 'rotation_step' property */

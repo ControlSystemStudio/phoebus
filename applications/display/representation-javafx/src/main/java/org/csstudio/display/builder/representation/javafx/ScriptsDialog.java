@@ -106,7 +106,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         public ScriptItem()
         {
-            this(Messages.ScriptsDialog_DefaultScriptFile, null, true, new ArrayList<>());
+            this(Messages.ScriptsDialog_DefaultScriptFile, ScriptInfo.EXAMPLE_PYTHON, true, new ArrayList<>());
         }
 
         public ScriptItem(final String file, final String text, final boolean check_connections, final List<PVItem> pvs)

@@ -2,7 +2,7 @@
 <display version="2.0.0">
   <name>Main</name>
   <width>1010</width>
-  <height>500</height>
+  <height>560</height>
   <grid_color>
     <color red="127" green="127" blue="127">
     </color>
@@ -14,8 +14,8 @@
 
 Note you can also navigate between buttons via &lt;Tab&gt; key or &lt;Shift&gt; and cursor keys,
 then press &lt;SPACE&gt; to activate button.</text>
-    <x>8</x>
-    <y>411</y>
+    <x>9</x>
+    <y>480</y>
     <width>640</width>
     <height>80</height>
     <font use_class="true">
@@ -485,6 +485,21 @@ then press &lt;SPACE&gt; to activate button.</text>
     </actions>
     <x>470</x>
     <y>400</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_34</name>
+    <actions>
+      <action type="open_display">
+        <file>controls_thumbwheel.bob</file>
+        <target>replace</target>
+        <description>Thumb Wheel</description>
+      </action>
+    </actions>
+    <x>470</x>
+    <y>440</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>
