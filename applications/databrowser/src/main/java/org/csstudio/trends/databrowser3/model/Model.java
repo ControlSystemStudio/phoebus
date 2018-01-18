@@ -12,6 +12,9 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -68,14 +71,32 @@ public class Model
     /** <code>true</code> if scrolling is enabled */
     private volatile boolean scroll_enabled = true;
 
+    /** Scroll steps */
+    private volatile Duration scroll_step = Preferences.scroll_step;
+
+    /** Start and end time specification */
+    private volatile String start_spec, end_spec;
+
     /** Time span of data in seconds */
     private volatile Duration time_span = Preferences.time_span;
 
     /** End time of the data range */
     private volatile Instant end_time = Instant.now();
 
-    /** How should plot rescale when archived data arrives? */
+    /** Show time axis grid line? */
+    private volatile boolean show_grid = false;
+
+    /** Annotations */
+    private volatile List<AnnotationInfo> annotations = List.of();
+
+    /** How should plot re-scale when archived data arrives? */
     private volatile ArchiveRescale archive_rescale = Preferences.archive_rescale;
+
+    /** Show toolbar*/
+    private boolean show_toolbar = true;
+
+    /** Show legend*/
+    private boolean show_legend = false;
 
     public Model()
     {
@@ -386,6 +407,134 @@ public class Model
             listener.changedTiming();
     }
 
+
+    /** The model supports two types of start/end time handling:
+     *  <ol>
+     *  <li>Scroll mode: While <code>isScrollEnabled=true</code>,
+     *      the end time is supposed to be 'now' and the start time is
+     *      supposed to be <code>getTimespan()</code> seconds before 'now'.
+     *  <li>Fixed start/end time: While <code>isScrollEnabled=false</code>,
+     *      the methods <code>getStartTime()</code>, <code>getEndTime</code>
+     *      return a fixed start/end time.
+     *  </ol>
+     *  @return <code>true</code> if scrolling is enabled */
+    public boolean isScrollEnabled()
+    {
+        return scroll_enabled;
+    }
+
+    /** @param scroll_enabled Should scrolling be enabled? */
+    public void enableScrolling(final boolean scroll_enabled)
+    {
+        if (this.scroll_enabled == scroll_enabled)
+            return;
+        this.scroll_enabled = scroll_enabled;
+        // Notify listeners
+        for (ModelListener listener : listeners)
+            listener.scrollEnabled(scroll_enabled);
+    }
+
+    /** @return Scroll step size */
+    public Duration getScrollStep()
+    {
+        return scroll_step;
+    }
+
+    /** @param step New scroll step
+     *  @throws Exception if step size cannot be used
+     */
+    public void setScrollStep(final Duration step) throws Exception
+    {
+        if (step.compareTo(Duration.ofSeconds(1)) < 0)
+            throw new Exception("Scroll steps are too small: " + step);
+        if (step.compareTo(scroll_step) == 0)
+            return;
+        scroll_step = step;
+        for (ModelListener listener : listeners)
+            listener.changedTiming();
+    }
+
+    /** @return time span of data
+     *  @see #isScrollEnabled()
+     */
+    synchronized public Duration getTimespan()
+    {
+        return time_span;
+    }
+
+    /** Set absolute time range
+     *  @param start Start time
+     *  @param end End time
+     */
+    public void setTimerange(final Instant start, final Instant end)
+    {
+        final Duration new_span = Duration.between(Objects.requireNonNull(start), Objects.requireNonNull(end));
+        if (new_span.isZero() || new_span.isNegative())
+            return;
+
+        synchronized (this)
+        {
+            // Format that's understood by StartEndTimeParser
+            final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS");
+            this.start_spec = formatter.format(ZonedDateTime.ofInstant(start, ZoneId.systemDefault()));
+            this.end_spec = formatter.format(ZonedDateTime.ofInstant(end, ZoneId.systemDefault()));
+            this.end_time = end;
+            time_span = new_span;
+            scroll_enabled = false;
+        }
+        // Notify listeners
+        for (ModelListener listener : listeners)
+            listener.changedTimerange();
+    }
+
+    /** Set absolute or relative time range.
+     *  <p>In 'scroll' mode, this determines the displayed time range.
+     *  Otherwise, it determines the absolute start and end times
+     *  @param start_spec Start and ..
+     *  @param end_spec   end time specification of the range to display
+     *  @throws Exception on error in the time specifications
+     */
+    public void setTimerange(final String start_spec, final String end_spec) throws Exception
+    {
+        // TODO Handle relative/absolute time ranges based on spec
+//        final StartEndTimeParser times =
+//                new StartEndTimeParser(Objects.requireNonNull(start_spec), Objects.requireNonNull(end_spec));
+//        final Instant start_time = times.getStart().toInstant();
+//        final Instant end_time = times.getEnd().toInstant();
+//        final Duration new_span = Duration.between(start_time, end_time);
+//        if (! (new_span.isZero() || new_span.isNegative()))
+//        {
+//            synchronized (this)
+//            {
+//                if (this.start_spec.equals(start_spec)  &&
+//                    this.end_spec.equals(end_spec))
+//                    return;
+//                this.start_spec = start_spec;
+//                this.end_spec = end_spec;
+//                this.end_time = end_time;
+//                time_span = new_span;
+//                scroll_enabled = times.isEndNow();
+//            }
+//            // Notify listeners
+//            for (ModelListener listener : listeners)
+//                listener.changedTimerange();
+//        }
+    }
+
+    /** @return Start time specification of the data range */
+    synchronized public String getStartSpec()
+    {
+        return start_spec;
+    }
+
+    /** @return End time specification of the data range */
+    synchronized public String getEndSpec()
+    {
+        return end_spec;
+    }
+
+
+
     /** @return Start time of the data range
      *  @see #isScrollEnabled()
      */
@@ -402,6 +551,68 @@ public class Model
         if (scroll_enabled)
             end_time = Instant.now();
         return end_time;
+    }
+
+    /** @return <code>true</code> if toolbar is visible*/
+    public boolean isToolbarVisible()
+    {
+        return show_toolbar;
+    }
+
+    /** @param visible Should toolbar be visible? */
+    public void setToolbarVisible(final boolean toolbar)
+    {
+        if (show_toolbar == toolbar)
+            return;
+        show_toolbar = toolbar;
+        for (ModelListener listener : listeners)
+            listener.changedLayout();
+    }
+
+    /** @return <code>true</code> if toolbar is visible*/
+    public boolean isLegendVisible()
+    {
+        return show_legend;
+    }
+
+    /** @param visible Should toolbar be visible? */
+    public void setLegendVisible(final boolean legend)
+    {
+        if (show_legend == legend)
+            return;
+        show_legend = legend;
+        for (ModelListener listener : listeners)
+            listener.changedLayout();
+    }
+
+    /** @return <code>true</code> if grid lines are drawn */
+    public boolean isGridVisible()
+    {
+        return show_grid;
+    }
+
+    /** @param visible Should grid be visible? */
+    public void setGridVisible(final boolean grid)
+    {
+        if (show_grid == grid)
+            return;
+        show_grid = grid;
+        for (ModelListener listener : listeners)
+            listener.changeTimeAxisConfig();
+    }
+
+    /** @param annotations Annotations to keep in model */
+    public void setAnnotations(final List<AnnotationInfo> annotations)
+    {
+        this.annotations = Objects.requireNonNull(annotations);
+        for (ModelListener listener : listeners)
+            listener.changedAnnotations();
+    }
+
+    /** @return Annotation infos of model */
+    public List<AnnotationInfo> getAnnotations()
+    {
+        return annotations;
     }
 
     /** Start all items: Connect PVs, initiate scanning, ...

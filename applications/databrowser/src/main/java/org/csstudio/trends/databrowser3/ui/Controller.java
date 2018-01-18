@@ -9,7 +9,9 @@ package org.csstudio.trends.databrowser3.ui;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.util.NamedThreadFactory;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJobListener;
+import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -33,6 +36,8 @@ import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
+import org.phoebus.core.types.ProcessVariable;
 
 import javafx.application.Platform;
 
@@ -82,7 +87,10 @@ public class Controller
      */
     final private List<ArchiveFetchJob> archive_fetch_jobs = new ArrayList<>();
 
-    /** Is the window (shell) iconized? */
+    /** Is the window iconized? */
+    // TODO Track the window state?
+    // Problem is that the window can change if our 'tab' is moved between windows.
+    // Check in each update if the window is visible, then skip it?
     protected volatile boolean window_is_iconized = false;
 
     /** Should we perform redraws, or is the window hidden and we should suppress them? */
@@ -134,110 +142,204 @@ public class Controller
         }
     };
 
-//    TODO abstract class BasePlotListener implements PlotListener
-//    {
-//        //abstract Shell getShell();
-//        abstract protected void executeOnUIThread(Runnable func);
-//
-//        @Override
-//        public void timeAxisChanged(final boolean scrolling, final Instant start, final Instant end)
-//        {
-//            model.enableScrolling(scrolling);
-//            final String start_spec, end_spec;
-//            if (scrolling)
-//            {   // Scrolling, adjust relative time, i.e. width of plot
-//                final Duration duration = Duration.between(start, end);
+    private final PlotListener plot_listener = new PlotListener()
+    {
+        @Override
+        public void timeAxisChanged(final boolean scrolling, final Instant start, final Instant end)
+        {
+            model.enableScrolling(scrolling);
+            final String start_spec, end_spec;
+            if (scrolling)
+            {   // Scrolling, adjust relative time, i.e. width of plot
+                final Duration duration = Duration.between(start, end);
 //                start_spec = "-" + PeriodFormat.formatSeconds(TimeDuration.toSecondsDouble(duration));
 //                end_spec = RelativeTime.NOW;
-//            }
-//            else
-//            {
-//                final ZoneId zone = ZoneId.systemDefault();
+            }
+            else
+            {
+                final ZoneId zone = ZoneId.systemDefault();
 //                Calendar cal = GregorianCalendar.from(ZonedDateTime.ofInstant(start, zone));
 //                start_spec = AbsoluteTimeParser.format(cal);
 //                cal = GregorianCalendar.from(ZonedDateTime.ofInstant(end, zone));
 //                end_spec = AbsoluteTimeParser.format(cal);
-//            }
-//            // Update model's time range
-//            try
-//            {
+            }
+            // Update model's time range
+            try
+            {
 //                model.setTimerange(start_spec, end_spec);
-//            }
-//            catch (Exception ex)
-//            {
+            }
+            catch (Exception ex)
+            {
 //                logger.log(Level.WARNING, "Cannot adjust time range to " + start_spec + " .. " + end_spec, ex);
-//            }
-//            // Controller's ModelListener will fetch new archived data
-//        }
-//
-//        @Override
-//        public void valueAxisChanged(final int index, final double lower, final double upper)
-//        {   // Update axis range in model, using UI thread because event may come from 'stagger' background thread
-//            final AxisConfig axis = model.getAxis(index);
-//            if (axis != null) {
-//                //only update if the model has that axis. If the trend is empty, the model may not have that axis
-//                this.executeOnUIThread(() -> axis.setRange(lower, upper));
-//            }
-//        }
-//
-//        @Override
-//        public void changedAnnotations(final List<AnnotationInfo> annotations)
-//        {
-//            if (changing_annotations)
-//                return;
-//            changing_annotations = true;
-//            model.setAnnotations(annotations);
-//            changing_annotations = false;
-//        }
-//
-//        @Override
-//        public void selectedSamplesChanged()
-//        {
-//            model.fireSelectedSamplesChanged();
-//        }
-//
-//        @Override
-//        public void changedToolbar(final boolean visible)
-//        {
-//            model.setToolbarVisible(visible);
-//        }
-//
-//        @Override
-//        public void changedLegend(final boolean visible)
-//        {
-//            model.setLegendVisible(visible);
-//        }
-//
-//        @Override
-//        public void autoScaleChanged(int index, boolean autoScale)
-//        {
-//            final AxisConfig axis = model.getAxis(index);
-//            if (axis != null)
-//                this.executeOnUIThread(() -> axis.setAutoScale(autoScale));
-//        }
-//
-//        @Override
-//        public void gridChanged(int index, boolean show_grid)
-//        {
-//            if (index == -1)
-//                this.executeOnUIThread(() -> model.setGridVisible(show_grid));
-//            else
+            }
+            // Controller's ModelListener will fetch new archived data
+        }
+
+        @Override
+        public void valueAxisChanged(final int index, final double lower, final double upper)
+        {   // Update axis range in model, using UI thread because event may come from 'stagger' background thread
+            final AxisConfig axis = model.getAxis(index);
+            if (axis != null) {
+                //only update if the model has that axis. If the trend is empty, the model may not have that axis
+                Platform.runLater(() -> axis.setRange(lower, upper));
+            }
+        }
+
+        @Override
+        public void changedAnnotations(final List<AnnotationInfo> annotations)
+        {
+            if (changing_annotations)
+                return;
+            changing_annotations = true;
+            model.setAnnotations(annotations);
+            changing_annotations = false;
+        }
+
+        @Override
+        public void selectedSamplesChanged()
+        {
+            model.fireSelectedSamplesChanged();
+        }
+
+        @Override
+        public void changedToolbar(final boolean visible)
+        {
+            model.setToolbarVisible(visible);
+        }
+
+        @Override
+        public void changedLegend(final boolean visible)
+        {
+            model.setLegendVisible(visible);
+        }
+
+        @Override
+        public void autoScaleChanged(int index, boolean autoScale)
+        {
+            final AxisConfig axis = model.getAxis(index);
+            if (axis != null)
+                Platform.runLater(() -> axis.setAutoScale(autoScale));
+        }
+
+        @Override
+        public void gridChanged(int index, boolean show_grid)
+        {
+            if (index == -1)
+                Platform.runLater(() -> model.setGridVisible(show_grid));
+            else
+            {
+                final AxisConfig axis = model.getAxis(index);
+                if (axis != null)
+                    Platform.runLater(() -> axis.setGridVisible(show_grid));
+            }
+        }
+
+        @Override
+        public void logarithmicChanged(int index, boolean use_log)
+        {
+            final AxisConfig axis = model.getAxis(index);
+            if (axis != null)
+                Platform.runLater(() -> axis.setLogScale(use_log));
+        }
+
+        @Override
+        public void timeConfigRequested()
+        {
+// TODO StartEndTimeAction.run(shell, model, plot.getPlot().getUndoableActionManager());
+        }
+
+        @Override
+        public void droppedNames(String[] name)
+        {
+            // TODO
+//            // Offer potential PV name in dialog so user can edit/cancel
+//            final AddPVAction add = new AddPVAction(plot.getPlot().getUndoableActionManager(), shell, model, false);
+//            for (String one_name : names)
+//                if (! add.runWithSuggestedName(one_name, null))
+//                    break;
+        }
+
+        @Override
+        public void droppedPVNames(ProcessVariable[] name,
+                ArchiveDataSource[] archive)
+        {
+            // TODO Auto-generated method stub
+//            if (names == null)
 //            {
-//                final AxisConfig axis = model.getAxis(index);
-//                if (axis != null)
-//                    this.executeOnUIThread(() -> axis.setGridVisible(show_grid));
+//                if (archives == null)
+//                    return;
+//                // Received only archives. Add to all PVs
+//                for (ArchiveDataSource archive : archives)
+//                    for (ModelItem item : model.getItems())
+//                    {
+//                        if (! (item instanceof PVItem))
+//                            continue;
+//                        final PVItem pv = (PVItem) item;
+//                        if (pv.hasArchiveDataSource(archive))
+//                            continue;
+//                        new AddArchiveCommand(plot.getPlot().getUndoableActionManager(), pv, archive);
+//                    }
 //            }
-//        }
+//            else
+//            {   // Received PV names, maybe with archive
+//                final UndoableActionManager operations_manager = plot.getPlot().getUndoableActionManager();
 //
-//        @Override
-//        public void logarithmicChanged(int index, boolean use_log)
-//        {
-//            System.out.println("Log: " + use_log);
-//            final AxisConfig axis = model.getAxis(index);
-//            if (axis != null)
-//                this.executeOnUIThread(() -> axis.setLogScale(use_log));
-//        }
-//    };
+//                // When multiple PVs are dropped, assert that there is at least one axis.
+//                // Otherwise dialog cannot offer adding all PVs onto the same axis.
+//                if (names.length > 1  &&  model.getAxisCount() <= 0)
+//                    new AddAxisCommand(operations_manager, model);
+//
+//                final AddPVDialog dlg = new AddPVDialog(shell, names.length, model, false);
+//                for (int i=0; i<names.length; ++i)
+//                    dlg.setName(i, names[i].getName());
+//                if (dlg.open() != Window.OK)
+//                    return;
+//
+//                for (int i=0; i<names.length; ++i)
+//                {
+//                    final AxisConfig axis;
+//                    if (dlg.getAxisIndex(i) >= 0)
+//                        axis = model.getAxis(dlg.getAxisIndex(i));
+//                    else // Use first empty axis, or create a new one
+//                        axis = model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(operations_manager, model).getAxis());
+//
+//                    // Add new PV
+//                    final ArchiveDataSource archive =
+//                            (archives == null || i>=archives.length) ? null : archives[i];
+//                    AddModelItemCommand.forPV(shell, operations_manager,
+//                            model, dlg.getName(i), dlg.getScanPeriod(i),
+//                            axis, archive);
+//                }
+//                return;
+//            }
+
+        }
+
+        @Override
+        public void droppedFilename(String file_name)
+        {
+            // TODO Auto-generated method stub
+//            final FileImportDialog dlg = new FileImportDialog(shell, file_name);
+//            if (dlg.open() != Window.OK)
+//                return;
+//
+//            final UndoableActionManager operations_manager = plot.getPlot().getUndoableActionManager();
+//
+//            // Add to first empty axis, or create new axis
+//            final AxisConfig axis = model.getEmptyAxis().orElseGet(
+//                    () -> new AddAxisCommand(operations_manager, model).getAxis() );
+//
+//            // Add archivedatasource for "import:..." and let that load the file
+//            final String type = dlg.getType();
+//            file_name = dlg.getFileName();
+//            final String url = ImportArchiveReaderFactory.createURL(type, file_name);
+//            final ArchiveDataSource imported = new ArchiveDataSource(url, 1, type);
+//            // Add PV Item with data to model
+//            AddModelItemCommand.forPV(shell, operations_manager,
+//                    model, dlg.getItemName(), Preferences.getScanPeriod(),
+//                    axis, imported);
+        }
+    };
 
     /** Initialize
      *  @param shell Shell
@@ -384,7 +486,9 @@ public class Controller
                 changing_annotations = false;
             }
         };
+
         model.addListener(model_listener);
+        plot.addListener(plot_listener);
     }
 
     /** @return Data Browser model */
