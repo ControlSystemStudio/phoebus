@@ -31,14 +31,15 @@ import javafx.scene.paint.Color;
 /** Combined layout of all data browser components
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class Perspective extends SplitPane
 {
     /** Memento tags */
     private static final String LEFT_RIGHT_SPLIT = "left_right_split",
-            PLOT_TABS_SPLIT = "plot_tabs_split",
-            SHOW_SEARCH = "show_search",
-            SHOW_PROPERTIES = "show_properties",
-            SHOW_EXPORT = "show_export";
+                                PLOT_TABS_SPLIT = "plot_tabs_split",
+                                SHOW_SEARCH = "show_search",
+                                SHOW_PROPERTIES = "show_properties",
+                                SHOW_EXPORT = "show_export";
 
     private final SearchView search = new SearchView();
     private final Model model = new Model();
@@ -55,6 +56,7 @@ public class Perspective extends SplitPane
         {
             // TODO Remove dummy model items
             model.addAxis().setColor(Color.BLUE);
+            model.addAxis();
             model.addItem(new PVItem("sim://sine(-10, 10, 0.1)", 0.0));
             final PVItem item = new PVItem("DTL_LLRF:IOC1:Load", 0.0);
             item.setDisplayName("CPU Load");

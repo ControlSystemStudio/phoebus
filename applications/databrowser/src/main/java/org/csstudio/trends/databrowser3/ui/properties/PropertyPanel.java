@@ -27,6 +27,8 @@ import org.phoebus.util.time.TimestampFormats;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -41,6 +43,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.ChoiceBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 
@@ -57,6 +60,9 @@ public class PropertyPanel extends TabPane
 
     private final UndoableActionManager undo;
     private final TableView<ModelItem> trace_table = new TableView<>();
+    private final ObservableList<String> axis_names = FXCollections.observableArrayList();
+
+
 
     /** Prompt for the 'raw request' warning? */
     private static boolean prompt_for_raw_data_request = true;
@@ -317,6 +323,23 @@ public class PropertyPanel extends TabPane
         col.setEditable(true);
         trace_table.getColumns().add(col);
 
+        // Axis Column ----------
+        col = new TableColumn<>(Messages.Axis);
+        col.setCellValueFactory(cell ->
+        {
+            final ModelItem item = cell.getValue();
+            return new SimpleStringProperty(item.getAxis().getName());
+
+        });
+        col.setCellFactory(ChoiceBoxTableCell.forTableColumn(axis_names));
+        col.setOnEditCommit(event ->
+        {
+            final int index = axis_names.indexOf(event.getNewValue());
+            final AxisConfig axis = event.getRowValue().getModel().get().getAxis(index);
+            new ChangeAxisCommand(undo, event.getRowValue(), axis);
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
 
 
 
@@ -333,6 +356,10 @@ public class PropertyPanel extends TabPane
         // TODO Replace initial population from model with model listener
         for (ModelItem item : model.getItems())
             trace_table.getItems().add(item);
+
+        axis_names.clear();
+        for (AxisConfig ai : model.getAxes())
+            axis_names.add(ai.getName());
 
         model.addListener(model_listener);
     }
