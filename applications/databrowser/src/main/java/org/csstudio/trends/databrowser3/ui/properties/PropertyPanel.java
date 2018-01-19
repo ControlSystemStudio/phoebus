@@ -43,7 +43,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.ChoiceBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 
@@ -331,7 +330,7 @@ public class PropertyPanel extends TabPane
             return new SimpleStringProperty(item.getAxis().getName());
 
         });
-        col.setCellFactory(ChoiceBoxTableCell.forTableColumn(axis_names));
+        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(axis_names));
         col.setOnEditCommit(event ->
         {
             final int index = axis_names.indexOf(event.getNewValue());
