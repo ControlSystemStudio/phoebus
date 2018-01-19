@@ -314,7 +314,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     {
         foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         if (model_widget.propTransparent().getValue())
-            background = "-fx-background: transparent; -fx-color: transparent";
+            background = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1);";
         else
             background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
     }
