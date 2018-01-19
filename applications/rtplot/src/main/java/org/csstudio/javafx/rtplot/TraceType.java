@@ -49,19 +49,6 @@ public enum TraceType
         this.name = name;
     }
 
-    /** Obtain trace type from ordinal
-     *  @param ordinal
-     *  @return TraceType
-     *  @throws RuntimeException on invalid ordinal
-     */
-    public static TraceType fromOrdinal(final int ordinal)
-    {
-        for (TraceType type : TraceType.values())
-            if (type.ordinal() == ordinal)
-                return type;
-        throw new RuntimeException("Invalid Trace Type " + ordinal); //$NON-NLS-1$
-    }
-
     /** @return Array of display names for all trace types */
     public static String[] getDisplayNames()
     {

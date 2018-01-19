@@ -11,6 +11,8 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import java.time.Instant;
 import java.util.Optional;
 
+import org.csstudio.javafx.rtplot.PointType;
+import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -19,6 +21,7 @@ import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.model.PlotSample;
+import org.csstudio.trends.databrowser3.model.RequestType;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -34,6 +37,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -57,18 +61,19 @@ public class PropertyPanel extends TabPane
     private static Tab value_axes = new Tab(Messages.ValueAxes);
     private static Tab misc = new Tab(Messages.Miscellaneous);
 
+    private static final ObservableList<String> trace_types = FXCollections.observableArrayList(TraceType.getDisplayNames());
+    private static final ObservableList<String> point_types = FXCollections.observableArrayList(PointType.getDisplayNames());
+    private static final ObservableList<String> request_types = FXCollections.observableArrayList(Messages.Request_raw, Messages.Request_optimized);
+
     private final UndoableActionManager undo;
     private final TableView<ModelItem> trace_table = new TableView<>();
     private final ObservableList<String> axis_names = FXCollections.observableArrayList();
 
-
-
-    /** Prompt for the 'raw request' warning? */
-    private static boolean prompt_for_raw_data_request = true;
-
     /** Prompt for the 'hide trace' warning'? */
     private static boolean prompt_for_not_visible = true;
 
+    /** Prompt for the 'raw request' warning? */
+    private static boolean prompt_for_raw_data_request = true;
 
     /** Update table if the model changes, for example via Un-do */
     private final ModelListener model_listener = new ModelListener()
@@ -113,6 +118,71 @@ public class PropertyPanel extends TabPane
     };
 
 
+
+    /** Table cell that shows ColorPicker */
+    private static class ColorTableCell extends TableCell<ModelItem, ColorPicker>
+    {
+        // The color_column's CellValueFactory already turned the ColorSection into ColorPicker
+        // Show place the picker in the cell
+        @Override
+        protected void updateItem(final ColorPicker picker, final boolean empty)
+        {
+            super.updateItem(picker, empty);
+            setGraphic(empty ? null : picker);
+        }
+    }
+
+
+    /** Table cell that shows RequestType */
+    private class RequestTypeCell extends TableCell<ModelItem, RequestType>
+    {
+        final CheckBox button = new CheckBox();
+
+        @Override
+        protected void updateItem(final RequestType value, final boolean empty)
+        {
+            super.updateItem(value, empty);
+            if (empty  ||  getItem() == null)
+                setGraphic(null);
+            else
+            {
+                if (value == RequestType.OPTIMIZED)
+                {
+                    button.setSelected(true);
+                    button.setText(Messages.Request_optimized);
+                }
+                else
+                {
+                    button.setSelected(false);
+                    button.setText(Messages.Request_raw);
+                }
+                button.setOnAction(event ->
+                {
+                    final RequestType type = button.isSelected() ? RequestType.OPTIMIZED : RequestType.RAW;
+
+                    if (type == RequestType.RAW  &&  prompt_for_raw_data_request)
+                    {
+                        final Alert dialog = new Alert(AlertType.CONFIRMATION,
+                                Messages.RequestTypeWarningDetail,
+                                ButtonType.YES, ButtonType.NO);
+                        dialog.setHeaderText(Messages.RequestTypeWarning);
+                        dialog.setResizable(true);
+                        dialog.getDialogPane().setMinSize(600, 350);
+                        DialogHelper.positionDialog(dialog, trace_table, -600, -350);
+                        if (dialog.showAndWait().orElse(ButtonType.NO) != ButtonType.YES)
+                        {   // Restore checkbox
+                            button.setSelected(true);
+                            return;
+                        }
+                        prompt_for_raw_data_request = false;
+                    }
+                    new ChangeRequestTypeCommand(undo, (PVItem)getTableRow().getItem(), type);
+                });
+                setGraphic(button);
+            }
+        }
+    }
+
     public PropertyPanel(final Model model, final UndoableActionManager undo)
     {
         super(traces, time_axis, value_axes, misc);
@@ -137,19 +207,6 @@ public class PropertyPanel extends TabPane
         top_bottom.setOrientation(Orientation.VERTICAL);
         top_bottom.setDividerPositions(0.6);
         traces.setContent(top_bottom);
-    }
-
-    /** Table cell that shows ColorPicker */
-    private static class ColorTableCell extends TableCell<ModelItem, ColorPicker>
-    {
-        // The color_column's CellValueFactory already turned the ColorSection into ColorPicker
-        // Show place the picker in the cell
-        @Override
-        protected void updateItem(final ColorPicker picker, final boolean empty)
-        {
-            super.updateItem(picker, empty);
-            setGraphic(empty ? null : picker);
-        }
     }
 
     private void createTracesTabItemPanel()
@@ -223,9 +280,7 @@ public class PropertyPanel extends TabPane
             final ColorPicker picker = new ColorPicker(color);
             picker.setStyle("-fx-color-label-visible: false ;");
             picker.setOnAction(event ->
-            {
-                new ChangeColorCommand(undo, cell.getValue(), picker.getValue());
-            });
+                new ChangeColorCommand(undo, cell.getValue(), picker.getValue()));
             return new SimpleObjectProperty<>(picker);
         });
         color_col.setCellFactory(cell -> new ColorTableCell());
@@ -325,11 +380,7 @@ public class PropertyPanel extends TabPane
         // Axis Column ----------
         col = new TableColumn<>(Messages.Axis);
         col.setCellValueFactory(cell ->
-        {
-            final ModelItem item = cell.getValue();
-            return new SimpleStringProperty(item.getAxis().getName());
-
-        });
+            new SimpleStringProperty(cell.getValue().getAxis().getName()));
         col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(axis_names));
         col.setOnEditCommit(event ->
         {
@@ -339,6 +390,109 @@ public class PropertyPanel extends TabPane
         });
         col.setEditable(true);
         trace_table.getColumns().add(col);
+
+        // Trace Type Column ----------
+        col = new TableColumn<>(Messages.TraceType);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(cell.getValue().getTraceType().toString()));
+        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(trace_types));
+        col.setOnEditCommit(event ->
+        {
+            final int index = trace_types.indexOf(event.getNewValue());
+            final TraceType type = TraceType.values()[index];
+            new ChangeTraceTypeCommand(undo, event.getRowValue(), type);
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
+
+        // Line Width Column ----------
+        col = new TableColumn<>(Messages.TraceLineWidth);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(Integer.toString(cell.getValue().getLineWidth())));
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            final ModelItem item = event.getRowValue();
+            try
+            {
+                new ChangeLineWidthCommand(undo, item, Integer.parseInt(event.getNewValue()));
+            }
+            catch (Exception e)
+            {
+                trace_table.refresh();
+            }
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
+
+        // Point Type Column ----------
+        col = new TableColumn<>(Messages.PointType);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(cell.getValue().getPointType().toString()));
+        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(point_types));
+        col.setOnEditCommit(event ->
+        {
+            final int index = point_types.indexOf(event.getNewValue());
+            final PointType type = PointType.values()[index];
+            new ChangePointTypeCommand(undo, event.getRowValue(), type);
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
+
+        // Point Size Column ----------
+        col = new TableColumn<>(Messages.PointSize);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(Integer.toString(cell.getValue().getPointSize())));
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            final ModelItem item = event.getRowValue();
+            try
+            {
+                new ChangePointSizeCommand(undo, item, Integer.parseInt(event.getNewValue()));
+            }
+            catch (Exception e)
+            {
+                trace_table.refresh();
+            }
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
+
+        // Request Type Column ----------
+        final TableColumn<ModelItem, RequestType> req_col = new TableColumn<>(Messages.RequestType);
+        req_col.setCellValueFactory(cell ->
+        {
+            final RequestType type;
+            if (cell.getValue() instanceof PVItem)
+                type = ((PVItem)cell.getValue()).getRequestType();
+            else
+                type = null;
+            return new SimpleObjectProperty<>(type);
+        });
+        req_col.setCellFactory(cell -> new RequestTypeCell());
+        trace_table.getColumns().add(req_col);
+
+        // Waveform Index Column ----------
+        col = new TableColumn<>(Messages.WaveformIndex);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(Integer.toString(cell.getValue().getWaveformIndex())));
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            final ModelItem item = event.getRowValue();
+            try
+            {
+                new ChangeWaveformIndexCommand(undo, item, Integer.parseInt(event.getNewValue()));
+            }
+            catch (Exception e)
+            {
+                trace_table.refresh();
+            }
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
+
 
 
 
