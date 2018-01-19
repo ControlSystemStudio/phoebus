@@ -8,6 +8,7 @@
 package org.csstudio.trends.databrowser3.ui.properties;
 
 
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -46,9 +47,12 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
+import javafx.util.Callback;
+import javafx.util.converter.DefaultStringConverter;
 
 /** Property panel
  *  @author Kay Kasemir
@@ -137,6 +141,11 @@ public class PropertyPanel extends TabPane
     private class RequestTypeCell extends TableCell<ModelItem, RequestType>
     {
         final CheckBox button = new CheckBox();
+
+        RequestTypeCell()
+        {
+            button.setTooltip(new Tooltip(Messages.RequestTypeTT));
+        }
 
         @Override
         protected void updateItem(final RequestType value, final boolean empty)
@@ -240,6 +249,7 @@ public class PropertyPanel extends TabPane
             return vis_property;
         });
         vis_col.setCellFactory(CheckBoxTableCell.forTableColumn(vis_col));
+        addTooltip(vis_col, Messages.TraceVisibilityTT);
         trace_table.getColumns().add(vis_col);
 
         // Trace PV/Formula Column ----------
@@ -259,6 +269,7 @@ public class PropertyPanel extends TabPane
             }
         });
         col.setEditable(true);
+        addTooltip(col, Messages.ItemNameTT);
         trace_table.getColumns().add(col);
 
         // Display Name Column ----------
@@ -270,6 +281,7 @@ public class PropertyPanel extends TabPane
             new ChangeDisplayNameCommand(undo, event.getRowValue(), event.getNewValue());
         });
         col.setEditable(true);
+        addTooltip(col, Messages.TraceDisplayNameTT);
         trace_table.getColumns().add(col);
 
         // Color Column ----------
@@ -284,6 +296,7 @@ public class PropertyPanel extends TabPane
             return new SimpleObjectProperty<>(picker);
         });
         color_col.setCellFactory(cell -> new ColorTableCell());
+        addTooltip(color_col, Messages.ColorTT);
         trace_table.getColumns().add(color_col);
 
         // Selected sample time stamp and value
@@ -296,7 +309,9 @@ public class PropertyPanel extends TabPane
                               : Messages.NotApplicable;
             return new SimpleStringProperty(text);
         });
+        addTooltip(col, Messages.CursorTimestampTT);
         trace_table.getColumns().add(col);
+
         col = new TableColumn<>(Messages.CursorValue);
         col.setCellValueFactory(cell ->
         {
@@ -315,6 +330,7 @@ public class PropertyPanel extends TabPane
                 text = Messages.NotApplicable;
             return new SimpleStringProperty(text);
         });
+        addTooltip(col, Messages.CursorValueTT);
         trace_table.getColumns().add(col);
 
         // Scan Period Column (only applies to PVItems) ----------
@@ -345,6 +361,7 @@ public class PropertyPanel extends TabPane
             }
         });
         col.setEditable(true);
+        addTooltip(col, Messages.ScanPeriodTT);
         trace_table.getColumns().add(col);
 
         // Buffer size Column (only applies to PVItems) ----------
@@ -358,7 +375,37 @@ public class PropertyPanel extends TabPane
                 return new SimpleStringProperty(Messages.NotApplicable);
 
         });
-        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setCellFactory(c ->
+        {
+            final TextFieldTableCell<ModelItem, String> cell = new TextFieldTableCell<>(new DefaultStringConverter())
+            {
+                @Override
+                public void updateItem(String value, boolean empty)
+                {
+                    super.updateItem(value, empty);
+                    final ModelItem item = getTableRow().getItem();
+                    if (empty  ||  ! (item instanceof PVItem))
+                        this.setTooltip(null);
+                    else
+                    {
+                        // Dynamic Tooltip that shows time range for the buffer
+                        final int size = ((PVItem) getTableRow().getItem()).getLiveCapacity();
+                        // TODO Use relative time suppport to get readable time span
+                        String span;
+                        if (size > 60*60)
+                            span = size / 60.0 / 60 + " hours";
+                        else if (size > 60)
+                            span = size / 60 + " minutes";
+                        else
+                            span = size + " seconds";
+                        String text = MessageFormat.format(Messages.LiveBufferSizeInfoFmt, size, span);
+                        this.setTooltip(new Tooltip(text));
+                    }
+                }
+
+            };
+            return cell;
+        });
         col.setOnEditCommit(event ->
         {
             final ModelItem item = event.getRowValue();
@@ -389,6 +436,7 @@ public class PropertyPanel extends TabPane
             new ChangeAxisCommand(undo, event.getRowValue(), axis);
         });
         col.setEditable(true);
+        addTooltip(col, Messages.AxisTT);
         trace_table.getColumns().add(col);
 
         // Trace Type Column ----------
@@ -403,6 +451,7 @@ public class PropertyPanel extends TabPane
             new ChangeTraceTypeCommand(undo, event.getRowValue(), type);
         });
         col.setEditable(true);
+        addTooltip(col, Messages.TraceTypeTT);
         trace_table.getColumns().add(col);
 
         // Line Width Column ----------
@@ -423,6 +472,7 @@ public class PropertyPanel extends TabPane
             }
         });
         col.setEditable(true);
+        addTooltip(col, Messages.TraceLineWidthTT);
         trace_table.getColumns().add(col);
 
         // Point Type Column ----------
@@ -437,6 +487,7 @@ public class PropertyPanel extends TabPane
             new ChangePointTypeCommand(undo, event.getRowValue(), type);
         });
         col.setEditable(true);
+        addTooltip(col, Messages.PointTypeTT);
         trace_table.getColumns().add(col);
 
         // Point Size Column ----------
@@ -457,6 +508,7 @@ public class PropertyPanel extends TabPane
             }
         });
         col.setEditable(true);
+        addTooltip(col, Messages.PointSizeTT);
         trace_table.getColumns().add(col);
 
         // Request Type Column ----------
@@ -474,7 +526,7 @@ public class PropertyPanel extends TabPane
         trace_table.getColumns().add(req_col);
 
         // Waveform Index Column ----------
-        col = new TableColumn<>(Messages.WaveformIndex);
+        col = new TableColumn<>(Messages.WaveformIndexCol);
         col.setCellValueFactory(cell ->
             new SimpleStringProperty(Integer.toString(cell.getValue().getWaveformIndex())));
         col.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -491,18 +543,27 @@ public class PropertyPanel extends TabPane
             }
         });
         col.setEditable(true);
+        addTooltip(col, Messages.WaveformIndexColTT);
         trace_table.getColumns().add(col);
-
-
 
 
         trace_table.setEditable(true);
 
 
         // TODO Cursor value update
-        // TODO Add tool tips
     }
 
+
+    private <T> void addTooltip(final TableColumn<ModelItem, T> col, final String text)
+    {
+        final Callback<TableColumn<ModelItem,T>, TableCell<ModelItem,T>>  orig = col.getCellFactory();
+        col.setCellFactory(c ->
+        {
+            final TableCell<ModelItem, T> cell = orig.call(c);
+            cell.setTooltip(new Tooltip(text));
+            return cell;
+        });
+    }
 
     private void setModel(final Model model)
     {
