@@ -317,8 +317,10 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         btn_embed_py.setDisable(true);
         btn_embed_py.setOnAction(event ->
         {
-            if (selected_script_item.text == null  ||  selected_script_item.text.trim().isEmpty())
-                selected_script_item.text = Messages.ScriptsDialog_DefaultEmbeddedPython;
+            if (selected_script_item.text == null  ||
+                selected_script_item.text.trim().isEmpty() ||
+                selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_JAVASCRIPT))
+                selected_script_item.text =  ScriptInfo.EXAMPLE_PYTHON;
 
             final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
             DialogHelper.positionDialog(dlg, btn_embed_py, -300, -200);
@@ -335,8 +337,10 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         btn_embed_js.setDisable(true);
         btn_embed_js.setOnAction(event ->
         {
-            if (selected_script_item.text == null  ||  selected_script_item.text.trim().isEmpty())
-                selected_script_item.text = Messages.ScriptsDialog_DefaultEmbeddedJavaScript;
+            if (selected_script_item.text == null  ||
+                selected_script_item.text.trim().isEmpty() ||
+                selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_PYTHON))
+                selected_script_item.text = ScriptInfo.EXAMPLE_JAVASCRIPT;
 
             final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
             DialogHelper.positionDialog(dlg, btn_embed_js, -300, -200);

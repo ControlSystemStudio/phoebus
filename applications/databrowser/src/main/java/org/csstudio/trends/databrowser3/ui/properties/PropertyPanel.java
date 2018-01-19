@@ -10,11 +10,18 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
+import java.time.Instant;
+import java.util.Optional;
 import java.util.logging.Level;
 
+import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.model.PlotSample;
+import org.phoebus.archive.vtype.DefaultVTypeFormat;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -140,11 +147,75 @@ public class PropertyPanel extends TabPane
         color_col.setCellFactory(cell -> new ColorTableCell());
         trace_table.getColumns().add(color_col);
 
+        // Selected sample time stamp and value
+        col = new TableColumn<>(Messages.CursorTimestamp);
+        col.setCellValueFactory(cell ->
+        {
+            final Optional<PlotDataItem<Instant>> sample = cell.getValue().getSelectedSample();
+            final String text = sample.isPresent()
+                              ? TimestampFormats.MILLI_FORMAT.format(sample.get().getPosition())
+                              : Messages.NotApplicable;
+            return new SimpleStringProperty(text);
+        });
+        trace_table.getColumns().add(col);
+        col = new TableColumn<>(Messages.CursorValue);
+        col.setCellValueFactory(cell ->
+        {
+            final ModelItem item = cell.getValue();
+            final Optional<PlotDataItem<Instant>> sample = item.getSelectedSample();
+            String text;
+            if (sample.isPresent())
+            {
+
+                text = DefaultVTypeFormat.get().format( ((PlotSample) sample.get()).getVType() );
+                final String units = item.getUnits();
+                if (units != null)
+                    text = text + " " + units;
+            }
+            else
+                text = Messages.NotApplicable;
+            return new SimpleStringProperty(text);
+        });
+        trace_table.getColumns().add(col);
+
+
+        // Scan Period Column (only applies to PVItems) ----------
+        col = new TableColumn<>(Messages.ScanPeriod);
+        col.setCellValueFactory(cell ->
+        {
+            final ModelItem item = cell.getValue();
+            if (item instanceof PVItem)
+                return new SimpleStringProperty(Double.toString(((PVItem)item).getScanPeriod()));
+            else
+                return new SimpleStringProperty(Messages.NotApplicable);
+
+        });
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            final ModelItem item = event.getRowValue();
+            if (item instanceof PVItem)
+            {
+                try
+                {
+                    ((PVItem)item).setScanPeriod(Double.parseDouble(event.getNewValue()));
+                }
+                catch (Exception e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
+
 
 
         trace_table.setEditable(true);
 
 
         // TODO Auto-generated method stub
+        // TODO Add tool tips
     }
 }

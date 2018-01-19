@@ -38,8 +38,18 @@ public class ScriptInfo
 
     /** Example python script */
     public static final String EXAMPLE_PYTHON =
+        "# Embedded python script\n" +
         "from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil\n" +
-        "print 'Hello'";
+        "print 'Hello'\n" +
+        "# widget.setPropertyValue('text', PVUtil.getString(pvs[0]))";
+
+    /** Example java script */
+    public static final String EXAMPLE_JAVASCRIPT =
+        "/* Embedded javascript */\n" +
+        "PVUtil = org.csstudio.display.builder.runtime.script.PVUtil;\n" +
+        "logger = org.csstudio.display.builder.runtime.script.ScriptUtil.getLogger();\n" +
+        "logger.info(\"Hello\");\n" +
+        "/* widget.setPropertyValue(\"text\", PVUtil.getString(pvs[0])); */";
 
     /** Script 'path' used to indicate an embedded java script */
     public final static String EMBEDDED_JAVASCRIPT = "EmbeddedJs";
