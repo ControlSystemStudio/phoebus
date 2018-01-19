@@ -18,62 +18,62 @@ public interface ModelListener
     default void changedSaveChangesBehavior(final boolean save_changes) {};
 
     /** Title changed */
-    void changedTitle();
+    default void changedTitle() {};
 
     /** The visbility for the toolbar and/or legend has changed */
-    void changedLayout();
+    default void changedLayout() {};
 
     /** The update period or scroll step changed */
-    void changedTiming();
+    default void changedTiming() {};
 
     /** The archive-rescale configuration has changed */
     default void changedArchiveRescale() {};
 
     /** One of the colors (background, ...) or overall fonts changed */
-    void changedColorsOrFonts();
+    default void changedColorsOrFonts() {};
 
     /** The time range (start/end time or span) was changed */
-    void changedTimerange();
+    default void changedTimerange() {};
 
     /** Time axis grid, .. changed */
-    void changeTimeAxisConfig();
+    default void changeTimeAxisConfig() {};
 
     /** @param axis Axis that changed its color, range, ....
      *              If <code>null</code>, an axis was added or removed
      */
-    void changedAxis(Optional<AxisConfig> axis);
+    default void changedAxis(Optional<AxisConfig> axis) {};
 
     /** @param item Item that was added to the model */
-    void itemAdded(ModelItem item);
+    default void itemAdded(ModelItem item) {};
 
     /** @param item Item that was removed from the model */
-    void itemRemoved(ModelItem item);
+    default void itemRemoved(ModelItem item) {};
 
     /** @param item Item that turned visible/invisible */
-    void changedItemVisibility(ModelItem item);
+    default void changedItemVisibility(ModelItem item) {};
 
     /** @param item Item that changed its visible attributes:
      *              color, line width, display name, ...
      */
-    void changedItemLook(ModelItem item);
+    default void changedItemLook(ModelItem item) {};
 
     /** @param item Item that changed its data configuration:
      *              Archives, request method.
      */
-    void changedItemDataConfig(PVItem item);
+    default void changedItemDataConfig(PVItem item) {};
 
     /** @param scroll_enabled <code>true</code> when scrolling was turned 'on' */
-    void scrollEnabled(boolean scroll_enabled);
+    default void scrollEnabled(boolean scroll_enabled) {};
 
     /** The annotation list changed */
-    void changedAnnotations();
+    default void changedAnnotations() {};
 
     /**
      * The item requested to refresh its history.
      *
      * @param item the item to refresh the history data for
      */
-    void itemRefreshRequested(PVItem item);
+    default void itemRefreshRequested(PVItem item) {};
 
     /** ModelItems have new selected sample */
     default void selectedSamplesChanged() {};

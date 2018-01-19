@@ -73,7 +73,7 @@ public class Perspective extends SplitPane
         search_tab.setOnClosed(event -> autoMinimize(left_tabs, this, 0.0));
         left_tabs.getTabs().setAll(search_tab);
 
-        properties_tab = new Tab("Properties", new PropertyPanel(model));
+        properties_tab = new Tab("Properties", new PropertyPanel(model, plot.getPlot().getUndoableActionManager()));
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
         export_tab = new Tab("Export");

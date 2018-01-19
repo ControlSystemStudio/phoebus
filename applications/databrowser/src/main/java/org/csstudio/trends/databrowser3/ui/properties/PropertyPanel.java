@@ -8,19 +8,20 @@
 package org.csstudio.trends.databrowser3.ui.properties;
 
 
-import static org.csstudio.trends.databrowser3.Activator.logger;
-
 import java.time.Instant;
 import java.util.Optional;
-import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,6 +29,9 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -43,6 +47,7 @@ import javafx.scene.paint.Color;
 /** Property panel
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PropertyPanel extends TabPane
 {
     private static Tab traces = new Tab(Messages.TracesTab);
@@ -50,22 +55,71 @@ public class PropertyPanel extends TabPane
     private static Tab value_axes = new Tab(Messages.ValueAxes);
     private static Tab misc = new Tab(Messages.Miscellaneous);
 
+    private final UndoableActionManager undo;
     private final TableView<ModelItem> trace_table = new TableView<>();
 
+    /** Prompt for the 'raw request' warning? */
+    private static boolean prompt_for_raw_data_request = true;
 
-    public PropertyPanel(final Model model)
+    /** Prompt for the 'hide trace' warning'? */
+    private static boolean prompt_for_not_visible = true;
+
+
+    /** Update table if the model changes, for example via Un-do */
+    private final ModelListener model_listener = new ModelListener()
+    {
+        @Override
+        public void itemRemoved(final ModelItem item)
+        {
+            trace_table.refresh();
+        }
+
+        @Override
+        public void itemAdded(final ModelItem item)
+        {
+            trace_table.refresh();
+        }
+
+        @Override
+        public void changedItemVisibility(final ModelItem item)
+        {
+            trace_table.refresh();
+        }
+
+        @Override
+        public void changedItemLook(final ModelItem item)
+        {
+            trace_table.refresh();
+        }
+
+        @Override
+        public void changedItemDataConfig(final PVItem item)
+        {
+            trace_table.refresh();
+        }
+
+        @Override
+        public void changedAxis(final Optional<AxisConfig> axis)
+        {
+            // In case an axis _name_ changed, this needs to be shown
+            // in the "Axis" column.
+            trace_table.refresh();
+        }
+    };
+
+
+    public PropertyPanel(final Model model, final UndoableActionManager undo)
     {
         super(traces, time_axis, value_axes, misc);
+        this.undo = undo;
+
         for (Tab tab : getTabs())
             tab.setClosable(false);
 
         createTracesTab();
 
-        // TODO Replace initial population from model with model listener
-        for (ModelItem item : model.getItems())
-            trace_table.getItems().add(item);
+        setModel(model);
     }
-
     private void createTracesTab()
     {
         // Top: Traces
@@ -101,7 +155,26 @@ public class PropertyPanel extends TabPane
         {
             final SimpleBooleanProperty vis_property = new SimpleBooleanProperty(cell.getValue().isVisible());
             // Update model when CheckBoxTableCell updates this property
-            vis_property.addListener((p, old, visible) -> cell.getValue().setVisible(visible));
+            vis_property.addListener((p, old, visible) ->
+            {
+                if (! visible  &&  prompt_for_not_visible)
+                {
+                    final Alert dialog = new Alert(AlertType.CONFIRMATION,
+                                                    Messages.HideTraceWarningDetail,
+                                                    ButtonType.YES, ButtonType.NO);
+                    dialog.setHeaderText(Messages.HideTraceWarning);
+                    dialog.setResizable(true);
+                    dialog.getDialogPane().setMinSize(600, 350);
+                    DialogHelper.positionDialog(dialog, trace_table, -600, -350);
+                    if (dialog.showAndWait().orElse(ButtonType.NO) != ButtonType.YES)
+                    {   // Restore checkbox
+                        vis_property.set(true);
+                        return;
+                    }
+                    prompt_for_not_visible = false;
+                }
+                new ChangeVisibilityCommand(undo, cell.getValue(), visible);
+            });
             return vis_property;
         });
         vis_col.setCellFactory(CheckBoxTableCell.forTableColumn(vis_col));
@@ -116,11 +189,11 @@ public class PropertyPanel extends TabPane
         {
             try
             {
-                event.getRowValue().setName(event.getNewValue());
+                new ChangeNameCommand(undo, event.getRowValue(), event.getNewValue());
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, "Cannot change name of" + event.getRowValue() , ex);
+                trace_table.refresh();
             }
         });
         col.setEditable(true);
@@ -130,7 +203,10 @@ public class PropertyPanel extends TabPane
         col = new TableColumn<>(Messages.TraceDisplayName);
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDisplayName()));
         col.setCellFactory(TextFieldTableCell.forTableColumn());
-        col.setOnEditCommit(event -> event.getRowValue().setDisplayName(event.getNewValue()));
+        col.setOnEditCommit(event ->
+        {
+            new ChangeDisplayNameCommand(undo, event.getRowValue(), event.getNewValue());
+        });
         col.setEditable(true);
         trace_table.getColumns().add(col);
 
@@ -141,7 +217,10 @@ public class PropertyPanel extends TabPane
             final Color color = cell.getValue().getPaintColor();
             final ColorPicker picker = new ColorPicker(color);
             picker.setStyle("-fx-color-label-visible: false ;");
-            picker.setOnAction(event -> cell.getValue().setColor(picker.getValue()));
+            picker.setOnAction(event ->
+            {
+                new ChangeColorCommand(undo, cell.getValue(), picker.getValue());
+            });
             return new SimpleObjectProperty<>(picker);
         });
         color_col.setCellFactory(cell -> new ColorTableCell());
@@ -178,7 +257,6 @@ public class PropertyPanel extends TabPane
         });
         trace_table.getColumns().add(col);
 
-
         // Scan Period Column (only applies to PVItems) ----------
         col = new TableColumn<>(Messages.ScanPeriod);
         col.setCellValueFactory(cell ->
@@ -198,12 +276,41 @@ public class PropertyPanel extends TabPane
             {
                 try
                 {
-                    ((PVItem)item).setScanPeriod(Double.parseDouble(event.getNewValue()));
+                    new ChangeSamplePeriodCommand(undo, (PVItem)item, Double.parseDouble(event.getNewValue()));
                 }
                 catch (Exception e)
                 {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    trace_table.refresh();
+                }
+            }
+        });
+        col.setEditable(true);
+        trace_table.getColumns().add(col);
+
+        // Buffer size Column (only applies to PVItems) ----------
+        col = new TableColumn<>(Messages.LiveSampleBufferSize);
+        col.setCellValueFactory(cell ->
+        {
+            final ModelItem item = cell.getValue();
+            if (item instanceof PVItem)
+                return new SimpleStringProperty(Integer.toString(((PVItem)item).getLiveCapacity()));
+            else
+                return new SimpleStringProperty(Messages.NotApplicable);
+
+        });
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            final ModelItem item = event.getRowValue();
+            if (item instanceof PVItem)
+            {
+                try
+                {
+                    new ChangeLiveCapacityCommand(undo, (PVItem)item, Integer.parseInt(event.getNewValue()));
+                }
+                catch (Exception e)
+                {
+                    trace_table.refresh();
                 }
             }
         });
@@ -212,10 +319,21 @@ public class PropertyPanel extends TabPane
 
 
 
+
         trace_table.setEditable(true);
 
 
-        // TODO Auto-generated method stub
+        // TODO Cursor value update
         // TODO Add tool tips
+    }
+
+
+    private void setModel(final Model model)
+    {
+        // TODO Replace initial population from model with model listener
+        for (ModelItem item : model.getItems())
+            trace_table.getItems().add(item);
+
+        model.addListener(model_listener);
     }
 }

@@ -182,6 +182,18 @@ public class Model
         return axes.indexOf(Objects.requireNonNull(axis));
     }
 
+    /** @param axis Axis to test
+     *  @return <code>true</code> if there is any visible item on the axis
+     */
+    public boolean hasAxisActiveItems(final AxisConfig axis)
+    {
+        Objects.requireNonNull(axis);
+        for (ModelItem item : items)
+            if (item.getAxis() == axis && item.isVisible())
+                return true;
+        return false;
+    }
+
     /** Add value axis with default settings
      *  @return Newly added axis configuration
      */
