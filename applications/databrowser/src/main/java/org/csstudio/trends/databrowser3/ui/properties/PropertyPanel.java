@@ -55,11 +55,10 @@ public class PropertyPanel extends TabPane
 
     public PropertyPanel(final Model model, final UndoableActionManager undo)
     {
-        final TracesTab traces = new TracesTab(model, undo);
+        final Tab traces = new TracesTab(model, undo);
         final Tab time_axis = new Tab(Messages.TimeAxis);
-        final AxesTab value_axes = new AxesTab(model, undo);
-        final Tab misc = new Tab(Messages.Miscellaneous);
-
+        final Tab value_axes = new AxesTab(model, undo);
+        final Tab misc = new MiscTab(model, undo);
         getTabs().setAll(traces, time_axis, value_axes, misc);
         for (Tab tab : getTabs())
             tab.setClosable(false);

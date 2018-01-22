@@ -30,6 +30,8 @@ import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
 
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 /** Data Browser model
  *
@@ -53,6 +55,9 @@ public class Model
 
     /** Listeners to model changes */
     final private List<ModelListener> listeners = new CopyOnWriteArrayList<>();
+
+    /** Title */
+    private volatile Optional<String> title = Optional.empty();
 
     /** Axes configurations */
     final private List<AxisConfig> axes = new CopyOnWriteArrayList<AxisConfig>();
@@ -86,6 +91,18 @@ public class Model
 
     /** Show time axis grid line? */
     private volatile boolean show_grid = false;
+
+    /** Title font */
+    private volatile Font title_font = Font.font("Liberation Sans", FontWeight.BOLD, 20);
+
+    /** Label font */
+    private volatile Font label_font = Font.font("Liberation Sans", FontWeight.BOLD, 14);
+
+    /** Scale font */
+    private volatile Font scale_font = Font.font("Liberation Sans", 12);
+
+    /** Legend font */
+    private volatile Font legend_font = Font.font("Liberation Sans", 14);
 
     /** Annotations */
     private volatile List<AnnotationInfo> annotations = List.of();
@@ -136,6 +153,23 @@ public class Model
     public void removeListener(final ModelListener listener)
     {
         listeners.remove(Objects.requireNonNull(listener));
+    }
+
+    /** @param title Title, may be <code>null</code> or empty */
+    public void setTitle(final String title)
+    {
+        if (title == null  ||   title.isEmpty())
+            this.title = Optional.empty();
+        else
+            this.title = Optional.of(title);
+        for (ModelListener listener : listeners)
+            listener.changedTitle();
+    }
+
+    /** @return Title */
+    public Optional<String> getTitle()
+    {
+        return title;
     }
 
     /** @return Read-only, thread safe {@link AxisConfig}s */
@@ -613,6 +647,63 @@ public class Model
         for (ModelListener listener : listeners)
             listener.changeTimeAxisConfig();
     }
+
+    /** @return Title font */
+    public Font getTitleFont()
+    {
+        return title_font;
+    }
+
+    /** @param font Title font */
+    public void setTitleFont(final Font font)
+    {
+        title_font = font;
+        for (ModelListener listener : listeners)
+            listener.changedColorsOrFonts();
+    }
+
+    /** @return Label font */
+    public Font getLabelFont()
+    {
+        return label_font;
+    }
+
+    /** @param font Label font */
+    public void setLabelFont(final Font font)
+    {
+        label_font = font;
+        for (ModelListener listener : listeners)
+            listener.changedColorsOrFonts();
+    }
+
+    /** @return Scale font */
+    public Font getScaleFont()
+    {
+        return scale_font;
+    }
+
+    /** @param font Scale font */
+    public void setScaleFont(final Font font)
+    {
+        scale_font = font;
+        for (ModelListener listener : listeners)
+            listener.changedColorsOrFonts();
+    }
+
+    /** @return Legend font */
+    public Font getLegendFont()
+    {
+        return legend_font;
+    }
+
+    /** @param font Scale font */
+    public void setLegendFont(final Font font)
+    {
+        legend_font = font;
+        for (ModelListener listener : listeners)
+            listener.changedColorsOrFonts();
+    }
+
 
     /** @param annotations Annotations to keep in model */
     public void setAnnotations(final List<AnnotationInfo> annotations)
