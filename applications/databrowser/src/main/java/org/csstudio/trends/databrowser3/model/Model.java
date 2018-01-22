@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -138,9 +139,9 @@ public class Model
     }
 
     /** @return Read-only, thread safe {@link AxisConfig}s */
-    public Iterable<AxisConfig> getAxes()
+    public List<AxisConfig> getAxes()
     {
-        return axes;
+        return Collections.unmodifiableList(axes);
     }
 
     /** Get number of axes
@@ -258,10 +259,10 @@ public class Model
             listener.changedArchiveRescale();
     }
 
-    /** @return {@link ModelItem}s as thread-safe read-only {@link Iterable} */
-    public Iterable<ModelItem> getItems()
+    /** @return {@link ModelItem}s as thread-safe read-only {@link List} */
+    public List<ModelItem> getItems()
     {
-        return items;
+        return Collections.unmodifiableList(items);
     }
 
     /** Called by items to set their initial color

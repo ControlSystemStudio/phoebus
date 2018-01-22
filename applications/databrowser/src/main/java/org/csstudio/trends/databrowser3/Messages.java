@@ -166,8 +166,6 @@ public class Messages
     public static String LabelFontTT;
     public static String LegendFontLbl;
     public static String LegendFontTT;
-    public static String LinacScale;
-    public static String LinLogScaleType;
     public static String LiveBufferSizeInfoFmt;
     public static String LiveData;
     public static String LiveSampleBufferSize;
