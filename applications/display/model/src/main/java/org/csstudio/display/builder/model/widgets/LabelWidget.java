@@ -49,7 +49,7 @@ public class LabelWidget extends VisibleWidget
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("label", WidgetCategory.GRAPHIC,
             "Label",
-            "platform:/plugin/org.csstudio.display.builder.model/icons/label.png",
+            "/icons/label.png",
             "Label displays one or more lines of text",
             Arrays.asList("org.csstudio.opibuilder.widgets.Label"))
     {
