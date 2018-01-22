@@ -54,7 +54,22 @@ public class ContextMenuService {
         // Take into account the types the selected objects can be converted into
         List<Class> allAdaptableSelectionType = new ArrayList<Class>();
         selectionTypes.forEach(s -> {
-            allAdaptableSelectionType.add(s);
+            // Class can certainly be converted to the class itself,
+            // but also to all its super classes
+            Class sc = s;
+            do
+            {
+                // System.out.println("Selection is of type " + sc);
+                allAdaptableSelectionType.add(sc);
+                for (Class inter : sc.getInterfaces())
+                {
+                    // System.out.println(".. and interface " + inter);
+                    allAdaptableSelectionType.add(inter);
+                }
+                sc = sc.getSuperclass();
+            }
+            while (sc != Object.class);
+
             AdapterService.getInstance().getAdaptersforAdaptable(s).ifPresent(a -> {
                 a.forEach(f -> {
                     allAdaptableSelectionType.addAll(f.getAdapterList());
