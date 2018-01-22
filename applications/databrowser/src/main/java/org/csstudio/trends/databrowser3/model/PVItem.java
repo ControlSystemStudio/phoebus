@@ -291,7 +291,7 @@ public class PVItem extends ModelItem
     /** Replace existing archive data sources with given archives
      *  @param archs ArchiveDataSources to use for this item
      */
-    public void setArchiveDataSource(final ArchiveDataSource archs[])
+    public void setArchiveDataSource(final ArchiveDataSource... archs)
     {
         // Check if they are the same, i.e. count AND order match
         if (archs.length == archives.size())

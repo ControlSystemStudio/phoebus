@@ -14,8 +14,11 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.archive.SearchJob;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
+import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javafx.application.Platform;
@@ -25,14 +28,18 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -45,6 +52,7 @@ public class SearchView extends SplitPane
 {
     private static final String SEARCH_PANEL_SPLIT = "search_panel_split";
 
+    private final Model model;
     private final ArchiveListPane archive_list = new ArchiveListPane();
     private final TextField pattern = new TextField();
     private RadioButton result_replace;
@@ -52,14 +60,18 @@ public class SearchView extends SplitPane
 
     private Job active_job = null;
 
+
     /** Create search view
      *
      *  <p>While technically a {@link SplitPane},
      *  should be treated as generic {@link Node},
      *  using only the API defined in here
+     *
+     *  @param model
      */
-    public SearchView()
+    public SearchView(final Model model)
     {
+        this.model = model;
         // Archive List
 
         // Pattern: ____________ [Search]
@@ -89,7 +101,7 @@ public class SearchView extends SplitPane
         // ---------+--------
         //          |
         final TableColumn<ChannelInfo, String> pv_col = new TableColumn<>(Messages.PVName);
-        pv_col.setCellValueFactory(cell ->  new SimpleStringProperty(cell.getValue().getProcessVariable().getName()));
+        pv_col.setCellValueFactory(cell ->  new SimpleStringProperty(cell.getValue().getName()));
         pv_col.setReorderable(false);
         channel_table.getColumns().add(pv_col);
 
@@ -103,6 +115,8 @@ public class SearchView extends SplitPane
         pv_col.prefWidthProperty().bind(channel_table.widthProperty().multiply(0.8));
         archive_col.prefWidthProperty().bind(channel_table.widthProperty().subtract(pv_col.widthProperty()));
 
+        channel_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         VBox.setVgrow(channel_table, Priority.ALWAYS);
         final VBox bottom = new VBox(5, search_row,
                                         replace_row,
@@ -111,7 +125,28 @@ public class SearchView extends SplitPane
         getItems().setAll(archive_list, bottom);
         setDividerPositions(0.2f);
 
+        final ContextMenu menu = new ContextMenu();
+        channel_table.setContextMenu(menu);
+        channel_table.setOnContextMenuRequested(this::updateContextMenu);
+
         Platform.runLater(() -> pattern.requestFocus());
+    }
+
+    private void updateContextMenu(final ContextMenuEvent event)
+    {
+        final ContextMenu menu = channel_table.getContextMenu();
+        final List<ChannelInfo> selection = channel_table.getSelectionModel().getSelectedItems();
+        if (selection.isEmpty())
+            menu.getItems().clear();
+        else
+        {
+            menu.getItems().setAll(new AddToPlotAction(model, selection),
+                                   new SeparatorMenuItem());
+
+            SelectionService.getInstance().setSelection(channel_table, selection);
+            ContextMenuHelper.addSupportedEntries(channel_table, menu);
+            menu.show(channel_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        }
     }
 
     private void searchForChannels()

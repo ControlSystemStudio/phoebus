@@ -41,8 +41,8 @@ public class Perspective extends SplitPane
                                 SHOW_PROPERTIES = "show_properties",
                                 SHOW_EXPORT = "show_export";
 
-    private final SearchView search = new SearchView();
     private final Model model = new Model();
+    private final SearchView search = new SearchView(model);
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),

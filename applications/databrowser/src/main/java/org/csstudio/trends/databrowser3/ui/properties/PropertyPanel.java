@@ -10,6 +10,8 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.csstudio.javafx.rtplot.PointType;
@@ -60,16 +62,19 @@ import javafx.util.converter.DefaultStringConverter;
 @SuppressWarnings("nls")
 public class PropertyPanel extends TabPane
 {
-    private static Tab traces = new Tab(Messages.TracesTab);
-    private static Tab time_axis = new Tab(Messages.TimeAxis);
-    private static Tab value_axes = new Tab(Messages.ValueAxes);
-    private static Tab misc = new Tab(Messages.Miscellaneous);
-
     private static final ObservableList<String> trace_types = FXCollections.observableArrayList(TraceType.getDisplayNames());
     private static final ObservableList<String> point_types = FXCollections.observableArrayList(PointType.getDisplayNames());
     private static final ObservableList<String> request_types = FXCollections.observableArrayList(Messages.Request_raw, Messages.Request_optimized);
 
+    private final Model model;
+
     private final UndoableActionManager undo;
+
+    private final Tab traces = new Tab(Messages.TracesTab);
+    private final Tab time_axis = new Tab(Messages.TimeAxis);
+    private final Tab value_axes = new Tab(Messages.ValueAxes);
+    private final Tab misc = new Tab(Messages.Miscellaneous);
+
     private final TableView<ModelItem> trace_table = new TableView<>();
     private final ObservableList<String> axis_names = FXCollections.observableArrayList();
 
@@ -85,13 +90,13 @@ public class PropertyPanel extends TabPane
         @Override
         public void itemRemoved(final ModelItem item)
         {
-            trace_table.refresh();
+            updateFromModel();
         }
 
         @Override
         public void itemAdded(final ModelItem item)
         {
-            trace_table.refresh();
+            updateFromModel();
         }
 
         @Override
@@ -120,7 +125,6 @@ public class PropertyPanel extends TabPane
             trace_table.refresh();
         }
     };
-
 
 
     /** Table cell that shows ColorPicker */
@@ -194,16 +198,32 @@ public class PropertyPanel extends TabPane
 
     public PropertyPanel(final Model model, final UndoableActionManager undo)
     {
-        super(traces, time_axis, value_axes, misc);
+        this.model = model;
         this.undo = undo;
-
-        for (Tab tab : getTabs())
-            tab.setClosable(false);
 
         createTracesTab();
 
-        setModel(model);
+        getTabs().setAll(traces, time_axis, value_axes, misc);
+        for (Tab tab : getTabs())
+            tab.setClosable(false);
+
+        model.addListener(model_listener);
+        updateFromModel();
     }
+
+    private void updateFromModel()
+    {
+        final List<ModelItem> items = new ArrayList<>();
+        for (ModelItem item : model.getItems())
+            items.add(item);
+        trace_table.getItems().setAll(items);
+
+        axis_names.clear();
+        for (AxisConfig ai : model.getAxes())
+            axis_names.add(ai.getName());
+
+    }
+
     private void createTracesTab()
     {
         // Top: Traces
@@ -553,7 +573,6 @@ public class PropertyPanel extends TabPane
         // TODO Cursor value update
     }
 
-
     private <T> void addTooltip(final TableColumn<ModelItem, T> col, final String text)
     {
         final Callback<TableColumn<ModelItem,T>, TableCell<ModelItem,T>>  orig = col.getCellFactory();
@@ -563,18 +582,5 @@ public class PropertyPanel extends TabPane
             cell.setTooltip(new Tooltip(text));
             return cell;
         });
-    }
-
-    private void setModel(final Model model)
-    {
-        // TODO Replace initial population from model with model listener
-        for (ModelItem item : model.getItems())
-            trace_table.getItems().add(item);
-
-        axis_names.clear();
-        for (AxisConfig ai : model.getAxes())
-            axis_names.add(ai.getName());
-
-        model.addListener(model_listener);
     }
 }
