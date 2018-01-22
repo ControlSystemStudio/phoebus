@@ -7,12 +7,15 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.beans.property.BooleanProperty;
@@ -21,13 +24,19 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 /** Property tab for axes
  *  @author Kay Kasemir
@@ -35,28 +44,77 @@ import javafx.scene.paint.Color;
 public class AxesTab extends Tab
 {
     private final Model model;
+
     private final UndoableActionManager undo;
+
     private ObservableList<AxisConfig> axes = FXCollections.observableArrayList();
+
+    /** One toggle per {@link ArchiveRescale} option */
+    private final ToggleGroup rescale = new ToggleGroup();
 
     private final TableView<AxisConfig> axes_table = new TableView<>(axes);
 
+    /** Flag to prevent recursion when this tab updates the model and thus triggers the model_listener */
+    private boolean updating = false;
 
-    public AxesTab(Model model, UndoableActionManager undo)
+    /** Update Tab when model changes (undo, ...) */
+    private ModelListener model_listener = new ModelListener()
+    {
+        @Override
+        public void changedArchiveRescale()
+        {
+            if (updating)
+                return;
+            rescale.selectToggle(rescale.getToggles().get(model.getArchiveRescale().ordinal()));
+        }
+
+        @Override
+        public void changedAxis(final Optional<AxisConfig> axis)
+        {
+            if (updating)
+                return;
+            if (axis.isPresent())
+                axes_table.refresh();
+            else
+                updateFromModel();
+        }
+    };
+
+
+    AxesTab(final Model model, final UndoableActionManager undo)
     {
         super(Messages.ValueAxes);
         this.model = model;
         this.undo = undo;
 
+        final Label label = new Label(Messages.ArchiveRescale_Label);
+        final RadioButton rescale_none = new RadioButton(Messages.ArchiveRescale_NONE),
+                          rescale_stagger = new RadioButton(Messages.ArchiveRescale_STAGGER);
+        rescale_none.setToggleGroup(rescale);
+        rescale_stagger.setToggleGroup(rescale);
+        rescale_stagger.setOnAction(event ->
+        {
+            updating = true;
+            new ChangeArchiveRescaleCommand(model, undo, rescale_stagger.isSelected() ? ArchiveRescale.STAGGER : ArchiveRescale.NONE);
+            updating = false;
+        });
+
+        final HBox rescales = new HBox(5, label, rescale_none, rescale_stagger);
+        rescales.setAlignment(Pos.CENTER_LEFT);
+        rescales.setPadding(new Insets(5));
+
         createAxesTable();
 
-        setContent(axes_table);
+        setContent(new VBox(5, rescales, axes_table));
 
         // TODO Model listener
         updateFromModel();
+        model.addListener(model_listener);
     }
 
     private void updateFromModel()
     {
+        rescale.selectToggle(rescale.getToggles().get(model.getArchiveRescale().ordinal()));
         axes.setAll(model.getAxes());
     }
 
@@ -72,7 +130,9 @@ public class AxesTab extends Tab
             prop.addListener((p, old, value) ->
             {
                 final ChangeAxisConfigCommand command = new ChangeAxisConfigCommand(undo, axis);
+                updating = true;
                 setter.accept(axis, value);
+                updating = false;
                 command.rememberNewConfig();
             });
             return prop;
@@ -93,7 +153,9 @@ public class AxesTab extends Tab
         {
             final AxisConfig axis = event.getRowValue();
             final ChangeAxisConfigCommand command = new ChangeAxisConfigCommand(undo, axis);
+            updating = true;
             axis.setName(event.getNewValue());
+            updating = false;
             command.rememberNewConfig();
         });
         col.setEditable(true);
@@ -109,16 +171,22 @@ public class AxesTab extends Tab
                 AxisConfig::isGridVisible, AxisConfig::setGridVisible));
 
         axes_table.getColumns().add(createCheckboxColumn(Messages.AxisOnRight,
-                AxisConfig::isUsingAxisName, AxisConfig::setOnRight));
+                AxisConfig::isOnRight, AxisConfig::setOnRight));
 
         // Color Column ----------
         TableColumn<AxisConfig, ColorPicker> color_col = new TableColumn<>(Messages.Color);
         color_col.setCellValueFactory(cell ->
         {
-            final Color color = cell.getValue().getPaintColor();
-            final ColorPicker picker = PropertyPanel.ColorTableCell.createPicker(color);
-//            picker.setOnAction(event ->
-//                new ChangeAxisColorCommand(undo, cell.getValue(), picker.getValue()));
+            final AxisConfig axis = cell.getValue();
+            final ColorPicker picker = PropertyPanel.ColorTableCell.createPicker(axis.getPaintColor());
+            picker.setOnAction(event ->
+            {
+                final ChangeAxisConfigCommand command = new ChangeAxisConfigCommand(undo, axis);
+                updating = true;
+                axis.setColor(picker.getValue());
+                updating = false;
+                command.rememberNewConfig();
+            });
             return new SimpleObjectProperty<>(picker);
         });
         color_col.setCellFactory(cell -> new PropertyPanel.ColorTableCell<>());
@@ -127,10 +195,46 @@ public class AxesTab extends Tab
 
         col = new TableColumn<>(Messages.AxisMin);
         col.setCellValueFactory(cell -> new SimpleStringProperty(Double.toString(cell.getValue().getMin())));
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            updating = true;
+            try
+            {
+                final AxisConfig axis = event.getRowValue();
+                final ChangeAxisConfigCommand command = new ChangeAxisConfigCommand(undo, axis);
+                axis.setRange(Double.parseDouble(event.getNewValue()), axis.getMax());
+                command.rememberNewConfig();
+            }
+            catch (NumberFormatException ex)
+            {
+                // NOP, leave as is
+            }
+            updating = false;
+        });
+        col.setEditable(true);
         axes_table.getColumns().add(col);
 
         col = new TableColumn<>(Messages.AxisMax);
         col.setCellValueFactory(cell -> new SimpleStringProperty(Double.toString(cell.getValue().getMax())));
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            updating = true;
+            try
+            {
+                final AxisConfig axis = event.getRowValue();
+                final ChangeAxisConfigCommand command = new ChangeAxisConfigCommand(undo, axis);
+                axis.setRange(axis.getMin(), Double.parseDouble(event.getNewValue()));
+                command.rememberNewConfig();
+            }
+            catch (NumberFormatException ex)
+            {
+                // NOP, leave as is
+            }
+            updating = false;
+        });
+        col.setEditable(true);
         axes_table.getColumns().add(col);
 
         axes_table.getColumns().add(createCheckboxColumn(Messages.AutoScale,
