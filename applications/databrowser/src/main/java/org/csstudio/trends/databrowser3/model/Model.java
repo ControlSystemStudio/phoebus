@@ -682,7 +682,7 @@ public class Model
             return;
         show_grid = grid;
         for (ModelListener listener : listeners)
-            listener.changeTimeAxisConfig();
+            listener.changedTimeAxisConfig();
     }
 
     /** @return Title font */

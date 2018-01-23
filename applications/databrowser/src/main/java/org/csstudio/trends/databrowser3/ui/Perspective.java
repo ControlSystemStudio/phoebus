@@ -48,7 +48,9 @@ public class Perspective extends SplitPane
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();
     private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
+    private PropertyPanel property_panel;
     private Tab search_tab, properties_tab, export_tab;
+
 
     public Perspective()
     {
@@ -75,7 +77,8 @@ public class Perspective extends SplitPane
         search_tab.setOnClosed(event -> autoMinimize(left_tabs, this, 0.0));
         left_tabs.getTabs().setAll(search_tab);
 
-        properties_tab = new Tab("Properties", new PropertyPanel(model, plot.getPlot().getUndoableActionManager()));
+        property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
+        properties_tab = new Tab("Properties", property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
         export_tab = new Tab("Export");
@@ -185,6 +188,7 @@ public class Perspective extends SplitPane
     /** @param memento From where to restore previously saved settings */
     public void restore(final Memento memento)
     {
+        property_panel.restore(memento);
         search.restore(memento);
         memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
         memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
@@ -197,6 +201,7 @@ public class Perspective extends SplitPane
     public void save(final Memento memento)
     {
         search.save(memento);
+        property_panel.save(memento);
         memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
         memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
         memento.setBoolean(SHOW_SEARCH, left_tabs.getTabs().contains(search_tab));

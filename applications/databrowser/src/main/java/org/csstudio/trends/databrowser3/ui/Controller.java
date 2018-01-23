@@ -406,7 +406,7 @@ public class Controller
             }
 
             @Override
-            public void changeTimeAxisConfig()
+            public void changedTimeAxisConfig()
             {
                 plot.getPlot().getXAxis().setGridVisible(model.isGridVisible());
             }

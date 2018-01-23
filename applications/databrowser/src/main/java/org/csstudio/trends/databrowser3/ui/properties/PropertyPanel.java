@@ -7,8 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
-import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.ColorPicker;
@@ -26,6 +26,8 @@ import javafx.util.Callback;
 @SuppressWarnings("nls")
 public class PropertyPanel extends TabPane
 {
+    private static final String PROPERTY_TAB = "property_tab";
+
     /** Table cell where the value(!) is a ColorPicker */
     static class ColorTableCell<S> extends TableCell<S, ColorPicker>
     {
@@ -56,7 +58,7 @@ public class PropertyPanel extends TabPane
     public PropertyPanel(final Model model, final UndoableActionManager undo)
     {
         final Tab traces = new TracesTab(model, undo);
-        final Tab time_axis = new Tab(Messages.TimeAxis);
+        final Tab time_axis = new TimeAxisTab(model, undo);
         final Tab value_axes = new AxesTab(model, undo);
         final Tab misc = new MiscTab(model, undo);
         getTabs().setAll(traces, time_axis, value_axes, misc);
@@ -83,5 +85,15 @@ public class PropertyPanel extends TabPane
             cell.setTooltip(new Tooltip(text));
             return cell;
         });
+    }
+
+    public void restore(final Memento memento)
+    {
+        memento.getNumber(PROPERTY_TAB).ifPresent(tab -> getSelectionModel().select(tab.intValue()));
+    }
+
+    public void save(final Memento memento)
+    {
+        memento.setNumber(PROPERTY_TAB, getSelectionModel().getSelectedIndex());
     }
 }

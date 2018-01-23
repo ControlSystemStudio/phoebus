@@ -36,7 +36,7 @@ public interface ModelListener
     default void changedTimerange() {};
 
     /** Time axis grid, .. changed */
-    default void changeTimeAxisConfig() {};
+    default void changedTimeAxisConfig() {};
 
     /** @param axis Axis that changed its color, range, ....
      *              If <code>null</code>, an axis was added or removed
