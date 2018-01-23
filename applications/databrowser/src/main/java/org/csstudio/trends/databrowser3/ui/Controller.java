@@ -287,12 +287,12 @@ public class Controller
 //            else
 //            {
                 // Received PV names, maybe with archive
-                final UndoableActionManager operations_manager = plot.getPlot().getUndoableActionManager();
+                final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
 
                 // When multiple PVs are dropped, assert that there is at least one axis.
                 // Otherwise dialog cannot offer adding all PVs onto the same axis.
                 if (names.size() > 1  &&  model.getAxisCount() <= 0)
-                    new AddAxisCommand(operations_manager, model);
+                    new AddAxisCommand(undo, model);
 
                 final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
                 DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
@@ -303,16 +303,10 @@ public class Controller
 
                 for (int i=0; i<names.size(); ++i)
                 {
-                    final AxisConfig axis;
-                    if (dlg.getAxisIndex(i) >= 0)
-                        axis = model.getAxis(dlg.getAxisIndex(i));
-                    else // Use first empty axis, or create a new one
-                        axis = model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(operations_manager, model).getAxis());
-
-                    // Add new PV
+                    final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
                     final ArchiveDataSource archive =
                             (archives == null || i>=archives.size()) ? null : archives.get(i);
-                    AddModelItemCommand.forPV(operations_manager,
+                    AddModelItemCommand.forPV(undo,
                             model, dlg.getName(i), dlg.getScanPeriod(i),
                             axis, archive);
                 }

@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
+import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.PVItem;
@@ -25,6 +26,8 @@ import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
@@ -119,6 +122,38 @@ public class Perspective extends SplitPane
 
     private void createContextMenu()
     {
+        final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
+
+        final MenuItem add_pv = new MenuItem(Messages.AddPV, Activator.getIcon("add"));
+        add_pv.setOnAction(event ->
+        {
+            final AddPVDialog dlg = new AddPVDialog(1, model, false);
+            DialogHelper.positionDialog(dlg, plot.getPlot(), -400, -200);
+            if (! dlg.showAndWait().orElse(false))
+                return;
+
+            final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(0));
+            AddModelItemCommand.forPV(undo, model, dlg.getName(0), dlg.getScanPeriod(0), axis, null);
+        });
+
+        final MenuItem add_formula = new MenuItem(Messages.AddFormula, Activator.getIcon("add_formula"));
+        add_formula.setOnAction(event ->
+        {
+            final AddPVDialog dlg = new AddPVDialog(1, model, true);
+            DialogHelper.positionDialog(dlg, plot.getPlot(), -400, -200);
+            if (! dlg.showAndWait().orElse(false))
+                return;
+
+            final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(0));
+            throw new IllegalStateException("TODO");
+//            AddModelItemCommand.forFormula(undo, model, dlg.getName(0), dlg.getScanPeriod(0), axis);
+//            // Open configuration dialog
+//            final FormulaItem formula = (FormulaItem) command.get().getItem();
+//            final EditFormulaDialog edit =
+//                    new EditFormulaDialog(operations_manager, shell, formula);
+//            edit.open();
+        });
+
         final MenuItem show_search = new MenuItem(Messages.OpenSearchView, Activator.getIcon("search"));
         show_search.setOnAction(event -> showSearchTab());
 
@@ -132,7 +167,7 @@ public class Perspective extends SplitPane
 
         // TODO Open Waveform View
 
-        final ContextMenu menu = new ContextMenu(show_search, show_properties, show_export);
+        final ContextMenu menu = new ContextMenu(add_pv, add_formula, show_search, show_properties, show_export);
         plot.getPlot().setOnContextMenuRequested(event ->
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY()));
     }

@@ -16,7 +16,10 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.ui.properties.AddAxisCommand;
+import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -68,7 +71,6 @@ public class AddPVDialog extends Dialog<Boolean>
         getDialogPane().setContent(createContent(count));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-
         final Button ok = (Button) getDialogPane().lookupButton(ButtonType.OK);
         ok.addEventFilter(ActionEvent.ACTION, event ->
         {
@@ -79,6 +81,16 @@ public class AddPVDialog extends Dialog<Boolean>
         setResultConverter(button -> button == ButtonType.OK);
 
         setResizable(true);
+
+        setOnShown(event -> Platform.runLater(() ->
+        {
+            // Many names: Focus on OK to just confirm.
+            // Otherwise focus on first name so it can be entered
+            if (names.size() > 1)
+                ok.requestFocus();
+            else
+                names.get(0).requestFocus();
+        }));
     }
 
     private Node createContent(final int count)
@@ -165,6 +177,21 @@ public class AddPVDialog extends Dialog<Boolean>
     public int getAxisIndex(final int i)
     {
         return axes.get(i).getSelectionModel().getSelectedIndex();
+    }
+
+    /** Helper for getting or creating an axis
+     *  @param model {@link Model}
+     *  @param undo {@link UndoableActionManager}
+     *  @param axis_index Axis index from {@link AddPVDialog#getAxisIndex()}
+     *  @return Corresponding model axis, which might have been created as necessary
+     */
+    public static AxisConfig getOrCreateAxis(final Model model, final UndoableActionManager undo, final int axis_index)
+    {
+        // Did user select axis?
+        if (axis_index > 0)
+            return model.getAxis(axis_index-1);
+        // Use first empty axis, or create a new one
+        return model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(undo, model).getAxis());
     }
 
     private void checkDuplicateName(final TextField name)
