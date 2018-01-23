@@ -96,6 +96,9 @@ public class Model
     /** Show time axis grid line? */
     private volatile boolean show_grid = false;
 
+    /** Background color */
+    private volatile Color background = Color.WHITE;
+
     /** Title font */
     private volatile Font title_font = Font.font("Liberation Sans", FontWeight.BOLD, 20);
 
@@ -616,6 +619,22 @@ public class Model
         if (scroll_enabled)
             end_time = Instant.now();
         return end_time;
+    }
+
+    /** @return Background color */
+    public Color getPlotBackground()
+    {
+        return background;
+    }
+
+    /** @param rgb New background color */
+    public void setPlotBackground(final Color rgb)
+    {
+        if (background.equals(Objects.requireNonNull(rgb)))
+            return;
+        background = rgb;
+        for (ModelListener listener : listeners)
+            listener.changedColorsOrFonts();
     }
 
     /** @return <code>true</code> if toolbar is visible*/

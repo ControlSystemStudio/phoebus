@@ -359,20 +359,20 @@ public class Controller
             @Override
             public void changedTitle()
             {
-//                plot.getPlot().setTitle(model.getTitle().orElse(null));
+                plot.getPlot().setTitle(model.getTitle().orElse(null));
             }
 
             @Override
             public void changedLayout()
             {
-//                plot.getPlot().showToolbar(model.isToolbarVisible());
-//                plot.getPlot().showLegend(model.isLegendVisible());
+                plot.getPlot().showToolbar(model.isToolbarVisible());
+                plot.getPlot().showLegend(model.isLegendVisible());
             }
 
             @Override
             public void changedTiming()
             {
-//                plot.getPlot().setScrollStep(model.getScrollStep());
+                plot.getPlot().setScrollStep(model.getScrollStep());
                 if (update_task != null)
                     createUpdateTask();
             }
@@ -380,9 +380,9 @@ public class Controller
             @Override
             public void changedColorsOrFonts()
             {
-//                plot.getPlot().setBackground(SWTMediaPool.getJFX(model.getPlotBackground()));
-//                plot.getPlot().setTitleFont(SWTMediaPool.getJFX(model.getTitleFont()));
-//                plot.getPlot().setLegendFont(SWTMediaPool.getJFX(model.getLegendFont()));
+                plot.getPlot().setBackground(model.getPlotBackground());
+                plot.getPlot().setTitleFont(model.getTitleFont());
+                plot.getPlot().setLegendFont(model.getLegendFont());
                 setAxisFonts();
             }
 
@@ -408,7 +408,7 @@ public class Controller
             @Override
             public void changeTimeAxisConfig()
             {
-//                plot.getPlot().getXAxis().setGridVisible(model.isGridVisible());
+                plot.getPlot().getXAxis().setGridVisible(model.isGridVisible());
             }
 
             @Override
@@ -643,14 +643,14 @@ public class Controller
     /** Set all axis fonts to the scale and label font of the model */
     private void setAxisFonts()
     {
+        plot.getPlot().getXAxis().setLabelFont(model.getLabelFont());
+        plot.getPlot().getXAxis().setScaleFont(model.getScaleFont());
         final int acount = plot.getTotalAxesCount();
-//        final Font label_font = SWTMediaPool.getJFX(model.getLabelFont());
-//        final Font scale_font = SWTMediaPool.getJFX(model.getScaleFont());
-//        for (int idx = 0; idx < acount; idx++)
-//        {
-//            plot.getPlotAxis(idx).setLabelFont(label_font);
-//            plot.getPlotAxis(idx).setScaleFont(scale_font);
-//        }
+        for (int idx = 0; idx < acount; idx++)
+        {
+            plot.getPlotAxis(idx).setLabelFont(model.getLabelFont());
+            plot.getPlotAxis(idx).setScaleFont(model.getScaleFont());
+        }
     }
 
     /** Initiate archive data retrieval for all model items

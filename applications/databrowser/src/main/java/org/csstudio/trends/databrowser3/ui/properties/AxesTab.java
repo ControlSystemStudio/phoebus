@@ -107,7 +107,6 @@ public class AxesTab extends Tab
 
         setContent(new VBox(5, rescales, axes_table));
 
-        // TODO Model listener
         updateFromModel();
         model.addListener(model_listener);
     }
