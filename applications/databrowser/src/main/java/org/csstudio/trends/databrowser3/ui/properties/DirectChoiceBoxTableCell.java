@@ -15,6 +15,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TablePosition;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 
 /** Similar to ChoiceBoxTableCell, but always showing the choice box
@@ -59,13 +60,21 @@ public class DirectChoiceBoxTableCell<S, T> extends TableCell<S, T>
 
             choicebox.setOnAction(event ->
             {
-                // Prevent loop from 'setValue' call above
-                if (changing)
+                // Prevent loop from 'setValue' call above.
+                // Also ignore dummy updates to null which happen
+                // when the list of choices changes
+                if (changing ||
+                    choicebox.getValue() == null)
                     return;
+
+                final TableRow<S> row = getTableRow();
+                if (row == null)
+                    return;
+
                 // Fire 'onEditCommit'
                 final TableView<S> table = getTableView();
                 final TableColumn<S, T> col = getTableColumn();
-                final TablePosition<S, T> pos = new TablePosition<>(table, getTableRow().getIndex(), col);
+                final TablePosition<S, T> pos = new TablePosition<>(table, row.getIndex(), col);
                 Objects.requireNonNull(col.getOnEditCommit(), "Must define onEditCommit handler")
                        .handle(new CellEditEvent<>(table, pos, TableColumn.editCommitEvent(), choicebox.getValue()));
             });

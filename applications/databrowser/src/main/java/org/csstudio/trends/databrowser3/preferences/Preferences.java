@@ -92,9 +92,9 @@ public class Preferences
         {
             final String[] strs = fragment.split("\\|");
             if (strs.length == 1)
-                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[0]));
+                archive_urls.add(new ArchiveDataSource(strs[0], strs[0]));
             else if (strs.length >= 2)
-                archive_urls.add(new ArchiveDataSource(strs[0], 0, strs[1]));
+                archive_urls.add(new ArchiveDataSource(strs[0], strs[1]));
         }
 
         // TODO Read archives

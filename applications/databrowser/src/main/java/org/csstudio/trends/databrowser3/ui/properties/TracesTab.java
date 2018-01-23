@@ -9,12 +9,15 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
@@ -27,13 +30,13 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimestampFormats;
 
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -71,6 +74,8 @@ public class TracesTab extends Tab
     private final UndoableActionManager undo;
 
     private final TableView<ModelItem> trace_table = new TableView<>();
+
+    private final TableView<ArchiveDataSource> archives_table = new TableView<>();
 
     private final ObservableList<String> axis_names = FXCollections.observableArrayList();
 
@@ -171,6 +176,15 @@ public class TracesTab extends Tab
         }
     };
 
+    /** Update archives table when the selection model items change */
+    final InvalidationListener selection_changed = event ->
+    {
+        final ObservableList<ModelItem> items = trace_table.getSelectionModel().getSelectedItems();
+        archives_table.getItems().clear();
+        if (items.size() == 1)
+            if (items.get(0) instanceof PVItem)
+                archives_table.getItems().setAll(((PVItem)items.get(0)).getArchiveDataSources());
+    };
 
     TracesTab(final Model model, final UndoableActionManager undo)
     {
@@ -182,25 +196,28 @@ public class TracesTab extends Tab
         createTraceTable();
 
         // Bottom: Archives for selected trace
-        final Node archives = new Label("TODO Archives");
+        createArchivesTable();
 
-        final SplitPane top_bottom = new SplitPane(trace_table, archives);
+        final SplitPane top_bottom = new SplitPane(trace_table, archives_table);
         top_bottom.setOrientation(Orientation.VERTICAL);
-        top_bottom.setDividerPositions(0.6);
+        top_bottom.setDividerPositions(0.7);
 
         setContent(top_bottom);
 
         model.addListener(model_listener);
         updateFromModel();
+
+        trace_table.getSelectionModel().getSelectedItems().addListener(selection_changed);
     }
 
     private void updateFromModel()
     {
         trace_table.getItems().setAll(model.getItems());
 
-        axis_names.clear();
+        final List<String> names = new ArrayList<>(model.getAxes().size());
         for (AxisConfig ai : model.getAxes())
-            axis_names.add(ai.getName());
+            names.add(ai.getName());
+        axis_names.setAll(names);
     }
 
     private void createTraceTable()
@@ -240,7 +257,6 @@ public class TracesTab extends Tab
         // Trace PV/Formula Column ----------
         TableColumn<ModelItem, String> col = new TableColumn<>(Messages.ItemName);
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
-        // TODO Add PV Name completion
         col.setCellFactory(TextFieldTableCell.forTableColumn());
         col.setOnEditCommit(event ->
         {
@@ -374,7 +390,7 @@ public class TracesTab extends Tab
                     {
                         // Dynamic Tooltip that shows time range for the buffer
                         final int size = ((PVItem) getTableRow().getItem()).getLiveCapacity();
-                        // TODO Use relative time suppport to get readable time span
+                        // TODO Use relative time support to get readable time span
                         String span;
                         if (size > 60*60)
                             span = size / 60.0 / 60 + " hours";
@@ -533,5 +549,21 @@ public class TracesTab extends Tab
         trace_table.setEditable(true);
 
         // TODO Cursor value update
+    }
+
+    private void createArchivesTable()
+    {
+        archives_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        archives_table.setPlaceholder(new Label(Messages.ArchiveListGUI_NoArchives));
+
+        // Archive Name Column ----------
+        TableColumn<ArchiveDataSource, String> col = new TableColumn<>(Messages.ArchiveName);
+        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
+        archives_table.getColumns().add(col);
+
+        // Archive Server URL Column ----------
+        col = new TableColumn<>(Messages.URL);
+        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getUrl()));
+        archives_table.getColumns().add(col);
     }
 }

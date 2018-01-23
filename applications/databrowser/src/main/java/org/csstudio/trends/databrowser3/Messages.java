@@ -44,7 +44,6 @@ public class Messages
     public static String ArchiveFetchJobFmt;
     public static String ArchiveFetchProgressFmt;
     public static String ArchiveFetchStart;
-    public static String ArchiveKey;
     public static String ArchiveListGUI_NoArchives;
     public static String ArchiveName;
     public static String ArchiveRescale_Label;
@@ -161,7 +160,6 @@ public class Messages
     public static String InvalidStartEndTimeError;
     public static String ItemName;
     public static String ItemNameTT;
-    public static String KeyLbl;
     public static String LabelFontLbl;
     public static String LegendFontLbl;
     public static String LiveBufferSizeInfoFmt;

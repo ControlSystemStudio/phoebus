@@ -26,7 +26,7 @@ public class SearchJobDemo
     @Test
     public void testSearch() throws Exception
     {
-        final ArchiveDataSource archive = new ArchiveDataSource(DemoSettings.url, 0, "Test");
+        final ArchiveDataSource archive = new ArchiveDataSource(DemoSettings.url, "Test");
 
         final Job job = SearchJob.submit(List.of(archive),
                                          DemoSettings.name_pattern,

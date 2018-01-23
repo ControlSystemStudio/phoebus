@@ -99,7 +99,6 @@ public class XMLPersistence
     final public static String TAG_ARCHIVE = "archive";
 
     final public static String TAG_URL = "url";
-    final public static String TAG_KEY = "key";
 
     final public static String TAG_FORMULA = "formula";
     final public static String TAG_INPUT = "input";

@@ -17,6 +17,7 @@ import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.ui.properties.AddAxisCommand;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -115,6 +116,7 @@ public class AddPVDialog extends Dialog<Boolean>
             final TextField name = new TextField();
             name.textProperty().addListener(event -> checkDuplicateName(name));
             name.setTooltip(new Tooltip(formula ? Messages.AddFormula_NameTT : Messages.AddPV_NameTT));
+            PVAutocompleteMenu.INSTANCE.attachField(name);
             names.add(name);
             layout.add(name, 1, row, 2, 1);
 

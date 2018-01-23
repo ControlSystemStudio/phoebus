@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.csstudio.trends.databrowser3.Messages;
@@ -35,7 +36,7 @@ public class ChangeAxisCommand extends UndoableAction
         super(Messages.Axis);
         this.item = item;
         this.old_axis = item.getAxis();
-        this.new_axis = axis;
+        this.new_axis = Objects.requireNonNull(axis);
         operations_manager.execute(this);
     }
 

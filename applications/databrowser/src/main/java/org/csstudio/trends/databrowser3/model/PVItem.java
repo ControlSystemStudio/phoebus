@@ -471,9 +471,6 @@ public class PVItem extends ModelItem
                     writer.writeStartElement(XMLPersistence.TAG_URL);
                     writer.writeCharacters(archive.getUrl());
                     writer.writeEndElement();
-                    writer.writeStartElement(XMLPersistence.TAG_KEY);
-                    writer.writeCharacters(Integer.toString(archive.getKey()));
-                    writer.writeEndElement();
                 }
                 writer.writeEndElement();
             }
@@ -514,14 +511,13 @@ public class PVItem extends ModelItem
         for (Element archive : XMLUtil.getChildElements(node, XMLPersistence.TAG_ARCHIVE))
         {
             final String url = XMLUtil.getChildString(archive, XMLPersistence.TAG_URL).orElse(null);
-            final int key = XMLUtil.getChildInteger(archive, XMLPersistence.TAG_KEY).orElse(0);
             final String arch = XMLUtil.getChildString(archive, XMLPersistence.TAG_NAME).orElse(null);
 
 // TODO ImportArchiveReaderFactory
 //            if (url.startsWith(ImportArchiveReaderFactory.PREFIX))
 //                have_imported_data = true;
 
-            item.addArchiveDataSource(new ArchiveDataSource(url, key, arch));
+            item.addArchiveDataSource(new ArchiveDataSource(url, arch));
         }
 
         // When requested, use default archive sources for 'real' archives (RDB, ...)

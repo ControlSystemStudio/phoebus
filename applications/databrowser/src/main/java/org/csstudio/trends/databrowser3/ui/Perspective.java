@@ -76,7 +76,7 @@ public class Perspective extends SplitPane
             final PVItem item = new PVItem("DTL_LLRF:IOC1:Load", 0.0);
             item.setDisplayName("CPU Load");
             String url = "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=OFF)(FAILOVER=ON)(ADDRESS=(PROTOCOL=TCP)(HOST=snsappa.sns.ornl.gov)(PORT=1610))(ADDRESS=(PROTOCOL=TCP)(HOST=snsappb.sns.ornl.gov)(PORT=1610))(CONNECT_DATA=(SERVICE_NAME=prod_controls)))";
-            item.addArchiveDataSource(new ArchiveDataSource(url, 0, "Accelerator"));
+            item.addArchiveDataSource(new ArchiveDataSource(url, "Accelerator"));
 
             model.addItem(item);
         }
