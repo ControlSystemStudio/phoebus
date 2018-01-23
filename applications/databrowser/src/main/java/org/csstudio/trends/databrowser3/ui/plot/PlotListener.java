@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.plot;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public interface PlotListener
     /** Received names, presumably for PVs, via drag & drop
      *  @param name PV(?) names
      */
-    public void droppedNames(String[] name);
+    public void droppedNames(List<String> name);
 
     /** Received PV names and/or archive data sources via drag & drop
      *
@@ -54,10 +55,10 @@ public interface PlotListener
      *  @param name PV names or <code>null</code>
      *  @param archive Archive data sources or <code>null</code>
      */
-    public void droppedPVNames(ProcessVariable[] name, ArchiveDataSource[] archive);
+    public void droppedPVNames(List<ProcessVariable> name, List<ArchiveDataSource> archive);
 
     /** Received a file name */
-    public void droppedFilename(String file_name);
+    public void droppedFilename(File file_name);
 
     /** Received updated annotations */
     public void changedAnnotations(List<AnnotationInfo> annotations);

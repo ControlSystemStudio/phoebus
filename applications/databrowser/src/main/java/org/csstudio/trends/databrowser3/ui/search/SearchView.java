@@ -8,7 +8,9 @@
 package org.csstudio.trends.databrowser3.ui.search;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.archive.SearchJob;
@@ -39,7 +41,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -50,6 +56,9 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class SearchView extends SplitPane
 {
+    /** Drag-and-Drop data format used to exchange {@link List} of {@link ChannelInfo} */
+    public static final DataFormat CHANNEL_INFOS = new DataFormat("databrowser.channelinfos");
+
     private static final String SEARCH_PANEL_SPLIT = "search_panel_split";
 
     private final Model model;
@@ -129,6 +138,8 @@ public class SearchView extends SplitPane
         channel_table.setContextMenu(menu);
         channel_table.setOnContextMenuRequested(this::updateContextMenu);
 
+        setupDrag();
+
         Platform.runLater(() -> pattern.requestFocus());
     }
 
@@ -147,6 +158,26 @@ public class SearchView extends SplitPane
             ContextMenuHelper.addSupportedEntries(channel_table, menu);
             menu.show(channel_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         }
+    }
+
+    /** Allow dragging {@link ChannelInfo} from search view (into plot) */
+    private void setupDrag()
+    {
+        channel_table.setOnDragDetected(event ->
+        {
+            final List<ChannelInfo> selection = channel_table.getSelectionModel().getSelectedItems();
+            if (selection.size() > 0)
+            {
+                final Dragboard db = channel_table.startDragAndDrop(TransferMode.COPY);
+                final ClipboardContent content = new ClipboardContent();
+                // Publish PV names as "PV1, PV2, ..."
+                content.putString(selection.stream().map(ChannelInfo::getName).collect(Collectors.joining(", ")));
+                // Copy into ArrayList which is for sure Serializable
+                content.put(CHANNEL_INFOS, new ArrayList<>(selection));
+                db.setContent(content);
+            }
+            event.consume();
+        });
     }
 
     private void searchForChannels()

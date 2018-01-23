@@ -9,6 +9,7 @@ package org.csstudio.trends.databrowser3.ui;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -37,7 +38,10 @@ import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
+import org.csstudio.trends.databrowser3.ui.properties.AddAxisCommand;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
 
@@ -249,7 +253,7 @@ public class Controller
         }
 
         @Override
-        public void droppedNames(String[] name)
+        public void droppedNames(List<String> name)
         {
             // TODO
 //            // Offer potential PV name in dialog so user can edit/cancel
@@ -260,8 +264,8 @@ public class Controller
         }
 
         @Override
-        public void droppedPVNames(ProcessVariable[] name,
-                ArchiveDataSource[] archive)
+        public void droppedPVNames(List<ProcessVariable> names,
+                                   List<ArchiveDataSource> archives)
         {
             // TODO Auto-generated method stub
 //            if (names == null)
@@ -281,42 +285,44 @@ public class Controller
 //                    }
 //            }
 //            else
-//            {   // Received PV names, maybe with archive
-//                final UndoableActionManager operations_manager = plot.getPlot().getUndoableActionManager();
-//
-//                // When multiple PVs are dropped, assert that there is at least one axis.
-//                // Otherwise dialog cannot offer adding all PVs onto the same axis.
-//                if (names.length > 1  &&  model.getAxisCount() <= 0)
-//                    new AddAxisCommand(operations_manager, model);
-//
-//                final AddPVDialog dlg = new AddPVDialog(shell, names.length, model, false);
-//                for (int i=0; i<names.length; ++i)
-//                    dlg.setName(i, names[i].getName());
-//                if (dlg.open() != Window.OK)
-//                    return;
-//
-//                for (int i=0; i<names.length; ++i)
-//                {
-//                    final AxisConfig axis;
-//                    if (dlg.getAxisIndex(i) >= 0)
-//                        axis = model.getAxis(dlg.getAxisIndex(i));
-//                    else // Use first empty axis, or create a new one
-//                        axis = model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(operations_manager, model).getAxis());
-//
-//                    // Add new PV
-//                    final ArchiveDataSource archive =
-//                            (archives == null || i>=archives.length) ? null : archives[i];
-//                    AddModelItemCommand.forPV(shell, operations_manager,
-//                            model, dlg.getName(i), dlg.getScanPeriod(i),
-//                            axis, archive);
-//                }
+//            {
+                // Received PV names, maybe with archive
+                final UndoableActionManager operations_manager = plot.getPlot().getUndoableActionManager();
+
+                // When multiple PVs are dropped, assert that there is at least one axis.
+                // Otherwise dialog cannot offer adding all PVs onto the same axis.
+                if (names.size() > 1  &&  model.getAxisCount() <= 0)
+                    new AddAxisCommand(operations_manager, model);
+
+                final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
+                DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
+                for (int i=0; i<names.size(); ++i)
+                    dlg.setName(i, names.get(i).getName());
+                if (! dlg.showAndWait().orElse(false))
+                    return;
+
+                for (int i=0; i<names.size(); ++i)
+                {
+                    final AxisConfig axis;
+                    if (dlg.getAxisIndex(i) >= 0)
+                        axis = model.getAxis(dlg.getAxisIndex(i));
+                    else // Use first empty axis, or create a new one
+                        axis = model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(operations_manager, model).getAxis());
+
+                    // Add new PV
+                    final ArchiveDataSource archive =
+                            (archives == null || i>=archives.size()) ? null : archives.get(i);
+                    AddModelItemCommand.forPV(operations_manager,
+                            model, dlg.getName(i), dlg.getScanPeriod(i),
+                            axis, archive);
+                }
 //                return;
 //            }
 
         }
 
         @Override
-        public void droppedFilename(String file_name)
+        public void droppedFilename(File file_name)
         {
             // TODO Auto-generated method stub
 //            final FileImportDialog dlg = new FileImportDialog(shell, file_name);

@@ -7,25 +7,35 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
+import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
 
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
 
 /** Combined layout of all data browser components
@@ -94,7 +104,7 @@ public class Perspective extends SplitPane
         setDividerPositions(0.2);
 
         createContextMenu();
-
+        setupDrop();
 
         controller = new Controller(model, plot);
         try
@@ -125,6 +135,64 @@ public class Perspective extends SplitPane
         final ContextMenu menu = new ContextMenu(show_search, show_properties, show_export);
         plot.getPlot().setOnContextMenuRequested(event ->
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY()));
+    }
+
+    private void setupDrop()
+    {
+        final Node node = plot.getPlot();
+        node.setOnDragOver(event ->
+        {
+            final Dragboard db = event.getDragboard();
+            if (db.hasString()  ||
+                db.hasContent(SearchView.CHANNEL_INFOS))
+            {
+                event.acceptTransferModes(TransferMode.COPY);
+            }
+            event.consume();
+        });
+
+        node.setOnDragDropped(event ->
+        {
+            final PlotListener lst = plot.getListener();
+            if (lst == null)
+                return;
+            final Dragboard db = event.getDragboard();
+
+            if (db.hasContent(SearchView.CHANNEL_INFOS))
+            {
+                @SuppressWarnings("unchecked")
+                final List<ChannelInfo> channels = (List<ChannelInfo>) db.getContent(SearchView.CHANNEL_INFOS);
+                final List<ProcessVariable> pvs = new ArrayList<>(channels);
+                final List<ArchiveDataSource> archives = channels.stream().map(ChannelInfo::getArchiveDataSource).collect(Collectors.toList());
+                lst.droppedPVNames(pvs, archives);
+            }
+            else if (db.hasString())
+            {
+                final List<String> pvs = new ArrayList<>();
+                // Allow passing in many names, assuming that white space separates them
+                final String[] names = db.getString().split("[\\r\\n\\t ]+");
+                for (String one_name : names)
+                {   // Might also have received "[pv1, pv2, pv2]", turn that into "pv1", "pv2", "pv3"
+                    String suggestion = one_name;
+                    if (suggestion.startsWith("["))
+                        suggestion = suggestion.substring(1);
+                    if (suggestion.endsWith("]")  &&  !suggestion.contains("["))
+                        suggestion = suggestion.substring(0, suggestion.length()-1);
+                    if (suggestion.endsWith(","))
+                        suggestion = suggestion.substring(0, suggestion.length()-1);
+                    pvs.add(suggestion);
+                }
+                if (pvs.size() > 0)
+                    lst.droppedNames(pvs);
+            }
+            else if (db.hasFiles())
+            {
+                for (File file : db.getFiles())
+                    lst.droppedFilename(file);
+            }
+            event.setDropCompleted(true);
+            event.consume();
+        });
     }
 
     /** If there are no tabs, minimize that part of the split pane

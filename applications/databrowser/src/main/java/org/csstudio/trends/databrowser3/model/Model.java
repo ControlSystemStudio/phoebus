@@ -239,6 +239,19 @@ public class Model
     }
 
     /** @param axis Axis to test
+     *  @return First ModelItem that uses the axis, visible or not.
+     *          <code>null</code> if axis is empty
+     */
+    public ModelItem getFirstItemOnAxis(final AxisConfig axis)
+    {
+        Objects.requireNonNull(axis);
+        for (ModelItem item : items)
+            if (item.getAxis() == axis)
+                return item;
+        return null;
+    }
+
+    /** @param axis Axis to test
      *  @return <code>true</code> if there is any visible item on the axis
      */
     public boolean hasAxisActiveItems(final AxisConfig axis)
@@ -249,6 +262,16 @@ public class Model
                 return true;
         return false;
     }
+
+    /** @return First unused axis (no items on axis) */
+    public Optional<AxisConfig> getEmptyAxis()
+    {
+        for (AxisConfig axis : axes)
+            if (getFirstItemOnAxis(axis) == null)
+                return Optional.of(axis);
+        return Optional.empty();
+    }
+
 
     /** Add value axis with default settings
      *  @return Newly added axis configuration
