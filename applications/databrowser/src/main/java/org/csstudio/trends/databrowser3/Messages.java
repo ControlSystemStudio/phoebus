@@ -55,7 +55,6 @@ public class Messages
     public static String ArchiveServerInfoTT;
     public static String ArchiveURLDialogTitle;
     public static String AutoScale;
-    public static String AxesFontTT;
     public static String Axis;
     public static String AxisLabelFont;
     public static String AxisMax;
@@ -138,6 +137,7 @@ public class Messages
     public static String ExportTypeSpreadsheetTT;
     public static String ExportValueInfo;
     public static String ExportValueInfoTT;
+    public static String FontTT;
     public static String Format_Decimal;
     public static String Format_Default;
     public static String Format_Exponential;
@@ -163,9 +163,7 @@ public class Messages
     public static String ItemNameTT;
     public static String KeyLbl;
     public static String LabelFontLbl;
-    public static String LabelFontTT;
     public static String LegendFontLbl;
-    public static String LegendFontTT;
     public static String LiveBufferSizeInfoFmt;
     public static String LiveData;
     public static String LiveSampleBufferSize;
@@ -258,7 +256,6 @@ public class Messages
     public static String TimeAxis;
     public static String TimeColumn;
     public static String TitleFontLbl;
-    public static String TitleFontTT;
     public static String TitleLbl;
     public static String TitleTT;
     public static String TraceDisplayName;

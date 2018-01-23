@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.util.RGBFactory;
@@ -47,6 +48,9 @@ import javafx.scene.text.FontWeight;
 @SuppressWarnings("nls")
 public class Model
 {
+    /** Should UI ask to save changes to the model? */
+    final private AtomicBoolean save_changes = new AtomicBoolean(true);
+
     /** Default colors for newly added item */
     final private RGBFactory default_colors = new RGBFactory();
 
@@ -118,6 +122,20 @@ public class Model
 
     public Model()
     {
+    }
+
+    /** @return Should UI ask to save changes to the model? */
+    public boolean shouldSaveChanges()
+    {
+        return save_changes.get();
+    }
+
+    /** @param save_changes Should UI ask to save changes to the model? */
+    public void setSaveChanges(final boolean save_changes)
+    {
+        if (this.save_changes.getAndSet(save_changes) != save_changes)
+            for (ModelListener listener : listeners)
+                listener.changedSaveChangesBehavior(save_changes);
     }
 
     /** @param macroValueProvider Macros to use in this model */
