@@ -78,11 +78,13 @@ public class PVTableInstance implements AppInstance
         return app;
     }
 
+    /** @return {@link PVTableModel} */
     public PVTableModel getModel()
     {
         return model;
     }
 
+    /** Raise instance in case another tab is currently visible */
     public void raise()
     {
         dock_item.select();

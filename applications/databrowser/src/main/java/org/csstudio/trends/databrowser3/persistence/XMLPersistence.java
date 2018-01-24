@@ -121,7 +121,7 @@ public class XMLPersistence
      *  @param stream XML stream
      *  @throws Exception on error
      */
-    public void load(final Model model, final InputStream stream) throws Exception
+    public static void load(final Model model, final InputStream stream) throws Exception
     {
         final DocumentBuilder docBuilder =
                 DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -129,7 +129,7 @@ public class XMLPersistence
         load(model, doc);
     }
 
-    private void load(final Model model, final Document doc) throws Exception
+    private static void load(final Model model, final Document doc) throws Exception
     {
         if (model.getItems().size() > 0)
             throw new RuntimeException("Model was already in use");
@@ -371,7 +371,7 @@ public class XMLPersistence
         return Optional.of(Font.font(family, weight, posture, size ));
     }
 
-    private void writeFont(XMLStreamWriter writer, final String tag_name, final Font font) throws Exception
+    private static void writeFont(XMLStreamWriter writer, final String tag_name, final Font font) throws Exception
     {
         writer.writeStartElement(tag_name);
         final StringBuilder buf = new StringBuilder();
@@ -395,7 +395,7 @@ public class XMLPersistence
      *  @param writer {@link XMLStreamWriter}
      *  @throws Exception on error
      */
-    public void write(final Model model, final XMLStreamWriter writer) throws Exception
+    public static void write(final Model model, final XMLStreamWriter writer) throws Exception
     {
         writer.writeStartDocument();
         writer.writeStartElement(TAG_DATABROWSER);
