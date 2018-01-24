@@ -58,8 +58,8 @@ import javafx.scene.control.MenuItem;
 public class DisplayEditorInstance implements AppInstance
 {
     /** Memento tags */
-    private static final String LEFT_DIVIDER = "LEFT_DIVIDER",
-                                RIGHT_DIVIDER = "RIGHT_DIVIDER";
+    private static final String LEFT_DIVIDER = "left_divider",
+                                RIGHT_DIVIDER = "right_divider";
     private final AppResourceDescriptor app;
     private DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
