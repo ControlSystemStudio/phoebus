@@ -143,8 +143,6 @@ public class PhoebusApplication extends Application {
         // Show splash screen as soon as possible..
         final Splash splash = new Splash(initial_stage);
 
-        new ResponsivenessMonitor(500, TimeUnit.MILLISECONDS);
-
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
         {
@@ -259,6 +257,12 @@ public class PhoebusApplication extends Application {
         DockPane.addListener(dock_pane_listener);
         DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
         monitor.done();
+
+        // Now that UI has loaded,
+        // start the responsiveness check.
+        // During startup, it would trigger
+        // as the UI loads style sheets etc.
+        new ResponsivenessMonitor(2500, 500, TimeUnit.MILLISECONDS);
     }
 
     /** Handle parameters from clients, logging errors
