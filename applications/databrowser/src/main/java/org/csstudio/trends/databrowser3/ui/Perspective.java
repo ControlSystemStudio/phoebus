@@ -119,6 +119,12 @@ public class Perspective extends SplitPane
         }
     }
 
+    /** @return {@link Model} */
+    public Model getModel()
+    {
+        return model;
+    }
+
     private void createContextMenu()
     {
         final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();

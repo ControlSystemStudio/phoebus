@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3;
 
+import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.Perspective;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.persistence.Memento;
@@ -17,6 +18,12 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.stage.FileChooser.ExtensionFilter;
 
+/** Application instance
+ *
+ *  <p>Runs a {@link Perspective} in a {@link DockItemWithInput}
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
 public class DataBrowserInstance implements AppInstance
 {
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[] { new ExtensionFilter("Data Browser", "*.plt") };
@@ -50,6 +57,12 @@ public class DataBrowserInstance implements AppInstance
         return app;
     }
 
+    /** @return {@link Model} */
+    public Model getModel()
+    {
+        return perspective.getModel();
+    }
+
     @Override
     public void restore(final Memento memento)
     {
@@ -71,4 +84,5 @@ public class DataBrowserInstance implements AppInstance
     {
         perspective.dispose();
     }
+
 }
