@@ -54,8 +54,8 @@ public class Perspective extends SplitPane
                                 SHOW_EXPORT = "show_export";
 
     private final Model model = new Model();
-    private final SearchView search = new SearchView(model);
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
+    private final SearchView search = new SearchView(model, plot.getPlot().getUndoableActionManager());
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();

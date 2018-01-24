@@ -22,6 +22,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -62,6 +63,7 @@ public class SearchView extends SplitPane
     private static final String SEARCH_PANEL_SPLIT = "search_panel_split";
 
     private final Model model;
+    private final UndoableActionManager undo;
     private final ArchiveListPane archive_list = new ArchiveListPane();
     private final TextField pattern = new TextField();
     private RadioButton result_replace;
@@ -77,10 +79,12 @@ public class SearchView extends SplitPane
      *  using only the API defined in here
      *
      *  @param model
+     *  @param undo
      */
-    public SearchView(final Model model)
+    public SearchView(final Model model, final UndoableActionManager undo)
     {
         this.model = model;
+        this.undo = undo;
         // Archive List
 
         // Pattern: ____________ [Search]
@@ -151,7 +155,7 @@ public class SearchView extends SplitPane
             menu.getItems().clear();
         else
         {
-            menu.getItems().setAll(new AddToPlotAction(model, selection),
+            menu.getItems().setAll(new AddToPlotAction(channel_table, model, undo, selection),
                                    new SeparatorMenuItem());
 
             SelectionService.getInstance().setSelection(channel_table, selection);

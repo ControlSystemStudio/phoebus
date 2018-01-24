@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.ui;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -24,7 +25,7 @@ public class SearchViewDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final SearchView search_view = new SearchView(new Model());
+        final SearchView search_view = new SearchView(new Model(), new UndoableActionManager(10));
 
         final BorderPane layout = new BorderPane(search_view);
         final Scene scene = new Scene(layout, 300, 900);
