@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.TraceType;
@@ -26,6 +27,9 @@ import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.RequestType;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimestampFormats;
@@ -42,7 +46,11 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
@@ -197,6 +205,8 @@ public class TracesTab extends Tab
 
         // Bottom: Archives for selected trace
         createArchivesTable();
+
+        createContextMenu();
 
         final SplitPane top_bottom = new SplitPane(trace_table, archives_table);
         top_bottom.setOrientation(Orientation.VERTICAL);
@@ -383,11 +393,18 @@ public class TracesTab extends Tab
                 public void updateItem(String value, boolean empty)
                 {
                     super.updateItem(value, empty);
-                    final ModelItem item = getTableRow().getItem();
-                    if (empty  ||  ! (item instanceof PVItem))
+                    if (empty)
                         this.setTooltip(null);
                     else
                     {
+                        if (getTableRow() == null)
+                            return;
+                        final ModelItem item = getTableRow().getItem();
+                        if (! (item instanceof PVItem))
+                        {
+                            this.setTooltip(null);
+                            return;
+                        }
                         // Dynamic Tooltip that shows time range for the buffer
                         final int size = ((PVItem) getTableRow().getItem()).getLiveCapacity();
                         // TODO Use relative time support to get readable time span
@@ -546,6 +563,7 @@ public class TracesTab extends Tab
         PropertyPanel.addTooltip(col, Messages.WaveformIndexColTT);
         trace_table.getColumns().add(col);
 
+        trace_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         trace_table.setEditable(true);
 
         // TODO Cursor value update
@@ -565,5 +583,44 @@ public class TracesTab extends Tab
         col = new TableColumn<>(Messages.URL);
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getUrl()));
         archives_table.getColumns().add(col);
+    }
+
+    private void createContextMenu()
+    {
+        final MenuItem add_pv = new AddPVorFormulaMenuItem(trace_table, model, undo, false);
+        final MenuItem add_formula = new AddPVorFormulaMenuItem(trace_table, model, undo, true);
+        final ContextMenu menu = new ContextMenu();
+
+        trace_table.setOnContextMenuRequested(event ->
+        {
+            final ObservableList<MenuItem> items = menu.getItems();
+            items.setAll(add_pv, add_formula);
+
+            final List<ModelItem> selection = trace_table.getSelectionModel().getSelectedItems();
+
+            if (selection.size() == 1)
+                items.add(new MoveItemAction(model, undo, selection.get(0), true));
+
+            if (selection.size() > 0)
+                items.add(new DeleteItemsMenuItem(model, undo, selection));
+
+            if (selection.size() == 1)
+                items.add(new MoveItemAction(model, undo, selection.get(0), false));
+
+            items.add(new SeparatorMenuItem());
+
+            // Add PV-based entries
+            final List<ProcessVariable> pvs = selection.stream()
+                                                       .filter(item -> item instanceof PVItem)
+                                                       .map(item -> new ProcessVariable(item.getName()))
+                                                       .collect(Collectors.toList());
+            if (pvs.size() > 0)
+            {
+                SelectionService.getInstance().setSelection(this, pvs);
+                ContextMenuHelper.addSupportedEntries(trace_table, menu);
+            }
+
+            menu.show(trace_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
     }
 }

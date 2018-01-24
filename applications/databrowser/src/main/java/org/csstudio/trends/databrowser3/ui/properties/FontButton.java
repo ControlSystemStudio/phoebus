@@ -8,6 +8,7 @@
 package org.csstudio.trends.databrowser3.ui.properties;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.csstudio.trends.databrowser3.Activator;
@@ -124,6 +125,8 @@ public class FontButton extends Button
 
     private void updateFont()
     {
+        if (size.getValue() == null)
+            return;
         final double s = Double.parseDouble(size.getValue());
         font = Font.font(families.getValue(),
                          bold.isSelected() ? FontWeight.BOLD : FontWeight.NORMAL,
@@ -134,6 +137,7 @@ public class FontButton extends Button
 
     public void selectFont(final Font font)
     {
+        Objects.requireNonNull(font);
         setText(getDescription(font));
         families.getSelectionModel().select(font.getFamily());
         size.setValue(Integer.toString((int) font.getSize()));
