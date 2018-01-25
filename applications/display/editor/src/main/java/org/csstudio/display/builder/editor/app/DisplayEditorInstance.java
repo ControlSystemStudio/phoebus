@@ -132,7 +132,13 @@ public class DisplayEditorInstance implements AppInstance
 
         final DisplayModel model = editor_gui.getDisplayEditor().getModel();
         if (model != null  &&  !model.isClassModel())
+        {
             items.add(new ReloadClassesAction(this));
+
+            // No widgets selected: Add actions for just the model
+            if (selection.isEmpty())
+                items.add(new SetDisplaySize(editor_gui.getDisplayEditor()));
+        }
     }
 
     @Override
