@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import org.csstudio.trends.databrowser3.Activator;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.ui.dialog.PopOver;
 
 import javafx.application.Platform;
@@ -95,7 +96,7 @@ public class FontButton extends Button
         buttons.getButtons().addAll(ok, cancel);
         layout.add(buttons, 0, 4, 4, 1);
 
-        Activator.thread_pool.submit(this::getFamilies);
+        JobManager.schedule("Get Fonts", this::getFamilies);
 
         size.setEditable(true);
         families.valueProperty().addListener(event -> updateFont());
@@ -113,7 +114,7 @@ public class FontButton extends Button
         return layout;
     }
 
-    private void getFamilies()
+    private void getFamilies(final JobMonitor monitor)
     {
         final List<String> fams = Font.getFamilies();
         Platform.runLater(() ->
