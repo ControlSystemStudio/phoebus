@@ -8,6 +8,16 @@ import java.util.ServiceLoader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * A service for creating log entries into the registered log clients.
+ * 
+ * TODO the service might be less confusing if it simply returned the registered
+ * {@link LogFactory}'s and then has the calling code submit logging request to
+ * the clients.
+ * 
+ * @author Kunal Shroff
+ *
+ */
 public class LogService {
 
     static final java.lang.String SERVICE_NAME = "LoggingService";
@@ -50,7 +60,7 @@ public class LogService {
     public void createLogEntry(LogEntry logEntry) {
         executor.submit(() -> {
             logFactories.values().stream().forEach(logFactory -> {
-                logFactory.createLogEntry(logEntry);
+                logFactory.getLogClient().set(logEntry);
             });
         });
     }
@@ -63,8 +73,8 @@ public class LogService {
     public void createLogEntry(List<LogEntry> logEntries) {
         executor.submit(() -> {
             logFactories.values().stream().forEach(logFactory -> {
-                logEntries.forEach(log -> {
-                    logFactory.createLogEntry(log);
+                logEntries.forEach(logEntry -> {
+                    logFactory.getLogClient().set(logEntry);
                 });
             });
         });
@@ -76,9 +86,9 @@ public class LogService {
      * @param id
      * @param log
      */
-    public void createLogEntry(String id, LogEntry log) {
+    public void createLogEntry(String id, LogEntry logEntry) {
         executor.submit(() -> {
-            logFactories.get(id).createLogEntry(log);
+            logFactories.get(id).getLogClient().set(logEntry);
         });
     }
 }
