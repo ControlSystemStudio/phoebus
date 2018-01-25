@@ -134,6 +134,8 @@ public class PhoebusApplication extends Application {
         }
     };
 
+    private ResponsivenessMonitor freezeup_check;
+
 
     /** JavaFX entry point
      *  @param initial_stage Initial Stage created by JavaFX
@@ -262,7 +264,7 @@ public class PhoebusApplication extends Application {
         // start the responsiveness check.
         // During startup, it would trigger
         // as the UI loads style sheets etc.
-        new ResponsivenessMonitor(2500, 500, TimeUnit.MILLISECONDS);
+        freezeup_check = new ResponsivenessMonitor(2500, 500, TimeUnit.MILLISECONDS);
     }
 
     /** Handle parameters from clients, logging errors
@@ -814,6 +816,8 @@ public class PhoebusApplication extends Application {
     public void stop() {
         stopApplications();
 
+        if (freezeup_check != null)
+            freezeup_check.close();
         // Hard exit because otherwise background threads
         // might keep us from quitting the VM
         logger.log(Level.INFO, "Exiting");

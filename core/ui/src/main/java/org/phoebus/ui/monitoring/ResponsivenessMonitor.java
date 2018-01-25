@@ -136,4 +136,10 @@ public class ResponsivenessMonitor
         // Indicate that UI thread executed
         ui_thread_responded.set(true);
     }
+
+    /** Stop the monitor */
+    public void close()
+    {
+        timer.shutdown();
+    }
 }
