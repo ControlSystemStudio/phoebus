@@ -9,14 +9,11 @@ package org.csstudio.javafx.rtplot;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.csstudio.javafx.rtplot.internal.undo.UpdateScrolling;
-import org.csstudio.javafx.rtplot.util.NamedThreadFactory;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
@@ -32,9 +29,6 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class RTTimePlot extends RTPlot<Instant>
 {
-    final private static ScheduledExecutorService scroll_timer =
-            Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("RTPlotScroll"));
-
     private final Image scroll_on, scroll_off;
     private final ImageView scroll_img;
 
@@ -112,7 +106,7 @@ public class RTTimePlot extends RTPlot<Instant>
             // disable scrolling
             scroll();
             final long scroll_period = scroll_step.toMillis();
-            was_scrolling = scrolling.getAndSet(scroll_timer.scheduleAtFixedRate(RTTimePlot.this::scroll, scroll_period, scroll_period, TimeUnit.MILLISECONDS));
+            was_scrolling = scrolling.getAndSet(Activator.thread_pool.scheduleAtFixedRate(RTTimePlot.this::scroll, scroll_period, scroll_period, TimeUnit.MILLISECONDS));
         }
         else
         {   // Other way around
