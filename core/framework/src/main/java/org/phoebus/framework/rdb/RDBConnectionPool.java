@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
@@ -148,11 +149,13 @@ public class RDBConnectionPool
     {
         try
         {
+            logger.log(Level.FINE, "Closing " + connection.getMetaData().getDatabaseProductName());
             connection.close();
         }
         catch (Exception ex)
         {
-            // Ignore, closing anyway
+            // Ignore, closing anyway?
+            logger.log(Level.FINE, "Error closing RDB connection", ex);
         }
     }
 }
