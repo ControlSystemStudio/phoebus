@@ -798,9 +798,6 @@ public class PhoebusApplication extends Application {
             monitor.updateTaskName("Starting " + app.getDisplayName());
             app.start();
             monitor.worked(1);
-
-            // TODO Remove dummy delay
-            try { Thread.sleep(100); } catch (InterruptedException ex) {}
         }
     }
 
