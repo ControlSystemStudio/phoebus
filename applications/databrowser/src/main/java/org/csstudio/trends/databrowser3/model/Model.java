@@ -27,7 +27,6 @@ import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
-import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
 
 import javafx.scene.paint.Color;
@@ -55,7 +54,7 @@ public class Model
     final private RGBFactory default_colors = new RGBFactory();
 
     /** Macros */
-    private volatile MacroValueProvider macros = new Macros();
+    private volatile Macros macros = new Macros();
 
     /** Listeners to model changes */
     final private List<ModelListener> listeners = new CopyOnWriteArrayList<>();
@@ -127,6 +126,52 @@ public class Model
     {
     }
 
+    /** Load state from another model
+     *
+     *  <p>Takes shortcuts by directly copying data
+     *  from other model.
+     *  Only permitted when this model has no items.
+     *  The other Model should not be used after
+     *  it has been loaded into this model.
+     *
+     *  @param other Other model to load
+     *  @throws Exception
+     */
+    public void load(final Model other) throws Exception
+    {
+        if (! items.isEmpty())
+            throw new IllegalStateException("Can only load into an empty model with no items");
+        if (! axes.isEmpty())
+            throw new IllegalStateException("Can only load into an empty model with no axes");
+
+        setSaveChanges(other.save_changes.get());
+        macros = other.macros;
+
+        setTitle(other.getTitle().orElse(null));
+        setUpdatePeriod(other.update_period);
+        setScrollStep(other.scroll_step);
+        enableScrolling(other.scroll_enabled);
+        // TODO Handle details of start/end time once that's implemented
+        setTimerange(other.start_spec, other.end_spec);
+
+        setGridVisible(other.show_grid);
+        setPlotBackground(other.background);
+        setTitleFont(other.title_font);
+        setLabelFont(other.label_font);
+        setScaleFont(other.scale_font);
+        setLegendFont(other.legend_font);
+        setArchiveRescale(other.archive_rescale);
+        setToolbarVisible(other.show_toolbar);
+        setLegendVisible(other.show_legend);
+
+        for (AxisConfig axis : other.axes)
+            addAxis(axis);
+        for (ModelItem item : other.items)
+            addItem(item);
+        setAnnotations(other.annotations);
+    }
+
+
     /** @return Should UI ask to save changes to the model? */
     public boolean shouldSaveChanges()
     {
@@ -141,10 +186,10 @@ public class Model
                 listener.changedSaveChangesBehavior(save_changes);
     }
 
-    /** @param macroValueProvider Macros to use in this model */
-    public void setMacros(final MacroValueProvider macroValueProvider)
+    /** @param other Macros to use in this model */
+    public void setMacros(final Macros other)
     {
-        this.macros = Objects.requireNonNull(macroValueProvider);
+       this.macros = Macros.merge(macros, other);
     }
 
     /** Resolve macros

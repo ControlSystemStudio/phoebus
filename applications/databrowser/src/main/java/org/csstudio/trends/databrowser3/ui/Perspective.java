@@ -18,7 +18,6 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
@@ -38,7 +37,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.paint.Color;
 
 /** Combined layout of all data browser components
  *  @author Kay Kasemir
@@ -66,24 +64,6 @@ public class Perspective extends SplitPane
 
     public Perspective()
     {
-        try
-        {
-            // TODO Remove dummy model items
-            model.addAxis().setColor(Color.BLUE);
-            model.addAxis();
-            model.addItem(new PVItem("sim://sine(-10, 10, 0.1)", 0.0));
-            final PVItem item = new PVItem("DTL_LLRF:IOC1:Load", 0.0);
-            item.setDisplayName("CPU Load");
-            String url = "jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=OFF)(FAILOVER=ON)(ADDRESS=(PROTOCOL=TCP)(HOST=snsappa.sns.ornl.gov)(PORT=1610))(ADDRESS=(PROTOCOL=TCP)(HOST=snsappb.sns.ornl.gov)(PORT=1610))(CONNECT_DATA=(SERVICE_NAME=prod_controls)))";
-            item.addArchiveDataSource(new ArchiveDataSource(url, "Accelerator"));
-
-            model.addItem(item);
-        }
-        catch (Exception ex)
-        {
-            Activator.logger.log(Level.SEVERE, "Cannot fake content", ex);
-        }
-
         search_tab = new Tab(Messages.Search, search);
         search_tab.setGraphic(Activator.getIcon("search"));
         search_tab.setOnClosed(event -> autoMinimize(left_tabs, this, 0.0));

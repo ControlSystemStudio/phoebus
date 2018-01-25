@@ -25,6 +25,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
+import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 /** Application instance
@@ -92,9 +93,19 @@ public class DataBrowserInstance implements AppInstance
             try
             {
                 XMLPersistence.load(new_model, ResourceParser.getContent(input));
-
-                // TODO On UI thread,
-                // getModel().replace(new_model);
+                Platform.runLater(() ->
+                {
+                    try
+                    {
+                        getModel().load(new_model);
+                    }
+                    catch (Exception ex)
+                    {
+                        ExceptionDetailsErrorDialog.openError(Messages.Error,
+                            "Cannot load " + input,
+                            ex);
+                    }
+                });
             }
             catch (Exception ex)
             {
