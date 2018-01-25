@@ -25,7 +25,7 @@ import javafx.scene.control.MenuItem;
  *  to match.
  *
  *  <p>Matches the right and bottom margin of the display
- *  to the left and right margin of widgets from the display origin.
+ *  to the left and top margin of widgets from the display origin.
  *
  *  @author Kay Kasemir
  */
@@ -34,7 +34,7 @@ public class SetDisplaySize extends MenuItem
 {
     public SetDisplaySize(final DisplayEditor editor)
     {
-        super("Size Display Size to Content",
+        super("Size Display to Content",
               ImageCache.getImageView(ModelPlugin.class, "/icons/group.png"));
         setOnAction(event ->
         {
