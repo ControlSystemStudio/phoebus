@@ -77,11 +77,11 @@ class SQL
         {   // For Oracle, the stored procedure package
             // also includes a function for determining
             // the initial sample time
-            sample_sel_initial_time = RDBArchiveReader.starttime_function.isEmpty()
+            sample_sel_initial_time = Preferences.starttime_function.isEmpty()
                 ? "SELECT smpl_time FROM (SELECT smpl_time FROM " +
                   prefix + "sample WHERE channel_id=? AND smpl_time<=?" +
                   " ORDER BY smpl_time DESC) WHERE ROWNUM=1"
-                : RDBArchiveReader.starttime_function;
+                : Preferences.starttime_function;
             sample_sel_by_id_start_end =
                 "SELECT smpl_time, severity_id, status_id, num_val, float_val, str_val FROM " + prefix + "sample"+
                 "   WHERE channel_id=?" +

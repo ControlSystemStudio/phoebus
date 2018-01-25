@@ -20,14 +20,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.AveragedValueIterator;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.rdb.RDBConnectionPool;
 import org.phoebus.util.time.TimeDuration;
 import org.phoebus.vtype.AlarmSeverity;
@@ -46,22 +44,6 @@ public class RDBArchiveReader implements ArchiveReader
     /** Oracle error code "error occurred at recursive SQL level ...: */
     final private static String ORACLE_RECURSIVE_ERROR = "ORA-00604"; //$NON-NLS-1$
 
-    static final String USER = "user";
-    static final String PASSWORD = "password";
-    static final String PREFIX = "prefix";
-    static final String TIMEOUT_SECS = "timeout_secs";
-    static final String USE_ARRAY_BLOB = "use_array_blob";
-    static final String STORED_PROCEDURE = "stored_procedure";
-    static final String STARTTIME_FUNCTION = "starttime_function";
-    static final String FETCH_SIZE = "fetch_size";
-
-    private static AtomicBoolean initialized = new AtomicBoolean();
-    private static String user, password, prefix;
-    private static int timeout;
-    static boolean use_array_blob;
-    static String stored_procedure, starttime_function;
-    static int fetch_size;
-
     /** Connection pool */
     private final RDBConnectionPool pool;
 
@@ -77,25 +59,10 @@ public class RDBArchiveReader implements ArchiveReader
     /** Active statements to cancel in cancel() */
     private final List<Statement> cancellable_statements = new ArrayList<>();
 
-    private void initialize()
-    {
-        final PreferencesReader prefs = new PreferencesReader(RDBArchiveReader.class, "/archive_reader_rdb_preferences.properties");
-        user               = prefs.get(USER);
-        password           = prefs.get(PASSWORD);
-        prefix             = prefs.get(PREFIX);
-        timeout            = prefs.getInt(TIMEOUT_SECS);
-        use_array_blob     = prefs.getBoolean(USE_ARRAY_BLOB);
-        stored_procedure   = prefs.get(STORED_PROCEDURE);
-        starttime_function = prefs.get(STARTTIME_FUNCTION);
-        fetch_size         = prefs.getInt(FETCH_SIZE);
-    }
-
     public RDBArchiveReader(final String url) throws Exception
     {
-        if (! initialized.getAndSet(true))
-            initialize();
-        pool = new RDBConnectionPool(url, user, password);
-        sql = new SQL(pool.getDialect(), prefix);
+        pool = new RDBConnectionPool(url, Preferences.user, Preferences.password);
+        sql = new SQL(pool.getDialect(), Preferences.prefix);
         stati = getStatusValues();
         severities = getSeverityValues();
     }
@@ -150,8 +117,8 @@ public class RDBArchiveReader implements ArchiveReader
                 final Statement statement = connection.createStatement();
             )
             {
-                if (timeout > 0)
-                    statement.setQueryTimeout(timeout);
+                if (Preferences.timeout > 0)
+                    statement.setQueryTimeout(Preferences.timeout);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_stati);
                 while (result.next())
@@ -180,8 +147,8 @@ public class RDBArchiveReader implements ArchiveReader
                 final Statement statement = connection.createStatement();
             )
             {
-                if (timeout > 0)
-                    statement.setQueryTimeout(timeout);
+                if (Preferences.timeout > 0)
+                    statement.setQueryTimeout(Preferences.timeout);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_severities);
                 while (result.next())
@@ -297,8 +264,8 @@ public class RDBArchiveReader implements ArchiveReader
         final int channel_id = getChannelID(name);
 
         // Use stored procedure in RDB server?
-        if (! stored_procedure.isEmpty())
-            return new StoredProcedureValueIterator(this, stored_procedure, channel_id, start, end, count);
+        if (! Preferences.stored_procedure.isEmpty())
+            return new StoredProcedureValueIterator(this, Preferences.stored_procedure, channel_id, start, end, count);
 
         // Else: Determine how many samples there are
         final Connection connection = pool.getConnection();
@@ -347,8 +314,8 @@ public class RDBArchiveReader implements ArchiveReader
             final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
         )
         {
-            if (timeout > 0)
-                statement.setQueryTimeout(timeout);
+            if (Preferences.timeout > 0)
+                statement.setQueryTimeout(Preferences.timeout);
             statement.setString(1, name);
             final ResultSet result = statement.executeQuery();
             if (!result.next())
