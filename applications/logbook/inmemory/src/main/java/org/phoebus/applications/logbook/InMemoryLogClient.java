@@ -27,7 +27,7 @@ public class InMemoryLogClient implements LogClient{
     private final Collection<Tag> tags = Arrays.asList( new TagImpl("Operations"),
                                                         new TagImpl("Alarm"),
                                                         new TagImpl("Example"));
-    
+
     public InMemoryLogClient() {
         LogEntries = new HashMap<Long, LogEntry>();
         logIdCounter = new AtomicInteger();
@@ -44,16 +44,6 @@ public class InMemoryLogClient implements LogClient{
     }
 
     @Override
-    public Collection<Property> listProperties() {
-        return null;
-    }
-
-    @Override
-    public Collection<String> listAttributes(String propertyName) {
-        return null;
-    }
-
-    @Override
     public Collection<LogEntry> listLogs() {
         return LogEntries.values();
     }
@@ -62,6 +52,19 @@ public class InMemoryLogClient implements LogClient{
     public LogEntry getLog(Long logId) {
         return LogEntries.get(logId);
     }
+
+    @Override
+    public Collection<Property> listProperties() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Collection<String> listAttributes(String propertyName) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
     @Override
     public Collection<Attachment> listAttachments(Long logId) {

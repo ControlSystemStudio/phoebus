@@ -4,6 +4,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>inmemory</module>
+    <module>olog</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
