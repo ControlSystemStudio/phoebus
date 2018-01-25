@@ -323,8 +323,7 @@ public class Model
      */
     public AxisConfig addAxis()
     {
-        final String name = MessageFormat.format(Messages.Plot_ValueAxisNameFMT, axes.size() + 1);
-        final AxisConfig axis = new AxisConfig(name);
+        final AxisConfig axis = new AxisConfig("");
         axis.setColor(Color.BLACK);
         addAxis(axis);
         return axis;
@@ -333,6 +332,8 @@ public class Model
     /** @param axis New axis to add */
     public void addAxis(final AxisConfig axis)
     {
+        if (axis.getName().isEmpty())
+            axis.setName(MessageFormat.format(Messages.Plot_ValueAxisNameFMT, axes.size() + 1));
         axes.add(Objects.requireNonNull(axis));
         axis.setModel(this);
         fireAxisChangedEvent(Optional.empty());

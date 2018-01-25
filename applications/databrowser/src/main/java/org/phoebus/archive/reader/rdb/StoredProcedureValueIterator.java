@@ -124,7 +124,6 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
                 statement.execute();
                 result = (ResultSet) statement.getObject(1);
             }
-
             else
             {   //ORACLE
                 // Get oracle.jdbc.OracleTypes.CURSOR
@@ -163,7 +162,7 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
                 throw ex;
             // Else: Not a real error; return empty iterator
             Logger.getLogger(getClass().getName()).log(Level.FINE,
-                    "Stored procedure cancelled", ex);
+                    "Stored procedure cancelled");
         }
         finally
         {
