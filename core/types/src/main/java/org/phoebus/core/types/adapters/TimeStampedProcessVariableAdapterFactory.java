@@ -1,5 +1,7 @@
 package org.phoebus.core.types.adapters;
 
+import static org.phoebus.logging.LogEntryImpl.LogEntryBuilder.log;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -7,7 +9,7 @@ import java.util.Optional;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.LogEntryFactory;
+import org.phoebus.logging.LogService;
 
 /**
  * Provides a factory for converting a {@link TimeStampedProcessVariable} to either a {@link LogEntry} or {@link String}
@@ -25,7 +27,9 @@ public class TimeStampedProcessVariableAdapterFactory implements AdapterFactory 
     public Optional getAdapter(Object adaptableObject, Class adapterType) {
         if (adapterType.isAssignableFrom(LogEntry.class)) {
             TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);
-            return Optional.of(LogEntryFactory.buildLogEntry("PV name: " + tpv.getName() + " " + tpv.getTime()).create());
+            LogEntry log = log().description("PV name: " + tpv.getName() + " " + tpv.getTime()).build();
+            LogService.getInstance().createLogEntry(log);
+            return Optional.of(log);
         } else if (adapterType.isAssignableFrom(String.class)) {
             TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);
             return Optional.of("PV name: " + tpv.getName() + " " + tpv.getTime());
