@@ -5,9 +5,7 @@
 
 package org.phoebus.logging;
 
-import java.util.Collection;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * 
@@ -25,32 +23,6 @@ public interface Property {
      * 
      * @return
      */
-    public Set<String> getAttributes();
-
-    /**
-     * 
-     * @return
-     */
-    public Collection<String> getAttributeValues();
-
-    /**
-     * 
-     * @param attribute
-     * @return
-     */
-    public boolean containsAttribute(String attribute);
-
-    /**
-     * 
-     * @param attribute
-     * @return
-     */
-    public String getAttributeValue(String attribute);
-
-    /**
-     * 
-     * @return
-     */
-    public Set<Entry<String, String>> getEntrySet();
+    public Map<String, String> getAttributes();
 
 }
