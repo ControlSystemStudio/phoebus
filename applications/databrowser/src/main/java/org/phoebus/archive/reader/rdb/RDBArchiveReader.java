@@ -61,8 +61,8 @@ public class RDBArchiveReader implements ArchiveReader
 
     public RDBArchiveReader(final String url) throws Exception
     {
-        pool = new RDBConnectionPool(url, Preferences.user, Preferences.password);
-        sql = new SQL(pool.getDialect(), Preferences.prefix);
+        pool = new RDBConnectionPool(url, RDBPreferences.user, RDBPreferences.password);
+        sql = new SQL(pool.getDialect(), RDBPreferences.prefix);
         stati = getStatusValues();
         severities = getSeverityValues();
     }
@@ -117,8 +117,8 @@ public class RDBArchiveReader implements ArchiveReader
                 final Statement statement = connection.createStatement();
             )
             {
-                if (Preferences.timeout > 0)
-                    statement.setQueryTimeout(Preferences.timeout);
+                if (RDBPreferences.timeout > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_stati);
                 while (result.next())
@@ -147,8 +147,8 @@ public class RDBArchiveReader implements ArchiveReader
                 final Statement statement = connection.createStatement();
             )
             {
-                if (Preferences.timeout > 0)
-                    statement.setQueryTimeout(Preferences.timeout);
+                if (RDBPreferences.timeout > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_severities);
                 while (result.next())
@@ -264,8 +264,8 @@ public class RDBArchiveReader implements ArchiveReader
         final int channel_id = getChannelID(name);
 
         // Use stored procedure in RDB server?
-        if (! Preferences.stored_procedure.isEmpty())
-            return new StoredProcedureValueIterator(this, Preferences.stored_procedure, channel_id, start, end, count);
+        if (! RDBPreferences.stored_procedure.isEmpty())
+            return new StoredProcedureValueIterator(this, RDBPreferences.stored_procedure, channel_id, start, end, count);
 
         // Else: Determine how many samples there are
         final Connection connection = pool.getConnection();
@@ -314,8 +314,8 @@ public class RDBArchiveReader implements ArchiveReader
             final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
         )
         {
-            if (Preferences.timeout > 0)
-                statement.setQueryTimeout(Preferences.timeout);
+            if (RDBPreferences.timeout > 0)
+                statement.setQueryTimeout(RDBPreferences.timeout);
             statement.setString(1, name);
             final ResultSet result = statement.executeQuery();
             if (!result.next())

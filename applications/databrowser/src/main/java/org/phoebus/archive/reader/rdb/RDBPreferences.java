@@ -13,7 +13,7 @@ import org.phoebus.framework.preferences.PreferencesReader;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class Preferences
+public class RDBPreferences
 {
     static final String USER = "user";
     static final String PASSWORD = "password";
@@ -32,7 +32,7 @@ class Preferences
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/archive_reader_rdb_preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(RDBPreferences.class, "/archive_reader_rdb_preferences.properties");
         user               = prefs.get(USER);
         password           = prefs.get(PASSWORD);
         prefix             = prefs.get(PREFIX);
