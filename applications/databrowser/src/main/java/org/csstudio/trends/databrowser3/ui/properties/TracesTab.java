@@ -180,7 +180,7 @@ public class TracesTab extends Tab
         {
             // In case an axis _name_ changed, this needs to be shown
             // in the "Axis" column.
-            trace_table.refresh();
+            updateFromModel();
         }
     };
 
@@ -223,7 +223,6 @@ public class TracesTab extends Tab
     private void updateFromModel()
     {
         trace_table.getItems().setAll(model.getItems());
-
         final List<String> names = new ArrayList<>(model.getAxes().size());
         for (AxisConfig ai : model.getAxes())
             names.add(ai.getName());
