@@ -171,12 +171,17 @@ public class DataBrowserInstance implements AppInstance
             final Model new_model = new Model();
             try
             {
+                // Load model from file in background
                 XMLPersistence.load(new_model, ResourceParser.getContent(input));
                 Platform.runLater(() ->
                 {
                     try
                     {
+                        // On UI thread, update the running model
                         getModel().load(new_model);
+                        // That changed the model, so mark as clean
+                        // since it matches the file
+                        setDirty(false);
                     }
                     catch (Exception ex)
                     {

@@ -909,6 +909,12 @@ public class Model
             listener.changedItemLook(item);
     }
 
+    void fireItemUnitsChanged(final ModelItem item)
+    {
+        for (ModelListener listener : listeners)
+            listener.changedItemUnits(item);
+    }
+
     /** Notify listeners of changed item configuration
      *  @param item Item that changed
      */

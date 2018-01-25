@@ -465,6 +465,12 @@ public class Controller
             }
 
             @Override
+            public void changedItemUnits(final ModelItem item)
+            {
+                plot.updateTrace(item);
+            }
+
+            @Override
             public void changedItemDataConfig(final PVItem item)
             {
                 getArchivedData(item, model.getStartTime(), model.getEndTime());

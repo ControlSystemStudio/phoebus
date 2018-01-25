@@ -57,6 +57,9 @@ public interface ModelListener
      */
     default void changedItemLook(ModelItem item) {};
 
+    /** @param item Item that changed its units */
+    default void changedItemUnits(ModelItem item) {};
+
     /** @param item Item that changed its data configuration:
      *              Archives, request method.
      */
