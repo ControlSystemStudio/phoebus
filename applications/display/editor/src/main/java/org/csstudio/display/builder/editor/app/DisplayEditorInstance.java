@@ -114,7 +114,9 @@ public class DisplayEditorInstance implements AppInstance
         // Depending on number of selected widgets,
         // allow grouping, ungrouping, morphing
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
-        if (selection.size() > 1)
+        // OK to create (resp. 'start') a group with just one widget.
+        // Even better when there's more than one widget.
+        if (selection.size() >= 1)
             items.add(new CreateGroupAction(editor_gui.getDisplayEditor(), selection));
 
         if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
