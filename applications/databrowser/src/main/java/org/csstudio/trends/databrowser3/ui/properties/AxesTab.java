@@ -243,5 +243,7 @@ public class AxesTab extends Tab
                 AxisConfig::isLogScale, AxisConfig::setLogScale));
 
         axes_table.setEditable(true);
+
+        axes_table.getColumns().forEach(c -> c.setSortable(false));
     }
 }

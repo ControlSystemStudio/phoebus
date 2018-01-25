@@ -567,6 +567,8 @@ public class TracesTab extends Tab
         trace_table.setEditable(true);
 
         // TODO Cursor value update
+
+        trace_table.getColumns().forEach(c -> c.setSortable(false));
     }
 
     private void createArchivesTable()
@@ -583,6 +585,8 @@ public class TracesTab extends Tab
         col = new TableColumn<>(Messages.URL);
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getUrl()));
         archives_table.getColumns().add(col);
+
+        archives_table.getColumns().forEach(c -> c.setSortable(false));
     }
 
     private void createContextMenu()
