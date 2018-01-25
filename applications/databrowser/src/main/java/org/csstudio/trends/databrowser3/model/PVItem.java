@@ -459,7 +459,8 @@ public class PVItem extends ModelItem
             writer.writeStartElement(XMLPersistence.TAG_LIVE_SAMPLE_BUFFER_SIZE);
             writer.writeCharacters(Integer.toString(getLiveCapacity()));
             writer.writeEndElement();
-            writer.writeStartElement(XMLPersistence.TAG_REQUEST, getRequestType().name());
+            writer.writeStartElement(XMLPersistence.TAG_REQUEST);
+            writer.writeCharacters(getRequestType().name());
             writer.writeEndElement();
             for (ArchiveDataSource archive : archives)
             {

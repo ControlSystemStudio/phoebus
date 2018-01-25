@@ -8,6 +8,7 @@
 package org.csstudio.trends.databrowser3.persistence;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.trends.databrowser3.Activator;
@@ -27,6 +29,7 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -392,12 +395,15 @@ public class XMLPersistence
 
     /** Write XML formatted Model content.
      *  @param model Model to write
-     *  @param writer {@link XMLStreamWriter}
+     *  @param out {@link OutputStream}
      *  @throws Exception on error
      */
-    public static void write(final Model model, final XMLStreamWriter writer) throws Exception
+    public static void write(final Model model, final OutputStream out) throws Exception
     {
-        writer.writeStartDocument();
+        final XMLStreamWriter base =
+            XMLOutputFactory.newInstance().createXMLStreamWriter(out, XMLUtil.ENCODING);
+        final XMLStreamWriter writer = new IndentingXMLStreamWriter(base);
+        writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
         writer.writeStartElement(TAG_DATABROWSER);
         {
             writer.writeStartElement(TAG_TITLE);

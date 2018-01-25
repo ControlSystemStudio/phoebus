@@ -9,10 +9,19 @@ package org.csstudio.trends.databrowser3;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 
+import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.model.ModelListener;
+import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.Perspective;
 import org.phoebus.framework.jobs.JobManager;
@@ -43,6 +52,74 @@ public class DataBrowserInstance implements AppInstance
 
     private Perspective perspective;
 
+    /** Track changes that turn the instance 'dirty' **/
+    private final ModelListener model_listener = new ModelListener()
+    {
+        @Override
+        public void changedSaveChangesBehavior(final boolean save_changes)
+        {   setDirty(true);   }
+
+        @Override
+        public void changedTitle()
+        {   setDirty(true);   }
+
+        @Override
+        public void changedLayout()
+        {   setDirty(true);   }
+
+        @Override
+        public void changedTiming()
+        {   setDirty(true);   }
+
+        @Override
+        public void changedArchiveRescale()
+        {   setDirty(true);   }
+
+        @Override
+        public void changedColorsOrFonts()
+        {   setDirty(true);   }
+
+        @Override
+        public void changedTimerange()
+        {   setDirty(true);   }
+
+        @Override
+        public void changedTimeAxisConfig()
+        {   setDirty(true);   }
+
+        @Override
+        public void changedAxis(final Optional<AxisConfig> axis)
+        {   setDirty(true);   }
+
+        @Override
+        public void itemAdded(final ModelItem item)
+        {   setDirty(true);   }
+
+        @Override
+        public void itemRemoved(final ModelItem item)
+        {   setDirty(true);   }
+
+        @Override
+        public void changedItemVisibility(final ModelItem item)
+        {   setDirty(true);   }
+
+        @Override
+        public void changedItemLook(final ModelItem item)
+        {   setDirty(true);   }
+
+        @Override
+        public void changedItemDataConfig(PVItem item)
+        {   setDirty(true);   }
+
+        @Override
+        public void scrollEnabled(final boolean scroll_enabled)
+        {   setDirty(true);   }
+
+        @Override
+        public void changedAnnotations()
+        {   setDirty(true);   }
+    };
+
     public DataBrowserInstance(final DataBrowserApp app)
     {
         this.app = app;
@@ -59,6 +136,8 @@ public class DataBrowserInstance implements AppInstance
             dispose();
             return true;
         });
+
+        perspective.getModel().addListener(model_listener);
     }
 
     @Override
@@ -79,7 +158,7 @@ public class DataBrowserInstance implements AppInstance
         dock_item.select();
     }
 
-    public void loadResource(final URI input)
+    void loadResource(final URI input)
     {
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
@@ -116,6 +195,12 @@ public class DataBrowserInstance implements AppInstance
         });
     }
 
+    void setDirty(final boolean dirty)
+    {
+        final boolean is_dirty = getModel().shouldSaveChanges()  &&  dirty;
+        dock_item.setDirty(is_dirty);
+    }
+
     @Override
     public void restore(final Memento memento)
     {
@@ -128,9 +213,16 @@ public class DataBrowserInstance implements AppInstance
         perspective.save(memento);
     }
 
-    void doSave(final JobMonitor monitor) throws Exception
+    private void doSave(final JobMonitor monitor) throws Exception
     {
-
+        final File file = Objects.requireNonNull(ResourceParser.getFile(dock_item.getInput()));
+        try
+        (
+            final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+        )
+        {
+            XMLPersistence.write(getModel(), out);
+        }
     }
 
     private void dispose()
