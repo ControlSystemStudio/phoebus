@@ -22,16 +22,19 @@ import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
 import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
+import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -126,9 +129,20 @@ public class Perspective extends SplitPane
 
         // TODO Open Waveform View
 
-        final ContextMenu menu = new ContextMenu(add_pv, add_formula, show_search, show_properties, show_export);
+        final ContextMenu menu = new ContextMenu();
+        final ObservableList<MenuItem> items = menu.getItems();
+
         plot.getPlot().setOnContextMenuRequested(event ->
-            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY()));
+        {
+            items.setAll(add_pv, add_formula);
+
+            if (model.getEmptyAxis().isPresent())
+                items.add(new RemoveUnusedAxes(model, undo));
+
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export);
+
+            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
     }
 
     private void setupDrop()

@@ -7,10 +7,12 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -27,8 +29,11 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -41,6 +46,7 @@ import javafx.scene.layout.VBox;
 /** Property tab for axes
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AxesTab extends Tab
 {
     private final Model model;
@@ -104,6 +110,8 @@ public class AxesTab extends Tab
         rescales.setPadding(new Insets(5));
 
         createAxesTable();
+
+        createContextMenu();
 
         setContent(new VBox(5, rescales, axes_table));
 
@@ -243,7 +251,31 @@ public class AxesTab extends Tab
                 AxisConfig::isLogScale, AxisConfig::setLogScale));
 
         axes_table.setEditable(true);
+        axes_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         axes_table.getColumns().forEach(c -> c.setSortable(false));
+    }
+
+    private void createContextMenu()
+    {
+        final MenuItem add_axis = new MenuItem(Messages.AddAxis, Activator.getIcon("add"));
+        add_axis.setOnAction(event -> new AddAxisCommand(undo, model));
+
+        final ContextMenu menu = new ContextMenu();
+        axes_table.setOnContextMenuRequested(event ->
+        {
+            final ObservableList<MenuItem> items = menu.getItems();
+            items.setAll(add_axis);
+
+            final List<AxisConfig> selection = axes_table.getSelectionModel().getSelectedItems();
+
+            if (selection.size() > 0)
+                items.add(new DeleteAxes(axes_table, model, undo, selection));
+
+            if (model.getEmptyAxis().isPresent())
+                items.add(new RemoveUnusedAxes(model, undo));
+
+            menu.show(axes_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
     }
 }
