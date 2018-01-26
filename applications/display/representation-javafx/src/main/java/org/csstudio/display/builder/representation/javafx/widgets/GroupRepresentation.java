@@ -72,6 +72,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
         final UntypedWidgetPropertyListener listener = this::borderChanged;
         model_widget.propForegroundColor().addUntypedPropertyListener(listener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(listener);
+        model_widget.propTransparent().addUntypedPropertyListener(listener);
         model_widget.propName().addUntypedPropertyListener(listener);
         model_widget.propStyle().addUntypedPropertyListener(listener);
         model_widget.propFont().addUntypedPropertyListener(listener);
@@ -102,7 +103,10 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
             final int height = model_widget.propHeight().getValue();
 
             jfx_node.setPrefSize(width, height);
-            jfx_node.setBackground(new Background(new BackgroundFill(background_color, null, null)));
+            if (model_widget.propTransparent().getValue())
+            	jfx_node.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 255, 0.0), null, null)));
+            else
+            	jfx_node.setBackground(new Background(new BackgroundFill(background_color, null, null)));
 
             final WidgetFont font = model_widget.propFont().getValue();
             label.setFont(JFXUtil.convert(font));
@@ -112,7 +116,10 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
             if (style == Style.NONE)
             {
                 inset = 0;
-                jfx_node.setBorder(null);
+                if (toolkit.isEditMode() && model_widget.propTransparent().getValue())
+                	jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.DASHED, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+                else
+                	jfx_node.setBorder(null);
 
                 label.setVisible(false);
 

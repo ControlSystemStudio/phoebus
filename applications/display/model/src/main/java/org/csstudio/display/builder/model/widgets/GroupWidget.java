@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropInsets;
 
 import java.util.Arrays;
@@ -181,6 +182,7 @@ public class GroupWidget extends VisibleWidget
     private volatile WidgetProperty<Style> style;
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
+    private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<int[]> insets;
 
@@ -199,6 +201,7 @@ public class GroupWidget extends VisibleWidget
         properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
+        properties.add(transparent = propTransparent.createProperty(this, false));
         properties.add(insets = runtimePropInsets.createProperty(this, new int[] { 0, 0 }));
 
         // Initial size
@@ -241,6 +244,12 @@ public class GroupWidget extends VisibleWidget
     public WidgetProperty<WidgetColor> propBackgroundColor()
     {
         return background;
+    }
+
+    /** @return 'transparent' property */
+    public WidgetProperty<Boolean> propTransparent()
+    {
+        return transparent;
     }
 
     /** Group widget extends parent macros
