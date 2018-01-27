@@ -272,7 +272,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
                     inner.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
             }
             else
-                // Display or non=transparent group - fill inner with background color
+                // Display or non-transparent group - fill inner with background color
                 inner.setBackground(new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY)));
             // The scroll pane background can only be set via style,
             // and then shines through on the outside of the scrollbars
