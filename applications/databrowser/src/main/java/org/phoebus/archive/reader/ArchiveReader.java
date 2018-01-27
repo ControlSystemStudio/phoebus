@@ -54,11 +54,6 @@ public interface ArchiveReader extends Closeable
      */
     public String getDescription();
 
-    /** URL for this ArchiveServer.
-     *  @return URL as a string.
-     */
-    public String getURL();
-
     /** Find channel in given sub-archive via "file glob" pattern search.
      *  <p>
      *  The search should be case-insensitive.

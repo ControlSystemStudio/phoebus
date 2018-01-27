@@ -47,10 +47,11 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/email"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtable"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-rtplot"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-databrowser"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-model"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-representation"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-representation-javafx"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-runtime"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-editor"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-editor"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

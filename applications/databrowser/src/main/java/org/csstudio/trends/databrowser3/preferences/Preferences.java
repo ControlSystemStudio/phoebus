@@ -7,10 +7,15 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.preferences;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.trends.databrowser3.Activator;
+import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
+import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Helper for reading preference settings
@@ -24,51 +29,98 @@ public class Preferences
      *  For explanation of the settings see preferences.ini
      */
     final public static String
+        ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
+        ARCHIVE_RESCALE = "archive_rescale",
+        URLS = "urls",
+        AUTOMATIC_HISTORY_REFRESH = "automatic_history_refresh",
+        BUFFER_SIZE = "live_buffer_size",
         LINE_WIDTH = "line_width",
+        OPACITY = "opacity",
+        PLOT_BINS = "plot_bins",
+        SCROLL_STEP = "scroll_step",
+        TIME_SPAN = "time_span",
         TRACE_TYPE = "trace_type",
+        UPDATE_PERIOD = "update_period",
         USE_AUTO_SCALE = "use_auto_scale",
+        USE_DEFAULT_ARCHIVES = "use_default_archives",
         USE_TRACE_NAMES = "use_trace_names",
 
         // Later...
-        TIME_SPAN = "time_span",
         SCAN_PERIOD = "scan_period",
-        BUFFER_SIZE = "live_buffer_size",
-        UPDATE_PERIOD = "update_period",
-        OPACITY = "opacity",
-        ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
-        PLOT_BINS = "plot_bins",
-        URLS = "urls",
         ARCHIVES = "archives",
-        USE_DEFAULT_ARCHIVES = "use_default_archives",
         PROMPT_FOR_ERRORS = "prompt_for_errors",
-        ARCHIVE_RESCALE = "archive_rescale",
         TIME_SPAN_SHORTCUTS = "time_span_shortcuts",
-        EMAIL_DEFAULT_SENDER = "email_default_sender",
-        AUTOMATIC_HISTORY_REFRESH = "automatic_history_refresh",
-        SCROLL_STEP = "scroll_step"
+        EMAIL_DEFAULT_SENDER = "email_default_sender";
         ;
 
-
+    public static int archive_fetch_delay;
+    public static ArchiveRescale archive_rescale = ArchiveRescale.STAGGER;
+    public static List<ArchiveDataSource> archive_urls;
+    public static List<ArchiveDataSource> archives;
+    public static boolean automatic_history_refresh;
+    public static int buffer_size;
     public static int line_width;
-    public static TraceType trace_type;
+    public static int opacity;
+    public static int plot_bins;
+    public static Duration scroll_step;
+    public static Duration time_span;
+    public static TraceType trace_type = TraceType.AREA;
+    public static double update_period;
     public static boolean use_auto_scale;
+    public static boolean use_default_archives;
     public static boolean use_trace_names;
+
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Activator.class, "databrowser_preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(Activator.class, "/databrowser_preferences.properties");
 
-        line_width = prefs.getInt(LINE_WIDTH);
-        final String type_name = prefs.get(TRACE_TYPE);
+        archive_fetch_delay = prefs.getInt(ARCHIVE_FETCH_DELAY);
+
+        String enum_name = prefs.get(ARCHIVE_RESCALE);
         try
         {
-            trace_type = TraceType.valueOf(type_name);
+            archive_rescale = ArchiveRescale.valueOf(enum_name);
         }
         catch (Exception ex)
         {
-            Activator.logger.log(Level.WARNING, "Undefined trace type option '" + type_name + "'", ex);
+            Activator.logger.log(Level.WARNING, "Undefined rescale option '" + enum_name + "'", ex);
         }
+
+        archive_urls = new ArrayList<>();
+        for (String fragment : prefs.get(URLS).split("\\*"))
+        {
+            final String[] strs = fragment.split("\\|");
+            if (strs.length == 1)
+                archive_urls.add(new ArchiveDataSource(strs[0], strs[0]));
+            else if (strs.length >= 2)
+                archive_urls.add(new ArchiveDataSource(strs[0], strs[1]));
+        }
+
+        // TODO Read archives
+        archives = List.of();
+
+        automatic_history_refresh = prefs.getBoolean(AUTOMATIC_HISTORY_REFRESH);
+        buffer_size = prefs.getInt(BUFFER_SIZE);
+        line_width = prefs.getInt(LINE_WIDTH);
+        opacity = prefs.getInt(OPACITY);
+        plot_bins = prefs.getInt(PLOT_BINS);
+        scroll_step = Duration.ofSeconds( Math.max(1, prefs.getInt(SCROLL_STEP)) );
+        time_span = Duration.ofSeconds( Math.round( Math.max(prefs.getDouble(TIME_SPAN), 1.0) ) );
+
+        enum_name = prefs.get(TRACE_TYPE);
+        try
+        {
+            trace_type = TraceType.valueOf(enum_name);
+        }
+        catch (Exception ex)
+        {
+            Activator.logger.log(Level.WARNING, "Undefined trace type option '" + enum_name + "'", ex);
+        }
+
+        update_period = prefs.getDouble(UPDATE_PERIOD);
         use_auto_scale = prefs.getBoolean(USE_AUTO_SCALE);
+        use_default_archives = prefs.getBoolean(USE_DEFAULT_ARCHIVES);
         use_trace_names = prefs.getBoolean(USE_TRACE_NAMES);
     }
 }

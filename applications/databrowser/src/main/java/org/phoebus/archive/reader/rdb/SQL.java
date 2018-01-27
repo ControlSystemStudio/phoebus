@@ -38,8 +38,13 @@ class SQL
     final public String sample_count_by_id_start_end;
 
 
-    SQL(final Dialect dialect, final String prefix)
+    SQL(final Dialect dialect, String prefix)
     {
+        // MySQL never uses prefix.
+        // This allows setting a prefix for Oracle,
+        // but then still access some MySQL URLs.
+        if (dialect == Dialect.MySQL)
+            prefix = "";
         // 'status' table
         sel_stati = "SELECT status_id, name FROM " + prefix + "status";
 
@@ -72,11 +77,11 @@ class SQL
         {   // For Oracle, the stored procedure package
             // also includes a function for determining
             // the initial sample time
-            sample_sel_initial_time = RDBArchiveReader.starttime_function.isEmpty()
+            sample_sel_initial_time = RDBPreferences.starttime_function.isEmpty()
                 ? "SELECT smpl_time FROM (SELECT smpl_time FROM " +
                   prefix + "sample WHERE channel_id=? AND smpl_time<=?" +
                   " ORDER BY smpl_time DESC) WHERE ROWNUM=1"
-                : RDBArchiveReader.starttime_function;
+                : RDBPreferences.starttime_function;
             sample_sel_by_id_start_end =
                 "SELECT smpl_time, severity_id, status_id, num_val, float_val, str_val FROM " + prefix + "sample"+
                 "   WHERE channel_id=?" +

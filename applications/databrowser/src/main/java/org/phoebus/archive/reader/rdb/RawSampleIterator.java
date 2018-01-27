@@ -108,7 +108,7 @@ public class RawSampleIterator extends AbstractRDBValueIterator
         }
 
         // Fetch the samples
-        if (RDBArchiveReader.use_array_blob)
+        if (RDBPreferences.use_array_blob)
             sel_samples = connection.prepareStatement(
                 reader.getSQL().sample_sel_by_id_start_end_with_blob, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         else
@@ -125,7 +125,7 @@ public class RawSampleIterator extends AbstractRDBValueIterator
         // So default is bad. 100 or 1000 are good.
         // Bigger numbers don't help much in repeated tests, but
         // just to be on the safe side, use a bigger number.
-        sel_samples.setFetchSize(RDBArchiveReader.fetch_size);
+        sel_samples.setFetchSize(RDBPreferences.fetch_size);
 
         reader.addForCancellation(sel_samples);
         sel_samples.setInt(1, channel_id);

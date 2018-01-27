@@ -12,33 +12,41 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
+import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.TableHelper;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.scene.Node;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -49,7 +57,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.converter.DefaultStringConverter;
 
 /** Dialog for editing {@link ScriptInfo}s
  *  @author Kay Kasemir
@@ -106,7 +116,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         public ScriptItem()
         {
-            this(Messages.ScriptsDialog_DefaultScriptFile, null, true, new ArrayList<>());
+            this(Messages.ScriptsDialog_DefaultScriptFile, ScriptInfo.EXAMPLE_PYTHON, true, new ArrayList<>());
         }
 
         public ScriptItem(final String file, final String text, final boolean check_connections, final List<PVItem> pvs)
@@ -164,8 +174,11 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
     /** Table for PVs of currently selected script */
     private TableView<PVItem> pvs_table;
+    private TableColumn<PVItem, String> pvs_name_col;
+    private TableColumn<PVItem, Boolean> pvs_trigger_col;
 
-    private Button btn_file, btn_embed_py, btn_embed_js;
+    private Button btn_script_remove, btn_file, btn_embed_py, btn_embed_js;
+    private Button btn_pv_add, btn_pv_remove, btn_pv_up, btn_py_down;
 
     private CheckBox btn_check_connections;
 
@@ -173,6 +186,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
     /** @param widget Widget
      *  @param scripts Scripts to show/edit in the dialog
+     *  @param menu AutocompleteMenu
      */
     public ScriptsDialog(final Widget widget, final List<ScriptInfo> scripts)
     {
@@ -184,7 +198,9 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         scripts.forEach(script -> script_items.add(ScriptItem.forInfo(script)));
         fixupScripts(0);
 
-        getDialogPane().setContent(createContent());
+        final SplitPane content = createContent();
+
+        getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().getStylesheets().add(getClass().getResource("opibuilder.css").toExternalForm());
         setResizable(true);
@@ -198,12 +214,31 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 					           .map(ScriptItem::getScriptInfo)
 					           .collect(Collectors.toList());
         });
+
+        setOnHidden(event ->
+        {
+            final Preferences pref = Preferences.userNodeForPackage(getClass());
+            pref.putDouble("content.width", content.getWidth());
+            pref.putDouble("content.height", content.getHeight());
+            pref.putDouble("pvs_table.pvs_name_col.width", pvs_name_col.getWidth());
+            pref.putDouble("pvs_table.pvs_trigger_col.width", pvs_trigger_col.getWidth());
+            pref.putDouble("content.divider.position", content.getDividerPositions()[0]);
+
+            try
+            {
+                pref.flush();
+            }
+            catch ( BackingStoreException ex )
+            {
+                logger.log(Level.WARNING, "Unable to flush preferences", ex);
+            }
+        });
     }
 
-    private Node createContent()
+    private SplitPane createContent()
     {
-        final Node scripts = createScriptsTable();
-        final Node pvs = createPVsTable();
+        final Region scripts = createScriptsTable();
+        final Region pvs = createPVsTable();
 
         // Display PVs of currently selected script
         scripts_table.getSelectionModel().selectedItemProperty().addListener((prop, old, selected) ->
@@ -211,6 +246,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             selected_script_item = selected;
             if (selected == null)
             {
+                btn_script_remove.setDisable(true);
                 btn_file.setDisable(true);
                 btn_embed_py.setDisable(true);
                 btn_embed_js.setDisable(true);
@@ -219,6 +255,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             }
             else
             {
+                btn_script_remove.setDisable(false);
                 btn_file.setDisable(false);
                 btn_embed_py.setDisable(false);
                 btn_embed_js.setDisable(false);
@@ -228,30 +265,92 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                 fixupPVs(0);
             }
         });
+
 		// Update PVs of selected script from PVs table
         final ListChangeListener<PVItem> ll = change ->
         {
             final ScriptItem selected = scripts_table.getSelectionModel().getSelectedItem();
-        	if (selected != null)
-        		selected.pvs = new ArrayList<>(change.getList());
+            if (selected != null)
+                selected.pvs = new ArrayList<>(change.getList());
         };
         pv_items.addListener(ll);
 
-        final HBox box = new HBox(10, scripts, pvs);
-        HBox.setHgrow(scripts, Priority.ALWAYS);
-        HBox.setHgrow(pvs, Priority.ALWAYS);
+        // Update buttons for currently selected PV
+        pvs_table.getSelectionModel().selectedItemProperty().addListener( ( prop, old, selected ) ->
+        {
+            if (selected == null)
+            {
+                btn_pv_remove.setDisable(true);
+                btn_pv_up.setDisable(true);
+                btn_py_down.setDisable(true);
+            }
+            else
+            {
+                btn_pv_remove.setDisable(false);
+                btn_pv_up.setDisable(false);
+                btn_py_down.setDisable(false);
+            }
+        });
 
-        // box.setStyle("-fx-background-color: rgb(255, 100, 0, 0.2);"); // For debugging
-        return box;
+        // Select the first script
+        if (! scripts_table.getItems().isEmpty())
+            Platform.runLater(() -> scripts_table.getSelectionModel().select(0));
+
+        Platform.runLater(() -> scripts_table.requestFocus());
+
+        scripts.setPadding(new Insets(0, 10, 0, 0));
+        pvs.setPadding(new Insets(0, 0, 0, 10));
+
+        final Preferences pref = Preferences.userNodeForPackage(getClass());
+        double prefWidth = pref.getDouble("content.width", -1);
+        double prefHeight = pref.getDouble("content.height", -1);
+        double prefDividerPosition = pref.getDouble("content.divider.position", 0.4);
+
+        final SplitPane splitPane = new SplitPane(scripts, pvs);
+        splitPane.setDividerPositions(prefDividerPosition);
+        if (prefWidth > 0  &&  prefHeight > 0)
+            splitPane.setPrefSize(prefWidth, prefHeight);
+
+        return splitPane;
     }
 
     /** @return Node for UI elements that edit the scripts */
-    private Node createScriptsTable()
+    private Region createScriptsTable()
     {
         // Create table with editable script 'file' column
         final TableColumn<ScriptItem, String> name_col = new TableColumn<>(Messages.ScriptsDialog_ColScript);
         name_col.setCellValueFactory(new PropertyValueFactory<ScriptItem, String>("file"));
-        name_col.setCellFactory(TextFieldTableCell.<ScriptItem>forTableColumn());
+        name_col.setCellFactory(list -> new TextFieldTableCell<ScriptItem, String>(new DefaultStringConverter())
+        {
+            private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
+            {
+                if (!n)
+                    cancelEdit();
+            };
+
+            @Override
+            public void cancelEdit()
+            {
+                ((TextField) getGraphic()).focusedProperty().removeListener(focusedListener);
+                super.cancelEdit();
+            }
+
+            @Override
+            public void startEdit()
+            {
+                super.startEdit();
+                ((TextField) getGraphic()).focusedProperty().addListener(focusedListener);
+            }
+
+            @Override
+            public void commitEdit (final String newValue)
+            {
+                ((TextField) getGraphic()).focusedProperty().removeListener(focusedListener);
+                super.commitEdit(newValue);
+                Platform.runLater(() -> btn_pv_add.requestFocus());
+            }
+
+        });
         name_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
@@ -268,14 +367,26 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         // Buttons
         final Button add = new Button(Messages.Add, JFXUtil.getIcon("add.png"));
         add.setMaxWidth(Double.MAX_VALUE);
+        add.setAlignment(Pos.CENTER_LEFT);
         add.setOnAction(event ->
         {
-            script_items.add(new ScriptItem());
+            final ScriptItem newItem = new ScriptItem();
+
+            script_items.add(newItem);
+            scripts_table.getSelectionModel().select(newItem);
+
+            final int newRow = scripts_table.getSelectionModel().getSelectedIndex();
+            ModelThreadPool.getTimer().schedule(() ->
+            {
+                Platform.runLater(() -> scripts_table.edit(newRow, name_col));
+            }, 123, TimeUnit.MILLISECONDS);
         });
 
-        final Button remove = new Button(Messages.Remove, JFXUtil.getIcon("delete.png"));
-        remove.setMaxWidth(Double.MAX_VALUE);
-        remove.setOnAction(event ->
+        btn_script_remove = new Button(Messages.Remove, JFXUtil.getIcon("delete.png"));
+        btn_script_remove.setMaxWidth(Double.MAX_VALUE);
+        btn_script_remove.setAlignment(Pos.CENTER_LEFT);
+        btn_script_remove.setDisable(true);
+        btn_script_remove.setOnAction(event ->
         {
             final int sel = scripts_table.getSelectionModel().getSelectedIndex();
             if (sel >= 0)
@@ -287,6 +398,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         btn_file = new Button(Messages.ScriptsDialog_BtnFile, JFXUtil.getIcon("open_file.png"));
         btn_file.setMaxWidth(Double.MAX_VALUE);
+        btn_file.setAlignment(Pos.CENTER_LEFT);
         btn_file.setDisable(true);
         btn_file.setOnAction(event ->
         {
@@ -314,11 +426,14 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         btn_embed_py = new Button(Messages.ScriptsDialog_BtnEmbedPy, JFXUtil.getIcon("embedded_script.png"));
         btn_embed_py.setMaxWidth(Double.MAX_VALUE);
+        btn_embed_py.setAlignment(Pos.CENTER_LEFT);
         btn_embed_py.setDisable(true);
         btn_embed_py.setOnAction(event ->
         {
-            if (selected_script_item.text == null  ||  selected_script_item.text.trim().isEmpty())
-                selected_script_item.text = Messages.ScriptsDialog_DefaultEmbeddedPython;
+            if (selected_script_item.text == null  ||
+                selected_script_item.text.trim().isEmpty() ||
+                selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_JAVASCRIPT))
+                selected_script_item.text = ScriptInfo.EXAMPLE_PYTHON;
 
             final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
             DialogHelper.positionDialog(dlg, btn_embed_py, -300, -200);
@@ -332,11 +447,14 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         btn_embed_js = new Button(Messages.ScriptsDialog_BtnEmbedJS, JFXUtil.getIcon("embedded_script.png"));
         btn_embed_js.setMaxWidth(Double.MAX_VALUE);
+        btn_embed_js.setAlignment(Pos.CENTER_LEFT);
         btn_embed_js.setDisable(true);
         btn_embed_js.setOnAction(event ->
         {
-            if (selected_script_item.text == null  ||  selected_script_item.text.trim().isEmpty())
-                selected_script_item.text = Messages.ScriptsDialog_DefaultEmbeddedJavaScript;
+            if (selected_script_item.text == null  ||
+                selected_script_item.text.trim().isEmpty() ||
+                selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_PYTHON))
+                selected_script_item.text = ScriptInfo.EXAMPLE_JAVASCRIPT;
 
             final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
             DialogHelper.positionDialog(dlg, btn_embed_js, -300, -200);
@@ -348,11 +466,12 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             }
         });
 
-        final VBox buttons = new VBox(10, add, remove,
+        final VBox buttons = new VBox(10, add, btn_script_remove,
                                           new Separator(Orientation.HORIZONTAL),
                                           btn_file, btn_embed_py, btn_embed_js);
         final HBox content = new HBox(10, scripts_table, buttons);
         HBox.setHgrow(scripts_table, Priority.ALWAYS);
+        HBox.setHgrow(buttons, Priority.NEVER);
         return content;
     }
 
@@ -391,6 +510,8 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                 PVAutocompleteMenu.INSTANCE.attachField(textField);
                 textField.selectAll();
             }
+            // TODO CHeck this
+            Platform.runLater( ( ) -> textField.requestFocus());
         }
 
         @Override
@@ -431,55 +552,89 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             if (textField == null)
             {
                 textField = new TextField(getItem() == null ? "" : getItem());
-                textField.setOnAction((event) ->
+                textField.setOnAction(event -> commitEdit(textField.getText()));
+                textField.focusedProperty().addListener((ob, o, n) ->
                 {
-                    commitEdit(textField.getText());
+                    if ( !n )
+                        cancelEdit();
                 });
+
             }
             else
                 textField.setText(getItem() == null ? "" : getItem());
             textField.setMinWidth(getWidth() - getGraphicTextGap() * 2);
         }
+
+        @Override
+        public void commitEdit (String newValue)
+        {
+            super.commitEdit(newValue);
+            Platform.runLater(() -> btn_pv_add.requestFocus());
+        }
     }
 
     /** @return Node for UI elements that edit the PVs of a script */
-    private Node createPVsTable()
+    private Region createPVsTable()
     {
+        final TableColumn<PVItem, Integer> indexColumn = new TableColumn<>("#");
+        indexColumn.setSortable(false);
+        indexColumn.setCellFactory(new LineNumberCellFactory<>(true));
+        indexColumn.setMaxWidth(26);
+        indexColumn.setMinWidth(26);
+
         // Create table with editable 'name' column
-        final TableColumn<PVItem, String> name_col = new TableColumn<>(Messages.ScriptsDialog_ColPV);
-        name_col.setCellValueFactory(new PropertyValueFactory<PVItem, String>("name"));
-        name_col.setCellFactory((col) -> new AutoCompletedTableCell());
-        name_col.setOnEditCommit(event ->
+        pvs_name_col = new TableColumn<>(Messages.ScriptsDialog_ColPV);
+        pvs_name_col.setSortable(false);
+        pvs_name_col.setCellValueFactory(new PropertyValueFactory<PVItem, String>("name"));
+        pvs_name_col.setCellFactory((col) -> new AutoCompletedTableCell());
+        pvs_name_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
             pv_items.get(row).nameProperty().set(event.getNewValue());
             fixupPVs(row);
         });
 
-        // Table column for 'trigger' uses CheckBoxTableCell that directly modifies the Observable Property
-        final TableColumn<PVItem, Boolean> trigger_col = new TableColumn<>(Messages.ScriptsDialog_ColTrigger);
-        trigger_col.setCellValueFactory(new PropertyValueFactory<PVItem, Boolean>("trigger"));
-        trigger_col.setCellFactory(CheckBoxTableCell.<PVItem>forTableColumn(trigger_col));
+        pvs_trigger_col = new TableColumn<>(Messages.ScriptsDialog_ColTrigger);
+        pvs_trigger_col.setSortable(false);
+        pvs_trigger_col.setCellValueFactory(new PropertyValueFactory<PVItem, Boolean>("trigger"));
+        pvs_trigger_col.setCellFactory(CheckBoxTableCell.<PVItem>forTableColumn(pvs_trigger_col));
+        pvs_trigger_col.setResizable(false);
+        pvs_trigger_col.setMaxWidth(70);
+        pvs_trigger_col.setMinWidth(70);
 
+        // Table column for 'trigger' uses CheckBoxTableCell that directly modifies the Observable Property
         pvs_table = new TableView<>(pv_items);
-        pvs_table.getColumns().add(name_col);
-        pvs_table.getColumns().add(trigger_col);
+        pvs_table.getColumns().add(indexColumn);
+        pvs_table.getColumns().add(pvs_name_col);
+        pvs_table.getColumns().add(pvs_trigger_col);
         pvs_table.setEditable(true);
         pvs_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         pvs_table.setTooltip(new Tooltip(Messages.ScriptsDialog_PVsTT));
         pvs_table.setPlaceholder(new Label(Messages.ScriptsDialog_SelectScript));
 
         // Buttons
-        final Button add = new Button(Messages.Add, JFXUtil.getIcon("add.png"));
-        add.setMaxWidth(Double.MAX_VALUE);
-        add.setOnAction(event ->
+        btn_pv_add = new Button(Messages.Add, JFXUtil.getIcon("add.png"));
+        btn_pv_add.setMaxWidth(Double.MAX_VALUE);
+        btn_pv_add.setAlignment(Pos.CENTER_LEFT);
+        btn_pv_add.setOnAction(event ->
         {
-            pv_items.add(new PVItem("", true));
+            final PVItem newItem = new PVItem("", true);
+
+            pv_items.add(newItem);
+            pvs_table.getSelectionModel().select(newItem);
+
+            final int newRow = pvs_table.getSelectionModel().getSelectedIndex();
+            ModelThreadPool.getTimer().schedule(() ->
+            {
+                Platform.runLater(() -> pvs_table.edit(newRow, pvs_name_col));
+            }, 123, TimeUnit.MILLISECONDS);
         });
 
-        final Button remove = new Button(Messages.Remove, JFXUtil.getIcon("delete.png"));
-        remove.setMaxWidth(Double.MAX_VALUE);
-        remove.setOnAction(event ->
+        btn_pv_remove = new Button(Messages.Remove, JFXUtil.getIcon("delete.png"));
+        btn_pv_remove.setMaxWidth(Double.MAX_VALUE);
+        btn_pv_remove.setAlignment(Pos.CENTER_LEFT);
+        btn_pv_remove.setDisable(true);
+        btn_pv_remove.setOnAction(event ->
         {
             final int sel = pvs_table.getSelectionModel().getSelectedIndex();
             if (sel >= 0)
@@ -489,13 +644,17 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             }
         });
 
-        final Button up = new Button(Messages.MoveUp, JFXUtil.getIcon("up.png"));
-        up.setMaxWidth(Double.MAX_VALUE);
-        up.setOnAction(event -> TableHelper.move_item_up(pvs_table, pv_items));
+        btn_pv_up = new Button(Messages.MoveUp, JFXUtil.getIcon("up.png"));
+        btn_pv_up.setMaxWidth(Double.MAX_VALUE);
+        btn_pv_up.setAlignment(Pos.CENTER_LEFT);
+        btn_pv_up.setDisable(true);
+        btn_pv_up.setOnAction(event -> TableHelper.move_item_up(pvs_table, pv_items));
 
-        final Button down = new Button(Messages.MoveDown, JFXUtil.getIcon("down.png"));
-        down.setMaxWidth(Double.MAX_VALUE);
-        down.setOnAction(event -> TableHelper.move_item_down(pvs_table, pv_items));
+        btn_py_down = new Button(Messages.MoveDown, JFXUtil.getIcon("down.png"));
+        btn_py_down.setMaxWidth(Double.MAX_VALUE);
+        btn_py_down.setAlignment(Pos.CENTER_LEFT);
+        btn_py_down.setDisable(true);
+        btn_py_down.setOnAction(event -> TableHelper.move_item_down(pvs_table, pv_items));
 
         btn_check_connections = new CheckBox(Messages.ScriptsDialog_CheckConnections);
         btn_check_connections.setSelected(true);
@@ -504,12 +663,15 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             selected_script_item.check_connections = btn_check_connections.isSelected();
         });
 
-        final VBox buttons = new VBox(10, add, remove, up, down);
+        final VBox buttons = new VBox(10, btn_pv_add, btn_pv_remove, btn_pv_up, btn_py_down);
         final HBox pvs_buttons = new HBox(10, pvs_table, buttons);
         HBox.setHgrow(pvs_table, Priority.ALWAYS);
+        HBox.setHgrow(buttons, Priority.NEVER);
 
         final VBox content = new VBox(10, pvs_buttons, btn_check_connections);
         VBox.setVgrow(pvs_buttons, Priority.ALWAYS);
+
+        content.setDisable(true);
 
         return content;
     }

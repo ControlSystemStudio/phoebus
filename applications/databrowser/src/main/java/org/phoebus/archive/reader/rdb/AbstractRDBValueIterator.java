@@ -199,7 +199,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
             // Double data.
             if (handle_array)
             {   // Get array elements - if any.
-                final double data[] = RDBArchiveReader.use_array_blob
+                final double data[] = RDBPreferences.use_array_blob
                     ? readBlobArrayElements(dbl0, result)
                     : readArrayElements(time, dbl0, severity);
                 if (data.length == 1)

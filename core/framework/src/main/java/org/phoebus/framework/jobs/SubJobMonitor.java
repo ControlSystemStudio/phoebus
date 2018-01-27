@@ -110,6 +110,12 @@ public class SubJobMonitor implements JobMonitor
     }
 
     @Override
+    public boolean isDone()
+    {
+        return parent.isDone();
+    }
+
+    @Override
     public void done()
     {
         final int remaining = total_parent_steps - consumed_parent_steps;

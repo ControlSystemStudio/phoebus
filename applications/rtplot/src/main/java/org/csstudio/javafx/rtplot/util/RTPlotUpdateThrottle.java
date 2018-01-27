@@ -9,13 +9,12 @@ package org.csstudio.javafx.rtplot.util;
 
 import static org.csstudio.javafx.rtplot.Activator.logger;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+
+import org.csstudio.javafx.rtplot.Activator;
 
 /** Throttle for updates.
  *
@@ -29,12 +28,6 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class RTPlotUpdateThrottle
 {
-    /** One timer thread is shared by all throttles
-     *  to further limit CPU load
-     */
-    private static final ScheduledExecutorService timer =
-            Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("RTPlotUpdateThrottle"));
-
     /** How long to stay dormant after an update */
     private volatile long dormant_ms;
 
@@ -82,7 +75,7 @@ public class RTPlotUpdateThrottle
             }
             // Schedule wakeup
             if (! disposed)
-                scheduled_wakeup = timer.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
+                scheduled_wakeup = Activator.thread_pool.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
         };
     }
 
@@ -112,17 +105,7 @@ public class RTPlotUpdateThrottle
         else
         {
             // In idle period, react to trigger, but on timer thread
-            try
-            {
-                timer.execute(update_then_wake);
-            }
-            catch (RejectedExecutionException ex)
-            {
-                if (timer.isShutdown())
-                    logger.log(Level.FINE, "Update throttle thread already closed", ex);
-                else
-                    throw ex;
-            }
+            Activator.thread_pool.execute(update_then_wake);
         }
     }
 

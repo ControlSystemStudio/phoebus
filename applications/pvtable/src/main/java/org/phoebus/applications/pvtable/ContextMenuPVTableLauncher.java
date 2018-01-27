@@ -17,8 +17,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.scene.image.Image;
 
-/** Entry for context menues that starts PV Table for selected ProcessVariable
- *
+/** Entry for context menus that starts PV Table for selected ProcessVariable
  *  @author Kay Kasemir
  */
 @SuppressWarnings({ "rawtypes", "nls" })

@@ -69,6 +69,12 @@ class SplashJobMonitor implements JobMonitor
     }
 
     @Override
+    public boolean isDone()
+    {
+        return parent.isDone();
+    }
+
+    @Override
     public void done()
     {
         parent.done();

@@ -7,26 +7,22 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
-import static org.csstudio.trends.databrowser3.persistence.XMLPersistence.loadFontFromDocument;
-
 import java.util.Objects;
 import java.util.Optional;
 
 import javax.xml.stream.XMLStreamWriter;
 
-//import org.csstudio.javafx.rtplot.SWTMediaPool;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 /** Information about configuration of an axis
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AxisConfig
 {
     /** Model to which this axis belongs */
@@ -287,11 +283,9 @@ public class AxisConfig
     {
         writer.writeStartElement(XMLPersistence.TAG_AXIS);
 
-
         writer.writeStartElement(XMLPersistence.TAG_VISIBLE);
         writer.writeCharacters(Boolean.toString(visible));
         writer.writeEndElement();
-
 
         writer.writeStartElement(XMLPersistence.TAG_NAME);
         writer.writeCharacters(name);
@@ -347,13 +341,6 @@ public class AxisConfig
         final boolean use_trace_names = XMLUtil.getChildBoolean(node, XMLPersistence.TAG_USE_TRACE_NAMES).orElse(Preferences.use_trace_names);
         final boolean right = XMLUtil.getChildBoolean(node, XMLPersistence.TAG_RIGHT).orElse(false);
         final Color rgb = XMLPersistence.loadColorFromDocument(node).orElse(Color.BLACK);
-        Element root_node = node.getOwnerDocument().getDocumentElement();
-        final Font default_font = Font.font(XMLPersistence.DEFAULT_FONT_FAMILY, FontWeight.BOLD, XMLPersistence.DEFAULT_FONT_SIZE);
-        Font default_label_font = loadFontFromDocument(root_node, XMLPersistence.TAG_LABEL_FONT).orElse(default_font);
-        Font default_scale_font = loadFontFromDocument(root_node, XMLPersistence.TAG_SCALE_FONT).orElse(default_font);
-        final Font label_font = loadFontFromDocument(node, XMLPersistence.TAG_LABEL_FONT).orElse(default_label_font);
-        final Font scale_font = loadFontFromDocument(node, XMLPersistence.TAG_SCALE_FONT).orElse(default_scale_font);
-        // TODO Use fonts
         final double min = XMLUtil.getChildDouble(node, XMLPersistence.TAG_MIN).orElse(0.0);
         final double max = XMLUtil.getChildDouble(node, XMLPersistence.TAG_MAX).orElse(10.0);
         final boolean show_grid = XMLUtil.getChildBoolean(node, XMLPersistence.TAG_GRID).orElse(false);
@@ -370,7 +357,6 @@ public class AxisConfig
     }
 
     /** @return String representation for debugging */
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

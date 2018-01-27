@@ -42,12 +42,6 @@ public class ArchiveFileReader implements ArchiveReader
     }
 
     @Override
-    public String getURL()
-    {
-        return ArchiveFileReaderFactory.PREFIX + index.getAbsolutePath();
-    }
-
-    @Override
     public String getDescription()
     {
         return "Data File";

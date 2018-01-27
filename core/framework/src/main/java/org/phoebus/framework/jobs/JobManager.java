@@ -29,10 +29,13 @@ public class JobManager
      *
      *  @param name Name of the Job (for UI that displays active Jobs)
      *  @param runnable {@link JobRunnable} to execute
+     *  @return {@link Job}
      */
-    public static void schedule(final String name, final JobRunnable runnable)
+    public static Job schedule(final String name, final JobRunnable runnable)
     {
-        ForkJoinPool.commonPool().submit(() -> execute(new Job(name, runnable)));
+        final Job job = new Job(name, runnable);
+        ForkJoinPool.commonPool().submit(() -> execute(job));
+        return job;
     }
 
     private static Void execute(final Job job) throws Exception

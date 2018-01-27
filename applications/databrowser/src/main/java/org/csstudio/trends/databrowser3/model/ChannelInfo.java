@@ -7,20 +7,17 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
-import java.io.Serializable;
-
 import org.phoebus.core.types.ProcessVariable;
 
 
 /** Archive search result, information about one channel
  *  @author Kay Kasemir
  */
-public class ChannelInfo implements Serializable
+public class ChannelInfo extends ProcessVariable
 {
     /** Default ID for {@link Serializable} */
     private static final long serialVersionUID = 1L;
 
-    final private ProcessVariable name;
     final private ArchiveDataSource archive;
 
     /** Initialize
@@ -29,14 +26,8 @@ public class ChannelInfo implements Serializable
      */
     public ChannelInfo(final String name, final ArchiveDataSource archive)
     {
-        this.name = new ProcessVariable(name);
+        super(name);
         this.archive = archive;
-    }
-
-    /** @return ProcessVariable */
-    public ProcessVariable getProcessVariable()
-    {
-        return name;
     }
 
     /** @return ArchiveDataSource */
@@ -52,7 +43,8 @@ public class ChannelInfo implements Serializable
         if (! (obj instanceof ChannelInfo))
             return false;
         final ChannelInfo other = (ChannelInfo) obj;
-        return other.name.equals(name) && other.getArchiveDataSource().equals(archive);
+        return other.getName().equals(getName())                 &&
+               other.getArchiveDataSource().equals(archive);
     }
 
     /** {@inheritDoc} */
@@ -60,7 +52,7 @@ public class ChannelInfo implements Serializable
     public int hashCode()
     {
         final int prime = 31;
-        int result = prime + name.hashCode();
+        int result = getName().hashCode();
         result = prime * result + archive.hashCode();
         return result;
     }
@@ -70,6 +62,6 @@ public class ChannelInfo implements Serializable
     @Override
     public String toString()
     {
-        return name + " [" + archive.getName() + "]";
+        return getName() + " [" + archive.getName() + "]";
     }
 }

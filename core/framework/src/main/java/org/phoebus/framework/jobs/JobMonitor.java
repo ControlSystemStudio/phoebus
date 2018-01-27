@@ -68,4 +68,8 @@ public interface JobMonitor
      */
     public void done();
 
+    /** Check if the job has completed.
+     *  @return <code>true</code> if the job has completed
+     */
+    public boolean isDone();
 }
