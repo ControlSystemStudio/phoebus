@@ -37,6 +37,9 @@ public class EmbeddedDisplayRepresentationUtil
     /** Timeout used to await UI thread operations to prevent deadlock */
     private static final long TIMEOUT_MS = 5000;
 
+    /** Flag to recognize Transparent Group use case - User Data storage Key*/
+    public static final String USER_DATA_IS_TRANSPARENT_GROUP = "_is_transparent_group";
+    
     /** Display file name and optional group within that display */
     public static class DisplayAndGroup
     {
@@ -79,6 +82,7 @@ public class EmbeddedDisplayRepresentationUtil
         {   // Empty model for empty file name
             embedded_model = new DisplayModel();
             embedded_model.setUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET, model_widget);
+            embedded_model.setUserData(USER_DATA_IS_TRANSPARENT_GROUP, false);
             model_widget.runtimePropConnected().setValue(true);
         }
         else
@@ -98,6 +102,7 @@ public class EmbeddedDisplayRepresentationUtil
                 // Tell embedded model that it is held by this widget,
                 // which provides access to macros of model_widget.
                 embedded_model.setUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET, model_widget);
+                embedded_model.setUserData(USER_DATA_IS_TRANSPARENT_GROUP, false);
                 if (!display_and_group.getGroupName().isEmpty())
                     reduceDisplayModelToGroup(model_widget, embedded_model, display_and_group);
                 // Adjust model name to reflect source file
@@ -148,6 +153,12 @@ public class EmbeddedDisplayRepresentationUtil
         // Replace display with just the content of that group
         final GroupWidget group = (GroupWidget) groups.get(0);
         model.runtimeChildren().setValue(group.runtimeChildren().getValue());
+        // Transparent Group use case - flag for Representation.representContent()
+        if (group.propTransparent().getValue())
+            model.setUserData(USER_DATA_IS_TRANSPARENT_GROUP, true);
+        // Group model correction - use group background color, not the display background color
+        model.propBackgroundColor().setValue(group.propBackgroundColor().getValue());
+        
         // Not removing children from 'group', since group will be GC'ed anyway.
         shrinkModelToWidgets(model);
     }
