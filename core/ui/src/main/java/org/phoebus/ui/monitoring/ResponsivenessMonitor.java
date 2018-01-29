@@ -66,10 +66,11 @@ public class ResponsivenessMonitor
 
     /** Create responsiveness monitor
      *
+     *  @param initial_delay Initial delay, time to wait until first check
      *  @param period Period between tests, i.e. the minimum detected UI freeze duration
      *  @param unit Units for the period
      */
-    public ResponsivenessMonitor(final long period, final TimeUnit unit)
+    public ResponsivenessMonitor(final long initial_delay, final long period, final TimeUnit unit)
     {
         if (! Platform.isFxApplicationThread())
             throw new IllegalStateException("Must create on UI thread");
@@ -77,7 +78,7 @@ public class ResponsivenessMonitor
         thread_bean = ManagementFactory.getThreadMXBean();
         dumpLockedMonitors = thread_bean.isObjectMonitorUsageSupported();
         dumpLockedSynchronizers = thread_bean.isSynchronizerUsageSupported();
-        timer.scheduleWithFixedDelay(this::check, period, period, unit);
+        timer.scheduleWithFixedDelay(this::check, initial_delay, period, unit);
     }
 
     /** Called periodically to check if UI thread responds */
@@ -134,5 +135,11 @@ public class ResponsivenessMonitor
     {
         // Indicate that UI thread executed
         ui_thread_responded.set(true);
+    }
+
+    /** Stop the monitor */
+    public void close()
+    {
+        timer.shutdown();
     }
 }

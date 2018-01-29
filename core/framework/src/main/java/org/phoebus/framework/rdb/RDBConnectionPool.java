@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
@@ -28,12 +29,19 @@ import org.phoebus.framework.rdb.RDBInfo.Dialect;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class RDBConnectionPool
 {
     /** Logger for the package */
     public static final Logger logger = Logger.getLogger(RDBConnectionPool.class.getPackageName());
 
-    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(target ->
+    {
+        final Thread thread = new Thread(target, "RDBConnectionPool");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     private final RDBInfo info;
     private final List<Connection> pool = new ArrayList<>();
 
@@ -141,11 +149,13 @@ public class RDBConnectionPool
     {
         try
         {
+            logger.log(Level.FINE, "Closing " + connection.getMetaData().getDatabaseProductName());
             connection.close();
         }
         catch (Exception ex)
         {
-            // Ignore, closing anyway
+            // Ignore, closing anyway?
+            logger.log(Level.FINE, "Error closing RDB connection", ex);
         }
     }
 }

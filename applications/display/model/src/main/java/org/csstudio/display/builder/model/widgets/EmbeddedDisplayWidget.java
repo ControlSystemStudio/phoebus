@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -170,11 +171,9 @@ public class EmbeddedDisplayWidget extends VisibleWidget
                     }
                 }
 
-                // Transition legacy border if it was an explicit line
-                // or a style that includes a label
+                // Transition legacy border that includes a label into group wrapper
                 final int border_style = XMLUtil.getChildInteger(xml, "border_style").orElse(0);
-                if (border_style == 1  || // LINE
-                    border_style == 12 || // TITLE_BAR
+                if (border_style == 12 || // TITLE_BAR
                     border_style == 13)   // GROUP_BOX
                 {
                     final Style style = GroupWidget.convertLegacyStyle(border_style);
@@ -182,6 +181,8 @@ public class EmbeddedDisplayWidget extends VisibleWidget
                     // Trigger re-parsing the XML from the parent down
                     throw new ParseAgainException();
                 }
+                else
+                    BorderSupport.handleLegacyBorder(widget, xml);
             }
             return true;
         }
@@ -208,6 +209,11 @@ public class EmbeddedDisplayWidget extends VisibleWidget
             // there is no infinite loop creating more 'group' wrappers.
             Element el = XMLUtil.getChildElement(embedded_xml, "border_style");
             embedded_xml.removeChild(el);
+
+            // Disable the 'custom' border, since the group wrapper now provides the border
+            el = XMLUtil.getChildElement(embedded_xml, "border_width");
+            if (el != null)
+                embedded_xml.removeChild(el);
 
             // Update name
             XMLUtil.updateTag(embedded_xml, XMLTags.NAME, widget.getName() + "_Content");
@@ -253,6 +259,7 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     private volatile WidgetProperty<Resize> resize;
     private volatile WidgetProperty<String> group_name;
     private volatile WidgetProperty<DisplayModel> embedded_model;
+    private volatile WidgetProperty<Boolean> transparent;
 
     public EmbeddedDisplayWidget()
     {
@@ -268,6 +275,8 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         properties.add(resize = propResize.createProperty(this, Resize.None));
         properties.add(group_name = propGroupName.createProperty(this, ""));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
+        properties.add(transparent = propTransparent.createProperty(this, false));
+        BorderSupport.addBorderProperties(this, properties);
 
         // Initial size
         propWidth().setValue(300);
@@ -302,6 +311,12 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     public WidgetProperty<DisplayModel> runtimePropEmbeddedModel()
     {
         return embedded_model;
+    }
+
+    /** @return 'transparent' property */
+    public WidgetProperty<Boolean> propTransparent()
+    {
+        return transparent;
     }
 
     @Override

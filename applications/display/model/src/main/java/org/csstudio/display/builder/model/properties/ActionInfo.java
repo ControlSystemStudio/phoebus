@@ -65,7 +65,8 @@ public abstract class ActionInfo
             return new WritePVActionInfo(type.toString(), "$(pv_name)", "0");
         case EXECUTE_SCRIPT:
             return new ExecuteScriptActionInfo(type.toString(),
-                                               new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, "print 'Hello'",
+                                               new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON,
+                                                              ScriptInfo.EXAMPLE_PYTHON,
                                                               false,
                                                               Collections.emptyList()));
         case EXECUTE_COMMAND:

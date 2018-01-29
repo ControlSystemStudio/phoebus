@@ -28,6 +28,7 @@ import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.ui.javafx.Styles;
 
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.MenuButton;
@@ -188,6 +189,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         // Need to attach TT to the specific button, not the common jfx_node Pane
         TooltipSupport.attach(result, model_widget.propTooltip());
 
+        result.setCursor(Cursor.HAND);
+
         return result;
     }
 
@@ -268,6 +271,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
 
         model_widget.propBackgroundColor().addUntypedPropertyListener(this::buttonChanged);
         model_widget.propForegroundColor().addUntypedPropertyListener(this::buttonChanged);
+        model_widget.propTransparent().addUntypedPropertyListener(this::buttonChanged);
         model_widget.propActions().addUntypedPropertyListener(this::buttonChanged);
 
         enablementChanged(null, null, null);
@@ -309,7 +313,10 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private void updateColors()
     {
         foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-        background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+        if (model_widget.propTransparent().getValue())
+            background = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1);";
+        else
+            background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
     }
 
     @Override

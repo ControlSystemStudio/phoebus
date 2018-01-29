@@ -538,8 +538,10 @@ public class ActionsDialog extends Dialog<ActionInfos>
         {
             execute_script_file.setText(ScriptInfo.EMBEDDED_PYTHON);
             final String text = execute_script_text.getText();
-            if (text == null  ||  text.trim().isEmpty())
-                execute_script_text.setText(Messages.ScriptsDialog_DefaultEmbeddedPython);
+            if (text == null ||
+                text.trim().isEmpty() ||
+                text.trim().equals(ScriptInfo.EXAMPLE_JAVASCRIPT) )
+                execute_script_text.setText(ScriptInfo.EXAMPLE_PYTHON);
         });
 
         final Button btn_embed_js = new Button(Messages.ScriptsDialog_BtnEmbedJS, JFXUtil.getIcon("embedded_script.png"));
@@ -547,8 +549,10 @@ public class ActionsDialog extends Dialog<ActionInfos>
         {
             execute_script_file.setText(ScriptInfo.EMBEDDED_JAVASCRIPT);
             final String text = execute_script_text.getText();
-            if (text == null  ||  text.trim().isEmpty())
-                execute_script_text.setText(Messages.ScriptsDialog_DefaultEmbeddedJavaScript);
+            if (text == null ||
+                text.trim().isEmpty() ||
+                text.trim().equals(ScriptInfo.EXAMPLE_PYTHON) )
+                execute_script_text.setText(ScriptInfo.EXAMPLE_JAVASCRIPT);
         });
 
         execute_script_details.add(new HBox(10, btn_embed_py, btn_embed_js), 1, 2);

@@ -148,6 +148,10 @@ public class EmbeddedDisplayRepresentationUtil
         // Replace display with just the content of that group
         final GroupWidget group = (GroupWidget) groups.get(0);
         model.runtimeChildren().setValue(group.runtimeChildren().getValue());
+
+        // Group model correction - use group background color, not the display background color
+        model.propBackgroundColor().setValue(group.propBackgroundColor().getValue());
+
         // Not removing children from 'group', since group will be GC'ed anyway.
         shrinkModelToWidgets(model);
     }

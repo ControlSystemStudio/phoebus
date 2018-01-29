@@ -134,6 +134,8 @@ public class PhoebusApplication extends Application {
         }
     };
 
+    private ResponsivenessMonitor freezeup_check;
+
 
     /** JavaFX entry point
      *  @param initial_stage Initial Stage created by JavaFX
@@ -142,8 +144,6 @@ public class PhoebusApplication extends Application {
     public void start(final Stage initial_stage) throws Exception {
         // Show splash screen as soon as possible..
         final Splash splash = new Splash(initial_stage);
-
-        new ResponsivenessMonitor(500, TimeUnit.MILLISECONDS);
 
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
@@ -259,6 +259,12 @@ public class PhoebusApplication extends Application {
         DockPane.addListener(dock_pane_listener);
         DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
         monitor.done();
+
+        // Now that UI has loaded,
+        // start the responsiveness check.
+        // During startup, it would trigger
+        // as the UI loads style sheets etc.
+        freezeup_check = new ResponsivenessMonitor(2500, 500, TimeUnit.MILLISECONDS);
     }
 
     /** Handle parameters from clients, logging errors
@@ -792,9 +798,6 @@ public class PhoebusApplication extends Application {
             monitor.updateTaskName("Starting " + app.getDisplayName());
             app.start();
             monitor.worked(1);
-
-            // TODO Remove dummy delay
-            try { Thread.sleep(100); } catch (InterruptedException ex) {}
         }
     }
 
@@ -810,6 +813,8 @@ public class PhoebusApplication extends Application {
     public void stop() {
         stopApplications();
 
+        if (freezeup_check != null)
+            freezeup_check.close();
         // Hard exit because otherwise background threads
         // might keep us from quitting the VM
         logger.log(Level.INFO, "Exiting");

@@ -75,10 +75,11 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
 
     /** @param gc GC
      *  @param bounds Clipping bounds within which to paint
+     *  @param opacity Opacity (0 .. 100 %) of 'area'
      *  @param x_transform Coordinate transform used by the x axis
      *  @param trace Trace, has reference to its value axis
      */
-    final public void paint(final Graphics2D gc, final Rectangle bounds,
+    final public void paint(final Graphics2D gc, final Rectangle bounds, final int opacity,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final Trace<XTYPE> trace)
     {
@@ -94,10 +95,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         final Stroke old_width = gc.getStroke();
 
         final Color color = GraphicsUtils.convert(trace.getColor());
-        final float fr = (float) (color.getRed() / 255.0);
-        final float fg = (float) (color.getGreen() / 255.0);
-        final float fb = (float) (color.getBlue() / 255.0);
-        final Color tpcolor = new Color(fr, fg, fb, (float) 0.2);
+        final Color tpcolor = new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity);
         gc.setColor(color);
 
         // TODO Optimize drawing

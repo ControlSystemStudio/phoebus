@@ -8,13 +8,28 @@
 package org.csstudio.trends.databrowser3.persistence;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.csstudio.trends.databrowser3.Activator;
+import org.csstudio.trends.databrowser3.model.AnnotationInfo;
+import org.csstudio.trends.databrowser3.model.ArchiveRescale;
+import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -26,8 +41,8 @@ import javafx.scene.text.FontWeight;
 
 /** Load and save {@link Model} as XML file
  *
- *  <p>Attempts to load files going back to very early versions of the
- *  Data Browser, as well as those which contained the xyGraphSettings
+ *  <p>Attempts to load files going back to very early versions
+ *  of the Data Browser
  *
  *  @author Kay Kasemir
  */
@@ -99,7 +114,6 @@ public class XMLPersistence
     final public static String TAG_ARCHIVE = "archive";
 
     final public static String TAG_URL = "url";
-    final public static String TAG_KEY = "key";
 
     final public static String TAG_FORMULA = "formula";
     final public static String TAG_INPUT = "input";
@@ -110,205 +124,187 @@ public class XMLPersistence
      *  @param stream XML stream
      *  @throws Exception on error
      */
-    public void load(final Model model, final InputStream stream) throws Exception
+    public static void load(final Model model, final InputStream stream) throws Exception
     {
         final DocumentBuilder docBuilder =
                 DocumentBuilderFactory.newInstance().newDocumentBuilder();
         final Document doc = docBuilder.parse(stream);
-        // load(model, doc);
+        load(model, doc);
     }
 
-//    private void load(final Model model, final Document doc) throws Exception
-//    {
-//        if (model.getItems().iterator().hasNext())
-//            throw new RuntimeException("Model was already in use");
-//
-//        // Check if it's a <databrowser/>.
-//        doc.getDocumentElement().normalize();
-//        final Element root_node = doc.getDocumentElement();
-//        if (!root_node.getNodeName().equals(TAG_DATABROWSER))
-//            throw new Exception("Expected " + TAG_DATABROWSER + " but got " + root_node.getNodeName());
-//
-//        // Global settings
-//        String title = DOMHelper.getSubelementString(root_node, TAG_TITLE);
-//        if (! title.isEmpty())
-//            model.setTitle(title);
-//        model.setSaveChanges(DOMHelper.getSubelementBoolean(root_node, TAG_SAVE_CHANGES, true));
-//        model.setGridVisible(DOMHelper.getSubelementBoolean(root_node, TAG_GRID, false));
-//        model.enableScrolling(DOMHelper.getSubelementBoolean(root_node, TAG_SCROLL, true));
-//        model.setUpdatePeriod(DOMHelper.getSubelementDouble(root_node, TAG_UPDATE_PERIOD, Preferences.getUpdatePeriod()));
-//        try
-//        {
-//            model.setScrollStep( Duration.ofSeconds(
-//                    DOMHelper.getSubelementInt(root_node, TAG_SCROLL_STEP, (int) Preferences.getScrollStep().getSeconds())));
-//        }
-//        catch (Throwable ex)
-//        {
-//            // Ignore
-//        }
-//
+    private static void load(final Model model, final Document doc) throws Exception
+    {
+        if (model.getItems().size() > 0)
+            throw new RuntimeException("Model was already in use");
+
+        // Check if it's a <databrowser/>.
+        doc.getDocumentElement().normalize();
+        final Element root_node = doc.getDocumentElement();
+        if (!root_node.getNodeName().equals(TAG_DATABROWSER))
+            throw new Exception("Expected " + TAG_DATABROWSER + " but got " + root_node.getNodeName());
+
+        // Global settings
+        XMLUtil.getChildString(root_node, TAG_TITLE).ifPresent(model::setTitle);
+        XMLUtil.getChildBoolean(root_node, TAG_SAVE_CHANGES).ifPresent(model::setSaveChanges);
+        XMLUtil.getChildBoolean(root_node, TAG_GRID).ifPresent(model::setGridVisible);
+        XMLUtil.getChildBoolean(root_node, TAG_SCROLL).ifPresent(model::enableScrolling);
+        XMLUtil.getChildDouble(root_node, TAG_UPDATE_PERIOD).ifPresent(model::setUpdatePeriod);
+
+        try
+        {
+            model.setScrollStep( Duration.ofSeconds(
+                    XMLUtil.getChildInteger(root_node, TAG_SCROLL_STEP).orElse((int) Preferences.scroll_step.getSeconds())));
+        }
+        catch (Throwable ex)
+        {
+            // Ignore
+        }
+
 //        final String start = DOMHelper.getSubelementString(root_node, TAG_START);
 //        final String end = DOMHelper.getSubelementString(root_node, TAG_END);
 //        if (start.length() > 0  &&  end.length() > 0)
 //            model.setTimerange(start, end);
-//
-//        final String rescale = DOMHelper.getSubelementString(root_node, TAG_ARCHIVE_RESCALE, ArchiveRescale.STAGGER.name());
-//        try
-//        {
-//            model.setArchiveRescale(ArchiveRescale.valueOf(rescale));
-//        }
-//        catch (Throwable ex)
-//        {
-//            // Ignore
-//        }
-//
-//        model.setToolbarVisible(DOMHelper.getSubelementBoolean(root_node, TAG_SHOW_TOOLBAR, true));
-//        model.setLegendVisible(DOMHelper.getSubelementBoolean(root_node, TAG_SHOW_LEGEND, true));
-//
-//        // Value Axes
-//        Element list = DOMHelper.findFirstElementNode(root_node.getFirstChild(), TAG_AXES);
-//        if (list != null)
-//        {
-//            Element item = DOMHelper.findFirstElementNode(
-//                    list.getFirstChild(), TAG_AXIS);
-//            while (item != null)
-//            {
-//                model.addAxis(AxisConfig.fromDocument(item));
-//                item = DOMHelper.findNextElementNode(item, TAG_AXIS);
-//            }
-//        }
-//        else
-//        {   // Check for legacy <xyGraphSettings> <axisSettingsList>
-//            list = DOMHelper.findFirstElementNode(root_node.getFirstChild(), TAG_OLD_XYGRAPH_SETTINGS);
-//            if (list != null)
-//            {
-//                loadColorFromDocument(list, "plotAreaBackColor").ifPresent(model::setPlotBackground);
-//
-//                Element item = DOMHelper.findFirstElementNode(list.getFirstChild(), "axisSettingsList");
-//                if (item != null)
-//                {
-//                    // First axis is 'X'
-//                    model.setGridVisible(DOMHelper.getSubelementBoolean(item, "showMajorGrid", false));
-//
-//                    // Read 'Y' axes
-//                    item = DOMHelper.findNextElementNode(item, "axisSettingsList");
-//                    while (item != null)
-//                    {
-//                        final String name = DOMHelper.getSubelementString(item, "title", null);
-//                        final AxisConfig axis = new AxisConfig(name);
-//                        loadColorFromDocument(item, "foregroundColor").ifPresent(axis::setColor);
-//                        axis.setGridVisible(DOMHelper.getSubelementBoolean(item, "showMajorGrid", false));
-//                        axis.setLogScale(DOMHelper.getSubelementBoolean(item, "logScale", false));
-//                        axis.setAutoScale(DOMHelper.getSubelementBoolean(item, "autoScale", false));
-//                        final Element range = DOMHelper.findFirstElementNode(item.getFirstChild(), "range");
-//                        if (range != null)
-//                        {
-//                            double min =  DOMHelper.getSubelementDouble(range, "lower", axis.getMin());
-//                            double max =  DOMHelper.getSubelementDouble(range, "upper", axis.getMax());
-//                            axis.setRange(min, max);
-//                        }
-//                        model.addAxis(axis);
-//
-//                        // Using legacy settings from _last_ axis for fonts
-//                        loadFontFromDocument(item, "scaleFont").ifPresent(model::setScaleFont);
-//                        loadFontFromDocument(item, "titleFont").ifPresent(model::setLabelFont);
-//
-//                        item = DOMHelper.findNextElementNode(item, "axisSettingsList");
-//                    }
-//                }
-//            }
-//        }
-//
-//        // New settings, possibly replacing settings from legacy <xyGraphSettings> <axisSettingsList>
-//        loadColorFromDocument(root_node, TAG_BACKGROUND).ifPresent(model::setPlotBackground);
-//        loadFontFromDocument(root_node, TAG_TITLE_FONT).ifPresent(model::setTitleFont);
-//        loadFontFromDocument(root_node, TAG_LABEL_FONT).ifPresent(model::setLabelFont);
-//        loadFontFromDocument(root_node, TAG_SCALE_FONT).ifPresent(model::setScaleFont);
-//        loadFontFromDocument(root_node, TAG_LEGEND_FONT).ifPresent(model::setLegendFont);
-//
-//        // Load Annotations
-//        list = DOMHelper.findFirstElementNode(root_node.getFirstChild(), TAG_ANNOTATIONS);
-//        if (list != null)
-//        {
-//            // Load PV items
-//            final List<AnnotationInfo> annotations = new ArrayList<>();
-//            Element item = DOMHelper.findFirstElementNode(list.getFirstChild(), TAG_ANNOTATION);
-//            while (item != null)
-//            {
-//                try
-//                {
-//                    annotations.add(AnnotationInfo.fromDocument(item));
-//                }
-//                catch (Throwable ex)
-//                {
-//                    Activator.getLogger().log(Level.INFO, "XML error in Annotation", ex);
-//                }
-//                item = DOMHelper.findNextElementNode(item, TAG_ANNOTATION);
-//            }
-//            model.setAnnotations(annotations);
-//        }
-//
-//        // Load PVs/Formulas
-//        list = DOMHelper.findFirstElementNode(root_node.getFirstChild(), TAG_PVLIST);
-//        if (list != null)
-//        {
-//            // Load PV items
-//            Element item = DOMHelper.findFirstElementNode(
-//                    list.getFirstChild(), TAG_PV);
-//            while (item != null)
-//            {
-//                final PVItem model_item = PVItem.fromDocument(model, item);
-//                // Adding item creates the axis for it if not already there
-//                model.addItem(model_item);
-//                // Ancient data browser stored axis configuration with each item: Update axis from that.
-//                final AxisConfig axis = model_item.getAxis();
-//                String s = DOMHelper.getSubelementString(item, TAG_AUTO_SCALE);
-//                if (s.equalsIgnoreCase("true"))
-//                    axis.setAutoScale(true);
-//                s = DOMHelper.getSubelementString(item, TAG_LOG_SCALE);
-//                if (s.equalsIgnoreCase("true"))
-//                    axis.setLogScale(true);
-//                final double min = DOMHelper.getSubelementDouble(item, TAG_MIN, axis.getMin());
-//                final double max = DOMHelper.getSubelementDouble(item, TAG_MAX, axis.getMax());
-//                axis.setRange(min, max);
-//
-//                item = DOMHelper.findNextElementNode(item, TAG_PV);
-//            }
-//            // Load Formulas
-//            item = DOMHelper.findFirstElementNode(
-//                    list.getFirstChild(), TAG_FORMULA);
-//            while (item != null)
-//            {
+
+        final String rescale = XMLUtil.getChildString(root_node, TAG_ARCHIVE_RESCALE).orElse(ArchiveRescale.STAGGER.name());
+        try
+        {
+            model.setArchiveRescale(ArchiveRescale.valueOf(rescale));
+        }
+        catch (Throwable ex)
+        {
+            // Ignore
+        }
+
+        XMLUtil.getChildBoolean(root_node, TAG_SHOW_TOOLBAR).ifPresent(model::setToolbarVisible);
+        XMLUtil.getChildBoolean(root_node, TAG_SHOW_LEGEND).ifPresent(model::setLegendVisible);
+
+        // Value Axes
+        if (XMLUtil.getChildElement(root_node, TAG_AXES) != null)
+        {
+            for (Element item : XMLUtil.getChildElements(root_node, TAG_AXES))
+                model.addAxis(AxisConfig.fromDocument(item));
+        }
+        else
+        {   // Check for legacy <xyGraphSettings> <axisSettingsList>
+            final Element list = XMLUtil.getChildElement(root_node, TAG_OLD_XYGRAPH_SETTINGS);
+            if (list != null)
+            {
+                loadColorFromDocument(list, "plotAreaBackColor").ifPresent(model::setPlotBackground);
+
+                boolean first_axis = true;
+                for (Element item : XMLUtil.getChildElements(list, "axisSettingsList"))
+                {
+                    if (first_axis)
+                    {   // First axis is 'X'
+                        XMLUtil.getChildBoolean(item, "showMajorGrid").ifPresent(model::setGridVisible);
+                        first_axis = false;
+                    }
+                    else
+                    {   // Read 'Y' axes
+                        final String name = XMLUtil.getChildString(item, "title").orElse(null);
+                        final AxisConfig axis = new AxisConfig(name);
+                        loadColorFromDocument(item, "foregroundColor").ifPresent(axis::setColor);
+
+                        XMLUtil.getChildBoolean(item, "showMajorGrid").ifPresent(axis::setGridVisible);
+                        XMLUtil.getChildBoolean(item, "logScale").ifPresent(axis::setLogScale);
+                        XMLUtil.getChildBoolean(item, "autoScale").ifPresent(axis::setAutoScale);
+
+                        final Element range = XMLUtil.getChildElement(item, "range");
+                        if (range != null)
+                        {
+                            final double min = XMLUtil.getChildDouble(range, "lower").orElse(axis.getMin());
+                            final double max = XMLUtil.getChildDouble(range, "upper").orElse(axis.getMax());
+                            axis.setRange(min, max);
+                        }
+                        model.addAxis(axis);
+
+                        // Using legacy settings from _last_ axis for fonts
+                        loadFontFromDocument(item, "scaleFont").ifPresent(model::setScaleFont);
+                        loadFontFromDocument(item, "titleFont").ifPresent(model::setLabelFont);
+                    }
+                }
+            }
+        }
+
+        // New settings, possibly replacing settings from legacy <xyGraphSettings> <axisSettingsList>
+        loadColorFromDocument(root_node, TAG_BACKGROUND).ifPresent(model::setPlotBackground);
+        loadFontFromDocument(root_node, TAG_TITLE_FONT).ifPresent(model::setTitleFont);
+        loadFontFromDocument(root_node, TAG_LABEL_FONT).ifPresent(model::setLabelFont);
+        loadFontFromDocument(root_node, TAG_SCALE_FONT).ifPresent(model::setScaleFont);
+        loadFontFromDocument(root_node, TAG_LEGEND_FONT).ifPresent(model::setLegendFont);
+
+        // Load Annotations
+        Element list = XMLUtil.getChildElement(root_node, TAG_ANNOTATIONS);
+        if (list != null)
+        {
+            final List<AnnotationInfo> annotations = new ArrayList<>();
+            for (Element item : XMLUtil.getChildElements(list, TAG_ANNOTATION))
+            {
+                try
+                {
+                    annotations.add(AnnotationInfo.fromDocument(item));
+                }
+                catch (Throwable ex)
+                {
+                    Activator.logger.log(Level.INFO, "XML error in Annotation", ex);
+                }
+            }
+            model.setAnnotations(annotations);
+        }
+
+        // Load PVs/Formulas
+        list = XMLUtil.getChildElement(root_node, TAG_PVLIST);
+        if (list != null)
+        {   // Load PV items
+            for (Element item : XMLUtil.getChildElements(list, TAG_PV))
+            {
+                final PVItem model_item = PVItem.fromDocument(model, item);
+                // Adding item creates the axis for it if not already there
+                model.addItem(model_item);
+                // Ancient data browser stored axis configuration with each item: Update axis from that.
+                final AxisConfig axis = model_item.getAxis();
+
+                XMLUtil.getChildBoolean(item, TAG_AUTO_SCALE).ifPresent(
+                    auto ->
+                    {
+                        if (auto)
+                            axis.setAutoScale(true);
+                    });
+
+                XMLUtil.getChildBoolean(item, TAG_LOG_SCALE).ifPresent(
+                    log ->
+                    {
+                        if (log)
+                            axis.setLogScale(true);
+                    });
+
+                final Optional<Double> min = XMLUtil.getChildDouble(item, TAG_MIN);
+                final Optional<Double> max = XMLUtil.getChildDouble(item, TAG_MAX);
+                if (min.isPresent()  &&  max.isPresent())
+                    axis.setRange(min.get(), max.get());
+            }
+            // Load Formulas
+//            for (Element item : XMLUtil.getChildElements(list, TAG_FORMULA))
 //                model.addItem(FormulaItem.fromDocument(model, item));
-//                item = DOMHelper.findNextElementNode(item, TAG_FORMULA);
-//            }
-//        }
-//
-//        // Update items from legacy <xyGraphSettings>
-//        list = DOMHelper.findFirstElementNode(root_node.getFirstChild(), TAG_OLD_XYGRAPH_SETTINGS);
-//        if (list != null)
-//        {
-//            title = DOMHelper.getSubelementString(list, TAG_TITLE);
-//            if (! title.isEmpty())
-//                model.setTitle(title);
-//
-//            final Iterator<ModelItem> model_items = model.getItems().iterator();
-//            Element item = DOMHelper.findFirstElementNode(list.getFirstChild(), "traceSettingsList");
-//            while (item != null)
-//            {
-//                if (! model_items.hasNext())
-//                    break;
-//                final ModelItem pv = model_items.next();
-//                Optional<RGB> rgb = loadColorFromDocument(item, "traceColor");
-//                if (rgb.isPresent()) {
-//                    pv.setColor(SWTMediaPool.getJFX(rgb.get()));
-//                }
-//                pv.setLineWidth(DOMHelper.getSubelementInt(item, "lineWidth", pv.getLineWidth()));
-//                pv.setDisplayName(DOMHelper.getSubelementString(item, "name", pv.getDisplayName()));
-//                item = DOMHelper.findNextElementNode(item, "traceSettingsList");
-//            }
-//        }
-//    }
+        }
+
+        // Update items from legacy <xyGraphSettings>
+        list = XMLUtil.getChildElement(root_node, TAG_OLD_XYGRAPH_SETTINGS);
+        if (list != null)
+        {
+            XMLUtil.getChildString(list, TAG_TITLE).ifPresent(model::setTitle);
+            final Iterator<ModelItem> model_items = model.getItems().iterator();
+            for (Element item : XMLUtil.getChildElements(list, "traceSettingsList"))
+            {
+                if (! model_items.hasNext())
+                    break;
+                final ModelItem pv = model_items.next();
+                loadColorFromDocument(item, "traceColor").ifPresent(value -> pv.setColor(value));
+                XMLUtil.getChildInteger(item, "lineWidth").ifPresent(value -> pv.setLineWidth(value));
+                XMLUtil.getChildString(item, "name").ifPresent(value -> pv.setDisplayName(value));
+            }
+        }
+    }
 
     /** Load RGB color from XML document
      *  @param node Parent node of the color
@@ -338,8 +334,6 @@ public class XMLPersistence
         final int blue = XMLUtil.getChildInteger(color, TAG_BLUE).orElse(0);
         return Optional.of(Color.rgb(red, green, blue));
     }
-
-
 
     /** Load font from XML document
      *  @param node Parent node of the color
@@ -380,68 +374,117 @@ public class XMLPersistence
         return Optional.of(Font.font(family, weight, posture, size ));
     }
 
-//    /** Write XML formatted Model content.
-//     *  @param model Model to write
-//     *  @param out OutputStream, will NOT be closed when done.
-//     */
-//    public void write(final Model model, final OutputStream out)
-//    {
-//        final PrintWriter writer = new PrintWriter(out);
-//
-//        XMLWriter.header(writer);
-//        XMLWriter.start(writer, 0, TAG_DATABROWSER);
-//        writer.println();
-//
-//        XMLWriter.XML(writer, 1, TAG_TITLE, model.getTitle().orElse(""));
-//        XMLWriter.XML(writer, 1, TAG_SAVE_CHANGES, model.shouldSaveChanges());
-//
-//        // Visibility of toolbar and legend
-//        XMLWriter.XML(writer, 1, TAG_SHOW_LEGEND, model.isLegendVisible());
-//        XMLWriter.XML(writer, 1, TAG_SHOW_TOOLBAR, model.isToolbarVisible());
-//
-//        // Time axis
-//        XMLWriter.XML(writer, 1, TAG_GRID, model.isGridVisible());
-//        XMLWriter.XML(writer, 1, TAG_SCROLL, model.isScrollEnabled());
-//        XMLWriter.XML(writer, 1, TAG_UPDATE_PERIOD, model.getUpdatePeriod());
-//        XMLWriter.XML(writer, 1, TAG_SCROLL_STEP, model.getScrollStep().getSeconds());
-//        XMLWriter.XML(writer, 1, TAG_START, model.getStartSpec());
-//        XMLWriter.XML(writer, 1, TAG_END, model.getEndSpec());
-//
-//        XMLWriter.XML(writer, 1, TAG_ARCHIVE_RESCALE, model.getArchiveRescale().name());
-//
-//        writeColor(writer, 1, TAG_BACKGROUND, model.getPlotBackground());
-//        XMLWriter.XML(writer, 1, TAG_TITLE_FONT, SWTMediaPool.getFontDescription(model.getTitleFont()));
-//        XMLWriter.XML(writer, 1, TAG_LABEL_FONT, SWTMediaPool.getFontDescription(model.getLabelFont()));
-//        XMLWriter.XML(writer, 1, TAG_SCALE_FONT, SWTMediaPool.getFontDescription(model.getScaleFont()));
-//        XMLWriter.XML(writer, 1, TAG_LEGEND_FONT, SWTMediaPool.getFontDescription(model.getLegendFont()));
-//
-//        // Value axes
-//        XMLWriter.start(writer, 1, TAG_AXES);
-//        writer.println();
-//        for (AxisConfig axis : model.getAxes())
-//            axis.write(writer);
-//        XMLWriter.end(writer, 1, TAG_AXES);
-//        writer.println();
-//
-//        // Annotations
-//        XMLWriter.start(writer, 1, TAG_ANNOTATIONS);
-//        writer.println();
-//        for (AnnotationInfo annotation : model.getAnnotations())
-//            annotation.write(writer);
-//        XMLWriter.end(writer, 1, TAG_ANNOTATIONS);
-//        writer.println();
-//
-//        // PVs (Formulas)
-//        XMLWriter.start(writer, 1, TAG_PVLIST);
-//        writer.println();
-//        for (ModelItem item : model.getItems())
-//            item.write(writer);
-//        XMLWriter.end(writer, 1, TAG_PVLIST);
-//        writer.println();
-//
-//        XMLWriter.end(writer, 0, TAG_DATABROWSER);
-//        writer.flush();
-//    }
+    private static void writeFont(XMLStreamWriter writer, final String tag_name, final Font font) throws Exception
+    {
+        writer.writeStartElement(tag_name);
+        final StringBuilder buf = new StringBuilder();
+        buf.append(font.getFamily())
+           .append('|')
+           .append(font.getSize())
+           .append('|');
+        // Cannot get the style out of the font as FontWeight, FontPosture??
+        final String style = font.getStyle().toLowerCase();
+        int code = 0;
+        if (style.contains("bold"))
+            code |= 1;
+        if (style.contains("italic"))
+            code |= 2;
+        buf.append(code);
+        writer.writeEndElement();
+    }
+
+    /** Write XML formatted Model content.
+     *  @param model Model to write
+     *  @param out {@link OutputStream}
+     *  @throws Exception on error
+     */
+    public static void write(final Model model, final OutputStream out) throws Exception
+    {
+        final XMLStreamWriter base =
+            XMLOutputFactory.newInstance().createXMLStreamWriter(out, XMLUtil.ENCODING);
+        final XMLStreamWriter writer = new IndentingXMLStreamWriter(base);
+        writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
+        writer.writeStartElement(TAG_DATABROWSER);
+        {
+            writer.writeStartElement(TAG_TITLE);
+            writer.writeCharacters(model.getTitle().orElse(""));
+            writer.writeEndElement();
+
+            if (model.shouldSaveChanges())
+            {
+                writer.writeStartElement(TAG_SAVE_CHANGES);
+                writer.writeCharacters(Boolean.TRUE.toString());
+                writer.writeEndElement();
+            }
+
+            // Visibility of toolbar and legend
+            if (model.isLegendVisible())
+            {
+                writer.writeStartElement(TAG_SHOW_LEGEND);
+                writer.writeCharacters(Boolean.TRUE.toString());
+                writer.writeEndElement();
+            }
+
+            if (model.isToolbarVisible())
+            {
+                writer.writeStartElement(TAG_SHOW_TOOLBAR);
+                writer.writeCharacters(Boolean.TRUE.toString());
+                writer.writeEndElement();
+            }
+
+            // Time axis
+            if (model.isGridVisible())
+            {
+                writer.writeStartElement(TAG_GRID);
+                writer.writeCharacters(Boolean.TRUE.toString());
+                writer.writeEndElement();
+            }
+            if (model.isScrollEnabled())
+            {
+                writer.writeStartElement(TAG_SCROLL);
+                writer.writeCharacters(Boolean.TRUE.toString());
+                writer.writeEndElement();
+            }
+            writer.writeStartElement(TAG_UPDATE_PERIOD);
+            writer.writeCharacters(Double.toString(model.getUpdatePeriod()));
+            writer.writeEndElement();
+            writer.writeStartElement(TAG_SCROLL_STEP);
+            writer.writeCharacters(Long.toString(model.getScrollStep().getSeconds()));
+            writer.writeEndElement();
+    //        XMLWriter.XML(writer, 1, TAG_START, model.getStartSpec());
+    //        XMLWriter.XML(writer, 1, TAG_END, model.getEndSpec());
+
+            writer.writeStartElement(TAG_ARCHIVE_RESCALE);
+            writer.writeCharacters(model.getArchiveRescale().name());
+            writer.writeEndElement();
+
+            writeColor(writer, TAG_BACKGROUND, model.getPlotBackground());
+            writeFont(writer, TAG_TITLE_FONT, model.getTitleFont());
+            writeFont(writer, TAG_LABEL_FONT, model.getLabelFont());
+            writeFont(writer, TAG_SCALE_FONT, model.getScaleFont());
+            writeFont(writer, TAG_LEGEND_FONT, model.getLegendFont());
+
+            // Value axes
+            writer.writeStartElement(TAG_AXES);
+            for (AxisConfig axis : model.getAxes())
+                axis.write(writer);
+            writer.writeEndElement();
+
+            // Annotations
+            writer.writeStartElement(TAG_ANNOTATIONS);
+            for (AnnotationInfo annotation : model.getAnnotations())
+                annotation.write(writer);
+            writer.writeEndElement();
+
+            // PVs (Formulas)
+            writer.writeStartElement(TAG_PVLIST);
+            for (ModelItem item : model.getItems())
+                item.write(writer);
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+        writer.writeEndDocument();
+    }
 
     /** Write RGB color to XML document
      *  @param writer

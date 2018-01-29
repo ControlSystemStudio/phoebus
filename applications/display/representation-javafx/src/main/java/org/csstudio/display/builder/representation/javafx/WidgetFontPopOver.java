@@ -84,18 +84,13 @@ public class WidgetFontPopOver extends PopOver
         ModelThreadPool.getExecutor().execute(() ->
         {
             final List<String> fams = Font.getFamilies();
-            Platform.runLater(() -> families.getItems().addAll(fams));
-
             final NamedWidgetFonts fonts = WidgetFontService.getFonts();
             final Collection<NamedWidgetFont> values = fonts.getFonts();
             Platform.runLater(() ->
             {
-                font_names.getItems().addAll(values);
-                if (initial_font instanceof NamedWidgetFont)
-                {
-                    font_names.getSelectionModel().select((NamedWidgetFont) initial_font);
-                    font_names.scrollTo(font_names.getSelectionModel().getSelectedIndex());
-                }
+                families.getItems().setAll(fams);
+                font_names.getItems().setAll(values);
+                setFont(initial_font);
             });
         });
 
@@ -224,12 +219,19 @@ public class WidgetFontPopOver extends PopOver
         updating = true;
         try
         {
+            if (font instanceof NamedWidgetFont)
+            {
+                font_names.getSelectionModel().select((NamedWidgetFont) font);
+                font_names.scrollTo(font_names.getSelectionModel().getSelectedIndex());
+            }
+
             families.getSelectionModel().select(font.getFamily());
             families.scrollTo(families.getSelectionModel().getSelectedIndex());
+
             styles.getSelectionModel().select(font.getStyle());
             size.setText(Double.toString(font.getSize()));
 
-            String current_size = String.format("%.1f", font.getSize());
+            final String current_size = String.format("%.1f", font.getSize());
             sizes.getSelectionModel().select(current_size);
 
             example.setFont(JFXUtil.convert(font));

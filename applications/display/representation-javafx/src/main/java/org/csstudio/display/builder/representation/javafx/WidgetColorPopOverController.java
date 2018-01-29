@@ -47,6 +47,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -150,14 +151,57 @@ public class WidgetColorPopOverController implements Initializable {
         defaultButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(defaultColor), colorProperty()));
         okButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(originalColor), colorProperty()));
 
-        redSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255));
+        SpinnerValueFactory<Integer> redSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        TextFormatter<Integer> redSpinnerFormatter = new TextFormatter<>(redSpinnerValueFactory.getConverter(), redSpinnerValueFactory.getValue());
+
+        redSpinnerValueFactory.valueProperty().bindBidirectional(redSpinnerFormatter.valueProperty());
+        redSpinner.getEditor().setTextFormatter(redSpinnerFormatter);
+        redSpinner.setValueFactory(redSpinnerValueFactory);
         redSpinner.valueProperty().addListener(this::updateFromSpinner);
-        greenSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255));
+        redSpinner.focusedProperty().addListener( ( s, ov, nv ) -> {
+            if ( nv ) {
+                Platform.runLater(() -> redSpinner.getEditor().selectAll());
+            }
+        });
+
+        SpinnerValueFactory<Integer> greenSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        TextFormatter<Integer> greenSpinnerFormatter = new TextFormatter<>(greenSpinnerValueFactory.getConverter(), greenSpinnerValueFactory.getValue());
+
+        greenSpinnerValueFactory.valueProperty().bindBidirectional(greenSpinnerFormatter.valueProperty());
+        greenSpinner.getEditor().setTextFormatter(greenSpinnerFormatter);
+        greenSpinner.setValueFactory(greenSpinnerValueFactory);
         greenSpinner.valueProperty().addListener(this::updateFromSpinner);
-        blueSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255));
+        greenSpinner.focusedProperty().addListener( ( s, ov, nv ) -> {
+            if ( nv ) {
+                Platform.runLater(() -> greenSpinner.getEditor().selectAll());
+            }
+        });
+
+        SpinnerValueFactory<Integer> blueSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        TextFormatter<Integer> blueSpinnerFormatter = new TextFormatter<>(blueSpinnerValueFactory.getConverter(), blueSpinnerValueFactory.getValue());
+
+        blueSpinnerValueFactory.valueProperty().bindBidirectional(blueSpinnerFormatter.valueProperty());
+        blueSpinner.getEditor().setTextFormatter(blueSpinnerFormatter);
+        blueSpinner.setValueFactory(blueSpinnerValueFactory);
         blueSpinner.valueProperty().addListener(this::updateFromSpinner);
-        alphaSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255));
+        blueSpinner.focusedProperty().addListener( ( s, ov, nv ) -> {
+            if ( nv ) {
+                Platform.runLater(() -> blueSpinner.getEditor().selectAll());
+            }
+        });
+
+        SpinnerValueFactory<Integer> alphaSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        TextFormatter<Integer> alphaSpinnerFormatter = new TextFormatter<>(alphaSpinnerValueFactory.getConverter(), alphaSpinnerValueFactory.getValue());
+
+        alphaSpinnerValueFactory.valueProperty().bindBidirectional(alphaSpinnerFormatter.valueProperty());
+        alphaSpinner.getEditor().setTextFormatter(alphaSpinnerFormatter);
+        alphaSpinner.setValueFactory(alphaSpinnerValueFactory);
         alphaSpinner.valueProperty().addListener(this::updateFromSpinner);
+        alphaSpinner.focusedProperty().addListener( ( s, ov, nv ) -> {
+            if ( nv ) {
+                Platform.runLater(() -> alphaSpinner.getEditor().selectAll());
+            }
+        });
 
         redSlider.valueProperty().addListener(this::updateFromSlider);
         greenSlider.valueProperty().addListener(this::updateFromSlider);

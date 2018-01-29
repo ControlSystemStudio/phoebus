@@ -226,7 +226,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         private PointType map(final PlotWidgetPointType value)
         {   // For now the ordinals match,
             // only different types to keep the Model separate from the Representation
-            return PointType.fromOrdinal(value.ordinal());
+            return PointType.values()[value.ordinal()];
         }
 
         private void traceChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

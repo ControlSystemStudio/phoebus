@@ -30,8 +30,13 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Scale;
 
 /** Creates JavaFX item for model widget
@@ -120,6 +125,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
         model_widget.propFile().addUntypedPropertyListener(this::fileChanged);
         model_widget.propGroupName().addUntypedPropertyListener(this::fileChanged);
+        model_widget.propTransparent().addUntypedPropertyListener(this::fileChanged);
         fileChanged(null, null, null);
     }
 
@@ -251,15 +257,27 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         {
             sizesChanged(null, null, null);
             toolkit.representModel(inner, content_model);
-            // TODO Haven't found perfect way to set the 'background' color
-            // of the embedded content.
-            // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
-            // of the embedded content if the container is (much) larger than the content
-            inner.setBackground(new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY)));
-            // The scroll pane background can only be set via style,
-            // and then shines through on the outside of the scrollbars
-            // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
-            //                  "; -fx-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()));
+            if (model_widget.propTransparent().getValue())
+            {
+                inner.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+                // Make scroll transparent
+                scroll.setStyle("-fx-background: null;");
+                // Reinstall the frame in edit mode. Scroll is unusable, so make it with inner
+                if (toolkit.isEditMode())
+                    inner.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+            }
+            else
+            {
+                // TODO Haven't found perfect way to set the 'background' color
+                // of the embedded content.
+                // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
+                // of the embedded content if the container is (much) larger than the content
+                inner.setBackground(new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY)));
+                // The scroll pane background can only be set via style,
+                // and then shines through on the outside of the scrollbars
+                // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
+                //                  "; -fx-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()));
+            }
         }
         catch (final Exception ex)
         {

@@ -3,6 +3,20 @@
   <name>Actions</name>
   <height>635</height>
   <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Typical actions buttons have exactly one
+action assigned to them.
+Clicking the button invokes that action.
+
+If an action button has multiple actions assigned,
+a drop-down allows invoking one of them at a time.
+In special cases, the option to "execute all actions as one"
+can be used.</text>
+    <y>220</y>
+    <width>380</width>
+    <height>180</height>
+  </widget>
+  <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
     <text>Actions</text>
@@ -59,7 +73,7 @@ To invoke them, the user then needs to invoke the context menu
 on the widget (right-click) and select the desired action.
 The use of 'Action Buttons' should be preferred because
 it is more obvious to end users.</text>
-    <y>360</y>
+    <y>400</y>
     <width>561</width>
     <height>110</height>
     <font>
@@ -108,19 +122,6 @@ it is more obvious to end users.</text>
     <width>110</width>
     <height>30</height>
   </widget>
-  <widget type="label" version="2.0.0">
-    <name>Label_6</name>
-    <text>Typical actions buttons have exactly one
-action assigned to them.
-Clicking the button invokes that action.
-
-If an action button has multiple actions
-assigned, a drop-down allows invoking
-one of them at a time.</text>
-    <y>230</y>
-    <width>300</width>
-    <height>130</height>
-  </widget>
   <widget type="action_button" version="3.0.0">
     <name>Action Button_2</name>
     <actions>
@@ -130,7 +131,7 @@ one of them at a time.</text>
       </action>
     </actions>
     <x>440</x>
-    <y>480</y>
+    <y>560</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -143,7 +144,7 @@ one of them at a time.</text>
       </action>
     </actions>
     <x>440</x>
-    <y>560</y>
+    <y>640</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -156,7 +157,7 @@ one of them at a time.</text>
       </action>
     </actions>
     <x>440</x>
-    <y>520</y>
+    <y>600</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -164,7 +165,7 @@ one of them at a time.</text>
     <name>Label_2</name>
     <class>SECTION</class>
     <text>External Commands</text>
-    <y>460</y>
+    <y>500</y>
     <width>331</width>
     <height>30</height>
     <font use_class="true">
@@ -186,7 +187,7 @@ unless an absolute path is provided.
 The standard output and the error output of the command
 are printed as log messages.
 </text>
-    <y>480</y>
+    <y>520</y>
     <width>410</width>
     <height>110</height>
   </widget>
@@ -199,7 +200,7 @@ are printed as log messages.
       </action>
     </actions>
     <x>440</x>
-    <y>600</y>
+    <y>680</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -212,8 +213,98 @@ are printed as log messages.
       </action>
     </actions>
     <x>440</x>
-    <y>440</y>
+    <y>520</y>
     <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_7</name>
+    <actions execute_as_one="true">
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>ABC</value>
+        <description>Write ABC</description>
+      </action>
+      <action type="open_display">
+        <file>01_main.bob</file>
+        <target>tab</target>
+        <description>Open Main</description>
+      </action>
+    </actions>
+    <pv_name>loc://text("some_PV")</pv_name>
+    <text>Write 'ABC' AND(!) open main display</text>
+    <x>440</x>
+    <y>300</y>
+    <height>70</height>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Action Button_8</name>
+    <x>440</x>
+    <y>400</y>
+    <width>121</width>
+    <height>60</height>
+    <background_color>
+      <color name="Button_Background" red="210" green="210" blue="210">
+      </color>
+    </background_color>
+    <actions execute_as_one="true">
+      <action type="write_pv">
+        <pv_name>loc://text("some_PV")</pv_name>
+        <value>ABC</value>
+        <description>Write ABC</description>
+      </action>
+      <action type="open_display">
+        <file>01_main.bob</file>
+        <target>tab</target>
+        <description>Open Main</description>
+      </action>
+    </actions>
+    <tooltip>loc://text("some_PV")
+2 actions</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>The is an action button with
+transparent background color,
+i.e. an invisible button on
+top of this label.</text>
+    <x>590</x>
+    <y>400</y>
+    <width>210</width>
+    <height>80</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_9</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+message = """You pushed the invisible button!
+
+If you end up with many displays that have invisble buttons,
+and operators need to guess where they can click,
+you may want to look for professional help,
+or a job in the video game industry."""
+ScriptUtil.showMessageDialog(widget, message)]]></text>
+        </script>
+        <description>Execute Script</description>
+      </action>
+    </actions>
+    <text></text>
+    <x>590</x>
+    <y>400</y>
+    <width>190</width>
+    <height>70</height>
+    <background_color>
+      <color red="210" green="210" blue="210" alpha="0">
+      </color>
+    </background_color>
+    <transparent>true</transparent>
     <tooltip>$(actions)</tooltip>
   </widget>
 </display>

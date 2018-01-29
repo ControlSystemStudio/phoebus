@@ -58,8 +58,8 @@ import javafx.scene.control.MenuItem;
 public class DisplayEditorInstance implements AppInstance
 {
     /** Memento tags */
-    private static final String LEFT_DIVIDER = "LEFT_DIVIDER",
-                                RIGHT_DIVIDER = "RIGHT_DIVIDER";
+    private static final String LEFT_DIVIDER = "left_divider",
+                                RIGHT_DIVIDER = "right_divider";
     private final AppResourceDescriptor app;
     private DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
@@ -114,7 +114,9 @@ public class DisplayEditorInstance implements AppInstance
         // Depending on number of selected widgets,
         // allow grouping, ungrouping, morphing
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
-        if (selection.size() > 1)
+        // OK to create (resp. 'start') a group with just one widget.
+        // Even better when there's more than one widget.
+        if (selection.size() >= 1)
             items.add(new CreateGroupAction(editor_gui.getDisplayEditor(), selection));
 
         if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
@@ -130,7 +132,13 @@ public class DisplayEditorInstance implements AppInstance
 
         final DisplayModel model = editor_gui.getDisplayEditor().getModel();
         if (model != null  &&  !model.isClassModel())
+        {
             items.add(new ReloadClassesAction(this));
+
+            // No widgets selected: Add actions for just the model
+            if (selection.isEmpty())
+                items.add(new SetDisplaySize(editor_gui.getDisplayEditor()));
+        }
     }
 
     @Override

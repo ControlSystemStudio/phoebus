@@ -169,7 +169,7 @@ abstract public class ModelItem
         if (Objects.equals(this.units, units))
             return;
         this.units = units;
-        fireItemLookChanged();
+        model.ifPresent(m -> m.fireItemUnitsChanged(this));
     }
 
     /** @return Units, may be <code>null</code> */
@@ -190,15 +190,13 @@ abstract public class ModelItem
         if (this.visible == visible)
             return;
         this.visible = visible;
-        if (model.isPresent())
-            model.get().fireItemVisibilityChanged(this);
+        model.ifPresent(m -> m.fireItemVisibilityChanged(this));
     }
 
     /** If (!) assigned to a model, inform it about a configuration change */
     protected void fireItemLookChanged()
     {
-        if (model.isPresent())
-            model.get().fireItemLookChanged(this);
+        model.ifPresent(m -> m.fireItemLookChanged(this));
     }
 
     /** Get item's color.

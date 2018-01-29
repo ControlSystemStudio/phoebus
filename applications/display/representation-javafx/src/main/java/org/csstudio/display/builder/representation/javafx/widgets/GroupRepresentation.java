@@ -104,9 +104,9 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 
             jfx_node.setPrefSize(width, height);
             if (model_widget.propTransparent().getValue())
-            	jfx_node.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 255, 0.0), null, null)));
+                jfx_node.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, null, null)));
             else
-            	jfx_node.setBackground(new Background(new BackgroundFill(background_color, null, null)));
+                jfx_node.setBackground(new Background(new BackgroundFill(background_color, null, null)));
 
             final WidgetFont font = model_widget.propFont().getValue();
             label.setFont(JFXUtil.convert(font));
@@ -116,10 +116,11 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
             if (style == Style.NONE)
             {
                 inset = 0;
+                // In edit mode, show outline because otherwise hard to handle the totally invisible group
                 if (toolkit.isEditMode() && model_widget.propTransparent().getValue())
-                	jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.DASHED, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.DASHED, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
                 else
-                	jfx_node.setBorder(null);
+                    jfx_node.setBorder(null);
 
                 label.setVisible(false);
 

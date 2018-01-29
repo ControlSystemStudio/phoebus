@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,8 @@
 package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderAlarmSensitive;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderWidth;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVValue;
 
 import java.awt.Toolkit;
@@ -21,6 +23,7 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -105,8 +108,11 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
     private final DirtyFlag dirty_border = new DirtyFlag();
     private volatile WidgetProperty<VType> value_prop = null;
     private volatile WidgetProperty<Boolean> alarm_sensitive_border_prop = null;
+    private volatile WidgetProperty<WidgetColor> border_color_prop = null;
+    private volatile WidgetProperty<Integer> border_width_prop = null;
     private final AtomicReference<AlarmSeverity> current_alarm = new AtomicReference<>(AlarmSeverity.NONE);
-    private volatile Border border;
+    private volatile Border alarm_border = null, custom_border = null;
+
 
     /** Create alarm-based border
      *  @param severity AlarmSeverity
@@ -142,15 +148,28 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
     {
         super.registerListeners();
 
+        // Does widget have a custom border?
+        final Optional<WidgetProperty<WidgetColor>> cust_col = model_widget.checkProperty(propBorderColor);
+        final Optional<WidgetProperty<Integer>> cust_wid = model_widget.checkProperty(propBorderWidth);
+        if (cust_col.isPresent()  &&  cust_wid.isPresent())
+        {
+            border_color_prop = cust_col.get();
+            border_width_prop = cust_wid.get();
+            border_color_prop.addUntypedPropertyListener(this::custom_border_changed);
+            border_width_prop.addUntypedPropertyListener(this::custom_border_changed);
+            custom_border_changed(null, null, null);
+        }
+
         if (toolkit.isEditMode())
             return;
+
         // In runtime mode, handle alarm-sensitive border
-        final Optional<WidgetProperty<Boolean>> border = model_widget.checkProperty(propBorderAlarmSensitive);
+        final Optional<WidgetProperty<Boolean>> alarm_sens = model_widget.checkProperty(propBorderAlarmSensitive);
         final Optional<WidgetProperty<VType>> value = model_widget.checkProperty(runtimePropPVValue);
-        if (border.isPresent()  &&  value.isPresent())
+        if (alarm_sens.isPresent()  &&  value.isPresent())
         {
             value_prop = value.get();
-            alarm_sensitive_border_prop = border.get();
+            alarm_sensitive_border_prop = alarm_sens.get();
             // Start 'OK'
             computeAlarmBorder(AlarmSeverity.NONE);
             // runtimeValue should be a VType,
@@ -158,6 +177,7 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
             // so use Object and then check for VType
             value_prop.addUntypedPropertyListener(this::valueChanged);
         }
+
 
         // Indicate 'disconnected' state
         model_widget.runtimePropConnected().addPropertyListener(this::connectionChanged);
@@ -187,6 +207,20 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         // Note: This is AWT API!
         // JavaFX has no API, https://bugs.openjdk.java.net/browse/JDK-8088117
         Toolkit.getDefaultToolkit().getSystemSelection().setContents(new StringSelection(pv_name), null);
+    }
+
+    private void custom_border_changed(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    {
+        final Integer width = border_width_prop.getValue();
+        if (width <= 0)
+            custom_border = null;
+        else
+        {
+            final Color color = JFXUtil.convert(border_color_prop.getValue());
+            custom_border = new Border(new BorderStroke(color, solid, CornerRadii.EMPTY, new BorderWidths(width)));
+        }
+        dirty_border.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     private void connectionChanged(final WidgetProperty<Boolean> property, final Boolean was_connected, final Boolean is_connected)
@@ -255,7 +289,7 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         final int[] radii = getBorderRadii();
         if (radii == null)
             // Use common alarm border
-            border = alarm_borders[severity.ordinal()];
+            alarm_border = alarm_borders[severity.ordinal()];
         else
         {   // Create a custom alarm border
             final int horiz = radii[0], vert = radii[1];
@@ -267,7 +301,7 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
             // Bug was in at least Java 1.8.0_101.
             final CornerRadii corners = new CornerRadii(horiz, vert, vert, horiz, horiz, vert, vert, horiz+0.1,
                                                         false, false, false, false, false, false, false, false);
-            border = createAlarmBorder(severity, corners);
+            alarm_border = createAlarmBorder(severity, corners);
         }
         dirty_border.mark();
         toolkit.scheduleUpdate(this);
@@ -278,6 +312,11 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
     {
         super.updateChanges();
         if (dirty_border.checkAndClear())
-            jfx_node.setBorder(border);
+        {
+            if (alarm_border != null)
+                jfx_node.setBorder(alarm_border);
+            else
+                jfx_node.setBorder(custom_border);
+        }
     }
 }

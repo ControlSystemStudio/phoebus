@@ -13,7 +13,6 @@ import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.archive.reader.channelarchiver.ArchiveFileReader;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 
 /** Access to {@link ArchiveReader}s via SPI
@@ -23,7 +22,7 @@ import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 public class ArchiveReaders
 {
     /** Suggested logger for all archive reader code */
-    public static final Logger logger = Logger.getLogger(ArchiveFileReader.class.getPackageName());
+    public static final Logger logger = Logger.getLogger(ArchiveReaders.class.getPackageName());
 
     private static final List<ArchiveReaderFactory> factories = new ArrayList<>();
 
