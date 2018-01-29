@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.Resize;
+import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
@@ -30,8 +31,13 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Scale;
 
 /** Creates JavaFX item for model widget
@@ -255,7 +261,19 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             // of the embedded content.
             // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
             // of the embedded content if the container is (much) larger than the content
-            inner.setBackground(new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY)));
+            if ((boolean)content_model.getUserData(EmbeddedDisplayRepresentationUtil.USER_DATA_IS_TRANSPARENT_GROUP))
+            {
+                // Transparent Group use case - make inner transparent
+                inner.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
+                // Make scroll transparent
+                scroll.setStyle("-fx-background: null;");
+                // Reinstall the frame in edit mode. Scroll is unusable, so make it with inner
+                if (toolkit.isEditMode())
+                    inner.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+            }
+            else
+                // Display or non-transparent group - fill inner with background color
+                inner.setBackground(new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY)));
             // The scroll pane background can only be set via style,
             // and then shines through on the outside of the scrollbars
             // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
