@@ -140,12 +140,19 @@ public class StartEndUI extends GridPane
             }
         };
 
+        /** Date cell that highlights all dates betweeen the currently
+         *  selected date and that of another DatePicker
+         */
         private static class HighlightingDateCell extends DateCell
         {
-            private final DatePicker other;
+            private final DatePicker self, other;
 
-            public HighlightingDateCell(final DatePicker other)
+            /** @param self This cell's picker
+             *  @param other Other date picker who's date to highlight
+             */
+            public HighlightingDateCell(final DatePicker self, final DatePicker other)
             {
+                this.self = self;
                 this.other = other;
             }
 
@@ -156,8 +163,12 @@ public class StartEndUI extends GridPane
                 if (empty)
                     return;
 
+                // Highlight the 'other' date and the dates in between
                 if (item.equals(other.getValue()))
                     setStyle("-fx-background-color: maroon;");
+                else if ((other.getValue().isBefore(item)  &&  item.isBefore(self.getValue())) ||
+                         (self.getValue().isBefore(item)   &&  item.isBefore(other.getValue())))
+                    setStyle("-fx-background-color: salmon;");
                 else
                     setStyle("");
                 // Only enable dates up to today
@@ -230,7 +241,7 @@ public class StartEndUI extends GridPane
         /** @param other Date from other {@link DateTime} to highlight in this one */
         public void highlightFrom(final DateTime other)
         {
-            date.setDayCellFactory(picker -> new HighlightingDateCell(other.date));
+            date.setDayCellFactory(picker -> new HighlightingDateCell(date, other.date));
         }
 
         public void addListener(final Consumer<Instant> listener)
