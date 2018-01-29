@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -258,6 +259,7 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     private volatile WidgetProperty<Resize> resize;
     private volatile WidgetProperty<String> group_name;
     private volatile WidgetProperty<DisplayModel> embedded_model;
+    private volatile WidgetProperty<Boolean> transparent;
 
     public EmbeddedDisplayWidget()
     {
@@ -273,6 +275,7 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         properties.add(resize = propResize.createProperty(this, Resize.None));
         properties.add(group_name = propGroupName.createProperty(this, ""));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
+        properties.add(transparent = propTransparent.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
 
         // Initial size
@@ -308,6 +311,12 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     public WidgetProperty<DisplayModel> runtimePropEmbeddedModel()
     {
         return embedded_model;
+    }
+
+    /** @return 'transparent' property */
+    public WidgetProperty<Boolean> propTransparent()
+    {
+        return transparent;
     }
 
     @Override
