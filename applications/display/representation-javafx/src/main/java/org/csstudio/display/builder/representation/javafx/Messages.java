@@ -31,6 +31,10 @@ public class Messages
     public static String ActionsDialog_URL;
     public static String ActionsDialog_Value;
     public static String Add;
+    public static String AddEmbeddedJavaScript;
+    public static String AddEmbeddedPython;
+    public static String AddJavaScriptFile;
+    public static String AddPythonFile;
     public static String Alpha;
     public static String Blue;
     public static String ColorDialog_Current;
@@ -50,6 +54,10 @@ public class Messages
     public static String ColorMapDialog_Title;
     public static String ColorMapDialog_Value;
     public static String Column;
+    public static String ConvertToEmbeddedJavaScript;
+    public static String ConvertToEmbeddedPython;
+    public static String ConvertToScriptFile;
+    public static String Edit;
     public static String Copy;
     public static String FileTypeAll;
     public static String FileTypeDisplays;
@@ -100,11 +108,14 @@ public class Messages
     public static String ScriptsDialog_ColScript;
     public static String ScriptsDialog_ColTrigger;
     public static String ScriptsDialog_DefaultScriptFile;
+    public static String ScriptsDialog_JavaScriptScriptFile;
+    public static String ScriptsDialog_PythonScriptFile;
     public static String ScriptsDialog_Info;
     public static String ScriptsDialog_PVsTT;
     public static String ScriptsDialog_ScriptsTT;
     public static String ScriptsDialog_SelectScript;
     public static String ScriptsDialog_Title;
+    public static String Select;
     public static String WidgetColorPopOver_DefaultButton;
     public static String WidgetColorPopOver_Info;
     public static String WidgetInfoDialog_Category;

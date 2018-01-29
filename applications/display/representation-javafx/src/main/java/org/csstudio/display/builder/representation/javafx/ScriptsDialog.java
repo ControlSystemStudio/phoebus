@@ -11,7 +11,6 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
@@ -29,8 +28,10 @@ import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.TableHelper;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -38,14 +39,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -55,6 +58,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -63,14 +67,11 @@ import javafx.util.converter.DefaultStringConverter;
 
 /** Dialog for editing {@link ScriptInfo}s
  *  @author Kay Kasemir
+ *  @author Claudio Rosati
  */
 @SuppressWarnings("nls")
 public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 {
-    // XXX Smoother script type change:
-    // If already "EmbeddedPy" and Embedded JS is selected, prompt if type should be changed from python to JS.
-    // If already "EmbeddedJS", ..
-
     private final Widget widget;
 
     /** ScriptPV info as property-based item for table */
@@ -168,6 +169,26 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
     /** Table for all scripts */
     private TableView<ScriptItem> scripts_table;
+    private TableColumn<ScriptItem, String> scripts_name_col;
+    private TableColumn<ScriptItem, ImageView> scripts_icon_col;
+    private MenuItem convertToFileMenuItem = new MenuItem(Messages.ConvertToScriptFile, JFXUtil.getIcon("file.png"))
+    {
+        {
+           setOnAction(e -> convertToScriptFile());
+        }
+    };
+    private MenuItem convertToEmbeddedPythonMenuItem = new MenuItem(Messages.ConvertToEmbeddedPython, JFXUtil.getIcon("python.png"))
+    {
+        {
+            setOnAction(e -> convertToEmbeddedPython());
+        }
+    };
+    private MenuItem convertToEmbeddedJavaScriptMenuItem = new MenuItem(Messages.ConvertToEmbeddedJavaScript, JFXUtil.getIcon("javascript.png"))
+    {
+        {
+            setOnAction(e -> convertToEmbeddedJavaScript());
+        }
+    };
 
     /** Data that is linked to the pvs_table */
     private final ObservableList<PVItem> pv_items = FXCollections.observableArrayList();
@@ -177,7 +198,8 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     private TableColumn<PVItem, String> pvs_name_col;
     private TableColumn<PVItem, Boolean> pvs_trigger_col;
 
-    private Button btn_script_remove, btn_file, btn_embed_py, btn_embed_js;
+    private SplitMenuButton btn_edit;
+    private Button btn_script_remove;
     private Button btn_pv_add, btn_pv_remove, btn_pv_up, btn_py_down;
 
     private CheckBox btn_check_connections;
@@ -247,22 +269,54 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             if (selected == null)
             {
                 btn_script_remove.setDisable(true);
-                btn_file.setDisable(true);
-                btn_embed_py.setDisable(true);
-                btn_embed_js.setDisable(true);
+                btn_edit.setDisable(true);
                 pvs.setDisable(true);
                 pv_items.clear();
             }
             else
             {
                 btn_script_remove.setDisable(false);
-                btn_file.setDisable(false);
-                btn_embed_py.setDisable(false);
-                btn_embed_js.setDisable(false);
+                btn_edit.setDisable(false);
                 pvs.setDisable(false);
                 btn_check_connections.setSelected(selected.check_connections);
                 pv_items.setAll(selected.pvs);
+
                 fixupPVs(0);
+
+                if (ScriptInfo.isEmbedded(selected.getScriptInfo().getPath()))
+                {
+                    scripts_table.setEditable(false);
+                    btn_edit.setText(Messages.Edit);
+                    btn_edit.setGraphic(JFXUtil.getIcon("edit.png"));
+
+                    if (ScriptInfo.isJython(selected.getScriptInfo().getPath()))
+                    {
+                        convertToFileMenuItem.setDisable(false);
+                        convertToEmbeddedPythonMenuItem.setDisable(true);
+                        convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+                    }
+                    else if (ScriptInfo.isJavaScript(selected.getScriptInfo().getPath()))
+                    {
+                        convertToFileMenuItem.setDisable(false);
+                        convertToEmbeddedPythonMenuItem.setDisable(false);
+                        convertToEmbeddedJavaScriptMenuItem.setDisable(true);
+                    }
+                    else
+                    {
+                        convertToFileMenuItem.setDisable(true);
+                        convertToEmbeddedPythonMenuItem.setDisable(true);
+                        convertToEmbeddedJavaScriptMenuItem.setDisable(true);
+                    }
+                }
+                else
+                {
+                    scripts_table.setEditable(true);
+                    btn_edit.setText(Messages.Select);
+                    btn_edit.setGraphic(JFXUtil.getIcon("select-file.png"));
+                    convertToFileMenuItem.setDisable(true);
+                    convertToEmbeddedPythonMenuItem.setDisable(false);
+                    convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+                }
             }
         });
 
@@ -304,7 +358,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         final Preferences pref = Preferences.userNodeForPackage(getClass());
         double prefWidth = pref.getDouble("content.width", -1);
         double prefHeight = pref.getDouble("content.height", -1);
-        double prefDividerPosition = pref.getDouble("content.divider.position", 0.4);
+        double prefDividerPosition = pref.getDouble("content.divider.position", 0.5);
 
         final SplitPane splitPane = new SplitPane(scripts, pvs);
         splitPane.setDividerPositions(prefDividerPosition);
@@ -317,10 +371,22 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     /** @return Node for UI elements that edit the scripts */
     private Region createScriptsTable()
     {
+        scripts_icon_col = new TableColumn<>();
+        scripts_icon_col.setCellValueFactory(cdf-> new SimpleObjectProperty<ImageView>(getScriptImage(cdf.getValue()))
+        {
+            {
+                bind(Bindings.createObjectBinding(() -> getScriptImage(cdf.getValue()), cdf.getValue().fileProperty()));
+            }
+        });
+        scripts_icon_col.setEditable(false);
+        scripts_icon_col.setSortable(false);
+        scripts_icon_col.setMaxWidth(25);
+        scripts_icon_col.setMinWidth(25);
+
         // Create table with editable script 'file' column
-        final TableColumn<ScriptItem, String> name_col = new TableColumn<>(Messages.ScriptsDialog_ColScript);
-        name_col.setCellValueFactory(new PropertyValueFactory<ScriptItem, String>("file"));
-        name_col.setCellFactory(list -> new TextFieldTableCell<ScriptItem, String>(new DefaultStringConverter())
+        scripts_name_col = new TableColumn<>(Messages.ScriptsDialog_ColScript);
+        scripts_name_col.setCellValueFactory(new PropertyValueFactory<ScriptItem, String>("file"));
+        scripts_name_col.setCellFactory(list -> new TextFieldTableCell<ScriptItem, String>(new DefaultStringConverter())
         {
             private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
             {
@@ -343,7 +409,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             }
 
             @Override
-            public void commitEdit (final String newValue)
+            public void commitEdit(final String newValue)
             {
                 ((TextField) getGraphic()).focusedProperty().removeListener(focusedListener);
                 super.commitEdit(newValue);
@@ -351,7 +417,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             }
 
         });
-        name_col.setOnEditCommit(event ->
+        scripts_name_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
             script_items.get(row).file.set(event.getNewValue());
@@ -359,28 +425,43 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         });
 
         scripts_table = new TableView<>(script_items);
-        scripts_table.getColumns().add(name_col);
+        scripts_table.getColumns().add(scripts_icon_col);
+        scripts_table.getColumns().add(scripts_name_col);
         scripts_table.setEditable(true);
         scripts_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         scripts_table.setTooltip(new Tooltip(Messages.ScriptsDialog_ScriptsTT));
 
         // Buttons
-        final Button add = new Button(Messages.Add, JFXUtil.getIcon("add.png"));
-        add.setMaxWidth(Double.MAX_VALUE);
-        add.setAlignment(Pos.CENTER_LEFT);
-        add.setOnAction(event ->
-        {
-            final ScriptItem newItem = new ScriptItem();
-
-            script_items.add(newItem);
-            scripts_table.getSelectionModel().select(newItem);
-
-            final int newRow = scripts_table.getSelectionModel().getSelectedIndex();
-            ModelThreadPool.getTimer().schedule(() ->
-            {
-                Platform.runLater(() -> scripts_table.edit(newRow, name_col));
-            }, 123, TimeUnit.MILLISECONDS);
-        });
+        final MenuButton addMenuButton = new MenuButton(
+           Messages.Add,
+           JFXUtil.getIcon("add.png"),
+           new MenuItem(Messages.AddPythonFile, JFXUtil.getIcon("file-python.png"))
+           {
+               {
+                   setOnAction(e -> addPythonFile());
+               }
+           },
+           new MenuItem(Messages.AddJavaScriptFile, JFXUtil.getIcon("file-javascript.png"))
+           {
+               {
+                   setOnAction(e -> addJavaScriptFile());
+               }
+           },
+           new SeparatorMenuItem(),
+           new MenuItem(Messages.AddEmbeddedPython, JFXUtil.getIcon("python.png"))
+           {
+               {
+                   setOnAction(e -> addEmbeddedJython());
+               }
+           },
+           new MenuItem(Messages.AddEmbeddedJavaScript, JFXUtil.getIcon("javascript.png"))
+           {
+               {
+                   setOnAction(e -> addEmbeddedJavaScript());
+               }
+           });
+        addMenuButton.setMaxWidth(Double.MAX_VALUE);
+        addMenuButton.setAlignment(Pos.CENTER_LEFT);
 
         btn_script_remove = new Button(Messages.Remove, JFXUtil.getIcon("delete.png"));
         btn_script_remove.setMaxWidth(Double.MAX_VALUE);
@@ -396,79 +477,20 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             }
         });
 
-        btn_file = new Button(Messages.ScriptsDialog_BtnFile, JFXUtil.getIcon("open_file.png"));
-        btn_file.setMaxWidth(Double.MAX_VALUE);
-        btn_file.setAlignment(Pos.CENTER_LEFT);
-        btn_file.setDisable(true);
-        btn_file.setOnAction(event ->
-        {
-            try
-            {
-                // Use the script file name, except if that's the example name,
-                // because it doesn't exist and file dialog will then start
-                // in some random directory instead of the display file's dir.
-                String initial = selected_script_item.file.get();
-                if (Messages.ScriptsDialog_DefaultScriptFile.equals(initial))
-                    initial = "";
-                final String path = FilenameSupport.promptForRelativePath(widget, initial);
-                if (path != null)
-                {
-                    selected_script_item.file.set(path);
-                    selected_script_item.text = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot prompt for filename", ex);
-            }
-            FilenameSupport.performMostAwfulTerribleNoGoodHack(scripts_table);
-        });
+        btn_edit = new SplitMenuButton(
+            convertToFileMenuItem,
+            new SeparatorMenuItem(),
+            convertToEmbeddedPythonMenuItem,
+            convertToEmbeddedJavaScriptMenuItem);
+        btn_edit.setText(Messages.Select);
+        btn_edit.setGraphic(JFXUtil.getIcon("select-file.png"));
+        btn_edit.setMaxWidth(Double.MAX_VALUE);
+        btn_edit.setMinWidth(120);
+        btn_edit.setAlignment(Pos.CENTER_LEFT);
+        btn_edit.setDisable(true);
+        btn_edit.setOnAction(e -> editOrSelect());
 
-        btn_embed_py = new Button(Messages.ScriptsDialog_BtnEmbedPy, JFXUtil.getIcon("embedded_script.png"));
-        btn_embed_py.setMaxWidth(Double.MAX_VALUE);
-        btn_embed_py.setAlignment(Pos.CENTER_LEFT);
-        btn_embed_py.setDisable(true);
-        btn_embed_py.setOnAction(event ->
-        {
-            if (selected_script_item.text == null  ||
-                selected_script_item.text.trim().isEmpty() ||
-                selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_JAVASCRIPT))
-                selected_script_item.text = ScriptInfo.EXAMPLE_PYTHON;
-
-            final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
-            DialogHelper.positionDialog(dlg, btn_embed_py, -300, -200);
-            final Optional<String> result = dlg.showAndWait();
-            if (result.isPresent())
-            {
-                selected_script_item.file.set(ScriptInfo.EMBEDDED_PYTHON);
-                selected_script_item.text = result.get();
-            }
-        });
-
-        btn_embed_js = new Button(Messages.ScriptsDialog_BtnEmbedJS, JFXUtil.getIcon("embedded_script.png"));
-        btn_embed_js.setMaxWidth(Double.MAX_VALUE);
-        btn_embed_js.setAlignment(Pos.CENTER_LEFT);
-        btn_embed_js.setDisable(true);
-        btn_embed_js.setOnAction(event ->
-        {
-            if (selected_script_item.text == null  ||
-                selected_script_item.text.trim().isEmpty() ||
-                selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_PYTHON))
-                selected_script_item.text = ScriptInfo.EXAMPLE_JAVASCRIPT;
-
-            final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
-            DialogHelper.positionDialog(dlg, btn_embed_js, -300, -200);
-            final Optional<String> result = dlg.showAndWait();
-            if (result.isPresent())
-            {
-                selected_script_item.file.set(ScriptInfo.EMBEDDED_JAVASCRIPT);
-                selected_script_item.text = result.get();
-            }
-        });
-
-        final VBox buttons = new VBox(10, add, btn_script_remove,
-                                          new Separator(Orientation.HORIZONTAL),
-                                          btn_file, btn_embed_py, btn_embed_js);
+        final VBox buttons = new VBox(10, addMenuButton, btn_script_remove, btn_edit);
         final HBox content = new HBox(10, scripts_table, buttons);
         HBox.setHgrow(scripts_table, Priority.ALWAYS);
         HBox.setHgrow(buttons, Priority.NEVER);
@@ -632,6 +654,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         btn_pv_remove = new Button(Messages.Remove, JFXUtil.getIcon("delete.png"));
         btn_pv_remove.setMaxWidth(Double.MAX_VALUE);
+        btn_pv_remove.setMinWidth(96);
         btn_pv_remove.setAlignment(Pos.CENTER_LEFT);
         btn_pv_remove.setDisable(true);
         btn_pv_remove.setOnAction(event ->
@@ -687,6 +710,171 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             final PVItem item = pv_items.get(changed_row);
             if (item.nameProperty().get().trim().isEmpty())
                 pv_items.remove(changed_row);
+        }
+    }
+
+    private void add(final String file, final String text)
+    {
+        final ScriptItem newItem = new ScriptItem(file, text, true, new ArrayList<>());
+
+        script_items.add(newItem);
+        scripts_table.getSelectionModel().select(newItem);
+
+        final int newRow = scripts_table.getSelectionModel().getSelectedIndex();
+
+        ModelThreadPool.getTimer().schedule(() ->
+        {
+            if (ScriptInfo.isEmbedded(file))
+            {
+                Platform.runLater(() ->
+                {
+                    final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
+                    DialogHelper.positionDialog(dlg, btn_edit, -300, -200);
+                    dlg.showAndWait().ifPresent( result ->  selected_script_item.text = result);
+                });
+            }
+            else
+                Platform.runLater(() -> scripts_table.edit(newRow, scripts_name_col));
+        }, 123, TimeUnit.MILLISECONDS);
+
+    }
+
+    private void addEmbeddedJavaScript()
+    {
+        add(ScriptInfo.EMBEDDED_JAVASCRIPT, ScriptInfo.EXAMPLE_JAVASCRIPT);
+    }
+
+    private void addEmbeddedJython()
+    {
+        add(ScriptInfo.EMBEDDED_PYTHON, ScriptInfo.EXAMPLE_PYTHON);
+    }
+
+    private void addJavaScriptFile()
+    {
+        add(Messages.ScriptsDialog_JavaScriptScriptFile, ScriptInfo.EXAMPLE_JAVASCRIPT);
+    }
+
+    private void addPythonFile()
+    {
+        add(Messages.ScriptsDialog_PythonScriptFile, ScriptInfo.EXAMPLE_PYTHON);
+    }
+
+    private void convertToEmbeddedJavaScript()
+    {
+        if ( selected_script_item.text == null
+          || selected_script_item.text.trim().isEmpty()
+          || selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_PYTHON) )
+        {
+            selected_script_item.text = ScriptInfo.EXAMPLE_JAVASCRIPT;
+        }
+
+        selected_script_item.file.set(ScriptInfo.EMBEDDED_JAVASCRIPT);
+        btn_edit.setText(Messages.Edit);
+        btn_edit.setGraphic(JFXUtil.getIcon("edit.png"));
+        convertToFileMenuItem.setDisable(false);
+        convertToEmbeddedPythonMenuItem.setDisable(false);
+        convertToEmbeddedJavaScriptMenuItem.setDisable(true);
+    }
+
+    private void convertToEmbeddedPython()
+    {
+        if ( selected_script_item.text == null
+          || selected_script_item.text.trim().isEmpty()
+          || selected_script_item.text.trim().equals(ScriptInfo.EXAMPLE_JAVASCRIPT) )
+        {
+            selected_script_item.text = ScriptInfo.EXAMPLE_PYTHON;
+        }
+
+        selected_script_item.file.set(ScriptInfo.EMBEDDED_PYTHON);
+        btn_edit.setText(Messages.Edit);
+        btn_edit.setGraphic(JFXUtil.getIcon("edit.png"));
+        convertToFileMenuItem.setDisable(false);
+        convertToEmbeddedPythonMenuItem.setDisable(true);
+        convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+    }
+
+    private void convertToScriptFile()
+    {
+        if (ScriptInfo.isEmbedded(selected_script_item.getScriptInfo().getPath()))
+        {
+            if ( ScriptInfo.isJython(selected_script_item.getScriptInfo().getPath()))
+                selected_script_item.fileProperty().set(Messages.ScriptsDialog_PythonScriptFile);
+            else
+                selected_script_item.fileProperty().set(Messages.ScriptsDialog_JavaScriptScriptFile);
+
+            btn_edit.setText(Messages.Select);
+            btn_edit.setGraphic(JFXUtil.getIcon("select-file.png"));
+            convertToFileMenuItem.setDisable(true);
+            convertToEmbeddedPythonMenuItem.setDisable(false);
+            convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+        }
+    }
+
+    private void editOrSelect()
+    {
+        if (Messages.Select.equals(btn_edit.getText()))
+        {
+            try
+            {
+                // Use the script file name, except if that's the example name,
+                // because it doesn't exist and file dialog will then start
+                // in some random directory instead of the display file's dir.
+                String initial = selected_script_item.file.get();
+                if ( Messages.ScriptsDialog_DefaultScriptFile.equals(initial))
+                    initial = "";
+
+                final String path = FilenameSupport.promptForRelativePath(widget, initial);
+                if (path != null)
+                {
+                    selected_script_item.file.set(path);
+                    selected_script_item.text = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot prompt for filename", ex);
+            }
+            FilenameSupport.performMostAwfulTerribleNoGoodHack(scripts_table);
+        }
+        else
+        {
+            final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
+            DialogHelper.positionDialog(dlg, btn_edit, -300, -200);
+            dlg.showAndWait().ifPresent(result ->  selected_script_item.text = result);
+        }
+    }
+
+    private ImageView getScriptImage(final ScriptItem item)
+    {
+        if (item == null)
+            return null;
+
+        final ScriptInfo info = item.getScriptInfo();
+        if (info == null)
+            return null;
+
+        final String path = info.getPath();
+        if (ScriptInfo.isEmbedded(path))
+        {
+            if (ScriptInfo.isJavaScript(path))
+                return JFXUtil.getIcon("javascript.png");
+            else if (ScriptInfo.isJython(path))
+                return JFXUtil.getIcon("python.png");
+            else
+            {   //  It should never happen.
+                return JFXUtil.getIcon("unknown.png");
+            }
+        }
+        else
+        {
+            if (ScriptInfo.isJavaScript(path))
+                return JFXUtil.getIcon("file-javascript.png");
+            else if (ScriptInfo.isJython(path))
+                return JFXUtil.getIcon("file-python.png");
+            else
+            {   //  It should never happen.
+                return JFXUtil.getIcon("file-unknown.png");
+            }
         }
     }
 }
