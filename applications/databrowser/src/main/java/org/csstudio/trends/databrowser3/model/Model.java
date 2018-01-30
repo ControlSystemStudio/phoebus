@@ -443,7 +443,13 @@ public class Model
 
         // Force item to be on an axis
         if (item.getAxis() == null)
+        {
+            // Assert there is at least one axis
+            if (getAxisCount() <= 0)
+                addAxis();
+            // Place item on first axis
             item.setAxis(axes.get(0));
+        }
         // Check item axis
         if (! axes.contains(item.getAxis()))
             throw new Exception("Item " + item.getName() + " added with invalid axis " + item.getAxis());
