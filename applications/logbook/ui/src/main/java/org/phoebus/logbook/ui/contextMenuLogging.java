@@ -1,4 +1,4 @@
-package org.phoebus.logging.actions;
+package org.phoebus.logbook.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
