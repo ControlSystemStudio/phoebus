@@ -29,23 +29,17 @@ import static java.time.temporal.ChronoUnit.*;
  * @author shroffk
  */
 public class TimeParser {
-
-    static final Pattern lastNUnitsPattern = Pattern
-            .compile("last(.*)", Pattern.CASE_INSENSITIVE);
-
-    static final Pattern nUnitsAgoPattern = Pattern
-            .compile("(.*)ago", Pattern.CASE_INSENSITIVE);
-
+    
     static final Pattern durationTimeQunatityUnitsPattern = Pattern
             .compile("\\s*(\\d*)\\s*(ms|milli|sec|secs|min|mins|hour|hours|day|days)\\s*", Pattern.CASE_INSENSITIVE);
     
-
-    static final Pattern timeQunatityUnitsPattern = Pattern
-            .compile("\\s*(\\d*)\\s*(ms|milli|sec|secs|min|mins|hour|hours|day|days|month|months|year|years)\\s*", Pattern.CASE_INSENSITIVE);
+    static final Pattern timeQunatityUnitsPattern = Pattern.compile(
+            "\\s*(\\d*)\\s*(ms|milli|s|sec|secs|min|mins|h|hour|hours|d|day|days|w|week|weeks|month|months|y|year|years)\\s*",
+            Pattern.CASE_INSENSITIVE);
 
     /**
      * A Helper function to help you convert various string represented time
-     * definition to an absolute Instant.
+     * definitions to an absolute Instant.
      *
      * @param time a string that represents an instant in time
      * @return the parsed Instant or null
@@ -54,11 +48,7 @@ public class TimeParser {
         if (time.equalsIgnoreCase("now")) {
             return Instant.now();
         } else {
-            Matcher lastNUnitsMatcher = lastNUnitsPattern.matcher(time);
-            while (lastNUnitsMatcher.find()) {
-                return Instant.now().minus(parseDuration(lastNUnitsMatcher.group(1)));
-            }
-            Matcher nUnitsAgoMatcher = nUnitsAgoPattern.matcher(time);
+            Matcher nUnitsAgoMatcher = timeQunatityUnitsPattern.matcher(time);
             while (nUnitsAgoMatcher.find()) {
                 return Instant.now().minus(parseDuration(nUnitsAgoMatcher.group(1)));
             }
@@ -68,49 +58,67 @@ public class TimeParser {
     }
 
     /**
-     * 
-     * @param time a string description of a time duration
-     * @return Duration from the parsed string
+     * Return a {@link TimeInterval} between this instant represented by the string and "now"
+     * @param time
+     * @return TimeInterval
      */
-    public static Duration getDuration(String time) {
-
-        Matcher lastNUnitsMatcher = lastNUnitsPattern.matcher(time);
-        if(lastNUnitsMatcher.find()) {
-            return parseDuration(lastNUnitsMatcher.group(1));
+    public static TimeInterval getTimeInterval(String time) {
+        Instant now = Instant.now();
+        if (time.equalsIgnoreCase("now")) {
+            return TimeInterval.between(now, now);
+        } else {
+            Matcher nUnitsAgoMatcher = timeQunatityUnitsPattern.matcher(time);
+            while (nUnitsAgoMatcher.find()) {
+                return TimeInterval.between(now.minus(parseTemporalAmount(nUnitsAgoMatcher.group(1))), now);
+            }
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+            return TimeInterval.between(LocalDateTime.parse(time, formatter).atZone(TimeZone.getDefault().toZoneId()).toInstant(), now);
         }
-        Matcher nUnitsAgoMatcher = nUnitsAgoPattern.matcher(time);
-        if(nUnitsAgoMatcher.find()) {
-            return parseDuration(nUnitsAgoMatcher.group(1));
-        }
-        return null;
     }
 
-    private static Duration parseDuration(String string) {
+
+    private final static List<ChronoUnit> durationUnits = Arrays.asList(MILLIS, SECONDS, MINUTES, HOURS);
+
+    /**
+     * parses the given string into a {@link Duration}. The method only supports
+     * {@link ChronoUnit#MILLIS}, {@link ChronoUnit#SECONDS},
+     * {@link ChronoUnit#MINUTES}, and {@link ChronoUnit#HOURS}. Days {@link ChronoUnit#DAYS} are treated as 24 HOURS.
+     * 
+     * e.g. parseDuraiton("5h 3min 34s");
+     * 
+     * @param string
+     * @return
+     */
+    public static Duration parseDuration(String string) {
         int quantity = 0;
         String unit = "";
         Matcher timeQunatityUnitsMatcher = durationTimeQunatityUnitsPattern.matcher(string);
         Map<ChronoUnit, Integer> timeQuantities = new HashMap<ChronoUnit, Integer>();
-        while(timeQunatityUnitsMatcher.find()) {
-            quantity = "".equals(timeQunatityUnitsMatcher.group(1)) ? 1 : Integer
-                    .valueOf(timeQunatityUnitsMatcher.group(1));
+        while (timeQunatityUnitsMatcher.find()) {
+            quantity = "".equals(timeQunatityUnitsMatcher.group(1)) ? 1
+                    : Integer.valueOf(timeQunatityUnitsMatcher.group(1));
             unit = timeQunatityUnitsMatcher.group(2).toLowerCase();
             switch (unit) {
             case "ms":
             case "milli":
                 timeQuantities.put(MILLIS, quantity);
                 break;
+            case "s":
             case "sec":
             case "secs":
                 timeQuantities.put(SECONDS, quantity);
                 break;
+            case "m":
             case "min":
             case "mins":
                 timeQuantities.put(MINUTES, quantity);
                 break;
+            case "h":
             case "hour":
             case "hours":
                 timeQuantities.put(HOURS, quantity);
                 break;
+            case "d":
             case "day":
             case "days":
                 timeQuantities.put(DAYS, quantity);
@@ -128,43 +136,17 @@ public class TimeParser {
 
     /**
      * 
-     * @param time
-     * @return TimeInterval
+     * @param string
+     * @return
      */
-    public static TimeInterval getTimeInterval(String time) {
-        return getTimeInterval(time, "now");
-    }
-
-    /**
-     * 
-     * @param start
-     * @param end
-     * @return TimeInterval
-     */
-    public static TimeInterval getTimeInterval(String start, String end) {
-        return TimeInterval.between(getInstant(start), getInstant(end));
-    }
-
-    /**
-     * Parses the string trying its best to handle both calendar aware {@link Period} and calendar agnostic {@link Duration} 
-     * @param start
-     * @param end
-     * @return TimeRelativeInterval
-     */
-    public static TimeRelativeInterval getTimeRelativeInterval(String start, String end) {
-        return TimeRelativeInterval.of(parseTimeRelativeInterval(start), parseTimeRelativeInterval(end));
-    }
-
-    private final static List<ChronoUnit> durationUnits = Arrays.asList(MILLIS, SECONDS, MINUTES, HOURS);
-
-    private static TemporalAmount parseTimeRelativeInterval(String string) {
+    public static TemporalAmount parseTemporalAmount(String string) {
         int quantity = 0;
         String unit = "";
         Matcher timeQunatityUnitsMatcher = timeQunatityUnitsPattern.matcher(string);
         Map<ChronoUnit, Integer> timeQuantities = new HashMap<ChronoUnit, Integer>();
-        while(timeQunatityUnitsMatcher.find()) {
-            quantity = "".equals(timeQunatityUnitsMatcher.group(1)) ? 1 : Integer
-                    .valueOf(timeQunatityUnitsMatcher.group(1));
+        while (timeQunatityUnitsMatcher.find()) {
+            quantity = "".equals(timeQunatityUnitsMatcher.group(1)) ? 1
+                    : Integer.valueOf(timeQunatityUnitsMatcher.group(1));
             unit = timeQunatityUnitsMatcher.group(2).toLowerCase();
             switch (unit) {
             case "ms":
@@ -187,10 +169,16 @@ public class TimeParser {
             case "days":
                 timeQuantities.put(DAYS, quantity);
                 break;
+            case "w":
+            case "week":
+            case "weeks":
+                timeQuantities.put(WEEKS, quantity);
+                break;
             case "month":
             case "months":
                 timeQuantities.put(MONTHS, quantity);
                 break;
+            case "y":
             case "year":
             case "years":
                 timeQuantities.put(YEARS, quantity);
@@ -199,14 +187,13 @@ public class TimeParser {
                 break;
             }
         }
-        if(Collections.disjoint(timeQuantities.keySet(), durationUnits)) {
+        if (Collections.disjoint(timeQuantities.keySet(), durationUnits)) {
             Period result = Period.ZERO;
-            result = result.plusYears(timeQuantities.containsKey(YEARS)?timeQuantities.get(YEARS):0);
-            result = result.plusMonths(timeQuantities.containsKey(MONTHS)?timeQuantities.get(MONTHS):0);
-            result = result.plusDays(timeQuantities.containsKey(DAYS)?timeQuantities.get(DAYS):0);
+            result = result.plusYears(timeQuantities.containsKey(YEARS) ? timeQuantities.get(YEARS) : 0);
+            result = result.plusMonths(timeQuantities.containsKey(MONTHS) ? timeQuantities.get(MONTHS) : 0);
+            result = result.plusDays(timeQuantities.containsKey(DAYS) ? timeQuantities.get(DAYS) : 0);
             return result;
-        }
-        else {
+        } else {
             Duration result = Duration.ofSeconds(0);
             for (Entry<ChronoUnit, Integer> entry : timeQuantities.entrySet()) {
                 result = result.plus(entry.getValue(), entry.getKey());

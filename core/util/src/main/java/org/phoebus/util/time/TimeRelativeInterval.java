@@ -30,8 +30,6 @@ import java.util.Optional;
  */
 public class TimeRelativeInterval {
 
-    public static final String NOW = "Now";
-
     private final Object start;
     private final Object end;
 
