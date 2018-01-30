@@ -1,6 +1,11 @@
-/**
- *
- */
+/*******************************************************************************
+ * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+
 package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newDoublePropertyDescriptor;
@@ -13,27 +18,30 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.csstudio.display.builder.model.Messages;
+import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Element;
 
-/**
- * Widget that displays an arc
- * @author Megan Grodowitz
- *
+/** Widget that displays an arc
+ *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class ArcWidget extends VisibleWidget {
-
+public class ArcWidget extends VisibleWidget
+{
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("arc", WidgetCategory.GRAPHIC,
             "Arc",
-            "/icons/arc.png",
+            "platform:/plugin/org.csstudio.display.builder.model/icons/arc.png",
             "An arc",
             Arrays.asList("org.csstudio.opibuilder.widgets.arc"))
     {
@@ -44,7 +52,38 @@ public class ArcWidget extends VisibleWidget {
         }
     };
 
-    //TODO: change start_anlge and total_angle to new terms. Setup input configurator to handle old terms
+
+    /** Custom configurator to read legacy *.opi files */
+    private static class CustomConfigurator extends WidgetConfigurator
+    {
+        public CustomConfigurator(final Version xml_version)
+        {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element xml)
+                throws Exception
+        {
+            if (! super.configureFromXML(model_reader, widget, xml))
+                return false;
+
+            if (xml_version.getMajor() < 2)
+            {
+                final ArcWidget arc = (ArcWidget) widget;
+                // Foreground color has been renamed to line color
+                final Element el = XMLUtil.getChildElement(xml, "foreground_color");
+                if (el != null)
+                    arc.propLineColor().readFromXML(model_reader, el);
+
+                // 'Fill' is similar to the new 'transparent' option
+                XMLUtil.getChildBoolean(xml, "fill")
+                       .ifPresent(fill -> arc.propTransparent().setValue(! fill));
+            }
+            return true;
+        }
+    }
+
     private static final WidgetPropertyDescriptor<Double> propAngleStart =
             newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "start_angle", Messages.WidgetProperties_AngleStart);
 
@@ -53,7 +92,6 @@ public class ArcWidget extends VisibleWidget {
 
     // fill color
     private WidgetProperty<WidgetColor> background;
-    // Do we need transparency for arc? It appears that existing displays have clear arcs, so I think yes
     private WidgetProperty<Boolean> transparent;
     // line color and width
     private WidgetProperty<WidgetColor> line_color;
@@ -63,9 +101,17 @@ public class ArcWidget extends VisibleWidget {
     private WidgetProperty<Double> arc_size;
 
 
-	public ArcWidget() {
+	public ArcWidget()
+	{
 		super(WIDGET_DESCRIPTOR.getType(), 100, 100);
 	}
+
+    @Override
+    public WidgetConfigurator getConfigurator(final Version persisted_version)
+            throws Exception
+    {
+        return new CustomConfigurator(persisted_version);
+    }
 
 	// By default create an arc with dark blue line, light blue interior, no transparency, 90 degree angle from 0-90
     @Override
