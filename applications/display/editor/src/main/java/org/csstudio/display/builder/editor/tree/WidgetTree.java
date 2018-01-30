@@ -302,6 +302,12 @@ public class WidgetTree
             selection.clearSelection();
             for (Widget widget : widgets)
                 selection.select(widget2tree.get(widget));
+
+            // If something's selected, show it.
+            // Otherwise leave tree at current position.
+            final int index = selection.getSelectedIndex();
+            if (index >= 0)
+                tree_view.scrollTo(index);
         }
         finally
         {
