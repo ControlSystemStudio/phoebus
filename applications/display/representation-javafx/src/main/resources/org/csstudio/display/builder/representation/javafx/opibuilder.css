@@ -170,6 +170,10 @@
    -fx-padding: 0em 0em 0em 0em;
 }
 
+/** Used for TextUpdate as well as Label
+ *  (can't use ".label", wanted to avoid
+ *   yet another class)
+ */
 .text_update
 {
    -fx-text-overrun: clip;
