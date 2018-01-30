@@ -53,6 +53,16 @@
     -fx-text-overrun: clip;
 }
 
+/* Same for the menu button,
+ * which uses a label inside the button
+ */
+.action_button > .label
+ {
+    -fx-padding: 0em 0em 0em 0.2em;
+    -fx-wrap-text: true;
+    -fx-text-overrun: clip;
+}
+
 /* Action buttons with multiple actions become a MenuButton
  * with popup items for each action.
  * The text fill of that context menu uses a ladder()
