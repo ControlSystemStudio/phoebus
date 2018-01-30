@@ -25,6 +25,7 @@ import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.javafx.LineNumberTableCellFactory;
 import org.phoebus.ui.javafx.TableHelper;
 
 import javafx.application.Platform;
@@ -239,7 +240,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         setOnHidden(event ->
         {
-            final Preferences pref = Preferences.userNodeForPackage(getClass());
+            final Preferences pref = Preferences.userNodeForPackage(ScriptsDialog.class);
             pref.putDouble("content.width", content.getWidth());
             pref.putDouble("content.height", content.getHeight());
             pref.putDouble("pvs_table.pvs_name_col.width", pvs_name_col.getWidth());
@@ -355,7 +356,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         scripts.setPadding(new Insets(0, 10, 0, 0));
         pvs.setPadding(new Insets(0, 0, 0, 10));
 
-        final Preferences pref = Preferences.userNodeForPackage(getClass());
+        final Preferences pref = Preferences.userNodeForPackage(ScriptsDialog.class);
         double prefWidth = pref.getDouble("content.width", -1);
         double prefHeight = pref.getDouble("content.height", -1);
         double prefDividerPosition = pref.getDouble("content.divider.position", 0.5);
@@ -600,7 +601,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     {
         final TableColumn<PVItem, Integer> indexColumn = new TableColumn<>("#");
         indexColumn.setSortable(false);
-        indexColumn.setCellFactory(new LineNumberCellFactory<>(true));
+        indexColumn.setCellFactory(new LineNumberTableCellFactory<>(true));
         indexColumn.setMaxWidth(26);
         indexColumn.setMinWidth(26);
 

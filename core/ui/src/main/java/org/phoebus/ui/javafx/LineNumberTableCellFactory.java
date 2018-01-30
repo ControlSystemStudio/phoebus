@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.csstudio.display.builder.representation.javafx;
+package org.phoebus.ui.javafx;
 
 
 import javafx.geometry.Pos;
@@ -24,8 +24,7 @@ import javafx.util.Callback;
  * @author claudiorosati, European Spallation Source ERIC
  * @version 1.0.0 24 Jan 2018
  */
-@SuppressWarnings("nls")
-public class LineNumberCellFactory<T, E> implements Callback<TableColumn<T, E>, TableCell<T, E>> {
+public class LineNumberTableCellFactory<T, E> implements Callback<TableColumn<T, E>, TableCell<T, E>> {
 
     private final boolean startFromZero;
 
@@ -33,7 +32,7 @@ public class LineNumberCellFactory<T, E> implements Callback<TableColumn<T, E>, 
      * @param startFromZero {@code true} if row numbers must be shown starting
      *            from 0, {@code false} starting from 1.
      */
-    public LineNumberCellFactory ( boolean startFromZero ) {
+    public LineNumberTableCellFactory ( boolean startFromZero ) {
         this.startFromZero = startFromZero;
     }
 
