@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.Optional;
 
 /**
  * A period of time where each end can either be an absolute moment in time
@@ -25,7 +26,7 @@ import java.time.temporal.TemporalAmount;
  * For example, one can keep the range of a plot from 1 minute ago to now, and
  * then get a specific moment the absolute range of that plot.
  *
- * @author carcassi
+ * @author carcassi, shroffk
  */
 public class TimeRelativeInterval {
 
@@ -43,8 +44,10 @@ public class TimeRelativeInterval {
      * Create a {@link TimeRelativeInterval} with an absolute start time and an
      * absolute end time.
      *
-     * @param start the absolute start time of the this time interval
-     * @param end the absolute end time of this time interval
+     * @param start
+     *            the absolute start time of the this time interval
+     * @param end
+     *            the absolute end time of this time interval
      * @return a {@link TimeRelativeInterval} object starting at Instance start
      *         and ending at Instance end
      */
@@ -59,8 +62,10 @@ public class TimeRelativeInterval {
      * e.g. TimeRelativeInterval.of(TimeParser.parse("last 5 days"),
      * TimeParser.parse("2 days ago"))
      * 
-     * @param start the relative start
-     * @param end the relative end
+     * @param start
+     *            the relative start
+     * @param end
+     *            the relative end
      * @return a
      */
     public static TimeRelativeInterval of(TemporalAmount start, TemporalAmount end) {
@@ -69,15 +74,16 @@ public class TimeRelativeInterval {
 
     /**
      * Create a {@link TimeRelativeInterval} with a relative start described as
-     * either a {@link Duration} or {@link Period} and an absolute end
+     * either a {@link Duration} or {@link Period} or "now" and an absolute end
      * represented by an {@link Instant}
      * 
-     * e.g. TimeRelativeInterval.of(TimeParser.parse("last 5 days"),
-     * Instant.now())
+     * e.g. TimeRelativeInterval.of(TimeParser.parse("5 days"), Instant.now())
      * 
-     * @param start the relative start
-     * @param end the absolute end
-     * @return
+     * @param start
+     *            the relative start
+     * @param end
+     *            the absolute end
+     * @return {@link TimeRelativeInterval}
      */
     public static TimeRelativeInterval of(TemporalAmount start, Instant end) {
         return new TimeRelativeInterval(start, end);
@@ -85,91 +91,199 @@ public class TimeRelativeInterval {
 
     /**
      * Create a {@link TimeRelativeInterval} with an absolute start represented
-     * by an {@link Instant} and an absolute end described as either a
-     * {@link Duration} or {@link Period}
+     * by an {@link Instant} and a relative end described as either a
+     * {@link Duration} or {@link Period} or "now"
      * 
      * e.g. TimeRelativeInterval.of(TimeParser.parse("2017/01/17 13:45"),
-     * TimeParser.parse("+2 days"))
+     * TimeParser.parse("2 days"))
      * 
-     * @param start the relative start
-     * @param end the absolute end
-     * @return
+     * @param start
+     *            the start instant
+     * @param end
+     *            the relative end time
+     * @return {@link TimeRelativeInterval}
      */
     public static TimeRelativeInterval of(Instant start, TemporalAmount end) {
         return new TimeRelativeInterval(start, end);
     }
 
+    /**
+     * Create a {@link TimeRelativeInterval} which starts at the absolute
+     * instance "start" and ends at "now"
+     * 
+     * @param start
+     *            the absolute start instant
+     * @return {@link TimeRelativeInterval}
+     */
     public static TimeRelativeInterval startsAt(Instant start) {
-        return new TimeRelativeInterval(start, NOW);
+        return new TimeRelativeInterval(start, Duration.ZERO);
     }
 
+    /**
+     * Create a {@link TimeRelativeInterval} with a relative start and a
+     * relative end "now"
+     * 
+     * @param start
+     *            the relative start time defined as a {@link Period} or
+     *            {@link Duration}
+     * @return {@link TimeRelativeInterval}
+     */
     public static TimeRelativeInterval startsAt(TemporalAmount start) {
-        return new TimeRelativeInterval(start, NOW);
+        return new TimeRelativeInterval(start, Duration.ZERO);
     }
 
+    /**
+     * Create a {@link TimeRelativeInterval} with an absolute end time and a
+     * relative start time which is "now"
+     * 
+     * @param end
+     *            the absolute end instant
+     * @return {@link TimeRelativeInterval}
+     */
     public static TimeRelativeInterval endsAt(Instant end) {
-        return new TimeRelativeInterval(NOW, end);
+        return new TimeRelativeInterval(Duration.ZERO, end);
     }
 
+    /**
+     * Create a {@link TimeRelativeInterval} with a relative end time defined as
+     * a {@link Period} or {@link Duration} adn a relative start "now"
+     * 
+     * @param end
+     *            the relative end time
+     * @return {@link TimeRelativeInterval}
+     */
     public static TimeRelativeInterval endsAt(TemporalAmount end) {
-        return new TimeRelativeInterval(NOW, end);
+        return new TimeRelativeInterval(Duration.ZERO, end);
     }
 
+    /**
+     * Check if the start is absolute
+     * 
+     * @return true if the start is defined as an absolute value
+     */
     private boolean isStartAbsolute() {
-        return start == null || start instanceof Instant || NOW.equals(start);
+        return start instanceof Instant;
     }
 
+    /**
+     * Check if the end of the {@link TimeRelativeInterval} is absolute
+     * 
+     * @return true if the end is defined as an absolute value
+     */
     private boolean isEndAbsolute() {
-        return end == null || end instanceof Instant || NOW.equals(end);
+        return end instanceof Instant;
     }
 
-    private Instant getAbsoluteStart() {
-        if(NOW.equals(start)) {
-            return Instant.now();
+    /**
+     * Get the absolute start value of this {@link TimeRelativeInterval}. The
+     * optional is empty if the start value is relative.
+     * 
+     * @return {@link Optional}
+     */
+    private Optional<Instant> getAbsoluteStart() {
+        if (isStartAbsolute()) {
+            return Optional.of((Instant) start);
+        } else {
+            return Optional.empty();
         }
-        return (Instant) start;
     }
 
-    private Instant getAbsoluteEnd() {
-        if(NOW.equals(end)) {
-            return Instant.now();
+    /**
+     * Get the absolute end value of this {@link TimeRelativeInterval}. The
+     * returned Optional is empty is the end value is relative.
+     * 
+     * @return {@link Optional}
+     */
+    private Optional<Instant> getAbsoluteEnd() {
+        if (isEndAbsolute()) {
+            return Optional.of((Instant) end);
+        } else {
+            return Optional.empty();
         }
-        return (Instant) end;
     }
 
-    private TemporalAmount getRelativeStart() {
-        return (TemporalAmount) start;
+    /**
+     * Get the relative start value of this {@link TimeRelativeInterval}. The
+     * returned Optional is empty is the end value is absolute.
+     * 
+     * @return {@link Optional}
+     */
+    private Optional<TemporalAmount> getRelativeStart() {
+        if (!isStartAbsolute()) {
+            return Optional.of((TemporalAmount) start);
+        } else {
+            return Optional.empty();
+        }
     }
 
-    private TemporalAmount getRelativeEnd() {
-        return (TemporalAmount) end;
+    /**
+     * Get the relative start value of this {@link TimeRelativeInterval}. The
+     * returned Optional is empty is the end value is absolute.
+     * 
+     * @return {@link Optional}
+     */
+    private Optional<TemporalAmount> getRelativeEnd() {
+        if (!isEndAbsolute()) {
+            return Optional.of((TemporalAmount) end);
+        } else {
+            return Optional.empty();
+        }
     }
 
     public TimeInterval toAbsoluteInterval(Instant reference) {
         Instant absoluteStart;
-        if (isStartAbsolute()) {
-            absoluteStart = getAbsoluteStart();
-        } else {
-            if (getRelativeStart() instanceof Duration) {
-                absoluteStart = reference.minus(getRelativeStart());
+        Instant absoluteEnd;
+
+        if (isStartAbsolute() && isEndAbsolute()) {
+            // Both start and end are absolute
+            absoluteStart = getAbsoluteStart().get();
+            absoluteEnd = getAbsoluteEnd().get();
+        } else if (isStartAbsolute() && !isEndAbsolute()) {
+            // Start is absolute and end is relative
+            absoluteStart = getAbsoluteStart().get();
+            if (getRelativeEnd().get() instanceof Duration) {
+                if (Duration.ZERO.equals(getRelativeEnd().get())) {
+                    absoluteEnd = Instant.now();
+                } else {
+                    absoluteEnd = getAbsoluteStart().get().plus(getRelativeEnd().get());
+                }
             } else {
-                absoluteStart = LocalDateTime
-                        .ofInstant(reference, ZoneOffset.UTC)
-                        .minus(getRelativeStart())
+                absoluteEnd = LocalDateTime.ofInstant(getAbsoluteStart().get(), ZoneOffset.UTC)
+                        .plus(getRelativeEnd().get()).toInstant(ZoneOffset.UTC);
+            }
+        } else if (!isStartAbsolute() && isEndAbsolute()) {
+            // Start is relative and the end is absolute
+            absoluteEnd = getAbsoluteEnd().get();
+            if (getRelativeStart().get() instanceof Duration) {
+                if (Duration.ZERO.equals(getRelativeStart().get())) {
+                    absoluteStart = Instant.now();
+                } else {
+                    absoluteStart = absoluteEnd.minus(getRelativeStart().get());
+                }
+            } else {
+                absoluteStart = LocalDateTime.ofInstant(absoluteEnd, ZoneOffset.UTC).minus(getRelativeStart().get())
                         .toInstant(ZoneOffset.UTC);
             }
-        }
-        Instant absoluteEnd;
-        if (isEndAbsolute()) {
-            absoluteEnd = getAbsoluteEnd();
         } else {
-            if (getRelativeEnd() instanceof Duration) {
-                absoluteEnd = reference.minus(getRelativeEnd());
+            // Both start and end are relative to the reference
+            if (getRelativeStart().get() instanceof Duration) {
+                if (Duration.ZERO.equals(getRelativeStart().get())) {
+                    absoluteStart = Instant.now();
+                } else {
+                    absoluteStart = reference.minus(getRelativeStart().get());
+                }
             } else {
-                absoluteEnd = LocalDateTime
-                        .ofInstant(reference, ZoneOffset.UTC)
-                        .minus(getRelativeEnd())
+                absoluteStart = LocalDateTime.ofInstant(reference, ZoneOffset.UTC).minus(getRelativeStart().get())
                         .toInstant(ZoneOffset.UTC);
+            }
+            if (getRelativeEnd().get() instanceof Duration) {
+                if (Duration.ZERO.equals(getRelativeEnd().get())) {
+                    absoluteEnd = Instant.now();
+                } else {
+                    absoluteEnd = reference.minus(getRelativeEnd().get());
+                }
+            } else {
+                absoluteEnd = LocalDateTime.ofInstant(reference, ZoneOffset.UTC).minus(getRelativeEnd().get()).toInstant(ZoneOffset.UTC);
             }
         }
         return TimeInterval.between(absoluteStart, absoluteEnd);
