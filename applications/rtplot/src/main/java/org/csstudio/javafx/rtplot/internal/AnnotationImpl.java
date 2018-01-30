@@ -140,7 +140,7 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
         final int y = Double.isFinite(value) ? yaxis.getScreenCoord(value) : yaxis.getScreenRange().getLow();
         final boolean in_range = xaxis.getScreenRange().contains(x);
 
-        String value_text = yaxis.getTicks().format(value);
+        String value_text = yaxis.getTicks().formatDetailed(value);
         final String units = trace.getUnits();
         if (! units.isEmpty())
             value_text += " " + units;
