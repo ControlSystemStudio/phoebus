@@ -69,10 +69,18 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static StringBuilder appendWebRGB(final StringBuilder buf, final WidgetColor color)
     {
-        buf.append('#');
-        addHex(buf, color.getRed());
-        addHex(buf, color.getGreen());
-        addHex(buf, color.getBlue());
+        if (color.getAlpha() < 255)
+            buf.append("rgba(").append(color.getRed()).append(',')
+                               .append(color.getGreen()).append(',')
+                               .append(color.getBlue()).append(',')
+                               .append(color.getAlpha()/255f).append(')');
+        else
+        {
+            buf.append('#');
+            addHex(buf, color.getRed());
+            addHex(buf, color.getGreen());
+            addHex(buf, color.getBlue());
+        }
         return buf;
     }
 
