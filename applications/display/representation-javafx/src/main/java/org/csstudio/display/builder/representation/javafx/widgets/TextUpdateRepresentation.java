@@ -67,7 +67,9 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
             area.getStyleClass().add("text_entry");
             return area;
         }
-        return new Label();
+        final Label label = new Label();
+        label.getStyleClass().add("text_update");
+        return label;
     }
 
     @Override

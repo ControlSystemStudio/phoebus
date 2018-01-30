@@ -170,6 +170,11 @@
    -fx-padding: 0em 0em 0em 0em;
 }
 
+.text_update
+{
+   -fx-text-overrun: clip;
+}
+
 /* Default button padding in modena.css is white-on-black */
 .tooltip
 {
