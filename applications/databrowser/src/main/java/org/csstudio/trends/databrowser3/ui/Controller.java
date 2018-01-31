@@ -243,7 +243,7 @@ public class Controller
         @Override
         public void timeConfigRequested()
         {
-// TODO StartEndTimeAction.run(shell, model, plot.getPlot().getUndoableActionManager());
+            StartEndTimeAction.run(model, plot.getPlot(), plot.getPlot().getUndoableActionManager());
         }
 
         @Override

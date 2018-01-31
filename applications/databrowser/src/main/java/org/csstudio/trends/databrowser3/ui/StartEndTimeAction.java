@@ -1,0 +1,39 @@
+/*******************************************************************************
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ ******************************************************************************/
+package org.csstudio.trends.databrowser3.ui;
+
+import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.ui.plot.StartEndDialog;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.undo.UndoableActionManager;
+import org.phoebus.util.time.TimeRelativeInterval;
+
+import javafx.scene.Node;
+
+/** Helper for handling start/end time changes
+ *  @author Kay Kasemir
+ */
+public class StartEndTimeAction
+{
+    /** Prompt user for new start/end time
+     *  @param model Model to change
+     *  @param node Node for positioning the time range dialog
+     *  @param undo Undo/Redo operations manager
+     */
+    public static void run(final Model model, final Node node, final UndoableActionManager undo)
+    {
+        // TODO Set dlg to model's time range
+        //        final String start_time = model.getStartSpecification();
+        //        final String end_time = model.getEndSpecification();
+
+        final StartEndDialog dlg = new StartEndDialog();
+        DialogHelper.positionDialog(dlg, node, -300, -200);
+        final TimeRelativeInterval range = dlg.showAndWait().orElse(null);
+        // TODO new ChangeTimerangeCommand(model, operations_manager, range);
+    }
+}

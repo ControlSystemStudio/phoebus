@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
+import org.csstudio.trends.databrowser3.ui.StartEndTimeAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Insets;
@@ -19,7 +20,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 
 /** Property tab for time axis
  *  @author Kay Kasemir
@@ -60,7 +60,6 @@ public class TimeAxisTab extends Tab
         layout.setPadding(new Insets(5));
         // layout.setGridLinesVisible(true); // Debug layout
 
-
         layout.add(new Label(Messages.StartTimeLbl), 0, 0);
         layout.add(start, 1, 0);
 
@@ -68,33 +67,11 @@ public class TimeAxisTab extends Tab
         layout.add(end, 3, 0);
 
         final Button times = new Button(Messages.StartEndDialogBtn);
+        times.setOnAction(event ->  StartEndTimeAction.run(model, layout, undo));
         layout.add(times, 4, 0);
 
-        // TODO Preferences.getTimespanShortcuts();
-        final String[][] shortcuts = new String[][]
-        {
-            { "30 Minutes", "" },
-            { "1 Hour", "" },
-            { "12 Hours", "" },
-            { "1 Day", "" },
-            { "7 Days", "" },
-        };
-        final HBox shortcut_bar = new HBox(5);
-        for (String[] title_range : shortcuts)
-        {
-            final String range = title_range[1];
-            final Button shortcut = new Button(title_range[0]);
-            shortcut_bar.getChildren().add(shortcut);
-            shortcut.setOnAction(event ->
-            {
-                System.err.println("TODO: Select " + range);
-            });
-        }
-        layout.add(shortcut_bar, 1, 1, 3, 1);
-
-
-        layout.add(new Label(Messages.GridLbl), 0, 2);
-        layout.add(grid, 1, 2);
+        layout.add(new Label(Messages.GridLbl), 0, 1);
+        layout.add(grid, 1, 1);
         grid.setOnAction(event ->
         {
             updating = true;

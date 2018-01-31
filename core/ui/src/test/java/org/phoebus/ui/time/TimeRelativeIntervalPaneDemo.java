@@ -23,6 +23,7 @@ import javafx.stage.Stage;
 /** Demo of {@link TimeRelativeIntervalPane}
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class TimeRelativeIntervalPaneDemo extends Application
 {
     @Override

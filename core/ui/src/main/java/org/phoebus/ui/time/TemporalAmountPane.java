@@ -25,7 +25,7 @@ import javafx.scene.layout.GridPane;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class TemporalAmountPane extends GridPane
+public class TemporalAmountPane extends GridPane
 {
     private static Spinner<Integer> createSpinner(final int max, final Spinner<Integer> next)
     {
