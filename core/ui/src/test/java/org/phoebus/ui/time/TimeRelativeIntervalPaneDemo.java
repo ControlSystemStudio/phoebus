@@ -38,10 +38,8 @@ public class TimeRelativeIntervalPaneDemo extends Application
         test.setOnAction(event ->
         {
             final TimeRelativeInterval interval = ui.getTimeRelativeInterval();
-            // TODO TimeRelativeInterval should have useful toString()
-            System.out.println(interval);
-
-            System.out.println(interval.toAbsoluteInterval());
+            System.out.println("Interval: " + interval);
+            System.out.println("Right now that means " + interval.toAbsoluteInterval());
         });
 
         final GridPane layout = new GridPane();
