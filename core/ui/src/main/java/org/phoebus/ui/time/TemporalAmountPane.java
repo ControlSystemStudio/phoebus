@@ -21,11 +21,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 
-/** Panel with time span control for configuring a {@link TemporalAmount}
+/** Panel with time span for configuring a {@link TemporalAmount}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TimeSpan extends GridPane
+class TemporalAmountPane extends GridPane
 {
     private static Spinner<Integer> createSpinner(final int max, final Spinner<Integer> next)
     {
@@ -48,40 +48,63 @@ public class TimeSpan extends GridPane
 
     private final List<Consumer<TemporalAmount>> listeners = new CopyOnWriteArrayList<>();
 
+    private boolean changing = false;
 
-    public TimeSpan(final boolean include_now)
+    /** Type of UI */
+    public enum Type
+    {
+        /** Offer temporal amounts (years, months, ..., seconds) */
+        TEMPORAL_AMOUNTS,
+        /** Add 'now' as an option */
+        TEMPORAL_AMOUNTS_AND_NOW,
+        /** Only allow 'now' as an option */
+        ONLY_NOW
+    };
+
+    /** Constructor
+     *  @param include_now Should pane include 'now'?
+     */
+    public TemporalAmountPane(final Type type)
     {
         setHgap(5);
         setVgap(5);
         setPadding(new Insets(5));
 
-        add(new Label("Year:"), 0, 0);
-        add(years, 1, 0);
+        if (type != Type.ONLY_NOW)
+        {
+            add(new Label("Year:"), 0, 0);
+            add(years, 1, 0);
 
-        add(new Label("Month:"), 0, 1);
-        add(months, 1, 1);
+            add(new Label("Month:"), 0, 1);
+            add(months, 1, 1);
 
-        add(new Label("Days:"), 0, 2);
-        add(days, 1, 2);
+            add(new Label("Days:"), 0, 2);
+            add(days, 1, 2);
 
-        add(new Label("Hours:"), 2, 0);
-        add(hours, 3, 0);
+            add(new Label("Hours:"), 2, 0);
+            add(hours, 3, 0);
 
-        add(new Label("Minutes:"), 2, 1);
-        add(minutes, 3, 1);
+            add(new Label("Minutes:"), 2, 1);
+            add(minutes, 3, 1);
 
-        add(new Label("Seconds:"), 2, 2);
-        add(seconds, 3, 2);
+            add(new Label("Seconds:"), 2, 2);
+            add(seconds, 3, 2);
 
-        add(createButton("12 h", Duration.ofHours(12)), 0, 3);
-        add(createButton("1 day", Period.ofDays(1)), 1, 3);
-        add(createButton("3 days", Period.ofDays(3)), 2, 3);
-        add(createButton("7 days", Period.ofDays(7)), 3, 3);
-
-        if (include_now)
+            add(createButton("12 h", Duration.ofHours(12)), 0, 3);
+            add(createButton("1 day", Period.ofDays(1)), 1, 3);
+            add(createButton("3 days", Period.ofDays(3)), 2, 3);
+            add(createButton("7 days", Period.ofDays(7)), 3, 3);
+        }
+        if (type == Type.TEMPORAL_AMOUNTS_AND_NOW)
             add(createButton("Now", Duration.ZERO), 3, 4);
+        else if (type == Type.ONLY_NOW)
+            add(createButton("Now", Duration.ZERO), 0, 0);
 
-        final InvalidationListener invalidated = p -> notifyListeners();
+        final InvalidationListener invalidated = p ->
+        {
+            if (! changing)
+                notifyListeners();
+        };
         years.valueProperty().addListener(invalidated);
         months.valueProperty().addListener(invalidated);
         days.valueProperty().addListener(invalidated);
@@ -90,6 +113,7 @@ public class TimeSpan extends GridPane
         seconds.valueProperty().addListener(invalidated);
     }
 
+    /** @param listener Listener to add */
     public void addListener(final Consumer<TemporalAmount> listener)
     {
         listeners.add(listener);
@@ -114,8 +138,10 @@ public class TimeSpan extends GridPane
         return button;
     }
 
+    /** @param amount Time span to show in pane */
     public void setTimespan(final TemporalAmount amount)
     {
+        changing = true;
         if (amount instanceof Period)
         {
             final Period period = ((Period) amount).normalized();
@@ -152,8 +178,10 @@ public class TimeSpan extends GridPane
 
             seconds.getValueFactory().setValue((int) secs);
         }
+        changing  = false;
     }
 
+    /** @return Currently displayed time span */
     public TemporalAmount getTimespan()
     {
         // Anything involving months or years is considered a Period.

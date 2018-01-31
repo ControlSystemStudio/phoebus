@@ -13,6 +13,7 @@ import java.time.Period;
 import java.time.temporal.TemporalAmount;
 
 import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.geometry.Insets;
@@ -37,7 +38,7 @@ import javafx.scene.text.FontWeight;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class StartEndUI extends GridPane
+public class TimeRelativeIntervalPane extends GridPane
 {
     private static String format(final Instant instant)
     {
@@ -105,20 +106,23 @@ public class StartEndUI extends GridPane
     }
 
 
-    /** Background that highllights the active section (absolute or relative) */
+    /** Background that highlights the active section (absolute or relative) */
     private static final Background active_background = new Background(new BackgroundFill(Color.ANTIQUEWHITE, new CornerRadii(5), new Insets(0)));
 
     /** Absolute start resp. end */
-    private final DateTime abs_start = new DateTime(),      abs_end = new DateTime();
+    private final DateTimePane abs_start = new DateTimePane(),      abs_end = new DateTimePane();
 
     /** Relative start resp. end */
-    private final TimeSpan rel_start = new TimeSpan(false), rel_end = new TimeSpan(true);
+    private final TemporalAmountPane rel_start = new TemporalAmountPane(TemporalAmountPane.Type.TEMPORAL_AMOUNTS), rel_end;
 
     /** Text-based representation of start resp. end */
     private final TextField start_spec = new TextField(),   end_spec = new TextField();
 
-    public StartEndUI()
+    private boolean changing = false;
+
+    public TimeRelativeIntervalPane(final TemporalAmountPane.Type type)
     {
+        rel_end = new TemporalAmountPane(type);
         setHgap(5);
         setVgap(5);
         setPadding(new Insets(5));
@@ -163,6 +167,8 @@ public class StartEndUI extends GridPane
         // when UI elements are accessed
         abs_start.addListener(instant ->
         {
+            if (changing)
+                return;
             abs_start.setBackground(active_background);
             rel_start.setBackground(null);
             start_spec.setText(format(instant));
@@ -170,6 +176,8 @@ public class StartEndUI extends GridPane
 
         rel_start.addListener(span ->
         {
+            if (changing)
+                return;
             abs_start.setBackground(null);
             rel_start.setBackground(active_background);
             start_spec.setText(format(span));
@@ -178,6 +186,8 @@ public class StartEndUI extends GridPane
 
         abs_end.addListener(instant ->
         {
+            if (changing)
+                return;
             abs_end.setBackground(active_background);
             rel_end.setBackground(null);
             end_spec.setText(format(instant));
@@ -185,6 +195,8 @@ public class StartEndUI extends GridPane
 
         rel_end.addListener(span ->
         {
+            if (changing)
+                return;
             abs_end.setBackground(null);
             rel_end.setBackground(active_background);
             end_spec.setText(format(span));
@@ -222,6 +234,17 @@ public class StartEndUI extends GridPane
         });
     }
 
+    private boolean isAbsStart()
+    {
+        return abs_start.getBackground() != null;
+    }
+
+    private boolean isAbsEnd()
+    {
+        return abs_end.getBackground() != null;
+    }
+
+
     /** @param instant Absolute start date/time */
     public void setStart(final Instant instant)
     {
@@ -257,6 +280,26 @@ public class StartEndUI extends GridPane
         rel_end.setBackground(active_background);
         end_spec.setText(format(amount));
     }
+
     // TODO set as TimeRelativeInterval
-    // TODO get as TimeRelativeInterval
+    // Needs access to TimeRelativeInterval#isStartAbsolute
+
+    /** @return TimeRelativeInterval for current time range */
+    public TimeRelativeInterval getTimeRelativeInterval()
+    {
+        if (isAbsStart())
+        {
+            if (isAbsEnd())
+                return TimeRelativeInterval.of(abs_start.getInstant(), abs_end.getInstant());
+            else
+                return TimeRelativeInterval.of(abs_start.getInstant(), rel_end.getTimespan());
+        }
+        else
+        {
+            if (isAbsEnd())
+                return TimeRelativeInterval.of(rel_start.getTimespan(), abs_end.getInstant());
+            else
+                return TimeRelativeInterval.of(rel_start.getTimespan(), rel_end.getTimespan());
+        }
+    }
 }

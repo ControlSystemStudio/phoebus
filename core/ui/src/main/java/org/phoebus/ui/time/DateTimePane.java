@@ -28,11 +28,11 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 
-/** Panel with date and time control for configuring an {@link Instant}
+/** Panel with date and time elements for configuring an {@link Instant}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DateTime extends GridPane
+class DateTimePane extends GridPane
 {
     // Use TimestampFormats
     private static final StringConverter<LocalDate> DATE_CONVERTER = new StringConverter<>()
@@ -40,6 +40,8 @@ public class DateTime extends GridPane
         @Override
         public String toString(final LocalDate date)
         {
+            if (date == null)
+                return "";
             return TimestampFormats.DATE_FORMAT.format(date);
         }
 
@@ -107,17 +109,14 @@ public class DateTime extends GridPane
 
     private final List<Consumer<Instant>> listeners = new CopyOnWriteArrayList<>();
 
-    public DateTime()
-    {
-        this(Instant.now());
+    private boolean changing = false;
 
-        date.setConverter(DATE_CONVERTER);
-    }
-
-    public DateTime(final Instant instant)
+    public DateTimePane()
     {
         setHgap(5);
         setVgap(5);
+
+        date.setConverter(DATE_CONVERTER);
 
         add(new Label("Date:"), 0, 0);
         add(date, 1, 0);
@@ -140,32 +139,48 @@ public class DateTime extends GridPane
         add(new Label("Time:"), 0, 1);
         add(hms, 1, 1);
 
-        final InvalidationListener invalidated = p -> notifyListeners();
+        final InvalidationListener invalidated = p ->
+        {
+            if (! changing)
+                notifyListeners();
+        };
         date.valueProperty().addListener(invalidated);
         hour.valueProperty().addListener(invalidated);
         minute.valueProperty().addListener(invalidated);
         second.valueProperty().addListener(invalidated);
-        setInstant(instant);
+
+        setInstant(Instant.now());
     }
 
-    /** @param other Date from other {@link DateTime} to highlight in this one */
-    public void highlightFrom(final DateTime other)
+    /** @param other Date from other {@link DateTimePane} to highlight in this one */
+    public void highlightFrom(final DateTimePane other)
     {
         date.setDayCellFactory(picker -> new HighlightingDateCell(date, other.date));
     }
 
+    /** @param listener Listener to add */
     public void addListener(final Consumer<Instant> listener)
     {
         listeners.add(listener);
     }
 
+    /** @param instant Absolute time to show in pane */
     public void setInstant(final Instant instant)
     {
+        changing  = true;
         final LocalDateTime local = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
         date.setValue(local.toLocalDate());
         hour.getValueFactory().setValue(local.getHour());
         minute.getValueFactory().setValue(local.getMinute());
         second.getValueFactory().setValue(local.getSecond());
+        changing = false;
+    }
+
+    /** @return Time currently shown in pane */
+    public Instant getInstant()
+    {
+        final LocalDateTime local = LocalDateTime.of(date.getValue(), LocalTime.of(hour.getValue(), minute.getValue(), second.getValue()));
+        return Instant.from(local.atZone(ZoneId.systemDefault()));
     }
 
     private void notifyListeners()
@@ -173,12 +188,6 @@ public class DateTime extends GridPane
         final Instant value = getInstant();
         for (Consumer<Instant> listener : listeners)
             listener.accept(value);
-    }
-
-    public Instant getInstant()
-    {
-        final LocalDateTime local = LocalDateTime.of(date.getValue(), LocalTime.of(hour.getValue(), minute.getValue(), second.getValue()));
-        return Instant.from(local.atZone(ZoneId.systemDefault()));
     }
 }
 

@@ -51,7 +51,7 @@ public class TimeParserTest {
         assertEquals("Failed to get Duration for last 5 days",
                 60 * 60 * 24 * 5, last5Day.getSeconds());
     }
-    
+
     @Test
     public void parse() {
         Instant now = Instant.now();
@@ -74,13 +74,13 @@ public class TimeParserTest {
         assertEquals("Failed to get Duration for last 5 mins",
                 Duration.ofHours(3).plusMinutes(5).plusSeconds(30), last3Hours5Mins30Secs);
     }
-    
+
 
     /**
      * Test the creation parsing of string representations of time to create {@link TimeRelativeInterval}
      *
      * The below tests create an interval which represents a single month.
-     * 
+     *
      */
     @Test
     public void parseRelativeInterval() {
@@ -105,5 +105,25 @@ public class TimeParserTest {
                         .parse("2012-03-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC))
                 .toAbsoluteInterval();
         assertEquals(29L, Duration.between(leapFeb.getStart(), leapFeb.getEnd()).toDays());
+    }
+
+
+    @Test
+    public void testParseDuration()
+    {
+        TemporalAmount amount = TimeParser.parseDuration("3 days");
+        final long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(3*24*60*60, seconds);
+    }
+
+    @Test
+    public void testParseTemporalAmount()
+    {
+        // 3 days are parsed in P1Y, 1 year
+        TemporalAmount amount = TimeParser.parseTemporalAmount("3 days");
+        System.out.println(amount);
+
+        final long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(3*24*60*60, seconds);
     }
 }
