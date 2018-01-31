@@ -8,7 +8,6 @@
 package org.phoebus.ui.time;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 
 import org.phoebus.ui.time.TemporalAmountPane.Type;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -31,13 +30,13 @@ public class TimeRelativeIntervalPaneDemo extends Application
     {
         final TimeRelativeIntervalPane ui = new TimeRelativeIntervalPane(Type.TEMPORAL_AMOUNTS_AND_NOW);
 
-        ui.setStart(Duration.of(2, ChronoUnit.DAYS));
-        ui.setEnd(Duration.ZERO);
+        ui.setInterval(TimeRelativeInterval.of(Duration.ofDays(1).plus(Duration.ofHours(6)),
+                                                           Duration.ZERO));
 
         final Button test = new Button("Test");
         test.setOnAction(event ->
         {
-            final TimeRelativeInterval interval = ui.getTimeRelativeInterval();
+            final TimeRelativeInterval interval = ui.getInterval();
             System.out.println("Interval: " + interval);
             System.out.println("Right now that means " + interval.toAbsoluteInterval());
         });

@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
 import java.time.temporal.TemporalAmount;
+import java.util.Optional;
 
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -215,11 +216,24 @@ public class TimeRelativeIntervalPane extends GridPane
         end_spec.setText(TimeParser.format(amount));
     }
 
-    // TODO set as TimeRelativeInterval
-    // Needs access to TimeRelativeInterval#isStartAbsolute
+    /** @param interval Time range to show */
+    public void setInterval(final TimeRelativeInterval interval)
+    {
+        Optional<Instant> point = interval.getAbsoluteStart();
+        if (point.isPresent())
+            setStart(point.get());
+        else
+            setStart(interval.getRelativeStart().get());
+
+        point = interval.getAbsoluteEnd();
+        if (point.isPresent())
+            setEnd(point.get());
+        else
+            setEnd(interval.getRelativeEnd().get());
+    }
 
     /** @return TimeRelativeInterval for current time range */
-    public TimeRelativeInterval getTimeRelativeInterval()
+    public TimeRelativeInterval getInterval()
     {
         if (isAbsStart())
         {

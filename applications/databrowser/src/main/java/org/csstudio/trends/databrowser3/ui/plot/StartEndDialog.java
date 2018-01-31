@@ -24,7 +24,7 @@ public class StartEndDialog extends Dialog<TimeRelativeInterval>
         setResultConverter(button ->
         {
             if (button == ButtonType.OK)
-                return times.getTimeRelativeInterval();
+                return times.getInterval();
             return null;
         });
     }

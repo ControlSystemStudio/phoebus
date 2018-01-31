@@ -128,6 +128,10 @@ public class TimeParserTest {
         amount = TimeParser.parseTemporalAmount("3 days 20 mins 10 sec");
         seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
         assertEquals(3*24*60*60 + 20*60 + 10, seconds);
+
+        amount = TimeParser.parseTemporalAmount("now");
+        seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(0, seconds);
     }
 
     @Test
@@ -141,5 +145,12 @@ public class TimeParserTest {
 
         text = TimeParser.format(Duration.ofSeconds(2*24*60*60 + 1*60*60 + 10));
         assertEquals("2 days 1 hour 10 seconds", text);
+
+        text = TimeParser.format(Duration.ofSeconds(0));
+        assertEquals("now", text);
+
+        text = TimeParser.format(Period.ZERO);
+        assertEquals("now", text);
+
     }
 }
