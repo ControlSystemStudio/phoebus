@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.trends.databrowser3.ui;
+package org.phoebus.ui.time;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -34,5 +34,4 @@ public class StartEndUIDemo extends Application
     {
         Application.launch(args);
     }
-
 }
