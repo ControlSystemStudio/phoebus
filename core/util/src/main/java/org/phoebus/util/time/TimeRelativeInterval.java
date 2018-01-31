@@ -59,7 +59,7 @@ public class TimeRelativeInterval {
      *
      * e.g. TimeRelativeInterval.of(TimeParser.parse("last 5 days"),
      * TimeParser.parse("2 days ago"))
-     * 
+     *
      * @param start
      *            the relative start
      * @param end
@@ -74,9 +74,9 @@ public class TimeRelativeInterval {
      * Create a {@link TimeRelativeInterval} with a relative start described as
      * either a {@link Duration} or {@link Period} or "now" and an absolute end
      * represented by an {@link Instant}
-     * 
+     *
      * e.g. TimeRelativeInterval.of(TimeParser.parse("5 days"), Instant.now())
-     * 
+     *
      * @param start
      *            the relative start
      * @param end
@@ -91,10 +91,10 @@ public class TimeRelativeInterval {
      * Create a {@link TimeRelativeInterval} with an absolute start represented
      * by an {@link Instant} and a relative end described as either a
      * {@link Duration} or {@link Period} or "now"
-     * 
+     *
      * e.g. TimeRelativeInterval.of(TimeParser.parse("2017/01/17 13:45"),
      * TimeParser.parse("2 days"))
-     * 
+     *
      * @param start
      *            the start instant
      * @param end
@@ -108,7 +108,7 @@ public class TimeRelativeInterval {
     /**
      * Create a {@link TimeRelativeInterval} which starts at the absolute
      * instance "start" and ends at "now"
-     * 
+     *
      * @param start
      *            the absolute start instant
      * @return {@link TimeRelativeInterval}
@@ -120,7 +120,7 @@ public class TimeRelativeInterval {
     /**
      * Create a {@link TimeRelativeInterval} with a relative start and a
      * relative end "now"
-     * 
+     *
      * @param start
      *            the relative start time defined as a {@link Period} or
      *            {@link Duration}
@@ -133,7 +133,7 @@ public class TimeRelativeInterval {
     /**
      * Create a {@link TimeRelativeInterval} with an absolute end time and a
      * relative start time which is "now"
-     * 
+     *
      * @param end
      *            the absolute end instant
      * @return {@link TimeRelativeInterval}
@@ -145,7 +145,7 @@ public class TimeRelativeInterval {
     /**
      * Create a {@link TimeRelativeInterval} with a relative end time defined as
      * a {@link Period} or {@link Duration} adn a relative start "now"
-     * 
+     *
      * @param end
      *            the relative end time
      * @return {@link TimeRelativeInterval}
@@ -156,7 +156,7 @@ public class TimeRelativeInterval {
 
     /**
      * Check if the start is absolute
-     * 
+     *
      * @return true if the start is defined as an absolute value
      */
     private boolean isStartAbsolute() {
@@ -165,7 +165,7 @@ public class TimeRelativeInterval {
 
     /**
      * Check if the end of the {@link TimeRelativeInterval} is absolute
-     * 
+     *
      * @return true if the end is defined as an absolute value
      */
     private boolean isEndAbsolute() {
@@ -175,10 +175,10 @@ public class TimeRelativeInterval {
     /**
      * Get the absolute start value of this {@link TimeRelativeInterval}. The
      * optional is empty if the start value is relative.
-     * 
-     * @return {@link Optional}
+     *
+     * @return {@link Optional} {@link Instant}
      */
-    private Optional<Instant> getAbsoluteStart() {
+    public Optional<Instant> getAbsoluteStart() {
         if (isStartAbsolute()) {
             return Optional.of((Instant) start);
         } else {
@@ -189,10 +189,10 @@ public class TimeRelativeInterval {
     /**
      * Get the absolute end value of this {@link TimeRelativeInterval}. The
      * returned Optional is empty is the end value is relative.
-     * 
-     * @return {@link Optional}
+     *
+     * @return {@link Optional} {@link Instant}
      */
-    private Optional<Instant> getAbsoluteEnd() {
+    public Optional<Instant> getAbsoluteEnd() {
         if (isEndAbsolute()) {
             return Optional.of((Instant) end);
         } else {
@@ -203,10 +203,10 @@ public class TimeRelativeInterval {
     /**
      * Get the relative start value of this {@link TimeRelativeInterval}. The
      * returned Optional is empty is the end value is absolute.
-     * 
-     * @return {@link Optional}
+     *
+     * @return {@link Optional} {@link TemporalAmount}
      */
-    private Optional<TemporalAmount> getRelativeStart() {
+    public Optional<TemporalAmount> getRelativeStart() {
         if (!isStartAbsolute()) {
             return Optional.of((TemporalAmount) start);
         } else {
@@ -217,10 +217,10 @@ public class TimeRelativeInterval {
     /**
      * Get the relative start value of this {@link TimeRelativeInterval}. The
      * returned Optional is empty is the end value is absolute.
-     * 
-     * @return {@link Optional}
+     *
+     * @return {@link Optional} {@link TemporalAmount}
      */
-    private Optional<TemporalAmount> getRelativeEnd() {
+    public Optional<TemporalAmount> getRelativeEnd() {
         if (!isEndAbsolute()) {
             return Optional.of((TemporalAmount) end);
         } else {

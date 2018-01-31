@@ -10,16 +10,17 @@ import static org.junit.Assert.assertTrue;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 
-import org.junit.Ignore;
 import org.junit.Test;
 /**
  * TODO additional tests are needed to verify all the chrono types are properly handled.
  * @author shroffk
  */
+@SuppressWarnings("nls")
 public class TimeParserTest {
 
     @Test
@@ -117,15 +118,28 @@ public class TimeParserTest {
         assertEquals(3*24*60*60, seconds);
     }
 
-    @Ignore
     @Test
     public void testParseTemporalAmount()
     {
-        // 3 days are parsed in P1Y, 1 year
         TemporalAmount amount = TimeParser.parseTemporalAmount("3 days");
-        System.out.println(amount);
-
-        final long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
         assertEquals(3*24*60*60, seconds);
+
+        amount = TimeParser.parseTemporalAmount("3 days 20 mins 10 sec");
+        seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(3*24*60*60 + 20*60 + 10, seconds);
+    }
+
+    @Test
+    public void testFormatTemporalAmount()
+    {
+        String text = TimeParser.format(Duration.ofHours(2));
+        assertEquals("2 hours", text);
+
+        text = TimeParser.format(Period.of(1, 2, 3));
+        assertEquals("1 year 2 months 3 days", text);
+
+        text = TimeParser.format(Duration.ofSeconds(2*24*60*60 + 1*60*60 + 10));
+        assertEquals("2 days 1 hour 10 seconds", text);
     }
 }

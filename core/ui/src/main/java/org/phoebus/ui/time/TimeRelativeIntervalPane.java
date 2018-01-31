@@ -40,72 +40,6 @@ import javafx.scene.text.FontWeight;
 @SuppressWarnings("nls")
 public class TimeRelativeIntervalPane extends GridPane
 {
-    private static String format(final Instant instant)
-    {
-        return TimestampFormats.SECONDS_FORMAT.format(instant);
-    }
-
-    private static String format(final TemporalAmount span)
-    {
-        final StringBuilder buf = new StringBuilder();
-        if (span instanceof Period)
-        {
-            final Period period = (Period) span;
-            if (period.getYears() > 0)
-                buf.append(period.getYears()).append(" years ");
-            if (period.getMonths() > 0)
-                buf.append(period.getMonths()).append(" months ");
-            if (period.getDays() > 0)
-                buf.append(period.getDays()).append(" days");
-        }
-        else
-        {
-            long secs = ((Duration) span).getSeconds();
-            if (secs == 0)
-                return "now";
-
-            int p = (int) (secs / (365*24*60*60));
-            if (p > 0)
-            {
-                buf.append(p).append(" years ");
-                secs -= p * (365*24*60*60);
-            }
-
-            p = (int) (secs / (12*24*60*60));
-            if (p > 0)
-            {
-                buf.append(p).append(" months ");
-                secs -= p * (12*24*60*60);
-            }
-
-            p = (int) (secs / (24*60*60));
-            if (p > 0)
-            {
-                buf.append(p).append(" days ");
-                secs -= p * (24*60*60);
-            }
-
-            p = (int) (secs / (60*60));
-            if (p > 0)
-            {
-                buf.append(p).append(" hours ");
-                secs -= p * (60*60);
-            }
-
-            p = (int) (secs / (60));
-            if (p > 0)
-            {
-                buf.append(p).append(" minutes ");
-                secs -= p * (60);
-            }
-
-            if (p > 0)
-                buf.append(p).append(" seconds ");
-        }
-        return buf.toString().trim();
-    }
-
-
     /** Background that highlights the active section (absolute or relative) */
     private static final Background active_background = new Background(new BackgroundFill(Color.ANTIQUEWHITE, new CornerRadii(5), new Insets(0)));
 
@@ -171,7 +105,7 @@ public class TimeRelativeIntervalPane extends GridPane
                 return;
             abs_start.setBackground(active_background);
             rel_start.setBackground(null);
-            start_spec.setText(format(instant));
+            start_spec.setText(TimestampFormats.SECONDS_FORMAT.format(instant));
         });
 
         rel_start.addListener(span ->
@@ -180,7 +114,7 @@ public class TimeRelativeIntervalPane extends GridPane
                 return;
             abs_start.setBackground(null);
             rel_start.setBackground(active_background);
-            start_spec.setText(format(span));
+            start_spec.setText(TimeParser.format(span));
 
         });
 
@@ -190,7 +124,7 @@ public class TimeRelativeIntervalPane extends GridPane
                 return;
             abs_end.setBackground(active_background);
             rel_end.setBackground(null);
-            end_spec.setText(format(instant));
+            end_spec.setText(TimestampFormats.SECONDS_FORMAT.format(instant));
         });
 
         rel_end.addListener(span ->
@@ -199,7 +133,7 @@ public class TimeRelativeIntervalPane extends GridPane
                 return;
             abs_end.setBackground(null);
             rel_end.setBackground(active_background);
-            end_spec.setText(format(span));
+            end_spec.setText(TimeParser.format(span));
         });
 
 
@@ -251,7 +185,7 @@ public class TimeRelativeIntervalPane extends GridPane
         abs_start.setInstant(instant);
         abs_start.setBackground(active_background);
         rel_start.setBackground(null);
-        start_spec.setText(format(instant));
+        start_spec.setText(TimestampFormats.SECONDS_FORMAT.format(instant));
     }
 
     /** @param instant Relative start time span */
@@ -260,7 +194,7 @@ public class TimeRelativeIntervalPane extends GridPane
         rel_start.setTimespan(amount);
         abs_start.setBackground(null);
         rel_start.setBackground(active_background);
-        start_spec.setText(format(amount));
+        start_spec.setText(TimeParser.format(amount));
     }
 
     /** @param instant Absolute end date/time */
@@ -269,7 +203,7 @@ public class TimeRelativeIntervalPane extends GridPane
         abs_end.setInstant(instant);
         abs_end.setBackground(active_background);
         rel_end.setBackground(null);
-        end_spec.setText(format(instant));
+        end_spec.setText(TimestampFormats.SECONDS_FORMAT.format(instant));
    }
 
     /** @param instant Relative end time span */
@@ -278,7 +212,7 @@ public class TimeRelativeIntervalPane extends GridPane
         rel_end.setTimespan(amount);
         abs_end.setBackground(null);
         rel_end.setBackground(active_background);
-        end_spec.setText(format(amount));
+        end_spec.setText(TimeParser.format(amount));
     }
 
     // TODO set as TimeRelativeInterval
