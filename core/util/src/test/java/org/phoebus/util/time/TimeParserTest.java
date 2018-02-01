@@ -143,14 +143,13 @@ public class TimeParserTest {
         text = TimeParser.format(Period.of(1, 2, 3));
         assertEquals("1 year 2 months 3 days", text);
 
-        text = TimeParser.format(Duration.ofSeconds(2*24*60*60 + 1*60*60 + 10));
-        assertEquals("2 days 1 hour 10 seconds", text);
+        text = TimeParser.format(Duration.ofSeconds(2*24*60*60 + 1*60*60 + 10, 123000000L));
+        assertEquals("2 days 1 hour 10 seconds 123 ms", text);
 
         text = TimeParser.format(Duration.ofSeconds(0));
         assertEquals("now", text);
 
         text = TimeParser.format(Period.ZERO);
         assertEquals("now", text);
-
     }
 }

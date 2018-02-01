@@ -290,9 +290,13 @@ public class TimeParser {
 
             if (secs > 0)
                 if (secs == 1)
-                    buf.append("1 second");
+                    buf.append("1 second ");
                 else
-                    buf.append(secs).append(" seconds");
+                    buf.append(secs).append(" seconds ");
+
+            final int ms = ((Duration)amount).getNano() / 1000000;
+            if (ms > 0)
+                buf.append(ms).append(" ms");
         }
         return buf.toString().trim();
     }
