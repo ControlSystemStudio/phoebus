@@ -12,7 +12,6 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -40,6 +39,8 @@ import org.csstudio.trends.databrowser3.ui.properties.AddAxisCommand;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
+import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.application.Platform;
 
@@ -145,31 +146,17 @@ public class Controller
         @Override
         public void timeAxisChanged(final boolean scrolling, final Instant start, final Instant end)
         {
-            model.enableScrolling(scrolling);
-            final String start_spec, end_spec;
+            final TimeRelativeInterval interval;
             if (scrolling)
-            {   // Scrolling, adjust relative time, i.e. width of plot
-                final Duration duration = Duration.between(start, end);
-//                start_spec = "-" + PeriodFormat.formatSeconds(TimeDuration.toSecondsDouble(duration));
-//                end_spec = RelativeTime.NOW;
+            {
+                final Duration span = Duration.between(start, end);
+                interval = TimeRelativeInterval.startsAt(span);
             }
             else
-            {
-                final ZoneId zone = ZoneId.systemDefault();
-//                Calendar cal = GregorianCalendar.from(ZonedDateTime.ofInstant(start, zone));
-//                start_spec = AbsoluteTimeParser.format(cal);
-//                cal = GregorianCalendar.from(ZonedDateTime.ofInstant(end, zone));
-//                end_spec = AbsoluteTimeParser.format(cal);
-            }
+                interval = TimeRelativeInterval.of(start, end);
+
             // Update model's time range
-            try
-            {
-//                model.setTimerange(start_spec, end_spec);
-            }
-            catch (Exception ex)
-            {
-//                logger.log(Level.WARNING, "Cannot adjust time range to " + start_spec + " .. " + end_spec, ex);
-            }
+            model.setTimerange(interval);
             // Controller's ModelListener will fetch new archived data
         }
 
@@ -381,20 +368,14 @@ public class Controller
             }
 
             @Override
-            public void scrollEnabled(boolean scroll_enabled)
-            {
-                plot.getPlot().setScrolling(scroll_enabled);
-            }
-
-            @Override
             public void changedTimerange()
             {
-                // Update plot's time range
-//                if (model.isScrollEnabled())
-//                    plot.setTimeRange(model.getStartTime(), model.getEndTime().plus(model.getScrollStep()));
-//                else
-//                    plot.setTimeRange(model.getStartTime(), model.getEndTime());
-
+                final TimeRelativeInterval span = model.getTimespan();
+                final TimeInterval abs = span.toAbsoluteInterval();
+                if (span.isEndAbsolute())
+                    plot.setTimeRange(abs.getStart(), abs.getEnd());
+                else
+                    plot.setTimeRange(abs.getStart(), abs.getEnd().plus(model.getScrollStep()));
                 // Get matching archived data
                 scheduleArchiveRetrieval();
             }
@@ -432,7 +413,7 @@ public class Controller
                 // Item may be added in 'middle' of existing traces
                 createPlotTraces();
                 // Get archived data for new item (NOP for non-PVs)
-                getArchivedData(item, model.getStartTime(), model.getEndTime());
+                getArchivedData(item);
             }
 
             @Override
@@ -467,13 +448,13 @@ public class Controller
             @Override
             public void changedItemDataConfig(final PVItem item)
             {
-                getArchivedData(item, model.getStartTime(), model.getEndTime());
+                getArchivedData(item);
             }
 
             @Override
             public void itemRefreshRequested(final PVItem item)
             {
-                getArchivedData(item, model.getStartTime(), model.getEndTime());
+                getArchivedData(item);
             }
 
             @Override
@@ -653,16 +634,21 @@ public class Controller
         }
     }
 
-    /** Initiate archive data retrieval for all model items
-     *  @param start Start time
-     *  @param end End time
-     */
+    /** Initiate archive data retrieval for all model items */
     private void getArchivedData()
     {
-        final Instant start = model.getStartTime();
-        final Instant end = model.getEndTime();
+        final TimeInterval interval = model.getTimespan().toAbsoluteInterval();
         for (ModelItem item : model.getItems())
-            getArchivedData(item, start, end);
+            getArchivedData(item, interval.getStart(), interval.getEnd());
+    }
+
+    /** Initiate archive data retrieval for a specific model item
+     *  @param item Model item. NOP for non-PVItem
+     */
+    private void getArchivedData(final ModelItem item)
+    {
+        final TimeInterval interval = model.getTimespan().toAbsoluteInterval();
+        getArchivedData(item, interval.getStart(), interval.getEnd());
     }
 
     /** Initiate archive data retrieval for a specific model item
@@ -671,7 +657,7 @@ public class Controller
      *  @param end End time
      */
     private void getArchivedData(final ModelItem item,
-            final Instant start, final Instant end)
+                                 final Instant start, final Instant end)
     {
         // Only useful for PVItems with archive data source
         if (!(item instanceof PVItem))

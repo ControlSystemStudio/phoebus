@@ -31,7 +31,7 @@ public class TimeRelativeIntervalPaneDemo extends Application
         final TimeRelativeIntervalPane ui = new TimeRelativeIntervalPane(Type.TEMPORAL_AMOUNTS_AND_NOW);
 
         ui.setInterval(TimeRelativeInterval.of(Duration.ofDays(1).plus(Duration.ofHours(6)),
-                                                           Duration.ZERO));
+                                               Duration.ZERO));
 
         final Button test = new Button("Test");
         test.setOnAction(event ->

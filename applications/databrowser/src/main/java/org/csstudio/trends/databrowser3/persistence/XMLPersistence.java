@@ -147,7 +147,9 @@ public class XMLPersistence
         XMLUtil.getChildString(root_node, TAG_TITLE).ifPresent(model::setTitle);
         XMLUtil.getChildBoolean(root_node, TAG_SAVE_CHANGES).ifPresent(model::setSaveChanges);
         XMLUtil.getChildBoolean(root_node, TAG_GRID).ifPresent(model::setGridVisible);
-        XMLUtil.getChildBoolean(root_node, TAG_SCROLL).ifPresent(model::enableScrolling);
+
+        // TODO Scroll now implied in the start/end time?
+//        XMLUtil.getChildBoolean(root_node, TAG_SCROLL).ifPresent(model::enableScrolling);
         XMLUtil.getChildDouble(root_node, TAG_UPDATE_PERIOD).ifPresent(model::setUpdatePeriod);
 
         try
@@ -160,10 +162,19 @@ public class XMLPersistence
             // Ignore
         }
 
-//        final String start = DOMHelper.getSubelementString(root_node, TAG_START);
-//        final String end = DOMHelper.getSubelementString(root_node, TAG_END);
-//        if (start.length() > 0  &&  end.length() > 0)
+        final String start = XMLUtil.getChildString(root_node, TAG_START).orElse("");
+        final String end = XMLUtil.getChildString(root_node, TAG_END).orElse("");
+        if (start.length() > 0  &&  end.length() > 0)
+        {
+//            if (model.isScrollEnabled())
+//            {
+//                final TemporalAmount span = TimeParser.parseTemporalAmount(start);
+//                model.setTimerange(TimeRelativeInterval.of(span, Duration.ZERO));
+//            }
+//            // TODO check for absolute
+//            TimeWarp.parseLegacy(start);
 //            model.setTimerange(start, end);
+        }
 
         final String rescale = XMLUtil.getChildString(root_node, TAG_ARCHIVE_RESCALE).orElse(ArchiveRescale.STAGGER.name());
         try
@@ -439,12 +450,14 @@ public class XMLPersistence
                 writer.writeCharacters(Boolean.TRUE.toString());
                 writer.writeEndElement();
             }
-            if (model.isScrollEnabled())
-            {
-                writer.writeStartElement(TAG_SCROLL);
-                writer.writeCharacters(Boolean.TRUE.toString());
-                writer.writeEndElement();
-            }
+
+            // TODO
+            //            if (model.isScrollEnabled())
+//            {
+//                writer.writeStartElement(TAG_SCROLL);
+//                writer.writeCharacters(Boolean.TRUE.toString());
+//                writer.writeEndElement();
+//            }
             writer.writeStartElement(TAG_UPDATE_PERIOD);
             writer.writeCharacters(Double.toString(model.getUpdatePeriod()));
             writer.writeEndElement();

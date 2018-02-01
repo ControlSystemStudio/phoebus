@@ -12,9 +12,7 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAmount;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +26,8 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -77,20 +77,11 @@ public class Model
     /** Period in seconds for scrolling or refreshing */
     private volatile double update_period = Preferences.update_period;
 
-    /** <code>true</code> if scrolling is enabled */
-    private volatile boolean scroll_enabled = true;
-
     /** Scroll steps */
     private volatile Duration scroll_step = Preferences.scroll_step;
 
-    /** Start and end time specification */
-    private volatile String start_spec, end_spec;
-
     /** Time span of data in seconds */
-    private volatile Duration time_span = Preferences.time_span;
-
-    /** End time of the data range */
-    private volatile Instant end_time = Instant.now();
+    private volatile TimeRelativeInterval time_span = TimeRelativeInterval.of(Preferences.time_span, Duration.ZERO);
 
     /** Show time axis grid line? */
     private volatile boolean show_grid = false;
@@ -150,10 +141,7 @@ public class Model
         setTitle(other.getTitle().orElse(null));
         setUpdatePeriod(other.update_period);
         setScrollStep(other.scroll_step);
-        enableScrolling(other.scroll_enabled);
-        // TODO Handle details of start/end time once that's implemented
-        setTimerange(other.start_spec, other.end_spec);
-
+        setTimerange(other.time_span);
         setGridVisible(other.show_grid);
         setPlotBackground(other.background);
         setTitleFont(other.title_font);
@@ -550,33 +538,6 @@ public class Model
             listener.changedTiming();
     }
 
-
-    /** The model supports two types of start/end time handling:
-     *  <ol>
-     *  <li>Scroll mode: While <code>isScrollEnabled=true</code>,
-     *      the end time is supposed to be 'now' and the start time is
-     *      supposed to be <code>getTimespan()</code> seconds before 'now'.
-     *  <li>Fixed start/end time: While <code>isScrollEnabled=false</code>,
-     *      the methods <code>getStartTime()</code>, <code>getEndTime</code>
-     *      return a fixed start/end time.
-     *  </ol>
-     *  @return <code>true</code> if scrolling is enabled */
-    public boolean isScrollEnabled()
-    {
-        return scroll_enabled;
-    }
-
-    /** @param scroll_enabled Should scrolling be enabled? */
-    public void enableScrolling(final boolean scroll_enabled)
-    {
-        if (this.scroll_enabled == scroll_enabled)
-            return;
-        this.scroll_enabled = scroll_enabled;
-        // Notify listeners
-        for (ModelListener listener : listeners)
-            listener.scrollEnabled(scroll_enabled);
-    }
-
     /** @return Scroll step size */
     public Duration getScrollStep()
     {
@@ -597,10 +558,9 @@ public class Model
             listener.changedTiming();
     }
 
-    /** @return time span of data
-     *  @see #isScrollEnabled()
-     */
-    synchronized public Duration getTimespan()
+    /** @return time span of data */
+    // TODO rename to interval
+    public TimeRelativeInterval getTimespan()
     {
         return time_span;
     }
@@ -609,91 +569,29 @@ public class Model
      *  @param start Start time
      *  @param end End time
      */
-    public void setTimerange(final Instant start, final Instant end)
+    // TODO rename to interval
+    public void setTimerange(final TimeRelativeInterval span)
     {
-        final Duration new_span = Duration.between(Objects.requireNonNull(start), Objects.requireNonNull(end));
-        if (new_span.isZero() || new_span.isNegative())
-            return;
-
-        synchronized (this)
-        {
-            // Format that's understood by StartEndTimeParser
-            final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS");
-            this.start_spec = formatter.format(ZonedDateTime.ofInstant(start, ZoneId.systemDefault()));
-            this.end_spec = formatter.format(ZonedDateTime.ofInstant(end, ZoneId.systemDefault()));
-            this.end_time = end;
-            time_span = new_span;
-            scroll_enabled = false;
+        final Optional<TemporalAmount> rel_start = span.getRelativeStart();
+        if (rel_start.isPresent())
+        {   // Empty time span?
+            if (Instant.ofEpochSecond(0).plus(rel_start.get()).getEpochSecond() <= 0)
+                return;
         }
+        else
+        {
+            // Assert that start < end
+            final TimeInterval abs = span.toAbsoluteInterval();
+            if (! abs.getStart().isBefore(abs.getEnd()))
+                return;
+        }
+
+// TODO Remove
+System.out.println("Model.setTimerange(" + span + ")");
+        time_span = span;
         // Notify listeners
         for (ModelListener listener : listeners)
             listener.changedTimerange();
-    }
-
-    /** Set absolute or relative time range.
-     *  <p>In 'scroll' mode, this determines the displayed time range.
-     *  Otherwise, it determines the absolute start and end times
-     *  @param start_spec Start and ..
-     *  @param end_spec   end time specification of the range to display
-     *  @throws Exception on error in the time specifications
-     */
-    public void setTimerange(final String start_spec, final String end_spec) throws Exception
-    {
-        // TODO Handle relative/absolute time ranges based on spec
-//        final StartEndTimeParser times =
-//                new StartEndTimeParser(Objects.requireNonNull(start_spec), Objects.requireNonNull(end_spec));
-//        final Instant start_time = times.getStart().toInstant();
-//        final Instant end_time = times.getEnd().toInstant();
-//        final Duration new_span = Duration.between(start_time, end_time);
-//        if (! (new_span.isZero() || new_span.isNegative()))
-//        {
-//            synchronized (this)
-//            {
-//                if (this.start_spec.equals(start_spec)  &&
-//                    this.end_spec.equals(end_spec))
-//                    return;
-//                this.start_spec = start_spec;
-//                this.end_spec = end_spec;
-//                this.end_time = end_time;
-//                time_span = new_span;
-//                scroll_enabled = times.isEndNow();
-//            }
-//            // Notify listeners
-//            for (ModelListener listener : listeners)
-//                listener.changedTimerange();
-//        }
-    }
-
-    /** @return Start time specification of the data range */
-    synchronized public String getStartSpec()
-    {
-        return start_spec;
-    }
-
-    /** @return End time specification of the data range */
-    synchronized public String getEndSpec()
-    {
-        return end_spec;
-    }
-
-
-
-    /** @return Start time of the data range
-     *  @see #isScrollEnabled()
-     */
-    synchronized public Instant getStartTime()
-    {
-        return getEndTime().minus(time_span);
-    }
-
-    /** @return End time of the data range
-     *  @see #isScrollEnabled()
-     */
-    synchronized public Instant getEndTime()
-    {
-        if (scroll_enabled)
-            end_time = Instant.now();
-        return end_time;
     }
 
     /** @return Background color */

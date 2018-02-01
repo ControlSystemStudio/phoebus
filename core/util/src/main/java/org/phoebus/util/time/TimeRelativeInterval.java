@@ -160,7 +160,7 @@ public class TimeRelativeInterval {
      *
      * @return true if the start is defined as an absolute value
      */
-    private boolean isStartAbsolute() {
+    public boolean isStartAbsolute() {
         return start instanceof Instant;
     }
 
@@ -169,7 +169,7 @@ public class TimeRelativeInterval {
      *
      * @return true if the end is defined as an absolute value
      */
-    private boolean isEndAbsolute() {
+    public boolean isEndAbsolute() {
         return end instanceof Instant;
     }
 
