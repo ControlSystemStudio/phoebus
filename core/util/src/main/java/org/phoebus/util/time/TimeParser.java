@@ -38,6 +38,8 @@ import java.util.regex.Pattern;
  */
 @SuppressWarnings("nls")
 public class TimeParser {
+    /** Text for the relative {@link TemporalAmount} of size 0 */
+    public static final String NOW = "now";
 
     static final Pattern durationTimeQunatityUnitsPattern = Pattern
             .compile("\\s*(\\d*)\\s*(ms|milli|sec|secs|min|mins|hour|hours|day|days)\\s*", Pattern.CASE_INSENSITIVE);
@@ -56,7 +58,7 @@ public class TimeParser {
      * @return the parsed Instant or null
      */
     public static Instant getInstant(String time) {
-        if (time.equalsIgnoreCase("now")) {
+        if (time.equalsIgnoreCase(NOW)) {
             return Instant.now();
         } else {
             Matcher nUnitsAgoMatcher = timeQuantityUnitsPattern.matcher(time);
@@ -69,13 +71,13 @@ public class TimeParser {
     }
 
     /**
-     * Return a {@link TimeInterval} between this instant represented by the string and "now"
+     * Return a {@link TimeInterval} between this instant represented by the string and NOW
      * @param time
      * @return TimeInterval
      */
     public static TimeInterval getTimeInterval(String time) {
         Instant now = Instant.now();
-        if (time.equalsIgnoreCase("now")) {
+        if (time.equalsIgnoreCase(NOW)) {
             return TimeInterval.between(now, now);
         } else {
             Matcher nUnitsAgoMatcher = timeQuantityUnitsPattern.matcher(time);
@@ -215,7 +217,7 @@ public class TimeParser {
         {
             final Period period = (Period) amount;
             if (period.isZero())
-                return "now";
+                return NOW;
             if (period.getYears() == 1)
                 buf.append("1 year ");
             else if (period.getYears() > 1)
@@ -236,7 +238,7 @@ public class TimeParser {
         {
             long secs = ((Duration) amount).getSeconds();
             if (secs == 0)
-                return "now";
+                return NOW;
 
             int p = (int) (secs / (365*24*60*60));
             if (p > 0)

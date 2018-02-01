@@ -11,8 +11,6 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.TemporalAmount;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -559,7 +557,6 @@ public class Model
     }
 
     /** @return time span of data */
-    // TODO rename to interval
     public TimeRelativeInterval getTimespan()
     {
         return time_span;
@@ -569,25 +566,13 @@ public class Model
      *  @param start Start time
      *  @param end End time
      */
-    // TODO rename to interval
     public void setTimerange(final TimeRelativeInterval span)
     {
-        final Optional<TemporalAmount> rel_start = span.getRelativeStart();
-        if (rel_start.isPresent())
-        {   // Empty time span?
-            if (Instant.ofEpochSecond(0).plus(rel_start.get()).getEpochSecond() <= 0)
-                return;
-        }
-        else
-        {
-            // Assert that start < end
-            final TimeInterval abs = span.toAbsoluteInterval();
-            if (! abs.getStart().isBefore(abs.getEnd()))
-                return;
-        }
+        // Assert that start < end. Not empty, not inverted
+        final TimeInterval abs = span.toAbsoluteInterval();
+        if (! abs.getStart().isBefore(abs.getEnd()))
+            return;
 
-// TODO Remove
-System.out.println("Model.setTimerange(" + span + ")");
         time_span = span;
         // Notify listeners
         for (ModelListener listener : listeners)

@@ -10,6 +10,9 @@ package org.csstudio.trends.databrowser3.persistence;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +34,10 @@ import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimeRelativeInterval;
+import org.phoebus.util.time.TimestampFormats;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -132,6 +139,33 @@ public class XMLPersistence
         load(model, doc);
     }
 
+    private static DateTimeFormatter absolute_parsers[] = new DateTimeFormatter[]
+    {
+        TimestampFormats.FULL_FORMAT,
+        TimestampFormats.MILLI_FORMAT,
+        TimestampFormats.SECONDS_FORMAT,
+        TimestampFormats.DATETIME_FORMAT,
+        TimestampFormats.DATE_FORMAT
+    };
+
+    /** @param text Absolute date/time
+     *  @return {@link Instant}
+     */
+    private static Instant parseInstant(final String text)
+    {
+        for (DateTimeFormatter format : absolute_parsers)
+        {
+            try
+            {
+                return format.parse(text, Instant::from);
+            }
+            catch (Throwable ex)
+            {
+            }
+        }
+        return Instant.now();
+    }
+
     private static void load(final Model model, final Document doc) throws Exception
     {
         if (model.getItems().size() > 0)
@@ -148,8 +182,6 @@ public class XMLPersistence
         XMLUtil.getChildBoolean(root_node, TAG_SAVE_CHANGES).ifPresent(model::setSaveChanges);
         XMLUtil.getChildBoolean(root_node, TAG_GRID).ifPresent(model::setGridVisible);
 
-        // TODO Scroll now implied in the start/end time?
-//        XMLUtil.getChildBoolean(root_node, TAG_SCROLL).ifPresent(model::enableScrolling);
         XMLUtil.getChildDouble(root_node, TAG_UPDATE_PERIOD).ifPresent(model::setUpdatePeriod);
 
         try
@@ -166,14 +198,18 @@ public class XMLPersistence
         final String end = XMLUtil.getChildString(root_node, TAG_END).orElse("");
         if (start.length() > 0  &&  end.length() > 0)
         {
-//            if (model.isScrollEnabled())
-//            {
-//                final TemporalAmount span = TimeParser.parseTemporalAmount(start);
-//                model.setTimerange(TimeRelativeInterval.of(span, Duration.ZERO));
-//            }
-//            // TODO check for absolute
-//            TimeWarp.parseLegacy(start);
-//            model.setTimerange(start, end);
+            final boolean scroll = XMLUtil.getChildBoolean(root_node, TAG_SCROLL).orElse(true);
+            final TimeRelativeInterval interval;
+            if (scroll)
+            {   // Relative start time .. now
+                final TemporalAmount span = TimeWarp.parseLegacy(start);
+                interval = TimeRelativeInterval.startsAt(span);
+            }
+            else
+            {   // Absolute start ... end
+                interval = TimeRelativeInterval.of(parseInstant(start), parseInstant(end));
+            }
+            model.setTimerange(interval);
         }
 
         final String rescale = XMLUtil.getChildString(root_node, TAG_ARCHIVE_RESCALE).orElse(ArchiveRescale.STAGGER.name());
@@ -451,21 +487,38 @@ public class XMLPersistence
                 writer.writeEndElement();
             }
 
-            // TODO
-            //            if (model.isScrollEnabled())
-//            {
-//                writer.writeStartElement(TAG_SCROLL);
-//                writer.writeCharacters(Boolean.TRUE.toString());
-//                writer.writeEndElement();
-//            }
             writer.writeStartElement(TAG_UPDATE_PERIOD);
             writer.writeCharacters(Double.toString(model.getUpdatePeriod()));
             writer.writeEndElement();
             writer.writeStartElement(TAG_SCROLL_STEP);
             writer.writeCharacters(Long.toString(model.getScrollStep().getSeconds()));
             writer.writeEndElement();
-    //        XMLWriter.XML(writer, 1, TAG_START, model.getStartSpec());
-    //        XMLWriter.XML(writer, 1, TAG_END, model.getEndSpec());
+
+
+            final TimeRelativeInterval span = model.getTimespan();
+            writer.writeStartElement(TAG_SCROLL);
+            writer.writeCharacters(Boolean.toString(! span.isEndAbsolute()));
+            writer.writeEndElement();
+
+            final TimeInterval interval = span.toAbsoluteInterval();
+            if (span.isEndAbsolute())
+            {
+                writer.writeStartElement(TAG_START);
+                writer.writeCharacters(TimestampFormats.MILLI_FORMAT.format(interval.getStart()));
+                writer.writeEndElement();
+                writer.writeStartElement(TAG_END);
+                writer.writeCharacters(TimestampFormats.MILLI_FORMAT.format(interval.getEnd()));
+                writer.writeEndElement();
+            }
+            else
+            {
+                writer.writeStartElement(TAG_START);
+                writer.writeCharacters(TimeWarp.formatAsLegacy(span.getRelativeStart().get()));
+                writer.writeEndElement();
+                writer.writeStartElement(TAG_END);
+                writer.writeCharacters(TimeParser.NOW);
+                writer.writeEndElement();
+            }
 
             writer.writeStartElement(TAG_ARCHIVE_RESCALE);
             writer.writeCharacters(model.getArchiveRescale().name());
