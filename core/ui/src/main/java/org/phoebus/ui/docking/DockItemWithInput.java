@@ -177,12 +177,8 @@ public class DockItemWithInput extends DockItem
             return true;
 
         // Save in background job ...
-        JobManager.schedule(Messages.Save, monitor ->
-        {
-            if (save(monitor))
-                Platform.runLater(this::close);
-        });
-        // .. and leave the tab open..
+        JobManager.schedule(Messages.Save, monitor -> save(monitor));
+        // .. and leave the tab open, so user can then try to close again
         return false;
     }
 
