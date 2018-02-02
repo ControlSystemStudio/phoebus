@@ -22,8 +22,9 @@ public class TimeRangeDialog extends Dialog<TimeRelativeInterval>
 {
     private final TimeRelativeIntervalPane times = new TimeRelativeIntervalPane(TemporalAmountPane.Type.ONLY_NOW);
 
-    public TimeRangeDialog()
+    public TimeRangeDialog(final TimeRelativeInterval range)
     {
+        times.setInterval(range);
         setTitle(Messages.TimeColumn);
         getDialogPane().setContent(times);
         getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);

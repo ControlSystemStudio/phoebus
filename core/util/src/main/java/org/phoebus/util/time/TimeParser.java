@@ -44,7 +44,7 @@ public class TimeParser {
     // Patterns need to be listed longest-first.
     // Otherwise "days" would match just the "d"
     static final Pattern timeQuantityUnitsPattern = Pattern.compile(
-            "\\s*(\\d*)\\s*(millis|ms|seconds|second|secs|sec|s|minutes|minute|mins|min|hours|hour|h|days|day|d|weeks|week|w|months|month|years|year|y)\\s*",
+            "\\s*(\\d*)\\s*(millis|ms|seconds|second|secs|sec|s|minutes|minute|mins|min|hours|hour|h|days|day|d|weeks|week|w|months|month|mon|mo|years|year|y)\\s*",
             Pattern.CASE_INSENSITIVE);
 
     /**

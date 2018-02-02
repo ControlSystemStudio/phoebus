@@ -116,7 +116,6 @@ public class TimeRelativeIntervalPane extends GridPane
             abs_start.setBackground(null);
             rel_start.setBackground(active_background);
             start_spec.setText(TimeParser.format(span));
-
         });
 
         abs_end.addListener(instant ->
@@ -137,37 +136,71 @@ public class TimeRelativeIntervalPane extends GridPane
             end_spec.setText(TimeParser.format(span));
         });
 
-
         start_spec.setOnAction(event ->
         {
             final String text = start_spec.getText().trim();
-            // Try absolute time
-            try
+            final Instant instant = parseAbsolute(text);
+            if (instant != null)
             {
-                final Instant instant = Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
                 abs_start.setInstant(instant);
                 return;
             }
-            catch (Throwable ex)
-            {
-                // Ignore
-                System.out.println("Not absolute");
-            }
 
-            // Try relative time
-            try
-            {
-                final TemporalAmount amount = TimeParser.parseTemporalAmount(text);
+            final TemporalAmount amount = parseRelative(text);
+            if (amount != null)
                 rel_start.setTimespan(amount);
+        });
+
+        end_spec.setOnAction(event ->
+        {
+            final String text = end_spec.getText().trim();
+            final Instant instant = parseAbsolute(text);
+            if (instant != null)
+            {
+                abs_end.setInstant(instant);
                 return;
             }
-            catch (Throwable ex)
-            {
-                // Ignore
-                System.out.println("Not relative");
-            }
+
+            final TemporalAmount amount = parseRelative(text);
+            if (amount != null)
+                rel_end.setTimespan(amount);
         });
     }
+
+    /** Try to parse text as absolute date, time
+     *  @param text Text with date, time
+     *  @return {@link Instant} or <code>null</code>
+     */
+    public static Instant parseAbsolute(final String text)
+    {
+        try
+        {
+            return Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+        }
+        catch (Throwable ex)
+        {
+            // Ignore
+        }
+        return null;
+    }
+
+    /** Try to parse text as relative time range
+     *  @param text Text with temporal amount
+     *  @return {@link TemporalAmount} or <code>null</code>
+     */
+    public static TemporalAmount parseRelative(final String text)
+    {
+        try
+        {
+            return TimeParser.parseTemporalAmount(text);
+        }
+        catch (Throwable ex)
+        {
+            // Ignore
+        }
+        return null;
+    }
+
 
     private boolean isAbsStart()
     {

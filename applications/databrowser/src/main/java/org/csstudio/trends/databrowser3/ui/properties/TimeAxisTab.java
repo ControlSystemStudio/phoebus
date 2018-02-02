@@ -7,18 +7,22 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
-import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.TemporalAmount;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.ui.ChangeTimerangeAction;
+import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -26,17 +30,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 
 /** Property tab for time axis
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class TimeAxisTab extends Tab
 {
     private final Model model;
 
-    private final TextField start = new TextField("TODO"),
-                            end = new TextField("TODO");
+    private final TextField start = new TextField(),
+                            end = new TextField();
     private final CheckBox grid = new CheckBox();
 
     /** Flag to prevent recursion when this tab updates the model and thus triggers the model_listener */
@@ -61,7 +65,7 @@ public class TimeAxisTab extends Tab
             }
             else
             {
-                start.setText(TimeParser.format(Duration.between(abs.getStart(), abs.getEnd())));
+                start.setText(TimeParser.format(range.getRelativeStart().get()));
                 end.setText(TimeParser.NOW);
             }
         }
@@ -84,12 +88,14 @@ public class TimeAxisTab extends Tab
         layout.setHgap(5);
         layout.setVgap(5);
         layout.setPadding(new Insets(5));
-         layout.setGridLinesVisible(true); // Debug layout
+        // layout.setGridLinesVisible(true); // Debug layout
 
         layout.add(new Label(Messages.StartTimeLbl), 0, 0);
+        GridPane.setHgrow(start, Priority.ALWAYS);
         layout.add(start, 1, 0);
 
         layout.add(new Label(Messages.EndTimeLbl), 2, 0);
+        GridPane.setHgrow(end, Priority.ALWAYS);
         layout.add(end, 3, 0);
 
         final Button times = new Button(Messages.StartEndDialogBtn);
@@ -98,18 +104,49 @@ public class TimeAxisTab extends Tab
 
         layout.add(new Label(Messages.GridLbl), 0, 1);
         layout.add(grid, 1, 1);
+
+        setContent(layout);
+
+        model.addListener(model_listener);
+
+
+        // Thos Initial values
+        model_listener.changedTimerange();
+        model_listener.changedTimeAxisConfig();
+
+        // Handle entered time range
+        final EventHandler<ActionEvent> set_timerange = event ->
+        {
+            String text = start.getText();
+            final Instant abs_start = TimeRelativeIntervalPane.parseAbsolute(text);
+            final TemporalAmount rel_start = TimeRelativeIntervalPane.parseRelative(text);
+
+            text = end.getText();
+            final Instant abs_end = TimeRelativeIntervalPane.parseAbsolute(text);
+
+            final TimeRelativeInterval range;
+            if (abs_start != null  &&  abs_end != null)
+                range = TimeRelativeInterval.of(abs_start, abs_end);
+            else if (rel_start != null)
+                range = TimeRelativeInterval.startsAt(rel_start);
+            else
+            {   // Ignore odd input. Revert to model's range.
+                model_listener.changedTimerange();
+                return;
+            }
+
+            updating = true;
+            new ChangeTimerangeCommand(model, undo, range);
+            updating = false;
+        };
+        start.setOnAction(set_timerange);
+        end.setOnAction(set_timerange);
+
         grid.setOnAction(event ->
         {
             updating = true;
             new ChangeTimeAxisConfigCommand(model, undo, grid.isSelected());
             updating = false;
         });
-
-        setContent(layout);
-
-        model.addListener(model_listener);
-
-        // Initial values
-        model_listener.changedTimeAxisConfig();
     }
 }

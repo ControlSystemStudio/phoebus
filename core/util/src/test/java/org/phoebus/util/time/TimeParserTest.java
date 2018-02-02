@@ -141,6 +141,9 @@ public class TimeParserTest {
         amount = TimeParser.parseTemporalAmount("1 month 1 day");
         assertEquals(amount, Period.of(0, 1, 1));
 
+        amount = TimeParser.parseTemporalAmount("1 mo");
+        assertEquals(amount, Period.of(0, 1, 0));
+
         // 60 days span more than a month,
         // but since "month" is not mentioned,
         // it's considered 60 exact days

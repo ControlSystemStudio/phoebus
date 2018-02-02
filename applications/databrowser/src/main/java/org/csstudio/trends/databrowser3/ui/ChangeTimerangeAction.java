@@ -27,7 +27,7 @@ public class ChangeTimerangeAction
      */
     public static void run(final Model model, final Node node, final UndoableActionManager undo)
     {
-        final TimeRangeDialog dlg = new TimeRangeDialog();
+        final TimeRangeDialog dlg = new TimeRangeDialog(model.getTimerange());
         DialogHelper.positionDialog(dlg, node, -300, -200);
         dlg.showAndWait().ifPresent(range  ->  new ChangeTimerangeCommand(model, undo, range));
     }
