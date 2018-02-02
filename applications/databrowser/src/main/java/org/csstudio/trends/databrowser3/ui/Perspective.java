@@ -271,6 +271,13 @@ public class Perspective extends SplitPane
         memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
         memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
         memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) bottom_tabs.getTabs().add(export_tab); });
+
+        // Has no effect when run right now?
+        Platform.runLater(() ->
+        {
+            autoMinimize(left_tabs, this, 0.0);
+            autoMinimize(bottom_tabs, plot_and_tabs, 1.0);
+        });
     }
 
     /** @param memento Where to store current settings */
