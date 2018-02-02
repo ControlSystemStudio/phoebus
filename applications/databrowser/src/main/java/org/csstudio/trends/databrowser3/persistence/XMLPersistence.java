@@ -226,9 +226,10 @@ public class XMLPersistence
         XMLUtil.getChildBoolean(root_node, TAG_SHOW_LEGEND).ifPresent(model::setLegendVisible);
 
         // Value Axes
-        if (XMLUtil.getChildElement(root_node, TAG_AXES) != null)
+        final Element axes = XMLUtil.getChildElement(root_node, TAG_AXES);
+        if (axes != null)
         {
-            for (Element item : XMLUtil.getChildElements(root_node, TAG_AXES))
+            for (Element item : XMLUtil.getChildElements(axes, TAG_AXIS))
                 model.addAxis(AxisConfig.fromDocument(item));
         }
         else
