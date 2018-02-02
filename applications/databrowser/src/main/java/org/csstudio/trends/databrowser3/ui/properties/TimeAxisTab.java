@@ -7,11 +7,17 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import java.time.Duration;
+
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.ui.ChangeTimerangeAction;
 import org.phoebus.ui.undo.UndoableActionManager;
+import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimeRelativeInterval;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -41,6 +47,26 @@ public class TimeAxisTab extends Tab
     private ModelListener model_listener = new ModelListener()
     {
         @Override
+        public void changedTimerange()
+        {
+            if (updating)
+                return;
+
+            final TimeRelativeInterval range = model.getTimerange();
+            final TimeInterval abs = range.toAbsoluteInterval();
+            if (range.isEndAbsolute())
+            {
+                start.setText(TimestampFormats.MILLI_FORMAT.format(abs.getStart()));
+                end.setText(TimestampFormats.MILLI_FORMAT.format(abs.getEnd()));
+            }
+            else
+            {
+                start.setText(TimeParser.format(Duration.between(abs.getStart(), abs.getEnd())));
+                end.setText(TimeParser.NOW);
+            }
+        }
+
+        @Override
         public void changedTimeAxisConfig()
         {
             if (updating)
@@ -58,7 +84,7 @@ public class TimeAxisTab extends Tab
         layout.setHgap(5);
         layout.setVgap(5);
         layout.setPadding(new Insets(5));
-        // layout.setGridLinesVisible(true); // Debug layout
+         layout.setGridLinesVisible(true); // Debug layout
 
         layout.add(new Label(Messages.StartTimeLbl), 0, 0);
         layout.add(start, 1, 0);

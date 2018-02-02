@@ -179,7 +179,6 @@ public class TimeRelativeIntervalPane extends GridPane
         return abs_end.getBackground() != null;
     }
 
-
     /** @param instant Absolute start date/time */
     public void setStart(final Instant instant)
     {

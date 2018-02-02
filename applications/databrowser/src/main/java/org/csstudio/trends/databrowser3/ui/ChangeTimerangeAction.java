@@ -12,7 +12,6 @@ import org.csstudio.trends.databrowser3.ui.plot.TimeRangeDialog;
 import org.csstudio.trends.databrowser3.ui.properties.ChangeTimerangeCommand;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
-import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.scene.Node;
 
@@ -30,7 +29,6 @@ public class ChangeTimerangeAction
     {
         final TimeRangeDialog dlg = new TimeRangeDialog();
         DialogHelper.positionDialog(dlg, node, -300, -200);
-        final TimeRelativeInterval range = dlg.showAndWait().orElse(null);
-        new ChangeTimerangeCommand(model, undo, range);
+        dlg.showAndWait().ifPresent(range  ->  new ChangeTimerangeCommand(model, undo, range));
     }
 }

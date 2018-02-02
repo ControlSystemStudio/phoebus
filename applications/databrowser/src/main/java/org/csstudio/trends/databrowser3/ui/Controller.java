@@ -370,7 +370,7 @@ public class Controller
             @Override
             public void changedTimerange()
             {
-                final TimeRelativeInterval span = model.getTimespan();
+                final TimeRelativeInterval span = model.getTimerange();
                 final TimeInterval abs = span.toAbsoluteInterval();
                 if (span.isEndAbsolute())
                     plot.setTimeRange(abs.getStart(), abs.getEnd());
@@ -637,7 +637,7 @@ public class Controller
     /** Initiate archive data retrieval for all model items */
     private void getArchivedData()
     {
-        final TimeInterval interval = model.getTimespan().toAbsoluteInterval();
+        final TimeInterval interval = model.getTimerange().toAbsoluteInterval();
         for (ModelItem item : model.getItems())
             getArchivedData(item, interval.getStart(), interval.getEnd());
     }
@@ -647,7 +647,7 @@ public class Controller
      */
     private void getArchivedData(final ModelItem item)
     {
-        final TimeInterval interval = model.getTimespan().toAbsoluteInterval();
+        final TimeInterval interval = model.getTimerange().toAbsoluteInterval();
         getArchivedData(item, interval.getStart(), interval.getEnd());
     }
 

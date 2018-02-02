@@ -20,10 +20,7 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
@@ -89,9 +86,6 @@ public class TimeParser {
         }
     }
 
-
-    private final static List<ChronoUnit> durationUnits = Arrays.asList(MILLIS, SECONDS, MINUTES, HOURS);
-
     /**
      * parses the given string into a {@link Duration}. The method only supports
      * {@link ChronoUnit#MILLIS}, {@link ChronoUnit#SECONDS},
@@ -149,66 +143,97 @@ public class TimeParser {
         return duration;
     }
 
-    /** Parse a temporal amount like "1 day 20 seconds"
+    /** Parse a temporal amount like "1 month 2 days" or "1 day 20 seconds"
      *
-     *  <p>Uses a {@link Duration} if the time span includes
-     *  hours, minutes or seconds.
-     *  Otherwise a {@link Period} is used because
-     *  "1 month" can then be used for calendar-based
-     *  computations.
+     *  <p>Provides either a time-based {@link Duration}
+     *  or a calendar based {@link Period}.
+     *
+     *  <p>A period of "1 months" does not have a well defined
+     *  length in time because a months could have 28 to 31 days.
+     *  When the user specifies "1 month" we assume that
+     *  a time span between the same day in different months
+     *  is requested.
+     *  As soon as the time span includes a month or year,
+     *  a {@link Period} is returned and the smaller units
+     *  from hours down are ignored.
+     *
+     *  <p>For time spans that only include days or less,
+     *  a {@link Duration} is used.
      *
      *  @param string Text
      *  @return {@link Duration} or {@link Period}
      */
-    public static TemporalAmount parseTemporalAmount(final String string) {
+    public static TemporalAmount parseTemporalAmount(final String string)
+    {
+        if (NOW.equalsIgnoreCase(string))
+            return Duration.ZERO;
         int quantity = 0;
         String unit = "";
         Matcher timeQuantityUnitsMatcher = timeQuantityUnitsPattern.matcher(string);
         Map<ChronoUnit, Integer> timeQuantities = new HashMap<ChronoUnit, Integer>();
-        while (timeQuantityUnitsMatcher.find()) {
-            quantity = "".equals(timeQuantityUnitsMatcher.group(1)) ? 1
+
+        boolean use_period = false;
+        while (timeQuantityUnitsMatcher.find())
+        {
+            quantity = "".equals(timeQuantityUnitsMatcher.group(1))
+                    ? 1
                     : Integer.valueOf(timeQuantityUnitsMatcher.group(1));
             unit = timeQuantityUnitsMatcher.group(2).toLowerCase();
             if (unit.startsWith("y"))
+            {
                 timeQuantities.put(YEARS, quantity);
+                use_period = true;
+            }
+            else if (unit.startsWith("mo"))
+            {
+                timeQuantities.put(MONTHS, quantity);
+                use_period = true;
+            }
+            else if (unit.startsWith("w"))
+            {
+                timeQuantities.put(WEEKS, quantity);
+                use_period = true;
+            }
             else if (unit.startsWith("mi"))
                 timeQuantities.put(MINUTES, quantity);
             else if (unit.startsWith("h"))
                 timeQuantities.put(HOURS, quantity);
             else if (unit.startsWith("d"))
                 timeQuantities.put(DAYS, quantity);
-            else if (unit.startsWith("w"))
-                timeQuantities.put(WEEKS, quantity);
             else if (unit.startsWith("s"))
                 timeQuantities.put(SECONDS, quantity);
-            else if (unit.startsWith("mo"))
-                timeQuantities.put(MONTHS, quantity);
             else if (unit.startsWith("mi")  ||
                      unit.equals("ms"))
                 timeQuantities.put(MILLIS, quantity);
         }
-        if (Collections.disjoint(timeQuantities.keySet(), durationUnits)) {
+
+        if (use_period)
+        {
             Period result = Period.ZERO;
-            result = result.plusYears(timeQuantities.containsKey(YEARS) ? timeQuantities.get(YEARS) : 0);
-            result = result.plusMonths(timeQuantities.containsKey(MONTHS) ? timeQuantities.get(MONTHS) : 0);
-            result = result.plusDays(timeQuantities.containsKey(DAYS) ? timeQuantities.get(DAYS) : 0);
+            if (timeQuantities.containsKey(YEARS))
+                result = result.plusYears(timeQuantities.get(YEARS));
+            if (timeQuantities.containsKey(WEEKS))
+                result = result.plusDays(7*timeQuantities.get(WEEKS));
+            if (timeQuantities.containsKey(MONTHS))
+                result = result.plusMonths(timeQuantities.get(MONTHS));
+            if (timeQuantities.containsKey(DAYS))
+                result = result.plusDays(timeQuantities.get(DAYS));
+            // Ignoring hours, min, .. because they're insignificant compared to weeks
             return result;
-        } else {
+        }
+        else
+        {
             Duration result = Duration.ofSeconds(0);
-            for (Entry<ChronoUnit, Integer> entry : timeQuantities.entrySet()) {
+            for (Entry<ChronoUnit, Integer> entry : timeQuantities.entrySet())
                 result = result.plus(entry.getValue(), entry.getKey());
-            }
             return result;
         }
     }
 
     /** Format a temporal amount
      *
-     *  <p>Creates a text like "2 days" that
-     *  {@link #parseTemporalAmount(String)}
-     *  can parse
-     *  @param amount
-     *  @return Text
+     *  @param amount {@link TemporalAmount}
+     *  @return Text like "2 days" that {@link #parseTemporalAmount(String)} can parse
      */
     public static String format(final TemporalAmount amount)
     {
@@ -218,11 +243,11 @@ public class TimeParser {
             final Period period = (Period) amount;
             if (period.isZero())
                 return NOW;
+
             if (period.getYears() == 1)
                 buf.append("1 year ");
             else if (period.getYears() > 1)
                 buf.append(period.getYears()).append(" years ");
-
 
             if (period.getMonths() == 1)
                 buf.append("1 month ");
@@ -240,27 +265,7 @@ public class TimeParser {
             if (secs == 0)
                 return NOW;
 
-            int p = (int) (secs / (365*24*60*60));
-            if (p > 0)
-            {
-                if (p == 1)
-                    buf.append("1 year ");
-                else
-                    buf.append(p).append(" years ");
-                secs -= p * (365*24*60*60);
-            }
-
-            p = (int) (secs / (12*24*60*60));
-            if (p > 0)
-            {
-                if (p == 1)
-                    buf.append("1 month ");
-                else
-                    buf.append(p).append(" months ");
-                secs -= p * (12*24*60*60);
-            }
-
-            p = (int) (secs / (24*60*60));
+            int p = (int) (secs / (24*60*60));
             if (p > 0)
             {
                 if (p == 1)

@@ -31,7 +31,7 @@ public class ChangeTimerangeCommand extends UndoableAction
     {
         super(Messages.TimeAxis);
         this.model = model;
-        this.old_range = model.getTimespan();
+        this.old_range = model.getTimerange();
         this.new_range = new_range;
         operationsManager.add(this);
         run();

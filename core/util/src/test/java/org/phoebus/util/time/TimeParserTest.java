@@ -132,6 +132,21 @@ public class TimeParserTest {
         amount = TimeParser.parseTemporalAmount("now");
         seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
         assertEquals(0, seconds);
+
+        // Month triggers use of period, which only keeps y/m/d
+        // 1 week adds 7 days
+        amount = TimeParser.parseTemporalAmount("1 month 1 weeks 3 days 20 mins 10 sec");
+        assertEquals(amount, Period.of(0, 1, 10));
+
+        amount = TimeParser.parseTemporalAmount("1 month 1 day");
+        assertEquals(amount, Period.of(0, 1, 1));
+
+        // 60 days span more than a month,
+        // but since "month" is not mentioned,
+        // it's considered 60 exact days
+        // (implying 24 hour days)
+        amount = TimeParser.parseTemporalAmount("60 days");
+        assertEquals(amount, Duration.ofDays(60));
     }
 
     @Test

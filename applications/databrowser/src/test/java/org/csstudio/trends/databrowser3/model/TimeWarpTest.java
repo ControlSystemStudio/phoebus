@@ -36,7 +36,7 @@ public class TimeWarpTest
     public void testParseLegacy()
     {
         TemporalAmount amount = TimeWarp.parseLegacy("-3 days");
-        assertThat(amount, equalTo(Period.ofDays(3)));
+        assertThat(amount, equalTo(Duration.ofDays(3)));
 
         amount = TimeWarp.parseLegacy("-3 months");
         assertThat(amount, equalTo(Period.ofMonths(3)));

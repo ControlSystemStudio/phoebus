@@ -82,7 +82,7 @@ public class PVItem extends ModelItem
                 updateUnits(value);
             if (automaticRefresh && added &&
                 model.isPresent() &&
-                samples.isHistoryRefreshNeeded(model.get().getTimespan()))
+                samples.isHistoryRefreshNeeded(model.get().getTimerange()))
                 model.get().fireItemRefreshRequested(PVItem.this);
         }
 
@@ -433,7 +433,7 @@ public class PVItem extends ModelItem
         {
             samples.mergeArchivedData(server_name, new_samples);
             need_refresh = automaticRefresh && model.isPresent() &&
-                    samples.isHistoryRefreshNeeded(model.get().getTimespan());
+                    samples.isHistoryRefreshNeeded(model.get().getTimerange());
         }
         finally
         {

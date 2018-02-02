@@ -79,7 +79,7 @@ public class Model
     private volatile Duration scroll_step = Preferences.scroll_step;
 
     /** Time span of data in seconds */
-    private volatile TimeRelativeInterval time_span = TimeRelativeInterval.of(Preferences.time_span, Duration.ZERO);
+    private volatile TimeRelativeInterval time_range = TimeRelativeInterval.of(Preferences.time_span, Duration.ZERO);
 
     /** Show time axis grid line? */
     private volatile boolean show_grid = false;
@@ -139,7 +139,7 @@ public class Model
         setTitle(other.getTitle().orElse(null));
         setUpdatePeriod(other.update_period);
         setScrollStep(other.scroll_step);
-        setTimerange(other.time_span);
+        setTimerange(other.time_range);
         setGridVisible(other.show_grid);
         setPlotBackground(other.background);
         setTitleFont(other.title_font);
@@ -556,24 +556,21 @@ public class Model
             listener.changedTiming();
     }
 
-    /** @return time span of data */
-    public TimeRelativeInterval getTimespan()
+    /** @return time range */
+    public TimeRelativeInterval getTimerange()
     {
-        return time_span;
+        return time_range;
     }
 
-    /** Set absolute time range
-     *  @param start Start time
-     *  @param end End time
-     */
-    public void setTimerange(final TimeRelativeInterval span)
+    /** @param range Time range */
+    public void setTimerange(final TimeRelativeInterval range)
     {
         // Assert that start < end. Not empty, not inverted
-        final TimeInterval abs = span.toAbsoluteInterval();
+        final TimeInterval abs = range.toAbsoluteInterval();
         if (! abs.getStart().isBefore(abs.getEnd()))
             return;
 
-        time_span = span;
+        time_range = range;
         // Notify listeners
         for (ModelListener listener : listeners)
             listener.changedTimerange();
@@ -755,7 +752,7 @@ public class Model
     public boolean updateItemsAndCheckForNewSamples()
     {
         boolean anything_new = false;
-        // Update any formulas
+        // TODO Update any formulas
         for (ModelItem item : items)
         {
 //            if (item instanceof FormulaItem  &&

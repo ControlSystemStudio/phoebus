@@ -495,7 +495,7 @@ public class XMLPersistence
             writer.writeEndElement();
 
 
-            final TimeRelativeInterval span = model.getTimespan();
+            final TimeRelativeInterval span = model.getTimerange();
             writer.writeStartElement(TAG_SCROLL);
             writer.writeCharacters(Boolean.toString(! span.isEndAbsolute()));
             writer.writeEndElement();

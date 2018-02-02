@@ -55,21 +55,7 @@ public class TimeWarp
             if (secs == 0)
                 return "now";
 
-            int p = (int) (secs / (365*24*60*60));
-            if (p > 0)
-            {
-                buf.append(-p).append(" years ");
-                secs -= p * (365*24*60*60);
-            }
-
-            p = (int) (secs / (12*24*60*60));
-            if (p > 0)
-            {
-                buf.append(-p).append(" months ");
-                secs -= p * (12*24*60*60);
-            }
-
-            p = (int) (secs / (24*60*60));
+            int p = (int) (secs / (24*60*60));
             if (p > 0)
             {
                 buf.append(-p).append(" days ");
