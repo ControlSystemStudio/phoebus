@@ -373,9 +373,9 @@ public class Controller
                 final TimeRelativeInterval span = model.getTimerange();
                 final TimeInterval abs = span.toAbsoluteInterval();
                 if (span.isEndAbsolute())
-                    plot.setTimeRange(abs.getStart(), abs.getEnd());
+                    plot.setTimeRange(false, abs.getStart(), abs.getEnd());
                 else
-                    plot.setTimeRange(abs.getStart(), abs.getEnd().plus(model.getScrollStep()));
+                    plot.setTimeRange(true, abs.getStart(), abs.getEnd().plus(model.getScrollStep()));
                 // Get matching archived data
                 scheduleArchiveRetrieval();
             }

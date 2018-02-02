@@ -336,12 +336,17 @@ public class ModelBasedPlot
 
     /** Update plot to given time range.
      *  Can be called from any thread.
+     *  @param scroll
      *  @param start
      *  @param end
      */
-    public void setTimeRange(final Instant start, final Instant end)
+    public void setTimeRange(final boolean scroll, final Instant start, final Instant end)
     {
-        Platform.runLater(() -> plot.getXAxis().setValueRange(start, end));
+        Platform.runLater(() ->
+        {
+            plot.setScrolling(scroll);
+            plot.getXAxis().setValueRange(start, end);
+        });
     }
 
     /** Set annotations in plot to match model's annotations
