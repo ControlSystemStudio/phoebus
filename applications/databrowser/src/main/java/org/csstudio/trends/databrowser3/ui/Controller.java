@@ -230,7 +230,7 @@ public class Controller
         @Override
         public void timeConfigRequested()
         {
-            StartEndTimeAction.run(model, plot.getPlot(), plot.getPlot().getUndoableActionManager());
+            ChangeTimerangeAction.run(model, plot.getPlot(), plot.getPlot().getUndoableActionManager());
         }
 
         @Override

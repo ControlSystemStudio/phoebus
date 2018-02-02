@@ -10,7 +10,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
-import org.csstudio.trends.databrowser3.ui.StartEndTimeAction;
+import org.csstudio.trends.databrowser3.ui.ChangeTimerangeAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Insets;
@@ -67,7 +67,7 @@ public class TimeAxisTab extends Tab
         layout.add(end, 3, 0);
 
         final Button times = new Button(Messages.StartEndDialogBtn);
-        times.setOnAction(event ->  StartEndTimeAction.run(model, layout, undo));
+        times.setOnAction(event ->  ChangeTimerangeAction.run(model, layout, undo));
         layout.add(times, 4, 0);
 
         layout.add(new Label(Messages.GridLbl), 0, 1);

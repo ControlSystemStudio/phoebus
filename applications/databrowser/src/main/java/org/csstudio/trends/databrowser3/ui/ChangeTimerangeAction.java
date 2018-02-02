@@ -8,7 +8,8 @@
 package org.csstudio.trends.databrowser3.ui;
 
 import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.ui.plot.StartEndDialog;
+import org.csstudio.trends.databrowser3.ui.plot.TimeRangeDialog;
+import org.csstudio.trends.databrowser3.ui.properties.ChangeTimerangeCommand;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -18,7 +19,7 @@ import javafx.scene.Node;
 /** Helper for handling start/end time changes
  *  @author Kay Kasemir
  */
-public class StartEndTimeAction
+public class ChangeTimerangeAction
 {
     /** Prompt user for new start/end time
      *  @param model Model to change
@@ -27,13 +28,9 @@ public class StartEndTimeAction
      */
     public static void run(final Model model, final Node node, final UndoableActionManager undo)
     {
-        // TODO Set dlg to model's time range
-        //        final String start_time = model.getStartSpecification();
-        //        final String end_time = model.getEndSpecification();
-
-        final StartEndDialog dlg = new StartEndDialog();
+        final TimeRangeDialog dlg = new TimeRangeDialog();
         DialogHelper.positionDialog(dlg, node, -300, -200);
         final TimeRelativeInterval range = dlg.showAndWait().orElse(null);
-        // TODO new ChangeTimerangeCommand(model, operations_manager, range);
+        new ChangeTimerangeCommand(model, undo, range);
     }
 }
