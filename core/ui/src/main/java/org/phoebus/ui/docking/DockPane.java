@@ -13,10 +13,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.application.Messages;
+
 import javafx.beans.InvalidationListener;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.DragEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.StackPane;
@@ -141,8 +146,35 @@ public class DockPane extends TabPane
                 setActiveDockPane(pane);
         });
 
+        addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalKeys);
+
         // Show/hide tabs as tab count changes
         getTabs().addListener((InvalidationListener) change -> autoHideTabs());
+    }
+
+    /** Handle key presses of global significance like Ctrl-S to save */
+    private void handleGlobalKeys(final KeyEvent event)
+    {
+        // Check for Ctrl (Windows, Linux) resp. Command (Mac)
+        if (! event.isShortcutDown())
+            return;
+
+        final DockItem item = (DockItem) getSelectionModel().getSelectedItem();
+        if (item == null)
+            return;
+
+        final KeyCode key = event.getCode();
+        if (key == KeyCode.S)
+        {
+            if (item instanceof DockItemWithInput)
+            {
+                final DockItemWithInput active_item_with_input = (DockItemWithInput) item;
+                if (active_item_with_input.isDirty())
+                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor));
+            }
+        }
+        else if (key == KeyCode.W)
+            item.close();
     }
 
     // lookup() in autoHideTabs() only works when the scene has been rendered.
