@@ -124,20 +124,20 @@ public class TimeAxisTab extends Tab
             text = end.getText();
             final Instant abs_end = TimeRelativeIntervalPane.parseAbsolute(text);
 
-            final TimeRelativeInterval range;
+            TimeRelativeInterval range = null;
             if (abs_start != null  &&  abs_end != null)
                 range = TimeRelativeInterval.of(abs_start, abs_end);
             else if (rel_start != null)
                 range = TimeRelativeInterval.startsAt(rel_start);
-            else
-            {   // Ignore odd input. Revert to model's range.
-                model_listener.changedTimerange();
-                return;
-            }
 
             updating = true;
-            new ChangeTimerangeCommand(model, undo, range);
+            // If something useful was entered, use it
+            if (range != null)
+                new ChangeTimerangeCommand(model, undo, range);
             updating = false;
+            // In any case, show the result,
+            // which might turn an entered "2 mo" into "2 months"
+            model_listener.changedTimerange();
         };
         start.setOnAction(set_timerange);
         end.setOnAction(set_timerange);
