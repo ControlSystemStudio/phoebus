@@ -156,15 +156,10 @@ public class TemporalAmountPane extends GridPane
         {
             long secs = ((Duration) amount).getSeconds();
 
-            int p = (int) (secs / (365*24*60*60));
-            years.getValueFactory().setValue(p);
-            secs -= p * (365*24*60*60);
+            years.getValueFactory().setValue(0);
+            months.getValueFactory().setValue(0);
 
-            p = (int) (secs / (12*24*60*60));
-            months.getValueFactory().setValue(p);
-            secs -= p * (12*24*60*60);
-
-            p = (int) (secs / (24*60*60));
+            int p = (int) (secs / (24*60*60));
             days.getValueFactory().setValue(p);
             secs -= p * (24*60*60);
 

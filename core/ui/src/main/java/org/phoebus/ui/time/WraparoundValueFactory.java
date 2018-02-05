@@ -16,6 +16,11 @@ import javafx.util.StringConverter;
  *  When hitting those values, the value wraps around
  *  and a runnable is invoked
  *  which can then increment or decrement adjacent spinners.
+ *
+ *  <p>When incrementing, the value wraps around when
+ *  interactively incrementing from max-1 to max.
+ *  When programmatically setting a value >= max,
+ *  it is used without modification.
  */
 // Only accessible within the package
 @SuppressWarnings("nls")
@@ -70,7 +75,7 @@ class WraparoundValueFactory extends SpinnerValueFactory<Integer>
     public void increment(final int steps)
     {
         final int value = getValue() + 1;
-        if (value <= max)
+        if (value != max)
             setValue(value);
         else
         {
