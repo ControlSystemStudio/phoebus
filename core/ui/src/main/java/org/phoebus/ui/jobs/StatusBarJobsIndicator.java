@@ -7,11 +7,13 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
 
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 
 /** Status bar entry to show number of jobs
@@ -36,12 +38,25 @@ public class StatusBarJobsIndicator extends Button
         final int count = JobManager.getJobCount();
         if (count == last_count)
             return;
-        if (count <= 0)
-            setVisible(false);
-        else
+        final CountDownLatch done = new CountDownLatch(1);
+        Platform.runLater(() ->
         {
-            setText("Jobs: " + count);
-            setVisible(true);
+            if (count <= 0)
+                setVisible(false);
+            else
+            {
+                setText("Jobs: " + count);
+                setVisible(true);
+            }
+            done.countDown();
+        });
+        try
+        {
+            done.await(2, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException e)
+        {
+            // Ignore
         }
         last_count = count;
     }

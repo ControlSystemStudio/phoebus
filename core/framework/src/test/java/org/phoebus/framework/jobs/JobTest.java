@@ -12,6 +12,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
@@ -42,7 +43,7 @@ public class JobTest
         // Wait for job to start
         running.await();
         System.out.println(JobManager.getJobs());
-        assertThat(JobManager.getJobs().size(), equalTo(1));
+        assertThat(JobManager.getJobCount(), equalTo(1));
 
         // Wait for job to end
         while (done.getCount() > 0)
@@ -53,8 +54,8 @@ public class JobTest
         // Show final info
         Thread.sleep(500);
         System.out.println(JobManager.getJobs());
-        assertThat(JobManager.getJobs().size(), equalTo(0));
-   }
+        assertThat(JobManager.getJobCount(), equalTo(0));
+    }
 
 
     @Test
@@ -96,5 +97,37 @@ public class JobTest
         }
 
         assertThat(the_job.getMonitor().isDone(), equalTo(true));
-   }
+    }
+
+    @Test(timeout=10000)
+    public void demoParallel() throws Exception
+    {
+        final AtomicBoolean you_can_quit = new AtomicBoolean();
+
+        JobManager.schedule("A", monitor ->
+        {
+            while (! you_can_quit.get())
+            {
+                System.out.println("Job A");
+                Thread.sleep(1000);
+            }
+        });
+
+        JobManager.schedule("B", monitor ->
+        {
+            while (! you_can_quit.get())
+            {
+                System.out.println("Job B");
+                Thread.sleep(1000);
+            }
+        });
+
+        while (JobManager.getJobCount() < 2)
+            Thread.sleep(200);
+
+        you_can_quit.set(true);
+
+        while (JobManager.getJobCount() > 0)
+            Thread.sleep(200);
+    }
 }

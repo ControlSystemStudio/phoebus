@@ -10,8 +10,8 @@ package org.phoebus.framework.jobs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,7 +23,7 @@ public class JobManager
 {
     static final Logger logger = Logger.getLogger(JobManager.class.getPackageName());
 
-    private static final ScheduledExecutorService POOL = Executors.newScheduledThreadPool(1, new NamedThreadFactory("JobManager"));
+    private static final ExecutorService POOL = Executors.newCachedThreadPool(new NamedThreadFactory("JobManager"));
 
     private static final ConcurrentSkipListSet<Job> active_jobs =
         new ConcurrentSkipListSet<>((job1, job2) -> System.identityHashCode(job2) - System.identityHashCode(job1));
