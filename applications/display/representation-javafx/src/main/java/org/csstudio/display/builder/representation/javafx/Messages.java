@@ -116,8 +116,17 @@ public class Messages
     public static String ScriptsDialog_SelectScript;
     public static String ScriptsDialog_Title;
     public static String Select;
+    public static String WidgetColorPopOver_Alpha;
+    public static String WidgetColorPopOver_Blue;
+    public static String WidgetColorPopOver_Color;
+    public static String WidgetColorPopOver_CustomColor;
+    public static String WidgetColorPopOver_Default;
     public static String WidgetColorPopOver_DefaultButton;
+    public static String WidgetColorPopOver_Green;
     public static String WidgetColorPopOver_Info;
+    public static String WidgetColorPopOver_Original;
+    public static String WidgetColorPopOver_PredefinedColors;
+    public static String WidgetColorPopOver_Red;
     public static String WidgetInfoDialog_Category;
     public static String WidgetInfoDialog_Disconnected;
     public static String WidgetInfoDialog_Info_Fmt;
