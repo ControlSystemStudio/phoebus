@@ -15,7 +15,6 @@ import javafx.scene.layout.HBox;
 /** Application status bar
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class StatusBar extends HBox
 {
     private static final StatusBar instance = new StatusBar();
@@ -25,11 +24,21 @@ public class StatusBar extends HBox
         super(5, ToolbarHelper.createSpring());
     }
 
+    /** @return Singleton instance */
     public static StatusBar getInstance()
     {
         return instance;
     }
 
+    /** Add item to the status bar
+     *
+     *  <p>Caller may later update the item,
+     *  for example make it invisible when
+     *  not applicable.
+     *
+     *  @param item Item to add
+     */
+    // Note: There is currently no control over the item location
     public void addItem(final Node item)
     {
         getChildren().add(item);
