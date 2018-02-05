@@ -63,9 +63,9 @@ class SplashJobMonitor implements JobMonitor
     }
 
     @Override
-    public boolean isCancelled()
+    public boolean isCanceled()
     {
-        return parent.isCancelled();
+        return parent.isCanceled();
     }
 
     @Override

@@ -225,7 +225,7 @@ public class ArchiveFetchJob implements JobRunnable
             monitor.updateTaskName(info);
             // Try to cancel the worker in response to user's cancel request.
             // Continues to cancel the worker until isDone()
-            if (monitor.isCancelled())
+            if (monitor.isCanceled())
                 worker.cancel();
         }
     }

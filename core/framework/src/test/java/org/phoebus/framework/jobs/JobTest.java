@@ -70,7 +70,7 @@ public class JobTest
             {
                 System.out.println("Doing something..");
                 did_some_steps.countDown();
-                if (monitor.isCancelled())
+                if (monitor.isCanceled())
                 {
                     System.out.println("Cancelled, exiting early");
                     return;
