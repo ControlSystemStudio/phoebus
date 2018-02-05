@@ -18,6 +18,7 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.ui.export.ExportView;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
@@ -57,6 +58,7 @@ public class Perspective extends SplitPane
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private final SearchView search = new SearchView(model, plot.getPlot().getUndoableActionManager());
+    private final ExportView export = new ExportView(model);
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();
@@ -76,7 +78,7 @@ public class Perspective extends SplitPane
         properties_tab = new Tab("Properties", property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
-        export_tab = new Tab("Export");
+        export_tab = new Tab("Export", export);
         export_tab.setGraphic(Activator.getIcon("export"));
         export_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
 
