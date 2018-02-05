@@ -21,12 +21,12 @@ import java.util.logging.Level;
 
 import javax.xml.stream.XMLStreamWriter;
 
-import org.csstudio.javafx.rtplot.util.NamedThreadFactory;
 import org.csstudio.trends.databrowser3.Messages;
 // TODO import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVListener;

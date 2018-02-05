@@ -47,6 +47,7 @@ import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.monitoring.ResponsivenessMonitor;
+import org.phoebus.ui.statusbar.StatusBar;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
@@ -57,7 +58,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
@@ -213,7 +213,7 @@ public class PhoebusApplication extends Application {
 
         final BorderPane layout = DockStage.getLayout(main_stage);
         layout.setTop(new VBox(menuBar, toolBar));
-        layout.setBottom(new Label("Status Bar..."));
+        layout.setBottom(StatusBar.getInstance());
 
         // Main stage may still be moved, resized, and restored apps are added.
         // --> Would be nice to _not_ show it, yet.

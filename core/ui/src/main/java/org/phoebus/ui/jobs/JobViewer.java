@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -41,14 +43,16 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 class JobViewer implements AppInstance
 {
+    /** Timer, shared with {@link StatusBarJobsIndicator} */
+    static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("JobViewer"));
+
     static JobViewer INSTANCE = null;
 
     private static final Image ABORT = new Image(JobViewer.class.getResourceAsStream("/icons/abort.gif"));
 
     private final AppDescriptor app;
     private final DockItem tab;
-    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
-
+    private ScheduledFuture<?> task;
 
     JobViewer(final AppDescriptor app)
     {
@@ -175,13 +179,12 @@ class JobViewer implements AppInstance
                 // Ignore
             }
         };
-        timer.scheduleAtFixedRate(update, 0, 1000, TimeUnit.MILLISECONDS);
-
+        task = TIMER.scheduleAtFixedRate(update, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
     private void stopUpdates()
     {
-        timer.shutdown();
+        task.cancel(false);
     }
 
     private void updateJobs()
