@@ -173,6 +173,11 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                                 low = value;
                             if (value > high)
                                 high = value;
+                            // Implies Double.isFinite(min), ..(max)
+                            if (item.getMin() < low)
+                                low = item.getMin();
+                            if (item.getMax() > high)
+                                high = item.getMax();
                         }
                     }
                 }
