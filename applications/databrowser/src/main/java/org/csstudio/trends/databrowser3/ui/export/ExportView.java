@@ -8,6 +8,7 @@
 package org.csstudio.trends.databrowser3.ui.export;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 
@@ -33,7 +34,6 @@ import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
-import org.python.icu.text.MessageFormat;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
