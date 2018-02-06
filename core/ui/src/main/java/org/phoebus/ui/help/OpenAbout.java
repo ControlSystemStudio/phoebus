@@ -13,6 +13,7 @@ import java.util.List;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -22,6 +23,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
 
 /** Menu entry to open 'about'
  *  @author Kay Kasemir
@@ -39,6 +41,12 @@ public class OpenAbout implements MenuEntry
     public String getMenuPath()
     {
         return "Help/About";
+    }
+
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(getClass(), "/icons/help.png");
     }
 
     @Override

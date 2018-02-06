@@ -395,36 +395,34 @@ public class PhoebusApplication extends Application {
         menuBar.getMenus().add(new Menu(Messages.Window, null, show_tabs));
 
         // Help
-        final MenuEntry content_entry = new OpenHelp();
-        final MenuItem content = new MenuItem(content_entry.getName());
-        content.setOnAction(event ->
-        {
-            try
-            {
-                content_entry.call();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Error invoking menu entry", ex);
-            }
-        });
-
-        final MenuEntry about_entry = new OpenAbout();
-        final MenuItem about = new MenuItem(about_entry.getName());
-        about.setOnAction(event ->
-        {
-            try
-            {
-                about_entry.call();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Error invoking menu entry", ex);
-            }
-        });
+        final MenuItem content = createMenuItem(new OpenHelp());
+        final MenuItem about = createMenuItem(new OpenAbout());
         menuBar.getMenus().add(new Menu(Messages.Help, null, about, content));
 
         return menuBar;
+    }
+
+    /** @param entry {@link MenuEntry}
+     *  @return {@link MenuItem}
+     */
+    private MenuItem createMenuItem(final MenuEntry entry)
+    {
+        final MenuItem item = new MenuItem(entry.getName());
+        final Image icon = entry.getIcon();
+        if (icon != null)
+            item.setGraphic(new ImageView(icon));
+        item.setOnAction(event ->
+        {
+            try
+            {
+                entry.call();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
+            }
+        });
+        return item;
     }
 
     /** Fill the {@link #top_resources_menu} and {@link #top_resources_button} */
@@ -479,14 +477,7 @@ public class PhoebusApplication extends Application {
     private void addMenuNode(Menu parent, MenuTreeNode node) {
 
         for (MenuEntry entry : node.getMenuItems()) {
-            MenuItem m = new MenuItem(entry.getName());
-            m.setOnAction((event) -> {
-                try {
-                    entry.call();
-                } catch (Exception ex) {
-                    logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
-                }
-            });
+            MenuItem m = createMenuItem(entry);
             parent.getItems().add(m);
         }
 

@@ -34,12 +34,14 @@ import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Control;
+import javafx.scene.image.Image;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 
@@ -69,6 +71,12 @@ public class InstallExamplesMenuEntry implements MenuEntry
     public String getMenuPath()
     {
         return "Examples";
+    }
+
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(DisplayModel.class, "/icons/display.png");
     }
 
     @Override
