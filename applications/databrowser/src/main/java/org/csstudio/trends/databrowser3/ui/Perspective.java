@@ -102,6 +102,10 @@ public class Perspective extends SplitPane
         {
             Activator.logger.log(Level.SEVERE, "Cannot start data browser", ex);
         }
+
+        // As pane is resized, assert that the minimzed left or bottom region stays minimized
+        widthProperty().addListener(prop -> Platform.runLater(() -> autoMinimize(left_tabs, this, 0.0)));
+        heightProperty().addListener(prop -> Platform.runLater(() -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0)));
     }
 
     /** @return {@link Model} */

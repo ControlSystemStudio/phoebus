@@ -1,11 +1,20 @@
+/*******************************************************************************
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.export;
 
 import java.io.File;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 
+import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.export.ExportJob;
+import org.csstudio.trends.databrowser3.export.MatlabFileExportJob;
 import org.csstudio.trends.databrowser3.export.MatlabScriptExportJob;
 import org.csstudio.trends.databrowser3.export.PlainExportJob;
 import org.csstudio.trends.databrowser3.export.Source;
@@ -45,6 +54,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+/** Panel for exporting data into files
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
 public class ExportView extends VBox
 {
     private static final String TAG_SOURCE = "source",
@@ -86,13 +99,16 @@ public class ExportView extends VBox
         grid.setPadding(new Insets(5));
 
         grid.add(new Label(Messages.StartTimeLbl), 0, 0);
+        start.setTooltip(new Tooltip(Messages.StartTimeTT));
         GridPane.setHgrow(start, Priority.ALWAYS);
         grid.add(start, 1, 0);
 
         final Button sel_times = new Button(Messages.StartEndDialogBtn);
+        sel_times.setTooltip(new Tooltip(Messages.StartEndDialogTT));
         grid.add(sel_times, 2, 0);
 
         grid.add(new Label(Messages.EndTimeLbl), 0, 1);
+        end.setTooltip(new Tooltip(Messages.EndTimeTT));
         GridPane.setHgrow(end, Priority.ALWAYS);
         grid.add(end, 1, 1);
 
@@ -127,7 +143,7 @@ public class ExportView extends VBox
 
         grid.add(new Label(Messages.ExportGroupSource), 0, 2);
 
-        // Order of source_* radio buttons must match the Source.* ordinals
+        // Order of source_* radio buttons must match the corresponding Source.* ordinal
         final RadioButton source_plot = new RadioButton(Source.PLOT.toString());
         source_plot.setTooltip(new Tooltip(Messages.ExportSource_PlotTT));
         source_plot.setToggleGroup(sources);
@@ -185,13 +201,19 @@ public class ExportView extends VBox
         tabular.setSelected(true);
         grid.add(tabular, 0, 1);
 
+        // Tabular only applies to spreadsheet
+        tabular.disableProperty().bind(type_matlab.selectedProperty());
+
         min_max_col.setTooltip(new Tooltip(Messages.ExportMinMaxColTT));
         grid.add(min_max_col, 1, 1);
 
         sev_stat.setTooltip(new Tooltip(Messages.ExportValueInfoTT));
         grid.add(sev_stat, 2, 1);
 
+        sev_stat.disableProperty().bind(type_matlab.selectedProperty());
+
         // Enable/disable min/max checkbox
+        type_matlab.selectedProperty().addListener(prop -> min_max_col.setDisable(! minMaxAllowed()));
         sources.selectedToggleProperty().addListener(prop -> min_max_col.setDisable(! minMaxAllowed()));
         min_max_col.setDisable(! minMaxAllowed());
 
@@ -215,6 +237,12 @@ public class ExportView extends VBox
         format_digits.disableProperty().bind(format_default.selectedProperty());
         grid.add(format_digits, 3, 2);
 
+        // Formatting only applies to spreadsheet
+        format_default.disableProperty().bind(type_matlab.selectedProperty());
+        format_decimal.disableProperty().bind(type_matlab.selectedProperty());
+        format_expo.disableProperty().bind(type_matlab.selectedProperty());
+        format_digits.disableProperty().bind(type_matlab.selectedProperty());
+
         grid.add(new Label(Messages.ExportDigits), 4, 2);
 
         format_default.setSelected(true);
@@ -223,6 +251,8 @@ public class ExportView extends VBox
         format.setCollapsible(false);
 
 
+        // * Output *
+        // Filename: ______________ [Browse] [Export]
         filename.setPromptText(Messages.ExportDefaultFilename);
         filename.setTooltip(new Tooltip(Messages.ExportFilenameTT));
 
@@ -230,7 +260,7 @@ public class ExportView extends VBox
         sel_filename.setTooltip(new Tooltip(Messages.ExportBrowseTT));
         sel_filename.setOnAction(event -> selectFilename());
 
-        final Button export = new Button(Messages.ExportStartExport);
+        final Button export = new Button(Messages.ExportStartExport, Activator.getIcon("export"));
         export.setOnAction(event -> startExportJob());
 
         final HBox outputs = new HBox(5, new Label(Messages.ExportFilename), filename, sel_filename, export);
@@ -256,7 +286,7 @@ public class ExportView extends VBox
     {
         File file = new File(filename.getText().trim());
         file = new SaveAsDialog().promptForFile(getScene().getWindow(),
-                                                "Select output file", file, null);
+                                                Messages.Export, file, null);
         if (file != null)
             filename.setText(file.getAbsolutePath());
     }
@@ -355,9 +385,14 @@ public class ExportView extends VBox
             {   // Matlab file export
                 if (filename.endsWith(".m"))
                     export = new MatlabScriptExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
-                // TODO MatlabFileExportJob, jmatio
+                else if (filename.endsWith(".mat"))
+                    export = new MatlabFileExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
                 else
-                    throw new Exception(Messages.ExportMatlabFilenameError);
+                {
+                    ExceptionDetailsErrorDialog.openError(this.filename, Messages.Error, Messages.ExportMatlabFilenameError, new Exception(filename));
+                    Platform.runLater(this.filename::requestFocus);
+                    return;
+                }
             }
             else
             {   // Spreadsheet file export
