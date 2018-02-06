@@ -70,8 +70,6 @@ public class Messages
     public static String ColorTT;
     public static String ConfigFileErrorFmt;
     public static String Connecting;
-    public static String CursorTimestamp;
-    public static String CursorTimestampTT;
     public static String CursorValue;
     public static String CursorValueTT;
     public static String DataBrowser;

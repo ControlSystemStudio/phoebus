@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -32,7 +33,6 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
-import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -86,6 +86,35 @@ public class TracesTab extends Tab
     private final TableView<ArchiveDataSource> archives_table = new TableView<>();
 
     private final ObservableList<String> axis_names = FXCollections.observableArrayList();
+
+    /** Wrapper that provides ModelItem's selected sample as observable */
+    private static class SelectedSampleProperty extends SimpleStringProperty
+    {
+        private final ModelItem item;
+
+        SelectedSampleProperty(final ModelItem item)
+        {
+            this.item = item;
+            update();
+        }
+
+        void update()
+        {
+            final Optional<PlotDataItem<Instant>> sample = item.getSelectedSample();
+            if (sample.isPresent())
+            {
+                String text = DefaultVTypeFormat.get().format( ((PlotSample) sample.get()).getVType() );
+                final String units = item.getUnits();
+                if (units != null)
+                    text = text + " " + units;
+                set(text);
+            }
+            else
+                set(Messages.NotApplicable);
+        }
+    }
+
+    private final List<WeakReference<SelectedSampleProperty>> selected_samples = new ArrayList<>();
 
     /** Table cell that shows RequestType */
     private class RequestTypeCell extends TableCell<ModelItem, RequestType>
@@ -181,6 +210,20 @@ public class TracesTab extends Tab
             // In case an axis _name_ changed, this needs to be shown
             // in the "Axis" column.
             updateFromModel();
+        }
+
+        @Override
+        public void selectedSamplesChanged()
+        {
+            // Just trace_table.refresh() would 'work',
+            // but much too heavy.
+            // Instead, update the observable prop to item's value
+            for (WeakReference<SelectedSampleProperty> ref : selected_samples)
+            {
+                final SelectedSampleProperty prop = ref.get();
+                if (prop != null)
+                    prop.update();
+            }
         }
     };
 
@@ -308,36 +351,13 @@ public class TracesTab extends Tab
         PropertyPanel.addTooltip(color_col, Messages.ColorTT);
         trace_table.getColumns().add(color_col);
 
-        // Selected sample time stamp and value
-        col = new TableColumn<>(Messages.CursorTimestamp);
-        col.setCellValueFactory(cell ->
-        {
-            final Optional<PlotDataItem<Instant>> sample = cell.getValue().getSelectedSample();
-            final String text = sample.isPresent()
-                              ? TimestampFormats.MILLI_FORMAT.format(sample.get().getPosition())
-                              : Messages.NotApplicable;
-            return new SimpleStringProperty(text);
-        });
-        PropertyPanel.addTooltip(col, Messages.CursorTimestampTT);
-        trace_table.getColumns().add(col);
-
+        // Selected sample
         col = new TableColumn<>(Messages.CursorValue);
         col.setCellValueFactory(cell ->
         {
-            final ModelItem item = cell.getValue();
-            final Optional<PlotDataItem<Instant>> sample = item.getSelectedSample();
-            String text;
-            if (sample.isPresent())
-            {
-
-                text = DefaultVTypeFormat.get().format( ((PlotSample) sample.get()).getVType() );
-                final String units = item.getUnits();
-                if (units != null)
-                    text = text + " " + units;
-            }
-            else
-                text = Messages.NotApplicable;
-            return new SimpleStringProperty(text);
+            final SelectedSampleProperty prop = new SelectedSampleProperty(cell.getValue());
+            selected_samples.add(new WeakReference<>(prop));
+            return prop;
         });
         PropertyPanel.addTooltip(col, Messages.CursorValueTT);
         trace_table.getColumns().add(col);
