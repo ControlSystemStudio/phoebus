@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,7 +46,7 @@ abstract public class ExportJob implements JobRunnable
     final protected Source source;
     final protected double optimize_parameter;
     final protected String filename;
-    final protected ExportErrorHandler error_handler;
+    final protected Consumer<Exception> error_handler;
     /** Active readers, used to cancel and close them */
     final private CopyOnWriteArrayList<ArchiveReader> archive_readers = new CopyOnWriteArrayList<ArchiveReader>();
 
@@ -99,7 +100,7 @@ abstract public class ExportJob implements JobRunnable
         final Instant start, final Instant end, final Source source,
         final double optimize_parameter,
         final String filename,
-        final ExportErrorHandler error_handler)
+        final Consumer<Exception> error_handler)
     {
         this.comment = comment;
         this.model = model;
@@ -142,7 +143,7 @@ abstract public class ExportJob implements JobRunnable
         }
         catch (final Exception ex)
         {
-            error_handler.handleExportError(ex);
+            error_handler.accept(ex);
         }
         for (ArchiveReader reader : archive_readers)
             reader.close();

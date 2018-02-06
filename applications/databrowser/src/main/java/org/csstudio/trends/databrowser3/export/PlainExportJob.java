@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.export;
 import java.io.PrintStream;
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.function.Consumer;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
@@ -32,7 +33,7 @@ public class PlainExportJob extends ExportJob
             final Instant start, final Instant end, final Source source,
             final double optimize_parameter, final ValueFormatter formatter,
             final String filename,
-            final ExportErrorHandler error_handler)
+            final Consumer<Exception> error_handler)
     {
         super("# ", model, start, end, source, optimize_parameter, filename, error_handler);
         this.formatter = formatter;

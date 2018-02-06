@@ -14,9 +14,7 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.ui.ChangeTimerangeAction;
-import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.ui.undo.UndoableActionManager;
-import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
@@ -56,18 +54,9 @@ public class TimeAxisTab extends Tab
             if (updating)
                 return;
 
-            final TimeRelativeInterval range = model.getTimerange();
-            final TimeInterval abs = range.toAbsoluteInterval();
-            if (range.isEndAbsolute())
-            {
-                start.setText(TimestampFormats.MILLI_FORMAT.format(abs.getStart()));
-                end.setText(TimestampFormats.MILLI_FORMAT.format(abs.getEnd()));
-            }
-            else
-            {
-                start.setText(TimeParser.format(range.getRelativeStart().get()));
-                end.setText(TimeParser.NOW);
-            }
+            final String[] range = model.getTimerangeText();
+            start.setText(range[0]);
+            end.setText(range[1]);
         }
 
         @Override
@@ -118,11 +107,11 @@ public class TimeAxisTab extends Tab
         final EventHandler<ActionEvent> set_timerange = event ->
         {
             String text = start.getText();
-            final Instant abs_start = TimeRelativeIntervalPane.parseAbsolute(text);
-            final TemporalAmount rel_start = TimeRelativeIntervalPane.parseRelative(text);
+            final Instant abs_start = TimestampFormats.parse(text);
+            final TemporalAmount rel_start = TimeParser.parseTemporalAmount(text);
 
             text = end.getText();
-            final Instant abs_end = TimeRelativeIntervalPane.parseAbsolute(text);
+            final Instant abs_end = TimestampFormats.parse(text);
 
             TimeRelativeInterval range = null;
             if (abs_start != null  &&  abs_end != null)

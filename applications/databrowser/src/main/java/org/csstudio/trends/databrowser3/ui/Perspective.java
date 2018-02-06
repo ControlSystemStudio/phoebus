@@ -268,6 +268,7 @@ public class Perspective extends SplitPane
     {
         property_panel.restore(memento);
         search.restore(memento);
+        export.restore(memento);
         memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
         memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
         memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
@@ -287,6 +288,7 @@ public class Perspective extends SplitPane
     {
         search.save(memento);
         property_panel.save(memento);
+        export.save(memento);
         memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
         memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
         memento.setBoolean(SHOW_SEARCH, left_tabs.getTabs().contains(search_tab));

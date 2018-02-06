@@ -12,6 +12,7 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
@@ -32,7 +33,7 @@ public class SpreadsheetExportJob extends PlainExportJob
             final Instant start, final Instant end, final Source source,
             final int optimize_parameter, final ValueFormatter formatter,
             final String filename,
-            final ExportErrorHandler error_handler)
+            final Consumer<Exception> error_handler)
     {
         super(model, start, end, source, optimize_parameter, formatter, filename, error_handler);
     }

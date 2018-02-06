@@ -139,66 +139,22 @@ public class TimeRelativeIntervalPane extends GridPane
         start_spec.setOnAction(event ->
         {
             final String text = start_spec.getText().trim();
-            final Instant instant = parseAbsolute(text);
-            if (instant != null)
-            {
-                abs_start.setInstant(instant);
-                return;
-            }
-
-            final TemporalAmount amount = parseRelative(text);
-            if (amount != null)
-                rel_start.setTimespan(amount);
+            final Object time = TimeParser.parseInstantOrTemporalAmount(text);
+            if (time instanceof Instant)
+                abs_start.setInstant((Instant)time);
+            else if (time instanceof TemporalAmount)
+                rel_start.setTimespan((TemporalAmount) time);
         });
 
         end_spec.setOnAction(event ->
         {
-            final String text = end_spec.getText().trim();
-            final Instant instant = parseAbsolute(text);
-            if (instant != null)
-            {
-                abs_end.setInstant(instant);
-                return;
-            }
-
-            final TemporalAmount amount = parseRelative(text);
-            if (amount != null)
-                rel_end.setTimespan(amount);
+            final String text =end_spec.getText().trim();
+            final Object time = TimeParser.parseInstantOrTemporalAmount(text);
+            if (time instanceof Instant)
+                abs_end.setInstant((Instant)time);
+            else if (time instanceof TemporalAmount)
+                rel_end.setTimespan((TemporalAmount) time);
         });
-    }
-
-    /** Try to parse text as absolute date, time
-     *  @param text Text with date, time
-     *  @return {@link Instant} or <code>null</code>
-     */
-    public static Instant parseAbsolute(final String text)
-    {
-        try
-        {
-            return Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
-        }
-        catch (Throwable ex)
-        {
-            // Ignore
-        }
-        return null;
-    }
-
-    /** Try to parse text as relative time range
-     *  @param text Text with temporal amount
-     *  @return {@link TemporalAmount} or <code>null</code>
-     */
-    public static TemporalAmount parseRelative(final String text)
-    {
-        try
-        {
-            return TimeParser.parseTemporalAmount(text);
-        }
-        catch (Throwable ex)
-        {
-            // Ignore
-        }
-        return null;
     }
 
 

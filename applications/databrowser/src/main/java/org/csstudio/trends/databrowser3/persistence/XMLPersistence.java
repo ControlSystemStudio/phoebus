@@ -10,8 +10,6 @@ package org.csstudio.trends.databrowser3.persistence;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -139,33 +137,6 @@ public class XMLPersistence
         load(model, doc);
     }
 
-    private static DateTimeFormatter absolute_parsers[] = new DateTimeFormatter[]
-    {
-        TimestampFormats.FULL_FORMAT,
-        TimestampFormats.MILLI_FORMAT,
-        TimestampFormats.SECONDS_FORMAT,
-        TimestampFormats.DATETIME_FORMAT,
-        TimestampFormats.DATE_FORMAT
-    };
-
-    /** @param text Absolute date/time
-     *  @return {@link Instant}
-     */
-    private static Instant parseInstant(final String text)
-    {
-        for (DateTimeFormatter format : absolute_parsers)
-        {
-            try
-            {
-                return format.parse(text, Instant::from);
-            }
-            catch (Throwable ex)
-            {
-            }
-        }
-        return Instant.now();
-    }
-
     private static void load(final Model model, final Document doc) throws Exception
     {
         if (model.getItems().size() > 0)
@@ -207,7 +178,7 @@ public class XMLPersistence
             }
             else
             {   // Absolute start ... end
-                interval = TimeRelativeInterval.of(parseInstant(start), parseInstant(end));
+                interval = TimeRelativeInterval.of(TimestampFormats.parse(start), TimestampFormats.parse(end));
             }
             model.setTimerange(interval);
         }

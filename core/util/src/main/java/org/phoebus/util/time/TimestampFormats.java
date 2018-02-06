@@ -89,4 +89,36 @@ public class TimestampFormats
            // Different year, show yyyy-MM-dd";
            return DATE_FORMAT.format(timestamp);
    }
+
+    private static final DateTimeFormatter absolute_parsers[] = new DateTimeFormatter[]
+    {
+        TimestampFormats.FULL_FORMAT,
+        TimestampFormats.MILLI_FORMAT,
+        TimestampFormats.SECONDS_FORMAT,
+        TimestampFormats.DATETIME_FORMAT,
+        TimestampFormats.DATE_FORMAT
+    };
+
+    /** Try to parse text as absolute date, time
+     *  @param text Text with date, time
+     *  @return {@link Instant} or <code>null</code>
+     */
+    public static Instant parse(final String text)
+    {
+        for (DateTimeFormatter format : absolute_parsers)
+        {
+            try
+            {
+                // DATE_FORMAT lacks seconds
+                if (format == DATE_FORMAT)
+                    return Instant.from(DATETIME_FORMAT.parse(text + " 00:00"));
+                return Instant.from(format.parse(text));
+            }
+            catch (Throwable ex)
+            {
+                // Ignore
+            }
+        }
+        return null;
+    }
 }

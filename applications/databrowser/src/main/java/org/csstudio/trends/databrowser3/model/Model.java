@@ -25,7 +25,9 @@ import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -560,6 +562,36 @@ public class Model
     public TimeRelativeInterval getTimerange()
     {
         return time_range;
+    }
+
+    /** @return Start and end specification as text */
+    public String[] getTimerangeText()
+    {
+        return getTimerangeText(time_range);
+    }
+
+    /** @param range {@link TimeRelativeInterval}
+     *  @return Start and end specification as text
+     */
+    public static String[] getTimerangeText(final TimeRelativeInterval range)
+    {
+        if (range.isEndAbsolute())
+        {
+            final TimeInterval abs = range.toAbsoluteInterval();
+            return new String[]
+            {
+                TimestampFormats.MILLI_FORMAT.format(abs.getStart()),
+                TimestampFormats.MILLI_FORMAT.format(abs.getEnd())
+            };
+        }
+        else
+        {
+            return new String[]
+            {
+                TimeParser.format(range.getRelativeStart().get()),
+                TimeParser.NOW
+            };
+        }
     }
 
     /** @param range Time range */

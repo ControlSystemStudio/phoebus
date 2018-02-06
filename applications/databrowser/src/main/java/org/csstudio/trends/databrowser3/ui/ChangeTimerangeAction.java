@@ -8,7 +8,6 @@
 package org.csstudio.trends.databrowser3.ui;
 
 import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.ui.plot.TimeRangeDialog;
 import org.csstudio.trends.databrowser3.ui.properties.ChangeTimerangeCommand;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;

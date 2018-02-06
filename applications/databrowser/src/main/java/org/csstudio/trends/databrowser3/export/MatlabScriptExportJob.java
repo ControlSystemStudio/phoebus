@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.function.Consumer;
 
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
@@ -30,7 +31,7 @@ public class MatlabScriptExportJob extends ExportJob
     public MatlabScriptExportJob(final Model model, final Instant start,
             final Instant end, final Source source,
             final int optimize_parameter, final String filename,
-            final ExportErrorHandler error_handler)
+            final Consumer<Exception> error_handler)
     {
         super("% ", model, start, end, source, optimize_parameter, filename, error_handler);
     }

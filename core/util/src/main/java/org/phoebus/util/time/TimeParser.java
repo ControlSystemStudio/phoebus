@@ -53,7 +53,9 @@ public class TimeParser {
      *
      * @param time a string that represents an instant in time
      * @return the parsed Instant or null
+     * @deprecated Use {@link TimestampFormats#parse(String)}
      */
+    @Deprecated
     public static Instant getInstant(String time) {
         if (time.equalsIgnoreCase(NOW)) {
             return Instant.now();
@@ -72,6 +74,7 @@ public class TimeParser {
      * @param time
      * @return TimeInterval
      */
+    @Deprecated
     public static TimeInterval getTimeInterval(String time) {
         Instant now = Instant.now();
         if (time.equalsIgnoreCase(NOW)) {
@@ -306,5 +309,17 @@ public class TimeParser {
                 buf.append(ms).append(" ms");
         }
         return buf.toString().trim();
+    }
+
+    /** Try to parse text as absolute or relative time
+     *  @param text
+     *  @return {@link Instant}, {@link TemporalAmount} or <code>null</code>
+     */
+    public static Object parseInstantOrTemporalAmount(final String text)
+    {
+        Object result = TimestampFormats.parse(text);
+        if (result != null)
+            return result;
+        return parseTemporalAmount(text);
     }
 }
