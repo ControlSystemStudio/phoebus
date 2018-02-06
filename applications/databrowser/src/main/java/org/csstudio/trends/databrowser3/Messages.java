@@ -86,6 +86,7 @@ public class Messages
     public static String EndTimeTT;
     public static String Error;
     public static String ErrorFmt;
+    public static String Export;
     public static String ExportBrowse;
     public static String ExportBrowseTT;
     public static String ExportDefaultDigits;

@@ -45,7 +45,11 @@ public class PlainExportJob extends ExportJob
         super.printExportInfo(out);
         out.println(comment + "Format     : " + formatter.toString());
         out.println(comment);
-        out.println(comment + "Data is in TAB-delimited columns, should import into e.g. Excel");
+        out.println(comment + "Data is in TAB-delimited columns, for import into e.g. Excel.");
+        out.println(comment + "The 'Time' column contains values like '2018-02-04 21:58:47.065'.");
+        out.println(comment + "In your spreadsheet program, a custom column format like");
+        out.println(comment + "    'yyyy-mm-d h:mm:ss.000'");
+        out.println(comment + "might be required to show the full timestamp detail.");
         out.println();
     }
 

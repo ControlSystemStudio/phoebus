@@ -2,19 +2,37 @@ package org.csstudio.trends.databrowser3.ui.export;
 
 import java.io.File;
 import java.time.Instant;
+import java.time.temporal.TemporalAmount;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.export.ExportJob;
+import org.csstudio.trends.databrowser3.export.MatlabScriptExportJob;
+import org.csstudio.trends.databrowser3.export.PlainExportJob;
+import org.csstudio.trends.databrowser3.export.Source;
+import org.csstudio.trends.databrowser3.export.SpreadsheetExportJob;
+import org.csstudio.trends.databrowser3.export.ValueFormatter;
+import org.csstudio.trends.databrowser3.export.ValueWithInfoFormatter;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.TimeRangeDialog;
+import org.phoebus.archive.vtype.Style;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
+import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimeRelativeInterval;
+import org.python.icu.text.MessageFormat;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -30,18 +48,29 @@ import javafx.scene.layout.VBox;
 public class ExportView extends VBox
 {
     private static final String TAG_SOURCE = "source",
+                                TAG_OPTCOUNT = "optcount",
+                                TAG_LININT = "linint",
                                 TAG_TYPE = "type",
                                 TAG_FORMAT = "format",
+                                TAG_DIGITS = "digits",
                                 TAG_FILE = "file";
 
     private final Model model;
     private final TextField start = new TextField();
     private final TextField end = new TextField();
-    private final CheckBox use_plot_times = new CheckBox(Messages.ExportPlotStartEnd);
+    private final CheckBox use_plot_times = new CheckBox(Messages.ExportPlotStartEnd),
+                           tabular = new CheckBox(Messages.ExportTabular),
+                           min_max_col = new CheckBox(Messages.ExportMinMaxCol),
+                           sev_stat = new CheckBox(Messages.ExportValueInfo);
     private final ToggleGroup sources = new ToggleGroup(),
                               table_types = new ToggleGroup(),
                               formats = new ToggleGroup();
-    private final TextField filename = new TextField();
+    private final TextField optimize = new TextField(Messages.ExportDefaultOptimization),
+                            linear = new TextField(Messages.ExportDefaultLinearInterpolation),
+                            format_digits = new TextField(Messages.ExportDefaultDigits),
+                            filename = new TextField();
+    private final RadioButton source_raw = new RadioButton(Source.RAW_ARCHIVE.toString()),
+                              type_matlab = new RadioButton(Messages.ExportTypeMatlab);
 
     public ExportView(final Model model)
     {
@@ -98,28 +127,26 @@ public class ExportView extends VBox
 
         grid.add(new Label(Messages.ExportGroupSource), 0, 2);
 
-        final RadioButton source_plot = new RadioButton(Messages.ExportSource_Plot);
+        // Order of source_* radio buttons must match the Source.* ordinals
+        final RadioButton source_plot = new RadioButton(Source.PLOT.toString());
         source_plot.setTooltip(new Tooltip(Messages.ExportSource_PlotTT));
         source_plot.setToggleGroup(sources);
 
-        final RadioButton source_raw = new RadioButton(Messages.ExportSource_RawArchive);
         source_raw.setTooltip(new Tooltip(Messages.ExportSource_RawArchiveTT));
         source_raw.setToggleGroup(sources);
 
-        final RadioButton source_opt = new RadioButton(Messages.ExportSource_OptimizedArchive);
+        final RadioButton source_opt = new RadioButton(Source.OPTIMIZED_ARCHIVE.toString());
         source_opt.setTooltip(new Tooltip(Messages.ExportSource_OptimizedArchiveTT));
         source_opt.setToggleGroup(sources);
 
-        final TextField optimize = new TextField(Messages.ExportDefaultOptimization);
         optimize.setPrefColumnCount(6);
         optimize.setTooltip(new Tooltip(Messages.ExportOptimizationTT));
         optimize.disableProperty().bind(source_opt.selectedProperty().not());
 
-        final RadioButton source_lin = new RadioButton(Messages.ExportSource_Linear);
+        final RadioButton source_lin = new RadioButton(Source.LINEAR_INTERPOLATION.toString());
         source_lin.setTooltip(new Tooltip(Messages.ExportSource_LinearTT));
         source_lin.setToggleGroup(sources);
 
-        final TextField linear = new TextField(Messages.ExportDefaultLinearInterpolation);
         linear.setPrefColumnCount(8);
         linear.setTooltip(new Tooltip(Messages.ExportDefaultLinearInterpolationTT));
         linear.disableProperty().bind(source_lin.selectedProperty().not());
@@ -148,26 +175,25 @@ public class ExportView extends VBox
         type_spreadsheet.setToggleGroup(table_types);
         grid.add(type_spreadsheet, 0, 0);
 
-        final RadioButton type_matlab = new RadioButton(Messages.ExportTypeMatlab);
         type_matlab.setTooltip(new Tooltip(Messages.ExportTypeMatlabTT));
         type_matlab.setToggleGroup(table_types);
         grid.add(type_matlab, 1, 0);
 
         type_spreadsheet.setSelected(true);
 
-        final CheckBox tabular = new CheckBox(Messages.ExportTabular);
         tabular.setTooltip(new Tooltip(Messages.ExportTabularTT));
         tabular.setSelected(true);
         grid.add(tabular, 0, 1);
 
-        final CheckBox min_max_col = new CheckBox(Messages.ExportMinMaxCol);
         min_max_col.setTooltip(new Tooltip(Messages.ExportMinMaxColTT));
         grid.add(min_max_col, 1, 1);
 
-        final CheckBox sev_stat = new CheckBox(Messages.ExportValueInfo);
         sev_stat.setTooltip(new Tooltip(Messages.ExportValueInfoTT));
         grid.add(sev_stat, 2, 1);
 
+        // Enable/disable min/max checkbox
+        sources.selectedToggleProperty().addListener(prop -> min_max_col.setDisable(! minMaxAllowed()));
+        min_max_col.setDisable(! minMaxAllowed());
 
         final RadioButton format_default = new RadioButton(Messages.Format_Default);
         format_default.setTooltip(new Tooltip(Messages.ExportFormat_DefaultTT));
@@ -184,7 +210,6 @@ public class ExportView extends VBox
         format_expo.setToggleGroup(formats);
         grid.add(format_expo, 2, 2);
 
-        final TextField format_digits = new TextField(Messages.ExportDefaultDigits);
         format_digits.setPrefColumnCount(3);
         format_digits.setTooltip(new Tooltip(Messages.ExportDigitsTT));
         format_digits.disableProperty().bind(format_default.selectedProperty());
@@ -217,9 +242,14 @@ public class ExportView extends VBox
 
         getChildren().setAll(source, format, output);
 
-
         // Enter in filename suggests to next start export
         filename.setOnAction(event -> export.requestFocus());
+    }
+
+    /** @return <code>true</code> if the min/max (error) column option should be enabled */
+    private boolean minMaxAllowed()
+    {
+        return !type_matlab.isSelected()  &&   !source_raw.isSelected();
     }
 
     private void selectFilename()
@@ -233,49 +263,173 @@ public class ExportView extends VBox
 
     private void startExportJob()
     {
-        // Determine start/end time
-        Instant start_time, end_time;
-        if (use_plot_times.isSelected())
+        try
         {
-            final TimeInterval abs = model.getTimerange().toAbsoluteInterval();
-            start_time = abs.getStart();
-            end_time = abs.getEnd();
+            // Determine start/end time
+            TimeRelativeInterval range = null;
+            if (use_plot_times.isSelected())
+                range = model.getTimerange();
+            else
+            {
+                final Object s = TimeParser.parseInstantOrTemporalAmount(start.getText());
+                final Object e = TimeParser.parseInstantOrTemporalAmount(end.getText());
+                if (s instanceof Instant)
+                {
+                    if (e instanceof Instant)
+                        range = TimeRelativeInterval.of((Instant)s, (Instant)e);
+                    else if (e instanceof TemporalAmount)
+                        range = TimeRelativeInterval.of((Instant)s, (TemporalAmount)e);
+                }
+                else if (s instanceof TemporalAmount)
+                {
+                    if (e instanceof Instant)
+                        range = TimeRelativeInterval.of((TemporalAmount) s, (Instant) e);
+                    else if (e instanceof TemporalAmount)
+                        range = TimeRelativeInterval.of((TemporalAmount) s, (TemporalAmount) e);
+                }
+            }
+            if (range == null)
+                throw new Exception("Invalid start..end time range");
+
+            // Determine source: Plot, archive, ...
+            final int src_index = sources.getToggles().indexOf(sources.getSelectedToggle());
+            if (src_index < 0  ||  src_index >= Source.values().length)
+                throw new Exception("Invalid sample source");
+            final Source source = Source.values()[src_index];
+            int optimize_parameter = -1;
+            if (source == Source.OPTIMIZED_ARCHIVE)
+            {
+                try
+                {
+                    optimize_parameter = Integer.parseInt(optimize.getText().trim());
+                }
+                catch (Exception ex)
+                {
+                    ExceptionDetailsErrorDialog.openError(optimize, Messages.Error, Messages.ExportOptimizeCountError, new Exception(optimize.getText()));
+                    Platform.runLater(optimize::requestFocus);
+                    return;
+                }
+            }
+            else if (source == Source.LINEAR_INTERPOLATION)
+            {
+                try
+                {
+                    optimize_parameter = (int) (SecondsParser.parseSeconds(linear.getText().trim()) + 0.5);
+                    if (optimize_parameter < 1)
+                        optimize_parameter = 1;
+                }
+                catch (Exception ex)
+                {
+                    ExceptionDetailsErrorDialog.openError(linear, Messages.Error, Messages.ExportLinearIntervalError, new Exception(linear.getText()));
+                    Platform.runLater(linear::requestFocus);
+                    return;
+                }
+            }
+
+            // Get remaining export parameters
+            final String filename = this.filename.getText().trim();
+            if (filename.isEmpty())
+            {
+                ExceptionDetailsErrorDialog.openError(this.filename, Messages.Error, Messages.ExportEnterFilenameError, new Exception(filename));
+                Platform.runLater(this.filename::requestFocus);
+                return;
+            }
+            if (new File(filename).exists())
+            {
+                final Alert dialog = new Alert(AlertType.CONFIRMATION);
+                dialog.setTitle(Messages.ExportFileExists);
+                dialog.setHeaderText(MessageFormat.format(Messages.ExportFileExistsFmt, filename));
+                DialogHelper.positionDialog(dialog, this.filename, -200, -200);
+                if (dialog.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
+                {
+                    Platform.runLater(this.filename::requestFocus);
+                    return;
+                }
+            }
+
+
+            // Construct appropriate export job
+            final ExportJob export;
+            final TimeInterval start_end = range.toAbsoluteInterval();
+            if (type_matlab.isSelected())
+            {   // Matlab file export
+                if (filename.endsWith(".m"))
+                    export = new MatlabScriptExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
+                // TODO MatlabFileExportJob, jmatio
+                else
+                    throw new Exception(Messages.ExportMatlabFilenameError);
+            }
+            else
+            {   // Spreadsheet file export
+                Style style = Style.Default;
+
+                // Default, decimal, exponential
+                final int fmt = formats.getToggles().indexOf(formats.getSelectedToggle());
+                if (fmt == 1)
+                    style = Style.Decimal;
+                else if (fmt == 2)
+                    style = Style.Exponential;
+                int precision = 0;
+                if (style != Style.Default)
+                {
+                    try
+                    {
+                        precision = Integer.parseInt(format_digits.getText().trim());
+                    }
+                    catch (Exception ex)
+                    {
+                        ExceptionDetailsErrorDialog.openError(format_digits, Messages.Error, Messages.ExportDigitsError, new Exception(format_digits.getText()));
+                        Platform.runLater(format_digits::requestFocus);
+                        return;
+                    }
+                }
+
+                final ValueFormatter formatter;
+                if (sev_stat.isSelected())
+                    formatter = new ValueWithInfoFormatter(style, precision);
+                else
+                    formatter = new ValueFormatter(style, precision);
+                formatter.useMinMaxColumn(minMaxAllowed() && min_max_col.isSelected());
+                if (tabular.isSelected())
+                    export = new SpreadsheetExportJob(model, start_end.getStart(), start_end.getEnd(), source,
+                            optimize_parameter, formatter, filename, this::handleError);
+                else
+                    export = new PlainExportJob(model, start_end.getStart(), start_end.getEnd(), source,
+                            optimize_parameter, formatter, filename, this::handleError);
+            }
+
+            JobManager.schedule(filename, export);
         }
-        else
+        catch (Exception ex)
         {
-            try
-            {
-                // TODO
-//                start_time = XMLPersistence.parseInstant(start.getText());
-//
-//                end_time = XMLPersistence.parseInstant(end.getText());
-            }
-            catch (Exception ex)
-            {
-                handleError(ex);
-            }
+            handleError(ex);
         }
     }
 
     private void handleError(final Exception ex)
     {
-        ExceptionDetailsErrorDialog.openError(Messages.Error, "Export error", ex);
+        ExceptionDetailsErrorDialog.openError(this, Messages.Error, "Export error", ex);
     }
 
     public void save(final Memento memento)
     {
-        // XXX Could save & restore more items
         memento.setNumber(TAG_SOURCE, sources.getToggles().indexOf(sources.getSelectedToggle()));
+        memento.setString(TAG_OPTCOUNT, optimize.getText());
+        memento.setString(TAG_LININT, linear.getText());
         memento.setNumber(TAG_TYPE, table_types.getToggles().indexOf(table_types.getSelectedToggle()));
         memento.setNumber(TAG_FORMAT, formats.getToggles().indexOf(formats.getSelectedToggle()));
+        memento.setString(TAG_DIGITS, format_digits.getText());
         memento.setString(TAG_FILE, filename.getText());
     }
 
     public void restore(final Memento memento)
     {
         memento.getNumber(TAG_SOURCE).ifPresent(index -> sources.selectToggle(sources.getToggles().get(index.intValue())));
+        memento.getString(TAG_OPTCOUNT).ifPresent(optimize::setText);
+        memento.getString(TAG_LININT).ifPresent(linear::setText);
         memento.getNumber(TAG_TYPE).ifPresent(index -> table_types.selectToggle(table_types.getToggles().get(index.intValue())));
         memento.getNumber(TAG_FORMAT).ifPresent(index -> formats.selectToggle(formats.getToggles().get(index.intValue())));
+        memento.getString(TAG_DIGITS).ifPresent(format_digits::setText);
         memento.getString(TAG_FILE).ifPresent(filename::setText);
     }
 }

@@ -30,6 +30,7 @@ import org.phoebus.archive.reader.MergingValueIterator;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
+import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeDuration;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -153,7 +154,7 @@ abstract public class ExportJob implements JobRunnable
     /** Print file header, gets invoked before <code>performExport</code> */
     protected void printExportInfo(final PrintStream out)
     {
-        out.println(comment + "Created by CSS Data Browser");
+        out.println(comment + "Created by CS-Studio Data Browser");
         out.println(comment);
         out.println(comment + "Start Time : " + TimestampFormats.MILLI_FORMAT.format(start));
         out.println(comment + "End Time   : " + TimestampFormats.MILLI_FORMAT.format(end));
@@ -161,7 +162,7 @@ abstract public class ExportJob implements JobRunnable
         if (source == Source.OPTIMIZED_ARCHIVE)
             out.println(comment + "Desired Value Count: " + optimize_parameter);
         else if (source == Source.LINEAR_INTERPOLATION)
-            out.println(comment + "Interpolation Interval: " + optimize_parameter + " seconds");
+            out.println(comment + "Interpolation Interval: " + SecondsParser.formatSeconds(optimize_parameter));
     }
 
     /** Perform the data export
