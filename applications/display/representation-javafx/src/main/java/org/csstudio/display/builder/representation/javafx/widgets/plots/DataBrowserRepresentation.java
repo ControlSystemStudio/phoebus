@@ -10,6 +10,10 @@ package org.csstudio.display.builder.representation.javafx.widgets.plots;
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -20,10 +24,17 @@ import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
+import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.Controller;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+import org.phoebus.util.array.ArrayDouble;
+import org.phoebus.util.time.TimestampFormats;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
 
 import javafx.scene.layout.Pane;
 
@@ -57,6 +68,41 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
      *  It is only started in run mode.
      */
     private volatile Controller controller;
+
+    /** Listener to model's selected sample, updates widget.propSelectionValue() */
+    private class ModelSampleSelectionListener implements ModelListener
+    {
+        @Override
+        public void selectedSamplesChanged()
+        {
+            // Create VTable value from selected samples
+            final List<ModelItem> items = model.getItems();
+            final List<String> names = new ArrayList<>(items.size());
+            final List<String> times = new ArrayList<>(items.size());
+            final double[] values = new double[items.size()];
+            int i=0;
+            for (ModelItem item : items)
+            {
+                names.add(item.getResolvedDisplayName());
+                final Optional<PlotDataItem<Instant>> sample = item.getSelectedSample();
+                if (sample.isPresent())
+                {
+                    times.add(TimestampFormats.MILLI_FORMAT.format(sample.get().getPosition()));
+                    values[i++] = sample.get().getValue();
+                }
+                else
+                {
+                    times.add("-");
+                    values[i++] = Double.NaN;
+                }
+            }
+            final VType value = ValueFactory.newVTable(
+                    List.of(String.class, String.class, double.class),
+                    List.of("Trace", "Timestamp", "Value"),
+                    List.of(names, times, new ArrayDouble(values)));
+            model_widget.propSelectionValue().setValue(value);
+        }
+    };
 
     @Override
     protected Pane createJFXNode() throws Exception
@@ -101,6 +147,12 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
         final String filename = model_widget.propFile().getValue();
         if (! filename.isEmpty())
             ModelThreadPool.getExecutor().execute(() -> fileChanged(null, null, filename));
+
+        // Track selected sample?
+        // 'selection_value_pv' must be set when runtime starts,
+        // can not be set later
+        if (! toolkit.isEditMode()  &&  model_widget.propSelectionValuePVName().getValue().length() > 0)
+            model.addListener(new ModelSampleSelectionListener());
     }
 
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
@@ -161,6 +213,7 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
             plot.getPlot().setPrefSize(model_widget.propWidth().getValue(),
                                        model_widget.propHeight().getValue());
 
+        // Has new model been loaded in background, to be represented?
         final Model to_load = new_model.getAndSet(null);
         if (to_load != null)
         {
@@ -168,12 +221,6 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
             try
             {
                 model.load(to_load);
-//                plot.removeAll();
-//                int i=0;
-//                for (AxisConfig axis : model.getAxes())
-//                    plot.updateAxis(i++, axis);
-//                for (ModelItem item : model.getItems())
-//                    plot.addTrace(item);
             }
             catch (Exception ex)
             {

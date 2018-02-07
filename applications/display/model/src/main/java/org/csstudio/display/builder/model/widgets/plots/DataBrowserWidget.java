@@ -30,6 +30,7 @@ import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
 
 /** Model for persisting data browser widget configuration.
@@ -83,11 +84,15 @@ public class DataBrowserWidget extends VisibleWidget
     public static final WidgetPropertyDescriptor<String> propSelectionValuePV =
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "selection_value_pv", Messages.PlotWidget_SelectionValuePV);
 
+    public static final WidgetPropertyDescriptor<VType> propSelectionValue =
+        CommonWidgetProperties.newRuntimeValue("selection_value", "Selection Value");
+
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<String> file;
     private volatile WidgetProperty<Macros> macros;
-    private volatile WidgetProperty<String> selection_value_pv;
     private volatile RuntimeEventProperty configure;
+    private volatile WidgetProperty<String> selection_value_pv;
+    private volatile WidgetProperty<VType> selection_value;
 
     public DataBrowserWidget()
     {
@@ -101,8 +106,9 @@ public class DataBrowserWidget extends VisibleWidget
         properties.add(file = propFile.createProperty(this, ""));
         properties.add(show_toolbar = propToolbar.createProperty(this, false));
         properties.add(macros = propMacros.createProperty(this, new Macros()));
-        properties.add(selection_value_pv = propSelectionValuePV.createProperty(this, ""));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
+        properties.add(selection_value_pv = propSelectionValuePV.createProperty(this, ""));
+        properties.add(selection_value = propSelectionValue.createProperty(this, null));
     }
 
     @Override
@@ -140,15 +146,21 @@ public class DataBrowserWidget extends VisibleWidget
         return show_toolbar;
     }
 
+    /** @return 'configure' property */
+    public RuntimeEventProperty runtimePropConfigure()
+    {
+        return configure;
+    }
+
     /** @return 'selection_value_pv' property */
     public WidgetProperty<String> propSelectionValuePVName()
     {
         return selection_value_pv;
     }
 
-    /** @return 'configure' property */
-    public RuntimeEventProperty runtimePropConfigure()
+    /** @return 'selection_value' property */
+    public WidgetProperty<VType> propSelectionValue()
     {
-        return configure;
+        return selection_value;
     }
 }
