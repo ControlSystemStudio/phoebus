@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.archive.reader.channelarchiver;
+package org.phoebus.archive.reader.channelarchiver.file;
 
 import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
@@ -13,7 +13,7 @@ import java.io.File;
 import java.time.Instant;
 import java.util.logging.Level;
 
-import org.phoebus.archive.reader.channelarchiver.ArchiveFileSampleReader.DbrType;
+import org.phoebus.archive.reader.channelarchiver.file.ArchiveFileSampleReader.DbrType;
 
 /** Data Header
  *

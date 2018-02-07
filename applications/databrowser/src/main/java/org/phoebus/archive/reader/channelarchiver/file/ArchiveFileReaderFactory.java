@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.archive.reader.channelarchiver;
+package org.phoebus.archive.reader.channelarchiver.file;
 
 import java.io.File;
 

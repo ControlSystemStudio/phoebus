@@ -1,2 +1,3 @@
 org.phoebus.archive.reader.rdb.RDBArchiveReaderFactory
-org.phoebus.archive.reader.channelarchiver.ArchiveFileReaderFactory
+org.phoebus.archive.reader.channelarchiver.XMLRPCArchiveReaderFactory
+org.phoebus.archive.reader.channelarchiver.file.ArchiveFileReaderFactory
