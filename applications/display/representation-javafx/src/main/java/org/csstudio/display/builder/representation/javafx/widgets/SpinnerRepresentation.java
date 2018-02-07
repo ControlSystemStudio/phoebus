@@ -16,6 +16,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.ui.javafx.Styles;
 import org.phoebus.vtype.VNumber;
 import org.phoebus.vtype.VType;
 
@@ -55,8 +56,6 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         spinner.setValueFactory(createSVF());
         styleChanged(null, null, null);
         spinner.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        if (!toolkit.isEditMode())
-            spinner.setEditable(true);
         spinner.focusedProperty().addListener((property, oldval, newval)->
         {
             if (!spinner.isFocused())
@@ -268,13 +267,15 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         @Override
         public void decrement(int steps)
         {
-            writeResultingValue(-steps*getStepIncrement());
+            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue())
+                writeResultingValue(-steps*getStepIncrement());
         }
 
         @Override
         public void increment(int steps)
         {
-            writeResultingValue(steps*getStepIncrement());
+            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue())
+                writeResultingValue(steps*getStepIncrement());
         }
 
         private void writeResultingValue(double change)
@@ -317,6 +318,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
         model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
         model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
 
         model_widget.propIncrement().addUntypedPropertyListener(this::behaviorChanged);
         model_widget.propMinimum().addUntypedPropertyListener(this::behaviorChanged);
@@ -377,6 +379,11 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             jfx_node.editorProperty().getValue().setBackground(new Background(new BackgroundFill(background, CornerRadii.EMPTY, Insets.EMPTY)));
             jfx_node.setPrefWidth(model_widget.propWidth().getValue());
             jfx_node.setPrefHeight(model_widget.propHeight().getValue());
+
+            final boolean enabled = model_widget.propEnabled().getValue();
+            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            jfx_node.setEditable(!toolkit.isEditMode() && enabled);
+
             int x = jfx_node.getStyleClass().indexOf(Spinner.STYLE_CLASS_ARROWS_ON_LEFT_VERTICAL);
             if (model_widget.propButtonsOnLeft().getValue())
             {

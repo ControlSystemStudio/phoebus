@@ -62,12 +62,14 @@ public class Styles
         jfx_node.getStyleClass().removeAll(style);
     }
 
-    /** Set or Clear a style
+    /** Set or clear a style
      *
      *  <p>Adds that style to the node, unless already set,
-     *  or removes
+     *  or removes is
+     *
      *  @param jfx_node Node
-     *  @param style Style to include in styles
+     *  @param style Style to include or not
+     *  @param set <code>true</code> to set the style, otherwise clear
      */
     public static void update(final Node jfx_node, final String style, final boolean set)
     {
