@@ -113,8 +113,14 @@ public class Model
     /** Show legend*/
     private boolean show_legend = false;
 
-    public Model()
+    /** Remove all items and axes */
+    public void clear()
     {
+        for (ModelItem item : items)
+            removeItem(item);
+
+        while (getAxisCount() > 0)
+            removeAxis(getAxis(getAxisCount()-1));
     }
 
     /** Load state from another model
