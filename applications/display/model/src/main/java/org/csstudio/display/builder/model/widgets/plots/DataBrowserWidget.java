@@ -9,6 +9,8 @@ package org.csstudio.display.builder.model.widgets.plots;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
+import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propToolbar;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -32,19 +35,19 @@ import org.w3c.dom.Element;
 /** Model for persisting data browser widget configuration.
  *
  *  @author Jaka Bobnar - Original selection value PV support
- *  @author Kay Kasemir
  *  @author Megan Grodowitz - Databrowser 3 ported from 2
+ *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class DataBrowserWidget extends VisibleWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
-            new WidgetDescriptor("databrowser", WidgetCategory.PLOT,
-                    "Data Browser",
-                    "/icons/databrowser.png",
-                    "Embedded Data Brower",
-                    Arrays.asList("org.csstudio.trends.databrowser.opiwidget"))
+        new WidgetDescriptor("databrowser", WidgetCategory.PLOT,
+                "Data Browser",
+                "/icons/databrowser.png",
+                "Embedded Data Brower",
+                Arrays.asList("org.csstudio.trends.databrowser.opiwidget"))
     {
         @Override
         public Widget createWidget()
@@ -68,24 +71,23 @@ public class DataBrowserWidget extends VisibleWidget
                 return false;
 
             final DataBrowserWidget dbwidget = (DataBrowserWidget) widget;
-
-            // Legacy used 'filename' instead of 'name'
-            XMLUtil.getChildString(xml, "filename").ifPresent(name -> dbwidget.filename.setValue(name));
-
+            if (xml_version.getMajor() < 2)
+            {
+                // Legacy used 'filename' instead of 'file'
+                XMLUtil.getChildString(xml, "filename").ifPresent(name -> dbwidget.file.setValue(name));
+            }
             return true;
         }
     }
-
-    public static final WidgetPropertyDescriptor<Boolean> propShowToolbar =
-        CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_toolbar", Messages.PlotWidget_ShowToolbar);
 
     public static final WidgetPropertyDescriptor<String> propSelectionValuePV =
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "selection_value_pv", Messages.PlotWidget_SelectionValuePV);
 
     private volatile WidgetProperty<Boolean> show_toolbar;
-    private volatile WidgetProperty<String> filename;
+    private volatile WidgetProperty<String> file;
     private volatile WidgetProperty<Macros> macros;
     private volatile WidgetProperty<String> selection_value_pv;
+    private volatile RuntimeEventProperty configure;
 
     public DataBrowserWidget()
     {
@@ -96,10 +98,11 @@ public class DataBrowserWidget extends VisibleWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        properties.add(filename = propFile.createProperty(this, ""));
-        properties.add(show_toolbar = propShowToolbar.createProperty(this, false));
+        properties.add(file = propFile.createProperty(this, ""));
+        properties.add(show_toolbar = propToolbar.createProperty(this, false));
         properties.add(macros = propMacros.createProperty(this, new Macros()));
         properties.add(selection_value_pv = propSelectionValuePV.createProperty(this, ""));
+        properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
     }
 
     @Override
@@ -128,7 +131,7 @@ public class DataBrowserWidget extends VisibleWidget
     /** @return 'file' property */
     public WidgetProperty<String> propFile()
     {
-        return filename;
+        return file;
     }
 
     /** @return 'show_toolbar' property */
@@ -143,9 +146,9 @@ public class DataBrowserWidget extends VisibleWidget
         return selection_value_pv;
     }
 
-    @Override
-    public String toString()
+    /** @return 'configure' property */
+    public RuntimeEventProperty runtimePropConfigure()
     {
-        return "DataBrowserWidgetModel: " + filename;
+        return configure;
     }
 }

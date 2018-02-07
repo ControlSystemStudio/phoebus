@@ -71,7 +71,7 @@ public class Controller
     /** Task executed by update_timer.
      *  Only changed on UI thread
      */
-    private ScheduledFuture<?> update_task = null;
+    private volatile ScheduledFuture<?> update_task = null;
 
     /** Delay to avoid flurry of archive requests */
     final private long archive_fetch_delay = Preferences.archive_fetch_delay;
@@ -659,6 +659,9 @@ public class Controller
     private void getArchivedData(final ModelItem item,
                                  final Instant start, final Instant end)
     {
+        if (! isRunning())
+            return;
+
         // Only useful for PVItems with archive data source
         if (!(item instanceof PVItem))
             return;

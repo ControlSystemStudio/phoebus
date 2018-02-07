@@ -49,14 +49,20 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
     /** Data Browser plot */
     private volatile ModelBasedPlot plot;
 
-    /** Data Browser controller */
+    /** Data Browser controller
+     *
+     *  <p>Controller is always created,
+     *  so that plot shows PV names etc.
+     *  in edit mode.
+     *  It is only started in run mode.
+     */
     private volatile Controller controller;
 
     @Override
     protected Pane createJFXNode() throws Exception
     {
-        // plot = new ModelBasedPlot(! toolkit.isEditMode());
-        plot = new ModelBasedPlot(true);
+        plot = new ModelBasedPlot(! toolkit.isEditMode());
+        controller = new Controller(model, plot);
         return plot.getPlot();
     }
 
@@ -71,7 +77,6 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
     {
         super.registerListeners();
 
-        controller = new Controller(model, plot);
         if (! toolkit.isEditMode())
         {
             try
@@ -86,15 +91,16 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
 
         model_widget.propWidth().addPropertyListener(this::sizeChanged);
         model_widget.propHeight().addPropertyListener(this::sizeChanged);
-
         // Not monitoring macros.
         // Macros are read when the file property updates
         model_widget.propFile().addPropertyListener(this::fileChanged);
-
         model_widget.propShowToolbar().addUntypedPropertyListener(this::optsChanged);
+        model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.getPlot().showConfigurationDialog());
 
         // Initial update
-        ModelThreadPool.getExecutor().execute(() -> fileChanged(null, null, model_widget.propFile().getValue()));
+        final String filename = model_widget.propFile().getValue();
+        if (! filename.isEmpty())
+            ModelThreadPool.getExecutor().execute(() -> fileChanged(null, null, filename));
     }
 
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
@@ -135,6 +141,7 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
         }
         // Override settings in *.plt file with those of widget
         db_model.setToolbarVisible(model_widget.propShowToolbar().getValue());
+        // Set 'new_model'. Plot will be updated on UI thread
         new_model.set(db_model);
         toolkit.scheduleUpdate(this);
     }

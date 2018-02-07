@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
@@ -47,6 +48,7 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
             entry(ScrollBarWidget.WIDGET_DESCRIPTOR.getType(),       () -> new SliderWidgetRuntime()),
             entry(TableWidget.WIDGET_DESCRIPTOR.getType(),           () -> new TableWidgetRuntime()),
             entry(TabsWidget.WIDGET_DESCRIPTOR.getType(),            () -> new TabsWidgetRuntime()),
+            entry(DataBrowserWidget.WIDGET_DESCRIPTOR.getType(),     () -> new DataBrowserWidgetRuntime()),
             entry(XYPlotWidget.WIDGET_DESCRIPTOR.getType(),          () -> new XYPlotWidgetRuntime())
         );
     }
