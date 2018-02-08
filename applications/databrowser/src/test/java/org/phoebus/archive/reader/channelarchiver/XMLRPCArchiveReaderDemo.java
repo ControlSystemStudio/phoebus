@@ -70,7 +70,7 @@ public class XMLRPCArchiveReaderDemo
             while (values.hasNext())
             {
                 final VType value = values.next();
-                // System.out.println(value);
+                System.out.println(value);
                 ++count;
             }
             System.out.println(count + " samples");

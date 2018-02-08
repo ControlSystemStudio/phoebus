@@ -21,7 +21,6 @@ import org.phoebus.archive.vtype.ArchiveVNumberArray;
 import org.phoebus.archive.vtype.ArchiveVStatistics;
 import org.phoebus.archive.vtype.ArchiveVString;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.util.text.NumberFormats;
 import org.phoebus.vtype.Display;
 import org.phoebus.vtype.VType;
@@ -296,12 +295,8 @@ class ValueRequestIterator implements ValueIterator
                 final String value = XmlRpc.getValue(XmlRpc.getFirstArrayValue(XmlRpc.getStructMember(value_struct, "value")));
                 sample = new ArchiveVString(time, sevr.getSeverity(), status, value);
             }
-            // TODO Decode more types
             else
-            {
-
-                throw new Exception("Cannot decode samples for " + type.getSimpleName() + ":\n" + XMLUtil.elementToString(value_struct, true));
-            }
+                throw new Exception("Cannot decode samples for " + type.getSimpleName());
             result.add(sample);
         }
 
