@@ -10,6 +10,7 @@ package org.phoebus.archive.reader.channelarchiver;
 import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
 import java.net.URL;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import java.util.logging.Level;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.vtype.AlarmSeverity;
 import org.w3c.dom.Element;
 
@@ -77,14 +79,14 @@ public class XMLRPCArchiveReader implements ArchiveReader
 
         // Decode request methods
         Element el = XmlRpc.getStructMember(struct, "how");
-        // XMLUtil.writeDocument(el, System.out);
+        XMLUtil.writeDocument(el, System.out);
         int method_index = 0;
         for (Element v : XmlRpc.getArrayValues(el))
         {
             final String method = XmlRpc.getValue(v);
             if (method.equals("raw"))
                 method_raw = method_index;
-            if (method.equals("plot-binning"))
+            if (method.equals("average"))
                 method_optimized = method_index;
             ++method_index;
         }
@@ -173,7 +175,18 @@ public class XMLRPCArchiveReader implements ArchiveReader
     public ValueIterator getRawValues(final String name, final Instant start, final Instant end)
             throws UnknownChannelException, Exception
     {
-        return new ValueRequestIterator(this, name, start, end, method_raw, 10);
+        return new ValueRequestIterator(this, name, start, end, method_raw, 100);
+    }
+
+    @Override
+    public ValueIterator getOptimizedValues(final String name, final Instant start,
+                                            final Instant end, final int count) throws UnknownChannelException, Exception
+    {
+        // Compute seconds between averaged samples
+        int secs = (int) (Duration.between(start, end).getSeconds() / count);
+        if (secs < 1)
+            secs = 1;
+        return new ValueRequestIterator(this, name, start, end, method_optimized, secs);
     }
 
     @Override

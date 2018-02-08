@@ -18,6 +18,7 @@ import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.ArchiveVEnum;
 import org.phoebus.archive.vtype.ArchiveVNumber;
 import org.phoebus.archive.vtype.ArchiveVNumberArray;
+import org.phoebus.archive.vtype.ArchiveVStatistics;
 import org.phoebus.archive.vtype.ArchiveVString;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -238,7 +239,19 @@ class ValueRequestIterator implements ValueIterator
                     values[i++] = XmlRpc.getValue(val);
 
                 if (values.length == 1)
-                    sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                {   // Check for min,max,avg
+                    final Element min_el = XmlRpc.getOptionalStructMember(value_struct, "min");
+                    final Element max_el = XmlRpc.getOptionalStructMember(value_struct, "max");
+                    if (min_el != null  &&  max_el != null)
+                    {
+                        final double min = XmlRpc.getValue(min_el);
+                        final double max = XmlRpc.getValue(max_el);
+                        sample = new ArchiveVStatistics(time, sevr.getSeverity(), status, display, values[0],
+                                                        min, max, 0.0, 1);
+                    }
+                    else
+                        sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                }
                 else
                     sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
             }
@@ -250,7 +263,19 @@ class ValueRequestIterator implements ValueIterator
                     values[i++] = XmlRpc.getValue(val);
 
                 if (values.length == 1)
-                    sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                {   // Check for min,max,avg
+                    final Element min_el = XmlRpc.getOptionalStructMember(value_struct, "min");
+                    final Element max_el = XmlRpc.getOptionalStructMember(value_struct, "max");
+                    if (min_el != null  &&  max_el != null)
+                    {
+                        final double min = XmlRpc.getValue(min_el);
+                        final double max = XmlRpc.getValue(max_el);
+                        sample = new ArchiveVStatistics(time, sevr.getSeverity(), status, display, values[0],
+                                                        min, max, 0.0, 1);
+                    }
+                    else
+                        sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                }
                 else
                     sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
             }

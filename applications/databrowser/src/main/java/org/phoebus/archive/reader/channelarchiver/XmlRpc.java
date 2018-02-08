@@ -123,10 +123,10 @@ public class XmlRpc
 
     /** @param value A "value" node that contains a "struct"
      *  @param name Name of desired structure member
-     *  @return "value" node of that member
+     *  @return "value" node of that member, or <code>null</code> if not found
      *  @throws Exception on error
      */
-    public static Element getStructMember(final Element value, final String name) throws Exception
+    public static Element getOptionalStructMember(final Element value, final String name) throws Exception
     {
         final Element struct = XMLUtil.getChildElement(value,  "struct");
         for (Element member : XMLUtil.getChildElements(struct, "member"))
@@ -134,7 +134,20 @@ public class XmlRpc
             if (name.equals(XMLUtil.getChildString(member, "name").orElse(null)))
                 return getChildElement(member, "value");
         }
-        throw new Exception("Cannot locate struct element <" + name + ">");
+        return null;
+    }
+
+    /** @param value A "value" node that contains a "struct"
+     *  @param name Name of desired structure member
+     *  @return "value" node of that member
+     *  @throws Exception on error
+     */
+    public static Element getStructMember(final Element value, final String name) throws Exception
+    {
+        final Element result = getOptionalStructMember(value, name);
+        if (result == null)
+            throw new Exception("Cannot locate struct element <" + name + ">");
+        return result;
     }
 
     /** Iterate over all "value" elements of an "array"
