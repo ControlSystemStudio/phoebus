@@ -10,7 +10,7 @@ package org.phoebus.archive.reader.channelarchiver;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
+import java.util.List;
 
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -37,25 +37,44 @@ public class XmlRpc
      */
     public static String command(final String method, final Object... params) throws Exception
     {
+        // In principle, the <string>.. values should be URLEncoder.encode()d,
+        // but archive data server won't handle encoded PV name...
         final StringBuilder buf = new StringBuilder();
         buf.append("<?xml version=\"1.0\" encoding=\"").append(XMLUtil.ENCODING).append("\"?>\n");
         buf.append("<methodCall>\n");
-        buf.append(" <methodName>").append(URLEncoder.encode(method, XMLUtil.ENCODING)).append("</methodName>\n");
+        buf.append(" <methodName>").append(method).append("</methodName>\n");
         if (params.length > 0)
         {
             buf.append(" <params>\n");
             for (Object param : params)
             {
-                buf.append("  <param>\n");
-                buf.append("   <value>");
+                buf.append("  <param><value>");
                 if (param instanceof Integer)
-                    buf.append("<i4>").append(param).append("</i4>\n");
+                    buf.append("<i4>").append(param).append("</i4>");
+                // TODO Should long use <i8>? Legacy used <i4>...
+                else if (param instanceof Long)
+                    buf.append("<i4>").append(param).append("</i4>");
                 else if (param instanceof String)
-                    buf.append("<string>").append(param).append("</string>\n");
+                    buf.append("<string>").append(param).append("</string>");
+                else if (param instanceof List)
+                {
+                    buf.append("<array>");
+                    buf.append("<data>");
+                    for (Object value : (List<?>)param)
+                    {
+                        if (value instanceof String)
+                            buf.append("<value><string>")
+                               .append(value)
+                               .append("</string></value>");
+                        else
+                            throw new Exception("Cannot handle array element of type " + value.getClass().getName());
+                    }
+                    buf.append("</data>");
+                    buf.append("</array>");
+                }
                 else
                     throw new Exception("Cannot handle parameter of type " + param.getClass().getName());
-                buf.append("   </value>\n");
-                buf.append("  </param>\n");
+                buf.append("</value></param>\n");
             }
             buf.append(" </params>\n");
         }
@@ -136,6 +155,8 @@ public class XmlRpc
             return (TYPE) XMLUtil.getString(content);
         else if ("i4".equals(type))
             return (TYPE) Integer.valueOf(XMLUtil.getString(content));
+        else if ("boolean".equals(type))
+            return (TYPE) Boolean.valueOf(XMLUtil.getString(content));
         else
             throw new Exception("Cannot decode type " + type);
     }
