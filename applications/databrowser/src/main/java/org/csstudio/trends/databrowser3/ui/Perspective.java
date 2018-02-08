@@ -18,6 +18,7 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.ui.export.ExportView;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
@@ -57,6 +58,7 @@ public class Perspective extends SplitPane
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private final SearchView search = new SearchView(model, plot.getPlot().getUndoableActionManager());
+    private final ExportView export = new ExportView(model);
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();
@@ -76,7 +78,7 @@ public class Perspective extends SplitPane
         properties_tab = new Tab("Properties", property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
-        export_tab = new Tab("Export");
+        export_tab = new Tab(Messages.Export, export);
         export_tab.setGraphic(Activator.getIcon("export"));
         export_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
 
@@ -100,6 +102,10 @@ public class Perspective extends SplitPane
         {
             Activator.logger.log(Level.SEVERE, "Cannot start data browser", ex);
         }
+
+        // As pane is resized, assert that the minimzed left or bottom region stays minimized
+        widthProperty().addListener(prop -> Platform.runLater(() -> autoMinimize(left_tabs, this, 0.0)));
+        heightProperty().addListener(prop -> Platform.runLater(() -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0)));
     }
 
     /** @return {@link Model} */
@@ -266,11 +272,19 @@ public class Perspective extends SplitPane
     {
         property_panel.restore(memento);
         search.restore(memento);
+        export.restore(memento);
         memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
         memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
         memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
         memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
         memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) bottom_tabs.getTabs().add(export_tab); });
+
+        // Has no effect when run right now?
+        Platform.runLater(() ->
+        {
+            autoMinimize(left_tabs, this, 0.0);
+            autoMinimize(bottom_tabs, plot_and_tabs, 1.0);
+        });
     }
 
     /** @param memento Where to store current settings */
@@ -278,6 +292,7 @@ public class Perspective extends SplitPane
     {
         search.save(memento);
         property_panel.save(memento);
+        export.save(memento);
         memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
         memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
         memento.setBoolean(SHOW_SEARCH, left_tabs.getTabs().contains(search_tab));

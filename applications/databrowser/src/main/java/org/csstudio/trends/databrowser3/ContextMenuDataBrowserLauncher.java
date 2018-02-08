@@ -9,6 +9,7 @@ package org.csstudio.trends.databrowser3;
 
 import java.util.List;
 
+import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
@@ -50,7 +51,14 @@ public class ContextMenuDataBrowserLauncher implements ContextMenuEntry<ProcessV
         final DataBrowserInstance instance = app.create();
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
-            instance.getModel().addItem(new PVItem(pv.getName(), 0));
+        {
+            final PVItem item = new PVItem(pv.getName(), 0);
+            if (pv instanceof ChannelInfo)
+                item.setArchiveDataSource(((ChannelInfo)pv).getArchiveDataSource());
+            else
+                item.useDefaultArchiveDataSources();
+            instance.getModel().addItem(item);
+        }
         return null;
     }
 }

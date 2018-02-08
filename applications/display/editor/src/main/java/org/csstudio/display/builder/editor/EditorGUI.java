@@ -12,7 +12,6 @@ import static org.csstudio.display.builder.editor.Plugin.logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Random;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -93,28 +92,24 @@ public class EditorGUI
     private final EventHandler<KeyEvent> key_handler = event ->
     {
         final KeyCode code = event.getCode();
+
+        // Only handle delete, copy, paste when mouse inside editor
+        final boolean in_editor = editor.getContextMenuNode()
+                                        .getLayoutBounds()
+                                        .contains(mouse_x, mouse_y);
+
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
         final boolean meta = event.isShortcutDown();
         if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (meta  &&  code == KeyCode.X)
+        else if (in_editor  &&  ((meta  &&  code == KeyCode.X) || code == KeyCode.DELETE))
             editor.cutToClipboard();
-        else if (meta  &&  code == KeyCode.C)
+        else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
-        else if (meta  &&  code == KeyCode.V)
-        {   // Is mouse inside editor?
-            if (! editor.getContextMenuNode()
-                        .getLayoutBounds()
-                        .contains(mouse_x, mouse_y))
-            {   // Pasting somewhere in upper left corner
-                final Random random = new Random();
-                mouse_x = random.nextInt(100);
-                mouse_y = random.nextInt(100);
-            }
+        else if (in_editor  &&  meta  &&  code == KeyCode.V)
             editor.pasteFromClipboard(mouse_x, mouse_y);
-        }
         else // Pass on, don't consume
             return;
         event.consume();

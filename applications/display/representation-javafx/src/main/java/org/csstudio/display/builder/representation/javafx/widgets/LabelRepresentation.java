@@ -28,6 +28,7 @@ import javafx.scene.transform.Translate;
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWidget>
 {
     private final DirtyFlag dirty_style = new DirtyFlag();
@@ -45,7 +46,9 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
     @Override
     public Label createJFXNode() throws Exception
     {
-        return new Label();
+        final Label label = new Label();
+        label.getStyleClass().add("text_update");
+        return label;
     }
 
     @Override

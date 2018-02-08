@@ -69,7 +69,7 @@ class BasicJobMonitor implements JobMonitor
     }
 
     @Override
-    public boolean isCancelled()
+    public boolean isCanceled()
     {
         return state == State.CANCELLED;
     }
@@ -90,7 +90,7 @@ class BasicJobMonitor implements JobMonitor
     @Override
     public String toString()
     {
-        if (isCancelled())
+        if (isCanceled())
             return task + " - Cancelled";
         if (steps > 0)
             return task + " (" + worked.get() + "/" + steps + ")";

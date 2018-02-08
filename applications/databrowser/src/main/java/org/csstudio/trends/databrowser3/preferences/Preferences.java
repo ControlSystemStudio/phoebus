@@ -31,6 +31,7 @@ public class Preferences
     final public static String
         ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
         ARCHIVE_RESCALE = "archive_rescale",
+        ARCHIVES = "archives",
         URLS = "urls",
         AUTOMATIC_HISTORY_REFRESH = "automatic_history_refresh",
         BUFFER_SIZE = "live_buffer_size",
@@ -47,7 +48,6 @@ public class Preferences
 
         // Later...
         SCAN_PERIOD = "scan_period",
-        ARCHIVES = "archives",
         PROMPT_FOR_ERRORS = "prompt_for_errors",
         TIME_SPAN_SHORTCUTS = "time_span_shortcuts",
         EMAIL_DEFAULT_SENDER = "email_default_sender";
@@ -87,18 +87,8 @@ public class Preferences
             Activator.logger.log(Level.WARNING, "Undefined rescale option '" + enum_name + "'", ex);
         }
 
-        archive_urls = new ArrayList<>();
-        for (String fragment : prefs.get(URLS).split("\\*"))
-        {
-            final String[] strs = fragment.split("\\|");
-            if (strs.length == 1)
-                archive_urls.add(new ArchiveDataSource(strs[0], strs[0]));
-            else if (strs.length >= 2)
-                archive_urls.add(new ArchiveDataSource(strs[0], strs[1]));
-        }
-
-        // TODO Read archives
-        archives = List.of();
+        archive_urls = parseArchives(prefs.get(URLS));
+        archives = parseArchives(prefs.get(ARCHIVES));
 
         automatic_history_refresh = prefs.getBoolean(AUTOMATIC_HISTORY_REFRESH);
         buffer_size = prefs.getInt(BUFFER_SIZE);
@@ -122,5 +112,19 @@ public class Preferences
         use_auto_scale = prefs.getBoolean(USE_AUTO_SCALE);
         use_default_archives = prefs.getBoolean(USE_DEFAULT_ARCHIVES);
         use_trace_names = prefs.getBoolean(USE_TRACE_NAMES);
+    }
+
+    private static List<ArchiveDataSource> parseArchives(final String setting)
+    {
+        final List<ArchiveDataSource> urls = new ArrayList<>();
+        for (String fragment : setting.split("\\*"))
+        {
+            final String[] strs = fragment.split("\\|");
+            if (strs.length == 1)
+                urls.add(new ArchiveDataSource(strs[0], strs[0]));
+            else if (strs.length >= 2)
+                urls.add(new ArchiveDataSource(strs[0], strs[1]));
+        }
+        return urls;
     }
 }

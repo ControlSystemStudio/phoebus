@@ -21,12 +21,12 @@ import java.util.logging.Level;
 
 import javax.xml.stream.XMLStreamWriter;
 
-import org.csstudio.javafx.rtplot.util.NamedThreadFactory;
 import org.csstudio.trends.databrowser3.Messages;
 // TODO import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVListener;
@@ -82,7 +82,7 @@ public class PVItem extends ModelItem
                 updateUnits(value);
             if (automaticRefresh && added &&
                 model.isPresent() &&
-                samples.isHistoryRefreshNeeded(model.get().getStartTime(), model.get().getEndTime()))
+                samples.isHistoryRefreshNeeded(model.get().getTimerange()))
                 model.get().fireItemRefreshRequested(PVItem.this);
         }
 
@@ -433,7 +433,7 @@ public class PVItem extends ModelItem
         {
             samples.mergeArchivedData(server_name, new_samples);
             need_refresh = automaticRefresh && model.isPresent() &&
-                    samples.isHistoryRefreshNeeded(model.get().getStartTime(), model.get().getEndTime());
+                    samples.isHistoryRefreshNeeded(model.get().getTimerange());
         }
         finally
         {

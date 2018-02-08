@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.archive.reader.channelarchiver;
+package org.phoebus.archive.reader.channelarchiver.file;
 
 import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Queue;
 
 import org.phoebus.archive.reader.UnknownChannelException;
-import org.phoebus.archive.reader.channelarchiver.RTreeNode.RTreeNodeWithIndex;
+import org.phoebus.archive.reader.channelarchiver.file.RTreeNode.RTreeNodeWithIndex;
 
 /** Helper class for reading ChannelArchiver index files
  *

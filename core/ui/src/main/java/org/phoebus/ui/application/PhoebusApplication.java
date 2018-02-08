@@ -47,6 +47,7 @@ import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.monitoring.ResponsivenessMonitor;
+import org.phoebus.ui.statusbar.StatusBar;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
@@ -57,7 +58,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
@@ -213,7 +213,7 @@ public class PhoebusApplication extends Application {
 
         final BorderPane layout = DockStage.getLayout(main_stage);
         layout.setTop(new VBox(menuBar, toolBar));
-        layout.setBottom(new Label("Status Bar..."));
+        layout.setBottom(StatusBar.getInstance());
 
         // Main stage may still be moved, resized, and restored apps are added.
         // --> Would be nice to _not_ show it, yet.
@@ -395,36 +395,34 @@ public class PhoebusApplication extends Application {
         menuBar.getMenus().add(new Menu(Messages.Window, null, show_tabs));
 
         // Help
-        final MenuEntry content_entry = new OpenHelp();
-        final MenuItem content = new MenuItem(content_entry.getName());
-        content.setOnAction(event ->
-        {
-            try
-            {
-                content_entry.call();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Error invoking menu entry", ex);
-            }
-        });
-
-        final MenuEntry about_entry = new OpenAbout();
-        final MenuItem about = new MenuItem(about_entry.getName());
-        about.setOnAction(event ->
-        {
-            try
-            {
-                about_entry.call();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Error invoking menu entry", ex);
-            }
-        });
+        final MenuItem content = createMenuItem(new OpenHelp());
+        final MenuItem about = createMenuItem(new OpenAbout());
         menuBar.getMenus().add(new Menu(Messages.Help, null, about, content));
 
         return menuBar;
+    }
+
+    /** @param entry {@link MenuEntry}
+     *  @return {@link MenuItem}
+     */
+    private MenuItem createMenuItem(final MenuEntry entry)
+    {
+        final MenuItem item = new MenuItem(entry.getName());
+        final Image icon = entry.getIcon();
+        if (icon != null)
+            item.setGraphic(new ImageView(icon));
+        item.setOnAction(event ->
+        {
+            try
+            {
+                entry.call();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
+            }
+        });
+        return item;
     }
 
     /** Fill the {@link #top_resources_menu} and {@link #top_resources_button} */
@@ -479,14 +477,7 @@ public class PhoebusApplication extends Application {
     private void addMenuNode(Menu parent, MenuTreeNode node) {
 
         for (MenuEntry entry : node.getMenuItems()) {
-            MenuItem m = new MenuItem(entry.getName());
-            m.setOnAction((event) -> {
-                try {
-                    entry.call();
-                } catch (Exception ex) {
-                    logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
-                }
-            });
+            MenuItem m = createMenuItem(entry);
             parent.getItems().add(m);
         }
 

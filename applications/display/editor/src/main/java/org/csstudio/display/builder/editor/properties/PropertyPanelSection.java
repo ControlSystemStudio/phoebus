@@ -23,6 +23,7 @@ import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
@@ -200,7 +201,8 @@ public class PropertyPanelSection extends GridPane
                 try
                 {
                     final ImageView icon = new ImageView(WidgetIcons.getIcon(type));
-                    field = new Label(String.valueOf(property.getValue()), icon);
+                    final String name = WidgetFactory.getInstance().getWidgetDescriptor(type).getName();
+                    field = new Label(name, icon);
                 }
                 catch (Exception ex)
                 {   //  Some widgets have no icon (e.g. DisplayModel).

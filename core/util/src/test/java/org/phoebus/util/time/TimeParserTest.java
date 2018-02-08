@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
@@ -19,6 +20,7 @@ import org.junit.Test;
  * TODO additional tests are needed to verify all the chrono types are properly handled.
  * @author shroffk
  */
+@SuppressWarnings("nls")
 public class TimeParserTest {
 
     @Test
@@ -51,7 +53,7 @@ public class TimeParserTest {
         assertEquals("Failed to get Duration for last 5 days",
                 60 * 60 * 24 * 5, last5Day.getSeconds());
     }
-    
+
     @Test
     public void parse() {
         Instant now = Instant.now();
@@ -74,13 +76,13 @@ public class TimeParserTest {
         assertEquals("Failed to get Duration for last 5 mins",
                 Duration.ofHours(3).plusMinutes(5).plusSeconds(30), last3Hours5Mins30Secs);
     }
-    
+
 
     /**
      * Test the creation parsing of string representations of time to create {@link TimeRelativeInterval}
      *
      * The below tests create an interval which represents a single month.
-     * 
+     *
      */
     @Test
     public void parseRelativeInterval() {
@@ -105,5 +107,67 @@ public class TimeParserTest {
                         .parse("2012-03-01T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME).toInstant(ZoneOffset.UTC))
                 .toAbsoluteInterval();
         assertEquals(29L, Duration.between(leapFeb.getStart(), leapFeb.getEnd()).toDays());
+    }
+
+
+    @Test
+    public void testParseDuration()
+    {
+        TemporalAmount amount = TimeParser.parseDuration("3 days");
+        final long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(3*24*60*60, seconds);
+    }
+
+    @Test
+    public void testParseTemporalAmount()
+    {
+        TemporalAmount amount = TimeParser.parseTemporalAmount("3 days");
+        long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(3*24*60*60, seconds);
+
+        amount = TimeParser.parseTemporalAmount("3 days 20 mins 10 sec");
+        seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(3*24*60*60 + 20*60 + 10, seconds);
+
+        amount = TimeParser.parseTemporalAmount("now");
+        seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
+        assertEquals(0, seconds);
+
+        // Month triggers use of period, which only keeps y/m/d
+        // 1 week adds 7 days
+        amount = TimeParser.parseTemporalAmount("1 month 1 weeks 3 days 20 mins 10 sec");
+        assertEquals(amount, Period.of(0, 1, 10));
+
+        amount = TimeParser.parseTemporalAmount("1 month 1 day");
+        assertEquals(amount, Period.of(0, 1, 1));
+
+        amount = TimeParser.parseTemporalAmount("1 mo");
+        assertEquals(amount, Period.of(0, 1, 0));
+
+        // 60 days span more than a month,
+        // but since "month" is not mentioned,
+        // it's considered 60 exact days
+        // (implying 24 hour days)
+        amount = TimeParser.parseTemporalAmount("60 days");
+        assertEquals(amount, Duration.ofDays(60));
+    }
+
+    @Test
+    public void testFormatTemporalAmount()
+    {
+        String text = TimeParser.format(Duration.ofHours(2));
+        assertEquals("2 hours", text);
+
+        text = TimeParser.format(Period.of(1, 2, 3));
+        assertEquals("1 year 2 months 3 days", text);
+
+        text = TimeParser.format(Duration.ofSeconds(2*24*60*60 + 1*60*60 + 10, 123000000L));
+        assertEquals("2 days 1 hour 10 seconds 123 ms", text);
+
+        text = TimeParser.format(Duration.ofSeconds(0));
+        assertEquals("now", text);
+
+        text = TimeParser.format(Period.ZERO);
+        assertEquals("now", text);
     }
 }

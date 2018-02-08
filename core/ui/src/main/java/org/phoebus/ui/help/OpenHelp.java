@@ -9,6 +9,9 @@ package org.phoebus.ui.help;
 
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
+
+import javafx.scene.image.Image;
 
 /** Menu entry to open help
  *  @author Kay Kasemir
@@ -26,6 +29,12 @@ public class OpenHelp implements MenuEntry
     public String getMenuPath()
     {
         return "Help/Content";
+    }
+
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(getClass(), "/icons/help.png");
     }
 
     @Override

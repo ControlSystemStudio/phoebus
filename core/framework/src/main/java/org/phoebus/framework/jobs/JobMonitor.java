@@ -59,7 +59,7 @@ public interface JobMonitor
     /** Well-behaved long running jobs check for cancellation
      *  @return Has the job been asked to cancel execution?
      */
-    public boolean isCancelled();
+    public boolean isCanceled();
 
     /** Indicate that the job has completed.
      *

@@ -13,13 +13,16 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
+import javafx.scene.image.Image;
 
 /** Menu entry for creating a new display, opening in editor
  *  @author Kay Kasemir
@@ -37,6 +40,12 @@ public class NewDisplayMenuEntry implements MenuEntry
     public String getMenuPath()
     {
         return "Display";
+    }
+
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(DisplayModel.class, "/icons/display.png");
     }
 
     @Override

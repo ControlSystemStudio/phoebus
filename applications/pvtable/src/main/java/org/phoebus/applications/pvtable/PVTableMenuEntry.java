@@ -9,6 +9,8 @@ package org.phoebus.applications.pvtable;
 
 import org.phoebus.framework.spi.MenuEntry;
 
+import javafx.scene.image.Image;
+
 /**
  * Menu entry that starts PV Table
  *
@@ -28,6 +30,12 @@ public class PVTableMenuEntry implements MenuEntry
     {
         new PVTableApplication().create();
         return null;
+    }
+
+    @Override
+    public Image getIcon()
+    {
+        return ContextMenuPVTableLauncher.icon;
     }
 
     @Override

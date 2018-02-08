@@ -19,6 +19,8 @@ import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueUtil;
@@ -240,11 +242,10 @@ public class PVSamples extends PlotSamples
      *
      * This method can only ever be called from the PVItem.
      *
-     * @param startTime the start time of the current visible window on the chart
-     * @param endTime the end time of the current visible window on the chart
+     * @param interval Time range of the current visible window on the chart
      * @return true if the history data needs to be refreshed or false otherwise
      */
-    boolean isHistoryRefreshNeeded(final Instant startTime, final Instant endTime)
+    boolean isHistoryRefreshNeeded(final TimeRelativeInterval interval)
     {
         try
         {
@@ -257,6 +258,7 @@ public class PVSamples extends PlotSamples
             return false;
         }
 
+        final TimeInterval abs = interval.toAbsoluteInterval();
         try
         {
             //if already waiting for history to be loaded, wait on
@@ -271,11 +273,11 @@ public class PVSamples extends PlotSamples
             PlotSample first = live.get(0);
             //if the first time in the live data is smaller than the visible start time,
             //the buffer is large enough to contain all the "currently" visible data
-            if (first.getPosition().compareTo(startTime) <= 0) return false;
+            if (first.getPosition().compareTo(abs.getStart()) <= 0) return false;
             PlotSample last = live.get(live.size()-1);
             //if the las sample is greater than the current end time than we are not
             //looking at the live data
-            if (last.getPosition().compareTo(endTime) > 0) return false;
+            if (last.getPosition().compareTo(abs.getEnd()) > 0) return false;
             PlotSample historyLast = history.getRawSample(history.getRawSize()-1);
             //if the last raw history data is smaller than the first live sample, do refresh
             if (historyLast.getPosition().compareTo(first.getPosition()) < 0) {

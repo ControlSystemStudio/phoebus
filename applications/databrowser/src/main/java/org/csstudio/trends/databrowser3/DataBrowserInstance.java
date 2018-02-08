@@ -112,10 +112,6 @@ public class DataBrowserInstance implements AppInstance
         {   setDirty(true);   }
 
         @Override
-        public void scrollEnabled(final boolean scroll_enabled)
-        {   setDirty(true);   }
-
-        @Override
         public void changedAnnotations()
         {   setDirty(true);   }
     };

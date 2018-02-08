@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -40,6 +41,7 @@ public class PropertyPanel extends TabPane
         static ColorPicker createPicker(final Color color)
         {
             final ColorPicker picker = new ColorPicker(color);
+            picker.getCustomColors().setAll(RGBFactory.PALETTE);
             picker.setStyle("-fx-color-label-visible: false ;");
             return picker;
         }

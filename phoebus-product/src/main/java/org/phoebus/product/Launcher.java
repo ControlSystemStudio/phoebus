@@ -58,6 +58,7 @@ public class Launcher
                         Preferences.importPreferences(new FileInputStream(filename));
                     else
                         PropertyPreferenceLoader.load(new FileInputStream(filename));
+                    logger.info("Loading settings from " + filename);
                 }
                 else if (cmd.equals("-export_settings"))
                 {

@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.scene.paint.Color;
 
 /** Attempt to generate many 'unique' colors.
@@ -14,6 +17,17 @@ import javafx.scene.paint.Color;
  */
 public class RGBFactory
 {
+    /** Subset of suggested colors */
+    public static List<Color> PALETTE;
+
+    static
+    {
+        PALETTE = new ArrayList<>(12);
+        final RGBFactory rgb = new RGBFactory();
+        for (int i=0; i<12; ++i)
+            PALETTE.add(rgb.next());
+    }
+
     private double hue = -120.0;
     private double saturation = 1.0;
     private double brightness = 1.0;

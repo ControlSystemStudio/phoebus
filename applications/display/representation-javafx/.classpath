@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-rtplot"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-representation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-databrowser"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

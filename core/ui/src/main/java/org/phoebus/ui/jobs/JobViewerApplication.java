@@ -9,6 +9,9 @@ package org.phoebus.ui.jobs;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.statusbar.StatusBar;
+
+import javafx.application.Platform;
 
 /** Application descriptor for "Jobs"
  *  @author Kay Kasemir
@@ -29,6 +32,12 @@ public class JobViewerApplication implements AppDescriptor
     public String getDisplayName()
     {
         return DISPLAY_NAME;
+    }
+
+    @Override
+    public void start()
+    {
+        Platform.runLater(()  ->  StatusBar.getInstance().addItem(new StatusBarJobsIndicator()));
     }
 
     @Override

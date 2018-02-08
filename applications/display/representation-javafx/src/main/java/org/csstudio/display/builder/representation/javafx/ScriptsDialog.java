@@ -21,10 +21,12 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.javafx.LineNumberTableCellFactory;
 import org.phoebus.ui.javafx.TableHelper;
 
 import javafx.application.Platform;
@@ -40,6 +42,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -217,6 +220,9 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         setTitle(Messages.ScriptsDialog_Title);
         setHeaderText(Messages.ScriptsDialog_Info);
 
+        final Node node = JFXBaseRepresentation.getJFXNode(widget);
+        initOwner(node.getScene().getWindow());
+
         scripts.forEach(script -> script_items.add(ScriptItem.forInfo(script)));
         fixupScripts(0);
 
@@ -239,7 +245,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         setOnHidden(event ->
         {
-            final Preferences pref = Preferences.userNodeForPackage(getClass());
+            final Preferences pref = Preferences.userNodeForPackage(ScriptsDialog.class);
             pref.putDouble("content.width", content.getWidth());
             pref.putDouble("content.height", content.getHeight());
             pref.putDouble("pvs_table.pvs_name_col.width", pvs_name_col.getWidth());
@@ -355,7 +361,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         scripts.setPadding(new Insets(0, 10, 0, 0));
         pvs.setPadding(new Insets(0, 0, 0, 10));
 
-        final Preferences pref = Preferences.userNodeForPackage(getClass());
+        final Preferences pref = Preferences.userNodeForPackage(ScriptsDialog.class);
         double prefWidth = pref.getDouble("content.width", -1);
         double prefHeight = pref.getDouble("content.height", -1);
         double prefDividerPosition = pref.getDouble("content.divider.position", 0.5);
@@ -600,7 +606,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     {
         final TableColumn<PVItem, Integer> indexColumn = new TableColumn<>("#");
         indexColumn.setSortable(false);
-        indexColumn.setCellFactory(new LineNumberCellFactory<>(true));
+        indexColumn.setCellFactory(new LineNumberTableCellFactory<>(true));
         indexColumn.setMaxWidth(26);
         indexColumn.setMinWidth(26);
 

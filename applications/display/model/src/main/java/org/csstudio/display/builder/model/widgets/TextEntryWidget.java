@@ -99,6 +99,14 @@ public class TextEntryWidget extends WritablePVWidget
                 else if (selector == 2)
                     addDateTimeSelector(text_widget, xml);
 
+                // There's no transparent option for the text entry.
+                // Simulate by using transparent background color.
+                XMLUtil.getChildBoolean(xml, "transparent").ifPresent(transparent ->
+                {
+                    if (transparent)
+                        text_widget.propBackgroundColor().setValue(new WidgetColor(0, 0, 0, 0));
+                });
+
                 BorderSupport.handleLegacyBorder(widget, xml);
             }
             return true;

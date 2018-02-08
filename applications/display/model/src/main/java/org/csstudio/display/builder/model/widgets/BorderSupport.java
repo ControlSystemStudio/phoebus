@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderWidth;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetConfigurator;
@@ -39,7 +40,23 @@ public class BorderSupport
      */
     public static void handleLegacyBorder(final Widget widget, final Element xml) throws Exception
     {
-        final int style = XMLUtil.getChildInteger(xml, "border_style").orElse(0);
+        // Style tends to be a number, but could also be "None".
+        final Optional<String> style_text = XMLUtil.getChildString(xml, "border_style");
+        if (! style_text.isPresent())
+            return;
+
+        if ("none".equalsIgnoreCase(style_text.get()))
+            return;
+
+        final int style;
+        try
+        {
+            style = Integer.parseInt(style_text.get());
+        }
+        catch (NumberFormatException ex)
+        {
+            throw new Exception("Invalid border_style '" + style_text.get() + "'");
+        }
 
         // BOY supported 16 different border styles,
         // org.csstudio.opibuilder.visualparts.BorderStyle.

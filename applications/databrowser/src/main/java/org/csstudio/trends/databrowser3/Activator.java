@@ -13,7 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import org.csstudio.javafx.rtplot.util.NamedThreadFactory;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;

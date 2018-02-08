@@ -53,7 +53,10 @@ import javafx.scene.transform.Scale;
 @SuppressWarnings("nls")
 public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<ScrollPane, EmbeddedDisplayWidget>
 {
+    private static final Border EDIT_BORDER = new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
+
     private final DirtyFlag dirty_sizes = new DirtyFlag();
+    private final DirtyFlag dirty_background = new DirtyFlag();
 
     private volatile double zoom_factor = 1.0;
 
@@ -63,6 +66,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
      *  which is used as indicator to pending display updates.
      */
     private volatile Pane inner;
+    private volatile Background inner_background = Background.EMPTY;
+    private volatile Border inner_border = Border.EMPTY;
 
     private Scale zoom;
     private ScrollPane scroll;
@@ -125,7 +130,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
         model_widget.propFile().addUntypedPropertyListener(this::fileChanged);
         model_widget.propGroupName().addUntypedPropertyListener(this::fileChanged);
-        model_widget.propTransparent().addUntypedPropertyListener(this::fileChanged);
+
+        model_widget.propTransparent().addUntypedPropertyListener(this::backgroundChanged);
         fileChanged(null, null, null);
     }
 
@@ -223,6 +229,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
             // Atomically update the 'active' model
             final DisplayModel old_model = active_content_model.getAndSet(new_model);
+            new_model.propBackgroundColor().addUntypedPropertyListener(this::backgroundChanged);
 
             if (old_model != null)
             {   // Dispose old model
@@ -257,32 +264,46 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         {
             sizesChanged(null, null, null);
             toolkit.representModel(inner, content_model);
-            if (model_widget.propTransparent().getValue())
-            {
-                inner.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-                // Make scroll transparent
-                scroll.setStyle("-fx-background: null;");
-                // Reinstall the frame in edit mode. Scroll is unusable, so make it with inner
-                if (toolkit.isEditMode())
-                    inner.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-            }
-            else
-            {
-                // TODO Haven't found perfect way to set the 'background' color
-                // of the embedded content.
-                // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
-                // of the embedded content if the container is (much) larger than the content
-                inner.setBackground(new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY)));
-                // The scroll pane background can only be set via style,
-                // and then shines through on the outside of the scrollbars
-                // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
-                //                  "; -fx-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()));
-            }
+            backgroundChanged(null, null, null);
         }
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Failed to represent embedded display", ex);
         }
+    }
+
+    private void backgroundChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    {
+        final DisplayModel content_model = active_content_model.get();
+        if (model_widget.propTransparent().getValue())
+        {
+            inner_background = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
+            // Make scroll transparent
+            scroll.setStyle("-fx-background: null;");
+            // Reinstall the frame in edit mode. Scroll is unusable, so make it with inner
+            if (toolkit.isEditMode())
+                inner_border = EDIT_BORDER;
+        }
+        else
+        {
+            if (content_model == null)
+                inner_background = Background.EMPTY;
+            else
+                inner_background = new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY));
+
+            // TODO Haven't found perfect way to set the 'background' color
+            // of the embedded content.
+            // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
+            // of the embedded content if the container is (much) larger than the content
+            // The scroll pane background can only be set via style,
+            // and then shines through on the outside of the scrollbars
+            // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
+            //                  "; -fx-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()));
+            inner_border = Border.EMPTY;
+        }
+
+        dirty_background.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     @Override
@@ -317,6 +338,11 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
                 scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
                 scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
             }
+        }
+        if (dirty_background.checkAndClear())
+        {
+            inner.setBackground(inner_background);
+            inner.setBorder(inner_border);
         }
     }
 

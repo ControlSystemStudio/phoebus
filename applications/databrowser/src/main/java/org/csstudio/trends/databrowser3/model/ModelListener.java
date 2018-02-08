@@ -65,9 +65,6 @@ public interface ModelListener
      */
     default void changedItemDataConfig(PVItem item) {};
 
-    /** @param scroll_enabled <code>true</code> when scrolling was turned 'on' */
-    default void scrollEnabled(boolean scroll_enabled) {};
-
     /** The annotation list changed */
     default void changedAnnotations() {};
 
