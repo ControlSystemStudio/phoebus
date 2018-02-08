@@ -86,7 +86,7 @@ public class XmlRpc
      *
      *  @param url Server URL
      *  @param command Command to send
-     *  @return "methodResponse" from the reply
+     *  @return "value" from the reply
      *  @throws Exception on error
      */
     public static Element communicate(final URL url, final String command) throws Exception
@@ -99,7 +99,12 @@ public class XmlRpc
         out.flush();
         out.close();
 
-        return XMLUtil.openXMLDocument(connection.getInputStream(), "methodResponse");
+        // Expect <methodResponse><params><param><value>
+        Element el = XMLUtil.openXMLDocument(connection.getInputStream(), "methodResponse");
+        el = getChildElement(el, "params");
+        el = getChildElement(el, "param");
+        el = getChildElement(el, "value");
+       return el;
     }
 
     /** Get expected XML child element
@@ -132,7 +137,8 @@ public class XmlRpc
         throw new Exception("Cannot locate struct element <" + name + ">");
     }
 
-    /** @param value A "value" node that contains an "array"
+    /** Iterate over all "value" elements of an "array"
+     *  @param value A "value" node that contains an "array"
      *  @return Iterator for the "value" nodes within the array
      *  @throws Exception on error
      */
@@ -143,22 +149,30 @@ public class XmlRpc
         return XMLUtil.getChildElements(el, "value");
     }
 
-    /** @param value A "value" node that contains "string", "i4"
+    /** Decode an XML-RPC "value"
+     *  @param value A "value" node that contains "string", "i4"
      *  @return {@link String}, {@link Integer}
      *  @throws Exception on error
      */
+    @SuppressWarnings("unchecked")
     public static <TYPE> TYPE getValue(final Element value) throws Exception
     {
         final Element content = (Element) value.getFirstChild();
         final String type = content.getNodeName();
+        final String text = XMLUtil.getString(content);
         if ("string".equals(type))
-            return (TYPE) XMLUtil.getString(content);
+            return (TYPE) text;
+        else if ("double".equals(type))
+        {
+            if (text.equalsIgnoreCase("nan"))
+                return (TYPE) Double.valueOf("NaN");
+            return (TYPE) Double.valueOf(text);
+        }
         else if ("i4".equals(type))
-            return (TYPE) Integer.valueOf(XMLUtil.getString(content));
+            return (TYPE) Integer.valueOf(text);
         else if ("boolean".equals(type))
-            return (TYPE) Boolean.valueOf(XMLUtil.getString(content));
+            return (TYPE) Boolean.valueOf(text.equals("1"));
         else
             throw new Exception("Cannot decode type " + type);
     }
-
 }

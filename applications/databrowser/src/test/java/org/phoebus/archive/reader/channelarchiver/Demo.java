@@ -10,9 +10,14 @@ package org.phoebus.archive.reader.channelarchiver;
 import java.time.Instant;
 
 import org.phoebus.archive.reader.ArchiveReader;
+import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 import org.phoebus.util.time.TimestampFormats;
 
+/** Demo of XML-RPC archive reader
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
 public class Demo
 {
     public static void main(String[] args) throws Exception
@@ -24,9 +29,10 @@ public class Demo
         System.out.println(reader.getNamesByPattern(""));
         System.out.println(reader.getNamesByPattern("Tnk"));
 
-
-        reader.getRawValues("DTL_HPRF:Tnk1:T",
-                            Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-09 05:48")),
-                            Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-04-01 12:03")));
+        final Instant start = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-09 05:48"));
+        final Instant end = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-10 00:00"));
+        final ValueIterator values = reader.getRawValues("DTL_HPRF:Tnk1:T", start, end);
+        while (values.hasNext())
+            System.out.println(values.next());
     }
 }

@@ -45,13 +45,14 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class XMLRPCArchiveReader implements ArchiveReader
 {
-    private final URL url;
-    private final Integer key;
+    final URL url;
+    final Integer key;
     private final Integer version;
     private final String description;
-    private final List<String> status_strings = new ArrayList<>();
-    private final Map<Integer, SeverityInfo> severities = new HashMap<>();
-    private int method_raw = 0, method_optimized = 0;
+    final List<String> status_strings = new ArrayList<>();
+    final Map<Integer, SeverityInfo> severities = new HashMap<>();
+    private int method_raw = 0;
+    int method_optimized = 0;
 
     public XMLRPCArchiveReader(String url) throws Exception
     {
@@ -66,20 +67,17 @@ public class XMLRPCArchiveReader implements ArchiveReader
             key = 1;
         this.url = new URL("http" + url.substring(4));
 
-        final Element response = XmlRpc.communicate(this.url, XmlRpc.command("archiver.info"));
+        final Element struct = XmlRpc.communicate(this.url, XmlRpc.command("archiver.info"));
         // XMLUtil.writeDocument(response, System.out);
 
         // Get version information
-        Element el = XmlRpc.getChildElement(response, "params");
-        el = XmlRpc.getChildElement(el, "param");
-        final Element struct = XmlRpc.getChildElement(el, "value");
         version = XmlRpc.getValue(XmlRpc.getStructMember(struct, "ver"));
         description = XmlRpc.getValue(XmlRpc.getStructMember(struct, "desc"));
         if (version != 1)
             logger.log(Level.WARNING,  "Expected version 1, got " + description);
 
         // Decode request methods
-        el = XmlRpc.getStructMember(struct, "how");
+        Element el = XmlRpc.getStructMember(struct, "how");
         // XMLUtil.writeDocument(el, System.out);
         int method_index = 0;
         for (Element v : XmlRpc.getArrayValues(el))
@@ -105,9 +103,10 @@ public class XMLRPCArchiveReader implements ArchiveReader
 
         // TODO Decode severities
         el = XmlRpc.getStructMember(struct, "sevr");
-        // XMLUtil.writeDocument(el, System.out);
         for (Element v : XmlRpc.getArrayValues(el))
         {
+             XMLUtil.writeDocument(v, System.out);
+
             final Integer num = XmlRpc.getValue(XmlRpc.getStructMember(v, "num"));
             final String text = XmlRpc.getValue(XmlRpc.getStructMember(v, "sevr"));
             final Boolean has_value = XmlRpc.getValue(XmlRpc.getStructMember(v, "has_value"));
@@ -116,7 +115,8 @@ public class XMLRPCArchiveReader implements ArchiveReader
             // Patch "NO ALARM" into "OK"
             final AlarmSeverity severity;
             if ("NO_ALARM".equals(text)  ||
-                "OK".equals(text))
+                "OK".equals(text)        ||
+                text.contains("epeat"))
                 severity = AlarmSeverity.NONE;
             else if ("MINOR".equals(text))
                 severity = AlarmSeverity.MINOR;
@@ -146,31 +146,26 @@ public class XMLRPCArchiveReader implements ArchiveReader
             pattern = "";
         else
             pattern = RegExHelper.fullRegexFromGlob(glob_pattern);
-        final Element response = XmlRpc.communicate(this.url, XmlRpc.command("archiver.names", key, pattern));
+        final Element value = XmlRpc.communicate(this.url, XmlRpc.command("archiver.names", key, pattern));
         // XMLUtil.writeDocument(response, System.out);
 
         final List<String> result = new ArrayList<>();
         // Decode PV names from
-        // <params>
-        //   <param>
-        //     <value>
-        //       <array>
-        //         <data>
-        //           <value>
-        //             <struct>
-        //               <member>
-        //                 <name>name</name>
-        //                 <value><string>BoolPV</string></value>
-        //               </member>
-        //             </struct>
-        //           </value>
-        //           <value>...
-        Element el = XmlRpc.getChildElement(response, "params");
-        el = XmlRpc.getChildElement(el, "param");
-        el = XmlRpc.getChildElement(el, "value");
-        for (Element value : XmlRpc.getArrayValues(el))
+        // <value>
+        //   <array>
+        //     <data>
+        //       <value>
+        //         <struct>
+        //           <member>
+        //             <name>name</name>
+        //             <value><string>BoolPV</string></value>
+        //           </member>
+        //         </struct>
+        //       </value>
+        //       <value>...
+        for (Element el : XmlRpc.getArrayValues(value))
         {
-            final String name = XmlRpc.getValue(XmlRpc.getStructMember(value, "name"));
+            final String name = XmlRpc.getValue(XmlRpc.getStructMember(el, "name"));
             result.add(name);
         }
 
@@ -181,23 +176,7 @@ public class XMLRPCArchiveReader implements ArchiveReader
     public ValueIterator getRawValues(final String name, final Instant start, final Instant end)
             throws UnknownChannelException, Exception
     {
-        final int count = 10;
-        final int method = method_raw;
-
-        final String command = XmlRpc.command("archiver.values",
-                                              key,
-                                              List.of(name),
-                                              start.getEpochSecond(),
-                                              start.getNano(),
-                                              end.getEpochSecond(),
-                                              end.getNano(),
-                                              count,
-                                              method);
-        final Element response = XmlRpc.communicate(this.url, command);
-        XMLUtil.writeDocument(response, System.out);
-
-        // TODO Decode samples
-        return null;
+        return new ValueRequestIterator(this, name, start, end, method_raw, 10);
     }
 
     @Override
