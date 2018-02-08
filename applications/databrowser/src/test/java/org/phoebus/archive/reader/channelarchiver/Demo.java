@@ -16,5 +16,9 @@ public class Demo
     {
         final ArchiveReaderFactory factory = new XMLRPCArchiveReaderFactory();
         final ArchiveReader reader = factory.createReader("http://ics-web4.sns.ornl.gov:8080/RPC2");
+
+        System.out.println(reader.getDescription());
+        System.out.println(reader.getNamesByPattern(""));
+        System.out.println(reader.getNamesByPattern("Tnk"));
     }
 }

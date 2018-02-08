@@ -10,6 +10,10 @@ package org.phoebus.archive.reader.channelarchiver;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 
+/** SPI for "xnds:" archive URLs
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
 public class XMLRPCArchiveReaderFactory implements ArchiveReaderFactory
 {
     public static final String PREFIX = "xnds:";
