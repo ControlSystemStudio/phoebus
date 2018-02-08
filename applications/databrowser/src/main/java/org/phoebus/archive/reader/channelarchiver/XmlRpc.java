@@ -149,6 +149,19 @@ public class XmlRpc
         return XMLUtil.getChildElements(el, "value");
     }
 
+    /** Get first "value" element of an "array"
+     *  @param value A "value" node that contains an "array"
+     *  @return First "value" nodes within the array
+     *  @throws Exception on error
+     */
+    public static Element getFirstArrayValue(final Element value) throws Exception
+    {
+        Element el = getChildElement(value, "array");
+        el = getChildElement(el, "data");
+        return XMLUtil.getChildElement(el, "value");
+    }
+
+
     /** Decode an XML-RPC "value"
      *  @param value A "value" node that contains "string", "i4"
      *  @return {@link String}, {@link Integer}

@@ -20,7 +20,6 @@ import java.util.logging.Level;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.vtype.AlarmSeverity;
 import org.w3c.dom.Element;
 
@@ -101,12 +100,10 @@ public class XMLRPCArchiveReader implements ArchiveReader
         }
         logger.log(Level.FINE, "Status strings: {0}", status_strings);
 
-        // TODO Decode severities
+        // Decode severities
         el = XmlRpc.getStructMember(struct, "sevr");
         for (Element v : XmlRpc.getArrayValues(el))
         {
-             XMLUtil.writeDocument(v, System.out);
-
             final Integer num = XmlRpc.getValue(XmlRpc.getStructMember(v, "num"));
             final String text = XmlRpc.getValue(XmlRpc.getStructMember(v, "sevr"));
             final Boolean has_value = XmlRpc.getValue(XmlRpc.getStructMember(v, "has_value"));

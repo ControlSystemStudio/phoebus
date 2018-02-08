@@ -18,6 +18,7 @@ import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.ArchiveVEnum;
 import org.phoebus.archive.vtype.ArchiveVNumber;
 import org.phoebus.archive.vtype.ArchiveVNumberArray;
+import org.phoebus.archive.vtype.ArchiveVString;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.util.text.NumberFormats;
@@ -26,26 +27,14 @@ import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFactory;
 import org.w3c.dom.Element;
 
-/** Archive reader for "xnds:.."
+/** Value iterator for XML-RPC
  *
- *  <p>ExampleURLs:
- *  "xnds://my.host.site/archive/ArchiveDataServer.cgi?key=1"
- *  for the data server.
- *  "xnds://my.host.site:8080/RPC2"
- *  for the simpler standalone data server.
- *
- *  <p>Compared to previous ChannelArchiverReader,
- *  the 'key' is now part of the URL.
- *  Access to different sub-archives on one server requires
- *  using one URL per sub-archive, selecting the sub-archive
- *  via the "?key=.." query.
- *  In the previous implementation, one URL was used and the
- *  key then passed to each sample read request.
+ *  <p>Requests data from server in batches.
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ValueRequestIterator implements ValueIterator
+class ValueRequestIterator implements ValueIterator
 {
     private final XMLRPCArchiveReader reader;
     private final String name;
@@ -53,6 +42,8 @@ public class ValueRequestIterator implements ValueIterator
     private final int method;
     private final int count;
     private int index;
+    private List<String> labels = List.of();
+    private Display display = ValueFactory.displayNone();
     private List<VType> samples;
 
     /** Constructor for new value request.
@@ -193,106 +184,110 @@ public class ValueRequestIterator implements ValueIterator
         final Element response = XmlRpc.communicate(reader.url, command);
         // XMLUtil.writeDocument(response, System.out);
 
+        // Requested only one channel, so get only first element of array
+        final Element channel = XmlRpc.getFirstArrayValue(response);
+
         final List<VType> result = new ArrayList<>();
-        for (Element channel : XmlRpc.getArrayValues(response))
+
+        final String act_name = XmlRpc.getValue(XmlRpc.getStructMember(channel, "name"));
+        if (! name.equals(act_name))
+            throw new Exception("Expected " + name + ", got " + act_name);
+
+        final Integer type_code = XmlRpc.getValue(XmlRpc.getStructMember(channel, "type"));
+        final Class<?> type;
+        switch (type_code)
         {
-            final String act_name = XmlRpc.getValue(XmlRpc.getStructMember(channel, "name"));
-            if (! name.equals(act_name))
-                throw new Exception("Expected " + name + ", got " + act_name);
-
-            final Integer type_code = XmlRpc.getValue(XmlRpc.getStructMember(channel, "type"));
-            final Class<?> type;
-            switch (type_code)
-            {
-            case 0:  type = String.class;   break;
-            case 1:  type = Enum.class;     break;
-            case 2:  type = Integer.class;  break;
-            case 3:  type = Double.class;   break;
-            default: throw new Exception("Cannot handle data type " + type_code);
-            }
-
-            final Integer array_size = XmlRpc.getValue(XmlRpc.getStructMember(channel, "count"));
-
-            // Decode meta
-            List<String> labels = List.of();
-            Display display = ValueFactory.displayNone();
-
-            final Element meta = XmlRpc.getStructMember(channel, "meta");
-            final Integer meta_type = XmlRpc.getValue(XmlRpc.getStructMember(meta, "type"));
-            if (meta_type == 0)
-            {   // Enum labels
-                labels = new ArrayList<>();
-                for (Element e : XmlRpc.getArrayValues(XmlRpc.getStructMember(meta, "states")))
-                    labels.add(XmlRpc.getValue(e));
-            }
-            else
-            {   // Numeric display
-                final String units = XmlRpc.getValue(XmlRpc.getStructMember(meta, "units"));
-                final Integer prec = XmlRpc.getValue(XmlRpc.getStructMember(meta, "prec"));
-                display = ValueFactory.newDisplay(0.0, 0.0, 0.0,
-                                                  units,
-                                                  NumberFormats.format(prec), 0.0, 0.0, 10.0, 0.0, 10.0);
-            }
-
-            final Element val_arr = XmlRpc.getStructMember(channel, "values");
-            for (Element value_struct : XmlRpc.getArrayValues(val_arr))
-            {
-                // Decode time stamp
-                final Integer secs = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "secs"));
-                final Integer nano = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "nano"));
-                final Instant time = Instant.ofEpochSecond(secs, nano);
-
-                // Decode severity, status
-                Integer code = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "sevr"));
-                final SeverityInfo sevr = reader.severities.get(code);
-                code = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "stat"));
-                final String status;
-                if (! sevr.hasValue())
-                    status = sevr.getText();
-                else if (sevr.statusIsText())
-                    status = reader.status_strings.get(code);
-                else
-                    status = code.toString();
-
-                // Decode value
-                VType sample = null;
-                if (type == Double.class)
-                {
-                    final double[] values = new double[array_size];
-                    int i = 0;
-                    for (Element val : XmlRpc.getArrayValues(XmlRpc.getStructMember(value_struct, "value")))
-                        values[i++] = XmlRpc.getValue(val);
-
-                    if (values.length == 1)
-                        sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
-                    else
-                        sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
-                }
-                else if (type == Enum.class)
-                {
-                    final int[] values = new int[array_size];
-                    int i = 0;
-                    for (Element val : XmlRpc.getArrayValues(XmlRpc.getStructMember(value_struct, "value")))
-                        values[i++] = XmlRpc.getValue(val);
-
-                    if (values.length == 1)
-                        sample = new ArchiveVEnum(time, sevr.getSeverity(), status, labels, values[0]);
-                    else // Return indices..
-                        sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
-                }
-                // TODO Decode more types
-                else
-                {
-
-                    throw new Exception("Cannot decode samples for " + type.getSimpleName() + ":\n" + XMLUtil.elementToString(value_struct, true));
-                }
-                result.add(sample);
-            }
-
-            // Requested only one channel, so get only first element of array
-            break;
+        case 0:  type = String.class;   break;
+        case 1:  type = Enum.class;     break;
+        case 2:  type = Integer.class;  break;
+        case 3:  type = Double.class;   break;
+        default: throw new Exception("Cannot handle data type " + type_code);
         }
+        final Integer array_size = XmlRpc.getValue(XmlRpc.getStructMember(channel, "count"));
+
+        // Decode meta
+        decodeMeta(XmlRpc.getStructMember(channel, "meta"));
+
+        final Element val_arr = XmlRpc.getStructMember(channel, "values");
+        for (Element value_struct : XmlRpc.getArrayValues(val_arr))
+        {
+            // Decode time stamp
+            final Integer secs = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "secs"));
+            final Integer nano = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "nano"));
+            final Instant time = Instant.ofEpochSecond(secs, nano);
+
+            // Decode severity, status
+            Integer code = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "sevr"));
+            final SeverityInfo sevr = reader.severities.get(code);
+            code = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "stat"));
+            final String status;
+            if (! sevr.hasValue())
+                status = sevr.getText();
+            else if (sevr.statusIsText())
+                status = reader.status_strings.get(code);
+            else
+                status = code.toString();
+
+            // Decode value
+            VType sample = null;
+            if (type == Double.class)
+            {
+                final double[] values = new double[array_size];
+                int i = 0;
+                for (Element val : XmlRpc.getArrayValues(XmlRpc.getStructMember(value_struct, "value")))
+                    values[i++] = XmlRpc.getValue(val);
+
+                if (values.length == 1)
+                    sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                else
+                    sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
+            }
+            else if (type == Enum.class)
+            {
+                final int[] values = new int[array_size];
+                int i = 0;
+                for (Element val : XmlRpc.getArrayValues(XmlRpc.getStructMember(value_struct, "value")))
+                    values[i++] = XmlRpc.getValue(val);
+
+                if (values.length == 1)
+                    sample = new ArchiveVEnum(time, sevr.getSeverity(), status, labels, values[0]);
+                else // Return indices..
+                    sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
+            }
+            else if (type == String.class)
+            {
+                final String value = XmlRpc.getValue(XmlRpc.getFirstArrayValue(XmlRpc.getStructMember(value_struct, "value")));
+                sample = new ArchiveVString(time, sevr.getSeverity(), status, value);
+            }
+            // TODO Decode more types
+            else
+            {
+
+                throw new Exception("Cannot decode samples for " + type.getSimpleName() + ":\n" + XMLUtil.elementToString(value_struct, true));
+            }
+            result.add(sample);
+        }
+
         return result;
+    }
+
+    private void decodeMeta(final Element meta) throws Exception
+    {
+        final Integer meta_type = XmlRpc.getValue(XmlRpc.getStructMember(meta, "type"));
+        if (meta_type == 0)
+        {   // Enum labels
+            labels = new ArrayList<>();
+            for (Element e : XmlRpc.getArrayValues(XmlRpc.getStructMember(meta, "states")))
+                labels.add(XmlRpc.getValue(e));
+        }
+        else
+        {   // Numeric display
+            final String units = XmlRpc.getValue(XmlRpc.getStructMember(meta, "units"));
+            final Integer prec = XmlRpc.getValue(XmlRpc.getStructMember(meta, "prec"));
+            display = ValueFactory.newDisplay(0.0, 0.0, 0.0,
+                                              units,
+                                              NumberFormats.format(prec), 0.0, 0.0, 10.0, 0.0, 10.0);
+        }
     }
 
     @Override

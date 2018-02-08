@@ -44,5 +44,14 @@ public class Demo
         values = reader.getRawValues(name, start, end);
         while (values.hasNext())
             System.out.println(values.next());
+
+        name = "TextPV";
+        System.out.println(name);
+        start = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-05 00:00"));
+        end = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2005-03-10 00:00"));
+        values = reader.getRawValues(name, start, end);
+        while (values.hasNext())
+            System.out.println(values.next());
+
     }
 }
