@@ -29,9 +29,19 @@ public class Demo
         System.out.println(reader.getNamesByPattern(""));
         System.out.println(reader.getNamesByPattern("Tnk"));
 
-        final Instant start = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-09 05:48"));
-        final Instant end = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-10 00:00"));
-        final ValueIterator values = reader.getRawValues("DTL_HPRF:Tnk1:T", start, end);
+        String name = "DTL_HPRF:Tnk1:T";
+        System.out.println(name);
+        Instant start = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-09 05:48"));
+        Instant end = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-10 00:00"));
+        ValueIterator values = reader.getRawValues(name, start, end);
+        while (values.hasNext())
+            System.out.println(values.next());
+
+        name = "EnumPV";
+        System.out.println(name);
+        start = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2004-03-05 00:00"));
+        end = Instant.from(TimestampFormats.DATETIME_FORMAT.parse("2005-03-10 00:00"));
+        values = reader.getRawValues(name, start, end);
         while (values.hasNext())
             System.out.println(values.next());
     }

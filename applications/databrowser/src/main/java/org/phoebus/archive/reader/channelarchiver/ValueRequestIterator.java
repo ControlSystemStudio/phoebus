@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.archive.vtype.ArchiveVEnum;
 import org.phoebus.archive.vtype.ArchiveVNumber;
 import org.phoebus.archive.vtype.ArchiveVNumberArray;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.text.NumberFormats;
 import org.phoebus.vtype.Display;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFactory;
@@ -193,7 +196,6 @@ public class ValueRequestIterator implements ValueIterator
         final List<VType> result = new ArrayList<>();
         for (Element channel : XmlRpc.getArrayValues(response))
         {
-            // XMLUtil.writeDocument(channel, System.out);
             final String act_name = XmlRpc.getValue(XmlRpc.getStructMember(channel, "name"));
             if (! name.equals(act_name))
                 throw new Exception("Expected " + name + ", got " + act_name);
@@ -211,8 +213,26 @@ public class ValueRequestIterator implements ValueIterator
 
             final Integer array_size = XmlRpc.getValue(XmlRpc.getStructMember(channel, "count"));
 
-            // TODO Decode meta, at least enum strings
+            // Decode meta
+            List<String> labels = List.of();
             Display display = ValueFactory.displayNone();
+
+            final Element meta = XmlRpc.getStructMember(channel, "meta");
+            final Integer meta_type = XmlRpc.getValue(XmlRpc.getStructMember(meta, "type"));
+            if (meta_type == 0)
+            {   // Enum labels
+                labels = new ArrayList<>();
+                for (Element e : XmlRpc.getArrayValues(XmlRpc.getStructMember(meta, "states")))
+                    labels.add(XmlRpc.getValue(e));
+            }
+            else
+            {   // Numeric display
+                final String units = XmlRpc.getValue(XmlRpc.getStructMember(meta, "units"));
+                final Integer prec = XmlRpc.getValue(XmlRpc.getStructMember(meta, "prec"));
+                display = ValueFactory.newDisplay(0.0, 0.0, 0.0,
+                                                  units,
+                                                  NumberFormats.format(prec), 0.0, 0.0, 10.0, 0.0, 10.0);
+            }
 
             final Element val_arr = XmlRpc.getStructMember(channel, "values");
             for (Element value_struct : XmlRpc.getArrayValues(val_arr))
@@ -227,12 +247,12 @@ public class ValueRequestIterator implements ValueIterator
                 final SeverityInfo sevr = reader.severities.get(code);
                 code = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "stat"));
                 final String status;
-                if (sevr.statusIsText())
+                if (! sevr.hasValue())
+                    status = sevr.getText();
+                else if (sevr.statusIsText())
                     status = reader.status_strings.get(code);
-                else if (sevr.hasValue())
-                    status = code.toString();
                 else
-                    status = "";
+                    status = code.toString();
 
                 // Decode value
                 VType sample = null;
@@ -248,9 +268,24 @@ public class ValueRequestIterator implements ValueIterator
                     else
                         sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
                 }
+                else if (type == Enum.class)
+                {
+                    final int[] values = new int[array_size];
+                    int i = 0;
+                    for (Element val : XmlRpc.getArrayValues(XmlRpc.getStructMember(value_struct, "value")))
+                        values[i++] = XmlRpc.getValue(val);
+
+                    if (values.length == 1)
+                        sample = new ArchiveVEnum(time, sevr.getSeverity(), status, labels, values[0]);
+                    else // Return indices..
+                        sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
+                }
                 // TODO Decode more types
                 else
-                    throw new Exception("Cannot decode samples for " + type.getSimpleName());
+                {
+
+                    throw new Exception("Cannot decode samples for " + type.getSimpleName() + ":\n" + XMLUtil.elementToString(value_struct, true));
+                }
                 result.add(sample);
             }
 
