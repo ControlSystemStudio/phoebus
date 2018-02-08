@@ -242,6 +242,18 @@ class ValueRequestIterator implements ValueIterator
                 else
                     sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
             }
+            else if (type == Integer.class)
+            {
+                final int[] values = new int[array_size];
+                int i = 0;
+                for (Element val : XmlRpc.getArrayValues(XmlRpc.getStructMember(value_struct, "value")))
+                    values[i++] = XmlRpc.getValue(val);
+
+                if (values.length == 1)
+                    sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                else
+                    sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
+            }
             else if (type == Enum.class)
             {
                 final int[] values = new int[array_size];
