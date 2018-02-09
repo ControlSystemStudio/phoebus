@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
+import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.AddModelItemCommand;
 import org.csstudio.trends.databrowser3.ui.AddPVDialog;
@@ -47,12 +48,11 @@ public class AddPVorFormulaMenuItem extends MenuItem
 
             if (formula)
             {
-                throw new IllegalStateException("TODO");
-//              AddModelItemCommand.forFormula(undo, model, dlg.getName(0), dlg.getScanPeriod(0), axis);
-//              // Open configuration dialog
-//              final FormulaItem formula = (FormulaItem) command.get().getItem();
+                final AddModelItemCommand command = AddModelItemCommand.forFormula(undo, model, dlg.getName(0), axis);
+                final FormulaItem item = (FormulaItem) command.getItem();
+                // TODO Open configuration dialog for new formula
 //              final EditFormulaDialog edit =
-//                      new EditFormulaDialog(operations_manager, shell, formula);
+//                      new EditFormulaDialog(operations_manager, shell, item);
 //              edit.open();
             }
             else

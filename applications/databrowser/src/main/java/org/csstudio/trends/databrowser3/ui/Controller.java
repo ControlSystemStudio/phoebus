@@ -87,7 +87,7 @@ public class Controller
     final private List<ArchiveFetchJob> archive_fetch_jobs = new ArrayList<>();
 
     /** Is the window iconized? */
-    // TODO Track the window state?
+    // Track the window state?
     // Problem is that the window can change if our 'tab' is moved between windows.
     // Check in each update if the window is visible, then skip it?
     protected volatile boolean window_is_iconized = false;
@@ -236,7 +236,7 @@ public class Controller
         @Override
         public void droppedNames(List<String> name)
         {
-            // TODO
+            // TODO Handle dropped PV names
 //            // Offer potential PV name in dialog so user can edit/cancel
 //            final AddPVAction add = new AddPVAction(plot.getPlot().getUndoableActionManager(), shell, model, false);
 //            for (String one_name : names)
@@ -248,7 +248,7 @@ public class Controller
         public void droppedPVNames(List<ProcessVariable> names,
                                    List<ArchiveDataSource> archives)
         {
-            // TODO Auto-generated method stub
+            // TODO Handle dropped PV names
 //            if (names == null)
 //            {
 //                if (archives == null)
@@ -299,7 +299,7 @@ public class Controller
         @Override
         public void droppedFilename(File file_name)
         {
-            // TODO Auto-generated method stub
+            // TODO Handle dropped file name (import data)
 //            final FileImportDialog dlg = new FileImportDialog(shell, file_name);
 //            if (dlg.open() != Window.OK)
 //                return;

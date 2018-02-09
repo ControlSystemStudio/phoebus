@@ -116,23 +116,27 @@ public class AddPVDialog extends Dialog<Boolean>
             final TextField name = new TextField();
             name.textProperty().addListener(event -> checkDuplicateName(name));
             name.setTooltip(new Tooltip(formula ? Messages.AddFormula_NameTT : Messages.AddPV_NameTT));
-            PVAutocompleteMenu.INSTANCE.attachField(name);
+            if (! formula)
+                PVAutocompleteMenu.INSTANCE.attachField(name);
             names.add(name);
             layout.add(name, 1, row, 2, 1);
 
-            layout.add(new Label(Messages.AddPV_Period), 0, ++row);
-            final TextField period = new TextField("1.0");
-            period.setTooltip(new Tooltip(Messages.AddPV_PeriodTT));
-            periods.add(period);
-            period.setDisable(true);
-            layout.add(period, 1, row);
+            if (! formula)
+            {
+                layout.add(new Label(Messages.AddPV_Period), 0, ++row);
+                final TextField period = new TextField("1.0");
+                period.setTooltip(new Tooltip(Messages.AddPV_PeriodTT));
+                periods.add(period);
+                period.setDisable(true);
+                layout.add(period, 1, row);
 
-            final CheckBox monitor = new CheckBox(Messages.AddPV_OnChange);
-            monitor.setTooltip(new Tooltip(Messages.AddPV_OnChangeTT));
-            monitor.setSelected(true);
-            monitors.add(monitor);
-            monitor.setOnAction(event -> period.setDisable(monitor.isSelected()));
-            layout.add(monitors.get(i), 2, row);
+                final CheckBox monitor = new CheckBox(Messages.AddPV_OnChange);
+                monitor.setTooltip(new Tooltip(Messages.AddPV_OnChangeTT));
+                monitor.setSelected(true);
+                monitors.add(monitor);
+                monitor.setOnAction(event -> period.setDisable(monitor.isSelected()));
+                layout.add(monitors.get(i), 2, row);
+            }
 
             layout.add(new Label(Messages.AddPV_Axis), 0, ++row);
             final ChoiceBox<String> axis = new ChoiceBox<>(axis_options);
@@ -226,18 +230,21 @@ public class AddPVDialog extends Dialog<Boolean>
                 return false;
             }
 
-            // Valid scan period?
-            try
+            if (! formula)
             {
-                final double period = getScanPeriod(i);
-                if (period < 0)
-                    throw new Exception();
-            }
-            catch (Throwable ex)
-            {
-                setHeaderText(Messages.InvalidScanPeriodError);
-                periods.get(i).requestFocus();
-                return false;
+                // Valid scan period?
+                try
+                {
+                    final double period = getScanPeriod(i);
+                    if (period < 0)
+                        throw new Exception();
+                }
+                catch (Throwable ex)
+                {
+                    setHeaderText(Messages.InvalidScanPeriodError);
+                    periods.get(i).requestFocus();
+                    return false;
+                }
             }
         }
         // All OK

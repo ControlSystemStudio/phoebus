@@ -285,8 +285,7 @@ public class Perspective extends SplitPane
         property_panel.restore(memento);
         search.restore(memento);
         export.restore(memento);
-        memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
-        memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
+
         memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
         memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
         memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) bottom_tabs.getTabs().add(export_tab); });
@@ -294,6 +293,9 @@ public class Perspective extends SplitPane
         // Has no effect when run right now?
         Platform.runLater(() ->
         {
+            memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
+            memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
+
             autoMinimize(left_tabs, this, 0.0);
             autoMinimize(bottom_tabs, plot_and_tabs, 1.0);
         });

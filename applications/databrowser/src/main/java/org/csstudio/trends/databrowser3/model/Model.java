@@ -810,12 +810,12 @@ public class Model
     public boolean updateItemsAndCheckForNewSamples()
     {
         boolean anything_new = false;
-        // TODO Update any formulas
+        // Update any formulas
         for (ModelItem item : items)
         {
-//            if (item instanceof FormulaItem  &&
-//                    ((FormulaItem)item).reevaluate())
-//                anything_new = true;
+            if (item instanceof FormulaItem  &&
+                ((FormulaItem)item).reevaluate())
+                anything_new = true;
         }
         // Check and reset PV Items
         for (ModelItem item : items)

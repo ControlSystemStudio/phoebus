@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.vtype.AlarmSeverity;
 import org.w3c.dom.Element;
 
@@ -79,7 +78,7 @@ public class XMLRPCArchiveReader implements ArchiveReader
 
         // Decode request methods
         Element el = XmlRpc.getStructMember(struct, "how");
-        XMLUtil.writeDocument(el, System.out);
+        // XMLUtil.writeDocument(el, System.out);
         int method_index = 0;
         for (Element v : XmlRpc.getArrayValues(el))
         {
@@ -192,7 +191,7 @@ public class XMLRPCArchiveReader implements ArchiveReader
     @Override
     public void cancel()
     {
-        // TODO Auto-generated method stub
+        // NOP
     }
 
     @Override
