@@ -26,6 +26,7 @@ import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
+import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.PVItem;
@@ -303,8 +304,8 @@ public class XMLPersistence
                     axis.setRange(min.get(), max.get());
             }
             // Load Formulas
-//            for (Element item : XMLUtil.getChildElements(list, TAG_FORMULA))
-//                model.addItem(FormulaItem.fromDocument(model, item));
+            for (Element item : XMLUtil.getChildElements(list, TAG_FORMULA))
+                model.addItem(FormulaItem.fromDocument(model, item));
         }
 
         // Update items from legacy <xyGraphSettings>

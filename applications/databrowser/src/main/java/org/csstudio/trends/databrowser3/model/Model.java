@@ -383,6 +383,26 @@ public class Model
         return Collections.unmodifiableList(items);
     }
 
+    /** Locate item by name.
+     *
+     *  <p>Note that the model may contain multiple items for the same
+     *  name. The first occurrence will be returned.
+     *  If no item is found with the given
+     *  name, <code>null</code> will be returned.
+     *  Now that this model may have different items with the same name,
+     *  this method is not recommended to locate an item. This method
+     *  just returns an item which just happens to have the given name.
+     *  @param name
+     *  @return ModelItem by that name or <code>null</code>
+     */
+    public ModelItem getItem(final String name)
+    {
+        for (ModelItem item : items)
+            if (item.getName().equals(name))
+                return item;
+        return null;
+    }
+
     /** Called by items to set their initial color
      *  @return 'Next' suggested item color
      */
