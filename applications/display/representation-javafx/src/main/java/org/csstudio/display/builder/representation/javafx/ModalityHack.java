@@ -8,8 +8,6 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import javafx.scene.control.Dialog;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /** Less awful terrible no good hack than before for Modality
  *
@@ -27,12 +25,12 @@ import javafx.stage.Window;
  */
 public class ModalityHack
 {
-    /** @deprecated No longer needed, only for SWT-hosted JFX content */
+    /** @deprecated No longer needed, only for compatibility w/ RCP version */
     @Deprecated
     public static void forDialog(final Dialog<?> dialog)
     {
-        final Window window = dialog.getDialogPane().getContent().getScene().getWindow();
-        if (window instanceof Stage)
-            ((Stage) window).setAlwaysOnTop(true);;
+//        final Window window = dialog.getDialogPane().getContent().getScene().getWindow();
+//        if (window instanceof Stage)
+//            ((Stage) window).setAlwaysOnTop(true);;
     }
 }
