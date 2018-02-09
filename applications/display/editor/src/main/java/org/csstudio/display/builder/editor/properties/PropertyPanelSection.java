@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -251,19 +251,25 @@ public class PropertyPanelSection extends GridPane
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
 
+            final EnumWidgetPropertyBinding binding = new EnumWidgetPropertyBinding(undo, combo, enum_prop, other);
+            bindings.add(binding);
+            binding.bind();
+
             final EventHandler<ActionEvent> macro_handler = event ->
             {
                 final boolean use_macro = macroButton.isSelected() ||
                                           MacroHandler.containsMacros(enum_prop.getSpecification());
                 combo.setEditable(use_macro);
+                // Combo's text field has been set to the current value
+                // while the combo was non-editable.
+                // With Java 8, it that can be ignored, so set it again
+                // now that the combo has become editable.
+                if (use_macro  &&  combo.getEditor().getText().isEmpty())
+                    binding.restore();
             };
             macroButton.setOnAction(macro_handler);
             macroButton.setSelected(MacroHandler.containsMacros(enum_prop.getSpecification()));
             macro_handler.handle(null);
-
-            final EnumWidgetPropertyBinding binding = new EnumWidgetPropertyBinding(undo, combo, enum_prop, other);
-            bindings.add(binding);
-            binding.bind();
 
             field = new BorderPane(combo, null, macroButton, null, null);
         }
