@@ -98,9 +98,12 @@ public class EnumWidgetPropertyBinding
     /** Submit combo value to model */
     private void submit()
     {
-        updating = true;
         final String entered = jfx_node.getValue();
+        // Combo switched to editable, but user never entered anything?
+        if (entered == null)
+            return;
 
+        updating = true;
         final int ordinal = jfx_node.getItems().indexOf(entered);
 
         final Object value = (ordinal >= 0) ? ordinal : entered;
