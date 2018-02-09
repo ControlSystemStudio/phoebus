@@ -33,6 +33,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
+import org.phoebus.util.time.SecondsParser;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -426,19 +427,11 @@ public class TracesTab extends Tab
                         }
                         // Dynamic Tooltip that shows time range for the buffer
                         final int size = ((PVItem) getTableRow().getItem()).getLiveCapacity();
-                        // TODO Use relative time support to get readable time span
-                        String span;
-                        if (size > 60*60)
-                            span = size / 60.0 / 60 + " hours";
-                        else if (size > 60)
-                            span = size / 60 + " minutes";
-                        else
-                            span = size + " seconds";
+                        final String span = SecondsParser.formatSeconds(size);
                         String text = MessageFormat.format(Messages.LiveBufferSizeInfoFmt, size, span);
                         this.setTooltip(new Tooltip(text));
                     }
                 }
-
             };
             return cell;
         });
@@ -584,9 +577,6 @@ public class TracesTab extends Tab
 
         trace_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         trace_table.setEditable(true);
-
-        // TODO Cursor value update
-
         trace_table.getColumns().forEach(c -> c.setSortable(false));
     }
 
