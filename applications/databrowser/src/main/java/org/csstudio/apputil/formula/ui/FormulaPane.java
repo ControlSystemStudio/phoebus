@@ -12,7 +12,6 @@ import java.util.List;
 
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
-import org.csstudio.trends.databrowser3.formula.InputItem;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;

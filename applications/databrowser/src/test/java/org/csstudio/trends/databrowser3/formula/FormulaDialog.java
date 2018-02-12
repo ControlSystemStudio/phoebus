@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.formula;
 import java.util.List;
 
 import org.csstudio.apputil.formula.ui.FormulaPane;
+import org.csstudio.apputil.formula.ui.InputItem;
 import org.csstudio.trends.databrowser3.Messages;
 
 import javafx.scene.control.Button;

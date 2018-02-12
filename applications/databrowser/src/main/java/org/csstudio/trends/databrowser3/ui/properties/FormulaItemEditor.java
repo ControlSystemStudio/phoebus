@@ -10,8 +10,8 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.csstudio.apputil.formula.ui.InputItem;
 import org.csstudio.trends.databrowser3.formula.FormulaDialog;
-import org.csstudio.trends.databrowser3.formula.InputItem;
 import org.csstudio.trends.databrowser3.model.FormulaInput;
 import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
