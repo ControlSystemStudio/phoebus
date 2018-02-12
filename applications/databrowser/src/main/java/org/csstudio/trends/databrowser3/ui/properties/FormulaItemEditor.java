@@ -28,16 +28,19 @@ import javafx.scene.Node;
 @SuppressWarnings("nls")
 public class FormulaItemEditor
 {
-    private final FormulaItem formula_item;
-
-    public FormulaItemEditor(final Node parent, final FormulaItem formula_item, final UndoableActionManager undo)
+    /** Edit a formula item
+     *  @param parent Parent node, used to position dialogs
+     *  @param formula_item {@link FormulaItem} to edit
+     *  @param undo Undo/redo
+     *  @return <code>true</code> on success
+     */
+    public static boolean run(final Node parent, final FormulaItem formula_item, final UndoableActionManager undo)
     {
-        this.formula_item = formula_item;
-        final FormulaDialog dlg = new FormulaDialog(formula_item.getExpression(), determineInputs());
+        final FormulaDialog dlg = new FormulaDialog(formula_item.getExpression(), determineInputs(formula_item));
         DialogHelper.positionDialog(dlg, parent, -400, -300);
 
         if (! dlg.showAndWait().orElse(false))
-            return;
+            return false;
 
         try
         {
@@ -59,7 +62,9 @@ public class FormulaItemEditor
         catch (Exception ex)
         {
             ExceptionDetailsErrorDialog.openError("Error", "Cannot update formula", ex);
+            return false;
         }
+        return true;
     }
 
     /** @return List of inputs for formula: Each model item is a possible input,
@@ -67,7 +72,7 @@ public class FormulaItemEditor
      *          formula for that model item, or a simple "x1", "x2", ... when
      *          not already used
      */
-    private List<InputItem> determineInputs()
+    private static List<InputItem> determineInputs( final FormulaItem formula_item)
     {
         final Model model = formula_item.getModel().get();
 

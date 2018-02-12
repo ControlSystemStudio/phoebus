@@ -36,6 +36,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.SecondsParser;
 
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -247,6 +248,8 @@ public class TracesTab extends Tab
     {
         final ObservableList<ModelItem> items = trace_table.getSelectionModel().getSelectedItems();
         archives_table.getItems().clear();
+        // Note: Items in detail pane are set to the current value here.
+        // They won't update if the model item changes, for example via undo/redo.
         if (items.size() == 1)
         {
             final ModelItem item = items.get(0);
@@ -315,7 +318,11 @@ public class TracesTab extends Tab
         {
             final ModelItem item = trace_table.getSelectionModel().getSelectedItem();
             if (item instanceof FormulaItem)
-                new FormulaItemEditor(formula_txt, (FormulaItem) item, undo);
+            {
+                final FormulaItem fitem = (FormulaItem) item;
+                if (FormulaItemEditor.run(formula_txt, fitem, undo))
+                    Platform.runLater(() -> formula_txt.setText(fitem.getExpression()));
+            }
         });
         final HBox row = new HBox(5, label, formula_txt);
         row.setAlignment(Pos.CENTER_LEFT);

@@ -118,6 +118,7 @@ public class FormulaPane extends GridPane
             // Move caret to end of initial text
             insert_location = initial_formula.length();
             formula_txt.selectRange(insert_location, insert_location);
+            formula_txt.requestFocus();
         });
     }
 

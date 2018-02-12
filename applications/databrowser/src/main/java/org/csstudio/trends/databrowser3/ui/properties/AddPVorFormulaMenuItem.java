@@ -51,7 +51,7 @@ public class AddPVorFormulaMenuItem extends MenuItem
                 final AddModelItemCommand command = AddModelItemCommand.forFormula(undo, model, dlg.getName(0), axis);
                 final FormulaItem item = (FormulaItem) command.getItem();
                 // Open configuration dialog for new formula
-                new FormulaItemEditor(node, item, undo);
+                FormulaItemEditor.run(node, item, undo);
             }
             else
                 AddModelItemCommand.forPV(undo, model, dlg.getName(0), dlg.getScanPeriod(0), axis, null);
