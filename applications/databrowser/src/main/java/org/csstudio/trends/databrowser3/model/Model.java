@@ -403,6 +403,24 @@ public class Model
         return null;
     }
 
+    /** Find a formula that uses a model item as an input.
+     *  @param item Item that's potentially used in a formula
+     *  @return First {@link FormulaItem} that uses this item
+     */
+    public Optional<FormulaItem> getFormulaWithInput(final ModelItem item)
+    {
+        Objects.requireNonNull(item);
+        for (ModelItem i : items)
+        {
+            if (! (i instanceof FormulaItem))
+                continue;
+            final FormulaItem formula = (FormulaItem) i;
+            if (formula.usesInput(item))
+                return Optional.of(formula);
+        }
+        return Optional.empty();
+    }
+
     /** Called by items to set their initial color
      *  @return 'Next' suggested item color
      */
