@@ -24,6 +24,7 @@ import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
 import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
 import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
+import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
@@ -58,13 +59,14 @@ public class Perspective extends SplitPane
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private final SearchView search = new SearchView(model, plot.getPlot().getUndoableActionManager());
-    private final ExportView export = new ExportView(model);
+    private ExportView export = null;
+    private SampleView inspect = null;
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();
     private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
     private PropertyPanel property_panel;
-    private Tab search_tab, properties_tab, export_tab;
+    private Tab search_tab, properties_tab, export_tab, inspect_tab = null;
 
 
     public Perspective()
@@ -78,9 +80,6 @@ public class Perspective extends SplitPane
         properties_tab = new Tab("Properties", property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
-        export_tab = new Tab(Messages.Export, export);
-        export_tab.setGraphic(Activator.getIcon("export"));
-        export_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
 
         bottom_tabs.getTabs().setAll(properties_tab);
 
@@ -141,9 +140,18 @@ public class Perspective extends SplitPane
         show_properties.setOnAction(event -> showBottomTab(properties_tab));
 
         final MenuItem show_export = new MenuItem(Messages.OpenExportView, Activator.getIcon("export"));
-        show_export.setOnAction(event -> showBottomTab(export_tab));
+        show_export.setOnAction(event ->
+        {
+            createExportTab();
+            showBottomTab(export_tab);
+        });
 
-        // TODO Open Inspect Samples
+        final MenuItem show_samples = new MenuItem(Messages.InspectSamples, Activator.getIcon("search"));
+        show_samples.setOnAction(event ->
+        {
+            createInspectionTab();
+            showBottomTab(inspect_tab);
+        });
 
         // TODO Open Waveform View
 
@@ -157,10 +165,32 @@ public class Perspective extends SplitPane
             if (model.getEmptyAxis().isPresent())
                 items.add(new RemoveUnusedAxes(model, undo));
 
-            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export);
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
+    }
+
+    private void createExportTab()
+    {
+        if (export_tab == null)
+        {
+            export = new ExportView(model);
+            export_tab = new Tab(Messages.Export, export);
+            export_tab.setGraphic(Activator.getIcon("export"));
+            export_tab.setOnClosed(evt -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
+        }
+    }
+
+    private void createInspectionTab()
+    {
+        if (inspect_tab == null)
+        {
+            inspect = new SampleView(model);
+            inspect_tab = new Tab(Messages.InspectSamples, inspect);
+            inspect_tab.setGraphic(Activator.getIcon("search"));
+            inspect_tab.setOnClosed(evt -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
+        }
     }
 
     private void setupDrop()
@@ -284,11 +314,18 @@ public class Perspective extends SplitPane
     {
         property_panel.restore(memento);
         search.restore(memento);
-        export.restore(memento);
 
         memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
         memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
-        memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) bottom_tabs.getTabs().add(export_tab); });
+        memento.getBoolean(SHOW_EXPORT).ifPresent(show ->
+        {
+            if (show)
+            {
+                createExportTab();
+                export.restore(memento);
+                bottom_tabs.getTabs().add(export_tab);
+            }
+        });
 
         // Has no effect when run right now?
         Platform.runLater(() ->
