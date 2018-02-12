@@ -17,6 +17,7 @@ import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.Node;
@@ -24,6 +25,7 @@ import javafx.scene.Node;
 /** Editor (opens dialog) for FormulaItem's formula and inputs
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class FormulaItemEditor
 {
     private final FormulaItem formula_item;
@@ -37,7 +39,27 @@ public class FormulaItemEditor
         if (! dlg.showAndWait().orElse(false))
             return;
 
-        // TODO Update formula_item from dialog
+        try
+        {
+            // Update formula_item from dialog
+            final Model model = formula_item.getModel().get();
+            final List<FormulaInput> new_inputs = new ArrayList<>();
+            for (final InputItem input : dlg.getInputs())
+            {
+                final ModelItem item = model.getItem(input.input_name.get());
+                if (item == null)
+                    throw new Exception("Cannot locate formula input " + input.input_name.get());
+                new_inputs.add(new FormulaInput(item, input.variable_name.get()));
+            }
+            // Update formula via undo-able command
+            new ChangeFormulaCommand(undo, formula_item,
+                    dlg.getFormula(),
+                    new_inputs.toArray(new FormulaInput[new_inputs.size()]));
+        }
+        catch (Exception ex)
+        {
+            ExceptionDetailsErrorDialog.openError("Error", "Cannot update formula", ex);
+        }
     }
 
     /** @return List of inputs for formula: Each model item is a possible input,

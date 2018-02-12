@@ -7,10 +7,10 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.formula;
 
+import java.util.List;
+
 import org.csstudio.apputil.formula.ui.FormulaPane;
 import org.csstudio.apputil.formula.ui.InputItem;
-
-import com.sun.tools.javac.util.List;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
