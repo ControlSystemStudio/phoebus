@@ -15,8 +15,10 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRotationStep;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWrapWords;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +35,7 @@ import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -70,14 +73,16 @@ public class TextSymbolWidget extends PVWidget {
     );
 
     private volatile WidgetProperty<Integer>                     array_index;
-    private volatile WidgetProperty<Boolean>                     enabled;
-    private volatile WidgetProperty<WidgetColor>                 foreground;
     private volatile WidgetProperty<WidgetColor>                 background;
-    private volatile WidgetProperty<Boolean>                     transparent;
+    private volatile WidgetProperty<Boolean>                     enabled;
     private volatile WidgetProperty<WidgetFont>                  font;
+    private volatile WidgetProperty<WidgetColor>                 foreground;
     private volatile WidgetProperty<HorizontalAlignment>         horizontal_alignment;
+    private volatile WidgetProperty<RotationStep>                rotation_step;
     private volatile ArrayWidgetProperty<WidgetProperty<String>> symbols;
+    private volatile WidgetProperty<Boolean>                     transparent;
     private volatile WidgetProperty<VerticalAlignment>           vertical_alignment;
+    private volatile WidgetProperty<Boolean>                     wrap_words;
 
     public TextSymbolWidget ( ) {
         super(WIDGET_DESCRIPTOR.getType(), 32, 32);
@@ -107,6 +112,10 @@ public class TextSymbolWidget extends PVWidget {
         return horizontal_alignment;
     }
 
+    public WidgetProperty<RotationStep> propRotationStep ( ) {
+        return rotation_step;
+    }
+
     public ArrayWidgetProperty<WidgetProperty<String>> propSymbols ( ) {
         return symbols;
     }
@@ -119,6 +128,10 @@ public class TextSymbolWidget extends PVWidget {
         return vertical_alignment;
     }
 
+    public WidgetProperty<Boolean> propWrapWords ( ) {
+        return wrap_words;
+    }
+
     @Override
     protected void defineProperties ( final List<WidgetProperty<?>> properties ) {
 
@@ -126,12 +139,14 @@ public class TextSymbolWidget extends PVWidget {
 
         properties.add(symbols              = propSymbols.createProperty(this, Collections.emptyList()));
 
-        properties.add(background           = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(font                 = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
         properties.add(foreground           = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
-        properties.add(horizontal_alignment = propHorizontalAlignment.createProperty(this, HorizontalAlignment.CENTER));
+        properties.add(background           = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(transparent          = propTransparent.createProperty(this, true));
+        properties.add(horizontal_alignment = propHorizontalAlignment.createProperty(this, HorizontalAlignment.CENTER));
         properties.add(vertical_alignment   = propVerticalAlignment.createProperty(this, VerticalAlignment.MIDDLE));
+        properties.add(rotation_step        = propRotationStep.createProperty(this, RotationStep.NONE));
+        properties.add(wrap_words           = propWrapWords.createProperty(this, true));
 
         properties.add(array_index          = propArrayIndex.createProperty(this, 0));
         properties.add(enabled              = propEnabled.createProperty(this, true));
