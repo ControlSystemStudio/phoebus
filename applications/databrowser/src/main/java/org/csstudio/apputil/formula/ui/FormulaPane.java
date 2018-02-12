@@ -21,7 +21,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -33,16 +32,13 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 /** Editor pane for a Formula
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class FormulaPane extends VBox
+public class FormulaPane extends GridPane
 {
     private final TextField formula_txt = new TextField();
 
@@ -84,26 +80,27 @@ public class FormulaPane extends VBox
     public FormulaPane(final String initial_formula, final List<InputItem> inputs)
     {
         this.inputs.setAll(inputs);
-        final TitledPane form_pane = new TitledPane("Formula", formula_txt);
-        form_pane.setCollapsible(false);
 
-        final TitledPane inputs_pane = new TitledPane("Inputs", createInputs());
-        inputs_pane.setCollapsible(false);
-        HBox.setHgrow(inputs_pane, Priority.ALWAYS);
+        setHgap(5);
+        setVgap(5);
+
+
+        add(formula_txt, 0, 0, 3, 1);
+
+        final TableView<InputItem> input_pane = createInputs();
+        add(input_pane, 0, 1);
 
         final TitledPane functions_pane = new TitledPane("Functions", createFunctions());
         functions_pane.setCollapsible(false);
+        add(functions_pane, 1, 1);
 
         final TitledPane calc_pane = new TitledPane("Calculations", createCalculations());
         calc_pane.setCollapsible(false);
-        HBox.setHgrow(calc_pane, Priority.ALWAYS);
+        add(calc_pane, 2, 1);
 
-        final HBox middle_row = new HBox(5.0, inputs_pane, functions_pane, calc_pane);
+        input_pane.prefHeightProperty().bind(functions_pane.heightProperty());
 
-        form_pane.setPadding(new Insets(5));
-        middle_row.setPadding(new Insets(0, 5, 0, 5));
-        status.setPadding(new Insets(5));
-        getChildren().setAll(form_pane, middle_row, status);
+        add(status, 0, 2, 3, 1);
 
         // Text field's caret position changes to 0 when loosing focus.
         // --> Track the last position before loosing focus
@@ -172,7 +169,7 @@ public class FormulaPane extends VBox
         return used_inputs;
     }
 
-    private Node createInputs()
+    private TableView<InputItem> createInputs()
     {
         TableColumn<InputItem, String> col = new TableColumn<>("Input");
         col.setCellValueFactory(c ->  c.getValue().input_name);

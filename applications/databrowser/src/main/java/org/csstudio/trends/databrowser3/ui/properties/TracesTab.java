@@ -313,8 +313,9 @@ public class TracesTab extends Tab
         formula_txt.setEditable(false);
         formula_txt.setOnMousePressed(event ->
         {
-            // TODO Open formula editor
-            System.out.println("TODO Open formula editor...");
+            final ModelItem item = trace_table.getSelectionModel().getSelectedItem();
+            if (item instanceof FormulaItem)
+                new FormulaItemEditor(formula_txt, (FormulaItem) item, undo);
         });
         final HBox row = new HBox(5, label, formula_txt);
         row.setAlignment(Pos.CENTER_LEFT);
