@@ -9,6 +9,8 @@ package org.csstudio.trends.databrowser3.formula;
 
 import org.csstudio.apputil.formula.ui.FormulaPane;
 
+import com.sun.tools.javac.util.List;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -27,7 +29,13 @@ public class FormulaPaneDemo extends Application
     {
         final GridPane layout = new GridPane();
 
-        final FormulaPane form_pane = new FormulaPane();
+        final List<InputItem> inputs = List.of(
+            new InputItem("fred", "x"),
+            new InputItem("freddy", "y"),
+            new InputItem("jane", "z"),
+            new InputItem("janet", "jj"));
+
+        final FormulaPane form_pane = new FormulaPane("2*x + y", inputs);
         layout.add(form_pane, 0, 0, 2, 1);
 
         layout.add(new Separator(), 0, 1, 2, 1);
@@ -37,7 +45,7 @@ public class FormulaPaneDemo extends Application
         layout.add(status, 1, 2);
         status.textProperty().bind(form_pane.okProperty().asString());
 
-        stage.setScene(new Scene(layout, 600, 400));
+        stage.setScene(new Scene(layout, 700, 400));
         stage.show();
     }
 

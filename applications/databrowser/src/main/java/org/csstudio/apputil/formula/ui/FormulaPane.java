@@ -7,21 +7,31 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
+import org.csstudio.trends.databrowser3.formula.InputItem;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -34,9 +44,15 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class FormulaPane extends VBox
 {
-    private final TextField  formula_txt = new TextField();
+    private final TextField formula_txt = new TextField();
+
+    private final ObservableList<InputItem> inputs = FXCollections.observableArrayList();
+    private final TableView<InputItem> input_table = new TableView<>(inputs);
+
     private final Label status = new Label();
     private final ReadOnlyBooleanWrapper ok = new ReadOnlyBooleanWrapper();
+
+    private InputItem used_inputs[] = new InputItem[0];
 
     /** Location where button presses insert text into the formula.
      *
@@ -58,35 +74,20 @@ public class FormulaPane extends VBox
     private final EventHandler<ActionEvent> insert_formula_text = event ->
     {
         final String text = ((Button) event.getSource()).getText();
-        // Correct invalid locations
-        if (insert_location > formula_txt.getLength())
-            insert_location = formula_txt.getLength();
-        if (insert_location < 0)
-            insert_location = 0;
-        formula_txt.anchorProperty();
-        // Inserting text will update the caret and thus the insert_location.
-        // Note end of text we're about to insert
-        final int end = insert_location + text.length();
-        formula_txt.insertText(insert_location, text);
-        // Assert that text field retains/gets focus
-        Platform.runLater(() ->
-        {
-            formula_txt.requestFocus();
-            // Sometimes, for example for empty text field,
-            // the text inserted first will be selected
-            // with caret at start, so further inserts then
-            // pre-pend existing text.
-            // --> Position caret at end of what was just inserted
-            Platform.runLater(() -> formula_txt.selectRange(end, end));
-        });
+        insert(text);
     };
 
-    public FormulaPane()
+    /** @param initial_formula Initial formula text
+     *  @param inputs Possible inputs, i.e. PV names and suggested variable names.
+     *                Variable names will be edited within the {@link FormulaPane}!
+     */
+    public FormulaPane(final String initial_formula, final List<InputItem> inputs)
     {
+        this.inputs.setAll(inputs);
         final TitledPane form_pane = new TitledPane("Formula", formula_txt);
         form_pane.setCollapsible(false);
 
-        final TitledPane inputs_pane = new TitledPane("Inputs", new Label("TODO"));
+        final TitledPane inputs_pane = new TitledPane("Inputs", createInputs());
         inputs_pane.setCollapsible(false);
         HBox.setHgrow(inputs_pane, Priority.ALWAYS);
 
@@ -114,13 +115,88 @@ public class FormulaPane extends VBox
 
         formula_txt.textProperty().addListener(p -> parseFormula());
 
-        parseFormula();
+        // Set initial text (which triggers parsing)
+        formula_txt.setText(initial_formula);
+        Platform.runLater(() ->
+        {
+            // Move caret to end of initial text
+            insert_location = initial_formula.length();
+            formula_txt.selectRange(insert_location, insert_location);
+        });
+    }
+
+    private void insert(final String text)
+    {
+        // Correct invalid locations
+        if (insert_location > formula_txt.getLength())
+            insert_location = formula_txt.getLength();
+        if (insert_location < 0)
+            insert_location = 0;
+        formula_txt.anchorProperty();
+        // Inserting text will update the caret and thus the insert_location.
+        // Note end of text we're about to insert
+        final int end = insert_location + text.length();
+        formula_txt.insertText(insert_location, text);
+        // Assert that text field retains/gets focus
+        Platform.runLater(() ->
+        {
+            formula_txt.requestFocus();
+            // Sometimes, for example for empty text field,
+            // the text inserted first will be selected
+            // with caret at start, so further inserts then
+            // pre-pend existing text.
+            // --> Position caret at end of what was just inserted
+            Platform.runLater(() -> formula_txt.selectRange(end, end));
+        });
     }
 
     /** Property that indicates if the formula is valid */
     public ReadOnlyBooleanProperty okProperty()
     {
         return ok.getReadOnlyProperty();
+    }
+
+    /** @return Formula. Only valid when OK
+     *  @see #okProperty()
+     */
+    public String getFormula()
+    {
+        return formula_txt.getText();
+    }
+
+    /** @return {@link InputItem}s used in the formula. Only valid when OK
+     *  @see #okProperty()
+     */
+    public InputItem[] getInputs()
+    {
+        return used_inputs;
+    }
+
+    private Node createInputs()
+    {
+        TableColumn<InputItem, String> col = new TableColumn<>("Input");
+        col.setCellValueFactory(c ->  c.getValue().input_name);
+        input_table.getColumns().add(col);
+
+        col = new TableColumn<>("Variable");
+        col.setCellValueFactory(c ->  c.getValue().variable_name);
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        // When variable is renamed, re-evaluate formula
+        col.setOnEditCommit(event -> parseFormula());
+        col.setEditable(true);
+        input_table.getColumns().add(col);
+
+        input_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        input_table.setTooltip(new Tooltip("Double-click input to add to formula, or edit variable name"));
+        input_table.setEditable(true);
+        // Double-click (on input column) adds that variable name to formula
+        input_table.addEventHandler(MouseEvent.MOUSE_PRESSED, event ->
+        {
+            if (event.getClickCount() == 2)
+                insert(input_table.getSelectionModel().getSelectedItem().variable_name.get());
+        });
+
+        return input_table;
     }
 
     private Node createFunctions()
@@ -225,8 +301,9 @@ public class FormulaPane extends VBox
         }
 
         // Create array of all available variables
-//        final VariableNode vars[] = new VariableNode[inputs.length];
-        final VariableNode vars[] = new VariableNode[0];
+        final VariableNode[] vars = new VariableNode[inputs.size()];
+        for (int i = 0; i < vars.length; ++i)
+            vars[i] = new VariableNode(inputs.get(i).variable_name.get());
 
         // See if formula parses OK
         final Formula formula;
@@ -244,6 +321,15 @@ public class FormulaPane extends VBox
 
         status.setText("Parsed Formula: " + formula.toString());
         status.setTextFill(Color.BLACK);
+
+        // Create array of all variables actually found inside the formula
+        final List<InputItem> used = new ArrayList<>();
+        for (InputItem input : inputs)
+            if (formula.hasSubnode(input.variable_name.get()))
+                used.add(input);
+        // Convert to array
+        used_inputs = used.toArray(new InputItem[used.size()]);
+
         ok.set(true);
     }
 }
