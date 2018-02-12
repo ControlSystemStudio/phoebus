@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.formula;
 
+import org.csstudio.apputil.formula.ui.FormulaDialog;
 import org.csstudio.apputil.formula.ui.FormulaPane;
 import org.csstudio.apputil.formula.ui.InputItem;
 

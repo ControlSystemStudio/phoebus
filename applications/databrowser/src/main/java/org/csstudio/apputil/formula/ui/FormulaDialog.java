@@ -5,12 +5,10 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.trends.databrowser3.formula;
+package org.csstudio.apputil.formula.ui;
 
 import java.util.List;
 
-import org.csstudio.apputil.formula.ui.FormulaPane;
-import org.csstudio.apputil.formula.ui.InputItem;
 import org.csstudio.trends.databrowser3.Messages;
 
 import javafx.scene.control.Button;
