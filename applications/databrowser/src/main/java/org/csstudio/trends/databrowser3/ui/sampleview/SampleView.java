@@ -97,12 +97,13 @@ public class SampleView extends VBox
         sample_table.setPadding(new Insets(0, 5, 5, 5));
         getChildren().setAll(top_row, sample_table);
 
+        // TODO Add 'export' to sample view? CSV in a format usable by import
+
         update();
     }
 
     private void createSampleTable()
     {
-        // TODO Color based on severity
         TableColumn<PlotSample, String> col = new TableColumn<>(Messages.TimeColumn);
         final VTypeFormat format = DoubleVTypeFormat.get();
         col.setCellValueFactory(cell -> new SimpleStringProperty(TimestampFormats.FULL_FORMAT.format(VTypeHelper.getTimestamp(cell.getValue().getVType()))));
