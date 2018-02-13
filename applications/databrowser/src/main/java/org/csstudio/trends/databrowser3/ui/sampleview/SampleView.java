@@ -21,6 +21,7 @@ import org.csstudio.trends.databrowser3.model.PlotSamples;
 import org.phoebus.archive.vtype.DoubleVTypeFormat;
 import org.phoebus.archive.vtype.VTypeFormat;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
@@ -37,12 +38,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 /** Panel for inspecting samples of a trace
  *  @author Kay Kasemir
@@ -67,20 +64,7 @@ public class SampleView extends VBox
             else
             {
                 setText(item);
-                switch (VTypeHelper.getSeverity(row.getItem().getVType()))
-                {
-                case MINOR:
-                    setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
-                    break;
-                case MAJOR:
-                    setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
-                    break;
-                case INVALID:
-                    setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-                    break;
-                default:
-                    setBackground(null);
-                }
+                setTextFill(SeverityColors.getTextColor(VTypeHelper.getSeverity(row.getItem().getVType())));
             }
         }
     }
