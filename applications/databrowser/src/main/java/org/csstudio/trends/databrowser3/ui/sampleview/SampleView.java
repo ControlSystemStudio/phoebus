@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.sampleview;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -17,7 +18,10 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.phoebus.archive.vtype.DoubleVTypeFormat;
+import org.phoebus.archive.vtype.VTypeFormat;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -28,11 +32,17 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 /** Panel for inspecting samples of a trace
  *  @author Kay Kasemir
@@ -44,6 +54,36 @@ public class SampleView extends VBox
     private final ComboBox<String> items = new ComboBox<>();
     private final TableView<PlotSample> sample_table = new TableView<>();
     private volatile String item_name = null;
+
+    private static class SeverityColoredTableCell extends TableCell<PlotSample, String>
+    {
+        @Override
+        protected void updateItem(final String item, final boolean empty)
+        {
+            super.updateItem(item, empty);
+            final TableRow<PlotSample> row = getTableRow();
+            if (empty  ||  row == null  ||  row.getItem() == null)
+                setText("");
+            else
+            {
+                setText(item);
+                switch (VTypeHelper.getSeverity(row.getItem().getVType()))
+                {
+                case MINOR:
+                    setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
+                    break;
+                case MAJOR:
+                    setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+                    break;
+                case INVALID:
+                    setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+                    break;
+                default:
+                    setBackground(null);
+                }
+            }
+        }
+    }
 
     public SampleView(final Model model)
     {
@@ -78,14 +118,18 @@ public class SampleView extends VBox
 
     private void createSampleTable()
     {
-        // TODO All cell value factories. Color based on severity
+        // TODO Color based on severity
         TableColumn<PlotSample, String> col = new TableColumn<>(Messages.TimeColumn);
+        final VTypeFormat format = DoubleVTypeFormat.get();
+        col.setCellValueFactory(cell -> new SimpleStringProperty(TimestampFormats.FULL_FORMAT.format(VTypeHelper.getTimestamp(cell.getValue().getVType()))));
         sample_table.getColumns().add(col);
 
         col = new TableColumn<>(Messages.ValueColumn);
+        col.setCellValueFactory(cell -> new SimpleStringProperty(format.format(cell.getValue().getVType())));
         sample_table.getColumns().add(col);
 
         col = new TableColumn<>(Messages.SeverityColumn);
+        col.setCellFactory(c -> new SeverityColoredTableCell());
         col.setCellValueFactory(cell -> new SimpleStringProperty(VTypeHelper.getSeverity(cell.getValue().getVType()).name()));
         sample_table.getColumns().add(col);
 
@@ -99,6 +143,7 @@ public class SampleView extends VBox
 
         sample_table.setMaxWidth(Double.MAX_VALUE);
         sample_table.setPlaceholder(new Label(Messages.SampleView_SelectItem));
+        sample_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void select(final String item_name)
@@ -109,9 +154,13 @@ public class SampleView extends VBox
 
     private void update()
     {
-        items.getItems().setAll( model.getItems().stream().map(item -> item.getName()).collect(Collectors.toList()) );
-        if (item_name != null)
-            items.getSelectionModel().select(item_name);
+        final List<String> model_items = model.getItems().stream().map(item -> item.getName()).collect(Collectors.toList());
+        if (! model_items.equals(items.getItems()))
+        {
+            items.getItems().setAll( model_items );
+            if (item_name != null)
+                items.getSelectionModel().select(item_name);
+        }
         // Update samples off the UI thread
         Activator.thread_pool.submit(this::getSamples);
     }
@@ -138,7 +187,6 @@ public class SampleView extends VBox
                     Activator.logger.log(Level.WARNING, "Cannot access samples for " + item.getName(), ex);
                 }
         }
-
         // Update UI
         Platform.runLater(() -> sample_table.setItems(samples));
     }
