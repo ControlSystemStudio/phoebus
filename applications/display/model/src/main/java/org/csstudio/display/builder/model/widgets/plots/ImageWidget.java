@@ -37,6 +37,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.ColorMap;
 import org.csstudio.display.builder.model.properties.ColorMapWidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -108,7 +109,7 @@ public class ImageWidget extends PVWidget
             super(propColorbar, widget,
                   Arrays.asList(CommonWidgetProperties.propVisible.createProperty(widget, true),
                                 propColorbarSize.createProperty(widget, 40),
-                                PlotWidgetProperties.propScaleFont.createProperty(widget, NamedWidgetFonts.DEFAULT)));
+                                PlotWidgetProperties.propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT))));
         }
 
         public WidgetProperty<Boolean> visible()        { return getElement(0); }
@@ -127,8 +128,8 @@ public class ImageWidget extends PVWidget
                                 PlotWidgetProperties.propTitle.createProperty(widget, title_text),
                                 CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
                                 CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
-                                PlotWidgetProperties.propTitleFont.createProperty(widget, NamedWidgetFonts.DEFAULT_BOLD),
-                                PlotWidgetProperties.propScaleFont.createProperty(widget, NamedWidgetFonts.DEFAULT)));
+                                PlotWidgetProperties.propTitleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
+                                PlotWidgetProperties.propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT))));
         }
 
         public WidgetProperty<Boolean> visible()        { return getElement(0); }

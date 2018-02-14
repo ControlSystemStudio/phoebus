@@ -44,6 +44,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -282,7 +283,7 @@ public class TableWidget extends VisibleWidget
     {
         super.defineProperties(properties);
         properties.add(propBorderAlarmSensitive.createProperty(this, true));
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(show_toolbar = propToolbar.createProperty(this,false));

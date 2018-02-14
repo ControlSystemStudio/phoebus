@@ -37,6 +37,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.FormatOption;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.RotationStep;
@@ -212,7 +213,7 @@ public class TextUpdateWidget extends PVWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.READ_BACKGROUND)));
         properties.add(transparent = propTransparent.createProperty(this, false));

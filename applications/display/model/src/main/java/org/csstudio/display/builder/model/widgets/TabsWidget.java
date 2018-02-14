@@ -36,6 +36,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Direction;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -191,7 +192,7 @@ public class TabsWidget extends VisibleWidget
     {
         super.defineProperties(properties);
         properties.add(macros = propMacros.createProperty(this, new Macros()));
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(active = propActiveTab.createProperty(this, 0));
         properties.add(tabs = propTabs.createProperty(this, Arrays.asList(new TabItemProperty(this, 0),

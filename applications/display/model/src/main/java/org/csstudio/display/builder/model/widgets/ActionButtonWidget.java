@@ -31,6 +31,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -189,7 +190,7 @@ public class ActionButtonWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(pv_name = propPVName.createProperty(this, ""));
         properties.add(text = propText.createProperty(this, "$(actions)"));
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
         properties.add(transparent = propTransparent.createProperty(this, false));

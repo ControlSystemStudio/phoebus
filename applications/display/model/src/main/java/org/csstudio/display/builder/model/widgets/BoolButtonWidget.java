@@ -37,6 +37,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -178,7 +179,7 @@ public class BoolButtonWidget extends WritablePVWidget
         properties.add(on_color = propOnColor.createProperty(this, new WidgetColor(60, 255, 60)));
         properties.add(on_image = propOnImage.createProperty(this, ""));
         properties.add(show_LED = propShowLED.createProperty(this, true));
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
         properties.add(labels_from_pv = propLabelsFromPV.createProperty(this, false));

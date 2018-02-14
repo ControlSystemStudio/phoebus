@@ -43,6 +43,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
@@ -348,7 +349,7 @@ public class XYPlotWidget extends VisibleWidget
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(grid = propGridColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.GRID)));
         properties.add(title = PlotWidgetProperties.propTitle.createProperty(this, ""));
-        properties.add(title_font = PlotWidgetProperties.propTitleFont.createProperty(this, NamedWidgetFonts.HEADER2));
+        properties.add(title_font = PlotWidgetProperties.propTitleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.HEADER2)));
         properties.add(show_toolbar = propToolbar.createProperty(this,false));
         properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, true));
         properties.add(x_axis = AxisWidgetProperty.create(this, Messages.PlotWidget_X));

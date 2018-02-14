@@ -28,6 +28,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -189,7 +190,7 @@ public class MultiStateLEDWidget extends BaseLEDWidget
                                                                               new StateWidgetProperty(this, 1))));
         properties.add(fallback_label = propFallbackLabel.createProperty(this, "Err"));
         properties.add(fallback_color = propFallbackColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID)));
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(square = propSquare.createProperty(this, false));
     }

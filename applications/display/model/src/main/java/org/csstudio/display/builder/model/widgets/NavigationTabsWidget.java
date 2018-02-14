@@ -32,6 +32,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Direction;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -128,7 +129,7 @@ public class NavigationTabsWidget extends VisibleWidget
         properties.add(tab_spacing = propTabSpacing.createProperty(this, 2));
         properties.add(selected_color = propSelectedColor.createProperty(this, new WidgetColor(236, 236, 236)));
         properties.add(deselected_color = propDeselectedColor.createProperty(this, new WidgetColor(200, 200, 200)));
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(active = propActiveTab.createProperty(this, 0));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
 
