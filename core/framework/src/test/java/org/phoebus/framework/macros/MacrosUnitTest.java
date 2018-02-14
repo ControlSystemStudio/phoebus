@@ -87,7 +87,7 @@ public class MacrosUnitTest
     @Test
     public void testDefaults() throws Exception
     {
-        final Macros macros = new Macros();
+        Macros macros = new Macros();
         macros.add("A", "a");
         System.out.println(macros);
 
@@ -96,6 +96,38 @@ public class MacrosUnitTest
         assertThat(MacroHandler.replace(macros, "Default ${S=X} value"), equalTo("Default X value"));
         assertThat(MacroHandler.replace(macros, "Default ${S = X + Y = Z} value"), equalTo("Default X + Y = Z value"));
         assertThat(MacroHandler.replace(macros, "Doesn't use default: ${S = $(A=z)}"), equalTo("Doesn't use default: a"));
+
+        macros = new Macros();
+        macros.add("DERIVED", "$(MAIN=default)");
+        System.out.println(macros);
+
+        assertThat(MacroHandler.replace(macros, "$(DERIVED)"), equalTo("default"));
+        assertThat(MacroHandler.replace(macros, "/$(DERIVED)/$(DERIVED)/"), equalTo("/default/default/"));
+
+        macros.add("MAIN", "main");
+        System.out.println(macros);
+
+        assertThat(MacroHandler.replace(macros, "$(DERIVED)"), equalTo("main"));
+        assertThat(MacroHandler.replace(macros, "/$(DERIVED)/$(DERIVED)/"), equalTo("/main/main/"));
+        assertThat(MacroHandler.replace(macros, "/$(MAIN=default)/$(DERIVED)/"), equalTo("/main/main/"));
+
+        assertThat(MacroHandler.replace(macros, "${MACRO=Use A (alpha) or B}"), equalTo("Use A (alpha) or B"));
+        // Not handled, because there is no counting of balanced brackets within the "=..." default
+        // assertThat(MacroHandler.replace(macros, "$(MACRO=Use A (alpha) or B)"), equalTo("Use A (alpha) or B"));
+    }
+
+    /** Test macros with default values
+     *  @throws Exception on error
+     */
+    @Test
+    public void testDefaults2() throws Exception
+    {
+        final Macros macros = new Macros();
+        macros.add("FINAL", "$(MAY_NOT_BE_SET=default_value)");
+        System.out.println(macros);
+
+        assertThat(MacroHandler.replace(macros, "${FINAL}"), equalTo("default_value"));
+        assertThat(MacroHandler.replace(macros, "${FINAL}/${FINAL}"), equalTo("default_value/default_value"));
     }
 
     /** Test recursive macro error

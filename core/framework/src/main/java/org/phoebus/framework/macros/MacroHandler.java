@@ -28,12 +28,13 @@ public class MacroHandler
     /** Recursion counter */
     private static final AtomicInteger recursions = new AtomicInteger();
 
-    // Pattern for $(xxx) or ${xxx}, or $(x=y) or ${x=y}, asserting that there is NO leading '\' to escape it
-    // "=" is matched with any number of whitespace characters (space, tab, etc.) on either side
+    // XXX Replace pattern with code.
+    // This pattern is too complicated,
+    // and it doesn't allow braces inside the default value.
     private static final Pattern spec = Pattern
-            .compile("(?<!\\\\)\\$\\((" + Macros.MACRO_NAME_PATTERN + ")((\\s*=\\s*).*)?\\)" +
+            .compile("(?<!\\\\)\\$\\((" + Macros.MACRO_NAME_PATTERN + ")((\\s*=\\s*)[^)]*)?\\)" +
                      "|" +
-                     "(?<!\\\\)\\$\\{(" + Macros.MACRO_NAME_PATTERN + ")((\\s*=\\s*).*)?\\}");
+                     "(?<!\\\\)\\$\\{(" + Macros.MACRO_NAME_PATTERN + ")((\\s*=\\s*)[^}]*)?\\}");
 
     /** Check if input contains unresolved macros
      *  @param input Text that may contain macros "$(NAME)" or "${NAME}", even escaped ones because they need to be un-escaped
