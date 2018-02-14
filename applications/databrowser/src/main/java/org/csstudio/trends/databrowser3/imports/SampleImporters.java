@@ -38,14 +38,11 @@ public class SampleImporters
     {
     }
 
-    /** @return Array of supported types
-     *  @throws Exception on error initializing available importers
-     */
-    public static Collection<String> getTypes() throws Exception
+    /** @return Array of supported types */
+    public static Collection<String> getTypes()
     {
         return importers.keySet();
     }
-
 
     /** Obtain sample importer
      *  @param type

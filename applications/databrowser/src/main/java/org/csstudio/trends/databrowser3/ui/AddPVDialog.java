@@ -16,6 +16,7 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.properties.AddAxisCommand;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -124,7 +125,7 @@ public class AddPVDialog extends Dialog<Boolean>
             if (! formula)
             {
                 layout.add(new Label(Messages.AddPV_Period), 0, ++row);
-                final TextField period = new TextField("1.0");
+                final TextField period = new TextField(Double.toString(Preferences.scan_period));
                 period.setTooltip(new Tooltip(Messages.AddPV_PeriodTT));
                 periods.add(period);
                 period.setDisable(true);

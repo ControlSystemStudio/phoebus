@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.imports.SampleImportAction;
+import org.csstudio.trends.databrowser3.imports.SampleImporters;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.Model;
@@ -129,9 +131,12 @@ public class Perspective extends SplitPane
     {
         final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
 
-        final MenuItem add_pv = new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false);
+        final List<MenuItem> add_data = new ArrayList<>();
+        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false));
+        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true));
 
-        final MenuItem add_formula = new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true);
+        for (String type : SampleImporters.getTypes())
+            add_data.add(new SampleImportAction(model, type, undo));
 
         final MenuItem show_search = new MenuItem(Messages.OpenSearchView, Activator.getIcon("search"));
         show_search.setOnAction(event -> showSearchTab());
@@ -160,11 +165,13 @@ public class Perspective extends SplitPane
 
         plot.getPlot().setOnContextMenuRequested(event ->
         {
-            items.setAll(add_pv, add_formula);
+            items.setAll(add_data);
 
             if (model.getEmptyAxis().isPresent())
+            {
+                items.add(new SeparatorMenuItem());
                 items.add(new RemoveUnusedAxes(model, undo));
-
+            }
             items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
