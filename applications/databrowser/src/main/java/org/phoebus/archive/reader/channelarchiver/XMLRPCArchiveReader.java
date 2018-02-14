@@ -187,16 +187,4 @@ public class XMLRPCArchiveReader implements ArchiveReader
             secs = 1;
         return new ValueRequestIterator(this, name, start, end, method_optimized, secs);
     }
-
-    @Override
-    public void cancel()
-    {
-        // NOP
-    }
-
-    @Override
-    public void close()
-    {
-        // NOP
-    }
 }
