@@ -55,7 +55,7 @@ public class SampleImportAction extends MenuItem
             // Add to first empty axis, or create new axis
             final AxisConfig axis = model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(op_manager, model).getAxis());
 
-            // Add archivedatasource for "import:..." and let that load the file
+            // Data source for "import:..." will load the file
             final String url = ImportArchiveReaderFactory.createURL(type, the_file.toString());
             final ArchiveDataSource imported = new ArchiveDataSource(url, type);
             // Add PV Item with data to model

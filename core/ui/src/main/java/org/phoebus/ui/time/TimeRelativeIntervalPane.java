@@ -136,27 +136,50 @@ public class TimeRelativeIntervalPane extends GridPane
             end_spec.setText(TimeParser.format(span));
         });
 
-        start_spec.setOnAction(event ->
+        start_spec.textProperty().addListener((p, o, text) ->
         {
-            final String text = start_spec.getText().trim();
+            if (changing)
+                return;
+            text = text.trim();
             final Object time = TimeParser.parseInstantOrTemporalAmount(text);
+            changing = true;
             if (time instanceof Instant)
+            {
                 abs_start.setInstant((Instant)time);
+                abs_start.setBackground(active_background);
+                rel_start.setBackground(null);
+            }
             else if (time instanceof TemporalAmount)
+            {
                 rel_start.setTimespan((TemporalAmount) time);
+                abs_start.setBackground(null);
+                rel_start.setBackground(active_background);
+            }
+            changing = false;
         });
 
-        end_spec.setOnAction(event ->
+        end_spec.textProperty().addListener((p, o, text) ->
         {
-            final String text =end_spec.getText().trim();
+            if (changing)
+                return;
+            text = text.trim();
             final Object time = TimeParser.parseInstantOrTemporalAmount(text);
+            changing = true;
             if (time instanceof Instant)
+            {
                 abs_end.setInstant((Instant)time);
+                abs_end.setBackground(active_background);
+                rel_end.setBackground(null);
+            }
             else if (time instanceof TemporalAmount)
+            {
                 rel_end.setTimespan((TemporalAmount) time);
+                abs_end.setBackground(null);
+                rel_end.setBackground(active_background);
+            }
+            changing = false;
         });
     }
-
 
     private boolean isAbsStart()
     {
