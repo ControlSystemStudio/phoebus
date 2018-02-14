@@ -6,8 +6,6 @@
   </widget>
   <widget type="group" version="2.0.0">
     <name>My Group</name>
-    <width>300</width>
-    <height>200</height>
     <widget type="base" version="2.0.0">
       <name>Jänner</name>
     </widget>
