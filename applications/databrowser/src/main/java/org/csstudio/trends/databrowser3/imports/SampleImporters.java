@@ -7,28 +7,29 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.imports;
 
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.logging.Level;
 
 /** API for tool that imports data
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class SampleImporters
 {
     /** Map of file types to importers */
-    private static Map<String, SampleImporter> importers = null;
+    private static final Map<String, SampleImporter> importers = new HashMap<String, SampleImporter>();
 
     /** Locate all available importers */
     static
     {
-        if (importers == null)
+        for (SampleImporter importer : ServiceLoader.load(SampleImporter.class))
         {
-            importers = new HashMap<String, SampleImporter>();
-
-            // XXX Could use SPI to locate importers
-            // For now there's only one
-            final SampleImporter importer = new CSVSampleImporter();
+            logger.log(Level.CONFIG, "SampleImporter for '" + importer.getType() + "'");
             importers.put(importer.getType(), importer);
         }
     }

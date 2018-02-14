@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.phoebus.vtype.VType;
 
-/** API for tool that imports data
+/** SPI for tool that imports data
  *
  *  @author Kay Kasemir
  */

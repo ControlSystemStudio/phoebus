@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.imports;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
@@ -105,14 +106,9 @@ public class ImportArchiveReaderFactory implements ArchiveReaderFactory
     /** Removed cached data for given archive data sources
      *  @param sources {@link ArchiveDataSource}[]
      */
-    public static void removeCachedArchives(final ArchiveDataSource[] sources)
+    public static void removeCachedArchives(final Collection<ArchiveDataSource> sources)
     {
         for (ArchiveDataSource source : sources)
-        {
-            synchronized (cache)
-            {
-                cache.remove(source.getUrl());
-            }
-        }
+            cache.remove(source.getUrl());
     }
 }

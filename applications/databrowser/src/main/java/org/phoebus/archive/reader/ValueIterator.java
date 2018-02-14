@@ -8,6 +8,7 @@
 package org.phoebus.archive.reader;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.phoebus.vtype.VType;
@@ -17,4 +18,9 @@ import org.phoebus.vtype.VType;
  */
 public interface ValueIterator extends Iterator<VType>, Closeable
 {
+    @Override
+    public default void close() throws IOException
+    {
+        // NOP
+    }
 }

@@ -21,6 +21,7 @@ import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
@@ -816,7 +817,7 @@ public class Model
                 continue;
             final PVItem pv_item = (PVItem) item;
             pv_item.stop();
-            // TODO ImportArchiveReaderFactory.removeCachedArchives(pv_item.getArchiveDataSources());
+            ImportArchiveReaderFactory.removeCachedArchives(pv_item.getArchiveDataSources());
         }
     }
 

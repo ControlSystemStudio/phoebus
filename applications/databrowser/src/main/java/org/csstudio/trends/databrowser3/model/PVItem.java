@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.trends.databrowser3.Messages;
-// TODO import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
+import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.archive.vtype.VTypeHelper;
@@ -513,11 +513,8 @@ public class PVItem extends ModelItem
         {
             final String url = XMLUtil.getChildString(archive, XMLPersistence.TAG_URL).orElse(null);
             final String arch = XMLUtil.getChildString(archive, XMLPersistence.TAG_NAME).orElse(null);
-
-// TODO ImportArchiveReaderFactory
-//            if (url.startsWith(ImportArchiveReaderFactory.PREFIX))
-//                have_imported_data = true;
-
+            if (url.startsWith(ImportArchiveReaderFactory.PREFIX))
+                have_imported_data = true;
             item.addArchiveDataSource(new ArchiveDataSource(url, arch));
         }
 

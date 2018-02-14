@@ -27,7 +27,8 @@ import org.phoebus.vtype.Display;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFactory;
 
-/** {@link SampleImporter} for Command (space, tab) separated value file of time, value
+/** {@link SampleImporter} for comma, space, tab separated value file of time, value
+ *  @author Jaka Bobnar - Parse min, max
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -98,42 +99,43 @@ public class CSVSampleImporter implements SampleImporter
 
             final Instant time = Instant.from(TimestampFormats.MILLI_FORMAT.parse(date_text));
 
-
-            //Double.parseDouble only parses numbers in format #.#... or #.#...#E0, meaning
-            //that you cannot have any grouping separators, and the decimal separator must be '.'
-            //First remove all grouping separators, then replace the decimal separator with a '.'
+            // Double.parseDouble only parses numbers in format #.#... or #.#...#E0, meaning
+            // that you cannot have any grouping separators, and the decimal separator must be '.'
+            // First remove all grouping separators, then replace the decimal separator with a '.'
             final double number = Double.parseDouble(
                     remove(matcher.group(2),groupingSeparator).replace(decimalSeparator, '.'));
-            if (statistics) {
+            if (statistics)
+            {
                 final double min = Double.parseDouble(
                         remove(matcher.group(3),groupingSeparator).replace(decimalSeparator, '.'));
                 final double max = Double.parseDouble(
                         remove(matcher.group(4),groupingSeparator).replace(decimalSeparator, '.'));
                 values.add(new ArchiveVStatistics(time, AlarmSeverity.NONE, "", meta_data, number, number-min, number+max, 0, 1));
-            } else {
-                values.add(new ArchiveVNumber(time, AlarmSeverity.NONE, "", meta_data, number));
             }
+            else
+                values.add(new ArchiveVNumber(time, AlarmSeverity.NONE, "", meta_data, number));
         }
         reader.close();
 
         return values;
     }
 
-    /**
-     * Remove all occurrences of the character from the string.
+    /** Remove all occurrences of the character from the string.
      *
-     * @param source the string to remove the characters from
-     * @param charToRemove the character to remove
-     * @return the string without any occurrence of the given character
+     *  @param source the string to remove the characters from
+     *  @param charToRemove the character to remove
+     *  @return the string without any occurrence of the given character
      */
-    private static String remove(String source, char charToRemove) {
-        if (source.indexOf(charToRemove) < 0) return source;
-        char[] chars = source.toCharArray();
+    private static String remove(final String source, final char charToRemove)
+    {
+        if (source.indexOf(charToRemove) < 0)
+            return source;
+        final char[] chars = source.toCharArray();
         int pos = 0;
-        for (int j = 0; j < chars.length; j++) {
-            if (chars[j] != charToRemove) {
+        for (int j = 0; j < chars.length; j++)
+        {
+            if (chars[j] != charToRemove)
                 chars[pos++] = chars[j];
-            }
         }
         return new String(chars,0,pos);
     }

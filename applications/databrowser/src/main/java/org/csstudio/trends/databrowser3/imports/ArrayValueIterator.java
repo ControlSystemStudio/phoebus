@@ -36,10 +36,4 @@ public class ArrayValueIterator implements ValueIterator
     {
         return iter.next();
     }
-
-    @Override
-    public void close()
-    {
-        // NOP
-    }
 }
