@@ -189,7 +189,7 @@ public class GroupWidget extends VisibleWidget
 
     public GroupWidget()
     {
-        super(WIDGET_DESCRIPTOR.getType(), 400, 300);
+        super(WIDGET_DESCRIPTOR.getType(), 300, 200);
     }
 
     @Override
@@ -204,10 +204,6 @@ public class GroupWidget extends VisibleWidget
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(transparent = propTransparent.createProperty(this, false));
         properties.add(insets = runtimePropInsets.createProperty(this, new int[] { 0, 0 }));
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
     }
 
     @Override
