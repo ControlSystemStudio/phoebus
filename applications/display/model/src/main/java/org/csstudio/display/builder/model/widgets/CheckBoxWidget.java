@@ -10,8 +10,8 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newStringPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBit;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 
 @SuppressWarnings("nls")
@@ -66,7 +67,7 @@ public class CheckBoxWidget extends WritablePVWidget
         super.defineProperties(properties);
         properties.add(bit = propBit.createProperty(this, 0));
         properties.add(label = propLabel.createProperty(this, Messages.Checkbox_Label));
-        properties.add(font = propFont.createProperty(this, NamedWidgetFonts.DEFAULT));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(auto_size = propAutoSize.createProperty(this, false));
         properties.add(enabled = propEnabled.createProperty(this, true));
     }

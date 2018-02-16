@@ -72,12 +72,6 @@ public class ArchiveFileReader implements ArchiveReader
     }
 
     @Override
-    public void cancel()
-    {
-        //no-op
-    }
-
-    @Override
     public void close()
     {
         try

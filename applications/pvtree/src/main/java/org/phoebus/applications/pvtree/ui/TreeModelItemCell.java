@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import org.phoebus.applications.pvtree.model.TreeModelItem;
+import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.vtype.AlarmSeverity;
 
 import javafx.embed.swing.SwingFXUtils;
@@ -53,16 +54,6 @@ class TreeModelItemCell extends TreeCell<TreeModelItem>
         createAlarmIcon(new java.awt.Color(139, 0, 139)) // DARKMAGENTA
     };
 
-    /** Text colors for alarm severity by ordinal */
-    private static final Color[] ALARM_COLORS = new Color[]
-    {
-        Color.BLACK,
-        new Color(0.8, 0.8, 0.0, 1.0), // Dark Yellow
-        Color.RED,
-        Color.GRAY,
-        Color.DARKMAGENTA
-    };
-
     static
     {
         // This code depends on the number and order of AlarmSeverity values
@@ -92,7 +83,7 @@ class TreeModelItemCell extends TreeCell<TreeModelItem>
             {
                 final int ordinal = severity.ordinal();
                 setGraphic(new ImageView(ALARM_ICONS[ordinal]));
-                setTextFill(ALARM_COLORS[ordinal]);
+                setTextFill(SeverityColors.getTextColor(severity));
             }
         }
     }

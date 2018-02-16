@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.imports.SampleImportAction;
+import org.csstudio.trends.databrowser3.imports.SampleImporters;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
 import org.csstudio.trends.databrowser3.model.Model;
@@ -24,6 +26,7 @@ import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
 import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
 import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
+import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
@@ -58,13 +61,14 @@ public class Perspective extends SplitPane
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private final SearchView search = new SearchView(model, plot.getPlot().getUndoableActionManager());
-    private final ExportView export = new ExportView(model);
+    private ExportView export = null;
+    private SampleView inspect = null;
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();
     private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
     private PropertyPanel property_panel;
-    private Tab search_tab, properties_tab, export_tab;
+    private Tab search_tab, properties_tab, export_tab, inspect_tab = null;
 
 
     public Perspective()
@@ -78,9 +82,6 @@ public class Perspective extends SplitPane
         properties_tab = new Tab("Properties", property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
-        export_tab = new Tab(Messages.Export, export);
-        export_tab.setGraphic(Activator.getIcon("export"));
-        export_tab.setOnClosed(event -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
 
         bottom_tabs.getTabs().setAll(properties_tab);
 
@@ -108,6 +109,18 @@ public class Perspective extends SplitPane
         heightProperty().addListener(prop -> Platform.runLater(() -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0)));
     }
 
+    @Override
+    public Node lookup(final String selector)
+    {
+        // {@link DockPane} calls lookup to locate the header to show/hide.
+        // That search erroneously locates some header within this perspective,
+        // instead of the header for the DockItem's tab.
+        // ==> Don't return any tab header within this perspective
+        if (".tab-header-area".equals(selector))
+            return null;
+        return super.lookup(selector);
+    }
+
     /** @return {@link Model} */
     public Model getModel()
     {
@@ -118,9 +131,12 @@ public class Perspective extends SplitPane
     {
         final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
 
-        final MenuItem add_pv = new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false);
+        final List<MenuItem> add_data = new ArrayList<>();
+        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false));
+        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true));
 
-        final MenuItem add_formula = new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true);
+        for (String type : SampleImporters.getTypes())
+            add_data.add(new SampleImportAction(model, type, undo));
 
         final MenuItem show_search = new MenuItem(Messages.OpenSearchView, Activator.getIcon("search"));
         show_search.setOnAction(event -> showSearchTab());
@@ -129,9 +145,18 @@ public class Perspective extends SplitPane
         show_properties.setOnAction(event -> showBottomTab(properties_tab));
 
         final MenuItem show_export = new MenuItem(Messages.OpenExportView, Activator.getIcon("export"));
-        show_export.setOnAction(event -> showBottomTab(export_tab));
+        show_export.setOnAction(event ->
+        {
+            createExportTab();
+            showBottomTab(export_tab);
+        });
 
-        // TODO Open Inspect Samples
+        final MenuItem show_samples = new MenuItem(Messages.InspectSamples, Activator.getIcon("search"));
+        show_samples.setOnAction(event ->
+        {
+            createInspectionTab();
+            showBottomTab(inspect_tab);
+        });
 
         // TODO Open Waveform View
 
@@ -140,15 +165,39 @@ public class Perspective extends SplitPane
 
         plot.getPlot().setOnContextMenuRequested(event ->
         {
-            items.setAll(add_pv, add_formula);
+            items.setAll(add_data);
 
             if (model.getEmptyAxis().isPresent())
+            {
+                items.add(new SeparatorMenuItem());
                 items.add(new RemoveUnusedAxes(model, undo));
-
-            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export);
+            }
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
+    }
+
+    private void createExportTab()
+    {
+        if (export_tab == null)
+        {
+            export = new ExportView(model);
+            export_tab = new Tab(Messages.Export, export);
+            export_tab.setGraphic(Activator.getIcon("export"));
+            export_tab.setOnClosed(evt -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
+        }
+    }
+
+    private void createInspectionTab()
+    {
+        if (inspect_tab == null)
+        {
+            inspect = new SampleView(model);
+            inspect_tab = new Tab(Messages.InspectSamples, inspect);
+            inspect_tab.setGraphic(Activator.getIcon("search"));
+            inspect_tab.setOnClosed(evt -> autoMinimize(bottom_tabs, plot_and_tabs, 1.0));
+        }
     }
 
     private void setupDrop()
@@ -272,16 +321,25 @@ public class Perspective extends SplitPane
     {
         property_panel.restore(memento);
         search.restore(memento);
-        export.restore(memento);
-        memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
-        memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
+
         memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
         memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
-        memento.getBoolean(SHOW_EXPORT).ifPresent(show -> { if (show) bottom_tabs.getTabs().add(export_tab); });
+        memento.getBoolean(SHOW_EXPORT).ifPresent(show ->
+        {
+            if (show)
+            {
+                createExportTab();
+                export.restore(memento);
+                bottom_tabs.getTabs().add(export_tab);
+            }
+        });
 
         // Has no effect when run right now?
         Platform.runLater(() ->
         {
+            memento.getNumber(LEFT_RIGHT_SPLIT).ifPresent(pos -> setDividerPositions(pos.floatValue()));
+            memento.getNumber(PLOT_TABS_SPLIT).ifPresent(pos -> plot_and_tabs.setDividerPositions(pos.floatValue()));
+
             autoMinimize(left_tabs, this, 0.0);
             autoMinimize(bottom_tabs, plot_and_tabs, 1.0);
         });

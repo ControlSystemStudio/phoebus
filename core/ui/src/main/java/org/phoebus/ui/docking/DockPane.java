@@ -191,10 +191,13 @@ public class DockPane extends TabPane
 
     void autoHideTabs()
     {
+        final boolean do_hide = getTabs().size() == 1  &&  !always_show_tabs;
+
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX
         final StackPane header = (StackPane) lookup(".tab-header-area");
-        final boolean do_hide = getTabs().size() == 1  &&  !always_show_tabs;
-        if (header != null)
+        if (header == null)
+            logger.log(Level.WARNING, "Cannot locate tab header for " + getTabs());
+        else
             header.setPrefHeight(do_hide  ?  0  :  -1);
 
         // If header for single tab is not shown,

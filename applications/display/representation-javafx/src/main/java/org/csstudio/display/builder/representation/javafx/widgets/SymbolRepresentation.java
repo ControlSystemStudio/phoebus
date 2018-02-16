@@ -86,6 +86,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
     private volatile boolean                     enabled               = true;
     private final List<Image>                    imagesList            = Collections.synchronizedList(new ArrayList<>(4));
     private final Map<String, Image>             imagesMap             = Collections.synchronizedMap(new TreeMap<>());
+    private BorderPane                           imagePane;
     private final WidgetPropertyListener<String> imagePropertyListener = this::imageChanged;
     private ImageView                            imageView;
     private Label                                indexLabel;
@@ -269,6 +270,12 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
                 jfx_node.setBackground(new Background(new BackgroundFill(JFXUtil.convert(model_widget.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY)));
             }
 
+            value = model_widget.propRotation().getValue();
+
+            if ( !Objects.equals(value, imagePane.getRotate()) ) {
+                imagePane.setRotate((double) value);
+            }
+
         }
 
         if ( dirtyValue.checkAndClear() && updatingValue.compareAndSet(false, true) ) {
@@ -333,7 +340,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
 
         AnchorPane symbol = new AnchorPane();
 
-            BorderPane imagePane = new BorderPane();
+            imagePane = new BorderPane();
 
                 imageView = new ImageView();
 
@@ -349,6 +356,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
             imagePane.setCenter(imageView);
             imagePane.setPrefWidth(model_widget.propWidth().getValue());
             imagePane.setPrefHeight(model_widget.propHeight().getValue());
+            imagePane.setRotate(model_widget.propRotation().getValue());
 
             AnchorPane.setLeftAnchor(imagePane, 0.0);
             AnchorPane.setRightAnchor(imagePane, 0.0);
@@ -423,6 +431,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
         model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
         model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
         model_widget.propPreserveRatio().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propRotation().addUntypedPropertyListener(this::styleChanged);
         model_widget.propShowIndex().addUntypedPropertyListener(this::styleChanged);
         model_widget.propTransparent().addUntypedPropertyListener(this::styleChanged);
 

@@ -224,7 +224,6 @@ public class DockItem extends Tab
         }
 
         event.consume();
-
     }
 
     /** Accept other items that are dropped onto this one */

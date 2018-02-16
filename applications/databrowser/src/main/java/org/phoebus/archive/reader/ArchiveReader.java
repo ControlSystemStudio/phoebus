@@ -108,9 +108,15 @@ public interface ArchiveReader extends Closeable
     }
 
     /** Cancel an ongoing get*() call. */
-    public void cancel();
+    public default void cancel()
+    {
+        // NOP
+    };
 
     /** Must be called when archive is no longer used to release resources */
     @Override
-    public void close();
+    public default void close()
+    {
+        // NOP
+    }
 }

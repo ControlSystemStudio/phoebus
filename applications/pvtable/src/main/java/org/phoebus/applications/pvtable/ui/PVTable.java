@@ -26,6 +26,7 @@ import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
 import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VType;
 
@@ -62,6 +63,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
 
 /** PV Table and its toolbar
@@ -73,14 +75,6 @@ public class PVTable extends BorderPane
     private static final String comment_style = "-fx-text-fill: blue;";
     private static final String new_item_style = "-fx-text-fill: gray;";
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
-    private static final String[] alarm_styles = new String[]
-    {
-        null,                      // NONE
-        "-fx-text-fill: orange;",  // MINOR
-        "-fx-text-fill: red;",     // MAJOR
-        "-fx-text-fill: purple;",  // INVALID
-        "-fx-text-fill: magenta;", // UNDEFINED
-    };
 
     private final PVTableModel model;
     private final TableView<TableItemProxy> table;
@@ -229,12 +223,12 @@ public class PVTable extends BorderPane
                 return;
             final TableItemProxy proxy = getTableView().getItems().get(getIndex());
             if (proxy == TableItemProxy.NEW_ITEM)
-                setStyle(null);
+                setTextFill(Color.BLACK);
             else
             {
                 final VType value = proxy.item.getValue();
                 if (value != null)
-                    setStyle(alarm_styles[VTypeHelper.getSeverity(value).ordinal()]);
+                    setTextFill(SeverityColors.getTextColor(VTypeHelper.getSeverity(value)));
             }
         }
     }

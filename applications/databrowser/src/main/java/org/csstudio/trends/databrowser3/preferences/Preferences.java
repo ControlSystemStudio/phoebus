@@ -38,6 +38,7 @@ public class Preferences
         LINE_WIDTH = "line_width",
         OPACITY = "opacity",
         PLOT_BINS = "plot_bins",
+        SCAN_PERIOD = "scan_period",
         SCROLL_STEP = "scroll_step",
         TIME_SPAN = "time_span",
         TRACE_TYPE = "trace_type",
@@ -47,7 +48,6 @@ public class Preferences
         USE_TRACE_NAMES = "use_trace_names",
 
         // Later...
-        SCAN_PERIOD = "scan_period",
         PROMPT_FOR_ERRORS = "prompt_for_errors",
         TIME_SPAN_SHORTCUTS = "time_span_shortcuts",
         EMAIL_DEFAULT_SENDER = "email_default_sender";
@@ -62,6 +62,7 @@ public class Preferences
     public static int line_width;
     public static int opacity;
     public static int plot_bins;
+    public static double scan_period;
     public static Duration scroll_step;
     public static Duration time_span;
     public static TraceType trace_type = TraceType.AREA;
@@ -95,6 +96,7 @@ public class Preferences
         line_width = prefs.getInt(LINE_WIDTH);
         opacity = prefs.getInt(OPACITY);
         plot_bins = prefs.getInt(PLOT_BINS);
+        scan_period = prefs.getDouble(SCAN_PERIOD);
         scroll_step = Duration.ofSeconds( Math.max(1, prefs.getInt(SCROLL_STEP)) );
         time_span = Duration.ofSeconds( Math.round( Math.max(prefs.getDouble(TIME_SPAN), 1.0) ) );
 

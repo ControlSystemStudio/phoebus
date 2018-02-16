@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -98,9 +98,12 @@ public class EnumWidgetPropertyBinding
     /** Submit combo value to model */
     private void submit()
     {
-        updating = true;
         final String entered = jfx_node.getValue();
+        // Combo switched to editable, but user never entered anything?
+        if (entered == null)
+            return;
 
+        updating = true;
         final int ordinal = jfx_node.getItems().indexOf(entered);
 
         final Object value = (ordinal >= 0) ? ordinal : entered;
@@ -115,7 +118,7 @@ public class EnumWidgetPropertyBinding
     }
 
     /** Restore combo from model */
-    private void restore()
+    void restore()
     {
         final String spec = widget_property.getSpecification();
         // Try to resolve spec to enum ordinal

@@ -166,11 +166,4 @@ public class ModelSampleIterator implements ValueIterator
         }
         return result;
     }
-
-    /** {@inheritDoc} */
-    @Override
-    public void close()
-    {
-        // NOP
-    }
 }

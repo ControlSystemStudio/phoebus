@@ -1,3 +1,4 @@
 org.phoebus.archive.reader.rdb.RDBArchiveReaderFactory
 org.phoebus.archive.reader.channelarchiver.XMLRPCArchiveReaderFactory
 org.phoebus.archive.reader.channelarchiver.file.ArchiveFileReaderFactory
+org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory

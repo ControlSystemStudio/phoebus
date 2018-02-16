@@ -8,11 +8,12 @@
 package org.csstudio.trends.databrowser3.ui;
 
 import java.text.MessageFormat;
-import java.util.Optional;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
+import org.csstudio.trends.databrowser3.model.FormulaInput;
+import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.PVItem;
@@ -38,7 +39,7 @@ public class AddModelItemCommand extends UndoableAction
      *  @param archive Archive data source
      *  @return AddModelItemCommand or <code>null</code> on error
      */
-    public static Optional<AddModelItemCommand> forPV(
+    public static AddModelItemCommand forPV(
             final UndoableActionManager operations_manager,
             final Model model,
             final String pv_name,
@@ -62,10 +63,10 @@ public class AddModelItemCommand extends UndoableAction
         {
             ExceptionDetailsErrorDialog.openError(Messages.Error,
                     MessageFormat.format(Messages.AddItemErrorFmt, pv_name), ex);
-            return Optional.empty();
+            return null;
         }
         // Add to model via undo-able command
-        return Optional.of(new AddModelItemCommand(operations_manager, model, item));
+        return new AddModelItemCommand(operations_manager, model, item);
     }
 
     /** Create PV via undo-able AddModelItemCommand,
@@ -75,32 +76,30 @@ public class AddModelItemCommand extends UndoableAction
      *  @param axis Axis
      *  @return AddModelItemCommand or <code>null</code> on error
      */
-    public static Optional<AddModelItemCommand> forFormula(
+    public static AddModelItemCommand forFormula(
             final UndoableActionManager operations_manager,
             final Model model,
             final String formula_name,
             final AxisConfig axis)
     {
-        throw new IllegalStateException("TODO");
-//        // Create item
-//        final FormulaItem item;
-//        try
-//        {
-//            item = new FormulaItem(formula_name, "0", new FormulaInput[0]); //$NON-NLS-1$
-//            axis.setVisible(true);
-//            item.setAxis(axis);
-//        }
-//        catch (Exception ex)
-//        {
-//        ExceptionDetailsErrorDialog.openError(
-//                Messages.Error,
-//                MessageFormat.format(Messages.AddItemErrorFmt, pv_name), ex);
-//            return Optional.empty();
-//        }
-//        // Add to model via undo-able command
-//        return Optional.of(new AddModelItemCommand(shell, operations_manager, model, item));
+        // Create item
+        final FormulaItem item;
+        try
+        {
+            item = new FormulaItem(formula_name, "0", new FormulaInput[0]); //$NON-NLS-1$
+            axis.setVisible(true);
+            item.setAxis(axis);
+        }
+        catch (Exception ex)
+        {
+        ExceptionDetailsErrorDialog.openError(
+                Messages.Error,
+                MessageFormat.format(Messages.AddItemErrorFmt, formula_name), ex);
+            return null;
+        }
+        // Add to model via undo-able command
+        return new AddModelItemCommand(operations_manager, model, item);
     }
-
 
     /** Register and perform the command
      *  @param operations_manager OperationsManager where command will be reg'ed

@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newDoublePropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newFilenamePropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
@@ -66,7 +67,7 @@ public class SymbolWidget extends PVWidget {
 
     public static final WidgetPropertyDescriptor<Integer>                       propInitialIndex  = newIntegerPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "initial_index",  Messages.WidgetProperties_InitialIndex, 0, Integer.MAX_VALUE);
     public static final WidgetPropertyDescriptor<Boolean>                       propShowIndex     = newBooleanPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "show_index",     Messages.WidgetProperties_ShowIndex);
-
+    public static final WidgetPropertyDescriptor<Double>                        propRotation      = newDoublePropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "rotation",       Messages.WidgetProperties_Rotation);
     public static final WidgetPropertyDescriptor<Integer>                       propArrayIndex    = newIntegerPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "array_index",    Messages.WidgetProperties_ArrayIndex, 0, Integer.MAX_VALUE);
     public static final WidgetPropertyDescriptor<Boolean>                       propAutoSize      = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "auto_size",      Messages.WidgetProperties_AutoSize);
     public static final WidgetPropertyDescriptor<Boolean>                       propPreserveRatio = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "preserve_ratio", Messages.WidgetProperties_PreserveRatio);
@@ -85,6 +86,7 @@ public class SymbolWidget extends PVWidget {
     private volatile WidgetProperty<Boolean>                     enabled;
     private volatile WidgetProperty<Integer>                     initial_index;
     private volatile WidgetProperty<Boolean>                     preserve_ratio;
+    private volatile WidgetProperty<Double>                      rotation;
     private volatile WidgetProperty<Boolean>                     show_index;
     private volatile ArrayWidgetProperty<WidgetProperty<String>> symbols;
     private volatile WidgetProperty<Boolean>                     transparent;
@@ -145,6 +147,10 @@ public class SymbolWidget extends PVWidget {
         return preserve_ratio;
     }
 
+    public WidgetProperty<Double> propRotation ( ) {
+        return rotation;
+    }
+
     public WidgetProperty<Boolean> propShowIndex ( ) {
         return show_index;
     }
@@ -166,6 +172,7 @@ public class SymbolWidget extends PVWidget {
 
         properties.add(background     = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(initial_index  = propInitialIndex.createProperty(this, 0));
+        properties.add(rotation       = propRotation.createProperty(this, 0.0));
         properties.add(show_index     = propShowIndex.createProperty(this, false));
         properties.add(transparent    = propTransparent.createProperty(this, true));
 

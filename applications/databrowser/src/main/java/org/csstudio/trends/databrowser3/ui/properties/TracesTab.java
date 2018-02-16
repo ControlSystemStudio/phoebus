@@ -21,6 +21,7 @@ import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
+import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
@@ -33,14 +34,18 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
+import org.phoebus.util.time.SecondsParser;
 
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -56,9 +61,16 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
 
@@ -84,6 +96,10 @@ public class TracesTab extends Tab
     private final TableView<ModelItem> trace_table = new TableView<>();
 
     private final TableView<ArchiveDataSource> archives_table = new TableView<>();
+
+    private Pane formula_pane;
+
+    private final TextField formula_txt = new TextField();
 
     private final ObservableList<String> axis_names = FXCollections.observableArrayList();
 
@@ -227,14 +243,38 @@ public class TracesTab extends Tab
         }
     };
 
-    /** Update archives table when the selection model items change */
+    /** Update archives or formula section when the selection model items change */
     final InvalidationListener selection_changed = event ->
     {
         final ObservableList<ModelItem> items = trace_table.getSelectionModel().getSelectedItems();
         archives_table.getItems().clear();
+        // Note: Items in detail pane are set to the current value here.
+        // They won't update if the model item changes, for example via undo/redo.
         if (items.size() == 1)
-            if (items.get(0) instanceof PVItem)
-                archives_table.getItems().setAll(((PVItem)items.get(0)).getArchiveDataSources());
+        {
+            final ModelItem item = items.get(0);
+            if (item instanceof PVItem)
+            {
+                archives_table.setVisible(true);
+                formula_pane.setVisible(false);
+                archives_table.getItems().setAll(((PVItem)item).getArchiveDataSources());
+                formula_txt.clear();
+            }
+            else if (item instanceof FormulaItem)
+            {
+                archives_table.setVisible(false);
+                formula_pane.setVisible(true);
+                archives_table.getItems().clear();
+                formula_txt.setText(((FormulaItem)item).getExpression());
+            }
+        }
+        else
+        {
+            archives_table.setVisible(false);
+            formula_pane.setVisible(false);
+            formula_txt.clear();
+            formula_txt.clear();
+        }
     };
 
     TracesTab(final Model model, final UndoableActionManager undo)
@@ -248,19 +288,49 @@ public class TracesTab extends Tab
 
         // Bottom: Archives for selected trace
         createArchivesTable();
+        createDetailSection();
 
-        createContextMenu();
+        archives_table.setVisible(false);
+        formula_pane.setVisible(false);
 
-        final SplitPane top_bottom = new SplitPane(trace_table, archives_table);
+        final StackPane details = new StackPane(archives_table, formula_pane);
+
+        final SplitPane top_bottom = new SplitPane(trace_table, details);
         top_bottom.setOrientation(Orientation.VERTICAL);
         top_bottom.setDividerPositions(0.7);
 
         setContent(top_bottom);
 
+        createContextMenu();
+
         model.addListener(model_listener);
         updateFromModel();
 
         trace_table.getSelectionModel().getSelectedItems().addListener(selection_changed);
+    }
+
+    private void createDetailSection()
+    {
+        final Label label = new Label(Messages.FormulaLabel);
+        HBox.setHgrow(formula_txt, Priority.ALWAYS);
+        formula_txt.setEditable(false);
+        formula_txt.setOnMousePressed(event ->
+        {
+            final ModelItem item = trace_table.getSelectionModel().getSelectedItem();
+            if (item instanceof FormulaItem)
+            {
+                final FormulaItem fitem = (FormulaItem) item;
+                if (FormulaItemEditor.run(formula_txt, fitem, undo))
+                    Platform.runLater(() -> formula_txt.setText(fitem.getExpression()));
+            }
+        });
+        final HBox row = new HBox(5, label, formula_txt);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setPadding(new Insets(5));
+        final Region filler = new Region();
+        VBox.setVgrow(filler, Priority.ALWAYS);
+        formula_pane = new VBox(row, filler);
     }
 
     private void updateFromModel()
@@ -426,19 +496,11 @@ public class TracesTab extends Tab
                         }
                         // Dynamic Tooltip that shows time range for the buffer
                         final int size = ((PVItem) getTableRow().getItem()).getLiveCapacity();
-                        // TODO Use relative time support to get readable time span
-                        String span;
-                        if (size > 60*60)
-                            span = size / 60.0 / 60 + " hours";
-                        else if (size > 60)
-                            span = size / 60 + " minutes";
-                        else
-                            span = size + " seconds";
+                        final String span = SecondsParser.formatSeconds(size);
                         String text = MessageFormat.format(Messages.LiveBufferSizeInfoFmt, size, span);
                         this.setTooltip(new Tooltip(text));
                     }
                 }
-
             };
             return cell;
         });
@@ -584,9 +646,6 @@ public class TracesTab extends Tab
 
         trace_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         trace_table.setEditable(true);
-
-        // TODO Cursor value update
-
         trace_table.getColumns().forEach(c -> c.setSortable(false));
     }
 

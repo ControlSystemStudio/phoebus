@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.FontWidgetProperty;
@@ -99,8 +100,8 @@ public class PlotWidgetProperties
                                 CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
                                 CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
                                 propGrid.createProperty(widget, false),
-                                propTitleFont.createProperty(widget, NamedWidgetFonts.DEFAULT_BOLD),
-                                propScaleFont.createProperty(widget, NamedWidgetFonts.DEFAULT)));
+                                propTitleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
+                                propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT))));
         }
 
         protected AxisWidgetProperty(final StructuredWidgetProperty.Descriptor axis_descriptor,
@@ -133,8 +134,8 @@ public class PlotWidgetProperties
                                 CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
                                 CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
                                 propGrid.createProperty(widget, false),
-                                propTitleFont.createProperty(widget, NamedWidgetFonts.DEFAULT_BOLD),
-                                propScaleFont.createProperty(widget, NamedWidgetFonts.DEFAULT),
+                                propTitleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
+                                propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT)),
                                 CommonWidgetProperties.propVisible.createProperty(widget, true)));
         }
 

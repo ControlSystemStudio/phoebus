@@ -115,15 +115,15 @@ public class FontWidgetProperty extends WidgetProperty<WidgetFont>
                 if (font_el.hasAttribute("fontName"))
                     family = font_el.getAttribute("fontName");
                 else
-                    family = NamedWidgetFonts.DEFAULT.getFamily();
+                    family = NamedWidgetFonts.BASE.getFamily();
                 if (font_el.hasAttribute(STYLE))
                     style = WidgetFontStyle.values()[Integer.parseInt(font_el.getAttribute(STYLE))];
                 else
-                    style = NamedWidgetFonts.DEFAULT.getStyle();
+                    style = NamedWidgetFonts.BASE.getStyle();
                 if (font_el.hasAttribute("height"))
                     size = Double.parseDouble(font_el.getAttribute("height")) / legacy_size_calibration;
                 else
-                    size = NamedWidgetFonts.DEFAULT.getSize();
+                    size = NamedWidgetFonts.BASE.getSize();
             }
             else
             {   // Plain fonts without name used

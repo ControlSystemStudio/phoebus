@@ -7,12 +7,16 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.MenuItem;
@@ -31,15 +35,15 @@ public class DeleteItemsMenuItem extends MenuItem
         {
             for (ModelItem item : selected)
             {
-            // TODO Check if item is used as input for formula
-//            final Optional<FormulaItem> formula = model.getFormulaWithInput(items[i]);
-//            if (formula.isPresent())
-//            {
-//                MessageDialog.openError(trace_table.getTable().getShell(),
-//                        Messages.Error,
-//                        NLS.bind(Messages.PVUsedInFormulaFmt, items[i].getName(), formula.get().getName()));
-//                return;
-//            }
+                // Check if item is used as input for formula
+                final Optional<FormulaItem> formula = model.getFormulaWithInput(item);
+                if (formula.isPresent())
+                {
+                    ExceptionDetailsErrorDialog.openError(Messages.Error,
+                        MessageFormat.format(Messages.PVUsedInFormulaFmt, item.getName(), formula.get().getName()),
+                        null);
+                    return;
+                }
             }
             new DeleteItemsCommand(undo, model, selected);
         });

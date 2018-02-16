@@ -21,6 +21,7 @@ import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
@@ -381,6 +382,44 @@ public class Model
     public List<ModelItem> getItems()
     {
         return Collections.unmodifiableList(items);
+    }
+
+    /** Locate item by name.
+     *
+     *  <p>Note that the model may contain multiple items for the same
+     *  name. The first occurrence will be returned.
+     *  If no item is found with the given
+     *  name, <code>null</code> will be returned.
+     *  Now that this model may have different items with the same name,
+     *  this method is not recommended to locate an item. This method
+     *  just returns an item which just happens to have the given name.
+     *  @param name
+     *  @return ModelItem by that name or <code>null</code>
+     */
+    public ModelItem getItem(final String name)
+    {
+        for (ModelItem item : items)
+            if (item.getName().equals(name))
+                return item;
+        return null;
+    }
+
+    /** Find a formula that uses a model item as an input.
+     *  @param item Item that's potentially used in a formula
+     *  @return First {@link FormulaItem} that uses this item
+     */
+    public Optional<FormulaItem> getFormulaWithInput(final ModelItem item)
+    {
+        Objects.requireNonNull(item);
+        for (ModelItem i : items)
+        {
+            if (! (i instanceof FormulaItem))
+                continue;
+            final FormulaItem formula = (FormulaItem) i;
+            if (formula.usesInput(item))
+                return Optional.of(formula);
+        }
+        return Optional.empty();
     }
 
     /** Called by items to set their initial color
@@ -778,7 +817,7 @@ public class Model
                 continue;
             final PVItem pv_item = (PVItem) item;
             pv_item.stop();
-            // TODO ImportArchiveReaderFactory.removeCachedArchives(pv_item.getArchiveDataSources());
+            ImportArchiveReaderFactory.removeCachedArchives(pv_item.getArchiveDataSources());
         }
     }
 
@@ -790,12 +829,12 @@ public class Model
     public boolean updateItemsAndCheckForNewSamples()
     {
         boolean anything_new = false;
-        // TODO Update any formulas
+        // Update any formulas
         for (ModelItem item : items)
         {
-//            if (item instanceof FormulaItem  &&
-//                    ((FormulaItem)item).reevaluate())
-//                anything_new = true;
+            if (item instanceof FormulaItem  &&
+                ((FormulaItem)item).reevaluate())
+                anything_new = true;
         }
         // Check and reset PV Items
         for (ModelItem item : items)

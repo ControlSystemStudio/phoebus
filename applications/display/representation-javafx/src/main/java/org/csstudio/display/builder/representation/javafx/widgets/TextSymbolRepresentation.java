@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.phoebus.ui.javafx.Styles;
@@ -37,6 +38,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 
 
 /**
@@ -54,6 +57,13 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
     private int                                  symbolIndex            = -1;
     private final WidgetPropertyListener<String> symbolPropertyListener = this::symbolChanged;
     private final AtomicBoolean                  updatingValue          = new AtomicBoolean(false);
+    /**
+     * Was there ever any transformation applied to the jfx_node?
+     *  <p>Used to optimize:
+     *  If there never was a rotation, don't even _clear()_ it
+     *  to keep the Node's nodeTransformation == null
+     */
+    private boolean                              was_ever_transformed   = false;
 
     @Override
     public void updateChanges ( ) {
@@ -93,6 +103,34 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
 
         if ( dirtyStyle.checkAndClear() ) {
 
+            final int width = model_widget.propWidth().getValue();
+            final int height = model_widget.propHeight().getValue();
+            final RotationStep rotation = model_widget.propRotationStep().getValue();
+
+            switch ( rotation ) {
+                case NONE:
+                    jfx_node.setPrefSize(width, height);
+                    if ( was_ever_transformed ) {
+                        jfx_node.getTransforms().clear();
+                    }
+                    break;
+                case NINETY:
+                    jfx_node.setPrefSize(height, width);
+                    jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()), new Translate(-height, 0));
+                    was_ever_transformed = true;
+                    break;
+                case ONEEIGHTY:
+                    jfx_node.setPrefSize(width, height);
+                    jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()), new Translate(-width, -height));
+                    was_ever_transformed = true;
+                    break;
+                case MINUS_NINETY:
+                    jfx_node.setPrefSize(height, width);
+                    jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()), new Translate(0, -width));
+                    was_ever_transformed = true;
+                    break;
+            }
+
             value = model_widget.propEnabled().getValue();
 
             if ( !Objects.equals(value, enabled) ) {
@@ -110,6 +148,7 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
             );
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             jfx_node.setTextFill(JFXUtil.convert(model_widget.propForegroundColor().getValue()));
+            jfx_node.setWrapText(model_widget.propWrapWords().getValue());
 
         }
 
@@ -201,13 +240,15 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
         model_widget.propWidth().addUntypedPropertyListener(this::geometryChanged);
         model_widget.propHeight().addUntypedPropertyListener(this::geometryChanged);
 
+        model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
         model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
         model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propTransparent().addUntypedPropertyListener(this::styleChanged);
         model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
         model_widget.propHorizontalAlignment().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propRotationStep().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propTransparent().addUntypedPropertyListener(this::styleChanged);
         model_widget.propVerticalAlignment().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propWrapWords().addUntypedPropertyListener(this::styleChanged);
 
         if ( toolkit.isEditMode() ) {
             dirtyValue.checkAndClear();

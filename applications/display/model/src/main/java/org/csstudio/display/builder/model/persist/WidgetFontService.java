@@ -17,6 +17,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Preferences;
+import org.csstudio.display.builder.model.properties.NamedWidgetFont;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 
 /** Service that provides {@link NamedWidgetFonts}
@@ -98,5 +99,19 @@ public class WidgetFontService
             logger.log(Level.WARNING, "Cannot obtain named fonts", ex);
         }
         return new NamedWidgetFonts();
+    }
+
+    /** Get named font
+     *  @param name Name of the font
+     *  @return Named font
+     */
+    public static NamedWidgetFont get(final String name)
+    {
+
+        return getFonts().getFont(name)
+                         .orElseGet(() -> new NamedWidgetFont(name,
+                                                              NamedWidgetFonts.BASE.getFamily(),
+                                                              NamedWidgetFonts.BASE.getStyle(),
+                                                              NamedWidgetFonts.BASE.getSize()));
     }
 }

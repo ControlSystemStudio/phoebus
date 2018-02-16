@@ -26,6 +26,7 @@ import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
+import org.csstudio.trends.databrowser3.model.FormulaItem;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.PVItem;
@@ -274,37 +275,45 @@ public class XMLPersistence
         // Load PVs/Formulas
         list = XMLUtil.getChildElement(root_node, TAG_PVLIST);
         if (list != null)
-        {   // Load PV items
-            for (Element item : XMLUtil.getChildElements(list, TAG_PV))
+        {
+            // Iterate over all elements, then check for PV or FORMULA to preserve order.
+            // Iterating over all PVs first, then FORMULAs would change their order.
+            for (Element item : XMLUtil.getChildElements(list))
             {
-                final PVItem model_item = PVItem.fromDocument(model, item);
-                // Adding item creates the axis for it if not already there
-                model.addItem(model_item);
-                // Ancient data browser stored axis configuration with each item: Update axis from that.
-                final AxisConfig axis = model_item.getAxis();
+                if (item.getNodeName().equals(TAG_PV))
+                {
+                    // Load PV item
+                    final PVItem model_item = PVItem.fromDocument(model, item);
+                    // Adding item creates the axis for it if not already there
+                    model.addItem(model_item);
+                    // Ancient data browser stored axis configuration with each item: Update axis from that.
+                    final AxisConfig axis = model_item.getAxis();
 
-                XMLUtil.getChildBoolean(item, TAG_AUTO_SCALE).ifPresent(
-                    auto ->
-                    {
-                        if (auto)
-                            axis.setAutoScale(true);
-                    });
+                    XMLUtil.getChildBoolean(item, TAG_AUTO_SCALE).ifPresent(
+                        auto ->
+                        {
+                            if (auto)
+                                axis.setAutoScale(true);
+                        });
 
-                XMLUtil.getChildBoolean(item, TAG_LOG_SCALE).ifPresent(
-                    log ->
-                    {
-                        if (log)
-                            axis.setLogScale(true);
-                    });
+                    XMLUtil.getChildBoolean(item, TAG_LOG_SCALE).ifPresent(
+                        log ->
+                        {
+                            if (log)
+                                axis.setLogScale(true);
+                        });
 
-                final Optional<Double> min = XMLUtil.getChildDouble(item, TAG_MIN);
-                final Optional<Double> max = XMLUtil.getChildDouble(item, TAG_MAX);
-                if (min.isPresent()  &&  max.isPresent())
-                    axis.setRange(min.get(), max.get());
+                    final Optional<Double> min = XMLUtil.getChildDouble(item, TAG_MIN);
+                    final Optional<Double> max = XMLUtil.getChildDouble(item, TAG_MAX);
+                    if (min.isPresent()  &&  max.isPresent())
+                        axis.setRange(min.get(), max.get());
+                }
+                else if (item.getNodeName().equals(TAG_FORMULA))
+                {
+                    // Load Formulas
+                    model.addItem(FormulaItem.fromDocument(model, item));
+                }
             }
-            // Load Formulas
-//            for (Element item : XMLUtil.getChildElements(list, TAG_FORMULA))
-//                model.addItem(FormulaItem.fromDocument(model, item));
         }
 
         // Update items from legacy <xyGraphSettings>

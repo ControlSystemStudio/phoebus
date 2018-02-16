@@ -48,9 +48,8 @@ public class DataBrowserInstance implements AppInstance
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[] { new ExtensionFilter("Data Browser", "*.plt") };
 
     private final DataBrowserApp app;
+    private final Perspective perspective = new Perspective();
     private DockItemWithInput dock_item;
-
-    private Perspective perspective;
 
     /** Track changes that turn the instance 'dirty' **/
     private final ModelListener model_listener = new ModelListener()
@@ -120,12 +119,8 @@ public class DataBrowserInstance implements AppInstance
     {
         this.app = app;
 
-        final DockPane dock_pane = DockPane.getActiveDockPane();
-
-        perspective = new Perspective();
-
         dock_item = new DockItemWithInput(this, perspective, null, file_extensions, this::doSave);
-        dock_pane.addTab(dock_item);
+        DockPane.getActiveDockPane().addTab(dock_item);
 
         dock_item.addCloseCheck(() ->
         {

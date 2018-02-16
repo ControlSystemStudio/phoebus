@@ -26,6 +26,7 @@ import java.util.logging.LogRecord;
 import org.csstudio.display.builder.model.persist.DelayedStream;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.NamedWidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
@@ -162,7 +163,7 @@ public class ClassSupportUnitTest
         assertThat(widget_classes.getWidgetClasses("label"), hasItem("TITLE"));
         final LabelWidget another = new LabelWidget();
         another.setPropertyValue("name", "TITLE");
-        another.propFont().setValue(NamedWidgetFonts.DEFAULT_BOLD);
+        another.propFont().setValue(WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD));
         another.propFont().useWidgetClass(true);
         widget_classes.registerClass(another);
         assertThat(last_log_message.get(), containsString("TITLE"));
