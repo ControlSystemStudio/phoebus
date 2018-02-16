@@ -51,7 +51,8 @@
     -fx-padding: 0em 0em 0em 0.2em;
     -fx-wrap-text: true;
     -fx-text-overrun: clip;
-}
+    -fx-text-alignment: center;
+    
 
 /* Same for the menu button,
  * which uses a label inside the button
