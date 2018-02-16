@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.ui.waveformview;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,7 @@ import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.csstudio.trends.databrowser3.ui.ToggleToolbarMenuItem;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.VNumberArray;
@@ -39,6 +41,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
@@ -173,9 +176,6 @@ public class WaveformView extends VBox
         VBox.setVgrow(plot, Priority.ALWAYS);
         getChildren().setAll(top_row, plot, sample_index, bottom_row);
 
-
-        // TODO Context menu
-
         updatePVs();
     }
 
@@ -185,6 +185,18 @@ public class WaveformView extends VBox
         plot.getXAxis().setName(Messages.WaveformIndex);
         plot.getYAxes().get(0).setName(Messages.WaveformAmplitude);
         plot.getYAxes().get(0).setAutoscale(true);
+
+        // Context menu
+        final ContextMenu menu = new ContextMenu();
+        plot.setOnContextMenuRequested(event ->
+        {
+            menu.getItems().setAll(new ToggleToolbarMenuItem(plot));
+
+            final Iterator<Trace<Double>> traces = plot.getTraces().iterator();
+            if (traces.hasNext())
+                menu.getItems().add(new ToggleLinesMenuItem(plot, traces.next()));
+            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
     }
 
     private void updatePVs()
@@ -212,8 +224,6 @@ public class WaveformView extends VBox
         if (model_item == null)
         {
             items.getSelectionModel().clearSelection();
-
-
             removeAnnotation();
             return;
         }
@@ -256,7 +266,6 @@ public class WaveformView extends VBox
             status.setText(MessageFormat.format(Messages.SeverityStatusFmt, VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value)));
         }
         plot.requestUpdate();
-
     }
 
     /** Clear all the info fields. */

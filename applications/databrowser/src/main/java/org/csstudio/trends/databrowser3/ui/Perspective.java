@@ -173,7 +173,10 @@ public class Perspective extends SplitPane
 
         plot.getPlot().setOnContextMenuRequested(event ->
         {
-            items.setAll(add_data);
+            items.clear();
+            items.add(new ToggleToolbarMenuItem(plot.getPlot()));
+            items.add(new SeparatorMenuItem());
+            items.addAll(add_data);
 
             if (model.getEmptyAxis().isPresent())
             {
