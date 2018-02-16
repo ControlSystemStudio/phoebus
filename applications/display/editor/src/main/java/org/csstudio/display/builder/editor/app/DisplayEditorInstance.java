@@ -237,7 +237,7 @@ public class DisplayEditorInstance implements AppInstance
         {
             // Check if file has been changed outside of this editor
             final FileTime as_loaded = modification_marker;
-            if (as_loaded != null)
+            if (as_loaded != null  &&  file.exists()  &&  file.canRead())
             {
                 final FileTime current = Files.getLastModifiedTime(file.toPath());
                 if (! current.equals(as_loaded))
