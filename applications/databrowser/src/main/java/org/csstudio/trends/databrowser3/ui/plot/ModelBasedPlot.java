@@ -352,7 +352,7 @@ public class ModelBasedPlot
     /** Set annotations in plot to match model's annotations
      *  @param newAnnotations Annotations to show in plot
      */
-    void setAnnotations(final Collection<AnnotationInfo> newAnnotations)
+    public void setAnnotations(final Collection<AnnotationInfo> newAnnotations)
     {
         final List<Trace<Instant>> traces = new ArrayList<>();
         for (Trace<Instant> trace : plot.getTraces())

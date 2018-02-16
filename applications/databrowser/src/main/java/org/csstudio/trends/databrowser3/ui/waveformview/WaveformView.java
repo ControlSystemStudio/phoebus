@@ -9,14 +9,17 @@ package org.csstudio.trends.databrowser3.ui.waveformview;
 
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
+import org.csstudio.javafx.rtplot.data.TimeDataSearch;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
@@ -30,7 +33,9 @@ import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.VNumberArray;
 import org.phoebus.vtype.VType;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -51,6 +56,9 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class WaveformView extends VBox
 {
+    /** Text used for the annotation that indicates waveform sample */
+    private static final String ANNOTATION_TEXT = "Waveform view";
+
     private final Model model;
 
     /** Selected model item in model, or <code>null</code> */
@@ -108,7 +116,8 @@ public class WaveformView extends VBox
             // type update once the user stops moving the annotation for a little time
             if (pending_move != null)
                 pending_move.cancel(false);
-//            pending_move = timer.schedule(WaveformView.this::userMovedAnnotation, 500, TimeUnit.MILLISECONDS);
+
+            pending_move = Activator.thread_pool.schedule(WaveformView.this::userMovedAnnotation, 500, TimeUnit.MILLISECONDS);
         }
 
         @Override
@@ -151,6 +160,8 @@ public class WaveformView extends VBox
         sample_index.setTooltip(new Tooltip(Messages.WaveformTimeSelector));
         sample_index.valueProperty().addListener(p -> showSelectedSample());
 
+        timestamp.setEditable(false);
+        status.setEditable(false);
         HBox.setHgrow(timestamp, Priority.ALWAYS);
         HBox.setHgrow(status, Priority.ALWAYS);
         final HBox bottom_row = new HBox(5, new Label(Messages.WaveformTimestamp), timestamp, new Label(Messages.WaveformStatus), status);
@@ -256,14 +267,74 @@ public class WaveformView extends VBox
         removeAnnotation();
     }
 
+    private void userMovedAnnotation()
+    {
+        if (waveform_annotation == null)
+            return;
+        for (AnnotationInfo annotation : model.getAnnotations())
+        {   // Locate the annotation for this waveform
+            if (annotation.isInternal()  &&
+                annotation.getItemIndex() == waveform_annotation.getItemIndex() &&
+                annotation.getText().equals(waveform_annotation.getText()))
+            {   // Locate index of sample for annotation's time stamp
+                final PlotSamples samples = model_item.getSamples();
+                final TimeDataSearch search = new TimeDataSearch();
+                final int idx;
+                samples.getLock().lock();
+                try
+                {
+                    idx = search.findClosestSample(samples, annotation.getTime());
+                }
+                finally
+                {
+                    samples.getLock().unlock();
+                }
+                // Update waveform view for that sample on UI thread
+                Platform.runLater(() ->
+                {
+                    if (sample_index.getMax() < idx)
+                        sample_index.setMax(idx);
+                    sample_index.setValue(idx);
+                    showSelectedSample();
+                });
+                return;
+            }
+        }
+    }
+
     private void updateAnnotation(final Instant time, final double value)
     {
-        // TODO
+        final List<AnnotationInfo> annotations = new ArrayList<AnnotationInfo>(model.getAnnotations());
+        // Initial annotation offset
+        Point2D offset = new Point2D(20, -20);
+        // If already in model, note its offset and remove
+        for (AnnotationInfo annotation : annotations)
+        {
+            if (annotation.getText().equals(ANNOTATION_TEXT))
+            {   // Update offset to where user last placed it
+                offset = annotation.getOffset();
+                waveform_annotation = annotation;
+                annotations.remove(waveform_annotation);
+                break;
+            }
+        }
+
+        final int item_index = model.getItems().indexOf(model_item);
+        waveform_annotation = new AnnotationInfo(true, item_index, time, value, offset, ANNOTATION_TEXT);
+        annotations.add(waveform_annotation);
+        changing_annotations = true;
+        model.setAnnotations(annotations);
+        changing_annotations = false;
     }
 
     private void removeAnnotation()
     {
-        // TODO Auto-generated method stub
-
+        final List<AnnotationInfo> modelAnnotations = new ArrayList<>(model.getAnnotations());
+        if (modelAnnotations.remove(waveform_annotation))
+        {
+            changing_annotations = true;
+            model.setAnnotations(modelAnnotations);
+            changing_annotations = false;
+        }
     }
 }

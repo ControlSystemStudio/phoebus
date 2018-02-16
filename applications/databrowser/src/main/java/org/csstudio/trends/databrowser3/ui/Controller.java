@@ -463,7 +463,7 @@ public class Controller
                 if (changing_annotations)
                     return;
                 changing_annotations = true;
-//                plot.setAnnotations(model.getAnnotations());
+                plot.setAnnotations(model.getAnnotations());
                 changing_annotations = false;
             }
         };
