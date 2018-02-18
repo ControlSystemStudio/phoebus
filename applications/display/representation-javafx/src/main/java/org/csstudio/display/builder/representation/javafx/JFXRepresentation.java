@@ -224,7 +224,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                 double desiredV = model_root.getVvalue() - deltaV;
                 model_root.setVvalue(Math.max(0, Math.min(model_root.getVmax(), desiredV)));
                 evt.consume();
-        	}
+            }
         });
 
         // Middle Button (Wheel press) drag panning finished
