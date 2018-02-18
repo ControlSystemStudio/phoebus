@@ -69,7 +69,7 @@
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     
-    <!-- diirt -->    
+    <!-- diirt
     <dependency>
       <groupId>org.diirt</groupId>
       <artifactId>datasource-sim</artifactId>
@@ -95,6 +95,7 @@
       <artifactId>diirt-pva</artifactId>
       <version>${diirt.version}</version>
     </dependency>
+      -->    
     
   </dependencies>
   <build>
