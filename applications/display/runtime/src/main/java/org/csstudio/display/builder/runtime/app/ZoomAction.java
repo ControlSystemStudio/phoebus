@@ -25,6 +25,7 @@ public class ZoomAction extends ComboBox<String>
         setPrefWidth(100.0);
         getItems().addAll(JFXRepresentation.ZOOM_LEVELS);
         setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
+        instance.getRepresentation().setZoomAction(this);	// For Ctrl-Wheel zoom gesture
         setOnAction(event -> zoom(instance.getRepresentation()));
     }
 
