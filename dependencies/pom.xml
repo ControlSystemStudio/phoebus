@@ -4,10 +4,6 @@
   <artifactId>dependencies</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   
-  <properties>
-      <diirt.version>3.0.0</diirt.version>
-  </properties>
-
   <profiles>
     <!-- Oracle JDBC is only available from an Oracle maven repo
          which requires registration, user, password
@@ -74,32 +70,6 @@
       <version>5.1.1</version>
     </dependency>
 
-    <!-- diirt -->    
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-sim</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-sys</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-loc</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt.support</groupId>
-      <artifactId>diirt-ca</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt.support</groupId>
-      <artifactId>diirt-pva</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>javax.mail</artifactId>

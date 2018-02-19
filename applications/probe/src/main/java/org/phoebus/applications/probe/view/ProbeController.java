@@ -1,27 +1,24 @@
 package org.phoebus.applications.probe.view;
 
-import static org.diirt.datasource.ExpressionLanguage.channel;
-import static org.diirt.util.time.TimeDuration.ofMillis;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-import org.diirt.datasource.PVManager;
-import org.diirt.datasource.PVReader;
-import org.diirt.datasource.PVReaderEvent;
-import org.diirt.datasource.PVReaderListener;
-import org.diirt.vtype.Alarm;
-import org.diirt.vtype.AlarmSeverity;
-import org.diirt.vtype.SimpleValueFormat;
-import org.diirt.vtype.Time;
-import org.diirt.vtype.ValueFormat;
-import org.diirt.vtype.ValueUtil;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionChangeListener;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVListener;
+import org.phoebus.pv.PVPool;
+import org.phoebus.ui.javafx.UpdateThrottle;
+import org.phoebus.util.time.TimestampFormats;
+import org.phoebus.vtype.Alarm;
+import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.SimpleValueFormat;
+import org.phoebus.vtype.Time;
+import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFormat;
+import org.phoebus.vtype.ValueUtil;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -30,8 +27,6 @@ import javafx.scene.control.TextField;
 
 public class ProbeController {
 
-    private static final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS")
-            .withZone(ZoneId.systemDefault());
     private ValueFormat valueFormat = new SimpleValueFormat(3);
 
     @FXML
@@ -77,44 +72,59 @@ public class ProbeController {
         SelectionService.getInstance().setSelection(txtPVName, Arrays.asList(new ProcessVariable(txtPVName.getText())));
     }
 
-    private PVReader<Object> pv;
+    private PV pv;
+
+    private final UpdateThrottle throttle = new UpdateThrottle(100, TimeUnit.MILLISECONDS, this::update);
+
+    private final PVListener pv_listener = new PVListener()
+    {
+        @Override
+        public void valueChanged(final PV pv, final VType value)
+        {
+            throttle.trigger();
+        }
+    };
+
+    private void update()
+    {
+        final VType value = pv.read();
+        Platform.runLater(() ->
+        {
+            setValue(value);
+            setTime(ValueUtil.timeOf(value));
+        });
+    }
 
     @FXML
     private void search() {
-
         // The PV is different, so disconnect and reset the visuals
         if (pv != null) {
-            pv.close();
+            pv.removeListener(pv_listener);
+            PVPool.releasePV(pv);
             pv = null;
         }
 
         // search for pv
-        pv = PVManager.read(channel(txtPVName.getText())).readListener(new PVReaderListener<Object>() {
-            @Override
-            public void pvChanged(PVReaderEvent<Object> event) {
-                final Object newValue = event.getPvReader().getValue();
-                Platform.runLater(() -> {
-                    if (event.getPvReader().lastException() != null) {
-                        event.getPvReader().lastException().printStackTrace();
-                    }
-                    setValue(newValue, event.getPvReader().isConnected());
-                    setTime(ValueUtil.timeOf(newValue));
-                });
-            }
-        }).maxRate(ofMillis(100));
-
+        try
+        {
+            pv = PVPool.getPV(txtPVName.getText());
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        pv.addListener(pv_listener);
     }
 
     private void setTime(Time time) {
         if (time != null) {
-            txtTimeStamp.setText(timeFormat
-                    .format(Instant.ofEpochSecond(time.getTimestamp().getSec(), time.getTimestamp().getNanoSec())));
+            txtTimeStamp.setText(TimestampFormats.FULL_FORMAT.format(time.getTimestamp()));
         } else {
             txtTimeStamp.setText(""); //$NON-NLS-1$
         }
     }
 
-    private void setValue(Object value, boolean connection) {
+    private void setValue(VType value) {
         StringBuilder formattedValue = new StringBuilder();
 
         if (value != null) {
@@ -124,7 +134,7 @@ public class ProbeController {
             }
         }
 
-        appendAlarm(formattedValue, ValueUtil.alarmOf(value, connection));
+        appendAlarm(formattedValue, ValueUtil.alarmOf(value, value != null));
 
         txtValue.setText(formattedValue.toString());
     }
