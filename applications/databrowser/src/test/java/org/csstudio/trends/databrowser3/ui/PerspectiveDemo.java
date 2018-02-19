@@ -19,7 +19,7 @@ public class PerspectiveDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final Perspective perspective = new Perspective();
+        final Perspective perspective = new Perspective(false);
         final Scene scene = new Scene(perspective, 1000, 900);
         stage.setScene(scene);
         stage.show();
