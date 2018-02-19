@@ -19,9 +19,9 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.csstudio.javafx.rtplot.util.RTPlotUpdateThrottle;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.DoubleBuffer;
+import org.phoebus.ui.javafx.UpdateThrottle;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -92,7 +92,7 @@ abstract class PlotCanvasBase extends ImageView
     protected final AtomicBoolean need_update = new AtomicBoolean(true);
 
     /** Throttle updates, enforcing a 'dormant' period */
-    private final RTPlotUpdateThrottle update_throttle;
+    private final UpdateThrottle update_throttle;
 
     /** Buffer for image and color bar
      *
@@ -162,7 +162,7 @@ abstract class PlotCanvasBase extends ImageView
     protected PlotCanvasBase(final boolean active)
     {
         // 50ms = 20Hz default throttle
-        update_throttle = new RTPlotUpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
+        update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
         {
             if (need_update.getAndSet(false))
             {

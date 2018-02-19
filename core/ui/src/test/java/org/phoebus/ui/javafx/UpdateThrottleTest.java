@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.javafx.rtplot.util;
+package org.phoebus.ui.javafx;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -40,7 +40,7 @@ public class UpdateThrottleTest
             }
         };
 
-        final RTPlotUpdateThrottle throttle = new RTPlotUpdateThrottle(1L, TimeUnit.SECONDS, update);
+        final UpdateThrottle throttle = new UpdateThrottle(1L, TimeUnit.SECONDS, update);
         // No initial updates
         assertThat(updates.get(), equalTo(0));
 

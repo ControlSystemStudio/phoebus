@@ -1,22 +1,28 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- ******************************************************************************/
-package org.csstudio.javafx.rtplot.util;
+ *******************************************************************************/
+package org.phoebus.ui.javafx;
 
-import static org.csstudio.javafx.rtplot.Activator.logger;
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import org.csstudio.javafx.rtplot.Activator;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 
 /** Throttle for updates.
+ *
+ *  <p>Can be triggered from any thread.
+ *  The throttled 'update' will typically
+ *  transfer to the UI thread.
  *
  *  <p>Initial trigger will result in update.
  *  Further triggers are suppressed during a 'dormant' period.
@@ -26,8 +32,10 @@ import org.csstudio.javafx.rtplot.Activator;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class RTPlotUpdateThrottle
+public class UpdateThrottle
 {
+    public static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("UpdateThrottle"));
+
     /** How long to stay dormant after an update */
     private volatile long dormant_ms;
 
@@ -51,7 +59,7 @@ public class RTPlotUpdateThrottle
      *  @param unit Units for the dormant period
      *  @param update {@link Runnable} to invoke for triggers
      */
-    public RTPlotUpdateThrottle(final long dormant_time, final TimeUnit unit, final Runnable update)
+    public UpdateThrottle(final long dormant_time, final TimeUnit unit, final Runnable update)
     {
         setDormantTime(dormant_time, unit);
         this.update_then_wake = () ->
@@ -75,7 +83,7 @@ public class RTPlotUpdateThrottle
             }
             // Schedule wakeup
             if (! disposed)
-                scheduled_wakeup = Activator.thread_pool.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
+                scheduled_wakeup = TIMER.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
         };
     }
 
@@ -105,7 +113,7 @@ public class RTPlotUpdateThrottle
         else
         {
             // In idle period, react to trigger, but on timer thread
-            Activator.thread_pool.execute(update_then_wake);
+            TIMER.execute(update_then_wake);
         }
     }
 

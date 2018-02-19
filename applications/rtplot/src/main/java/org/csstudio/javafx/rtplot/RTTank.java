@@ -21,8 +21,8 @@ import org.csstudio.javafx.rtplot.internal.PlotPart;
 import org.csstudio.javafx.rtplot.internal.PlotPartListener;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
-import org.csstudio.javafx.rtplot.util.RTPlotUpdateThrottle;
 import org.phoebus.ui.javafx.BufferUtil;
+import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -58,7 +58,7 @@ public class RTTank extends Canvas
     protected final AtomicBoolean need_layout = new AtomicBoolean(true);
 
     /** Throttle updates, enforcing a 'dormant' period */
-    private final RTPlotUpdateThrottle update_throttle;
+    private final UpdateThrottle update_throttle;
 
     /** Buffer for image of the tank and scale */
     private volatile Image plot_image = null;
@@ -110,7 +110,7 @@ public class RTTank extends Canvas
         heightProperty().addListener(resize_listener);
 
         // 50Hz default throttle
-        update_throttle = new RTPlotUpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
+        update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
         {
             plot_image = updateImageBuffer();
             redrawSafely();
