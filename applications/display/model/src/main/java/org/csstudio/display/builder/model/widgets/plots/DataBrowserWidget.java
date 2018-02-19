@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propToolbar;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -87,12 +88,16 @@ public class DataBrowserWidget extends VisibleWidget
     public static final WidgetPropertyDescriptor<VType> propSelectionValue =
         CommonWidgetProperties.newRuntimeValue("selection_value", "Selection Value");
 
+    public static final WidgetPropertyDescriptor<Instant> runtimePropOpenFull =
+            CommonWidgetProperties.newRuntimeEvent("open_full", "Open Full Data Browser");
+
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<String> file;
     private volatile WidgetProperty<Macros> macros;
     private volatile RuntimeEventProperty configure;
     private volatile WidgetProperty<String> selection_value_pv;
     private volatile WidgetProperty<VType> selection_value;
+    private volatile RuntimeEventProperty open_full;
 
     public DataBrowserWidget()
     {
@@ -109,6 +114,7 @@ public class DataBrowserWidget extends VisibleWidget
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
         properties.add(selection_value_pv = propSelectionValuePV.createProperty(this, ""));
         properties.add(selection_value = propSelectionValue.createProperty(this, null));
+        properties.add(open_full = (RuntimeEventProperty) runtimePropOpenFull.createProperty(this, null));
     }
 
     @Override
@@ -162,5 +168,11 @@ public class DataBrowserWidget extends VisibleWidget
     public WidgetProperty<VType> propSelectionValue()
     {
         return selection_value;
+    }
+
+    /** @return 'open_full' property */
+    public RuntimeEventProperty runtimePropOpenFull()
+    {
+        return open_full;
     }
 }

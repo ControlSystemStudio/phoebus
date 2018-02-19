@@ -9,6 +9,8 @@ package org.csstudio.display.builder.representation.javafx.widgets.plots;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -25,12 +27,15 @@ import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
+import org.csstudio.trends.databrowser3.DataBrowserApp;
+import org.csstudio.trends.databrowser3.DataBrowserInstance;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.Controller;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.VType;
@@ -142,6 +147,7 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
         model_widget.propFile().addPropertyListener(this::fileChanged);
         model_widget.propShowToolbar().addUntypedPropertyListener(this::optsChanged);
         model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.getPlot().showConfigurationDialog());
+        model_widget.runtimePropOpenFull().addPropertyListener((p, o, n) -> openFullDataBrowser());
 
         // Initial update
         final String filename = model_widget.propFile().getValue();
@@ -232,6 +238,27 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
 
         if (dirty_opts.checkAndClear())
             plot.getPlot().showToolbar(model_widget.propShowToolbar().getValue());
+    }
+
+    private void openFullDataBrowser()
+    {
+        try
+        {
+            final DataBrowserApp app = ApplicationService.findApplication("databrowser");
+            final DataBrowserInstance instance = app.create();
+            // Clone model via in-memory XML representation
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            XMLPersistence.write(model, out);
+            final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+            final Model clone = new Model();
+            XMLPersistence.load(clone, in);
+            clone.setMacros(model_widget.getMacrosOrProperties());
+            instance.getModel().load(clone);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot open data browser", ex);
+        }
     }
 
     @Override

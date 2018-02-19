@@ -20,7 +20,7 @@ public abstract class RuntimeAction implements Runnable
     protected String description, icon_path;
 
     /** @param description Description to show to user
-     *  @param icon_path Full path to icon, "platform:/plugin/org.csstudio.javafx.rtplot/icons/toolbar.png"
+     *  @param icon_path Full path to icon within the class loader of the derived class
      */
     public RuntimeAction(final String description, final String icon_path)
     {
@@ -35,7 +35,7 @@ public abstract class RuntimeAction implements Runnable
         return description;
     }
 
-    /** @return Full icon path, "platform:/.." */
+    /** @return Full icon path within the class loader of the derived class */
     public String getIconPath()
     {
         return icon_path;

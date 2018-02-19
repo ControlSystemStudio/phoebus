@@ -14,6 +14,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
+import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.phoebus.pv.PV;
@@ -34,6 +35,20 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class DataBrowserWidgetRuntime  extends WidgetRuntime<DataBrowserWidget>
 {
+    private class OpenDataBrowserAction extends RuntimeAction
+    {
+        OpenDataBrowserAction()
+        {
+            super(Messages.OpenDataBrowser, "/icons/databrowser.png");
+        }
+
+        @Override
+        public void run()
+        {
+            widget.runtimePropOpenFull().trigger();
+        }
+    }
+
     private final List<RuntimeAction> runtime_actions = new ArrayList<>(2);
     private volatile PV selection_pv = null;
     private volatile WidgetPropertyListener<VType> listener = null;
@@ -44,6 +59,7 @@ public class DataBrowserWidgetRuntime  extends WidgetRuntime<DataBrowserWidget>
         super.initialize(widget);
         runtime_actions.add(new ConfigureAction("Configure Plot", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
+        runtime_actions.add(new OpenDataBrowserAction());
     }
 
     @Override
