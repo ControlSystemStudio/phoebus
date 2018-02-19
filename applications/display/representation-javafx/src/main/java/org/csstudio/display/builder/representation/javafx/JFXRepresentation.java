@@ -243,8 +243,10 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             }
         });
 
-        // Ctrl-Wheel zoom gesture implementation
-        model_root.addEventFilter(ScrollEvent.ANY, evt ->
+        // Ctrl-Wheel zoom gesture implementation.
+        // Don't _filter_ because some widgets (plot)
+        // also handle the wheel
+        model_root.addEventHandler(ScrollEvent.ANY, evt ->
         {
             if (evt.isControlDown())
             {
