@@ -193,6 +193,8 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
         }
         // Override settings in *.plt file with those of widget
         db_model.setToolbarVisible(model_widget.propShowToolbar().getValue());
+
+        db_model.setMacros(model_widget.getMacrosOrProperties());
         // Set 'new_model'. Plot will be updated on UI thread
         new_model.set(db_model);
         toolkit.scheduleUpdate(this);
