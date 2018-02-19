@@ -57,7 +57,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ComboBox;    // For Ctrl-Wheel zoom gesture
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.ScrollEvent;    // For Ctrl-Wheel zoom gesture
 import javafx.scene.layout.Background;
@@ -146,8 +145,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     private Pane widget_parent;
     private Group scroll_body;
     private ScrollPane model_root;
-    private ComboBox<String> zoomAction;    // For Ctrl-Wheel zoom gesture
-    final ObjectProperty<Point2D> lastMouseCoordinates = new SimpleObjectProperty<Point2D>();    // Middle Button (Wheel press) drag panning
+
+    /** Called with zoom level text when zooming via Ctrl-Wheel */
+    private Consumer<String> zoom_listener;
+
+    /** For Middle Button (Wheel press) drag panning */
+    private final ObjectProperty<Point2D> lastMouseCoordinates = new SimpleObjectProperty<Point2D>();
 
     /** Constructor
      *  @param edit_mode Edit mode?
@@ -200,8 +203,10 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         model_root.heightProperty().addListener(resized);
 
         // Middle Button (Wheel press) drag panning started
-        scroll_body.setOnMousePressed(evt -> {
-            if (evt.isMiddleButtonDown()) {
+        scroll_body.setOnMousePressed(evt ->
+        {
+            if (evt.isMiddleButtonDown())
+            {
                 lastMouseCoordinates.set(new Point2D(evt.getX(), evt.getY()));
                 scroll_body.setCursor(Cursor.CLOSED_HAND);
                 evt.consume();
@@ -209,7 +214,8 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         });
 
         // Middle Button (Wheel press) drag panning function
-        scroll_body.setOnMouseDragged(evt-> {
+        scroll_body.setOnMouseDragged(evt->
+        {
             if (evt.isMiddleButtonDown())
             {
                 double deltaX = evt.getX() - lastMouseCoordinates.get().getX();
@@ -228,20 +234,26 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         });
 
         // Middle Button (Wheel press) drag panning finished
-        scroll_body.setOnMouseReleased(evt -> {
-            if (scroll_body.getCursor() == Cursor.CLOSED_HAND) {
+        scroll_body.setOnMouseReleased(evt ->
+        {
+            if (scroll_body.getCursor() == Cursor.CLOSED_HAND)
+            {
                 scroll_body.setCursor(Cursor.DEFAULT);
                 evt.consume();
             }
         });
 
         // Ctrl-Wheel zoom gesture implementation
-        model_root.addEventFilter(ScrollEvent.ANY, evt -> {
-            if (evt.isControlDown()) {
+        model_root.addEventFilter(ScrollEvent.ANY, evt ->
+        {
+            if (evt.isControlDown())
+            {
                 evt.consume();
                 final double zoom = getZoom();
-                if (zoom >= ZOOM_MAX && evt.getDeltaY() > 0) return;
-                if (zoom <= ZOOM_MIN && evt.getDeltaY() < 0) return;
+                if (zoom >= ZOOM_MAX && evt.getDeltaY() > 0)
+                    return;
+                if (zoom <= ZOOM_MIN && evt.getDeltaY() < 0)
+                    return;
 
                 final double zoomFactor = evt.getDeltaY() > 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
                 double new_zoom = zoom * zoomFactor;
@@ -254,7 +266,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                 // do not directly setValue(Double.toString(new_zoom * 100));
                 // setText() only, otherwise it gets into an endless update due to getValue/setValue implementation in Editor. In Runtime was OK.
                 // Drawback: return to a previous "combo driven" zoom level from any wheel level not possible directly (no value change in combo)
-                zoomAction.getEditor().setText(Integer.toString((int)(new_zoom * 100)) + " %");
+                zoom_listener.accept(Integer.toString((int)(new_zoom * 100)) + " %");
                 setZoom(new_zoom);
 
                 repositionScroller(scroll_body, model_root, realFactor, scrollOffset, new Point2D(evt.getX(), evt.getY()));
@@ -263,11 +275,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
 
         return model_root;
     }
-    
+
     /** Ctrl-Wheel zoom gesture help function
      *  Store scroll offset of scrollContent (scroll_body Group) in a scroller (model_root ScrollPane) before zoom
-    */
-    private Point2D figureScrollOffset(Node scrollContent, ScrollPane scroller) {
+     */
+    private Point2D figureScrollOffset(Node scrollContent, ScrollPane scroller)
+    {
         double extraWidth = scrollContent.getLayoutBounds().getWidth() - scroller.getViewportBounds().getWidth();
         double hScrollProportion = (scroller.getHvalue() - scroller.getHmin()) / (scroller.getHmax() - scroller.getHmin());
         double scrollXOffset = hScrollProportion * Math.max(0, extraWidth);
@@ -279,32 +292,33 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
 
     /** Ctrl-Wheel zoom gesture help function
      *  Repositioning scrollbars in scroller so that the zoom centre stays at mouse cursor
-    */
-    private void repositionScroller(Node scrollContent, ScrollPane scroller, double scaleFactor, Point2D scrollOffset, Point2D mouse) {
+     */
+    private void repositionScroller(Node scrollContent, ScrollPane scroller, double scaleFactor, Point2D scrollOffset, Point2D mouse)
+    {
         double scrollXOffset = scrollOffset.getX();
         double scrollYOffset = scrollOffset.getY();
         double extraWidth = scrollContent.getLayoutBounds().getWidth() - scroller.getViewportBounds().getWidth();
-        if (extraWidth > 0) {
+        if (extraWidth > 0)
+        {
             double newScrollXOffset = (scaleFactor - 1) *  mouse.getX() + scaleFactor * scrollXOffset;
             scroller.setHvalue(scroller.getHmin() + newScrollXOffset * (scroller.getHmax() - scroller.getHmin()) / extraWidth);
         }
-        else {
+        else
             scroller.setHvalue(scroller.getHmin());
-        }
         double extraHeight = scrollContent.getLayoutBounds().getHeight() - scroller.getViewportBounds().getHeight();
-        if (extraHeight > 0) {
+        if (extraHeight > 0)
+        {
             double newScrollYOffset = (scaleFactor - 1) * mouse.getY() + scaleFactor * scrollYOffset;
             scroller.setVvalue(scroller.getVmin() + newScrollYOffset * (scroller.getVmax() - scroller.getVmin()) / extraHeight);
         }
-        else {
+        else
             scroller.setHvalue(scroller.getHmin());
-        }
     }
-      
-    /** Zoom level support */
-    public void setZoomAction(ComboBox<String> zoomAction)
+
+    /** @param listener Will be called with zoom level text when using Ctrl-Wheel to zoom */
+    public void setZoomListener(final Consumer<String> listener)
     {
-        this.zoomAction = zoomAction;
+        this.zoom_listener = listener;
     }
 
     /** @return Parent node of model widgets */
