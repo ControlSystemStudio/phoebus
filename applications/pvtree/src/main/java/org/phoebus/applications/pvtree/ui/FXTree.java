@@ -50,11 +50,8 @@ public class FXTree
 
     private final TreeValueUpdateThrottle<TreeItem<?>> throttle = new TreeValueUpdateThrottle<>(items ->
     {
-        Platform.runLater(() ->
-        {
-            for (TreeItem<?> item : items)
-                TreeHelper.triggerTreeItemRefresh(item);
-        });
+        for (TreeItem<?> item : items)
+            TreeHelper.triggerTreeItemRefresh(item);
     });
 
     private final TreeModelListener model_listener = new TreeModelListener()
