@@ -61,7 +61,7 @@ public class Perspective extends SplitPane
 
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
-    private final SearchView search = new SearchView(model, plot.getPlot().getUndoableActionManager());
+    private SearchView search;
     private ExportView export = null;
     private SampleView inspect = null;
     private WaveformView waveform = null;
@@ -74,19 +74,15 @@ public class Perspective extends SplitPane
     private Tab search_tab, properties_tab, export_tab, inspect_tab, waveform_tab = null;
 
 
-    public Perspective()
+    public Perspective(final boolean minimal)
     {
-        search_tab = new Tab(Messages.Search, search);
-        search_tab.setGraphic(Activator.getIcon("search"));
-        search_tab.setOnClosed(event -> autoMinimizeLeft());
-        left_tabs.getTabs().setAll(search_tab);
-
         property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
         properties_tab = new Tab("Properties", property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event -> autoMinimizeBottom());
 
-        bottom_tabs.getTabs().setAll(properties_tab);
+        if (! minimal)
+            bottom_tabs.getTabs().setAll(properties_tab);
 
         plot_and_tabs.setOrientation(Orientation.VERTICAL);
         plot_and_tabs.setDividerPositions(0.8);
@@ -187,6 +183,17 @@ public class Perspective extends SplitPane
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
+    }
+
+    private void createSearchTab()
+    {
+        if (search_tab == null)
+        {
+            search = new SearchView(model, plot.getPlot().getUndoableActionManager());
+            search_tab = new Tab(Messages.Search, search);
+            search_tab.setGraphic(Activator.getIcon("search"));
+            search_tab.setOnClosed(event -> autoMinimizeLeft());
+        }
     }
 
     private void createExportTab()
@@ -307,6 +314,8 @@ public class Perspective extends SplitPane
      */
     private void showSearchTab()
     {
+        createSearchTab();
+
         // If tab not on screen, add it
         if (! left_tabs.getTabs().contains(search_tab))
             left_tabs.getTabs().add(search_tab);
@@ -354,7 +363,14 @@ public class Perspective extends SplitPane
         property_panel.restore(memento);
         search.restore(memento);
 
-        memento.getBoolean(SHOW_SEARCH).ifPresent(show -> { if (! show) left_tabs.getTabs().remove(search_tab); });
+        memento.getBoolean(SHOW_SEARCH).ifPresent(show ->
+        {
+            if (show)
+            {
+                createSearchTab();
+                left_tabs.getTabs().add(search_tab);
+            }
+        });
         memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
         memento.getBoolean(SHOW_EXPORT).ifPresent(show ->
         {
