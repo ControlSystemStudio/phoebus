@@ -581,9 +581,21 @@ public class PhoebusApplication extends Application {
             return null;
         }
 
-        // TODO Pick the _default_ application based on preference setting, not just the first one, which may be undefined
-        if (applications.size() == 1   ||   (applications.size() > 0  &&  !prompt))
+        // Only one app?
+        if (applications.size() == 1)
             return applications.get(0);
+
+        // Pick default application based on preference setting?
+        if (! prompt)
+        {
+            for (AppResourceDescriptor app : applications)
+                for (String part : Preferences.default_apps)
+                    if (app.getName().contains(part))
+                        return app;
+            // , not just the first one, which may be undefined
+            logger.log(Level.WARNING, "No default application found for opening " + resource + ", using first one");
+            return applications.get(0);
+        }
 
         // Prompt user which application to use for this resource
         final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
