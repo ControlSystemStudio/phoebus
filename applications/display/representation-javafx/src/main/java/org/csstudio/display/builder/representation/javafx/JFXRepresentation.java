@@ -268,8 +268,8 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                 // do not directly setValue(Double.toString(new_zoom * 100));
                 // setText() only, otherwise it gets into an endless update due to getValue/setValue implementation in Editor. In Runtime was OK.
                 // Drawback: return to a previous "combo driven" zoom level from any wheel level not possible directly (no value change in combo)
-                zoom_listener.accept(Integer.toString((int)(new_zoom * 100)) + " %");
                 setZoom(new_zoom);
+                zoom_listener.accept(Integer.toString((int)(new_zoom * 100)) + " %");
 
                 repositionScroller(scroll_body, model_root, realFactor, scrollOffset, new Point2D(evt.getX(), evt.getY()));
             }
