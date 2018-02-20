@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
@@ -203,7 +204,8 @@ public class DisplayEditor
         zoom_levels.setTooltip(new Tooltip("Select Zoom Level"));
         zoom_levels.setPrefWidth(100.0);
         // For Ctrl-Wheel zoom gesture
-        toolkit.setZoomListener(txt -> zoom_levels.getEditor().setText(txt));
+        zoomListener zl = new zoomListener(zoom_levels);
+        toolkit.setZoomListener(zl);
         zoom_levels.setOnAction(event ->
         {
             final String actual = requestZoom(zoom_levels.getValue());
@@ -268,6 +270,21 @@ public class DisplayEditor
             redo_button,
             new Separator(),
             zoom_levels);
+    }
+
+    public class zoomListener implements Consumer<String>
+    {
+        ComboBox<String> zoom_levels;
+
+        public zoomListener(ComboBox<String> zoom_levels)
+        {
+            this.zoom_levels = zoom_levels;
+        }
+        public void accept(String zoom_level)
+        {
+            zoom_levels.getEditor().setText(zoom_level);
+            edit_tools.getTransforms().setAll(widget_parent.getTransforms());
+        }
     }
 
     private MenuItem createMenuItem(final ActionDescription action)
