@@ -55,7 +55,15 @@ public class DataBrowserApp implements AppResourceDescriptor
     @Override
     public DataBrowserInstance create()
     {
-        return new DataBrowserInstance(this);
+        return create(false);
+    }
+
+    /** @param minimal Should initial Perspective only show the plot?
+     *  @return {@link DataBrowserInstance}
+     */
+    public DataBrowserInstance create(final boolean minimal)
+    {
+        return new DataBrowserInstance(this, minimal);
     }
 
     @Override

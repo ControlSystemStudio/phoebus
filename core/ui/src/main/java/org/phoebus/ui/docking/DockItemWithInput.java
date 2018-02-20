@@ -12,6 +12,7 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -205,6 +206,30 @@ public class DockItemWithInput extends DockItem
             File file = ResourceParser.getFile(getInput());
             if (file == null)
                 return save_as(monitor);
+
+
+            if (file.exists()  &&  !file.canWrite())
+            {   // Warn on UI thread that file is read-only
+                final CompletableFuture<ButtonType> response = new CompletableFuture<>();
+                Platform.runLater(() ->
+                {
+                    final Alert prompt = new Alert(AlertType.CONFIRMATION);
+                    prompt.setTitle("File has changed");
+                    prompt.setResizable(true);
+                    prompt.setHeaderText(
+                        "The file\n   " + file.toString() + "\n" +
+                        "is read-only.\n\n" +
+                        "Save to a different file?");
+                    DialogHelper.positionDialog(prompt, getTabPane(), -200, -200);
+                    response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
+
+                });
+
+                // If user doesn't want to overwrite, abort the save
+                if (response.get() == ButtonType.OK)
+                    return save_as(monitor);
+                return false;
+            }
 
             if (save_handler == null)
                 throw new Exception("No save_handler provided for 'dirty' " + toString());

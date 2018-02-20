@@ -24,6 +24,7 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeParser;
@@ -55,7 +56,7 @@ public class Model
     final private RGBFactory default_colors = new RGBFactory();
 
     /** Macros */
-    private volatile Macros macros = new Macros();
+    private volatile MacroValueProvider macros = new Macros();
 
     /** Listeners to model changes */
     final private List<ModelListener> listeners = new CopyOnWriteArrayList<>();
@@ -182,9 +183,9 @@ public class Model
     }
 
     /** @param other Macros to use in this model */
-    public void setMacros(final Macros other)
+    public void setMacros(final MacroValueProvider other)
     {
-       this.macros = Macros.merge(macros, other);
+       this.macros = other;
     }
 
     /** Resolve macros

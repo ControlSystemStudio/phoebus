@@ -202,6 +202,8 @@ public class DisplayEditor
         zoom_levels.setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
         zoom_levels.setTooltip(new Tooltip("Select Zoom Level"));
         zoom_levels.setPrefWidth(100.0);
+        // For Ctrl-Wheel zoom gesture
+        toolkit.setZoomListener(txt -> zoom_levels.getEditor().setText(txt));
         zoom_levels.setOnAction(event ->
         {
             final String actual = requestZoom(zoom_levels.getValue());

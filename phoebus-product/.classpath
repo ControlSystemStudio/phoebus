@@ -8,17 +8,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="/dependencies/target/lib/activation-1.1.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/antlr-2.7.7.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/antlr-runtime-3.4.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-formula-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-loc-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-sim-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-sys-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/datasource-vtype-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/diirt-ca-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/diirt-pva-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/diirt-util-3.0.0.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-all-1.3.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-core-1.3.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/javax.mail-1.6.0.jar"/>
@@ -28,9 +17,6 @@
 	<classpathentry kind="lib" path="/dependencies/target/lib/objenesis-1.0.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/epics-pvaccess-5.1.1.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/epics-pvdata-6.1.1.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/service-3.0.0.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/stringtemplate-3.2.1.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/vtype-3.0.0.jar"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-logging"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-util"/>
