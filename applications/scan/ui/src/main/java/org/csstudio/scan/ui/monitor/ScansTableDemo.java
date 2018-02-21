@@ -16,6 +16,7 @@ import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -46,13 +47,13 @@ public class ScansTableDemo extends Application
             @Override
             public void scanUpdate(final List<ScanInfo> infos)
             {
-                scans.update(infos);
+                Platform.runLater(() -> scans.update(infos));
             }
 
             @Override
             public void connectionError()
             {
-                scans.update(Collections.emptyList());
+                Platform.runLater(() -> scans.update(Collections.emptyList()));
             }
         };
         model.addListener(listener);
