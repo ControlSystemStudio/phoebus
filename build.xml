@@ -26,6 +26,9 @@
     <ant target="clean" dir="applications/display/representation-javafx"/>
     <ant target="clean" dir="applications/display/runtime"/>
     <ant target="clean" dir="applications/display/editor"/>
+    <ant target="clean" dir="applications/scan/model"/>
+    <ant target="clean" dir="applications/scan/client"/>
+    <ant target="clean" dir="applications/scan/ui"/>
     <ant target="clean" dir="phoebus-product"/>
   </target>
 
@@ -58,6 +61,9 @@
     <ant dir="applications/display/representation-javafx"/>
     <ant dir="applications/display/runtime"/>
     <ant dir="applications/display/editor"/>
+    <ant dir="applications/scan/model"/>
+    <ant dir="applications/scan/client"/>
+    <ant dir="applications/scan/ui"/>
   </target>
 
   <target name="product" depends="applications" description="Assemble product">
