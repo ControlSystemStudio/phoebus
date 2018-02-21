@@ -45,7 +45,7 @@ public class ScanMonitor implements AppInstance
         @Override
         public void scanServerUpdate(final ScanServerInfo server_info)
         {
-            // TODO Auto-generated method stub
+            Platform.runLater(() -> scans.update(server_info));
         }
 
         @Override
@@ -57,7 +57,11 @@ public class ScanMonitor implements AppInstance
         @Override
         public void connectionError()
         {
-            Platform.runLater(() -> scans.update(Collections.emptyList()));
+            Platform.runLater(() ->
+            {
+                scans.update(Collections.emptyList());
+                scans.update((ScanServerInfo) null);
+            });
         }
     };
 
@@ -106,5 +110,6 @@ public class ScanMonitor implements AppInstance
     {
         model.removeListener(model_listener);
         model.release();
+        model = null;
     }
 }

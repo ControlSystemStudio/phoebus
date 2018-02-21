@@ -28,7 +28,7 @@ public class ScansTableDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        ScanInfoModel model = ScanInfoModel.getInstance();
+        final ScanInfoModel model = ScanInfoModel.getInstance();
         final ScansTable scans = new ScansTable(model.getScanClient());
 
         final Scene scene = new Scene(scans, 900, 300);
@@ -40,8 +40,7 @@ public class ScansTableDemo extends Application
             @Override
             public void scanServerUpdate(final ScanServerInfo server_info)
             {
-                // TODO Auto-generated method stub
-
+                Platform.runLater(() -> scans.update(server_info));
             }
 
             @Override
@@ -53,7 +52,11 @@ public class ScansTableDemo extends Application
             @Override
             public void connectionError()
             {
-                Platform.runLater(() -> scans.update(Collections.emptyList()));
+                Platform.runLater(() ->
+                {
+                    scans.update(Collections.emptyList());
+                    scans.update((ScanServerInfo) null);
+                });
             }
         };
         model.addListener(listener);

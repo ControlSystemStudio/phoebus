@@ -7,15 +7,14 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 
-import static org.csstudio.scan.ScanSystem.logger;
-
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.info.ScanInfo;
+import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.info.ScanState;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
@@ -24,18 +23,18 @@ import org.phoebus.util.time.TimestampFormats;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBase;
+import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -61,6 +60,8 @@ public class ScansTable extends VBox
     /** Table of scan infos (via property-based proxy) */
     private final TableView<ScanInfoProxy> scan_table = new TableView<>(sorted_scans);
 
+    private final Label status = new Label();
+
     /** Table cell for {@link Instant} */
     private static class InstantCell extends TableCell<ScanInfoProxy, Instant>
     {
@@ -72,135 +73,6 @@ public class ScansTable extends VBox
                 setText("");
             else
                 setText(TimestampFormats.formatCompactDateTime(instant));
-        }
-    }
-
-    /** Perform action on a scan */
-    private static interface ScanAction
-    {
-       /**  @param id ID of scan
-         *  @throws Exception on error
-         */
-        void perform(long id) throws Exception;
-    }
-
-    /** Table cell for {@link ScanState}
-     *
-     *  <p>Shows current state, color coded,
-     *  with actions based on the current state
-     */
-    private class StateCell extends TableCell<ScanInfoProxy, ScanState>
-    {
-        private final Label text = new Label();
-        private Button next, pause, resume, abort, remove;
-        private final HBox graphics = new HBox(5, text);
-
-        StateCell()
-        {
-            text.setPrefWidth(90);
-        }
-
-        private Button createButton(final String icon, final String tooltip, final ScanAction action)
-        {
-            final Button button = new Button();
-            button.setMinSize(ButtonBase.USE_PREF_SIZE, ButtonBase.USE_PREF_SIZE);
-            button.setPrefHeight(20);
-            button.setGraphic(ImageCache.getImageView(ScansTable.class, icon));
-            button.setTooltip(new Tooltip(tooltip));
-            button.setOnAction(event ->
-            {
-                try
-                {
-                    action.perform(getTableRow().getItem().id.get());
-                }
-                catch (Exception ex)
-                {
-                    logger.log(Level.WARNING, "Failed: " + tooltip, ex);
-                }
-            });
-            return button;
-        }
-
-        private Button getNext()
-        {
-            if (next == null)
-                next = createButton("/icons/next.png", "Force move to next command", id -> scan_client.nextCommand(id));
-            return next;
-        }
-
-        private Button getPause()
-        {
-            if (pause == null)
-                pause = createButton("/icons/pause.png", "Pause on next command", id -> scan_client.pauseScan(id));
-            return pause;
-        }
-
-        private Button getResume()
-        {
-            if (resume == null)
-                resume = createButton("/icons/resume.png", "Resume execution", id -> scan_client.resumeScan(id));
-            return resume;
-        }
-
-        private Button getAbort()
-        {
-            if (abort == null)
-                abort = createButton("/icons/abort.png", "Abort execution", id -> scan_client.abortScan(id));
-            return abort;
-        }
-
-        private Button getRemove()
-        {
-            if (remove == null)
-                remove = createButton("/icons/delete_obj.png", "Remove this scan", id -> scan_client.removeScan(id));
-            return remove;
-        }
-
-        private void show(final Button button)
-        {
-            graphics.getChildren().add(button);
-        }
-
-        @Override
-        protected void updateItem(final ScanState state, final boolean empty)
-        {
-            super.updateItem(state, empty);
-            if (empty)
-                setGraphic(null);
-            else
-            {
-                text.setText(state.toString());
-                text.setTextFill(getStateColor(state));
-
-                // Remove all but the label
-                int i = graphics.getChildren().size();
-                while (i > 1)
-                    graphics.getChildren().remove(--i);
-
-                switch (state)
-                {
-                case Idle:
-                    show(getAbort());
-                    break;
-                case Running:
-                    show(getPause());
-                    show(getNext());
-                    show(getAbort());
-                    break;
-                case Paused:
-                    show(getResume());
-                    show(getAbort());
-                    break;
-                case Aborted:
-                case Failed:
-                case Finished:
-                case Logged:
-                    show(getRemove());
-                    break;
-                }
-
-                setGraphic(graphics);
-            }
         }
     }
 
@@ -226,7 +98,7 @@ public class ScansTable extends VBox
                 else
                     progress.setProgress(percent.intValue()/100.0);
 
-                final Color color = getStateColor(row.getItem().state.get());
+                final Color color = StateCell.getStateColor(row.getItem().state.get());
                 progress.setStyle(String.format("-fx-accent: #%02x%02x%02x;",
                                                 (int) (color.getRed()*255),
                                                 (int) (color.getGreen()*255),
@@ -245,8 +117,15 @@ public class ScansTable extends VBox
     public ScansTable(final ScanClient scan_client)
     {
         this.scan_client = scan_client;
+
         createTable();
-        getChildren().add(scan_table);
+        update((ScanServerInfo) null);
+
+        status.setMaxWidth(Double.MAX_VALUE);
+        status.setAlignment(Pos.BASELINE_CENTER);
+
+        VBox.setVgrow(scan_table, Priority.ALWAYS);
+        getChildren().setAll(scan_table, status);
         createContextMenu();
     }
 
@@ -270,7 +149,7 @@ public class ScansTable extends VBox
         final TableColumn<ScanInfoProxy, ScanState> state_col = new TableColumn<>("State");
         state_col.setPrefWidth(210);
         state_col.setCellValueFactory(cell -> cell.getValue().state);
-        state_col.setCellFactory(cell -> new StateCell());
+        state_col.setCellFactory(cell -> new StateCell(scan_client));
         state_col.setComparator((a, b) ->  rankState(a) - rankState(b));
         scan_table.getColumns().add(state_col);
 
@@ -312,21 +191,9 @@ public class ScansTable extends VBox
 
         scan_table.setPlaceholder(new Label("No Scans"));
 
-        sorted_scans.comparatorProperty().bind(scan_table.comparatorProperty());
-    }
+        scan_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-    private static Color getStateColor(final ScanState state)
-    {
-        switch (state)
-        {
-        case Idle:      return Color.DARKBLUE;
-        case Aborted:   return Color.DARKGOLDENROD;
-        case Failed:    return Color.RED;
-        case Finished:  return Color.DARKGREEN;
-        case Paused:    return Color.GRAY;
-        case Running:   return Color.GREEN;
-        default:        return Color.BLACK;
-        }
+        sorted_scans.comparatorProperty().bind(scan_table.comparatorProperty());
     }
 
     /** Rank states
@@ -376,11 +243,11 @@ public class ScansTable extends VBox
             // Update menu based on selected scan and states of scans in the table
             menu.getItems().clear();
 
-            final ScanInfoProxy selected = scan_table.getSelectionModel().getSelectedItem();
-            if (selected != null  &&  selected.state.get() != ScanState.Logged)
+            final List<ScanInfo> selection = scan_table.getSelectionModel().getSelectedItems().stream().map(proxy -> proxy.info).collect(Collectors.toList());
+            if (selection.size() == 1  &&  selection.get(0).getState() != ScanState.Logged)
             {
-                menu.getItems().add(new ReSubmitScanAction(scan_client, selected.info));
-                menu.getItems().add(new SaveScanAction(this, scan_client, selected.info));
+                menu.getItems().add(new ReSubmitScanAction(scan_client, selection.get(0)));
+                menu.getItems().add(new SaveScanAction(this, scan_client, selection.get(0)));
                 // TODO open scan data monitor,
                 // TODO open scan data plot
                 // TODO open scan in editor,
@@ -401,9 +268,16 @@ public class ScansTable extends VBox
 
             if (any_to_abort)
                 menu.getItems().add(abort_all);
+
+            for (ScanInfo info : selection)
+                if (info.getState().isDone())
+                {
+                    menu.getItems().add(new RemoveSelectedScansAction(scan_client, selection));
+                    break;
+                }
+
             if (any_completed)
                 menu.getItems().add(remove_completed);
-
             menu.show(scan_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
@@ -422,5 +296,15 @@ public class ScansTable extends VBox
         i = scans.size();
         while (i > infos.size())
             scans.remove(--i);
+    }
+
+    public void update(final ScanServerInfo server_info)
+    {
+        final String text;
+        if (server_info == null)
+            text = "- No Scan Server Connection -";
+        else
+            text = "Scan Server " + server_info.getMemoryInfo();
+        status.setText(text);
     }
 }
