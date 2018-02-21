@@ -76,49 +76,6 @@ public class ScansTable extends VBox
     /** Table cell for {@link ScanState} */
     private static class StateCell extends TableCell<ScanInfoProxy, ScanState>
     {
-        static Color getStateColor(final ScanState state)
-        {
-            switch (state)
-            {
-            case Idle:      return Color.DARKBLUE;
-            case Aborted:   return Color.DARKGOLDENROD;
-            case Failed:    return Color.RED;
-            case Finished:  return Color.DARKGREEN;
-            default:        return Color.BLACK;
-            }
-        }
-
-        /** Rank states
-         *
-         *  <p>Assumes that 'Running' is most interesting and 'Logged' is at the bottom
-         *
-         *  <p>Intermediate states are ranked somewhat arbitrarily
-         *
-         *  @param state ScanState
-         *  @return
-         */
-        static int rankState(final ScanState state)
-        {
-            switch (state)
-            {
-            case Running: // Most important, happening right now
-                return 6;
-            case Paused:  // Very similar to a running state
-                return 5;
-            case Idle:    // About to run next
-                return 4;
-            case Failed:  // Of the not running ones, failure is important to know
-                return 3;
-            case Aborted: // Aborted on purpose
-                return 2;
-            case Finished:// Water down the bridge
-                return 1;
-            case Logged:
-            default:
-                return 0;
-            }
-        }
-
         @Override
         protected void updateItem(final ScanState state, final boolean empty)
         {
@@ -153,6 +110,12 @@ public class ScansTable extends VBox
                 }
                 else
                     progress.setProgress(percent.intValue()/100.0);
+
+                final Color color = getStateColor(getTableRow().getItem().state.get());
+                progress.setStyle(String.format("-fx-accent: #%02x%02x%02x;",
+                                                (int) (color.getRed()*255),
+                                                (int) (color.getGreen()*255),
+                                                (int) (color.getBlue()*255)));
             }
             setGraphic(progress);
         }
@@ -168,50 +131,111 @@ public class ScansTable extends VBox
 
     private void createTable()
     {
-        // TODO Auto-generated method stub
-        TableColumn<ScanInfoProxy, Number> num_col = new TableColumn<>("ID");
-        num_col.setCellValueFactory(cell -> cell.getValue().id);
-        scan_table.getColumns().add(num_col);
+        final TableColumn<ScanInfoProxy, Number> id_col = new TableColumn<>("ID");
+        id_col.setPrefWidth(40);
+        id_col.setStyle("-fx-alignment: CENTER-RIGHT;");
+        id_col.setCellValueFactory(cell -> cell.getValue().id);
+        scan_table.getColumns().add(id_col);
 
-        TableColumn<ScanInfoProxy, Instant> time_col = new TableColumn<>("Created");
-        time_col.setCellValueFactory(cell -> cell.getValue().created);
-        time_col.setCellFactory(cell -> new InstantCell());
-        scan_table.getColumns().add(time_col);
+        final TableColumn<ScanInfoProxy, Instant> create_col = new TableColumn<>("Created");
+        create_col.setCellValueFactory(cell -> cell.getValue().created);
+        create_col.setCellFactory(cell -> new InstantCell());
+        scan_table.getColumns().add(create_col);
 
-        TableColumn<ScanInfoProxy, String> col = new TableColumn<>("Name");
-        col.setCellValueFactory(cell -> cell.getValue().name);
-        scan_table.getColumns().add(col);
+        final TableColumn<ScanInfoProxy, String> name_col = new TableColumn<>("Name");
+        name_col.setCellValueFactory(cell -> cell.getValue().name);
+        scan_table.getColumns().add(name_col);
 
-        TableColumn<ScanInfoProxy, ScanState> state_col = new TableColumn<>("State");
+        final TableColumn<ScanInfoProxy, ScanState> state_col = new TableColumn<>("State");
+        state_col.setPrefWidth(70);
         state_col.setCellValueFactory(cell -> cell.getValue().state);
         state_col.setCellFactory(cell -> new StateCell());
-        state_col.setComparator((a, b) ->  StateCell.rankState(a) - StateCell.rankState(b));
+        state_col.setComparator((a, b) ->  rankState(a) - rankState(b));
         scan_table.getColumns().add(state_col);
 
-        num_col = new TableColumn<>("%");
-        num_col.setCellValueFactory(cell -> cell.getValue().percent);
-        num_col.setCellFactory(cell -> new PercentCell());
-        scan_table.getColumns().add(num_col);
+        final TableColumn<ScanInfoProxy, Number> perc_col = new TableColumn<>("%");
+        perc_col.setPrefWidth(50);
+        perc_col.setCellValueFactory(cell -> cell.getValue().percent);
+        perc_col.setCellFactory(cell -> new PercentCell());
+        scan_table.getColumns().add(perc_col);
 
-        col = new TableColumn<>("Runtime");
-        col.setCellValueFactory(cell -> cell.getValue().runtime);
-        scan_table.getColumns().add(col);
+        final TableColumn<ScanInfoProxy, String>  rt_col = new TableColumn<>("Runtime");
+        rt_col.setCellValueFactory(cell -> cell.getValue().runtime);
+        scan_table.getColumns().add(rt_col);
 
-        time_col = new TableColumn<>("Finish");
-        time_col.setCellValueFactory(cell -> cell.getValue().finish);
-        time_col.setCellFactory(cell -> new InstantCell());
-        scan_table.getColumns().add(time_col);
+        final TableColumn<ScanInfoProxy, Instant> finish_col = new TableColumn<>("Finish");
+        finish_col.setCellValueFactory(cell -> cell.getValue().finish);
+        finish_col.setCellFactory(cell -> new InstantCell());
+        scan_table.getColumns().add(finish_col);
 
-        col = new TableColumn<>("Command");
-        col.setCellValueFactory(cell -> cell.getValue().command);
-        scan_table.getColumns().add(col);
+        final TableColumn<ScanInfoProxy, String> cmd_col = new TableColumn<>("Command");
+        cmd_col.setPrefWidth(200);
+        cmd_col.setCellValueFactory(cell -> cell.getValue().command);
+        scan_table.getColumns().add(cmd_col);
 
-        col = new TableColumn<>("Error");
-        col.setCellValueFactory(cell -> cell.getValue().error);
-        scan_table.getColumns().add(col);
+        TableColumn<ScanInfoProxy, String> err_col = new TableColumn<>("Error");
+        err_col.setCellValueFactory(cell -> cell.getValue().error);
+        scan_table.getColumns().add(err_col);
 
-        scan_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        // Last column fills remaining space
+        err_col.prefWidthProperty().bind(scan_table.widthProperty()
+                                                   .subtract(id_col.widthProperty())
+                                                   .subtract(create_col.widthProperty())
+                                                   .subtract(name_col.widthProperty())
+                                                   .subtract(state_col.widthProperty())
+                                                   .subtract(perc_col.widthProperty())
+                                                   .subtract(rt_col.widthProperty())
+                                                   .subtract(finish_col.widthProperty())
+                                                   .subtract(cmd_col.widthProperty())
+                                                   .subtract(2));
     }
+
+    private static Color getStateColor(final ScanState state)
+    {
+        switch (state)
+        {
+        case Idle:      return Color.DARKBLUE;
+        case Aborted:   return Color.DARKGOLDENROD;
+        case Failed:    return Color.RED;
+        case Finished:  return Color.DARKGREEN;
+        case Paused:    return Color.GRAY;
+        case Running:   return Color.GREEN;
+        default:        return Color.BLACK;
+        }
+    }
+
+    /** Rank states
+     *
+     *  <p>Assumes that 'Running' is most interesting and 'Logged' is at the bottom
+     *
+     *  <p>Intermediate states are ranked somewhat arbitrarily
+     *
+     *  @param state ScanState
+     *  @return
+     */
+    private static int rankState(final ScanState state)
+    {
+        switch (state)
+        {
+        case Running: // Most important, happening right now
+            return 6;
+        case Paused:  // Very similar to a running state
+            return 5;
+        case Idle:    // About to run next
+            return 4;
+        case Failed:  // Of the not running ones, failure is important to know
+            return 3;
+        case Aborted: // Aborted on purpose
+            return 2;
+        case Finished:// Water down the bridge
+            return 1;
+        case Logged:
+        default:
+            return 0;
+        }
+    }
+
+
 
     public void update(List<ScanInfo> infos)
     {
