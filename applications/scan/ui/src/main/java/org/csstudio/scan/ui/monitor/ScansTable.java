@@ -97,7 +97,7 @@ public class ScansTable extends VBox
 
         StateCell()
         {
-            text.setPrefWidth(80);
+            text.setPrefWidth(90);
         }
 
         private Button createButton(final String icon, final String tooltip, final ScanAction action)
@@ -379,8 +379,8 @@ public class ScansTable extends VBox
             final ScanInfoProxy selected = scan_table.getSelectionModel().getSelectedItem();
             if (selected != null  &&  selected.state.get() != ScanState.Logged)
             {
-                menu.getItems().add(new ReSubmitScanAction(scan_client, selected));
-                // TODO Save as *.scn file
+                menu.getItems().add(new ReSubmitScanAction(scan_client, selected.info));
+                menu.getItems().add(new SaveScanAction(this, scan_client, selected.info));
                 // TODO open scan data monitor,
                 // TODO open scan data plot
                 // TODO open scan in editor,

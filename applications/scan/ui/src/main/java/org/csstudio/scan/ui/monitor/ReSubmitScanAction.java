@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 import org.csstudio.scan.client.ScanClient;
+import org.csstudio.scan.info.ScanInfo;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -20,16 +21,16 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class ReSubmitScanAction extends MenuItem
 {
-    public ReSubmitScanAction(final ScanClient scan_client, final ScanInfoProxy proxy)
+    public ReSubmitScanAction(final ScanClient scan_client, final ScanInfo info)
     {
         super("Re-submit Scan", ImageCache.getImageView(ReSubmitScanAction.class, "/icons/run.png"));
         setOnAction(event ->
-            JobManager.schedule(getText(), monitor ->  resubmit(scan_client, proxy)));
+            JobManager.schedule(getText(), monitor ->  resubmit(scan_client, info)));
     }
 
-    private void resubmit(final ScanClient scan_client, final ScanInfoProxy proxy) throws Exception
+    private void resubmit(final ScanClient scan_client, final ScanInfo info) throws Exception
     {
-        final String xml_commands = scan_client.getScanCommands(proxy.id.get());
-        scan_client.submitScan(proxy.name.get(), xml_commands, true);
+        final String xml_commands = scan_client.getScanCommands(info.getId());
+        scan_client.submitScan(info.getName(), xml_commands, true);
     }
 }
