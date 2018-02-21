@@ -31,10 +31,14 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -51,6 +55,20 @@ import javafx.scene.paint.Color;
 public class ScansTable extends VBox
 {
     private final ScanClient scan_client;
+
+    /** Scans to show */
+    private final ObservableList<ScanInfoProxy> scans = FXCollections.observableArrayList();
+
+    /** To allow sorting via table column header clicks
+     *  while the data is updated, see
+     *  https://bugs.openjdk.java.net/browse/JDK-8092759 :
+     *  Present data to table as a SortedList,
+     *  with comparator of the list bound to the table's comparator
+     */
+    private final SortedList<ScanInfoProxy> sorted_scans = new SortedList<>(scans);
+
+    /** Table of scan infos (via property-based proxy) */
+    private final TableView<ScanInfoProxy> scan_table = new TableView<>(sorted_scans);
 
     /** Property-based proxy for a {@link ScanInfo} */
     private static class ScanInfoProxy
@@ -106,8 +124,13 @@ public class ScansTable extends VBox
         }
     }
 
-    private interface ScanAction
+    // Like Consumer<long scan id>, but may throw exception
+    private static interface ScanAction
     {
+        /** Perform action on a scan
+         *  @param id ID of scan
+         *  @throws Exception on error
+         */
         void perform(long id) throws Exception;
     }
 
@@ -178,8 +201,6 @@ public class ScansTable extends VBox
                 remove = createButton("/icons/delete_obj.png", "Remove this scan", id -> scan_client.removeScan(id));
             return remove;
         }
-
-        // TODO Context menu to abort all scans and remove all completed scans
 
         private void show(final Button button)
         {
@@ -276,13 +297,12 @@ public class ScansTable extends VBox
         }
     }
 
-    private final TableView<ScanInfoProxy> scan_table = new TableView<>();
-
     public ScansTable(final ScanClient scan_client)
     {
         this.scan_client = scan_client;
         createTable();
         getChildren().add(scan_table);
+        createContextMenu();
     }
 
     private void createTable()
@@ -346,6 +366,8 @@ public class ScansTable extends VBox
                                                    .subtract(2));
 
         scan_table.setPlaceholder(new Label("No Scans"));
+
+        sorted_scans.comparatorProperty().bind(scan_table.comparatorProperty());
     }
 
     private static Color getStateColor(final ScanState state)
@@ -393,21 +415,54 @@ public class ScansTable extends VBox
         }
     }
 
-
-
-    public void update(List<ScanInfo> infos)
+    private void createContextMenu()
     {
-        final ObservableList<ScanInfoProxy> items = scan_table.getItems();
+        // TODO Context menu to abort all scans, remove all completed scans,
+        //      re-submit scan,
+        //      open scan in editor,
+        //      open scan data monitor,
+        //      open scan data plot
+
+        final MenuItem abort_all = new MenuItem("Abort All Scans");
+        final MenuItem remove_completed = new MenuItem("Remove completed Scans");
+        final ContextMenu menu = new ContextMenu();
+
+        scan_table.setOnContextMenuRequested(event ->
+        {
+            boolean any_to_abort = false;
+            boolean any_completed = false;
+            for (ScanInfoProxy info : scans)
+            {
+                final ScanState state = info.state.get();
+                if (state.isActive())
+                    any_to_abort = true;
+                if (state.isDone())
+                    any_completed = true;
+                if (any_to_abort && any_completed)
+                    break;
+            }
+
+            menu.getItems().clear();
+            if (any_to_abort)
+                menu.getItems().add(abort_all);
+            if (any_completed)
+                menu.getItems().add(remove_completed);
+            menu.show(scan_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
+    }
+
+    public void update(final List<ScanInfo> infos)
+    {
         int i;
         for (i=0; i<infos.size(); ++i)
         {
-            if (i < items.size())
-                items.get(i).updateFrom(infos.get(i));
+            if (i < scans.size())
+                scans.get(i).updateFrom(infos.get(i));
             else
-                items.add(new ScanInfoProxy(infos.get(i)));
+                scans.add(new ScanInfoProxy(infos.get(i)));
         }
-        i = items.size();
+        i = scans.size();
         while (i > infos.size())
-            items.remove(--i);
+            scans.remove(--i);
     }
 }
