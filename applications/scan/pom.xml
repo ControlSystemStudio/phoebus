@@ -1,23 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>applications</artifactId>
   <packaging>pom</packaging>
+  <artifactId>scan</artifactId>
   <parent>
     <groupId>org.phoebus</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>applications</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <modules>
-  	<module>logbook</module>
-  	<module>probe</module>
-  	<module>greetings</module>
-  	<module>pvtable</module>
-  	<module>pvtree</module>
-  	<module>logConfiguration</module>
-  	<module>email</module>
-  	<module>rtplot</module>
-  	<module>databrowser</module>
-  	<module>display</module>
-    <module>scan</module>
+    <module>model</module>
+    <module>client</module>
+    <module>ui</module>
   </modules>
 </project>

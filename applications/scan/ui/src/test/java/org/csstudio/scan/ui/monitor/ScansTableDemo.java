@@ -31,7 +31,7 @@ public class ScansTableDemo extends Application
         ScanInfoModel model = ScanInfoModel.getInstance();
         final ScansTable scans = new ScansTable(model.getScanClient());
 
-        final Scene scene = new Scene(scans, 600, 300);
+        final Scene scene = new Scene(scans, 900, 300);
         stage.setScene(scene);
         stage.show();
 
