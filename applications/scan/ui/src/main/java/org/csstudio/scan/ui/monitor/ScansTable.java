@@ -204,14 +204,7 @@ public class ScansTable extends VBox
 
         private void show(final Button button)
         {
-            if (! graphics.getChildren().contains(button))
-                graphics.getChildren().add(button);
-        }
-
-        private void hide(final Button button)
-        {
-            if (graphics.getChildren().contains(button))
-                graphics.getChildren().remove(button);
+            graphics.getChildren().add(button);
         }
 
         @Override
@@ -225,37 +218,29 @@ public class ScansTable extends VBox
                 text.setText(state.toString());
                 text.setTextFill(getStateColor(state));
 
+                // Remove all but the label
+                int i = graphics.getChildren().size();
+                while (i > 1)
+                    graphics.getChildren().remove(--i);
+
                 switch (state)
                 {
                 case Idle:
-                    hide(getNext());
-                    hide(getPause());
-                    hide(getResume());
                     show(getAbort());
-                    hide(getRemove());
                     break;
                 case Running:
-                    show(getNext());
                     show(getPause());
-                    hide(getResume());
+                    show(getNext());
                     show(getAbort());
-                    hide(getRemove());
                     break;
                 case Paused:
-                    hide(getNext());
-                    hide(getPause());
                     show(getResume());
                     show(getAbort());
-                    hide(getRemove());
                     break;
                 case Aborted:
                 case Failed:
                 case Finished:
                 case Logged:
-                    hide(getNext());
-                    hide(getPause());
-                    hide(getResume());
-                    hide(getAbort());
                     show(getRemove());
                     break;
                 }
