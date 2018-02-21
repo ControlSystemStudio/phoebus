@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 
 import java.util.Collections;
@@ -12,29 +19,32 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/** {@link ScansTable} demo
+ *  @author Kay Kasemir
+ */
 public class ScansTableDemo extends Application
 {
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final ScansTable scans = new ScansTable();
+        ScanInfoModel model = ScanInfoModel.getInstance();
+        final ScansTable scans = new ScansTable(model.getScanClient());
 
         final Scene scene = new Scene(scans, 600, 300);
         stage.setScene(scene);
         stage.show();
 
-        ScanInfoModel model = ScanInfoModel.getInstance();
-        model.addListener(new ScanInfoModelListener()
+        final ScanInfoModelListener listener = new ScanInfoModelListener()
         {
             @Override
-            public void scanServerUpdate(ScanServerInfo server_info)
+            public void scanServerUpdate(final ScanServerInfo server_info)
             {
                 // TODO Auto-generated method stub
 
             }
 
             @Override
-            public void scanUpdate(List<ScanInfo> infos)
+            public void scanUpdate(final List<ScanInfo> infos)
             {
                 scans.update(infos);
             }
@@ -44,10 +54,14 @@ public class ScansTableDemo extends Application
             {
                 scans.update(Collections.emptyList());
             }
-        });
+        };
+        model.addListener(listener);
 
-        // TODO model.removeListener(listener);
-        // TODO model.release();
+        stage.setOnHiding(event ->
+        {
+            model.removeListener(listener);
+            model.release();
+        });
     }
 
     public static void main(String[] args)

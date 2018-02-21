@@ -7,11 +7,12 @@
  ******************************************************************************/
 package org.csstudio.scan.client;
 
+import static org.csstudio.scan.ScanSystem.logger;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
@@ -140,8 +141,7 @@ public class ScanInfoModel
                     }
                     catch (InterruptedException ex)
                     {
-                        Logger.getLogger(ScanInfoModel.class.getName()).
-                            log(Level.WARNING, "Scan Server Poll thread error", ex);
+                        logger.log(Level.WARNING, "Scan Server Poll thread error", ex);
                         return;
                     }
                 }
@@ -188,7 +188,7 @@ public class ScanInfoModel
         }
         catch (Exception ex)
         {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot poll ScanServer", ex);
+            logger.log(Level.WARNING, "Cannot poll ScanServer", ex);
             infos = Collections.emptyList();
             if (is_connected)
             {   // Notify listeners once we get into the error state
