@@ -7,87 +7,106 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.datatable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
-import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.data.ScanDataIterator;
 import org.csstudio.scan.data.ScanSample;
-import org.csstudio.scan.util.TextTable;
-import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.util.time.TimestampFormats;
+
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.StackPane;
 
 /** Table display of logged scan data
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DataTable
+public class DataTable extends StackPane
 {
-    private final ScanClient scan_client;
-    private final long scan_id;
-    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Scan Data Table"));
-    private ScheduledFuture<?> updates;
-    private long last_serial = -1;
+    private ObservableList<List<SimpleStringProperty>> rows = FXCollections.observableArrayList();
+    private final TableView<List<SimpleStringProperty>> table = new TableView<>(rows);
+    private final ScanDataReader reader;
 
     public DataTable(final ScanClient scan_client, final long scan_id)
     {
-        this.scan_id = scan_id;
-        this.scan_client = scan_client;
-        updates = timer.scheduleWithFixedDelay(this::poll, 100, 1000, TimeUnit.MILLISECONDS);
+        TableColumn<List<SimpleStringProperty>, String> col = new TableColumn<>("Time");
+        col.setCellValueFactory(cell -> cell.getValue().get(0));
+        table.getColumns().add(col);
+
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        getChildren().setAll(table);
+
+        this.reader = new ScanDataReader(scan_client, scan_id, this::update, this::scanCompleted);
     }
 
-    private Void poll()
+    private void update(final ScanData data)
     {
-        try
+        final ScanDataIterator iterator = new ScanDataIterator(data);
+
+        Platform.runLater(() -> updateTable(iterator));
+    }
+
+    private void updateTable(final ScanDataIterator iterator)
+    {
+        // 'Time' column is already present
+        // Create or update columns for devices
+        int i = 1;
+        final ObservableList<TableColumn<List<SimpleStringProperty>, ?>> columns = table.getColumns();
+        for (String device : iterator.getDevices())
         {
-            final long serial = scan_client.getLastScanDataSerial(scan_id);
-            if (serial > last_serial)
+            if (columns.size() <= i)
             {
-                System.out.println("Data for serial " + serial);
-                final ScanData data = scan_client.getScanData(scan_id);
-                final ScanDataIterator iterator = new ScanDataIterator(data);
-
-                final TextTable table = new TextTable(System.out);
-                table.addColumn("Time");
-                for (String device : iterator.getDevices())
-                    table.addColumn(device);
-
-                while (iterator.hasNext())
+                final TableColumn<List<SimpleStringProperty>, String> col = new TableColumn<>(device);
+                final int col_index = i;
+                col.setCellValueFactory(cell ->
                 {
-                    table.addCell(TimestampFormats.formatCompactDateTime(iterator.getTimestamp()));
-                    for (ScanSample sample : iterator.getSamples())
-                        table.addCell(Arrays.toString(sample.getValues()));
-                }
-                table.flush();
-
-                last_serial = serial;
+                    final List<SimpleStringProperty> row = cell.getValue();
+                    if (col_index < row.size())
+                        return row.get(col_index);
+                    return new SimpleStringProperty("???");
+                });
+                columns.add(col);
             }
-            if (scan_client.getScanInfo(scan_id).getState().isDone())
-            {
-                updates.cancel(false);
-                timer.shutdown();
-            }
+            else
+                columns.get(i).setText(device);
+            ++i;
         }
-        catch (Exception ex)
+
+        // Append new data rows
+        i = -1;
+        while (iterator.hasNext())
         {
-            System.out.println("No data for " + scan_id + ", " + ex.getMessage());
-        }
+            ++i;
+            final List<SimpleStringProperty> row = new ArrayList<>(columns.size());
 
-        return null;
+            row.add(new SimpleStringProperty(TimestampFormats.formatCompactDateTime(iterator.getTimestamp())));
+
+            for (ScanSample sample : iterator.getSamples())
+            {
+                final String value = sample == null
+                        ?"-null-"
+                        : Arrays.toString(sample.getValues());
+                row.add(new SimpleStringProperty(value));
+            }
+
+            // Keep existing rows
+            if (i < rows.size())
+                continue;
+            rows.add(row);
+        }
     }
 
-    // TODO Move into demo code
-    public static void main(String[] args) throws Exception
+    private void scanCompleted()
     {
-        final ScanClient client = new ScanClient(Preferences.host, Preferences.port);
-        DataTable table = new DataTable(client, 53);
-
-        while (!table.timer.isShutdown())
-            Thread.sleep(200);
+        System.out.println("Scan completed...");
     }
 }
