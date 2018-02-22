@@ -79,8 +79,7 @@ public class ScanDataReader
             if (serial >= 0  &&
                 scan_client.getScanInfo(scan_id).getState().isDone())
             {
-                updates.cancel(false);
-                timer.shutdown();
+                shutdown();
                 logger.log(Level.FINE, "Completed reading data for scan {0}", scan_id);
             }
             // else keep polling until the scan is 'done'.
@@ -90,5 +89,15 @@ public class ScanDataReader
             logger.log(Level.WARNING, "Scan data poll error for scan " + scan_id, ex);
         }
         return null;
+    }
+
+    /** Reader will shut down when the scan completes.
+     *  In case the UI needs to close while the scan is still active,
+     *  it can shut the reader down at any time.
+     */
+    public void shutdown()
+    {
+        updates.cancel(false);
+        timer.shutdown();
     }
 }

@@ -248,7 +248,7 @@ public class ScansTable extends VBox
             {
                 menu.getItems().add(new ReSubmitScanAction(scan_client, selection.get(0)));
                 menu.getItems().add(new SaveScanAction(this, scan_client, selection.get(0)));
-                // TODO open scan data monitor,
+                menu.getItems().add(new OpenScanDataTableAction(selection.get(0).getId()));
                 // TODO open scan data plot
                 // TODO open scan in editor,
             }

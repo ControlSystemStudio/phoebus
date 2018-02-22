@@ -34,6 +34,7 @@ public class DataTable extends StackPane
     private static final SimpleStringProperty EMPTY =  new SimpleStringProperty("");
     private ObservableList<List<SimpleStringProperty>> rows = FXCollections.observableArrayList();
     private final TableView<List<SimpleStringProperty>> table = new TableView<>(rows);
+    private ScanDataReader reader;
 
     public DataTable(final ScanClient scan_client, final long scan_id)
     {
@@ -46,7 +47,7 @@ public class DataTable extends StackPane
 
         getChildren().setAll(table);
 
-        new ScanDataReader(scan_client, scan_id, this::update);
+        reader = new ScanDataReader(scan_client, scan_id, this::update);
     }
 
     private void update(final ScanData data)
@@ -106,5 +107,11 @@ public class DataTable extends StackPane
                 row.add(new SimpleStringProperty(ScanSampleFormatter.asString(sample)));
             rows.add(row);
         }
+    }
+
+    /** Should be called to stop the reader (in case it's still running) */
+    public void dispose()
+    {
+        reader.shutdown();
     }
 }
