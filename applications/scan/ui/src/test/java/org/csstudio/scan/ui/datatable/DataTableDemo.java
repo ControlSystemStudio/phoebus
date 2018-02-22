@@ -19,11 +19,13 @@ import javafx.stage.Stage;
  */
 public class DataTableDemo extends Application
 {
+    private static final int SCAN_ID = 66;
+
     @Override
     public void start(final Stage stage) throws Exception
     {
         final ScanClient client = new ScanClient(Preferences.host, Preferences.port);
-        final Scene scene = new Scene(new DataTable(client, 61), 600, 500);
+        final Scene scene = new Scene(new DataTable(client, SCAN_ID), 600, 500);
         stage.setScene(scene);
         stage.show();
     }

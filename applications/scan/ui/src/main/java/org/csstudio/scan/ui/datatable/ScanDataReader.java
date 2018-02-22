@@ -40,26 +40,23 @@ public class ScanDataReader
     private final ScanClient scan_client;
     private final long scan_id;
     private final Consumer<ScanData> data_listener;
-    private final Runnable scan_complete_listener;
     private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Scan Data Table"));
     private ScheduledFuture<?> updates;
 
     /** Last known scan serial */
     private long last_serial = ScanClient.UNKNOWN_SCAN_SERIAL;
 
-    public ScanDataReader(final ScanClient scan_client, final long scan_id, final Consumer<ScanData> data_listener,
-                          final Runnable scan_complete_listener)
+    /** Create reader for scan's log data
+     *  @param scan_client {@link ScanClient}
+     *  @param scan_id Id of scan for which log data is read
+     *  @param data_listener Will be called whenever there's new log data
+     */
+    public ScanDataReader(final ScanClient scan_client, final long scan_id, final Consumer<ScanData> data_listener)
     {
         this.scan_id = scan_id;
         this.scan_client = scan_client;
         this.data_listener = data_listener;
-        this.scan_complete_listener = scan_complete_listener;
         updates = timer.scheduleWithFixedDelay(this::poll, 100, 1000, TimeUnit.MILLISECONDS);
-    }
-
-    public long getScanId()
-    {
-        return scan_id;
     }
 
     private Void poll()
@@ -84,7 +81,7 @@ public class ScanDataReader
             {
                 updates.cancel(false);
                 timer.shutdown();
-                scan_complete_listener.run();
+                logger.log(Level.FINE, "Completed reading data for scan {0}", scan_id);
             }
             // else keep polling until the scan is 'done'.
         }
