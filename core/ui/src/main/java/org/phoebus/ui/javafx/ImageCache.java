@@ -63,7 +63,15 @@ public class ImageCache
                 PhoebusApplication.logger.log(Level.WARNING, "Cannot load image '" + path + "' for " + clazz.getName());
                 return null;
             }
-            return new Image(resource.toExternalForm());
+            try
+            {
+                return new Image(resource.toExternalForm());
+            }
+            catch (Throwable ex)
+            {
+                PhoebusApplication.logger.log(Level.WARNING, "No image support to load image '" + path + "' for " + clazz.getName(), ex);
+                return null;
+            }
         });
     }
 
