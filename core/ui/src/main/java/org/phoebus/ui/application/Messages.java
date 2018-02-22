@@ -18,6 +18,7 @@ public class Messages
     public static String File;
     public static String Help;
     public static String Open;
+    public static String OpenWith;
     public static String Save;
     public static String SaveAs;
     public static String TopResources;

@@ -16,13 +16,16 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class Preferences
 {
+    public static final String DEFAULT_APPS = "default_apps";
     public static final String TOP_RESOURCES = "top_resources";
 
+    public static String[] default_apps;
     public static String top_resources;
 
     static
     {
         final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/phoebus_ui_preferences.properties");
+        default_apps = prefs.get(DEFAULT_APPS).split("\\s*,\\s*");
         top_resources = prefs.get(TOP_RESOURCES);
     }
 }

@@ -316,7 +316,7 @@ public class PhoebusApplication extends Application {
         {
             // Handle requests to open resource from command line
             for (URI resource : launchResources)
-                openResource(resource);
+                openResource(resource, false);
 
             // Handle requests to open application from command line
             for (String app_name : launchApps)
@@ -332,14 +332,10 @@ public class PhoebusApplication extends Application {
 
         // File
         final MenuItem open = new MenuItem(Messages.Open, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
-        open.setOnAction(event ->
-        {
-            final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, last_opened_file, null);
-            if (the_file == null)
-                return;
-            last_opened_file = the_file;
-            openResource(ResourceParser.getURI(the_file));
-        });
+        open.setOnAction(event -> fileOpen(stage, false));
+
+        final MenuItem open_with = new MenuItem(Messages.OpenWith, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        open_with.setOnAction(event -> fileOpen(stage, true));
 
         top_resources_menu = new Menu(Messages.TopResources, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_menu.setDisable(true);
@@ -359,6 +355,7 @@ public class PhoebusApplication extends Application {
 
         final Menu file = new Menu(Messages.File, null,
                                    open,
+                                   open_with,
                                    top_resources_menu,
                                    new SeparatorMenuItem(),
                                    file_save,
@@ -425,6 +422,19 @@ public class PhoebusApplication extends Application {
         return item;
     }
 
+    /** Open file dialog to open a resource
+     *  @param stage Parent stage
+     *  @param prompt Prompt for application (if there are multiple options), or use default app?
+     */
+    private void fileOpen(final Stage stage, final boolean prompt)
+    {
+        final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, last_opened_file, null);
+        if (the_file == null)
+            return;
+        last_opened_file = the_file;
+        openResource(ResourceParser.getURI(the_file), prompt);
+    }
+
     /** Fill the {@link #top_resources_menu} and {@link #top_resources_button} */
     private void createTopResourcesMenu()
     {
@@ -443,10 +453,10 @@ public class PhoebusApplication extends Application {
                 final URI resource = tops.getResource(i);
 
                 menu_items[i] = new MenuItem(description);
-                menu_items[i].setOnAction(event -> openResource(resource));
+                menu_items[i].setOnAction(event -> openResource(resource, false));
 
                 toolbar_items[i] = new MenuItem(description);
-                toolbar_items[i].setOnAction(event -> openResource(resource));
+                toolbar_items[i].setOnAction(event -> openResource(resource, false));
 
                 // Lookup application icon
                 final AppResourceDescriptor application = findApplication(resource, false);
@@ -571,8 +581,21 @@ public class PhoebusApplication extends Application {
             return null;
         }
 
-        if (applications.size() == 1   ||   (applications.size() > 0  &&  !prompt))
+        // Only one app?
+        if (applications.size() == 1)
             return applications.get(0);
+
+        // Pick default application based on preference setting?
+        if (! prompt)
+        {
+            for (AppResourceDescriptor app : applications)
+                for (String part : Preferences.default_apps)
+                    if (app.getName().contains(part))
+                        return app;
+            // , not just the first one, which may be undefined
+            logger.log(Level.WARNING, "No default application found for opening " + resource + ", using first one");
+            return applications.get(0);
+        }
 
         // Prompt user which application to use for this resource
         final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
@@ -590,10 +613,11 @@ public class PhoebusApplication extends Application {
 
     /**
      * @param resource Resource received as command line argument
+     *  @param prompt Prompt if there are multiple applications, or use first one?
      */
-    private void openResource(final URI resource)
+    private void openResource(final URI resource, final boolean prompt)
     {
-        final AppResourceDescriptor application = findApplication(resource, true);
+        final AppResourceDescriptor application = findApplication(resource, prompt);
         if (application == null)
             return;
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());

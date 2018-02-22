@@ -151,13 +151,13 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
         switch (font.getStyle())
         {
         case BOLD:
-            return Font.font(font.getFamily(), FontWeight.BOLD, calibrated);
+            return Font.font(font.getFamily(), FontWeight.BOLD,   FontPosture.REGULAR, calibrated);
         case ITALIC:
-            return Font.font(font.getFamily(), FontPosture.ITALIC, calibrated);
+            return Font.font(font.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC,  calibrated);
         case BOLD_ITALIC:
-            return Font.font(font.getFamily(), FontWeight.BOLD, FontPosture.ITALIC, calibrated);
+            return Font.font(font.getFamily(), FontWeight.BOLD,   FontPosture.ITALIC,  calibrated);
         default:
-            return Font.font(font.getFamily(), calibrated);
+            return Font.font(font.getFamily(), FontWeight.NORMAL, FontPosture.REGULAR, calibrated);
         }
     }
 
