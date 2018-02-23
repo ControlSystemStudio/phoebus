@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ ******************************************************************************/
 package org.csstudio.scan.ui.dataplot;
 
 import java.util.ArrayList;
@@ -13,6 +20,9 @@ import org.csstudio.scan.data.ScanDataIterator;
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.data.ScanSampleFormatter;
 
+/** Data provider for RTPlot based on scan data
+ *  @author Kay Kasemir
+ */
 public class ScanPlotDataProvider implements PlotDataProvider<Double>
 {
     /** Adapt an X/Y {@link ScanSample} pair into a {@link PlotDataItem} */
@@ -86,5 +96,4 @@ public class ScanPlotDataProvider implements PlotDataProvider<Double>
             lock.writeLock().unlock();
         }
     }
-
 }

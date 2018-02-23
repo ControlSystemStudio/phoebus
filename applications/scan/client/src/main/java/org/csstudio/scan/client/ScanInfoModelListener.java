@@ -26,11 +26,11 @@ import org.csstudio.scan.info.ScanServerInfo;
 public interface ScanInfoModelListener
 {
     /** Invoked periodically with server info */
-    void scanServerUpdate(ScanServerInfo server_info);
+    default void scanServerUpdate(ScanServerInfo server_info) {};
 
     /** Invoked when there is new scan info available */
-    void scanUpdate(List<ScanInfo> infos);
+    default void scanUpdate(List<ScanInfo> infos) {};
 
     /** Invoked when there are errors in communication with scan server */
-    void connectionError();
+    default void connectionError() {};
 }

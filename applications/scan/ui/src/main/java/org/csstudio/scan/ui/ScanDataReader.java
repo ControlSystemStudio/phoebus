@@ -26,6 +26,8 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class ScanDataReader
 {
+    private static final ScheduledExecutorService timer = Executors.newScheduledThreadPool(0, new NamedThreadFactory("ScanDataReader"));
+
     public static interface Listener
     {
         /** Called when there's new logged data
@@ -40,8 +42,11 @@ public class ScanDataReader
     private final ScanClient scan_client;
     private volatile long scan_id = -1;
     private final Consumer<ScanData> data_listener;
-    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Scan Data Table"));
-    private ScheduledFuture<?> updates;
+    /** Are updates scheduled?
+     *  Will be cancelled once the scan has finished.
+     *  SYNC on this for access
+     */
+    private ScheduledFuture<?> updates = null;
 
     /** Last known scan serial */
     private long last_serial = ScanClient.UNKNOWN_SCAN_SERIAL;
@@ -54,13 +59,15 @@ public class ScanDataReader
     {
         this.scan_client = scan_client;
         this.data_listener = data_listener;
-        updates = timer.scheduleWithFixedDelay(this::poll, 100, 1000, TimeUnit.MILLISECONDS);
+        trigger();
     }
 
     /** @param scan_id ID of scan for which to read data. Less than 0 to stop reading data */
     public void setScanId(final long scan_id)
     {
+        last_serial = ScanClient.UNKNOWN_SCAN_SERIAL;
         this.scan_id = scan_id;
+        trigger();
     }
 
     /** @return Scan ID */
@@ -70,9 +77,14 @@ public class ScanDataReader
     }
 
     /** Trigger a read right now, not waiting for the next period */
-    public void trigger()
+    public synchronized void trigger()
     {
-        timer.submit(this::poll);
+        // If there are no updates, because scan had stopped or this is the very first call, start them.
+        if (updates == null)
+            updates = timer.scheduleWithFixedDelay(this::poll, 100, 1000, TimeUnit.MILLISECONDS);
+        else
+            // Updates are running, but we want another update ASAP
+            timer.submit(this::poll);
     }
 
     private Void poll()
@@ -113,9 +125,12 @@ public class ScanDataReader
      *  In case the UI needs to close while the scan is still active,
      *  it can shut the reader down at any time.
      */
-    public void shutdown()
+    public synchronized void shutdown()
     {
-        updates.cancel(false);
-        timer.shutdown();
+        if (updates != null)
+        {
+            updates.cancel(false);
+            updates = null;
+        }
     }
 }
