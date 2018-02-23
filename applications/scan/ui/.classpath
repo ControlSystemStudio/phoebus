@@ -9,6 +9,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-scan-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-scan-client"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-rtplot"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

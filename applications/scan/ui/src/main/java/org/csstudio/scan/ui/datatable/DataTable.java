@@ -15,6 +15,7 @@ import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.data.ScanDataIterator;
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.data.ScanSampleFormatter;
+import org.csstudio.scan.ui.ScanDataReader;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
