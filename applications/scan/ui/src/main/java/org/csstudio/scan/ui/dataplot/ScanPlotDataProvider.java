@@ -1,7 +1,10 @@
 package org.csstudio.scan.ui.dataplot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.PlotDataProvider;
@@ -36,8 +39,9 @@ public class ScanPlotDataProvider implements PlotDataProvider<Double>
         }
     };
 
-    private final Lock lock = new ReentrantLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final String x_device, y_device;
+    private volatile List<PlotDataItem<Double>> samples = new ArrayList<>();
 
     public ScanPlotDataProvider(final String x_device, final String y_device)
     {
@@ -48,32 +52,38 @@ public class ScanPlotDataProvider implements PlotDataProvider<Double>
     @Override
     public Lock getLock()
     {
-        return lock;
+        return lock.readLock();
     }
 
     @Override
     public int size()
     {
-        // TODO Auto-generated method stub
-        return 0;
+        return samples.size();
     }
 
     @Override
-    public PlotDataItem<Double> get(int index)
+    public PlotDataItem<Double> get(final int index)
     {
-        // TODO Auto-generated method stub
-        return null;
+        return samples.get(index);
     }
 
     public void update(final ScanData data)
     {
         final ScanDataIterator iter = new ScanDataIterator(data, x_device, y_device);
-        while (iter.hasNext())
-        {
-            final ScanSample[] samples = iter.getSamples();
 
-            // TODO Collect samples, ...
-            new DataItemAdapter(samples[0], samples[1]);
+        lock.writeLock().lock();
+        try
+        {
+            samples.clear();
+            while (iter.hasNext())
+            {
+                final ScanSample[] s = iter.getSamples();
+                samples.add(new DataItemAdapter(s[0], s[1]));
+            }
+        }
+        finally
+        {
+            lock.writeLock().unlock();
         }
     }
 

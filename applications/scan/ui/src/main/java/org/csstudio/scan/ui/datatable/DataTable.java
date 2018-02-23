@@ -48,7 +48,8 @@ public class DataTable extends StackPane
 
         getChildren().setAll(table);
 
-        reader = new ScanDataReader(scan_client, scan_id, this::update);
+        reader = new ScanDataReader(scan_client, this::update);
+        reader.setScanId(scan_id);
     }
 
     private void update(final ScanData data)

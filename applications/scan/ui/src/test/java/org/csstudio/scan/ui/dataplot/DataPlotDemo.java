@@ -13,6 +13,10 @@ public class DataPlotDemo extends Application
         final Scene scene = new Scene(plot, 800, 600);
         stage.setScene(scene);
         stage.show();
+
+        plot.selectScan(71);
+        plot.selectXDevice("xpos");
+        plot.addYDevice("ypos");
     }
 
     public static void main(final String[] args)

@@ -10,6 +10,7 @@
         <path refid="app-classpath"/>
         <pathelement path="../model/${build}/scan-model-${version}.jar"/>
         <pathelement path="../client/${build}/scan-client-${version}.jar"/>
+        <pathelement path="../../rtplot/${build}/rtplot-${version}.jar"/>
       </classpath>
     </javac>
   	

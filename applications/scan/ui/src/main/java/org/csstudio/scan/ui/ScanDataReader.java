@@ -38,7 +38,7 @@ public class ScanDataReader
     };
 
     private final ScanClient scan_client;
-    private final long scan_id;
+    private volatile long scan_id = -1;
     private final Consumer<ScanData> data_listener;
     private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Scan Data Table"));
     private ScheduledFuture<?> updates;
@@ -48,46 +48,64 @@ public class ScanDataReader
 
     /** Create reader for scan's log data
      *  @param scan_client {@link ScanClient}
-     *  @param scan_id Id of scan for which log data is read
-     *  @param data_listener Will be called whenever there's new log data
+     *  @param data_listener Will be called whenever there's new log data, on background thread
      */
-    public ScanDataReader(final ScanClient scan_client, final long scan_id, final Consumer<ScanData> data_listener)
+    public ScanDataReader(final ScanClient scan_client, final Consumer<ScanData> data_listener)
     {
-        this.scan_id = scan_id;
         this.scan_client = scan_client;
         this.data_listener = data_listener;
         updates = timer.scheduleWithFixedDelay(this::poll, 100, 1000, TimeUnit.MILLISECONDS);
     }
 
+    /** @param scan_id ID of scan for which to read data. Less than 0 to stop reading data */
+    public void setScanId(final long scan_id)
+    {
+        this.scan_id = scan_id;
+    }
+
+    /** @return Scan ID */
+    public long getScanId()
+    {
+        return scan_id;
+    }
+
+    /** Trigger a read right now, not waiting for the next period */
+    public void trigger()
+    {
+        timer.submit(this::poll);
+    }
+
     private Void poll()
     {
-        try
-        {
-            final long serial = scan_client.getLastScanDataSerial(scan_id);
-            // Last_serial starts 'unknown'.
-            if (serial > last_serial)
+        final long id = scan_id;
+        if (id >= 0)
+            try
             {
-                // As soon as the scan is known, even with 'no data' (serial -1),
-                // fetch the data
-                logger.log(Level.FINE, "Received data for scan {0}", scan_id);
-                final ScanData data = scan_client.getScanData(scan_id);
-                // Inform listener
-                data_listener.accept(data);
-                last_serial = serial;
+                final long serial = scan_client.getLastScanDataSerial(id);
+                // Last_serial starts 'unknown'.
+                if (serial > last_serial)
+                {
+                    // As soon as the scan is known, even with 'no data' (serial -1),
+                    // fetch the data
+                    logger.log(Level.FINE, "Received data for scan {0}", id);
+                    final ScanData data = scan_client.getScanData(id);
+                    // Inform listener
+                    data_listener.accept(data);
+                    last_serial = serial;
+                }
+                // Is this a known scan, and it's done?
+                if (serial >= 0  &&
+                    scan_client.getScanInfo(id).getState().isDone())
+                {
+                    shutdown();
+                    logger.log(Level.FINE, "Completed reading data for scan {0}", id);
+                }
+                // else keep polling until the scan is 'done'.
             }
-            // Is this a known scan, and it's done?
-            if (serial >= 0  &&
-                scan_client.getScanInfo(scan_id).getState().isDone())
+            catch (Exception ex)
             {
-                shutdown();
-                logger.log(Level.FINE, "Completed reading data for scan {0}", scan_id);
+                logger.log(Level.WARNING, "Scan data poll error for scan " + id, ex);
             }
-            // else keep polling until the scan is 'done'.
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Scan data poll error for scan " + scan_id, ex);
-        }
         return null;
     }
 
