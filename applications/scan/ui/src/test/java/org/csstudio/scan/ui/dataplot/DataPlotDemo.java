@@ -27,7 +27,8 @@ public class DataPlotDemo extends Application
 
         plot.selectScan(71);
         plot.selectXDevice("xpos");
-        plot.addYDevice("ypos");
+        plot.selectYDevice(0, "ypos");
+        plot.addYDevice("loc:/xx(2)");
     }
 
     public static void main(final String[] args)

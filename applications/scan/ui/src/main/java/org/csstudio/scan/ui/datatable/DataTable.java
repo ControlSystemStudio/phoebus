@@ -67,7 +67,7 @@ public class DataTable extends StackPane
         // second column moved to the 3rd one.
         // --> If the column count changes, re-populate all rows.
         final ObservableList<TableColumn<List<SimpleStringProperty>, ?>> columns = table.getColumns();
-        if (columns.size() != iterator.getDevices().length + 1)
+        if (columns.size() != iterator.getDevices().size() + 1)
             rows.clear();
 
         // 'Time' column is already present

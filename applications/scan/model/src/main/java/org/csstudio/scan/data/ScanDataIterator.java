@@ -43,7 +43,7 @@ public class ScanDataIterator
     final private static String CSV_SEPARATOR = ",";
 
     /** Device names, i.e. columns in spreadsheet */
-    final private String[] device_names;
+    final private List<String> device_names;
 
     /** Raw data for each device */
     final private List<ScanSample>[] data;
@@ -70,18 +70,27 @@ public class ScanDataIterator
      *  @param scan_data Scan data
      *  @param device_names Devices that must be in the scan data
      */
-    @SuppressWarnings("unchecked")
     public ScanDataIterator(final ScanData scan_data, final String... device_names)
     {
+        this(scan_data, List.of(device_names));
+    }
+
+    /** Initialize for specific devices
+     *  @param scan_data Scan data
+     *  @param device_names Devices that must be in the scan data
+     */
+    @SuppressWarnings("unchecked")
+    public ScanDataIterator(final ScanData scan_data, final List<String> device_names)
+    {
         this.device_names = device_names;
-        final int N = device_names.length;
+        final int N = device_names.size();
 
         data = new List[N];
         value = new ScanSample[N];
         index = new int[N];
         for (int i=0; i<N; ++i)
         {
-            data[i] = scan_data.getSamples(device_names[i]);
+            data[i] = scan_data.getSamples(device_names.get(i));
             if (data[i] == null)
                 data[i] = Collections.emptyList();
             index[i] = 0;
@@ -100,7 +109,7 @@ public class ScanDataIterator
     }
 
     /** @return Device names, i.e. spreadsheet columns */
-    public String[] getDevices()
+    public List<String> getDevices()
     {
         return device_names;
     }
@@ -109,7 +118,7 @@ public class ScanDataIterator
     public boolean hasNext()
     {
         // Find oldest serial
-        final int N = device_names.length;
+        final int N = device_names.size();
         long oldest = Long.MAX_VALUE;
         timestamp = null;
         for (int i=0; i<N; ++i)

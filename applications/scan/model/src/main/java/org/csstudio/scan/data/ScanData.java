@@ -15,10 +15,10 @@
  ******************************************************************************/
 package org.csstudio.scan.data;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /** Data set taken by a scan.
  *
@@ -41,12 +41,11 @@ public class ScanData
     }
 
     /** @return Names of devices for which there are samples */
-    public String[] getDevices()
+    public List<String> getDevices()
     {
-        final Set<String> names = device_logs.keySet();
-        final String[] name_array = names.toArray(new String[names.size()]);
-        Arrays.sort(name_array);
-        return name_array;
+        final List<String> names = new ArrayList<>(device_logs.keySet());
+        Collections.sort(names);
+        return names;
     }
 
     /** @param device_name Name of a device
