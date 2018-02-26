@@ -31,7 +31,6 @@ import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
 import javafx.application.Platform;
-import javafx.scene.layout.BorderPane;
 
 /** PV Table Application
  *  @author Kay Kasemir
@@ -50,14 +49,13 @@ public class PVTableInstance implements AppInstance
 
         final PVTable table = new PVTable(model);
 
-        final BorderPane layout = new BorderPane(table);
-        dock_item = new DockItemWithInput(this, layout, null, PVTableApplication.file_extensions, this::doSave);
+        dock_item = new DockItemWithInput(this, table, null, PVTableApplication.file_extensions, this::doSave);
         DockPane.getActiveDockPane().addTab(dock_item);
 
         model.addListener(new PVTableModelListener()
         {
             @Override
-            public void tableItemSelectionChanged(PVTableItem item)
+            public void tableItemSelectionChanged(final PVTableItem item)
             {
                 dock_item.setDirty(true);
             }
