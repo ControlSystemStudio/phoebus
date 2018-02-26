@@ -45,6 +45,7 @@ import javafx.beans.property.ObjectProperty;    // Middle Button (Wheel press) d
 import javafx.beans.property.SimpleObjectProperty;    // Middle Button (Wheel press) drag panning
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;    // For Ctrl-Wheel zoom gesture
@@ -58,6 +59,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;    // For Ctrl-Wheel zoom gesture
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -203,79 +205,121 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         model_root.heightProperty().addListener(resized);
 
         // Middle Button (Wheel press) drag panning started
-        scroll_body.setOnMousePressed(evt ->
-        {
-            if (evt.isMiddleButtonDown())
+        EventHandler<MouseEvent> onMousePressedHandler = new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent evt)
             {
-                lastMouseCoordinates.set(new Point2D(evt.getX(), evt.getY()));
-                scroll_body.setCursor(Cursor.CLOSED_HAND);
-                evt.consume();
+                if (evt.isMiddleButtonDown())
+                {
+                    lastMouseCoordinates.set(new Point2D(evt.getX(), evt.getY()));
+                    scroll_body.setCursor(Cursor.CLOSED_HAND);
+                    evt.consume();
+                }
             }
-        });
+        };
+        if (isEditMode())
+            scroll_body.addEventFilter(MouseEvent.MOUSE_PRESSED, onMousePressedHandler);
+        else
+            scroll_body.setOnMousePressed(onMousePressedHandler);
 
         // Middle Button (Wheel press) drag panning function
-        scroll_body.setOnMouseDragged(evt->
-        {
-            if (evt.isMiddleButtonDown())
+        EventHandler<MouseEvent> onMouseDraggedHandler = new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent evt)
             {
-                double deltaX = evt.getX() - lastMouseCoordinates.get().getX();
-                double extraWidth = scroll_body.getLayoutBounds().getWidth() - model_root.getViewportBounds().getWidth();
-                double deltaH = deltaX * (model_root.getHmax() - model_root.getHmin()) / extraWidth;
-                double desiredH = model_root.getHvalue() - deltaH;
-                model_root.setHvalue(Math.max(0, Math.min(model_root.getHmax(), desiredH)));
+                if (evt.isMiddleButtonDown())
+                {
+                    double deltaX = evt.getX() - lastMouseCoordinates.get().getX();
+                    double extraWidth = scroll_body.getLayoutBounds().getWidth() - model_root.getViewportBounds().getWidth();
+                    double deltaH = deltaX * (model_root.getHmax() - model_root.getHmin()) / extraWidth;
+                    double desiredH = model_root.getHvalue() - deltaH;
+                    model_root.setHvalue(Math.max(0, Math.min(model_root.getHmax(), desiredH)));
 
-                double deltaY = evt.getY() - lastMouseCoordinates.get().getY();
-                double extraHeight = scroll_body.getLayoutBounds().getHeight() - model_root.getViewportBounds().getHeight();
-                double deltaV = deltaY * (model_root.getHmax() - model_root.getHmin()) / extraHeight;
-                double desiredV = model_root.getVvalue() - deltaV;
-                model_root.setVvalue(Math.max(0, Math.min(model_root.getVmax(), desiredV)));
-                evt.consume();
+                    double deltaY = evt.getY() - lastMouseCoordinates.get().getY();
+                    double extraHeight = scroll_body.getLayoutBounds().getHeight() - model_root.getViewportBounds().getHeight();
+                    double deltaV = deltaY * (model_root.getHmax() - model_root.getHmin()) / extraHeight;
+                    double desiredV = model_root.getVvalue() - deltaV;
+                    model_root.setVvalue(Math.max(0, Math.min(model_root.getVmax(), desiredV)));
+                    evt.consume();
+                }
             }
-        });
+        };
+        if (isEditMode())
+            scroll_body.addEventFilter(MouseEvent.MOUSE_DRAGGED, onMouseDraggedHandler);
+        else
+            scroll_body.setOnMouseDragged(onMouseDraggedHandler);
 
         // Middle Button (Wheel press) drag panning finished
-        scroll_body.setOnMouseReleased(evt ->
-        {
-            if (scroll_body.getCursor() == Cursor.CLOSED_HAND)
+        EventHandler<MouseEvent> onMouseReleasedHandler = new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent evt)
             {
-                scroll_body.setCursor(Cursor.DEFAULT);
-                evt.consume();
+                if (scroll_body.getCursor() == Cursor.CLOSED_HAND)
+                {
+                    scroll_body.setCursor(Cursor.DEFAULT);
+                    evt.consume();
+                }
             }
-        });
+        };
+        if (isEditMode())
+            scroll_body.addEventFilter(MouseEvent.MOUSE_RELEASED, onMouseReleasedHandler);
+        else
+            scroll_body.setOnMouseReleased(onMouseReleasedHandler);
 
         // Ctrl-Wheel zoom gesture implementation.
-        // Don't _filter_ because some widgets (plot)
+        // Use EventFilter for Editor - more user friendly
+        // Don't _filter_ for Runtime because some widgets (plot)
         // also handle the wheel
-        model_root.addEventHandler(ScrollEvent.ANY, evt ->
+        if (isEditMode())
         {
-            if (evt.isControlDown())
+            model_root.addEventFilter(ScrollEvent.ANY, evt ->
             {
-                evt.consume();
-                final double zoom = getZoom();
-                if (zoom >= ZOOM_MAX && evt.getDeltaY() > 0)
-                    return;
-                if (zoom <= ZOOM_MIN && evt.getDeltaY() < 0)
-                    return;
-
-                final double zoomFactor = evt.getDeltaY() > 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
-                double new_zoom = zoom * zoomFactor;
-                new_zoom = new_zoom > ZOOM_MAX ? ZOOM_MAX : (new_zoom < ZOOM_MIN ? ZOOM_MIN : new_zoom);
-                final double realFactor = new_zoom / zoom;
-
-                Point2D scrollOffset = figureScrollOffset(scroll_body, model_root);
-
-                // Set Zoom:
-                // do not directly setValue(Double.toString(new_zoom * 100));
-                // setText() only, otherwise it gets into an endless update due to getValue/setValue implementation in Editor. In Runtime was OK.
-                // Drawback: return to a previous "combo driven" zoom level from any wheel level not possible directly (no value change in combo)
-                setZoom(new_zoom);
-                zoom_listener.accept(Integer.toString((int)(new_zoom * 100)) + " %");
-
-                repositionScroller(scroll_body, model_root, realFactor, scrollOffset, new Point2D(evt.getX(), evt.getY()));
-            }
-        });
+                if (evt.isControlDown())
+                {
+                    evt.consume();
+                    doWheelZoom(evt.getDeltaY(), evt.getX(), evt.getY());
+                }
+            });
+        }
+        else
+        {
+        	widget_parent.addEventHandler(ScrollEvent.ANY, evt ->
+            {
+                if (evt.isControlDown())
+                {
+                    evt.consume();
+                    ScrollEvent gevt = evt.copyFor(model_root, scroll_body);
+                    doWheelZoom(evt.getDeltaY(), gevt.getX(), gevt.getY());
+                }
+            });
+        }
 
         return model_root;
+    }
+
+    /** Ctrl-Wheel zoom gesture help function
+     *  Zoom work function
+     */
+    private void doWheelZoom(double delta, double x, double y)
+    {
+        final double zoom = getZoom();
+        if (zoom >= ZOOM_MAX && delta > 0)
+            return;
+        if (zoom <= ZOOM_MIN && delta < 0)
+            return;
+
+        final double zoomFactor = delta > 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
+        double new_zoom = zoom * zoomFactor;
+        new_zoom = new_zoom > ZOOM_MAX ? ZOOM_MAX : (new_zoom < ZOOM_MIN ? ZOOM_MIN : new_zoom);
+        final double realFactor = new_zoom / zoom;
+
+        Point2D scrollOffset = figureScrollOffset(scroll_body, model_root);
+
+        // Set Zoom:
+        // do not directly setValue(Double.toString(new_zoom * 100));
+        // setText() only, otherwise it gets into an endless update due to getValue/setValue implementation in Editor. In Runtime was OK.
+        // Drawback: return to a previous "combo driven" zoom level from any wheel level not possible directly (no value change in combo)
+        setZoom(new_zoom);
+        zoom_listener.accept(Integer.toString((int)(new_zoom * 100)) + " %");
+
+        repositionScroller(scroll_body, model_root, realFactor, scrollOffset, new Point2D(x, y));
     }
 
     /** Ctrl-Wheel zoom gesture help function
