@@ -12,6 +12,7 @@
   	
     <jar destfile="${build}/scan-model-${version}.jar">
       <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
     </jar>
   </target>
 	
