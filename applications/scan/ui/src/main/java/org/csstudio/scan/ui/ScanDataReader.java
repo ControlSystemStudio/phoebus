@@ -12,6 +12,7 @@ import static org.csstudio.scan.ScanSystem.logger;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -26,7 +27,13 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class ScanDataReader
 {
-    private static final ScheduledExecutorService timer = Executors.newScheduledThreadPool(0, new NamedThreadFactory("ScanDataReader"));
+    private static final ScheduledExecutorService timer;
+
+    static
+    {
+        timer = Executors.newScheduledThreadPool(0, new NamedThreadFactory("ScanDataReader"));
+        ((ScheduledThreadPoolExecutor)timer).setKeepAliveTime(5, TimeUnit.SECONDS);
+    }
 
     public static interface Listener
     {

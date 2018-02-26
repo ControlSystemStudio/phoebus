@@ -23,6 +23,7 @@ import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.util.RGBFactory;
+import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.client.ScanInfoModel;
@@ -31,16 +32,19 @@ import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.ScanDataReader;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -50,16 +54,19 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class DataPlot extends VBox
 {
-    private final HBox toolbar = new HBox(5);
-    private final MenuButton scan_selector;
-    private final MenuButton x_device_selector = new MenuButton("X Axis");;
+    // Toolbar and its buttons
+    private final ToolBar toolbar = new ToolBar();
+    private final MenuButton scan_selector = new MenuButton("Scan");
+    private final MenuButton x_device_selector = new MenuButton("X Axis");
     private final List<MenuButton> y_device_selectors = new ArrayList<>();
+    private final MenuButton add_y_device = new MenuButton(null, ImageCache.getImageView(ScanSystem.class, "/icons/add_obj.png"));
+    private final Button remove_y_device = new Button(null, ImageCache.getImageView(ScanSystem.class, "/icons/remove.png"));
+
+    // Plot
     private final RTValuePlot plot = new RTValuePlot(true);
 
+    /** Scan Client */
     private final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
-    private volatile String x_device = "";
-    private List<String> y_devices = new CopyOnWriteArrayList<>(List.of(""));
-    private volatile List<ScanPlotDataProvider> plot_data = Collections.emptyList();
 
     /** Information about all scans */
     private ScanInfoModel scan_info_model;
@@ -67,21 +74,34 @@ public class DataPlot extends VBox
     /** Reader for data of selected scan; used to update plot_data */
     private ScanDataReader reader;
 
+    /** Devices of the selected scan; used to update device selectors */
+    private final AtomicReference<List<String>> scan_devices = new AtomicReference<>(Collections.emptyList());
+
     /** Last data returned by reader.
      *  Kept so that updated *_device_* values
      *  can right away show data.
      */
     private volatile ScanData last_scan_data = null;
 
-    /** Devices of the selected scan; used to update device selectors */
-    private final AtomicReference<List<String>> scan_devices = new AtomicReference<>(Collections.emptyList());
+    /** Device used for the X axis */
+    private volatile String x_device = "";
 
+    /** Devices used for the Y axis */
+    private List<String> y_devices = new CopyOnWriteArrayList<>(List.of(""));
+
+    /** Data for the plot, one entry for each (x_device, y_device) based on y_devices */
+    private volatile List<ScanPlotDataProvider> plot_data = Collections.emptyList();
+
+    /** Constructor */
     public DataPlot()
     {
-        scan_selector = new MenuButton("Scan");
+        scan_selector.setTooltip(new Tooltip("Select a Scan"));
+        x_device_selector.setTooltip(new Tooltip("Select device for horizontal axis"));
+        add_y_device.setTooltip(new Tooltip("Add trace for another device to plot"));
+        remove_y_device.setTooltip(new Tooltip("Remove last trace from plot"));
+        remove_y_device.setOnAction(event -> removeYDevice());
 
-        toolbar.getChildren().setAll(ToolbarHelper.createSpring(), scan_selector, x_device_selector);
-        y_device_selectors.add(new MenuButton("Value"));
+        toolbar.getItems().setAll(ToolbarHelper.createSpring(), scan_selector, x_device_selector);
         updateToolbar();
 
         plot.showToolbar(false);
@@ -110,7 +130,7 @@ public class DataPlot extends VBox
                 @Override
                 public void connectionError()
                 {
-                    updateScans(null);
+                    updateScans(Collections.emptyList());
                 }
             });
         }
@@ -120,6 +140,7 @@ public class DataPlot extends VBox
         }
     }
 
+    /** @param infos Info from {@link ScanInfoModel} */
     private void updateScans(final List<ScanInfo> infos)
     {
         final ToggleGroup group = new ToggleGroup();
@@ -154,7 +175,13 @@ public class DataPlot extends VBox
         while (i > y_devices.size())
             y_device_selectors.remove(--i);
         while (i < y_devices.size())
-            y_device_selectors.add(new MenuButton("Value " + (1 + i++)));
+        {
+            final MenuButton y_device_selector = new MenuButton("Value " + (1 + i++));
+            y_device_selector.setTooltip(new Tooltip("Select device for value axis"));
+            y_device_selectors.add(y_device_selector);
+        }
+
+        updateDeviceMenus(add_y_device, devices, null, dev -> addYDevice(dev));
 
         // Update devices for Values
         for (i=0; i<y_device_selectors.size(); ++i)
@@ -164,9 +191,12 @@ public class DataPlot extends VBox
                               dev -> selectYDevice(index, dev));
         }
 
-        final ObservableList<Node> items = toolbar.getChildren();
+        final ObservableList<Node> items = toolbar.getItems();
         items.remove(3,  items.size());
         items.addAll(y_device_selectors);
+        items.add(add_y_device);
+        if (y_devices.size() > 1)
+            items.add(remove_y_device);
     }
 
     /** @param menu Menu to update
@@ -190,12 +220,13 @@ public class DataPlot extends VBox
         menu.getItems().setAll(items);
     }
 
+    /** @param scan_id Id of scan to use */
     public void selectScan(final long scan_id)
     {
         selectScan(scan_id, MessageFormat.format(Messages.scan_name_id_fmt, "Scan", scan_id));
     }
 
-    public void selectScan(final long scan_id, final String title)
+    private void selectScan(final long scan_id, final String title)
     {
         // Data from last scan no longer valid
         last_scan_data = null;
@@ -203,6 +234,7 @@ public class DataPlot extends VBox
         reader.setScanId(scan_id);
     }
 
+    /** @param device Device to use for X axis */
     public void selectXDevice(final String device)
     {
         x_device = device;
@@ -212,6 +244,7 @@ public class DataPlot extends VBox
         reader.trigger();
     }
 
+    /** @param device Additional Y axis device */
     public void addYDevice(final String device)
     {
         y_devices.add(device);
@@ -220,6 +253,9 @@ public class DataPlot extends VBox
         reader.trigger();
     }
 
+    /** @param index Trace index
+     *  @param device Device to use for that trace's Y axis
+     */
     public void selectYDevice(final int index, final String device)
     {
         y_devices.set(index, device);
@@ -228,6 +264,19 @@ public class DataPlot extends VBox
         reader.trigger();
     }
 
+    /** Remove last trace */
+    public void removeYDevice()
+    {
+        final int size = y_devices.size();
+        if (size <= 1)
+            return;
+        y_devices.remove(size-1);
+        updatePlotDataProviders();
+        updateToolbar();
+        reader.trigger();
+    }
+
+    /** Update all traces and their data based on x_device, y_devices */
     private void updatePlotDataProviders()
     {
         // Remove all traces
@@ -252,6 +301,7 @@ public class DataPlot extends VBox
         plot_data = new_plot_data;
     }
 
+    /** Stop showing data */
     public void stop()
     {
         // Stop reader
@@ -259,6 +309,7 @@ public class DataPlot extends VBox
         reader = null;
     }
 
+    /** @param data New data from {@link ScanDataReader}, update plot_data and then redraw plot */
     private void updatePlotData(final ScanData data)
     {
         // New device list?
