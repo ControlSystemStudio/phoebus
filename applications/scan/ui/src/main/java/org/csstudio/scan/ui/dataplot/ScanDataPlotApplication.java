@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.scan.ui.datatable;
+package org.csstudio.scan.ui.dataplot;
 
 import static org.csstudio.scan.ScanSystem.logger;
 
@@ -16,14 +16,14 @@ import org.csstudio.scan.ui.ScanUI;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
-/** Application for Scan data table
+/** Application for Scan data plot
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanDataTableApplication implements AppResourceDescriptor
+public class ScanDataPlotApplication implements AppResourceDescriptor
 {
-    public static final String NAME = "scan_table";
-    public static final String DISPLAY_NAME = "Scan Data Table";
+    public static final String NAME = "scan_plot";
+    public static final String DISPLAY_NAME = "Scan Plot";
 
     @Override
     public String getName()
@@ -40,16 +40,16 @@ public class ScanDataTableApplication implements AppResourceDescriptor
     @Override
     public AppInstance create()
     {
-        logger.log(Level.WARNING, "Scan data table can only be opened with URL for scan");
+        logger.log(Level.WARNING, "Scan data plot can only be opened with URL for scan");
         return null;
     }
 
     @Override
-    public ScanDataTableInstance create(final URI resource)
+    public ScanDataPlotInstance create(final URI resource)
     {
         try
         {
-            return new ScanDataTableInstance(this, ScanUI.parseScanID(resource));
+            return new ScanDataPlotInstance(this, ScanUI.parseScanID(resource));
         }
         catch (Exception ex)
         {

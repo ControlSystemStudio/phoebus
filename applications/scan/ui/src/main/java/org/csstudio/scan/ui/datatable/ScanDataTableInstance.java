@@ -33,7 +33,7 @@ public class ScanDataTableInstance implements AppInstance
         final DataTable data_table = create(scan_id);
         final URI input = ScanUI.createURI(scan_id);
         tab = new DockItemWithInput(this, data_table, input, null, null);
-        tab.setLabel("Data for Scan #" + scan_id);
+        tab.setLabel("Scan Data #" + scan_id);
         tab.addCloseCheck(() ->
         {
             data_table.dispose();

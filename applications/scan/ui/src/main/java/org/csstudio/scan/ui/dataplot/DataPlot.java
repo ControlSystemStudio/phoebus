@@ -244,6 +244,12 @@ public class DataPlot extends VBox
         reader.trigger();
     }
 
+    /** @return X device name */
+    public String getXDevice()
+    {
+        return x_device;
+    }
+
     /** @param device Additional Y axis device */
     public void addYDevice(final String device)
     {
@@ -276,6 +282,12 @@ public class DataPlot extends VBox
         reader.trigger();
     }
 
+    /** @return Y device names */
+    public List<String> getYDevices()
+    {
+        return y_devices;
+    }
+
     /** Update all traces and their data based on x_device, y_devices */
     private void updatePlotDataProviders()
     {
@@ -301,14 +313,6 @@ public class DataPlot extends VBox
         plot_data = new_plot_data;
     }
 
-    /** Stop showing data */
-    public void stop()
-    {
-        // Stop reader
-        reader.shutdown();
-        reader = null;
-    }
-
     /** @param data New data from {@link ScanDataReader}, update plot_data and then redraw plot */
     private void updatePlotData(final ScanData data)
     {
@@ -323,5 +327,13 @@ public class DataPlot extends VBox
             pd.update(data);
         plot.requestUpdate();
         last_scan_data  = data;
+    }
+
+    /** Stop showing data */
+    public void stop()
+    {
+        // Stop reader
+        reader.shutdown();
+        reader = null;
     }
 }

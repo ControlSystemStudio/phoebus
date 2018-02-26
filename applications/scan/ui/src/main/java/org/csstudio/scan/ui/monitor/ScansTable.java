@@ -29,6 +29,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -244,13 +245,18 @@ public class ScansTable extends VBox
             menu.getItems().clear();
 
             final List<ScanInfo> selection = scan_table.getSelectionModel().getSelectedItems().stream().map(proxy -> proxy.info).collect(Collectors.toList());
-            if (selection.size() == 1  &&  selection.get(0).getState() != ScanState.Logged)
+            if (selection.size() == 1)
             {
-                menu.getItems().add(new ReSubmitScanAction(scan_client, selection.get(0)));
-                menu.getItems().add(new SaveScanAction(this, scan_client, selection.get(0)));
+                if (selection.get(0).getState() != ScanState.Logged)
+                {
+                    menu.getItems().add(new ReSubmitScanAction(scan_client, selection.get(0)));
+                    menu.getItems().add(new SaveScanAction(this, scan_client, selection.get(0)));
+                    menu.getItems().add(new SeparatorMenuItem());
+                }
                 menu.getItems().add(new OpenScanDataTableAction(selection.get(0).getId()));
-                // TODO open scan data plot
+                menu.getItems().add(new OpenScanDataPlotAction(selection.get(0).getId()));
                 // TODO open scan in editor,
+                menu.getItems().add(new SeparatorMenuItem());
             }
 
             boolean any_to_abort = false;
