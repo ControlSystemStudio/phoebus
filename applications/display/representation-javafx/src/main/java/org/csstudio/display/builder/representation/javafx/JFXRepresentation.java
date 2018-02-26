@@ -41,15 +41,15 @@ import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.ObjectProperty;    // Middle Button (Wheel press) drag panning
-import javafx.beans.property.SimpleObjectProperty;    // Middle Button (Wheel press) drag panning
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;    // For Ctrl-Wheel zoom gesture
-import javafx.scene.Cursor;    // Middle Button (Wheel press) drag panning
+import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -60,7 +60,7 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;    // For Ctrl-Wheel zoom gesture
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -205,15 +205,13 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         model_root.heightProperty().addListener(resized);
 
         // Middle Button (Wheel press) drag panning started
-        EventHandler<MouseEvent> onMousePressedHandler = new EventHandler<MouseEvent>() {
-            public void handle(MouseEvent evt)
+        final EventHandler<MouseEvent> onMousePressedHandler = evt ->
+        {
+            if (evt.isMiddleButtonDown())
             {
-                if (evt.isMiddleButtonDown())
-                {
-                    lastMouseCoordinates.set(new Point2D(evt.getX(), evt.getY()));
-                    scroll_body.setCursor(Cursor.CLOSED_HAND);
-                    evt.consume();
-                }
+                lastMouseCoordinates.set(new Point2D(evt.getX(), evt.getY()));
+                scroll_body.setCursor(Cursor.CLOSED_HAND);
+                evt.consume();
             }
         };
         if (isEditMode())
@@ -222,24 +220,22 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             scroll_body.setOnMousePressed(onMousePressedHandler);
 
         // Middle Button (Wheel press) drag panning function
-        EventHandler<MouseEvent> onMouseDraggedHandler = new EventHandler<MouseEvent>() {
-            public void handle(MouseEvent evt)
+        final EventHandler<MouseEvent> onMouseDraggedHandler = evt ->
+        {
+            if (evt.isMiddleButtonDown())
             {
-                if (evt.isMiddleButtonDown())
-                {
-                    double deltaX = evt.getX() - lastMouseCoordinates.get().getX();
-                    double extraWidth = scroll_body.getLayoutBounds().getWidth() - model_root.getViewportBounds().getWidth();
-                    double deltaH = deltaX * (model_root.getHmax() - model_root.getHmin()) / extraWidth;
-                    double desiredH = model_root.getHvalue() - deltaH;
-                    model_root.setHvalue(Math.max(0, Math.min(model_root.getHmax(), desiredH)));
+                double deltaX = evt.getX() - lastMouseCoordinates.get().getX();
+                double extraWidth = scroll_body.getLayoutBounds().getWidth() - model_root.getViewportBounds().getWidth();
+                double deltaH = deltaX * (model_root.getHmax() - model_root.getHmin()) / extraWidth;
+                double desiredH = model_root.getHvalue() - deltaH;
+                model_root.setHvalue(Math.max(0, Math.min(model_root.getHmax(), desiredH)));
 
-                    double deltaY = evt.getY() - lastMouseCoordinates.get().getY();
-                    double extraHeight = scroll_body.getLayoutBounds().getHeight() - model_root.getViewportBounds().getHeight();
-                    double deltaV = deltaY * (model_root.getHmax() - model_root.getHmin()) / extraHeight;
-                    double desiredV = model_root.getVvalue() - deltaV;
-                    model_root.setVvalue(Math.max(0, Math.min(model_root.getVmax(), desiredV)));
-                    evt.consume();
-                }
+                double deltaY = evt.getY() - lastMouseCoordinates.get().getY();
+                double extraHeight = scroll_body.getLayoutBounds().getHeight() - model_root.getViewportBounds().getHeight();
+                double deltaV = deltaY * (model_root.getHmax() - model_root.getHmin()) / extraHeight;
+                double desiredV = model_root.getVvalue() - deltaV;
+                model_root.setVvalue(Math.max(0, Math.min(model_root.getVmax(), desiredV)));
+                evt.consume();
             }
         };
         if (isEditMode())
@@ -248,14 +244,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             scroll_body.setOnMouseDragged(onMouseDraggedHandler);
 
         // Middle Button (Wheel press) drag panning finished
-        EventHandler<MouseEvent> onMouseReleasedHandler = new EventHandler<MouseEvent>() {
-            public void handle(MouseEvent evt)
+        final EventHandler<MouseEvent> onMouseReleasedHandler = evt ->
+        {
+            if (scroll_body.getCursor() == Cursor.CLOSED_HAND)
             {
-                if (scroll_body.getCursor() == Cursor.CLOSED_HAND)
-                {
-                    scroll_body.setCursor(Cursor.DEFAULT);
-                    evt.consume();
-                }
+                scroll_body.setCursor(Cursor.DEFAULT);
+                evt.consume();
             }
         };
         if (isEditMode())
@@ -268,7 +262,6 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         // Don't _filter_ for Runtime because some widgets (plot)
         // also handle the wheel
         if (isEditMode())
-        {
             model_root.addEventFilter(ScrollEvent.ANY, evt ->
             {
                 if (evt.isControlDown())
@@ -277,10 +270,8 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                     doWheelZoom(evt.getDeltaY(), evt.getX(), evt.getY());
                 }
             });
-        }
         else
-        {
-        	widget_parent.addEventHandler(ScrollEvent.ANY, evt ->
+            widget_parent.addEventHandler(ScrollEvent.ANY, evt ->
             {
                 if (evt.isControlDown())
                 {
@@ -289,7 +280,6 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                     doWheelZoom(evt.getDeltaY(), gevt.getX(), gevt.getY());
                 }
             });
-        }
 
         return model_root;
     }
@@ -297,7 +287,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** Ctrl-Wheel zoom gesture help function
      *  Zoom work function
      */
-    private void doWheelZoom(double delta, double x, double y)
+    private void doWheelZoom(final double delta, final double x, final double y)
     {
         final double zoom = getZoom();
         if (zoom >= ZOOM_MAX && delta > 0)
@@ -325,7 +315,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** Ctrl-Wheel zoom gesture help function
      *  Store scroll offset of scrollContent (scroll_body Group) in a scroller (model_root ScrollPane) before zoom
      */
-    private Point2D figureScrollOffset(Node scrollContent, ScrollPane scroller)
+    private Point2D figureScrollOffset(final Node scrollContent, final ScrollPane scroller)
     {
         double extraWidth = scrollContent.getLayoutBounds().getWidth() - scroller.getViewportBounds().getWidth();
         double hScrollProportion = (scroller.getHvalue() - scroller.getHmin()) / (scroller.getHmax() - scroller.getHmin());
@@ -339,7 +329,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** Ctrl-Wheel zoom gesture help function
      *  Repositioning scrollbars in scroller so that the zoom centre stays at mouse cursor
      */
-    private void repositionScroller(Node scrollContent, ScrollPane scroller, double scaleFactor, Point2D scrollOffset, Point2D mouse)
+    private void repositionScroller(final Node scrollContent, final ScrollPane scroller, final double scaleFactor, final Point2D scrollOffset, final Point2D mouse)
     {
         double scrollXOffset = scrollOffset.getX();
         double scrollYOffset = scrollOffset.getY();
@@ -364,7 +354,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** @param listener Will be called with zoom level text when using Ctrl-Wheel to zoom */
     public void setZoomListener(final Consumer<String> listener)
     {
-        this.zoom_listener = listener;
+        zoom_listener = listener;
     }
 
     /** @return Parent node of model widgets */
