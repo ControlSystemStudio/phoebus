@@ -12,6 +12,7 @@ import java.util.List;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandFactory;
 import org.csstudio.scan.command.ScanCommandWithBody;
+import org.csstudio.scan.ui.editor.actions.AddCommands;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.Tooltip;
@@ -25,12 +26,12 @@ import javafx.scene.input.TransferMode;
 @SuppressWarnings("nls")
 public class ScanCommandTreeCell extends TreeCell<ScanCommand>
 {
-    public ScanCommandTreeCell()
+    public ScanCommandTreeCell(final ScanCommandTree scan_tree)
     {
-        hookDrop();
+        hookDrop(scan_tree);
     }
 
-    private void hookDrop()
+    private void hookDrop(final ScanCommandTree scan_tree)
     {
         setOnDragOver(event ->
         {
@@ -52,7 +53,7 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
                 final List<ScanCommand> commands = ScanCommandDragDrop.getCommands(db);
 
                 if (target == null)
-                    System.out.println("Add to end of scan: " + commands);
+                    scan_tree.execute(new AddCommands(null, commands, true));
                 else
                 {
                     final double section = event.getY() / getHeight();
@@ -61,18 +62,18 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
                     {
                         // Determine if we are in upper, middle or lower 1/3 of the cell
                         if (section <= 0.3)
-                            System.out.println("Add before " + target + ": " + commands);
+                            scan_tree.execute(new AddCommands(target, commands, false));
                         else if (section >= 0.7)
-                            System.out.println("Add after " + target + ": " + commands);
+                            scan_tree.execute(new AddCommands(target, commands, true));
                         else
                             System.out.println("Add to body of " + target + ": " + commands);
                     }
                     else
                     {
                         if (section < 0.5)
-                            System.out.println("Add before " + target + ": " + commands);
+                            scan_tree.execute(new AddCommands(target, commands, false));
                         else
-                            System.out.println("Add after " + target + ": " + commands);
+                            scan_tree.execute(new AddCommands(target, commands, true));
                     }
                 }
             }

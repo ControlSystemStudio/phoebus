@@ -10,6 +10,8 @@ package org.csstudio.scan.ui.editor;
 import java.util.List;
 
 import org.csstudio.scan.command.ScanCommand;
+import org.phoebus.ui.undo.UndoableAction;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -19,6 +21,7 @@ import javafx.scene.control.TreeView;
  */
 public class ScanCommandTree extends TreeView<ScanCommand>
 {
+    private final UndoableActionManager undo = new UndoableActionManager(50);
     final TreeItem<ScanCommand> root = new TreeItem<>(null);
 
     // TODO TextFieldTreeCell?
@@ -26,7 +29,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
     ScanCommandTree()
     {
         setShowRoot(false);
-        setCellFactory(tree_view ->  new ScanCommandTreeCell());
+        setCellFactory(tree_view ->  new ScanCommandTreeCell(this));
         setRoot(root);
     }
 
@@ -45,5 +48,10 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         item.setExpanded(true);
         for (TreeItem<ScanCommand> sub : item.getChildren())
             expand(sub);
+    }
+
+    public void execute(final UndoableAction action)
+    {
+        undo.execute(action);
     }
 }
