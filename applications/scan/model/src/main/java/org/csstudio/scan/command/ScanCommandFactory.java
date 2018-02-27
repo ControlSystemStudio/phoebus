@@ -15,12 +15,16 @@
  ******************************************************************************/
 package org.csstudio.scan.command;
 
+import static org.csstudio.scan.ScanSystem.logger;
+
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import org.csstudio.scan.spi.ScanCommandRegistry;
 import org.w3c.dom.Node;
@@ -43,6 +47,12 @@ public class ScanCommandFactory
         }
     }
 
+    /** @return All known command IDs */
+    public static Set<String> getCommandIDs()
+    {
+        return factories.keySet();
+    }
+
     /** @param id Command ID
      *  @return {@link ScanCommand}
      *  @throws Exception on error
@@ -61,7 +71,10 @@ public class ScanCommandFactory
      */
     public static URL getImage(final String id)
     {
-        return images.get(id);
+        final URL url = images.get(id);
+        if (url == null)
+            logger.log(Level.WARNING, "No image for " + id);
+        return url;
     }
 
     public List<ScanCommand> readCommands(Node firstChild)

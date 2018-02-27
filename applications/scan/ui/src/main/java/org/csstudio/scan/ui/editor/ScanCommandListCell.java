@@ -11,14 +11,13 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandFactory;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeCell;
+import javafx.scene.control.ListCell;
 
-/** Tree view call for a {@link ScanCommand}
+/** List view cell for a {@link ScanCommand}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanCommandTreeCell extends TreeCell<ScanCommand>
+public class ScanCommandListCell extends ListCell<ScanCommand>
 {
     @Override
     protected void updateItem(final ScanCommand command, final boolean empty)
@@ -33,9 +32,6 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
           {
               setText(command.toString());
               setGraphic(ImageCache.getImageView(ScanCommandFactory.getImage(command.getCommandID())));
-              setTooltip(new Tooltip(command.getCommandName() + " @ " + command.getAddress()));
-
-              // TODO if command == active_command set foreground color...
           }
     }
 }

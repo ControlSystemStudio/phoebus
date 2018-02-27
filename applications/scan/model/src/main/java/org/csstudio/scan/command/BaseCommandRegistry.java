@@ -35,7 +35,7 @@ public class BaseCommandRegistry implements ScanCommandRegistry
     {
         return Map.ofEntries(
             entry("comment", ScanSystem.class.getResource("/icons/comment.gif")),
-            entry("config", ScanSystem.class.getResource("/icons/configcommand.gif")),
+            entry("config_log", ScanSystem.class.getResource("/icons/configcommand.gif")),
             entry("delay", ScanSystem.class.getResource("/icons/delaycommand.gif")),
             entry("include", ScanSystem.class.getResource("/icons/includecommand.gif")),
             entry("log", ScanSystem.class.getResource("/icons/logcommand.gif")),
@@ -53,7 +53,7 @@ public class BaseCommandRegistry implements ScanCommandRegistry
     {
         return Map.ofEntries(
             entry("comment", CommentCommand::new),
-            entry("config", ConfigLogCommand::new),
+            entry("config_log", ConfigLogCommand::new),
             entry("delay", DelayCommand::new),
             entry("include", IncludeCommand::new),
             entry("log", LogCommand::new),
