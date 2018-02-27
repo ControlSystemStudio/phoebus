@@ -91,15 +91,15 @@ abstract public class ScanCommandWithBody extends ScanCommand
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         final Element body_node = XMLUtil.getChildElement(element, "body");
         if (body_node != null)
         {
-            final List<ScanCommand> body = factory.readCommands(body_node.getFirstChild());
+            final List<ScanCommand> body = ScanCommandFactory.readCommands(body_node.getFirstChild());
             setBody(body);
         }
-        super.readXML(factory, element);
+        super.readXML(element);
     }
 
     /** {@inheritDoc} */

@@ -89,10 +89,10 @@ public class ParallelCommand extends ScanCommandWithBody
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         // Read body first, so we don't update other params if this fails
-        super.readXML(factory, element);
+        super.readXML(element);
         setTimeout(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TIMEOUT).orElse(0.0));
     }
 

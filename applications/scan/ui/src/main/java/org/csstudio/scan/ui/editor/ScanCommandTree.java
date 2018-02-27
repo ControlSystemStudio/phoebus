@@ -14,6 +14,9 @@ import org.csstudio.scan.command.ScanCommand;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
+/** {@link TreeView} for {@link ScanCommand}s
+ *  @author Kay Kasemir
+ */
 public class ScanCommandTree extends TreeView<ScanCommand>
 {
     final TreeItem<ScanCommand> root = new TreeItem<>(null);

@@ -75,7 +75,7 @@ public class CommentCommand extends ScanCommand
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         setComment(XMLUtil.getChildString(element, "text").orElse(""));
         // NOT calling super.readXML(factory, element);

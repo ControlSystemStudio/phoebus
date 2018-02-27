@@ -310,10 +310,10 @@ public class LoopCommand extends ScanCommandWithBody
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         // Read body first, so we don't update other loop params if this fails
-        super.readXML(factory, element);
+        super.readXML(element);
 
         setDeviceName(XMLUtil.getChildString(element, ScanCommandProperty.TAG_DEVICE).orElse(""));
         setStart(XMLUtil.getChildDouble(element, "start").orElse(0.0));

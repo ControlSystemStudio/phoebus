@@ -95,11 +95,11 @@ public class IncludeCommand extends ScanCommand
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         setScanFile(XMLUtil.getChildString(element, "scan_file").orElse(""));
         setMacros(XMLUtil.getChildString(element, "macros").orElse(""));
-        super.readXML(factory, element);
+        super.readXML(element);
     }
 
     /** {@inheritDoc} */

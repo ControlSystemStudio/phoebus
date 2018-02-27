@@ -251,7 +251,7 @@ public class SetCommand extends ScanCommand
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         setDeviceName(XMLUtil.getChildString(element, ScanCommandProperty.TAG_DEVICE).orElse(""));
         setValue(StringOrDouble.parse(XMLUtil.getChildString(element, ScanCommandProperty.TAG_VALUE).orElse("0")));
@@ -260,7 +260,7 @@ public class SetCommand extends ScanCommand
         setReadback(XMLUtil.getChildString(element, ScanCommandProperty.TAG_READBACK).orElse(getDeviceName()));
         setTolerance(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TOLERANCE).orElse(0.1));
         setTimeout(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TIMEOUT).orElse(0.0));
-        super.readXML(factory, element);
+        super.readXML(element);
     }
 
     /** @param buf If the set command uses a condition,

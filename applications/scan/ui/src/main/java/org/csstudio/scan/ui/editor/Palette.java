@@ -20,7 +20,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 
@@ -63,14 +62,12 @@ public class Palette extends TabPane
 
     private void hookDrag()
     {
+        // Drag command out as XML
         command_list.setOnDragDetected(event ->
         {
             final ScanCommand command = command_list.getSelectionModel().getSelectedItem();
-            final ClipboardContent content = new ClipboardContent();
-            content.putString("XML for " + command);
-
             final Dragboard db = command_list.startDragAndDrop(TransferMode.COPY);
-            db.setContent(content);
+            db.setContent(ScanCommandDragDrop.createClipboardContent(command));
             event.consume();
         });
     }

@@ -67,10 +67,10 @@ public class ConfigLogCommand extends ScanCommand
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         setAutomatic(XMLUtil.getChildBoolean(element, "automatic").orElse(false));
-        super.readXML(factory, element);
+        super.readXML(element);
     }
 
     /** {@inheritDoc} */

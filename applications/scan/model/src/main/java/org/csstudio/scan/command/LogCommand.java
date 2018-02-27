@@ -93,7 +93,7 @@ public class LogCommand extends ScanCommand
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         final List<String> devices = new ArrayList<String>();
         Element node = XMLUtil.getChildElement(element, "devices");
@@ -107,7 +107,7 @@ public class LogCommand extends ScanCommand
             devices.add(text_node.getNodeValue());
         }
         setDeviceNames(devices.toArray(new String[devices.size()]));
-        super.readXML(factory, element);
+        super.readXML(element);
     }
 
     /** {@inheritDoc} */

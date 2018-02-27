@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.csstudio.scan.command;
 
-import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -348,24 +347,12 @@ abstract public class ScanCommand
      *  <p>Derived classes must call base class implementation
      *  to read inherited properties.
      *
-     *  @param factory ScanCommandFactory to use in case inner scan commands,
-     *                 for example a loop body, need to be created
      *  @param element
      *  @throws Exception on error, for example missing essential data
      */
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         setErrorHandler(XMLUtil.getChildString(element, "error_handler").orElse(""));
-    }
-
-    /** Write indentation
-     *  @param out Where to print
-     *  @param level Indentation level
-     */
-    final protected void writeIndent(final PrintStream out, final int level)
-    {
-        for (int i=0; i<level; ++i)
-            out.print("  ");
     }
 
     /** @return Debug representation.

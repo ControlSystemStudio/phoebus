@@ -10,16 +10,22 @@ package org.csstudio.scan.ui.editor;
 import java.util.List;
 
 import org.csstudio.scan.command.ScanCommand;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.SplitPane;
 
-@SuppressWarnings("nls")
+/** Scan editor: Tree of scan, palette of commands
+ *  @author Kay Kasemir
+ */
 public class ScanEditor extends SplitPane
 {
-    private final ScanCommandTree scan_tree = new ScanCommandTree();
+    private final UndoableActionManager undo = new UndoableActionManager(50);
+    private final ScanCommandTree scan_tree;
 
     public ScanEditor()
     {
+        scan_tree = new ScanCommandTree();
+
         getItems().setAll(scan_tree, new Palette());
         setDividerPositions(0.75);
     }

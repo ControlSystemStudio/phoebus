@@ -18,6 +18,7 @@ package org.csstudio.scan.command;
 import static org.csstudio.scan.ScanSystem.logger;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import org.csstudio.scan.spi.ScanCommandRegistry;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /** Factory for {@link ScanCommand}s
@@ -77,9 +79,35 @@ public class ScanCommandFactory
         return url;
     }
 
-    public List<ScanCommand> readCommands(Node firstChild)
+    /** Read a list of commands (and possible sub-commands like loop bodies)
+     *  @param node Node and siblings that contain commands
+     *  @return List of {@link ScanCommand}s
+     *  @throws Exception on error: Unknown commands, missing command-specific details
+     */
+    public static List<ScanCommand> readCommands(Node node) throws Exception
     {
-        // TODO XML reader
-        return null;
+        final List<ScanCommand> commands = new ArrayList<ScanCommand>();
+        while (node != null)
+        {
+            if (node.getNodeType() == Node.ELEMENT_NODE)
+                commands.add(readCommand((Element) node));
+            node = node.getNextSibling();
+        }
+        return commands;
+    }
+
+    /** Read a ScanCommand from an XML element.
+     *
+     *  @param element XML element. Name of the element determines the ScanCommand
+     *  @return {@link ScanCommand}
+     *  @throws Exception on error: Unknown command, missing command-specific detail
+     */
+    public static ScanCommand readCommand(final Element element) throws Exception
+    {
+        // Guess class name based on the ID
+        final String id = element.getNodeName();
+        final ScanCommand command = createCommandForID(id);
+        command.readXML(element);
+        return command;
     }
 }

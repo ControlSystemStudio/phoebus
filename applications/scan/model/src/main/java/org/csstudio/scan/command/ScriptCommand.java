@@ -114,7 +114,7 @@ public class ScriptCommand extends ScanCommand
 
     /** {@inheritDoc} */
     @Override
-    public void readXML(final ScanCommandFactory factory, final Element element) throws Exception
+    public void readXML(final Element element) throws Exception
     {
         setScript(XMLUtil.getChildString(element, "path").orElse(""));
 
@@ -133,7 +133,7 @@ public class ScriptCommand extends ScanCommand
             setArguments(arguments.toArray(new String[arguments.size()]));
         }
 
-        super.readXML(factory, element);
+        super.readXML(element);
     }
 
     /** {@inheritDoc} */
