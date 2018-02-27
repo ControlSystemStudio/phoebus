@@ -1,5 +1,7 @@
 package org.csstudio.scan.ui.editor;
 
+import java.util.List;
+
 import org.csstudio.scan.command.CommandSequence;
 import org.csstudio.scan.command.CommentCommand;
 import org.csstudio.scan.command.DelayCommand;
@@ -7,8 +9,6 @@ import org.csstudio.scan.command.LoopCommand;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.SetCommand;
 import org.csstudio.scan.command.WaitCommand;
-
-import com.sun.tools.javac.util.List;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -41,6 +41,7 @@ public class EditorDemo extends Application
         stage.setScene(scene);
         stage.show();
 
+        // TODO CommandSequence to TreeItem helper that's aware of Loop
         for (ScanCommand cmd : cmds.getCommands())
             root.getChildren().add(new TreeItem<>(cmd));
     }
