@@ -193,9 +193,14 @@ public class DisplayInfo
                path.startsWith("ftp:")   ||
                path.startsWith("examples:")))
             buf.append("file:");
+        
+        // Windows platform tweak
+        if (path.contains(":"))
+            buf.append("///");
 
         // In path, keep ':' and '/', but replace spaces
-        buf.append(path.replace(' ', '+'));
+        // Windows platform tweak replace \ with /
+        buf.append(path.replace(' ', '+').replace('\\', '/'));
 
         // Add macros as path parameters
         boolean first = true;
