@@ -192,11 +192,12 @@ public class DisplayInfo
                path.startsWith("https:") ||
                path.startsWith("ftp:")   ||
                path.startsWith("examples:")))
+        {
             buf.append("file:");
-        
-        // Windows platform tweak
-        if (path.contains(":"))
-            buf.append("///");
+            // Windows platform tweak
+            if (path.contains(":"))
+                buf.append("///");
+        }
 
         // In path, keep ':' and '/', but replace spaces
         // Windows platform tweak replace \ with /
