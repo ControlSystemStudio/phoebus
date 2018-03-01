@@ -30,6 +30,14 @@ public class VersionTest
     }
 
     @Test
+    public void testShort()
+    {
+        assertThat(Version.parse("2.0").getMajor(), equalTo(2));
+        assertThat(Version.parse("2.0").getMinor(), equalTo(0));
+        assertThat(Version.parse("2.1").getMinor(), equalTo(1));
+    }
+
+    @Test
     public void testFormat()
     {
         assertThat(Version.parse("2.0.1").toString(), equalTo("2.0.1"));

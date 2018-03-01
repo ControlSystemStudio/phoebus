@@ -291,6 +291,27 @@ public class XMLUtil
         }
     }
 
+    /** Given a parent element, locate long value of a child node.
+     *  @param parent Parent element
+     *  @param name Name of child element
+     *  @return Value of child element, or empty result
+     *  @throws Exception on error parsing the number
+     */
+    public static Optional<Long> getChildLong(final Element parent, final String name) throws Exception
+    {
+        final Element child = getChildElement(parent, name);
+        if (child == null)
+            return Optional.empty();
+        try
+        {
+            return Optional.of(Long.valueOf(getString(child)));
+        }
+        catch (NumberFormatException ex)
+        {
+            throw new Exception("Expected long for <" + name +">", ex);
+        }
+    }
+
     /** Given a parent element, locate double value of a child node.
      *  @param parent Parent element
      *  @param name Name of child element

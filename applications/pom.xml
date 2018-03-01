@@ -18,5 +18,6 @@
   	<module>rtplot</module>
   	<module>databrowser</module>
   	<module>display</module>
+    <module>scan</module>
   </modules>
 </project>

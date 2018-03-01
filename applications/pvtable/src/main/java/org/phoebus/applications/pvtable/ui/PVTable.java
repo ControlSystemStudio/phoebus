@@ -62,7 +62,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
 
@@ -70,7 +70,7 @@ import javafx.util.converter.DefaultStringConverter;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVTable extends BorderPane
+public class PVTable extends VBox
 {
     private static final String comment_style = "-fx-text-fill: blue;";
     private static final String new_item_style = "-fx-text-fill: gray;";
@@ -425,10 +425,8 @@ public class PVTable extends BorderPane
         table.setEditable(true);
 
         final Node toolbar = createToolbar();
-        setMargin(toolbar, new Insets(5, 5, 0, 5));
         setMargin(table, new Insets(5));
-        setTop(toolbar);
-        setCenter(table);
+        getChildren().setAll(toolbar, table);
 
         setItemsFromModel();
 

@@ -58,7 +58,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
     public Group createJFXNode() throws Exception
     {
         iv = new ImageView();
-
+        iv.setSmooth(true);
         Group gr = new Group(border, iv);
         gr.getTransforms().addAll(translate, rotation);
         return gr;

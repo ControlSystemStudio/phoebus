@@ -48,7 +48,7 @@
  */
 .action_button
 {
-    -fx-padding: 0em 0em 0em 0.2em;
+    -fx-padding: 0em 0.1em 0em 0.1em;
     -fx-wrap-text: true;
     -fx-text-overrun: clip;
     -fx-text-alignment: center;

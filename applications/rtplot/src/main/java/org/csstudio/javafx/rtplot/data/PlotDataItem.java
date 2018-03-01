@@ -23,14 +23,26 @@ public interface PlotDataItem<XTYPE extends Comparable<XTYPE>>
     public double getValue();
 
     /** @return Standard deviation, or {@link Double#NaN} */
-    public double getStdDev();
+    public default double getStdDev()
+    {
+        return Double.NaN;
+    }
 
     /** @return Minimum in case main value is an 'average', or {@link Double#NaN} */
-    public double getMin();
+    public default double getMin()
+    {
+        return Double.NaN;
+    }
 
     /** @return Maximum in case main value is an 'average', or {@link Double#NaN} */
-    public double getMax();
+    public default double getMax()
+    {
+        return Double.NaN;
+    }
 
     /** @return Any informational string that might work as e.g. a Tool-tip. */
-    public String getInfo();
+    public default String getInfo()
+    {
+        return Double.toString(getValue());
+    };
 }

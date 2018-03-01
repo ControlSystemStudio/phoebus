@@ -348,7 +348,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
 
                 imageView.setPreserveRatio(model_widget.propPreserveRatio().getValue());
                 imageView.setSmooth(true);
-                imageView.setCache(true);
                 imageView.fitHeightProperty().bind(symbol.prefHeightProperty());
                 imageView.fitWidthProperty().bind(symbol.prefWidthProperty());
                 imageView.imageProperty().bind(Bindings.createObjectBinding(() -> ( getImageIndex() >= 0 ) ? imagesList.get(getImageIndex()) : getDefaultSymbol(), imageIndexProperty()));

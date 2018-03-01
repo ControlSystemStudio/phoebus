@@ -48,9 +48,12 @@ public class Version implements Comparable<Version>
     // but it requires the patch level (which it calls "security")
     // to be non-zero, which would not allow loading
     // versions like "1.0.0" or "2.0.0" from existing *.opi or *.bob files.
-    private final static Pattern VERSION_PATTERN = Pattern.compile("([0-9]+)\\.([0-9]+)\\.([0-9]+)");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
-    final int major, minor, patch;
+    // Some older displays used a shorter "1.0" format without patch level
+    private static final Pattern SHORT_VERSION_PATTERN = Pattern.compile("([0-9]+)\\.([0-9]+)");
+
+    private final int major, minor, patch;
 
     /** Parse version from text
      *  @param version "Major.Minor.Patch" type of text
@@ -59,12 +62,19 @@ public class Version implements Comparable<Version>
      */
     public static Version parse(final String version)
     {
-        final Matcher matcher = VERSION_PATTERN.matcher(version);
-        if (!matcher.matches())
-            throw new IllegalArgumentException("Invalid version string '" + version + "'");
-        return new Version(Integer.parseInt(matcher.group(1)),
-                           Integer.parseInt(matcher.group(2)),
-                           Integer.parseInt(matcher.group(3)));
+        // First try the long format
+        Matcher matcher = VERSION_PATTERN.matcher(version);
+        if (matcher.matches())
+            return new Version(Integer.parseInt(matcher.group(1)),
+                               Integer.parseInt(matcher.group(2)),
+                               Integer.parseInt(matcher.group(3)));
+
+        matcher = SHORT_VERSION_PATTERN.matcher(version);
+        if (matcher.matches())
+            return new Version(Integer.parseInt(matcher.group(1)),
+                               Integer.parseInt(matcher.group(2)),
+                               0);
+        throw new IllegalArgumentException("Invalid version string '" + version + "'");
     }
 
     /** Construct version

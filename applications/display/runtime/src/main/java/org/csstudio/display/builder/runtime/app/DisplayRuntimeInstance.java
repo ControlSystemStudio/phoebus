@@ -30,7 +30,6 @@ import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.TextArea;
@@ -82,7 +81,6 @@ public class DisplayRuntimeInstance implements AppInstance
 
         new ContextMenuSupport(this);
 
-        BorderPane.setMargin(toolbar, new Insets(5, 5, 0, 5));
         layout.setTop(toolbar);
         layout.setCenter(representation.createModelRoot());
         dock_item = new DockItemWithInput(this, layout, null, null, null);
