@@ -84,6 +84,13 @@ public class DisplayInfoTest
         System.out.println(url);
 
         assertThat(url.toString(), equalTo("file:/some/path/xx.bob?X=Fred+Harvey+Newman&Y=2"));
+
+        // Windows
+        info = new DisplayInfo("C:\\some\\path\\file.bob",  null, new Macros(), false);
+        url = info.toURI();
+        System.out.println(url);
+
+        assertThat(url.toString(), equalTo("file:///C:/some/path/file.bob"));
     }
 
     @Test
