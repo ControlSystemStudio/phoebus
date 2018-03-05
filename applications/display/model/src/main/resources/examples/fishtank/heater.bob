@@ -85,8 +85,6 @@
     <y>380</y>
     <width>101</width>
     <border_alarm_sensitive>false</border_alarm_sensitive>
-    <items>
-    </items>
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_3</name>
@@ -176,7 +174,7 @@
     <x>302</x>
     <y>50</y>
     <width>58</width>
-    <height>14</height>
+    <height>15</height>
     <visible>false</visible>
     <font>
       <font family="Arial" style="BOLD" size="11.881188118811881">
@@ -275,6 +273,14 @@ $(pv_value)</tooltip>
     <height>70</height>
     <actions>
     </actions>
+    <rules>
+      <rule name="Hide" prop_id="visible" out_exp="false">
+        <exp bool_exp="abs(pv0)&gt;3">
+          <value>false</value>
+        </exp>
+        <pv_name>$(P):error</pv_name>
+      </rule>
+    </rules>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_19</name>
@@ -316,7 +322,7 @@ $(pv_value)</tooltip>
   <widget type="textentry" version="3.0.0">
     <name>Text Input_4</name>
     <pv_name>$(P):PID.C</pv_name>
-    <x>512</x>
+    <x>518</x>
     <y>330</y>
     <width>51</width>
     <height>21</height>
@@ -356,7 +362,7 @@ $(pv_value)</tooltip>
   <widget type="label" version="2.0.0">
     <name>Label_12</name>
     <text>Err. Integral</text>
-    <x>512</x>
+    <x>518</x>
     <y>362</y>
     <width>74</width>
     <height>16</height>
@@ -367,8 +373,8 @@ $(pv_value)</tooltip>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_4</name>
     <pv_name>$(P):error</pv_name>
-    <x>442</x>
-    <y>380</y>
+    <x>446</x>
+    <y>378</y>
     <width>61</width>
     <horizontal_alignment>1</horizontal_alignment>
     <vertical_alignment>1</vertical_alignment>
@@ -390,7 +396,7 @@ $(pv_value)</tooltip>
   <widget type="label" version="2.0.0">
     <name>Label_13</name>
     <text>Integral Limit</text>
-    <x>584</x>
+    <x>610</x>
     <y>362</y>
     <width>81</width>
     <height>16</height>
@@ -401,7 +407,7 @@ $(pv_value)</tooltip>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_3</name>
     <pv_name>$(P):integral</pv_name>
-    <x>512</x>
+    <x>518</x>
     <y>380</y>
     <width>61</width>
     <horizontal_alignment>1</horizontal_alignment>
@@ -413,7 +419,7 @@ $(pv_value)</tooltip>
   <widget type="textentry" version="3.0.0">
     <name>Text Input_5</name>
     <pv_name>$(P):integral.C</pv_name>
-    <x>584</x>
+    <x>610</x>
     <y>380</y>
     <width>61</width>
     <height>21</height>
@@ -439,7 +445,7 @@ $(pv_value)</tooltip>
   <widget type="label" version="2.0.0">
     <name>Label_10</name>
     <text>Integral Gain</text>
-    <x>512</x>
+    <x>518</x>
     <y>314</y>
     <width>81</width>
     <height>16</height>
@@ -454,8 +460,8 @@ is
 on</text>
     <x>518</x>
     <y>66</y>
-    <width>75</width>
-    <height>50</height>
+    <width>46</width>
+    <height>44</height>
     <font>
       <font family="Arial" style="BOLD" size="11.881188118811881">
       </font>
@@ -626,5 +632,27 @@ VString[No PV, 1969/12/31 19:00:00.000]</tooltip>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
     </font>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Input_6</name>
+    <pv_name>$(P):PID.E</pv_name>
+    <x>610</x>
+    <y>330</y>
+    <width>51</width>
+    <height>21</height>
+    <actions>
+    </actions>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>Diff. Gain</text>
+    <x>610</x>
+    <y>314</y>
+    <width>59</width>
+    <height>16</height>
+    <auto_size>true</auto_size>
+    <actions>
+    </actions>
   </widget>
 </display>

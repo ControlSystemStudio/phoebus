@@ -1,0 +1,36 @@
+# -*- shell-script -*-
+#
+# Add differential term ('D' in PID) to control.db
+
+# Update 'error':
+# Make passive (now triggered by new 'error_diff'
+record(calc, "$(user):error")
+{
+    field(SCAN, "Passive")
+}
+
+# New computation of change in error triggers
+# the error computation
+record(calc, "$(user):error_diff")
+{
+    field(DESC, "Temperature Difference")
+    field(SCAN, ".5 second")
+    field(INPA, "$(user):error")
+    field(INPB, "$(user):error MS PP")
+    field(CALC, "(B-A)/0.5")
+}
+
+# Every second, calculate new heater voltage via PID (PI)
+# A - Kp
+# B - error
+# C - Ki
+# D - error integral
+# E - Kd
+# F - error differential
+record(calc, "$(user):PID")
+{
+    field(INPE, "0.0")
+    field(INPF, "$(user):error_diff MS")
+    field(CALC, "A*B+C*D+E*F")
+}
+
