@@ -8,6 +8,7 @@
 package org.phoebus.ui.javafx;
 
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import javafx.scene.paint.Color;
@@ -20,16 +21,21 @@ public class JFXUtil
 {
     public static final Logger logger = Logger.getLogger(JFXUtil.class.getPackageName());
 
+    private static final ConcurrentHashMap<Color, String> webRGBCache = new ConcurrentHashMap<>();
+
     /** Convert color into web-type RGB text
      *  @param color JavaFX {@link Color}
      *  @return RGB text of the form "#FF8080"
      */
     public static String webRGB(final Color color)
     {
-        // Compare com.sun.javafx.scene.control.skinUtils.formatHexString
-        final int r = (int)Math.round(color.getRed() * 255.0);
-        final int g = (int)Math.round(color.getGreen() * 255.0);
-        final int b = (int)Math.round(color.getBlue() * 255.0);
-        return String.format((Locale) null, "#%02x%02x%02x" , r, g, b);
+        return webRGBCache.computeIfAbsent(color, col ->
+        {
+            // Compare com.sun.javafx.scene.control.skinUtils.formatHexString
+            final int r = (int)Math.round(col.getRed() * 255.0);
+            final int g = (int)Math.round(col.getGreen() * 255.0);
+            final int b = (int)Math.round(col.getBlue() * 255.0);
+            return String.format((Locale) null, "#%02x%02x%02x", r, g, b);
+        });
     }
 }
