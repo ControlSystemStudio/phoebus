@@ -78,7 +78,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
                                  col.getBlue() + ',' +
                                  col.getAlpha()/255f + ')';
             else
-                return String.format((Locale) null, "#%02x%02x%02x", col.getRed(), col.getGreen(), col.getBlue());
+                return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
         });
     }
 
