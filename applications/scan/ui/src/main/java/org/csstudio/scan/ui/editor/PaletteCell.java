@@ -17,7 +17,7 @@ import javafx.scene.control.ListCell;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanCommandListCell extends ListCell<ScanCommand>
+public class PaletteCell extends ListCell<ScanCommand>
 {
     @Override
     protected void updateItem(final ScanCommand command, final boolean empty)

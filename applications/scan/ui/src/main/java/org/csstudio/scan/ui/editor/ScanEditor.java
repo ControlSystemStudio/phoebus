@@ -10,6 +10,7 @@ package org.csstudio.scan.ui.editor;
 import java.util.List;
 
 import org.csstudio.scan.command.ScanCommand;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.SplitPane;
 
@@ -18,12 +19,12 @@ import javafx.scene.control.SplitPane;
  */
 public class ScanEditor extends SplitPane
 {
-    private final ScanCommandTree scan_tree;
+    private final Model model = new Model();
+    private final UndoableActionManager undo = new UndoableActionManager(50);
+    private final ScanCommandTree scan_tree = new ScanCommandTree(model, undo);
 
     public ScanEditor()
     {
-        scan_tree = new ScanCommandTree();
-
         getItems().setAll(scan_tree, new Palette());
         setDividerPositions(0.75);
     }
@@ -31,6 +32,6 @@ public class ScanEditor extends SplitPane
     /** @param commands Commands to show in the editor */
     public void setScan(final List<ScanCommand> commands)
     {
-        scan_tree.setScan(commands);
+        model.setCommands(commands);
     }
 }

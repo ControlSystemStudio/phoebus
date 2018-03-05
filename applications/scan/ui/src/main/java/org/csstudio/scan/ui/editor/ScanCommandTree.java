@@ -10,7 +10,7 @@ package org.csstudio.scan.ui.editor;
 import java.util.List;
 
 import org.csstudio.scan.command.ScanCommand;
-import org.phoebus.ui.undo.UndoableAction;
+import org.csstudio.scan.command.ScanCommandWithBody;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.TreeItem;
@@ -21,26 +21,61 @@ import javafx.scene.control.TreeView;
  */
 public class ScanCommandTree extends TreeView<ScanCommand>
 {
-    private final UndoableActionManager undo = new UndoableActionManager(50);
+    private final Model model;
     final TreeItem<ScanCommand> root = new TreeItem<>(null);
+
+    private final ModelListener listener = new ModelListener()
+    {
+        @Override
+        public void commandsChanged()
+        {
+            // Convert scan into tree items
+            addCommands(root, model.getCommands());
+
+            // Expand complete tree
+            expand(root);
+        }
+
+        @Override
+        public void commandAdded(final ScanCommand command)
+        {
+            // TODO Optimize
+            root.getChildren().clear();
+            commandsChanged();
+        }
+
+        @Override
+        public void commandRemoved(ScanCommand command)
+        {
+            // TODO Optimize
+            root.getChildren().clear();
+            commandsChanged();
+        }
+    };
 
     // TODO TextFieldTreeCell?
 
-    ScanCommandTree()
+    ScanCommandTree(final Model model, final UndoableActionManager undo)
     {
+        this.model = model;
         setShowRoot(false);
-        setCellFactory(tree_view ->  new ScanCommandTreeCell(this));
+        setCellFactory(tree_view ->  new ScanCommandTreeCell(undo, model));
         setRoot(root);
+
+        model.addListener(listener);
     }
 
-    /** @param commands Commands to show in the editor */
-    public void setScan(final List<ScanCommand> commands)
+    private static void addCommands(final TreeItem<ScanCommand> item,
+                                    final List<ScanCommand> commands)
     {
-        // Convert scan into tree items
-        CommandTreeUtil.addCommands(root, commands);
-
-        // Expand complete tree
-        expand(root);
+        final List<TreeItem<ScanCommand>> children = item.getChildren();
+        for (ScanCommand cmd : commands)
+        {
+            final TreeItem<ScanCommand> cmd_item = new TreeItem<>(cmd);
+            children.add(cmd_item);
+            if (cmd instanceof ScanCommandWithBody)
+                addCommands(cmd_item, ((ScanCommandWithBody)cmd).getBody());
+        }
     }
 
     private static void expand(final TreeItem<ScanCommand> item)
@@ -48,10 +83,5 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         item.setExpanded(true);
         for (TreeItem<ScanCommand> sub : item.getChildren())
             expand(sub);
-    }
-
-    public void execute(final UndoableAction action)
-    {
-        undo.execute(action);
     }
 }

@@ -51,7 +51,7 @@ public class Palette extends TabPane
 
     public Palette()
     {
-        command_list.setCellFactory(view -> new ScanCommandListCell());
+        command_list.setCellFactory(view -> new PaletteCell());
 
         final Tab cmd_tab = new Tab("Scan Command Palette", command_list);
         cmd_tab.setClosable(false);

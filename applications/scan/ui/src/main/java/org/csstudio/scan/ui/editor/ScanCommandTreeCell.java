@@ -14,9 +14,11 @@ import org.csstudio.scan.command.ScanCommandFactory;
 import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.actions.AddCommands;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeCell;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 
@@ -26,13 +28,46 @@ import javafx.scene.input.TransferMode;
 @SuppressWarnings("nls")
 public class ScanCommandTreeCell extends TreeCell<ScanCommand>
 {
-    public ScanCommandTreeCell(final ScanCommandTree scan_tree)
+    private enum InsertionPoint
     {
-        hookDrop(scan_tree);
+        BEFORE, ON, AFTER;
     }
 
-    private void hookDrop(final ScanCommandTree scan_tree)
+    private InsertionPoint getInsertionPoint(final DragEvent event)
     {
+        final ScanCommand target = getItem();
+        if (target != null)
+        {
+            final double section = event.getY() / getHeight();
+            if (target instanceof ScanCommandWithBody)
+            {
+                // Determine if we are in upper, middle or lower 1/3 of the cell
+                if (section <= 0.3)
+                    return InsertionPoint.BEFORE;
+                else if (section >= 0.7)
+                    return InsertionPoint.AFTER;
+                else
+                    return InsertionPoint.ON;
+            }
+            else
+            {
+                if (section < 0.5)
+                    return InsertionPoint.BEFORE;
+                else
+                    return InsertionPoint.AFTER;
+            }
+        }
+        return InsertionPoint.AFTER;
+    }
+
+    public ScanCommandTreeCell(final UndoableActionManager undo, final Model model)
+    {
+        hookDrop(undo, model);
+    }
+
+    private void hookDrop(final UndoableActionManager undo, final Model model)
+    {
+
         setOnDragOver(event ->
         {
             final Dragboard db = event.getDragboard();
@@ -40,6 +75,7 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
             {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 getTreeView().getSelectionModel().clearAndSelect(getIndex());
+                // switch (getInsertionPoint(event)) somehow indicate before, after?
             }
             event.consume();
         });
@@ -53,27 +89,26 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
                 final List<ScanCommand> commands = ScanCommandDragDrop.getCommands(db);
 
                 if (target == null)
-                    scan_tree.execute(new AddCommands(null, commands, true));
+                    undo.execute(new AddCommands(model, null, commands, true));
                 else
                 {
-                    final double section = event.getY() / getHeight();
-
+                    final InsertionPoint where = getInsertionPoint(event);
                     if (target instanceof ScanCommandWithBody)
                     {
                         // Determine if we are in upper, middle or lower 1/3 of the cell
-                        if (section <= 0.3)
-                            scan_tree.execute(new AddCommands(target, commands, false));
-                        else if (section >= 0.7)
-                            scan_tree.execute(new AddCommands(target, commands, true));
+                        if (where == InsertionPoint.BEFORE)
+                            undo.execute(new AddCommands(model, target, commands, false));
+                        else if (where == InsertionPoint.AFTER)
+                            undo.execute(new AddCommands(model, target, commands, true));
                         else
                             System.out.println("Add to body of " + target + ": " + commands);
                     }
                     else
                     {
-                        if (section < 0.5)
-                            scan_tree.execute(new AddCommands(target, commands, false));
+                        if (where == InsertionPoint.BEFORE)
+                            undo.execute(new AddCommands(model, target, commands, false));
                         else
-                            scan_tree.execute(new AddCommands(target, commands, true));
+                            undo.execute(new AddCommands(model, target, commands, true));
                     }
                 }
             }
