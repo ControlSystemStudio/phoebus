@@ -25,7 +25,9 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.Clipboard;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.TransferMode;
 
 /** {@link TreeView} for {@link ScanCommand}s
  *  @author Kay Kasemir
@@ -42,7 +44,6 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         @Override
         public void commandsChanged()
         {
-            System.out.println("Commands changed");
             // Convert scan into tree items
             root.getChildren().clear();
             addCommands(root, model.getCommands());
@@ -150,6 +151,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
 
         createContextMenu();
         handleKeys();
+        hookDrag();
     }
 
     private static void addCommands(final TreeItem<ScanCommand> item,
@@ -261,30 +263,69 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         {
             final KeyCode code = event.getCode();
             if (code == KeyCode.DELETE)
+            {
                 cutToClipboard();
-            if (event.isShortcutDown())
+                event.consume();
+            }
+            else if (event.isShortcutDown())
             {
                 switch (code)
                 {
                 case Z:
                     undo.undoLast();
+                    event.consume();
                     break;
                 case Y:
                     undo.redoLast();
+                    event.consume();
                     break;
                 case X:
                     cutToClipboard();
+                    event.consume();
                     break;
                 case C:
                     copyToClipboard();
+                    event.consume();
                     break;
                 case V:
                     pasteFromClipboard();
+                    event.consume();
                     break;
                 default:
                     break;
                 }
             }
+        });
+    }
+
+    private void hookDrag()
+    {
+        final List<ScanCommand> commands = new ArrayList<>();
+        setOnDragDetected(event ->
+        {
+            commands.clear();
+            commands.addAll(getSelectedCommands());
+            if (! commands.isEmpty())
+            {
+                // Would like to default to move,
+                // allowing key modifiers for copy.
+                // TransferMode.COPY_OR_MOVE will default to copy,
+                // i.e. wrong order.
+                // --> Deciding based on key modifier at start of drag
+                // https://stackoverflow.com/questions/38699306/how-to-adjust-or-deviate-from-the-default-javafx-transfer-mode-behavior
+                final Dragboard db = startDragAndDrop(event.isShortcutDown()
+                                                      ? TransferMode.COPY
+                                                      : TransferMode.MOVE);
+                db.setContent(ScanCommandDragDrop.createClipboardContent(commands));
+            }
+            event.consume();
+        });
+
+        setOnDragDone(event ->
+        {
+            if (event.getTransferMode() == TransferMode.MOVE)
+                undo.execute(new RemoveCommands(model, commands));
+            commands.clear();
         });
     }
 }

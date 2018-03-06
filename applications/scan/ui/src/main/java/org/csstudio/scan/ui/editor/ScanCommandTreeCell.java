@@ -67,7 +67,6 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
 
     private void hookDrop(final UndoableActionManager undo, final Model model)
     {
-
         setOnDragOver(event ->
         {
             final Dragboard db = event.getDragboard();
@@ -119,6 +118,7 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
                             undo.execute(new AddCommands(model, target, commands, true));
                     }
                 }
+                event.setDropCompleted(true);
             }
             event.consume();
         });
