@@ -44,8 +44,6 @@ public class Messages
     public static String PointType_Squares;
     public static String PointType_Triangles;
     public static String PointType_XMarks;
-    public static String Redo_Fmt_TT;
-    public static String Redo_TT;
     public static String Scroll_Off_TT;
     public static String Scroll_On_TT;
     public static String Scroll_OnOff;

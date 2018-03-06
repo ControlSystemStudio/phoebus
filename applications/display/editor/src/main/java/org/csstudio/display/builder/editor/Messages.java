@@ -47,7 +47,6 @@ public class Messages
     public static String NewDisplay;
     public static String PointCount_Fmt;
     public static String PropertyFilterTT;
-    public static String Redo_TT;
     public static String ReloadClasses;
     public static String ReloadDisplay;
     public static String RemoveElement;
@@ -65,7 +64,6 @@ public class Messages
     public static String SetWidgetPoints;
     public static String ShowCoordinates;
     public static String Snap;
-    public static String Undo_TT;
     public static String UpdateWidgetLocation;
     public static String UpdateWidgetOrder;
     public static String UseWidgetClass_TT;
