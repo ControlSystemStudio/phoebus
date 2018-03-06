@@ -11,7 +11,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
-import org.csstudio.scan.ui.ScanUI;
+import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -34,7 +34,7 @@ public class ScanDataPlotInstance implements AppInstance
         this.app = app;
 
         data_plot = create(scan_id);
-        final URI input = ScanUI.createURI(scan_id);
+        final URI input = ScanURI.createURI(scan_id);
         tab = new DockItemWithInput(this, data_plot, input, null, null);
         tab.setLabel("Scan Plot #" + scan_id);
         tab.addCloseCheck(() ->

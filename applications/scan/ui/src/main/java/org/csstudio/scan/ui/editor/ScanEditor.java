@@ -10,10 +10,12 @@ package org.csstudio.scan.ui.editor;
 import java.util.List;
 
 import org.csstudio.scan.command.ScanCommand;
+import org.csstudio.scan.ui.editor.properties.Properties;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToolBar;
@@ -33,10 +35,16 @@ public class ScanEditor extends SplitPane
     {
         final Button[] undo_redo = UndoButtons.createButtons(undo);
         final ToolBar toolbar = new ToolBar(ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
+
         VBox.setVgrow(scan_tree, Priority.ALWAYS);
         final VBox left_stack = new VBox(toolbar, scan_tree);
-        getItems().setAll(left_stack, new Palette());
-        setDividerPositions(0.75);
+
+
+        final SplitPane right_stack = new SplitPane(new Palette(), new Properties(scan_tree));
+        right_stack.setOrientation(Orientation.VERTICAL);
+
+        getItems().setAll(left_stack, right_stack);
+        setDividerPositions(0.6);
     }
 
     /** @param commands Commands to show in the editor */

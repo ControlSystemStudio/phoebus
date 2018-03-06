@@ -9,11 +9,11 @@ package org.csstudio.scan.ui;
 
 import java.net.URI;
 
-/** Common Scan UI tools
+/** Scan URI tools
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanUI
+public class ScanURI
 {
     /** URI schema used to refer to a scan */
     public static final String SCHEMA = "scan";
