@@ -39,7 +39,11 @@ abstract public class ScanCommandWithBody extends ScanCommand
      */
     public ScanCommandWithBody(final List<ScanCommand> body)
     {
-        this.body = body;
+        // Body must be a mutable array list
+        if (body instanceof ArrayList)
+            this.body = body;
+        else
+            this.body = new ArrayList<>(body);
     }
 
     /** @param commands Array of commands

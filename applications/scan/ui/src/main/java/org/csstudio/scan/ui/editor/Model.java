@@ -42,18 +42,6 @@ public class Model
         return model;
     }
 
-    /** @param target Item before or after which new command should be inserted.
-     *                If <code>null</code>, inserts at start of list.
-     *  @param command New command to insert
-     *  @param after <code>true</code> to insert after target, else before
-     *  @throws Exception if element cannot be inserted
-     */
-    public void insert(final ScanCommand target, final ScanCommand command, final boolean after) throws Exception
-    {
-        insert(model, target, command, after);
-    }
-
-
     /** @param commands Commands, either 'root' of model or body of a command with body
      *  @param target Item before or after which new command should be inserted.
      *                If <code>null</code>, inserts at start of list.
