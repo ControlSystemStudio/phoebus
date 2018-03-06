@@ -18,6 +18,7 @@ import org.csstudio.scan.ui.editor.actions.RemoveCommands;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -54,11 +55,21 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         @Override
         public void commandAdded(final ScanCommandWithBody parent, final ScanCommand command)
         {
-            System.out.println("Added " + command + " to " + parent);
-            // TODO Optimize
-            commandsChanged();
+            // TreeItem for new command and parent
+            final TreeItem<ScanCommand> new_item = new TreeItem<>(command);
+            final TreeItem<ScanCommand> parent_item = findItem(parent);
 
+            // Determine position of command within parent
+            final ObservableList<TreeItem<ScanCommand>> items = parent_item.getChildren();
+            final List<ScanCommand> parent_commands = parent == null ? model.getCommands() : parent.getBody();
+            final int pos = parent_commands.indexOf(command);
 
+            // Add new tree item at matching position
+            items.add(pos, new_item);
+
+            // Select the new item
+            getSelectionModel().clearSelection();
+            getSelectionModel().select(new_item);
             updateAddresses();
         }
 
@@ -69,13 +80,45 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             updateAddresses();
         }
 
+        /** @param command Command that's shown in tree
+         *  @return {@link TreeItem} for that command
+         */
+        private TreeItem<ScanCommand> findItem(final ScanCommand command)
+        {
+            if (command == null)
+                return root;
+            return findItem(root.getChildren(), command);
+        }
+
+        /** @param items Model's root items or body of command
+         *  @param command Command that's shown in tree
+         *  @return {@link TreeItem} for that command or <code>null</code> if not in items
+         */
+        private TreeItem<ScanCommand> findItem(final List<TreeItem<ScanCommand>> items,
+                                               final ScanCommand command)
+        {
+            for (TreeItem<ScanCommand> item : items)
+                if (item.getValue() == command)
+                    return item;
+                else
+                {
+                    final TreeItem<ScanCommand> found = findItem(item.getChildren(), command);
+                    if (found != null)
+                        return found;
+                }
+            return null;
+        }
+
+        /** @param items Model's root items or body of command
+         *  @param command Command to remove
+         *  @return <code>true</code> if command was found and tree item was removed
+         */
         private boolean remove(final List<TreeItem<ScanCommand>> items,
                                final ScanCommand command)
         {
             for (TreeItem<ScanCommand> item : items)
                 if (item.getValue() == command)
                 {
-                    System.out.println("Removed " + command);
                     items.remove(item);
                     return true;
                 }
@@ -84,6 +127,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             return false;
         }
 
+        /** Update the addresses in the command sequence */
         private void updateAddresses()
         {
             final List<ScanCommand> commands = model.getCommands();
@@ -128,6 +172,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             expand(sub);
     }
 
+    /** @return {@link ScanCommand}s that are selected in tree */
     private List<ScanCommand> getSelectedCommands()
     {
         // Assume a tree with Loop, and the body of the loop is expanded.
@@ -158,6 +203,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             }
     }
 
+    /** Copy selected commands to clipboard */
     private List<ScanCommand> copyToClipboard()
     {
         final Clipboard clip = Clipboard.getSystemClipboard();
@@ -166,6 +212,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         return copied;
     }
 
+    /** Cut selected commands to clipboard */
     private void cutToClipboard()
     {
         final List<ScanCommand> to_remove = copyToClipboard();
@@ -173,6 +220,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             undo.execute(new RemoveCommands(model, to_remove));
     }
 
+    /** Paste commands from clipboard, append after currently selected item */
     private void pasteFromClipboard()
     {
         final Clipboard clip = Clipboard.getSystemClipboard();
