@@ -103,12 +103,12 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
                         else
                         {
                             // Dropping exactly onto a command means add to its body
-                            final ScanCommandWithBody cmd = (ScanCommandWithBody)target;
-                            final List<ScanCommand> body = cmd.getBody();
+                            final ScanCommandWithBody parent = (ScanCommandWithBody)target;
+                            final List<ScanCommand> body = parent.getBody();
                             final ScanCommand location = body.size() > 0
                                     ? body.get(body.size()-1)
                                     : null;
-                            undo.execute(new AddCommands(model, body, location, commands, true));
+                            undo.execute(new AddCommands(model, parent, location, commands, true));
                         }
                     }
                     else

@@ -42,36 +42,36 @@ public class Model
         return model;
     }
 
-    /** @param commands Commands, either 'root' of model or body of a command with body
+    /** @param parent <code>null</code> for root list, otherwise e.g. loop that's the parent of new command
      *  @param target Item before or after which new command should be inserted.
      *                If <code>null</code>, inserts at start of list.
      *  @param command New command to insert
      *  @param after <code>true</code> to insert after target, else before
      *  @throws Exception if element cannot be inserted
      */
-    public void insert(final List<ScanCommand> commands, final ScanCommand target, final ScanCommand command, final boolean after) throws Exception
+    public void insert(final ScanCommandWithBody parent, final ScanCommand target, final ScanCommand command, final boolean after) throws Exception
     {
-        if (! doInsert(commands, target, command, after))
+        if (! doInsert(parent, target, command, after))
             throw new Exception("Cannot locate insertion point for command in list");
     }
 
-
     /** Insert command in list, recursing down to find insertion target
-     *  @param commands List of scan commands
+     *  @param parent <code>null</code> for root list, otherwise e.g. loop that's the parent of new command
      *  @param target Item before or after which new command should be inserted.
      *                If <code>null</code>, inserts at start of list.
      *  @param command New command to insert
      *  @param after <code>true</code> to insert after target, else before
      *  @return <code>true</code> if command could be inserted in this list
      */
-    private boolean doInsert(final List<ScanCommand> commands,
+    private boolean doInsert(final ScanCommandWithBody parent,
             final ScanCommand target, final ScanCommand command, final boolean after)
     {
+        final List<ScanCommand> commands = parent == null ? getCommands() : parent.getBody();
         if (target == null)
         {
             commands.add(0, command);
             for (ModelListener listener : listeners)
-                listener.commandAdded(command);
+                listener.commandAdded(parent, command);
             return true;
         }
         for (int i=0; i<commands.size(); ++i)
@@ -81,13 +81,13 @@ public class Model
             {   // Found the insertion point
                 commands.add(after ? i+1 : i, command);
                 for (ModelListener listener : listeners)
-                    listener.commandAdded(command);
+                    listener.commandAdded(parent, command);
                 return true;
             }
             else if (current instanceof ScanCommandWithBody)
             {   // Recurse into body, because target may be there.
                 final ScanCommandWithBody cmd = (ScanCommandWithBody) current;
-                if (doInsert(cmd.getBody(), target, command, after))
+                if (doInsert(cmd, target, command, after))
                     return true;
                 // else: target wasn't in that body
             }
@@ -101,20 +101,20 @@ public class Model
      */
     public RemovalInfo remove(final ScanCommand command) throws Exception
     {
-        final RemovalInfo info = remove(null, model, command);
+        final RemovalInfo info = remove(null, command);
         if (info == null)
             throw new Exception("Cannot locate item to be removed");
         return info;
     }
 
     /** @param parent Parent item, <code>null</code> for root of tree
-     *  @param commands List of scan commands under parent
      *  @param command Command to remove
      *  @return Info about removal
      */
-    private RemovalInfo remove(final ScanCommand parent,
-            final List<ScanCommand> commands, final ScanCommand command)
+    private RemovalInfo remove(final ScanCommandWithBody parent,
+                               final ScanCommand command)
     {
+        final List<ScanCommand> commands = parent == null ? model : parent.getBody();
         for (int i=0; i<commands.size(); ++i)
         {
             final ScanCommand current = commands.get(i);
@@ -128,8 +128,7 @@ public class Model
             else if (current instanceof ScanCommandWithBody)
             {   // Recurse into body, because target may be inside.
                 final ScanCommandWithBody cmd = (ScanCommandWithBody) current;
-                final List<ScanCommand> body = cmd.getBody();
-                final RemovalInfo info = remove(cmd, body, command);
+                final RemovalInfo info = remove(cmd, command);
                 if (info != null)
                     return info;
                 // else: target wasn't in that body

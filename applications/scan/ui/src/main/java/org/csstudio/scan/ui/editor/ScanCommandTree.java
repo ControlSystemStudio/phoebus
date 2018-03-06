@@ -10,6 +10,7 @@ package org.csstudio.scan.ui.editor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.csstudio.scan.command.CommandSequence;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.actions.AddCommands;
@@ -40,27 +41,53 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         @Override
         public void commandsChanged()
         {
+            System.out.println("Commands changed");
             // Convert scan into tree items
+            root.getChildren().clear();
             addCommands(root, model.getCommands());
+            updateAddresses();
 
             // Expand complete tree
             expand(root);
         }
 
         @Override
-        public void commandAdded(final ScanCommand command)
+        public void commandAdded(final ScanCommandWithBody parent, final ScanCommand command)
         {
+            System.out.println("Added " + command + " to " + parent);
             // TODO Optimize
-            root.getChildren().clear();
             commandsChanged();
+
+
+            updateAddresses();
         }
 
         @Override
-        public void commandRemoved(ScanCommand command)
+        public void commandRemoved(final ScanCommand command)
         {
-            // TODO Optimize
-            root.getChildren().clear();
-            commandsChanged();
+            remove(root.getChildren(), command);
+            updateAddresses();
+        }
+
+        private boolean remove(final List<TreeItem<ScanCommand>> items,
+                               final ScanCommand command)
+        {
+            for (TreeItem<ScanCommand> item : items)
+                if (item.getValue() == command)
+                {
+                    System.out.println("Removed " + command);
+                    items.remove(item);
+                    return true;
+                }
+                else if (remove(item.getChildren(), command))
+                    return true;
+            return false;
+        }
+
+        private void updateAddresses()
+        {
+            final List<ScanCommand> commands = model.getCommands();
+            CommandSequence.setAddresses(commands);
         }
     };
 
@@ -191,6 +218,12 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             {
                 switch (code)
                 {
+                case Z:
+                    undo.undoLast();
+                    break;
+                case Y:
+                    undo.redoLast();
+                    break;
                 case X:
                     cutToClipboard();
                     break;

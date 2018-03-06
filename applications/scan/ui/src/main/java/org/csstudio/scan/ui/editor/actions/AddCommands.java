@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
+import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.Model;
 import org.phoebus.ui.undo.UndoableAction;
 
@@ -21,7 +22,7 @@ import org.phoebus.ui.undo.UndoableAction;
 public class AddCommands extends UndoableAction
 {
     private final Model model;
-    private final List<ScanCommand> commands;
+    private final ScanCommandWithBody parent;
     private final ScanCommand location;
     private final List<ScanCommand> new_commands;
     private final boolean after;
@@ -29,7 +30,7 @@ public class AddCommands extends UndoableAction
     public AddCommands(final Model model, final ScanCommand location, final List<ScanCommand> new_commands,
             final boolean after)
     {
-        this(model, model.getCommands(), location, new_commands, after);
+        this(model, null, location, new_commands, after);
     }
 
 
@@ -39,13 +40,13 @@ public class AddCommands extends UndoableAction
      *  @param new_commands New commands to insert
      *  @param after After the location, or before the location?
      */
-    public AddCommands(final Model model, final List<ScanCommand> commands,
+    public AddCommands(final Model model, final ScanCommandWithBody parent,
                        final ScanCommand location, final List<ScanCommand> new_commands,
                        final boolean after)
     {
         super("Add commands");
         this.model = model;
-        this.commands = commands;
+        this.parent = parent;
         this.location = location;
         this.new_commands = new_commands;
         this.after = after;
@@ -56,13 +57,14 @@ public class AddCommands extends UndoableAction
     {
         try
         {
+            final List<ScanCommand> commands = parent == null ? model.getCommands() : parent.getBody();
             ScanCommand target = location;
             if (location == null  && commands.size() > 0)
                 target = commands.get(commands.size()-1);
             boolean insert_after = after;
             for (ScanCommand command : new_commands)
             {
-                model.insert(commands, target, command, insert_after);
+                model.insert(parent, target, command, insert_after);
                 // When many items are inserted, the first item may go "before"
                 // the target.
                 // That newly inserted command then becomes the target,

@@ -21,9 +21,9 @@ import org.csstudio.scan.command.ScanCommandWithBody;
 public class RemovalInfo
 {
     final private Model model;
-    final private ScanCommand command;
-    final private ScanCommand parent;
+    final private ScanCommandWithBody parent;
     final private ScanCommand previous;
+    final private ScanCommand command;
 
     /** @param model Scan tree model
      *  @param parent Parent item, for example Loop or <code>null</code> for top-level item
@@ -31,19 +31,14 @@ public class RemovalInfo
      *  @param command Command that was removed
      */
     public RemovalInfo(final Model model,
-                       final ScanCommand parent, final ScanCommand previous,
+                       final ScanCommandWithBody parent,
+                       final ScanCommand previous,
                        final ScanCommand command)
     {
         this.model = model;
-        this.command = command;
         this.parent = parent;
         this.previous = previous;
-    }
-
-    /** @return Command that was removed */
-    public ScanCommand getCommand()
-    {
-        return command;
+        this.command = command;
     }
 
     /** Undo the removal
@@ -61,12 +56,12 @@ public class RemovalInfo
      *  @return <code>true</code> if successful
      *  @throws Exception on error
      */
-    private boolean reinsert(final ScanCommand commands_parent, final List<ScanCommand> commands) throws Exception
+    private boolean reinsert(final ScanCommandWithBody commands_parent, final List<ScanCommand> commands) throws Exception
     {
         // Was command removed at this level in the tree?
         if (commands_parent == parent)
         {
-            model.insert(commands, previous, command, true);
+            model.insert(parent, previous, command, true);
             return true;
         }
 
