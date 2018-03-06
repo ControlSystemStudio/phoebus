@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.editor.actions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -48,7 +49,7 @@ public class AddCommands extends UndoableAction
         this.model = model;
         this.parent = parent;
         this.location = location;
-        this.new_commands = new_commands;
+        this.new_commands = new ArrayList<>(new_commands);
         this.after = after;
     }
 
@@ -84,8 +85,13 @@ public class AddCommands extends UndoableAction
     {
         try
         {
-            for (ScanCommand command : new_commands)
+            // Perform removal in reverse of addition,
+            // so item added last will be removed first
+            for (int i=new_commands.size()-1; i>=0; --i)
+            {
+                final ScanCommand command= new_commands.get(i);
                 model.remove(command);
+            }
         }
         catch (Exception ex)
         {

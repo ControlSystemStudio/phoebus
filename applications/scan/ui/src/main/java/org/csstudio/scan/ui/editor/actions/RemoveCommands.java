@@ -31,7 +31,7 @@ public class RemoveCommands extends UndoableAction
     {
         super("Remove");
         this.model = model;
-        this.to_remove = to_remove;
+        this.to_remove = new ArrayList<>(to_remove);
     }
 
     @Override
@@ -73,6 +73,5 @@ public class RemoveCommands extends UndoableAction
         {
             logger.log(Level.WARNING, "Cannot undo removal", ex);
         }
-
     }
 }
