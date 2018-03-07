@@ -7,9 +7,9 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.editor;
 
-import org.csstudio.scan.ui.editor.properties.StringArrayEditor;
+import java.util.List;
 
-import com.sun.tools.javac.util.List;
+import org.csstudio.scan.ui.editor.properties.StringArrayEditor;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

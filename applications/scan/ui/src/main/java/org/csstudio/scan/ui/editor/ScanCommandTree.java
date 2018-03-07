@@ -10,7 +10,6 @@ package org.csstudio.scan.ui.editor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.csstudio.scan.command.CommandSequence;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.actions.AddCommands;
@@ -47,7 +46,6 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             // Convert scan into tree items
             root.getChildren().clear();
             addCommands(root, model.getCommands());
-            updateAddresses();
 
             // Expand complete tree
             expand(root);
@@ -71,14 +69,12 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             // Select the new item
             getSelectionModel().clearSelection();
             getSelectionModel().select(new_item);
-            updateAddresses();
         }
 
         @Override
         public void commandRemoved(final ScanCommand command)
         {
             remove(root.getChildren(), command);
-            updateAddresses();
         }
 
         /** @param command Command that's shown in tree
@@ -127,16 +123,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
                     return true;
             return false;
         }
-
-        /** Update the addresses in the command sequence */
-        private void updateAddresses()
-        {
-            final List<ScanCommand> commands = model.getCommands();
-            CommandSequence.setAddresses(commands);
-        }
     };
-
-    // TODO TextFieldTreeCell?
 
     ScanCommandTree(final Model model, final UndoableActionManager undo)
     {

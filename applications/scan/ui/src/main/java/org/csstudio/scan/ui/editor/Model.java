@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.csstudio.scan.command.CommandSequence;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 
@@ -33,8 +34,15 @@ public class Model
     {
         model.clear();
         model.addAll(commands);
+        updateAddresses();
         for (ModelListener listener : listeners)
             listener.commandsChanged();
+    }
+
+    /** Update the addresses in the command sequence */
+    private void updateAddresses()
+    {
+        CommandSequence.setAddresses(model);
     }
 
     public List<ScanCommand> getCommands()
@@ -53,6 +61,7 @@ public class Model
     {
         if (! doInsert(parent, target, command, after))
             throw new Exception("Cannot locate insertion point for command in list");
+        updateAddresses();
     }
 
     /** Insert command in list, recursing down to find insertion target
@@ -104,6 +113,7 @@ public class Model
         final RemovalInfo info = remove(null, command);
         if (info == null)
             throw new Exception("Cannot locate item to be removed");
+        updateAddresses();
         return info;
     }
 
@@ -136,5 +146,4 @@ public class Model
         }
         return null;
     }
-
 }
