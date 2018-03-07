@@ -9,6 +9,7 @@ package org.csstudio.scan.ui.editor.properties;
 
 import static org.csstudio.scan.ScanSystem.logger;
 
+import java.util.Objects;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
@@ -66,24 +67,27 @@ public class Properties extends TabPane
         prop_grid.setHgap(5);
         prop_grid.setVgap(5);
 
-        int row = 0;
-        for (ScanCommandProperty prop : tree_item.getValue().getProperties())
+        if (tree_item != null)
         {
-            prop_grid.add(new Label(prop.getName()), 0, row);
+            int row = 0;
+            for (ScanCommandProperty prop : tree_item.getValue().getProperties())
+            {
+                prop_grid.add(new Label(prop.getName()), 0, row);
 
 
-            try
-            {
-                final Node editor = createEditor(tree_item, prop);
-                GridPane.setHgrow(editor, Priority.ALWAYS);
-                GridPane.setFillWidth(editor, true);
-                prop_grid.add(editor, 1, row++);
+                try
+                {
+                    final Node editor = createEditor(tree_item, prop);
+                    GridPane.setHgrow(editor, Priority.ALWAYS);
+                    GridPane.setFillWidth(editor, true);
+                    prop_grid.add(editor, 1, row++);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot create editor for " + prop, ex);
+                }
+                ++row;
             }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot create editor for " + prop, ex);
-            }
-            ++row;
         }
 
         scroll.setContent(prop_grid);
@@ -133,13 +137,13 @@ public class Properties extends TabPane
         else if (property.getType() == String[].class)
         {
             // TODO
-            final TextField editor = new TextField(StringOrDouble.quote(command.getProperty(property)));
+            final TextField editor = new TextField(Objects.toString(command.getProperty(property)));
             return editor;
         }
         else if (property.getType() == DeviceInfo[].class)
         {
             // TODO
-            final TextField editor = new TextField(StringOrDouble.quote(command.getProperty(property)));
+            final TextField editor = new TextField(Objects.toString(command.getProperty(property)));
             return editor;
         }
         else if (property.getType().isEnum())

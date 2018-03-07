@@ -57,7 +57,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         public void commandAdded(final ScanCommandWithBody parent, final ScanCommand command)
         {
             // TreeItem for new command and parent
-            final TreeItem<ScanCommand> new_item = new TreeItem<>(command);
+            final TreeItem<ScanCommand> new_item = createTreeItem(command);
             final TreeItem<ScanCommand> parent_item = findItem(parent);
 
             // Determine position of command within parent
@@ -154,16 +154,22 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         hookDrag();
     }
 
+    private static TreeItem<ScanCommand> createTreeItem(final ScanCommand command)
+    {
+        final TreeItem<ScanCommand> cmd_item = new TreeItem<>(command);
+        if (command instanceof ScanCommandWithBody)
+            addCommands(cmd_item, ((ScanCommandWithBody)command).getBody());
+        return cmd_item;
+    }
+
     private static void addCommands(final TreeItem<ScanCommand> item,
                                     final List<ScanCommand> commands)
     {
         final List<TreeItem<ScanCommand>> children = item.getChildren();
         for (ScanCommand cmd : commands)
         {
-            final TreeItem<ScanCommand> cmd_item = new TreeItem<>(cmd);
+            final TreeItem<ScanCommand> cmd_item = createTreeItem(cmd);
             children.add(cmd_item);
-            if (cmd instanceof ScanCommandWithBody)
-                addCommands(cmd_item, ((ScanCommandWithBody)cmd).getBody());
         }
     }
 
