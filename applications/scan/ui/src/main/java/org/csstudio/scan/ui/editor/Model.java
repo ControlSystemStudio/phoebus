@@ -15,6 +15,8 @@ import org.csstudio.scan.command.CommandSequence;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 
+import javafx.application.Platform;
+
 /** Model of a scan with helpers to insert, delete and represent as tree
  *  @author Kay Kasemir
  */
@@ -36,7 +38,7 @@ public class Model
         model.addAll(commands);
         updateAddresses();
         for (ModelListener listener : listeners)
-            listener.commandsChanged();
+            Platform.runLater(() -> listener.commandsChanged());
     }
 
     /** Update the addresses in the command sequence */

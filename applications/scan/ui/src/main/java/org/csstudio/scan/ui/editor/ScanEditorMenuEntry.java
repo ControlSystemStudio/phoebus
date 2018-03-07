@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.scan.ui.monitor;
+package org.csstudio.scan.ui.editor;
 
 import org.csstudio.scan.ScanSystem;
 import org.phoebus.framework.spi.MenuEntry;
@@ -14,22 +14,22 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
-/** Menu entry for scan monitor
+/** Menu entry for scan editor
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanMonitorMenuEntry implements MenuEntry
+public class ScanEditorMenuEntry implements MenuEntry
 {
     @Override
     public String getName()
     {
-        return ScanMonitorApplication.DISPLAY_NAME;
+        return ScanEditorApplication.DISPLAY_NAME;
     }
 
     @Override
     public Image getIcon()
     {
-        return ImageCache.getImage(ScanSystem.class, "/icons/scan_monitor.png");
+        return ImageCache.getImage(ScanSystem.class, "/icons/scan.png");
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ScanMonitorMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.findApplication(ScanMonitorApplication.NAME).create();
+        ApplicationService.findApplication(ScanEditorApplication.NAME).create();
         return null;
     }
 }

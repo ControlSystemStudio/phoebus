@@ -39,8 +39,7 @@ public class ScanEditor extends SplitPane
         VBox.setVgrow(scan_tree, Priority.ALWAYS);
         final VBox left_stack = new VBox(toolbar, scan_tree);
 
-
-        final SplitPane right_stack = new SplitPane(new Palette(), new Properties(scan_tree, undo));
+        final SplitPane right_stack = new SplitPane(new Palette(model, undo), new Properties(scan_tree, undo));
         right_stack.setOrientation(Orientation.VERTICAL);
 
         getItems().setAll(left_stack, right_stack);
@@ -48,7 +47,7 @@ public class ScanEditor extends SplitPane
     }
 
     /** @param commands Commands to show in the editor */
-    public void setScan(final List<ScanCommand> commands)
+    public void setCommands(final List<ScanCommand> commands)
     {
         model.setCommands(commands);
     }

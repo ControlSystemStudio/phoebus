@@ -11,8 +11,11 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 
 /** Listener to {@link Model}
-*   @author Kay Kasemir
-*/
+ *
+ *  <p>Will always be invoked on UI thread
+ *
+ *   @author Kay Kasemir
+ */
 public interface ModelListener
 {
     /** Commands changed overall, need to refresh GUI */

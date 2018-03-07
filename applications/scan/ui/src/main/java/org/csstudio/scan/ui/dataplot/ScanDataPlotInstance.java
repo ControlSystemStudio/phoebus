@@ -29,7 +29,7 @@ public class ScanDataPlotInstance implements AppInstance
     private final DataPlot data_plot;
     private final DockItemWithInput tab;
 
-    public ScanDataPlotInstance(final ScanDataPlotApplication app, final long scan_id)
+    ScanDataPlotInstance(final ScanDataPlotApplication app, final long scan_id)
     {
         this.app = app;
 
