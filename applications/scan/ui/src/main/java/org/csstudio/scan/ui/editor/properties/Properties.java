@@ -9,7 +9,7 @@ package org.csstudio.scan.ui.editor.properties;
 
 import static org.csstudio.scan.ScanSystem.logger;
 
-import java.util.Objects;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
@@ -20,6 +20,7 @@ import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.beans.InvalidationListener;
 import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -28,7 +29,6 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.GridPane;
@@ -72,14 +72,20 @@ public class Properties extends TabPane
             int row = 0;
             for (ScanCommandProperty prop : tree_item.getValue().getProperties())
             {
-                prop_grid.add(new Label(prop.getName()), 0, row);
-
+                final Label label = new Label(prop.getName());
+                prop_grid.add(label, 0, row);
 
                 try
                 {
                     final Node editor = createEditor(tree_item, prop);
                     GridPane.setHgrow(editor, Priority.ALWAYS);
                     GridPane.setFillWidth(editor, true);
+
+                    // Label defaults to vertical center,
+                    // which is good for one-line editors.
+                    if (editor instanceof StringArrayEditor)
+                        GridPane.setValignment(label, VPos.TOP);
+
                     prop_grid.add(editor, 1, row++);
                 }
                 catch (Exception ex)
@@ -136,14 +142,18 @@ public class Properties extends TabPane
         }
         else if (property.getType() == String[].class)
         {
-            // TODO
-            final TextField editor = new TextField(Objects.toString(command.getProperty(property)));
+            final String[] values = (String[]) command.getProperty(property);
+            final StringArrayEditor editor = new StringArrayEditor();
+            editor.setValues(Arrays.asList(values));
+            editor.setValueHandler(list -> updateProperty(tree_item, property, list.toArray(new String[list.size()])));
             return editor;
         }
         else if (property.getType() == DeviceInfo[].class)
         {
-            // TODO
-            final TextField editor = new TextField(Objects.toString(command.getProperty(property)));
+            final String[] values = (String[]) command.getProperty(property);
+            final StringArrayEditor editor = new StringArrayEditor();
+            editor.setValues(Arrays.asList(values));
+            editor.setValueHandler(list -> updateProperty(tree_item, property, list.toArray(new String[list.size()])));
             return editor;
         }
         else if (property.getType().isEnum())
