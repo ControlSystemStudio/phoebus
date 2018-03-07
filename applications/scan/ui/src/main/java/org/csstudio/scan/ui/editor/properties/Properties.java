@@ -9,15 +9,13 @@ package org.csstudio.scan.ui.editor.properties;
 
 import static org.csstudio.scan.ScanSystem.logger;
 
-import java.util.Objects;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandProperty;
-import org.csstudio.scan.command.UnknownScanCommandPropertyException;
 import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.util.StringOrDouble;
-import org.phoebus.ui.javafx.TreeHelper;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.beans.InvalidationListener;
 import javafx.geometry.Insets;
@@ -32,7 +30,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
@@ -42,10 +39,14 @@ import javafx.scene.layout.Priority;
 @SuppressWarnings("nls")
 public class Properties extends TabPane
 {
+    private final TreeView<ScanCommand> scan_tree;
+    private final UndoableActionManager undo;
     private final ScrollPane scroll = new ScrollPane();
 
-    public Properties(TreeView<ScanCommand> scan_tree)
+    public Properties(final TreeView<ScanCommand> scan_tree, final UndoableActionManager undo)
     {
+        this.scan_tree = scan_tree;
+        this.undo = undo;
         scroll.setFitToWidth(true);
         scroll.setMinHeight(0);
 
@@ -93,10 +94,8 @@ public class Properties extends TabPane
     {
         final ScanCommand command = tree_item.getValue();
         if (property.getType() == String.class)
-        {
-            final TextField editor = new TextField(Objects.toString(command.getProperty(property)));
-            return editor;
-        }
+            return new PropertyTextField(command, property,
+                                         text -> updateProperty(tree_item, property, text));
         else if (property.getType() == Boolean.class)
         {
             final CheckBox editor = new CheckBox();
@@ -105,48 +104,31 @@ public class Properties extends TabPane
             return editor;
         }
         else if (property.getType() == DeviceInfo.class)
-        {
-            final TextField editor = new TextField(Objects.toString(command.getProperty(property)));
-            return editor;
-        }
+            return new PropertyTextField(command, property,
+                                         text -> updateProperty(tree_item, property, text));
         else if (property.getType() == Double.class)
-        {
-            final TextField editor = new TextField(Objects.toString(command.getProperty(property)));
-            return editor;
-        }
-        else if (property.getType() == Object.class)
-        {
-            final TextField editor = new TextField();
-            final Runnable reset = () ->
+            return new PropertyTextField(command, property, text ->
             {
                 try
                 {
-                    editor.setText(StringOrDouble.quote(command.getProperty(property)));
+                    updateProperty(tree_item, property, Double.parseDouble(text));
                 }
-                catch (UnknownScanCommandPropertyException ex)
+                catch (Exception ex)
                 {
-                    // Ignore
+                    // Cannot parse number, reset to original value
+                }
+            });
+        else if (property.getType() == Object.class)
+        {
+            return new PropertyTextField(command, property,
+                                         text -> updateProperty(tree_item, property, StringOrDouble.parse(text)))
+            {
+                @Override
+                protected String value2text(final Object value)
+                {
+                    return StringOrDouble.quote(value);
                 }
             };
-            final Runnable update = () ->
-            {
-                System.out.println("Entered " + editor.getText());
-                updateProperty(tree_item, property, StringOrDouble.parse(editor.getText()));
-                reset.run();
-            };
-            editor.setOnAction(event -> update.run());
-            editor.setOnKeyPressed(event ->
-            {
-                if (event.getCode() == KeyCode.ESCAPE)
-                    reset.run();
-            });
-            editor.focusedProperty().addListener((f, old, focus) ->
-            {
-                if (! focus)
-                    reset.run();
-            });
-            reset.run();
-            return editor;
         }
         else if (property.getType() == String[].class)
         {
@@ -180,12 +162,16 @@ public class Properties extends TabPane
     {
         try
         {
-            tree_item.getValue().setProperty(property, value);
+            undo.execute(new ChangeProperty(this, tree_item, property, value));
         }
-        catch (UnknownScanCommandPropertyException ex)
+        catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot set property " + property + " to new value " + value, ex);
         }
-        TreeHelper.triggerTreeItemRefresh(tree_item);
+    }
+
+    public void refresh()
+    {
+        setCommand(scan_tree.getSelectionModel().getSelectedItem());
     }
 }

@@ -40,7 +40,7 @@ public class ScanEditor extends SplitPane
         final VBox left_stack = new VBox(toolbar, scan_tree);
 
 
-        final SplitPane right_stack = new SplitPane(new Palette(), new Properties(scan_tree));
+        final SplitPane right_stack = new SplitPane(new Palette(), new Properties(scan_tree, undo));
         right_stack.setOrientation(Orientation.VERTICAL);
 
         getItems().setAll(left_stack, right_stack);
