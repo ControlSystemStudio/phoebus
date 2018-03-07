@@ -14,6 +14,7 @@ import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandFactory;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,9 +50,9 @@ public class Palette extends TabPane
 
     private final ListView<ScanCommand> command_list = new ListView<>(commands);
 
-    public Palette()
+    public Palette(final Model model, final UndoableActionManager undo)
     {
-        command_list.setCellFactory(view -> new PaletteCell());
+        command_list.setCellFactory(view -> new PaletteCell(model, undo));
 
         final Tab cmd_tab = new Tab("Scan Command Palette", command_list);
         cmd_tab.setClosable(false);

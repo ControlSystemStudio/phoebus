@@ -26,7 +26,7 @@ public class ScanDataTableInstance implements AppInstance
     private final ScanDataTableApplication app;
     private final DockItemWithInput tab;
 
-    public ScanDataTableInstance(final ScanDataTableApplication app, final long scan_id)
+    ScanDataTableInstance(final ScanDataTableApplication app, final long scan_id)
     {
         this.app = app;
 
