@@ -19,14 +19,12 @@ import org.csstudio.scan.util.StringOrDouble;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.undo.UndoableActionManager;
 
-import javafx.beans.InvalidationListener;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -57,9 +55,14 @@ public class Properties extends TabPane
         cmd_tab.setClosable(false);
         getTabs().add(cmd_tab);
 
-        final MultipleSelectionModel<TreeItem<ScanCommand>> selection = scan_tree.getSelectionModel();
-        final InvalidationListener listener = sel -> setCommand(selection.getSelectedItem());
-        selection.getSelectedItems().addListener(listener);
+        // Scan tree allows selecting multiple items,
+        // so could listen to getSelectedItems(),
+        // but that one does not update when a new item it added
+        // and the ScanCommandTree programmatically selects the new item.
+        // The property view handles a single item only, anyway,
+        // and selectedItemProperty() calls listener even when set
+        // programmatically, i.e. for newly added command
+        scan_tree.getSelectionModel().selectedItemProperty().addListener((p, old, item) -> setCommand(item));
     }
 
     private void setCommand(final TreeItem<ScanCommand> tree_item)
