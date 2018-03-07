@@ -16,6 +16,7 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandProperty;
 import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.util.StringOrDouble;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.beans.InvalidationListener;
@@ -29,6 +30,7 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.GridPane;
@@ -103,9 +105,12 @@ public class Properties extends TabPane
                               final ScanCommandProperty property) throws Exception
     {
         final ScanCommand command = tree_item.getValue();
+
         if (property.getType() == String.class)
+        {
             return new PropertyTextField(command, property,
                                          text -> updateProperty(tree_item, property, text));
+        }
         else if (property.getType() == Boolean.class)
         {
             final CheckBox editor = new CheckBox();
@@ -114,9 +119,14 @@ public class Properties extends TabPane
             return editor;
         }
         else if (property.getType() == DeviceInfo.class)
-            return new PropertyTextField(command, property,
-                                         text -> updateProperty(tree_item, property, text));
+        {
+            final PropertyTextField editor = new PropertyTextField(command, property,
+                                                                   text -> updateProperty(tree_item, property, text));
+            PVAutocompleteMenu.INSTANCE.attachField(editor);
+            return editor;
+        }
         else if (property.getType() == Double.class)
+        {
             return new PropertyTextField(command, property, text ->
             {
                 try
@@ -128,6 +138,7 @@ public class Properties extends TabPane
                     // Cannot parse number, reset to original value
                 }
             });
+        }
         else if (property.getType() == Object.class)
         {
             return new PropertyTextField(command, property,
@@ -140,18 +151,22 @@ public class Properties extends TabPane
                 }
             };
         }
-        else if (property.getType() == String[].class)
+        else if (property.getType() == String[].class  ||
+                 property.getType() == DeviceInfo[].class)
         {
             final String[] values = (String[]) command.getProperty(property);
-            final StringArrayEditor editor = new StringArrayEditor();
-            editor.setValues(Arrays.asList(values));
-            editor.setValueHandler(list -> updateProperty(tree_item, property, list.toArray(new String[list.size()])));
-            return editor;
-        }
-        else if (property.getType() == DeviceInfo[].class)
-        {
-            final String[] values = (String[]) command.getProperty(property);
-            final StringArrayEditor editor = new StringArrayEditor();
+            final StringArrayEditor editor;
+            if (property.getType() == DeviceInfo[].class)
+                editor = new StringArrayEditor()
+                {
+                    @Override
+                    protected void configureTextField(final TextInputControl text_field)
+                    {
+                        PVAutocompleteMenu.INSTANCE.attachField(text_field);
+                    }
+                };
+            else
+                editor = new StringArrayEditor();
             editor.setValues(Arrays.asList(values));
             editor.setValueHandler(list -> updateProperty(tree_item, property, list.toArray(new String[list.size()])));
             return editor;

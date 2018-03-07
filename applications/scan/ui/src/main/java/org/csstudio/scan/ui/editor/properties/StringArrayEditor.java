@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.VBox;
 
 /** Editor for array of strings
@@ -68,8 +69,9 @@ public class StringArrayEditor extends VBox
             }
             else
             {
-                final TextField field = new EnterTextField(value);
-                field.setOnAction(event -> handleEnter(field));
+                final EnterTextField field = new EnterTextField(value);
+                field.setOnEnter(text -> handleEnter(field));
+                configureTextField(field);
                 fields.add(field);
             }
             ++i;
@@ -80,26 +82,37 @@ public class StringArrayEditor extends VBox
             fields.remove(i);
 
         // .. except for a last one that allows adding a new value
-        final TextField field;
+        final EnterTextField field;
         if (fields.size() <= values.size())
         {
             field = new EnterTextField();
-            field.setOnAction(event -> handleEnter(field));
+            field.setOnEnter(text -> handleEnter(field));
+            configureTextField(field);
             fields.add(field);
         }
         else
-            field = (TextField) fields.get(values.size());
+            field = (EnterTextField) fields.get(values.size());
         field.setText("");
         field.setPromptText("<new value>");
     }
 
+    /** Derived class can attach autocompletion menu
+     *  to the text field
+     *  @param text_field
+     */
+    protected void configureTextField(final TextInputControl text_field)
+    {
+    }
+
     private void handleEnter(final TextField field)
     {
+        final String text = field.getText();
         final List<Node> fields = getChildren();
         final int i = fields.indexOf(field);
+
         if (i >= values.size())
-            values.add(field.getText());
-        values.set(i, field.getText());
+            values.add(text);
+        values.set(i, text);
 
         values.removeIf(String::isEmpty);
 

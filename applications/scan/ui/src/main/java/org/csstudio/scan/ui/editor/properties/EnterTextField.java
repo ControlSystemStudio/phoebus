@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.editor.properties;
 
+import java.util.function.Consumer;
+
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 
@@ -21,6 +23,7 @@ import javafx.scene.input.KeyCode;
 public class EnterTextField extends TextField
 {
     private String original_value = "";
+    private Consumer<String> on_enter = text -> {};
 
     public EnterTextField()
     {
@@ -36,8 +39,12 @@ public class EnterTextField extends TextField
         {
             if (event.getCode() == KeyCode.ESCAPE)
                 reset();
-            else if (event.getCode() == KeyCode.ENTER)
-                original_value = getText();
+        });
+
+        setOnAction(event ->
+        {
+            original_value = getText();
+            on_enter.accept(original_value);
         });
 
         focusedProperty().addListener((f, old, focus) ->
@@ -47,6 +54,16 @@ public class EnterTextField extends TextField
             else
                 reset();
         });
+    }
+
+    /** Similar to <code>setOnAction</code>,
+     *  which is already used internally.
+     *
+     *  @param on_enter Called when value was entered
+     */
+    public void setOnEnter(final Consumer<String> on_enter)
+    {
+        this.on_enter = on_enter;
     }
 
     private void reset()

@@ -12,6 +12,7 @@ import java.util.List;
 import org.csstudio.scan.command.CommandSequence;
 import org.csstudio.scan.command.CommentCommand;
 import org.csstudio.scan.command.DelayCommand;
+import org.csstudio.scan.command.LogCommand;
 import org.csstudio.scan.command.LoopCommand;
 import org.csstudio.scan.command.SetCommand;
 import org.csstudio.scan.command.WaitCommand;
@@ -30,6 +31,7 @@ public class EditorDemo extends Application
                 new CommentCommand("Demo"),
                 new SetCommand("device", 3.14),
                 new WaitCommand("abc", 2.0),
+                new LogCommand("abc", "device"),
                 new LoopCommand("pos", 0, 10, 1, List.of(
                     new SetCommand("run", 1),
                     new DelayCommand(1.0),
