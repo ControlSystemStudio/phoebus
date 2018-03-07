@@ -395,13 +395,6 @@ public class PropertyPanelSection extends GridPane
                     super.bind();
                     PVAutocompleteMenu.INSTANCE.attachField(text);
                 }
-
-                @Override
-                public void unbind()
-                {
-                    super.unbind();
-                    PVAutocompleteMenu.INSTANCE.detachField(text);
-                }
             };
             bindings.add(binding);
             binding.bind();

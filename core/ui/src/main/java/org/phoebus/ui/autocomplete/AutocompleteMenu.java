@@ -177,7 +177,10 @@ public class AutocompleteMenu
         });
     }
 
-    /** @param field Field for which autocompletion is requested */
+    /** Attach the completion menu to a text field
+     *
+     *  @param field Field for which completion is requested
+     */
     public void attachField(final TextInputControl field)
     {
         field.addEventFilter(KeyEvent.KEY_PRESSED, key_pressed_filter);
@@ -185,7 +188,19 @@ public class AutocompleteMenu
         field.focusedProperty().addListener(focused_listener);
     }
 
-    /** @param field Field for which autocompletion is no longer desired */
+    /** Detach a previously attached field from the completion menu.
+     *
+     *  <p>In the rare case where the completion is no longer desired,
+     *  while the text field is still in the UI,
+     *  call this method.
+     *
+     *  <p>It is <b>not</b> necessary to 'detach' whenever the text field vanishes,
+     *  for example when a panel is closed.
+     *  In that case, the vanished text field will simply no longer send events
+     *  that trigger the menu.
+     *
+     *  @param field Field for which completion is no longer desired
+     */
     public void detachField(final TextInputControl field)
     {
         field.focusedProperty().removeListener(focused_listener);

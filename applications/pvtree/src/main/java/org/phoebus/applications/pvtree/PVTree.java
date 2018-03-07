@@ -151,7 +151,6 @@ public class PVTree implements AppInstance
     public void dispose()
     {
         logger.log(Level.INFO, "Stopping PV Tree...");
-        PVAutocompleteMenu.INSTANCE.detachField(pv_name);
         tree.shutdown();
         // System.out.println("Remaining PVs " + PVPool.getPVReferences());
     }

@@ -48,7 +48,6 @@ public class Probe implements AppResourceDescriptor {
         DockPane.getActiveDockPane().addTab(tab);
 
         PVAutocompleteMenu.INSTANCE.attachField(probeInstance.getPVField());
-        tab.addClosedNotification(() ->  PVAutocompleteMenu.INSTANCE.detachField(probeInstance.getPVField())   );
         return probeInstance;
     }
 
