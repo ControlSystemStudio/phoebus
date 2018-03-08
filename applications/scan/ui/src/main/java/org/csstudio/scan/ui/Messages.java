@@ -14,7 +14,14 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
+    public static String scan_abort;
     public static String scan_name_id_fmt;
+    public static String scan_next;
+    public static String scan_pause;
+    public static String scan_remove;
+    public static String scan_resume;
+    public static String scan_simulate;
+    public static String scan_submit;
 
     static
     {

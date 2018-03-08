@@ -14,12 +14,14 @@ import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.csstudio.scan.client.Preferences;
-import org.csstudio.scan.client.ScanClient;
+import org.csstudio.scan.client.ScanInfoModel;
+import org.csstudio.scan.client.ScanInfoModelListener;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.XMLCommandReader;
 import org.csstudio.scan.command.XMLCommandWriter;
+import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -30,6 +32,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
+import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 /** Application instance for Scan Editor
@@ -46,8 +49,37 @@ public class ScanEditorInstance  implements AppInstance
 
     private final ScanEditorApplication app;
     private final DockItemWithInput tab;
-    private final ScanClient client = new ScanClient(Preferences.host, Preferences.port);
     private final ScanEditor editor = new ScanEditor();
+
+    /** Scan that's monitored, -1 for none */
+    private volatile long active_scan = -1;
+
+    /** {@link ScanInfoModel}, set while monitoring scan */
+    private final AtomicReference<ScanInfoModel> scan_info_model = new AtomicReference<>();
+
+    /** Track update of {@link ScanEditorInstance#active_scan} */
+    private final ScanInfoModelListener scan_info_listener = new ScanInfoModelListener()
+    {
+        @Override
+        public void scanUpdate(List<ScanInfo> infos)
+        {
+            for (ScanInfo info : infos)
+                if (info.getId() == active_scan)
+                {
+                    Platform.runLater(() -> editor.updateScanInfo(info));
+                    if (info.getState().isDone())
+                        detachFromScan();
+                    return;
+                }
+            Platform.runLater(() -> editor.updateScanInfo(null));
+        }
+
+        @Override
+        public void connectionError()
+        {
+            Platform.runLater(() -> editor.updateScanInfo(null));
+        }
+    };
 
     ScanEditorInstance(final ScanEditorApplication app)
     {
@@ -55,6 +87,7 @@ public class ScanEditorInstance  implements AppInstance
 
         URI input = null;
         tab = new DockItemWithInput(this, editor, input , file_extensions, this::doSave);
+        tab.addClosedNotification(this::detachFromScan);
 
         DockPane.getActiveDockPane().addTab(tab);
 
@@ -67,7 +100,11 @@ public class ScanEditorInstance  implements AppInstance
         return app;
     }
 
-    public void open(final File file)
+    /** Reads commands for scan from file
+     *
+     *  @param file Scan file
+     */
+    void open(final File file)
     {
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
@@ -89,7 +126,11 @@ public class ScanEditorInstance  implements AppInstance
         });
     }
 
-    public void open(final long id)
+    /** Reads commands for scan from server, then monitors progress
+     *
+     *  @param id Scan ID
+     */
+    void open(final long id)
     {
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
@@ -101,11 +142,20 @@ public class ScanEditorInstance  implements AppInstance
             monitor.beginTask("Read scan #" + id);
             try
             {
-                final String xml = client.getScanCommands(id);
+                // Get information about scans
+                final ScanInfoModel infos = ScanInfoModel.getInstance();
+                if (scan_info_model.getAndSet(infos) != null)
+                    throw new IllegalStateException("Already attached to scan");
+
+                // Read commands for scan
+                final String xml = infos.getScanClient().getScanCommands(id);
                 final List<ScanCommand> commands = XMLCommandReader.readXMLString(xml);
                 editor.getModel().setCommands(commands);
 
-                // TODO Monitor scan progress until no longer active
+                // Monitor scan progress until no longer active
+                active_scan = id;
+                editor.attachScan(id, infos.getScanClient());
+                infos.addListener(scan_info_listener);
             }
             catch (Exception ex)
             {
@@ -114,7 +164,8 @@ public class ScanEditorInstance  implements AppInstance
         });
     }
 
-    void doSave(final JobMonitor monitor) throws Exception
+    /** Save current scan to file, reset 'undo' */
+    private void doSave(final JobMonitor monitor) throws Exception
     {
         final File file = Objects.requireNonNull(ResourceParser.getFile(tab.getInput()));
         try
@@ -124,6 +175,18 @@ public class ScanEditorInstance  implements AppInstance
         {
             XMLCommandWriter.write(out, editor.getModel().getCommands());
             editor.getUndo().clear();
+        }
+    }
+
+    /** If currently monitoring a scan, detach */
+    private void detachFromScan()
+    {
+        final ScanInfoModel infos = scan_info_model.getAndSet(null);
+        if (infos != null)
+        {
+            infos.removeListener(scan_info_listener);
+            Platform.runLater(editor::detachScan);
+            infos.release();
         }
     }
 }
