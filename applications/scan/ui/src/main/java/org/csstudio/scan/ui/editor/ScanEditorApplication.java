@@ -20,8 +20,8 @@ import org.phoebus.framework.util.ResourceParser;
 @SuppressWarnings("nls")
 public class ScanEditorApplication implements AppResourceDescriptor
 {
-    private static final List<String> FILE_EXTENSIONS = List.of("scn");
-   public static final String NAME = "scan_editor";
+	private static final List<String> FILE_EXTENSIONS = List.of("scn");
+  	public static final String NAME = "scan_editor";
     public static final String DISPLAY_NAME = "Scan Editor";
 
     @Override
@@ -53,10 +53,12 @@ public class ScanEditorApplication implements AppResourceDescriptor
     {
         final ScanEditorInstance instance = create();
 
-        // TODO Get file name and/or scan ID from resource
+        // Check for file name 
         final File file = ResourceParser.getFile(resource);
         if (file != null)
             instance.open(file);
+	    // TODO Check for scan ID
+	    
         return instance;
     }
 }

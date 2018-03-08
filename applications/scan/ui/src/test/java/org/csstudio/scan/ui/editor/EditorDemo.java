@@ -54,7 +54,7 @@ public class EditorDemo extends Application
         stage.setScene(scene);
         stage.show();
 
-        editor.setScan(cmds);
+        editor.setCommands(cmds);
     }
 
     public static void main(String[] args)
