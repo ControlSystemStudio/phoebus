@@ -234,7 +234,7 @@ public class ScansTable extends VBox
         abort_all.setOnAction(event ->
             JobManager.schedule(abort_all.getText(), monitor ->  scan_client.abortScan(-1)));
 
-        final MenuItem remove_completed = new MenuItem("Remove completed Scans",  ImageCache.getImageView(ScansTable.class, "/icons/remove_completed.png"));
+        final MenuItem remove_completed = new MenuItem("Remove completed Scans",  ImageCache.getImageView(ImageCache.class, "/icons/remove_multiple.png"));
         remove_completed.setOnAction(event ->
             JobManager.schedule(remove_completed.getText(), monitor -> scan_client.removeCompletedScans()));
 

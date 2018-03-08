@@ -9,7 +9,6 @@ package org.csstudio.scan.ui.monitor;
 
 import java.util.List;
 
-import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.info.ScanInfo;
 import org.phoebus.framework.jobs.JobManager;
@@ -25,7 +24,7 @@ public class RemoveSelectedScansAction extends MenuItem
 {
     public RemoveSelectedScansAction(final ScanClient scan_client, final List<ScanInfo> scans)
     {
-        super("Remove selected Scans",  ImageCache.getImageView(ScanSystem.class, "/icons/remove.png"));
+        super("Remove selected Scans",  ImageCache.getImageView(ImageCache.class, "/icons/remove.png"));
         setOnAction(event -> JobManager.schedule(getText(), monitor ->
         {
             for (ScanInfo info : scans)

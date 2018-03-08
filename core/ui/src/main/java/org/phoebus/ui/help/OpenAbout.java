@@ -46,7 +46,7 @@ public class OpenAbout implements MenuEntry
     @Override
     public Image getIcon()
     {
-        return ImageCache.getImage(getClass(), "/icons/help.png");
+        return ImageCache.getImage(getClass(), "/icons/info.png");
     }
 
     @Override
