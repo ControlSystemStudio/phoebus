@@ -7,16 +7,29 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.editor;
 
+import static org.csstudio.scan.ScanSystem.logger;
+
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+
 import org.csstudio.scan.ScanSystem;
+import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
+import org.csstudio.scan.client.ScanInfoModel;
+import org.csstudio.scan.client.ScanInfoModelListener;
+import org.csstudio.scan.command.XMLCommandWriter;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.editor.properties.Properties;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -30,6 +43,7 @@ import javafx.scene.layout.VBox;
 /** Scan editor: Tree of scan, palette of commands
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ScanEditor extends SplitPane
 {
     private final Model model = new Model();
@@ -43,35 +57,122 @@ public class ScanEditor extends SplitPane
     private final ToolBar toolbar;
     private final ScanCommandTree scan_tree = new ScanCommandTree(model, undo);
 
+    /** Scan that's monitored, -1 for none */
+    private volatile long active_scan = -1;
+
+    /** {@link ScanInfoModel}, set while monitoring scan */
+    private final AtomicReference<ScanInfoModel> scan_info_model = new AtomicReference<>();
+
+    /** Track update of {@link ScanEditorInstance#active_scan} */
+    private final ScanInfoModelListener scan_info_listener = new ScanInfoModelListener()
+    {
+        @Override
+        public void scanUpdate(final List<ScanInfo> infos)
+        {
+            for (ScanInfo info : infos)
+                if (info.getId() == active_scan)
+                {
+                    if (info.getState().isDone())
+                        detachFromScan();
+                    Platform.runLater(() -> updateScanInfo(info));
+                    return;
+                }
+            // No info about the active scan
+            Platform.runLater(() -> updateScanInfo(null));
+        }
+
+        @Override
+        public void connectionError()
+        {
+            Platform.runLater(() -> updateScanInfo(null));
+        }
+    };
+
+    private volatile String scan_name = "<not saved to file>";
+
     public ScanEditor()
     {
-        // TODO Simulate means this editor needs to submit, get a _new_ scan ID and thus maintain the ScanInfoClient
         submit = new Button();
         submit.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
         submit.setTooltip(new Tooltip(Messages.scan_submit));
+        submit.setOnAction(event ->
+        {
+            JobManager.schedule(Messages.scan_submit, monitor ->
+            {
+                final String xml_commands = XMLCommandWriter.toXMLString(model.getCommands());
+                final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
+                final long id = scan_client.submitScan(scan_name, xml_commands, true);
+                attachScan(id);
+            });
+        });
 
         simulate = new Button();
         simulate.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
         simulate.setTooltip(new Tooltip(Messages.scan_simulate));
+        // TODO Simulate
 
         pause = new Button();
         pause.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/pause.png"));
         pause.setTooltip(new Tooltip(Messages.scan_pause));
+        pause.setOnAction(event ->
+        {
+            try
+            {
+                scan_info_model.get().getScanClient().pauseScan(active_scan);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot pause scan " + active_scan, ex);
+            }
+        });
 
         resume = new Button();
         resume.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/resume.png"));
         resume.setTooltip(new Tooltip(Messages.scan_resume));
+        resume.setOnAction(event ->
+        {
+            try
+            {
+                scan_info_model.get().getScanClient().resumeScan(active_scan);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot resume scan " + active_scan, ex);
+            }
+        });
 
         next = new Button();
         next.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/next.png"));
         next.setTooltip(new Tooltip(Messages.scan_next));
+        next.setOnAction(event ->
+        {
+            try
+            {
+                scan_info_model.get().getScanClient().nextCommand(active_scan);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot move scan " + active_scan + " to next command", ex);
+            }
+        });
 
         abort = new Button();
         abort.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/abort.png"));
         abort.setTooltip(new Tooltip(Messages.scan_abort));
+        abort.setOnAction(event ->
+        {
+            try
+            {
+                scan_info_model.get().getScanClient().abortScan(active_scan);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot abort scan " + active_scan, ex);
+            }
+        });
 
         final Button[] undo_redo = UndoButtons.createButtons(undo);
-        toolbar = new ToolBar(info_text, buttons, ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
+        toolbar = new ToolBar(info_text, ToolbarHelper.createStrut(), buttons, ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
 
         VBox.setVgrow(scan_tree, Priority.ALWAYS);
         final VBox left_stack = new VBox(toolbar, scan_tree);
@@ -85,8 +186,16 @@ public class ScanEditor extends SplitPane
         updateScanInfo(null);
     }
 
+    void setScanName(final File file)
+    {
+        scan_name = file.getName();
+        final int sep = scan_name.lastIndexOf('.');
+        if (sep >= 0)
+            scan_name = scan_name.substring(0, sep);
+    }
+
     /** @return Model */
-    public Model getModel()
+    Model getModel()
     {
         return model;
     }
@@ -97,17 +206,33 @@ public class ScanEditor extends SplitPane
         return undo;
     }
 
-    void attachScan(final long id, final ScanClient scan_client)
+    /** Attach to scan, i.e. allow control of its progress
+     *
+     *  <p>Will be called off the UI thread.
+     *
+     *  @param id Scan ID
+     *  @throws Exception on error
+     */
+    void attachScan(final long id) throws Exception
     {
         System.out.println("Attach to scan #" + id);
-        info_text.setText("Scan #" + id);
+        active_scan = id;
+
+        final ScanInfoModel infos = ScanInfoModel.getInstance();
+        final ScanInfoModel previous = scan_info_model.getAndSet(infos);
+        if (previous != null)
+        {
+            previous.removeListener(scan_info_listener);
+            previous.release();
+        }
+        infos.addListener(scan_info_listener);
     }
 
     void updateScanInfo(final ScanInfo info)
     {
         if (info == null)
         {
-            info_text.setText("");
+            // Leave info_text on the last known state?
             buttons.getChildren().setAll(submit, simulate);
         }
         else
@@ -137,12 +262,15 @@ public class ScanEditor extends SplitPane
         }
     }
 
-    void detachScan()
+    /** If currently monitoring a scan, detach */
+    void detachFromScan()
     {
-        System.out.println("Detach");
-        // Remove scan-related toolbar items , keep info, spring, undo, redo
-//        final int size = toolbar.getItems().size();
-//        if (size > 4)
-//            toolbar.getItems().remove(1, size-3);
+        final ScanInfoModel infos = scan_info_model.getAndSet(null);
+        if (infos != null)
+        {
+            infos.removeListener(scan_info_listener);
+            Platform.runLater(() -> updateScanInfo(null));
+            infos.release();
+        }
     }
 }
