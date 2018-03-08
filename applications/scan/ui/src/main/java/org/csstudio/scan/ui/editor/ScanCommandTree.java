@@ -229,6 +229,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         }
     }
 
+    // TODO Move context menu to ScanEditor, so it can add "Submit (not queued)
     private void createContextMenu()
     {
         final MenuItem copy = new MenuItem("Copy",

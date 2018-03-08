@@ -101,10 +101,12 @@ public class ScanEditor extends SplitPane
             {
                 final String xml_commands = XMLCommandWriter.toXMLString(model.getCommands());
                 final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
-                final long id = scan_client.submitScan(scan_name, xml_commands, true);
+                final long id = scan_client.submitScan(scan_name, xml_commands, false);
                 attachScan(id);
             });
         });
+        // TODO Submit without queuing?
+
 
         simulate = new Button();
         simulate.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
@@ -215,7 +217,6 @@ public class ScanEditor extends SplitPane
      */
     void attachScan(final long id) throws Exception
     {
-        System.out.println("Attach to scan #" + id);
         active_scan = id;
 
         final ScanInfoModel infos = ScanInfoModel.getInstance();
@@ -241,7 +242,7 @@ public class ScanEditor extends SplitPane
             switch (info.getState())
             {
             case Idle:
-                buttons.getChildren().setAll(submit, simulate, abort);
+                buttons.getChildren().setAll(simulate, abort);
                 break;
             case Aborted:
             case Failed:
@@ -259,6 +260,7 @@ public class ScanEditor extends SplitPane
                 break;
             }
             // TODO mark active command
+            System.out.println("Current address: " + info.getCurrentAddress());
         }
     }
 
