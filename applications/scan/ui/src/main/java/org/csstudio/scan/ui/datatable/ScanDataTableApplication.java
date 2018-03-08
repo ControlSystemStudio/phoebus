@@ -49,7 +49,7 @@ public class ScanDataTableApplication implements AppResourceDescriptor
     {
         try
         {
-            return new ScanDataTableInstance(this, ScanURI.parseScanID(resource));
+            return new ScanDataTableInstance(this, ScanURI.getScanID(resource));
         }
         catch (Exception ex)
         {

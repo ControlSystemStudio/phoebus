@@ -6,6 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
+import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.info.ScanInfo;
 import org.phoebus.framework.jobs.JobManager;
@@ -23,7 +24,7 @@ public class ReSubmitScanAction extends MenuItem
 {
     public ReSubmitScanAction(final ScanClient scan_client, final ScanInfo info)
     {
-        super("Re-submit Scan", ImageCache.getImageView(ReSubmitScanAction.class, "/icons/run.png"));
+        super("Re-submit Scan", ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
         setOnAction(event ->
             JobManager.schedule(getText(), monitor ->  resubmit(scan_client, info)));
     }

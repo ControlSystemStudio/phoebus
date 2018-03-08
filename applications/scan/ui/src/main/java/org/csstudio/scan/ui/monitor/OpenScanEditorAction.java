@@ -7,30 +7,28 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 
-import java.util.List;
-
 import org.csstudio.scan.ScanSystem;
-import org.csstudio.scan.client.ScanClient;
-import org.csstudio.scan.info.ScanInfo;
-import org.phoebus.framework.jobs.JobManager;
+import org.csstudio.scan.ui.ScanURI;
+import org.csstudio.scan.ui.editor.ScanEditorApplication;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
 
-/** Menu item to remove selected scans
+/** Menu item to open scan data plot
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class RemoveSelectedScansAction extends MenuItem
+public class OpenScanEditorAction extends MenuItem
 {
-    public RemoveSelectedScansAction(final ScanClient scan_client, final List<ScanInfo> scans)
+    public OpenScanEditorAction(final long scan_id)
     {
-        super("Remove selected Scans",  ImageCache.getImageView(ScanSystem.class, "/icons/remove.png"));
-        setOnAction(event -> JobManager.schedule(getText(), monitor ->
+        super("Open Scan Editor", ImageCache.getImageView(ScanSystem.class, "/icons/scan.png"));
+        setOnAction(event ->
         {
-            for (ScanInfo info : scans)
-                if (info.getState().isDone())
-                    scan_client.removeScan(info.getId());
-        }));
+            final AppResourceDescriptor app = ApplicationService.findApplication(ScanEditorApplication.NAME);
+            app.create(ScanURI.createURI(scan_id));
+        });
     }
 }

@@ -7,13 +7,20 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.editor;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 
+import org.csstudio.scan.client.Preferences;
+import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.XMLCommandReader;
+import org.csstudio.scan.command.XMLCommandWriter;
+import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -39,6 +46,7 @@ public class ScanEditorInstance  implements AppInstance
 
     private final ScanEditorApplication app;
     private final DockItemWithInput tab;
+    private final ScanClient client = new ScanClient(Preferences.host, Preferences.port);
     private final ScanEditor editor = new ScanEditor();
 
     ScanEditorInstance(final ScanEditorApplication app)
@@ -49,6 +57,8 @@ public class ScanEditorInstance  implements AppInstance
         tab = new DockItemWithInput(this, editor, input , file_extensions, this::doSave);
 
         DockPane.getActiveDockPane().addTab(tab);
+
+        editor.getUndo().addListener((undo, redo) ->  tab.setDirty(undo != null));
     }
 
     @Override
@@ -70,7 +80,7 @@ public class ScanEditorInstance  implements AppInstance
             try
             {
                 final List<ScanCommand> commands = XMLCommandReader.readXMLStream(new FileInputStream(file));
-                editor.setCommands(commands);
+                editor.getModel().setCommands(commands);
             }
             catch (Exception ex)
             {
@@ -79,8 +89,41 @@ public class ScanEditorInstance  implements AppInstance
         });
     }
 
+    public void open(final long id)
+    {
+        // Set input ASAP so that other requests to open this
+        // resource will find this instance and not start
+        // another instance
+        tab.setInput(ScanURI.createURI(id));
+
+        JobManager.schedule("Read Scan", monitor ->
+        {
+            monitor.beginTask("Read scan #" + id);
+            try
+            {
+                final String xml = client.getScanCommands(id);
+                final List<ScanCommand> commands = XMLCommandReader.readXMLString(xml);
+                editor.getModel().setCommands(commands);
+
+                // TODO Monitor scan progress until no longer active
+            }
+            catch (Exception ex)
+            {
+                ExceptionDetailsErrorDialog.openError(editor, "Error", "Cannot read scan #" + id, ex);
+            }
+        });
+    }
+
     void doSave(final JobMonitor monitor) throws Exception
     {
-        // TODO See DisplayEditorInstance
+        final File file = Objects.requireNonNull(ResourceParser.getFile(tab.getInput()));
+        try
+        (
+            final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+        )
+        {
+            XMLCommandWriter.write(out, editor.getModel().getCommands());
+            editor.getUndo().clear();
+        }
     }
 }

@@ -41,8 +41,8 @@ public class UndoButtons
         undo_manager.addListener((to_undo, to_redo) ->
             Platform.runLater(()->
             {
-                undo_btn.setDisable(! undo_manager.canUndo());
-                redo_btn.setDisable(! undo_manager.canRedo());
+                undo_btn.setDisable(to_undo == null);
+                redo_btn.setDisable(to_redo == null);
             })
         );
 

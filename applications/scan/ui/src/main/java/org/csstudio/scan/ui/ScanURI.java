@@ -8,8 +8,9 @@
 package org.csstudio.scan.ui;
 
 import java.net.URI;
+import java.util.Optional;
 
-/** Scan URI tools
+/** URI of form "scan://{id}" that refers to a scan by ID
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -31,7 +32,7 @@ public class ScanURI
      *  @return Scan ID
      *  @throws Exception on error
      */
-    public static long parseScanID(final URI resource) throws Exception
+    public static long getScanID(final URI resource) throws Exception
     {
         if (! SCHEMA.equals(resource.getScheme()))
             throw new Exception("Cannot parse " + resource + ", need " + SCHEMA + "://{scan_id}");
@@ -43,6 +44,22 @@ public class ScanURI
         catch (NumberFormatException ex)
         {
             throw new Exception("Resource " + resource + " has no scan ID", ex);
+        }
+    }
+
+    /** Check if URI contains scan ID
+     *  @param resource "scan://{id}"
+     *  @return Scan ID or empty result
+     */
+    public static Optional<Long> checkForScanID(final URI resource)
+    {
+        try
+        {
+            return Optional.of(getScanID(resource));
+        }
+        catch (Exception ex)
+        {
+            return Optional.empty();
         }
     }
 }

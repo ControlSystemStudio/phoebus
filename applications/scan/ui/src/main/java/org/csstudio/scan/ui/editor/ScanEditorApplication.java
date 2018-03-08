@@ -11,6 +11,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 
+import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 
@@ -53,12 +54,14 @@ public class ScanEditorApplication implements AppResourceDescriptor
     {
         final ScanEditorInstance instance = create();
 
-        // Check for file name 
+        // Check for file name
         final File file = ResourceParser.getFile(resource);
         if (file != null)
             instance.open(file);
-	    // TODO Check for scan ID
-	    
+
+	    // Check for scan ID
+        ScanURI.checkForScanID(resource).ifPresent(id -> instance.open(id));
+
         return instance;
     }
 }

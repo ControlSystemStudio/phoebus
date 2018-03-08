@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 
+import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.ui.ScanURI;
 import org.csstudio.scan.ui.datatable.ScanDataTableApplication;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -23,7 +24,7 @@ public class OpenScanDataTableAction extends MenuItem
 {
     public OpenScanDataTableAction(final long scan_id)
     {
-        super("Open Scan Data Table", ImageCache.getImageView(ScanURI.class, "/icons/scan_data.png"));
+        super("Open Scan Data Table", ImageCache.getImageView(ScanSystem.class, "/icons/scan_data.png"));
         setOnAction(event ->
         {
             final AppResourceDescriptor app = ApplicationService.findApplication(ScanDataTableApplication.NAME);

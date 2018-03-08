@@ -7,9 +7,6 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.editor;
 
-import java.util.List;
-
-import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.ui.editor.properties.Properties;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
@@ -46,9 +43,15 @@ public class ScanEditor extends SplitPane
         setDividerPositions(0.6);
     }
 
-    /** @param commands Commands to show in the editor */
-    public void setCommands(final List<ScanCommand> commands)
+    /** @return Model */
+    public Model getModel()
     {
-        model.setCommands(commands);
+        return model;
+    }
+
+    /** @return UndoableActionManager */
+    public UndoableActionManager getUndo()
+    {
+        return undo;
     }
 }
