@@ -11,6 +11,7 @@ import static org.csstudio.scan.ScanSystem.logger;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -246,15 +247,19 @@ public class ScanEditor extends SplitPane
     {
         JobManager.schedule(how == null ? Messages.scan_simulate : Messages.scan_submit, monitor ->
         {
+            // In case of simulation, open SimulationDisplay right away to show we're reacting
+            final CompletableFuture<SimulationDisplay> display = new CompletableFuture<>();
+            if (how == null)
+                Platform.runLater(() ->
+                    display.complete(ApplicationService.createInstance(SimulationDisplayApplication.NAME)));
+
+            // In background thread, format commands and submit
             final String xml_commands = XMLCommandWriter.toXMLString(model.getCommands());
             final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
             if (how == null)
             {
                 final SimulationResult simulation = scan_client.simulateScan(xml_commands);
-                System.out.println(simulation.getSimulationLog());
-
-                final SimulationDisplay display = ApplicationService.createInstance(SimulationDisplayApplication.NAME);
-                display.show(simulation);
+                display.get().show(simulation);
             }
             else
             {

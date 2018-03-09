@@ -1,3 +1,4 @@
 org.csstudio.scan.ui.monitor.ScanMonitorApplication
 org.csstudio.scan.ui.datatable.ScanDataTableApplication
 org.csstudio.scan.ui.dataplot.ScanDataPlotApplication
+org.csstudio.scan.ui.simulation.SimulationDisplayApplication
