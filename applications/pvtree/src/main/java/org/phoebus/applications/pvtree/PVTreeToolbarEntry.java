@@ -25,6 +25,6 @@ public class PVTreeToolbarEntry implements ToolbarEntry
     @Override
     public void call() throws Exception
     {
-        ApplicationService.findApplication(PVTreeApplication.NAME).create();
+        ApplicationService.createInstance(PVTreeApplication.NAME);
     }
 }

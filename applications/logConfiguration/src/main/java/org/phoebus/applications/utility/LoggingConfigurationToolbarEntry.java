@@ -25,6 +25,6 @@ public class LoggingConfigurationToolbarEntry implements ToolbarEntry {
 
     @Override
     public void call() throws Exception {
-        ApplicationService.findApplication(LoggingConfigurationApplication.NAME).create();
+        ApplicationService.createInstance(LoggingConfigurationApplication.NAME);
     }
 }

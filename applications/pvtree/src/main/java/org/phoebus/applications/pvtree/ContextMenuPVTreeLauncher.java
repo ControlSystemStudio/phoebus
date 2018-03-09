@@ -52,7 +52,7 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
         {
-            final PVTree tree = (PVTree) ApplicationService.findApplication(PVTreeApplication.NAME).create();
+            final PVTree tree = ApplicationService.createInstance(PVTreeApplication.NAME);
             tree.setPVName(pv.getName());
         }
 

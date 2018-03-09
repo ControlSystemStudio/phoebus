@@ -41,7 +41,6 @@ public class ScanEditorMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.findApplication(ScanEditorApplication.NAME).create();
-        return null;
+        return ApplicationService.createInstance(ScanEditorApplication.NAME);
     }
 }

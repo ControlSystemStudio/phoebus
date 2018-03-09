@@ -41,7 +41,7 @@ public class ScanMonitorMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.findApplication(ScanMonitorApplication.NAME).create();
+        ApplicationService.createInstance(ScanMonitorApplication.NAME);
         return null;
     }
 }

@@ -31,7 +31,7 @@ public class PVListMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.findApplication(PVListApplication.NAME).create();
+        ApplicationService.createInstance(PVListApplication.NAME);
         return null;
     }
 }

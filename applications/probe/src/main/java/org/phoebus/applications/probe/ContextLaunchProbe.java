@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
@@ -32,15 +31,13 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     private void LaunchProbe(List<ProcessVariable> pvs) {
-        final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
-
         if (pvs.isEmpty()) {
             // Open an empty probe
-            app.create();
+            ApplicationService.createInstance(Probe.NAME);
         } else {
             // Open a probe for each pv
             pvs.forEach(pv -> {
-                ProbeInstance probe = (ProbeInstance) app.create();
+                ProbeInstance probe = ApplicationService.createInstance(Probe.NAME);
                 probe.setPV(pv.getName());
             });
         }

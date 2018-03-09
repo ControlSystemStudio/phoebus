@@ -10,7 +10,6 @@ package org.csstudio.display.builder.editor.app;
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
@@ -63,12 +62,10 @@ public class ExecuteDisplayAction implements Runnable
             if (editor.getEditorGUI().getDisplayEditor().getUndoableActionManager().canUndo())
                 editor.doSave(monitor);
 
-            // Locate runtime.
+            // Open in runtime, on UI thread
             // Could use DisplayRuntimeApplication.NAME,
             // but using string avoids direct dependency on runtime module
-            final AppResourceDescriptor runtime = ApplicationService.findApplication("display_runtime");
-            // Open in runtime, on UI thread
-            Platform.runLater(() -> runtime.create(ResourceParser.getURI(editor.getEditorGUI().getFile())));
+            Platform.runLater(() -> ApplicationService.createInstance("display_runtime", ResourceParser.getURI(editor.getEditorGUI().getFile())));
         });
     }
 }

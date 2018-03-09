@@ -60,9 +60,8 @@ public class DockItemRepresentation extends JFXRepresentation
     public ToolkitRepresentation<Parent, Node> openPanel(final DisplayModel model,
             final Consumer<DisplayModel> close_handler) throws Exception
     {
-        final DisplayRuntimeApplication app = ApplicationService.findApplication(DisplayRuntimeApplication.NAME);
         final URI resource = DisplayInfo.forModel(model).toURI();
-        final DisplayRuntimeInstance instance = app.create(resource);
+        final DisplayRuntimeInstance instance = ApplicationService.createInstance(DisplayRuntimeApplication.NAME, resource);
         return instance.getRepresentation();
     }
 

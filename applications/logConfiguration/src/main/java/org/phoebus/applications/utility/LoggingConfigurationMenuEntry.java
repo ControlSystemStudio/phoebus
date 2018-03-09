@@ -28,7 +28,7 @@ public class LoggingConfigurationMenuEntry implements MenuEntry {
      */
     @Override
     public Void call() throws Exception {
-        ApplicationService.findApplication(LoggingConfigurationApplication.NAME).create();
+        ApplicationService.createInstance(LoggingConfigurationApplication.NAME);
         return null;
     }
 

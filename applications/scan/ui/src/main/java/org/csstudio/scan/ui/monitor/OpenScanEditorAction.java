@@ -10,7 +10,6 @@ package org.csstudio.scan.ui.monitor;
 import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.ui.ScanURI;
 import org.csstudio.scan.ui.editor.ScanEditorApplication;
-import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -26,9 +25,6 @@ public class OpenScanEditorAction extends MenuItem
     {
         super("Open Scan Editor", ImageCache.getImageView(ScanSystem.class, "/icons/scan.png"));
         setOnAction(event ->
-        {
-            final AppResourceDescriptor app = ApplicationService.findApplication(ScanEditorApplication.NAME);
-            app.create(ScanURI.createURI(scan_id));
-        });
+            ApplicationService.createInstance(ScanEditorApplication.NAME, ScanURI.createURI(scan_id)));
     }
 }

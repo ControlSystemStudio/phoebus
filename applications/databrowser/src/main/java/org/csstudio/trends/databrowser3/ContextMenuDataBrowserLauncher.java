@@ -47,8 +47,7 @@ public class ContextMenuDataBrowserLauncher implements ContextMenuEntry<ProcessV
     @Override
     public ProcessVariable callWithSelection(final Selection selection) throws Exception
     {
-        final DataBrowserApp app = ApplicationService.findApplication(DataBrowserApp.NAME);
-        final DataBrowserInstance instance = app.create();
+        final DataBrowserInstance instance = ApplicationService.createInstance(DataBrowserApp.NAME);
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
         {

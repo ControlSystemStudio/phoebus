@@ -29,7 +29,7 @@ public class StatusBarJobsIndicator extends Button
     public StatusBarJobsIndicator()
     {
         super("Jobs: ?");
-        setOnAction(event -> ApplicationService.findApplication(JobViewerApplication.NAME).create());
+        setOnAction(event -> ApplicationService.createInstance(JobViewerApplication.NAME));
         JobViewer.TIMER.scheduleWithFixedDelay(this::update, 2000, 500, TimeUnit.MILLISECONDS);
     }
 

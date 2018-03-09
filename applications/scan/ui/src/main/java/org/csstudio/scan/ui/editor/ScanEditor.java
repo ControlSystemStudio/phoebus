@@ -24,8 +24,11 @@ import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.editor.properties.Properties;
+import org.csstudio.scan.ui.simulation.SimulationDisplay;
+import org.csstudio.scan.ui.simulation.SimulationDisplayApplication;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
@@ -249,7 +252,9 @@ public class ScanEditor extends SplitPane
             {
                 final SimulationResult simulation = scan_client.simulateScan(xml_commands);
                 System.out.println(simulation.getSimulationLog());
-                // TODO UI for SimulationResult
+
+                final SimulationDisplay display = ApplicationService.createInstance(SimulationDisplayApplication.NAME);
+                display.show(simulation);
             }
             else
             {

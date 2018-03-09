@@ -48,7 +48,7 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     @Override
     public ProcessVariable callWithSelection(final Selection selection) throws Exception
     {
-        final PVTableInstance instance = (PVTableInstance) ApplicationService.findApplication(PVTableApplication.NAME).create();
+        final PVTableInstance instance = ApplicationService.createInstance(PVTableApplication.NAME);
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
             instance.getModel().addItem(pv.getName());

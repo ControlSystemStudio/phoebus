@@ -1,37 +1,38 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.ui.jobs;
+package org.csstudio.scan.ui.simulation;
 
-import org.phoebus.framework.spi.MenuEntry;
-import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.framework.spi.AppDescriptor;
 
-/** Menu entry for job viewer
+/** Application for displaying scan simulation
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JobViewerMenuEntry implements MenuEntry
+public class SimulationDisplayApplication implements AppDescriptor
 {
+    public static final String NAME = "scan_simulation";
+    public static final String DISPLAY_NAME = "Scan Simulation";
+
     @Override
     public String getName()
     {
-        return JobViewerApplication.DISPLAY_NAME;
+        return NAME;
     }
 
     @Override
-    public String getMenuPath()
+    public String getDisplayName()
     {
-        return "Debug";
+        return DISPLAY_NAME;
     }
 
     @Override
-    public Void call() throws Exception
+    public SimulationDisplay create()
     {
-        ApplicationService.createInstance(JobViewerApplication.NAME);
-        return null;
+        return new SimulationDisplay(this);
     }
 }
