@@ -17,6 +17,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
 
 import javafx.beans.InvalidationListener;
+import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.DragEvent;
@@ -177,7 +178,7 @@ public class DockPane extends TabPane
             item.close();
     }
 
-    // lookup() in autoHideTabs() only works when the scene has been rendered.
+    // lookup() in findTabHeader/autoHideTabs only works when the scene has been rendered.
     // Before, it returns null
     // There is no event for 'node has been rendered',
     // but overriding layoutChildren() allows to detect that point in time.
@@ -189,12 +190,24 @@ public class DockPane extends TabPane
         super.layoutChildren();
     }
 
+    private StackPane findTabHeader()
+    {
+        // Need to locate the header for _this_ pane.
+        // lookup() will locate the header of the first tab anywhere down the scene graph.
+        // lookupAll() locates them all, so identify the correct one based on its parent.
+        for (Node header : lookupAll(".tab-header-area"))
+            if (header instanceof StackPane  &&  header.getParent() == this)
+                return (StackPane) header;
+        return null;
+   }
+
     void autoHideTabs()
     {
         final boolean do_hide = getTabs().size() == 1  &&  !always_show_tabs;
 
-        // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX
-        final StackPane header = (StackPane) lookup(".tab-header-area");
+        // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX :
+        // Locate the header's pane and set height to zero
+        final StackPane header = findTabHeader();
         if (header == null)
             logger.log(Level.WARNING, "Cannot locate tab header for " + getTabs());
         else
