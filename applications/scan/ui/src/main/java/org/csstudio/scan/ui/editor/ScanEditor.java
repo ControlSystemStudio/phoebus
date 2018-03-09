@@ -21,6 +21,7 @@ import org.csstudio.scan.client.ScanInfoModel;
 import org.csstudio.scan.client.ScanInfoModelListener;
 import org.csstudio.scan.command.XMLCommandWriter;
 import org.csstudio.scan.info.ScanInfo;
+import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.editor.properties.Properties;
 import org.phoebus.framework.jobs.JobManager;
@@ -36,6 +37,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
@@ -56,7 +58,7 @@ public class ScanEditor extends SplitPane
     private final Model model = new Model();
     private final UndoableActionManager undo = new UndoableActionManager(50);
 
-    private final Button submit = new Button(), simulate = new Button(), pause = new Button(), resume = new Button(), next = new Button(), abort = new Button();
+    private final Button pause = new Button(), resume = new Button(), next = new Button(), abort = new Button();
 
     private final Label info_text = new Label();
 
@@ -140,25 +142,6 @@ public class ScanEditor extends SplitPane
 
     private ToolBar createToolbar()
     {
-        submit.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
-        submit.setTooltip(new Tooltip(Messages.scan_submit));
-        submit.setOnAction(event ->
-        {
-            JobManager.schedule(Messages.scan_submit, monitor ->
-            {
-                final String xml_commands = XMLCommandWriter.toXMLString(model.getCommands());
-                final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
-                final long id = scan_client.submitScan(scan_name, xml_commands, false);
-                attachScan(id);
-            });
-        });
-        // TODO Submit without queuing?
-
-
-        simulate.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
-        simulate.setTooltip(new Tooltip(Messages.scan_simulate));
-        // TODO Simulate
-
         pause.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/pause.png"));
         pause.setTooltip(new Tooltip(Messages.scan_pause));
         pause.setOnAction(event ->
@@ -233,15 +216,52 @@ public class ScanEditor extends SplitPane
                                              ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         delete.setOnAction(event -> scan_tree.cutToClipboard());
 
-        final ContextMenu menu = new ContextMenu(copy, paste, delete);
+
+        final MenuItem simulate = new MenuItem(Messages.scan_simulate,
+                ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
+        simulate.setOnAction(event -> submitOrSimulate(null));
+
+        final MenuItem submit = new MenuItem(Messages.scan_submit,
+                                             ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
+        submit.setOnAction(event -> submitOrSimulate(true));
+
+        final MenuItem submit_unqueued = new MenuItem(Messages.scan_submit_unqueued,
+                                                      ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
+        submit_unqueued.setOnAction(event -> submitOrSimulate(false));
+
+        final ContextMenu menu = new ContextMenu(copy, paste, delete,
+                                                 new SeparatorMenuItem(),
+                                                 simulate, submit, submit_unqueued);
         setOnContextMenuRequested(event ->
         {
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
 
+    /** @param how true/false to submit queue/un-queued, <code>null</code> to simulate */
+    private void submitOrSimulate(final Boolean how)
+    {
+        JobManager.schedule(how == null ? Messages.scan_simulate : Messages.scan_submit, monitor ->
+        {
+            final String xml_commands = XMLCommandWriter.toXMLString(model.getCommands());
+            final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
+            if (how == null)
+            {
+                final SimulationResult simulation = scan_client.simulateScan(xml_commands);
+                System.out.println(simulation.getSimulationLog());
+                // TODO UI for SimulationResult
+            }
+            else
+            {
+                final long id = scan_client.submitScan(scan_name, xml_commands, how);
+                attachScan(id);
+            }
+        });
+    }
 
-
+    /** Set name of scan based on file
+     *  @param file File that contains the scan commands
+     */
     void setScanName(final File file)
     {
         scan_name = file.getName();
@@ -283,12 +303,13 @@ public class ScanEditor extends SplitPane
         infos.addListener(scan_info_listener);
     }
 
+    /** @param info Info about scan, <code>null</code> if no info available or scan completed */
     void updateScanInfo(final ScanInfo info)
     {
         if (info == null)
         {
             // Leave info_text on the last known state?
-            buttons.getChildren().setAll(submit, simulate);
+            buttons.getChildren().clear();
         }
         else
         {
@@ -296,12 +317,7 @@ public class ScanEditor extends SplitPane
             switch (info.getState())
             {
             case Idle:
-                buttons.getChildren().setAll(simulate, abort);
-                break;
-            case Aborted:
-            case Failed:
-            case Finished:
-                buttons.getChildren().setAll(submit, simulate);
+                buttons.getChildren().setAll(abort);
                 break;
             case Running:
                 buttons.getChildren().setAll(pause, next, abort);
@@ -309,6 +325,9 @@ public class ScanEditor extends SplitPane
             case Paused:
                 buttons.getChildren().setAll(resume, abort);
                 break;
+            case Aborted:
+            case Failed:
+            case Finished:
             case Logged:
                 buttons.getChildren().clear();
                 break;

@@ -22,6 +22,7 @@ public class Messages
     public static String scan_resume;
     public static String scan_simulate;
     public static String scan_submit;
+    public static String scan_submit_unqueued;
 
     static
     {
