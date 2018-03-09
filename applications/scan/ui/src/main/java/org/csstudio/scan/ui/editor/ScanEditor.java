@@ -258,6 +258,7 @@ public class ScanEditor extends SplitPane
             final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
             if (how == null)
             {
+                monitor.beginTask("Awaiting simulation results");
                 final SimulationResult simulation = scan_client.simulateScan(xml_commands);
                 display.get().show(simulation);
             }
