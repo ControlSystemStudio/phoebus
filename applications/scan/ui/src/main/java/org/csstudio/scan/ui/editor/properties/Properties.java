@@ -26,9 +26,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.GridPane;
@@ -38,7 +37,7 @@ import javafx.scene.layout.Priority;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Properties extends TabPane
+public class Properties extends TitledPane
 {
     private final TreeView<ScanCommand> scan_tree;
     private final UndoableActionManager undo;
@@ -51,9 +50,10 @@ public class Properties extends TabPane
         scroll.setFitToWidth(true);
         scroll.setMinHeight(0);
 
-        final Tab cmd_tab = new Tab("Command Detail", scroll);
-        cmd_tab.setClosable(false);
-        getTabs().add(cmd_tab);
+        setText("Command Detail");
+        setContent(scroll);
+        setCollapsible(false);
+        setMaxHeight(Double.MAX_VALUE);
 
         // Scan tree allows selecting multiple items,
         // so could listen to getSelectedItems(),

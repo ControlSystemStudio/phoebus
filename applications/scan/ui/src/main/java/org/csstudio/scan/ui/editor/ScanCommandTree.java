@@ -14,12 +14,9 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.actions.AddCommands;
 import org.csstudio.scan.ui.editor.actions.RemoveCommands;
-import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.collections.ObservableList;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -31,7 +28,6 @@ import javafx.scene.input.TransferMode;
 /** {@link TreeView} for {@link ScanCommand}s
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class ScanCommandTree extends TreeView<ScanCommand>
 {
     private final Model model;
@@ -136,7 +132,6 @@ public class ScanCommandTree extends TreeView<ScanCommand>
 
         model.addListener(listener);
 
-        createContextMenu();
         handleKeys();
         hookDrag();
     }
@@ -199,7 +194,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
     }
 
     /** Copy selected commands to clipboard */
-    private List<ScanCommand> copyToClipboard()
+    List<ScanCommand> copyToClipboard()
     {
         final Clipboard clip = Clipboard.getSystemClipboard();
         final List<ScanCommand> copied = getSelectedCommands();
@@ -208,7 +203,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
     }
 
     /** Cut selected commands to clipboard */
-    private void cutToClipboard()
+    void cutToClipboard()
     {
         final List<ScanCommand> to_remove = copyToClipboard();
         if (! to_remove.isEmpty())
@@ -216,7 +211,7 @@ public class ScanCommandTree extends TreeView<ScanCommand>
     }
 
     /** Paste commands from clipboard, append after currently selected item */
-    private void pasteFromClipboard()
+    void pasteFromClipboard()
     {
         final Clipboard clip = Clipboard.getSystemClipboard();
         if (ScanCommandDragDrop.hasCommands(clip))
@@ -227,28 +222,6 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             final ScanCommand location = item != null ? item.getValue() : null;
             undo.execute(new AddCommands(model, location, commands, true));
         }
-    }
-
-    // TODO Move context menu to ScanEditor, so it can add "Submit (not queued)
-    private void createContextMenu()
-    {
-        final MenuItem copy = new MenuItem("Copy",
-                                           ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
-        copy.setOnAction(event -> copyToClipboard());
-
-        final MenuItem paste = new MenuItem("Paste",
-                                            ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
-        paste.setOnAction(event -> pasteFromClipboard());
-
-        final MenuItem delete = new MenuItem("Delete",
-                                             ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
-        delete.setOnAction(event -> cutToClipboard());
-
-        final ContextMenu menu = new ContextMenu(copy, paste, delete);
-        setOnContextMenuRequested(event ->
-        {
-            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        });
     }
 
     private void handleKeys()

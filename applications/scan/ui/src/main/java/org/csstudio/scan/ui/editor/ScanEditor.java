@@ -24,6 +24,7 @@ import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.editor.properties.Properties;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
@@ -32,7 +33,9 @@ import org.phoebus.ui.undo.UndoableActionManager;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
@@ -46,16 +49,22 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class ScanEditor extends SplitPane
 {
+    /** Memento tags */
+    private static final String HDIV = "hdiv",
+                                VDIV = "vdiv";
+
     private final Model model = new Model();
     private final UndoableActionManager undo = new UndoableActionManager(50);
 
-    private final Button submit, simulate, pause, resume, next, abort;
+    private final Button submit = new Button(), simulate = new Button(), pause = new Button(), resume = new Button(), next = new Button(), abort = new Button();
 
     private final Label info_text = new Label();
 
     private final HBox buttons = new HBox(5);
     private final ToolBar toolbar;
     private final ScanCommandTree scan_tree = new ScanCommandTree(model, undo);
+    private final SplitPane right_stack;
+
 
     /** Scan that's monitored, -1 for none */
     private volatile long active_scan = -1;
@@ -92,7 +101,45 @@ public class ScanEditor extends SplitPane
 
     public ScanEditor()
     {
-        submit = new Button();
+        //  toolbar    |  palette
+        //  ---------  |
+        //  scan_tree  |  ----------
+        //             |
+        //             |  properties
+
+        toolbar = createToolbar();
+        VBox.setVgrow(scan_tree, Priority.ALWAYS);
+        final VBox left_stack = new VBox(toolbar, scan_tree);
+
+        right_stack = new SplitPane(new Palette(model, undo), new Properties(scan_tree, undo));
+        right_stack.setOrientation(Orientation.VERTICAL);
+
+        getItems().setAll(left_stack, right_stack);
+        setDividerPositions(0.6);
+
+        updateScanInfo(null);
+
+        createContextMenu();
+    }
+
+    void restore(final Memento memento)
+    {
+        // Has no effect when run right now?
+        Platform.runLater(() ->
+        {
+            memento.getNumber(HDIV).ifPresent(div -> setDividerPositions(div.doubleValue()));
+            memento.getNumber(VDIV).ifPresent(div -> right_stack.setDividerPositions(div.doubleValue()));
+        });
+    }
+
+    void save(final Memento memento)
+    {
+        memento.setNumber(HDIV, getDividerPositions()[0]);
+        memento.setNumber(VDIV, right_stack.getDividerPositions()[0]);
+    }
+
+    private ToolBar createToolbar()
+    {
         submit.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
         submit.setTooltip(new Tooltip(Messages.scan_submit));
         submit.setOnAction(event ->
@@ -108,12 +155,10 @@ public class ScanEditor extends SplitPane
         // TODO Submit without queuing?
 
 
-        simulate = new Button();
         simulate.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
         simulate.setTooltip(new Tooltip(Messages.scan_simulate));
         // TODO Simulate
 
-        pause = new Button();
         pause.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/pause.png"));
         pause.setTooltip(new Tooltip(Messages.scan_pause));
         pause.setOnAction(event ->
@@ -128,7 +173,6 @@ public class ScanEditor extends SplitPane
             }
         });
 
-        resume = new Button();
         resume.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/resume.png"));
         resume.setTooltip(new Tooltip(Messages.scan_resume));
         resume.setOnAction(event ->
@@ -143,7 +187,6 @@ public class ScanEditor extends SplitPane
             }
         });
 
-        next = new Button();
         next.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/next.png"));
         next.setTooltip(new Tooltip(Messages.scan_next));
         next.setOnAction(event ->
@@ -158,7 +201,6 @@ public class ScanEditor extends SplitPane
             }
         });
 
-        abort = new Button();
         abort.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/abort.png"));
         abort.setTooltip(new Tooltip(Messages.scan_abort));
         abort.setOnAction(event ->
@@ -174,19 +216,31 @@ public class ScanEditor extends SplitPane
         });
 
         final Button[] undo_redo = UndoButtons.createButtons(undo);
-        toolbar = new ToolBar(info_text, ToolbarHelper.createStrut(), buttons, ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
-
-        VBox.setVgrow(scan_tree, Priority.ALWAYS);
-        final VBox left_stack = new VBox(toolbar, scan_tree);
-
-        final SplitPane right_stack = new SplitPane(new Palette(model, undo), new Properties(scan_tree, undo));
-        right_stack.setOrientation(Orientation.VERTICAL);
-
-        getItems().setAll(left_stack, right_stack);
-        setDividerPositions(0.6);
-
-        updateScanInfo(null);
+        return new ToolBar(info_text, ToolbarHelper.createStrut(), buttons, ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
     }
+
+    private void createContextMenu()
+    {
+        final MenuItem copy = new MenuItem("Copy",
+                                           ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+        copy.setOnAction(event -> scan_tree.copyToClipboard());
+
+        final MenuItem paste = new MenuItem("Paste",
+                                            ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
+        paste.setOnAction(event -> scan_tree.pasteFromClipboard());
+
+        final MenuItem delete = new MenuItem("Delete",
+                                             ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
+        delete.setOnAction(event -> scan_tree.cutToClipboard());
+
+        final ContextMenu menu = new ContextMenu(copy, paste, delete);
+        setOnContextMenuRequested(event ->
+        {
+            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
+    }
+
+
 
     void setScanName(final File file)
     {

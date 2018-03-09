@@ -19,8 +19,7 @@ import org.phoebus.ui.undo.UndoableActionManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 
@@ -28,7 +27,7 @@ import javafx.scene.input.TransferMode;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Palette extends TabPane
+public class Palette extends TitledPane
 {
     /** Singleton list of all commands */
     private static final ObservableList<ScanCommand> commands;
@@ -54,9 +53,10 @@ public class Palette extends TabPane
     {
         command_list.setCellFactory(view -> new PaletteCell(model, undo));
 
-        final Tab cmd_tab = new Tab("Scan Command Palette", command_list);
-        cmd_tab.setClosable(false);
-        getTabs().add(cmd_tab);
+        setText("Scan Command Palette");
+        setContent(command_list);
+        setCollapsible(false);
+        setMaxHeight(Double.MAX_VALUE);
 
         hookDrag();
     }

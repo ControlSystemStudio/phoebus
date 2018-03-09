@@ -22,6 +22,7 @@ import org.csstudio.scan.command.XMLCommandWriter;
 import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.util.ResourceParser;
@@ -140,6 +141,17 @@ public class ScanEditorInstance  implements AppInstance
         }
     }
 
+    @Override
+    public void restore(final Memento memento)
+    {
+        editor.restore(memento);
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        editor.save(memento);
+    }
 
     private void onClose()
     {
