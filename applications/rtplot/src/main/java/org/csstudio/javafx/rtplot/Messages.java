@@ -62,8 +62,6 @@ public class Messages
     public static String TraceType_SingleLine;
     public static String TraceType_SingleLineDirect;
     public static String Type_None;
-    public static String Undo_Fmt_TT;
-    public static String Undo_TT;
     public static String UpdateAnnotation;
     public static String Zoom_In;
     public static String Zoom_In_TT;
