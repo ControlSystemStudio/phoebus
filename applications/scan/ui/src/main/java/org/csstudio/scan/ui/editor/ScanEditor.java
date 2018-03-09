@@ -10,6 +10,7 @@ package org.csstudio.scan.ui.editor;
 import static org.csstudio.scan.ScanSystem.logger;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,6 +23,7 @@ import org.csstudio.scan.client.ScanInfoModel;
 import org.csstudio.scan.client.ScanInfoModelListener;
 import org.csstudio.scan.command.XMLCommandWriter;
 import org.csstudio.scan.info.ScanInfo;
+import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.editor.properties.Properties;
@@ -89,17 +91,17 @@ public class ScanEditor extends SplitPane
                 {
                     if (info.getState().isDone())
                         detachFromScan();
-                    Platform.runLater(() -> updateScanInfo(info));
+                    updateScanInfo(info);
                     return;
                 }
             // No info about the active scan
-            Platform.runLater(() -> updateScanInfo(null));
+            updateScanInfo(null);
         }
 
         @Override
         public void connectionError()
         {
-            Platform.runLater(() -> updateScanInfo(null));
+            updateScanInfo(null);
         }
     };
 
@@ -317,35 +319,47 @@ public class ScanEditor extends SplitPane
     /** @param info Info about scan, <code>null</code> if no info available or scan completed */
     void updateScanInfo(final ScanInfo info)
     {
+        final List<Button> desired;
+        final String text;
+
         if (info == null)
         {
             // Leave info_text on the last known state?
-            buttons.getChildren().clear();
+            text = null;
+            desired = Collections.emptyList();
+
+            this.scan_tree.setActiveCommand(-1);
         }
         else
         {
-            info_text.setText(info.toString());
-            switch (info.getState())
+            text = info.toString();
+            final ScanState state = info.getState();
+            switch (state)
             {
             case Idle:
-                buttons.getChildren().setAll(abort);
+                desired = List.of(abort);
                 break;
             case Running:
-                buttons.getChildren().setAll(pause, next, abort);
+                desired = List.of(pause, next, abort);
                 break;
             case Paused:
-                buttons.getChildren().setAll(resume, abort);
+                desired = List.of(resume, abort);
                 break;
-            case Aborted:
-            case Failed:
-            case Finished:
-            case Logged:
-                buttons.getChildren().clear();
-                break;
+            default:
+                desired = Collections.emptyList();
             }
-            // TODO mark active command
-            System.out.println("Current address: " + info.getCurrentAddress());
+
+            this.scan_tree.setActiveCommand(info.getCurrentAddress());
         }
+
+        // XXX Optimize, skip the UI call when buttons didn't change?
+
+        Platform.runLater(() ->
+        {
+            buttons.getChildren().setAll(desired);
+            if (text != null)
+                info_text.setText(text);
+        });
     }
 
     /** If currently monitoring a scan, detach */
@@ -355,7 +369,7 @@ public class ScanEditor extends SplitPane
         if (infos != null)
         {
             infos.removeListener(scan_info_listener);
-            Platform.runLater(() -> updateScanInfo(null));
+            updateScanInfo(null);
             infos.release();
         }
     }

@@ -21,6 +21,9 @@ import javafx.scene.control.TreeCell;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 /** Tree view call for a {@link ScanCommand}
  *  @author Kay Kasemir
@@ -31,6 +34,14 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
     private enum InsertionPoint
     {
         BEFORE, ON, AFTER;
+    }
+
+    private final Model model;
+
+    public ScanCommandTreeCell(final UndoableActionManager undo, final Model model)
+    {
+        this.model = model;
+        hookDrop(undo, model);
     }
 
     private InsertionPoint getInsertionPoint(final DragEvent event)
@@ -58,11 +69,6 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
             }
         }
         return InsertionPoint.AFTER;
-    }
-
-    public ScanCommandTreeCell(final UndoableActionManager undo, final Model model)
-    {
-        hookDrop(undo, model);
     }
 
     private void hookDrop(final UndoableActionManager undo, final Model model)
@@ -124,6 +130,8 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
         });
     }
 
+    final Font STANDOUT = Font.font(null, FontWeight.EXTRA_BOLD, null, -1);
+
     @Override
     protected void updateItem(final ScanCommand command, final boolean empty)
     {
@@ -139,7 +147,18 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
               setGraphic(ImageCache.getImageView(ScanCommandFactory.getImage(command.getCommandID())));
               setTooltip(new Tooltip(command.getCommandName() + " @ " + command.getAddress()));
 
-              // TODO if command == active_command set foreground color...
+              // Highlight the active command
+              // Cannot use 'background' because that's already used for 'selected' item
+              if (command.getAddress() == model.getActiveAddress())
+              {
+                  setTextFill(Color.LAWNGREEN);
+                  setFont(STANDOUT);
+              }
+              else
+              {
+                  setTextFill(Color.BLACK);
+                  setFont(Font.getDefault());
+              }
           }
     }
 }

@@ -27,6 +27,8 @@ public class Model
 
     private final List<ModelListener> listeners = new CopyOnWriteArrayList<>();
 
+    private volatile long active_address = -1;
+
     public void addListener(final ModelListener listener)
     {
         listeners.add(listener);
@@ -147,5 +149,15 @@ public class Model
             }
         }
         return null;
+    }
+
+    public long getActiveAddress()
+    {
+        return active_address;
+    }
+
+    public void setActiveAddress(final long address)
+    {
+        active_address = address;
     }
 }

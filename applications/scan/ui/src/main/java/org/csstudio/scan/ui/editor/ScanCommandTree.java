@@ -7,15 +7,21 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.editor;
 
+import static org.csstudio.scan.ScanSystem.logger;
+
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.actions.AddCommands;
 import org.csstudio.scan.ui.editor.actions.RemoveCommands;
+import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
@@ -26,6 +32,12 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 
 /** {@link TreeView} for {@link ScanCommand}s
+ *
+ *  <p>Opens and displays a scan with ~30k commands within a second,
+ *  on a computer where RCP version takes more than 30 seconds.
+ *
+ *  TODO Faster copy/paste for large scans.
+ *
  *  @author Kay Kasemir
  */
 public class ScanCommandTree extends TreeView<ScanCommand>
@@ -33,6 +45,8 @@ public class ScanCommandTree extends TreeView<ScanCommand>
     private final Model model;
     private final UndoableActionManager undo;
     final TreeItem<ScanCommand> root = new TreeItem<>(null);
+
+    private volatile TreeItem<ScanCommand> active_item;
 
     private final ModelListener listener = new ModelListener()
     {
@@ -294,5 +308,66 @@ public class ScanCommandTree extends TreeView<ScanCommand>
                 undo.execute(new RemoveCommands(model, commands));
             commands.clear();
         });
+    }
+
+    void setActiveCommand(final long address)
+    {
+        model.setActiveAddress(address);
+
+        // Locate tree node for active command
+        final TreeItem<ScanCommand> previous = active_item;
+        active_item = findTreeItem(address);
+
+        Platform.runLater(() ->
+        {
+            // In principle, need to redraw the previously active item
+            // and the one that's now active.
+            // Test, however, show that the complete visible tree is always redrawn,
+            // so could skip refreshing `previous`...
+            if (previous != null)
+                TreeHelper.triggerTreeItemRefresh(previous);
+            if (active_item != null)
+                TreeHelper.triggerTreeItemRefresh(active_item);
+
+            // TODO Mode where active_item is selected
+        });
+    }
+
+    private TreeItem<ScanCommand> findTreeItem(final long address)
+    {
+        while (true)
+        {
+            try
+            {
+                return findTreeItem(root.getChildren(), address);
+            }
+            catch (ConcurrentModificationException ex)
+            {
+                // XXX Avoid ConcurrentModificationException instead of catching and trying again?
+                logger.log(Level.WARNING, "Scan tree needs to re-try lookup of command", ex);
+            }
+        }
+    }
+
+    /** Find tree item for a command's address
+     *  @param items
+     *  @param address
+     *  @return {@link TreeItem} or <code>null</code>
+     */
+    private TreeItem<ScanCommand> findTreeItem(final ObservableList<TreeItem<ScanCommand>> items, final long address)
+    {
+        // Oh no, linear search!
+        // But running off the UI thread...
+
+        // XXX Sort-a binary search because items are ordered by address
+        for (TreeItem<ScanCommand> item : items)
+        {
+            if (item.getValue().getAddress() == address)
+                return item;
+            final TreeItem<ScanCommand> sub = findTreeItem(item.getChildren(), address);
+            if (sub != null)
+                return sub;
+        }
+        return null;
     }
 }
