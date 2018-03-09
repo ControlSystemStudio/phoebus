@@ -74,10 +74,11 @@ public class MementoHelper
      */
     private static void saveDockItem(final MementoTree memento, final DockItem item)
     {
-        final MementoTree item_memento = memento.getChild(item.getID());
         final AppInstance application = item.getApplication();
-        if (application == null)
+        if (application == null  ||  application.isTransient())
             return;
+
+        final MementoTree item_memento = memento.getChild(item.getID());
         item_memento.setString(DockItem.KEY_APPLICATION, application.getAppDescriptor().getName());
 
         if (item instanceof DockItemWithInput)

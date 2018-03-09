@@ -6,6 +6,15 @@ public interface AppInstance {
 
     public AppDescriptor getAppDescriptor();
 
+    /** Is this application instance transient,
+     *  i.e. it should _not_ be saved on shutdown?
+     *  @return <code>true</code> for transient instance
+     */
+    public default boolean isTransient()
+    {
+        return false;
+    }
+
     /**
      * If application instance that was just opened via call to `open` is an
      * instance re-opened from a previous run, framework will call this method to
