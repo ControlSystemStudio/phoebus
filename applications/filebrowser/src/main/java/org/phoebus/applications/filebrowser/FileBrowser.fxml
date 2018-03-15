@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -7,12 +11,21 @@
 
 <GridPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.filebrowser.FileBrowserController">
   <columnConstraints>
+    <ColumnConstraints minWidth="10.0" prefWidth="60.0" />
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+    <ColumnConstraints minWidth="10.0" prefWidth="60" />
   </columnConstraints>
   <rowConstraints>
+    <RowConstraints minHeight="10.0" prefHeight="30.0" />
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
   </rowConstraints>
-   <children>
-      <TreeView fx:id="treeView" onContextMenuRequested="#createContextMenu" onMouseClicked="#handleMouseClickEvents" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
-   </children>
+  <children>
+    <TreeView fx:id="treeView" onContextMenuRequested="#createContextMenu" onMouseClicked="#handleMouseClickEvents" prefHeight="280.0" prefWidth="350.0" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
+    <Label maxHeight="-Infinity" minHeight="-Infinity" prefHeight="25.0" text="Root Dir: " GridPane.halignment="RIGHT" GridPane.vgrow="NEVER" />
+    <TextField fx:id="path" maxHeight="-Infinity" minHeight="-Infinity" onAction="#setNewRoot" prefHeight="25.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER" />
+      <Button maxHeight="-Infinity" minHeight="-Infinity" mnemonicParsing="false" onAction="#browseNewRoot" prefHeight="25.0" text="Browse" GridPane.columnIndex="2">
+         <GridPane.margin>
+            <Insets left="2.0" />
+         </GridPane.margin></Button>
+  </children>
 </GridPane>

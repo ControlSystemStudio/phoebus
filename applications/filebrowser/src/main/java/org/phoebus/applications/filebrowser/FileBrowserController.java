@@ -1,47 +1,48 @@
 package org.phoebus.applications.filebrowser;
 
 import java.io.File;
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
+/**
+ * Controller for the file browser app
+ * @author Kunal Shroff
+ *
+ */
 public class FileBrowserController {
 
     @FXML
     TextField path;
     @FXML
+    Button browse;
+    @FXML
     TreeView<File> treeView;
 
-    @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
-        File file = new File("C:\\git");
+        File file =  Paths.get(System.getProperty("user.home")).toFile();
         TreeItem<File> root = new FileTreeItem(file);
-        // treeView = new TreeView<File>();
-        // root = populateFileTree(root);
+        path.setText(file.getAbsolutePath());
         treeView.setCellFactory(f -> new FileTreeCell());
         treeView.setRoot(root);
-    }
-
-    private TreeItem<File> populateFileTree(TreeItem<File> parent) {
-        Arrays.asList(parent.getValue().listFiles()).forEach(child -> {
-            TreeItem<File> childTreeItem = new TreeItem<File>(child);
-            if (child.isDirectory()) {
-                parent.getChildren().add(childTreeItem);
-            } else {
-                parent.getChildren().add(childTreeItem);
-            }
-        });
-        return parent;
-
     }
 
     private final class FileTreeItem extends TreeItem<File> {
@@ -94,7 +95,6 @@ public class FileBrowserController {
     }
 
     private final class FileTreeCell extends TreeCell<File> {
-        @SuppressWarnings("unchecked")
         public FileTreeCell() {
             super();
         }
@@ -110,11 +110,11 @@ public class FileBrowserController {
                 if (getTreeItem().getParent() == null) {
                     setText(file.getAbsolutePath());
                 } else {
-                    String dir = "";
                     if (file.isDirectory()) {
-                        dir = "D>";
+                        ImageView image = ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png");
+                        setGraphic(image);
                     }
-                    setText(dir + file.getName());
+                    setText(file.getName());
                 }
             }
 
@@ -123,20 +123,38 @@ public class FileBrowserController {
     
     @FXML
     public void createContextMenu(ContextMenuEvent e) {
-        //System.out.println("create context: " + e.toString());
+        
     }
     
     @FXML
     public void handleMouseClickEvents(MouseEvent e) {
-        //System.out.println("double click: " + e.toString());
-        //System.out.println(e.getClickCount());
-        ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue().getSelectedItems();
-        selectedItems.forEach(s ->{
-            File selection = s.getValue();
-            if(selection.isFile()) {
-                System.out.println("opening file " + selection.getAbsolutePath());
-            }
-        });
-        
+        if(e.getClickCount() == 2) {
+            ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue().getSelectedItems();
+            selectedItems.forEach(s ->{
+                File selection = s.getValue();
+                if(selection.isFile()) {
+                    ApplicationLauncherService.openFile(selection, true, (Stage) treeView.getParent().getScene().getWindow());
+                }
+            });
+        }
+    }
+
+    @FXML
+    public void setNewRoot() {
+        Path p = Paths.get(path.getText());
+        File newRootFile = p.toFile();
+        treeView.setRoot(new FileTreeItem(newRootFile));
+    }
+    
+    @FXML
+    public void browseNewRoot() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Browser Root");
+        if(Paths.get(path.getText()).toFile().isDirectory()) {
+            directoryChooser.setInitialDirectory(Paths.get(path.getText()).toFile());
+        }
+        File newRootFile = directoryChooser.showDialog(treeView.getParent().getScene().getWindow());        
+        path.setText(newRootFile.getAbsolutePath());
+        treeView.setRoot(new FileTreeItem(newRootFile));
     }
 }
