@@ -1,32 +1,16 @@
 package org.phoebus.logging;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * An interface describing a logging service
+ * An interface for registering log factories, each factory returns and instance
+ * of a client implementing {@link LogClient}
  * 
  * @author Kunal Shroff
  *
  */
 public interface LogFactory {
 
-    /**
-     * 
-     * @return
-     */
     public String getId();
 
-    /**
-     * Create a log entry
-     * @param log
-     */
-    public void createLogEntry(LogEntry log);
+    public LogClient getLogClient();
 
-    /**
-     * Search for a list of log entries
-     * @param searchParameters
-     * @return
-     */
-    public List<String> findLogEntries(Map<String, String> searchParameters);
 }
