@@ -16,7 +16,6 @@ import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
@@ -64,10 +63,7 @@ public class NewDisplayMenuEntry implements MenuEntry
 
             // Open editor on UI thread
             Platform.runLater(() ->
-            {
-                final AppResourceDescriptor editor = ApplicationService.findApplication(DisplayEditorApplication.NAME);
-                editor.create(file.toURI());
-            });
+                ApplicationService.createInstance(DisplayEditorApplication.NAME, file.toURI()));
         });
 
         return null;

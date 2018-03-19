@@ -7,9 +7,9 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 
-import org.csstudio.scan.ui.ScanUI;
+import org.csstudio.scan.ScanSystem;
+import org.csstudio.scan.ui.ScanURI;
 import org.csstudio.scan.ui.dataplot.ScanDataPlotApplication;
-import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -23,11 +23,10 @@ public class OpenScanDataPlotAction extends MenuItem
 {
     public OpenScanDataPlotAction(final long scan_id)
     {
-        super("Open Scan Data Plot", ImageCache.getImageView(ScanUI.class, "/icons/scan_plot.png"));
+        super("Open Scan Data Plot", ImageCache.getImageView(ScanSystem.class, "/icons/scan_plot.png"));
         setOnAction(event ->
         {
-            final AppResourceDescriptor app = ApplicationService.findApplication(ScanDataPlotApplication.NAME);
-            app.create(ScanUI.createURI(scan_id));
+            ApplicationService.createInstance(ScanDataPlotApplication.NAME, ScanURI.createURI(scan_id));
         });
     }
 }

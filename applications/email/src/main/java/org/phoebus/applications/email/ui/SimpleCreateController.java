@@ -38,7 +38,7 @@ import javafx.stage.Stage;
 
 /**
  * Controller for dialog to create and send emails
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -89,8 +89,8 @@ public class SimpleCreateController {
 
         try {
             // Create a default MimeMessage object.
-            Message message = new MimeMessage(
-                    ((EmailApp) ApplicationService.findApplication(EmailApp.NAME)).getSession());
+            EmailApp app = ApplicationService.findApplication(EmailApp.NAME);
+            Message message = new MimeMessage(app.getSession());
 
             // Set From: header field of the header.
             message.setFrom(new InternetAddress(txtFrom.getText()));

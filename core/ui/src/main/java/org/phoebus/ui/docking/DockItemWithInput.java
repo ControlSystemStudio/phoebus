@@ -109,6 +109,15 @@ public class DockItemWithInput extends DockItem
             name_tab.setText(label);
     }
 
+    // Add 'input'
+    @Override
+    protected void fillInformation(final StringBuilder info)
+    {
+        super.fillInformation(info);
+        info.append("\n");
+        info.append("Input: ").append(getInput());
+    }
+
     /** @param input Input */
     public void setInput(final URI input)
     {

@@ -12,7 +12,7 @@ import static org.csstudio.scan.ScanSystem.logger;
 import java.net.URI;
 import java.util.logging.Level;
 
-import org.csstudio.scan.ui.ScanUI;
+import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
@@ -49,7 +49,7 @@ public class ScanDataPlotApplication implements AppResourceDescriptor
     {
         try
         {
-            return new ScanDataPlotInstance(this, ScanUI.parseScanID(resource));
+            return new ScanDataPlotInstance(this, ScanURI.getScanID(resource));
         }
         catch (Exception ex)
         {

@@ -24,32 +24,46 @@ import javafx.scene.control.Button;
 @SuppressWarnings("nls")
 public class StatusBarJobsIndicator extends Button
 {
-    private volatile int last_count = 0;
+    // Initially, the button is visible with "Jobs: ?" to size the button.
+    // Start 'last_count' with -1, an impossible job count, to assert initial update()
+    // call to either set the correct "Jobs: .." count or hide the button when there are no jobs.
+    private volatile int last_count = -1;
 
     public StatusBarJobsIndicator()
     {
         super("Jobs: ?");
-        setOnAction(event -> ApplicationService.findApplication(JobViewerApplication.NAME).create());
+        setOnAction(event -> ApplicationService.createInstance(JobViewerApplication.NAME));
         JobViewer.TIMER.scheduleWithFixedDelay(this::update, 2000, 500, TimeUnit.MILLISECONDS);
     }
 
     private void update()
     {
+        // Determine what to show
         final int count = JobManager.getJobCount();
         if (count == last_count)
             return;
+
+        final String text;
+        if (count <= 0)
+            text = null;
+        else
+            text = "Jobs: " + count;
+
+        // Update button on UI thread
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
-            if (count <= 0)
+            if (text == null)
                 setVisible(false);
             else
             {
-                setText("Jobs: " + count);
+                setText(text);
                 setVisible(true);
             }
             done.countDown();
         });
+
+        // Wait
         try
         {
             done.await(2, TimeUnit.SECONDS);
@@ -59,5 +73,6 @@ public class StatusBarJobsIndicator extends Button
             // Ignore
         }
         last_count = count;
+        // Next update will be triggered by timer
     }
 }

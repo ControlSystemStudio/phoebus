@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
@@ -44,13 +46,22 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
         }
     }
 
+    private static final ConcurrentHashMap<WidgetColor, Color> colorCache = new ConcurrentHashMap<>();
+
+    private static final ConcurrentHashMap<WidgetColor, String> webRGBCache = new ConcurrentHashMap<>();
+
+    private static final ConcurrentHashMap<WidgetColor, String> shadedStyleCache = new ConcurrentHashMap<>();
+
+    private static final ConcurrentHashMap<WidgetFont, Font> fontCache = new ConcurrentHashMap<>();
+
     /** Convert model color into JFX color
      *  @param color {@link WidgetColor}
      *  @return {@link Color}
      */
     public static Color convert(final WidgetColor color)
     {
-        return Color.rgb(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255.0);
+        return colorCache.computeIfAbsent(color, col ->
+            Color.rgb(col.getRed(), col.getGreen(), col.getBlue(), col.getAlpha()/255.0));
     }
 
     /** Convert model color into web-type RGB text
@@ -59,7 +70,16 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static String webRGB(final WidgetColor color)
     {
-        return appendWebRGB(new StringBuilder(), color).toString();
+        return webRGBCache.computeIfAbsent(color, col ->
+        {
+            if (col.getAlpha() < 255)
+                return "rgba(" + col.getRed() + ',' +
+                                 col.getGreen() + ',' +
+                                 col.getBlue() + ',' +
+                                 col.getAlpha()/255f + ')';
+            else
+                return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
+        });
     }
 
     /** Convert model color into web-type RGB text
@@ -69,26 +89,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static StringBuilder appendWebRGB(final StringBuilder buf, final WidgetColor color)
     {
-        if (color.getAlpha() < 255)
-            buf.append("rgba(").append(color.getRed()).append(',')
-                               .append(color.getGreen()).append(',')
-                               .append(color.getBlue()).append(',')
-                               .append(color.getAlpha()/255f).append(')');
-        else
-        {
-            buf.append('#');
-            addHex(buf, color.getRed());
-            addHex(buf, color.getGreen());
-            addHex(buf, color.getBlue());
-        }
-        return buf;
-    }
-
-    private static final char[] hex_chars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-    private static void addHex(final StringBuilder buf, final int number)
-    {
-        buf.append(hex_chars[number / 16]);
-        buf.append(hex_chars[number % 16]);
+        return buf.append(webRGB(color));
     }
 
     /** Convert model color into CSS style string for shading tabs, buttons, etc
@@ -97,36 +98,38 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static String shadedStyle(final WidgetColor color)
     {
-        // How to best set colors?
-        // Content Pane can be set in API, but Tab has no usable 'set color' API.
-        // TabPane has setBackground(), but in "floating" style that would be
-        // the background behind the tabs, which is usually transparent.
-        // modena.css of JDK8 reveals a structure of sub-items which are shaded with gradients based
-        // on  -fx-color for the inactive tabs,
-        //     -fx-outer-border and -fx-inner-border for the, well, border,
-        // and -fx-background for the selected tab,
-        // so re-define those.
-        final String bg = webRGB(color);
-
-        return  "-fx-color: derive(" + bg + ", 50%);" +
-        "-fx-outer-border: derive(" + bg + ", -23%);" +
-        "-fx-inner-border: linear-gradient(to bottom," +
-        "ladder(" + bg + "," +
-        "       derive(" + bg + ",30%) 0%," +
-        "       derive(" + bg + ",20%) 40%," +
-        "       derive(" + bg + ",25%) 60%," +
-        "       derive(" + bg + ",55%) 80%," +
-        "       derive(" + bg + ",55%) 90%," +
-        "       derive(" + bg + ",75%) 100%" +
-        ")," +
-        "ladder(" + bg + "," +
-        "       derive(" + bg + ",20%) 0%," +
-        "       derive(" + bg + ",10%) 20%," +
-        "       derive(" + bg + ",5%) 40%," +
-        "       derive(" + bg + ",-2%) 60%," +
-        "       derive(" + bg + ",-5%) 100%" +
-        "));" +
-        "-fx-background: " + bg + ";";
+        return shadedStyleCache.computeIfAbsent(color, col ->
+        {
+            // How to best set colors?
+            // Content Pane can be set in API, but Tab has no usable 'set color' API.
+            // TabPane has setBackground(), but in "floating" style that would be
+            // the background behind the tabs, which is usually transparent.
+            // modena.css of JDK8 reveals a structure of sub-items which are shaded with gradients based
+            // on  -fx-color for the inactive tabs,
+            //     -fx-outer-border and -fx-inner-border for the, well, border,
+            // and -fx-background for the selected tab,
+            // so re-define those.
+            final String bg = webRGB(col);
+            return "-fx-color: derive(" + bg + ", 50%);" +
+                   "-fx-outer-border: derive(" + bg + ", -23%);" +
+                   "-fx-inner-border: linear-gradient(to bottom," +
+                   "ladder(" + bg + "," +
+                   "       derive(" + bg + ",30%) 0%," +
+                   "       derive(" + bg + ",20%) 40%," +
+                   "       derive(" + bg + ",25%) 60%," +
+                   "       derive(" + bg + ",55%) 80%," +
+                   "       derive(" + bg + ",55%) 90%," +
+                   "       derive(" + bg + ",75%) 100%" +
+                   ")," +
+                   "ladder(" + bg + "," +
+                   "       derive(" + bg + ",20%) 0%," +
+                   "       derive(" + bg + ",10%) 20%," +
+                   "       derive(" + bg + ",5%) 40%," +
+                   "       derive(" + bg + ",-2%) 60%," +
+                   "       derive(" + bg + ",-5%) 100%" +
+                   "));" +
+                   "-fx-background: " + bg + ";";
+        });
     }
 
     /** Convert JFX color into model color
@@ -147,18 +150,21 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static Font convert(final WidgetFont font)
     {
-        final double calibrated = font.getSize() * font_calibration;
-        switch (font.getStyle())
+        return fontCache.computeIfAbsent(font, f ->
         {
-        case BOLD:
-            return Font.font(font.getFamily(), FontWeight.BOLD,   FontPosture.REGULAR, calibrated);
-        case ITALIC:
-            return Font.font(font.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC,  calibrated);
-        case BOLD_ITALIC:
-            return Font.font(font.getFamily(), FontWeight.BOLD,   FontPosture.ITALIC,  calibrated);
-        default:
-            return Font.font(font.getFamily(), FontWeight.NORMAL, FontPosture.REGULAR, calibrated);
-        }
+            final double calibrated = f.getSize() * font_calibration;
+            switch (f.getStyle())
+            {
+            case BOLD:
+                return Font.font(f.getFamily(), FontWeight.BOLD,   FontPosture.REGULAR, calibrated);
+            case ITALIC:
+                return Font.font(f.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC,  calibrated);
+            case BOLD_ITALIC:
+                return Font.font(f.getFamily(), FontWeight.BOLD,   FontPosture.ITALIC,  calibrated);
+            default:
+                return Font.font(f.getFamily(), FontWeight.NORMAL, FontPosture.REGULAR, calibrated);
+            }
+        });
     }
 
     /** Convert font to Java FX "-fx-font-*"

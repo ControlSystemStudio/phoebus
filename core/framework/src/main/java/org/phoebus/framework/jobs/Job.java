@@ -46,6 +46,7 @@ public class Job
     // Executed by JobManager
     void execute() throws Exception
     {
+        monitor.beginTask("Running");
         runnable.run(monitor);
         monitor.done();
     }

@@ -17,7 +17,7 @@ public class ProbeToolbarEntry implements ToolbarEntry {
 
     @Override
     public void call() throws Exception {
-        ApplicationService.findApplication(Probe.NAME).create();
+        ApplicationService.createInstance(Probe.NAME);
     }
 
 }

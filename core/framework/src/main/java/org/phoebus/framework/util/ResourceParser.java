@@ -97,7 +97,7 @@ public class ResourceParser
      *  @return URI for the resource
      *  @return {@link File} if URI represents a file, otherwise <code>null</code>
      */
-    public static File getFile(final URI resource) throws Exception
+    public static File getFile(final URI resource)
     {
         if (resource == null  ||  !resource.getScheme().equals("file"))
             return null;

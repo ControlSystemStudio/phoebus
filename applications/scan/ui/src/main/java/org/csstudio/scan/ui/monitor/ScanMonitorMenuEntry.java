@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 
+import org.csstudio.scan.ScanSystem;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
@@ -28,7 +29,7 @@ public class ScanMonitorMenuEntry implements MenuEntry
     @Override
     public Image getIcon()
     {
-        return ImageCache.getImage(ScanMonitor.class, "/icons/scan_monitor.png");
+        return ImageCache.getImage(ScanSystem.class, "/icons/scan_monitor.png");
     }
 
     @Override
@@ -40,7 +41,7 @@ public class ScanMonitorMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.findApplication(ScanMonitorApplication.NAME).create();
+        ApplicationService.createInstance(ScanMonitorApplication.NAME);
         return null;
     }
 }

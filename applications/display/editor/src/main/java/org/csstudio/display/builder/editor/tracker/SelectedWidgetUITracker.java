@@ -331,7 +331,6 @@ public class SelectedWidgetUITracker extends Tracker
 
     private void closeInlineEditor()
     {
-        PVAutocompleteMenu.INSTANCE.detachField(inline_editor);
         getChildren().remove(inline_editor);
         inline_editor = null;
     }

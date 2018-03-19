@@ -20,6 +20,7 @@ import java.util.logging.Level;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.beans.property.StringProperty;
@@ -27,12 +28,16 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -74,7 +79,11 @@ public class DockItem extends Tab
     /** Property key used for the {@link AppDescriptor} */
     public static final String KEY_APPLICATION = "application";
 
-    private final static ImageView detach_icon = ImageCache.getImageView(DockItem.class, "/icons/detach.png");
+    private final static Image info_icon = ImageCache.getImage(DockItem.class, "/icons/info.png"),
+                               detach_icon = ImageCache.getImage(DockItem.class, "/icons/detach.png"),
+                               close_icon = ImageCache.getImage(DockItem.class, "/icons/remove.png"),
+                               close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
+
 
     /** The item that's currently being dragged
      *
@@ -144,13 +153,16 @@ public class DockItem extends Tab
 
     private void createContextMenu()
     {
-        final MenuItem detach = new MenuItem("Detach", detach_icon);
+        final MenuItem info = new MenuItem("Info", new ImageView(info_icon));
+        info.setOnAction(event -> showInfo());
+
+        final MenuItem detach = new MenuItem("Detach", new ImageView(detach_icon));
         detach.setOnAction(event -> detach());
 
-        final MenuItem close = new MenuItem("Close");
+        final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
         close.setOnAction(event -> close());
 
-        final MenuItem close_other = new MenuItem("Close Others");
+        final MenuItem close_other = new MenuItem("Close Others", new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
             for (Tab tab : new ArrayList<>(getTabPane().getTabs()))
@@ -158,7 +170,7 @@ public class DockItem extends Tab
                     ((DockItem)tab).close();
         });
 
-        final MenuItem close_all = new MenuItem("Close All");
+        final MenuItem close_all = new MenuItem("Close All", new ImageView(close_many_icon));
         close_all.setOnAction(event ->
         {
             for (Tab tab : new ArrayList<>(getTabPane().getTabs()))
@@ -167,13 +179,15 @@ public class DockItem extends Tab
         });
 
 
-        final ContextMenu menu = new ContextMenu(detach,
+        final ContextMenu menu = new ContextMenu(info,
+                                                 new SeparatorMenuItem(),
+                                                 detach,
                                                  new SeparatorMenuItem(),
                                                  close,
                                                  close_other,
                                                  new SeparatorMenuItem(),
                                                  close_all);
-        name_tab.setContextMenu(menu );
+        name_tab.setContextMenu(menu);
     }
 
     /** @return Unique ID of this dock item */
@@ -208,7 +222,35 @@ public class DockItem extends Tab
         name_tab.setText(label);
     }
 
-    /**    Allow dragging this item */
+    /** Show info dialog */
+    private void showInfo()
+    {
+        final Alert dlg = new Alert(AlertType.INFORMATION);
+        dlg.setTitle("Info");
+
+        // No DialogPane 'header', all info is in the 'content'
+        dlg.setHeaderText("");
+
+        final StringBuilder info = new StringBuilder();
+        fillInformation(info);
+        final TextArea content = new TextArea(info.toString());
+        content.setEditable(false);
+        content.setPrefSize(300, 100);
+        content.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        dlg.getDialogPane().setContent(content);
+
+        DialogHelper.positionDialog(dlg, name_tab, 0, 0);
+        dlg.setResizable(true);
+        dlg.showAndWait();
+    }
+
+    /** @param info Multi-line information for 'Info' dialog */
+    protected void fillInformation(final StringBuilder info)
+    {
+        info.append("Application Name: ").append(getApplication().getAppDescriptor().getName());
+    }
+
+    /** Allow dragging this item */
     private void handleDragDetected(final MouseEvent event)
     {
         final Dragboard db = name_tab.startDragAndDrop(TransferMode.MOVE);

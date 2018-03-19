@@ -21,6 +21,6 @@ public class GreetToolbarEntry implements ToolbarEntry {
 
     @Override
     public void call() throws Exception {
-        ApplicationService.findApplication(GreetingsApp.Name).create();
+        ApplicationService.createInstance(GreetingsApp.Name);
     }
 }

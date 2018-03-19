@@ -16,6 +16,7 @@ import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -44,12 +45,11 @@ public class JFXStageRepresentation extends JFXRepresentation
         stage.setTitle(model.getDisplayName());
         stage.setX(model.propX().getValue());
         stage.setY(model.propY().getValue());
-        final int width = Math.max(800, model.propWidth().getValue());
-        final int height = Math.max(600, model.propHeight().getValue());
-        stage.setWidth(width);
-		stage.setHeight(height);
 
-        final Scene scene = new Scene(createModelRoot());
+        final ScrollPane modelRoot = createModelRoot();
+        modelRoot.setPrefSize(1.2 + model.propWidth().getValue(), 1.2 + model.propHeight().getValue());
+
+        final Scene scene = new Scene(modelRoot);
         setSceneStyle(scene);
         stage.setScene(scene);
         stage.setOnCloseRequest((WindowEvent event) -> handleCloseRequest(scene, close_request_handler));

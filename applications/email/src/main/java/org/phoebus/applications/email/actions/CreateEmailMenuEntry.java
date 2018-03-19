@@ -29,7 +29,7 @@ public class CreateEmailMenuEntry implements MenuEntry {
      */
     @Override
     public Void call() throws Exception {
-        ApplicationService.findApplication(EmailApp.NAME).create();
+        ApplicationService.createInstance(EmailApp.NAME);
         return null;
     }
 

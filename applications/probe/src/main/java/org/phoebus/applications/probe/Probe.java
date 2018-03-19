@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
@@ -48,26 +47,23 @@ public class Probe implements AppResourceDescriptor {
         DockPane.getActiveDockPane().addTab(tab);
 
         PVAutocompleteMenu.INSTANCE.attachField(probeInstance.getPVField());
-        tab.addClosedNotification(() ->  PVAutocompleteMenu.INSTANCE.detachField(probeInstance.getPVField())   );
         return probeInstance;
     }
 
     @Override
     public AppInstance create(URI resource) {
-        final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
-
         ProbeInstance probe = null;
         try
         {
             final List<String> pvs = ResourceParser.parsePVs(resource);
             if (pvs.isEmpty()) {
                 // Open an empty probe
-                probe = (ProbeInstance) app.create();
+                probe = ApplicationService.createInstance(Probe.NAME);
             } else {
                 // Open a probe for each pv
                 for (String pv : pvs)
                 {
-                    probe = (ProbeInstance) app.create();
+                    probe = ApplicationService.createInstance(Probe.NAME);
                     probe.setPV(pv);
                 }
             }

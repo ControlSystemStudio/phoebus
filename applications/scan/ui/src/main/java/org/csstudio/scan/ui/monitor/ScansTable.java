@@ -234,7 +234,7 @@ public class ScansTable extends VBox
         abort_all.setOnAction(event ->
             JobManager.schedule(abort_all.getText(), monitor ->  scan_client.abortScan(-1)));
 
-        final MenuItem remove_completed = new MenuItem("Remove completed Scans",  ImageCache.getImageView(ScansTable.class, "/icons/remove_completed.png"));
+        final MenuItem remove_completed = new MenuItem("Remove completed Scans",  ImageCache.getImageView(ImageCache.class, "/icons/remove_multiple.png"));
         remove_completed.setOnAction(event ->
             JobManager.schedule(remove_completed.getText(), monitor -> scan_client.removeCompletedScans()));
 
@@ -247,16 +247,18 @@ public class ScansTable extends VBox
             final List<ScanInfo> selection = scan_table.getSelectionModel().getSelectedItems().stream().map(proxy -> proxy.info).collect(Collectors.toList());
             if (selection.size() == 1)
             {
-                if (selection.get(0).getState() != ScanState.Logged)
+                menu.getItems().add(new OpenScanDataTableAction(selection.get(0).getId()));
+                menu.getItems().add(new OpenScanDataPlotAction(selection.get(0).getId()));
+                menu.getItems().add(new SeparatorMenuItem());
+
+                final boolean have_commands = selection.get(0).getState() != ScanState.Logged;
+                if (have_commands)
                 {
                     menu.getItems().add(new ReSubmitScanAction(scan_client, selection.get(0)));
                     menu.getItems().add(new SaveScanAction(this, scan_client, selection.get(0)));
+                    menu.getItems().add(new OpenScanEditorAction(selection.get(0).getId()));
                     menu.getItems().add(new SeparatorMenuItem());
                 }
-                menu.getItems().add(new OpenScanDataTableAction(selection.get(0).getId()));
-                menu.getItems().add(new OpenScanDataPlotAction(selection.get(0).getId()));
-                // TODO open scan in editor,
-                menu.getItems().add(new SeparatorMenuItem());
             }
 
             boolean any_to_abort = false;

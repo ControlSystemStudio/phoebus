@@ -73,7 +73,7 @@ public class ScanClient
     final private int default_timeout = 10;
 
     /** Timeout in seconds for operations that tend to take longer */
-    final private int long_timeout = 60;
+    final private int long_timeout = 120;
 
     /** Initialize
      *  @param host Scan server host
