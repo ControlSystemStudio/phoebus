@@ -12,7 +12,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
-import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropInsets;
+import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropExtendedInsets;
 
 import java.util.Arrays;
 import java.util.List;
@@ -203,7 +203,7 @@ public class GroupWidget extends VisibleWidget
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(transparent = propTransparent.createProperty(this, false));
-        properties.add(insets = runtimePropInsets.createProperty(this, new int[] { 0, 0 }));
+        properties.add(insets = runtimePropExtendedInsets.createProperty(this, new int[] { 0, 0, 0, 0 }));
     }
 
     @Override
