@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
 /**
- * A service to discover, register, and invoke apps which handle resources.
+ * A service to discover, register, and find apps which can handle resources.
  * {@link AppResourceDescriptor}
  *
  * @author Kunal Shroff

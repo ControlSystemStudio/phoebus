@@ -25,6 +25,7 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-greetings"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-file-browser"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-logbook-inmemory"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-probe"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtree"/>

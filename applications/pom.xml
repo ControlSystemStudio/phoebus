@@ -19,5 +19,6 @@
   	<module>databrowser</module>
   	<module>display</module>
     <module>scan</module>
+    <module>filebrowser</module>
   </modules>
 </project>
