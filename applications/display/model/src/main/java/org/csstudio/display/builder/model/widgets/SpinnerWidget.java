@@ -16,6 +16,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
 
 import java.util.Arrays;
 import java.util.List;
@@ -65,6 +66,7 @@ public class SpinnerWidget extends PVWidget
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<FormatOption> format; //includes decimal, exponential, and hex
     private volatile WidgetProperty<Integer> precision;
+    private volatile WidgetProperty<Boolean> show_units;
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
     private volatile WidgetProperty<Boolean> limits_from_pv;
@@ -83,6 +85,7 @@ public class SpinnerWidget extends PVWidget
         super.defineProperties(properties);
         properties.add(format = propFormat.createProperty(this, FormatOption.DECIMAL));
         properties.add(precision = propPrecision.createProperty(this, -1));
+        properties.add(show_units = propShowUnits.createProperty(this, false));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.WRITE_BACKGROUND)));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
@@ -121,6 +124,12 @@ public class SpinnerWidget extends PVWidget
     public WidgetProperty<Integer> propPrecision()
     {
         return precision;
+    }
+
+    /** @return 'show_units' property */
+    public WidgetProperty<Boolean> propShowUnits()
+    {
+        return show_units;
     }
 
     /** @return 'minimum' property */

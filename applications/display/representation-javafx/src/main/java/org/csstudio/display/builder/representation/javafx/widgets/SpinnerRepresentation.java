@@ -307,7 +307,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         return FormatOptionHandler.format(value,
                                           model_widget.propFormat().getValue(),
                                           model_widget.propPrecision().getValue(),
-                                          false);
+                                          model_widget.propShowUnits().getValue());
     }
 
     @Override
@@ -329,6 +329,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
         model_widget.propFormat().addUntypedPropertyListener(this::contentChanged);
         model_widget.propPrecision().addUntypedPropertyListener(this::contentChanged);
+        model_widget.propShowUnits().addUntypedPropertyListener(this::contentChanged);
         model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
 
         behaviorChanged(null, null, null);
