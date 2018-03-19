@@ -12,6 +12,6 @@ public class FileBrowserToolbarEntry implements ToolbarEntry {
 
     @Override
     public void call() throws Exception {
-        ApplicationService.findApplication(FileBrowserApp.Name).create();
+        ApplicationService.createInstance(FileBrowserApp.Name);
     }
 }
