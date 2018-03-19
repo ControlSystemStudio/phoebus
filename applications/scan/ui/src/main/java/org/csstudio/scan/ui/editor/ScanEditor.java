@@ -40,11 +40,13 @@ import org.phoebus.ui.undo.UndoableActionManager;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
@@ -65,6 +67,7 @@ public class ScanEditor extends SplitPane
     private final UndoableActionManager undo = new UndoableActionManager(50);
 
     private final Button pause = new Button(), resume = new Button(), next = new Button(), abort = new Button();
+    private final ToggleButton jump_to_current = new ToggleButton();
 
     private final Label info_text = new Label();
 
@@ -204,6 +207,10 @@ public class ScanEditor extends SplitPane
             }
         });
 
+        jump_to_current.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/current.png"));
+        jump_to_current.setTooltip(new Tooltip(Messages.scan_jump_to_current_command));
+        jump_to_current.setOnAction(event -> scan_tree.revealActiveItem(jump_to_current.isSelected()));
+
         final Button[] undo_redo = UndoButtons.createButtons(undo);
         return new ToolBar(info_text, ToolbarHelper.createStrut(), buttons, ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
     }
@@ -238,10 +245,7 @@ public class ScanEditor extends SplitPane
         final ContextMenu menu = new ContextMenu(copy, paste, delete,
                                                  new SeparatorMenuItem(),
                                                  simulate, submit, submit_unqueued);
-        setOnContextMenuRequested(event ->
-        {
-            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        });
+        setContextMenu(menu);
     }
 
     /** @param how true/false to submit queue/un-queued, <code>null</code> to simulate */
@@ -319,7 +323,7 @@ public class ScanEditor extends SplitPane
     /** @param info Info about scan, <code>null</code> if no info available or scan completed */
     void updateScanInfo(final ScanInfo info)
     {
-        final List<Button> desired;
+        final List<ButtonBase> desired;
         final String text;
 
         if (info == null)
@@ -340,10 +344,10 @@ public class ScanEditor extends SplitPane
                 desired = List.of(abort);
                 break;
             case Running:
-                desired = List.of(pause, next, abort);
+                desired = List.of(pause, next, abort, jump_to_current);
                 break;
             case Paused:
-                desired = List.of(resume, abort);
+                desired = List.of(resume, abort, jump_to_current);
                 break;
             default:
                 desired = Collections.emptyList();

@@ -48,6 +48,8 @@ public class ScanCommandTree extends TreeView<ScanCommand>
 
     private volatile TreeItem<ScanCommand> active_item;
 
+    private boolean reveal_active_item = false;
+
     private final ModelListener listener = new ModelListener()
     {
         @Override
@@ -148,6 +150,11 @@ public class ScanCommandTree extends TreeView<ScanCommand>
 
         handleKeys();
         hookDrag();
+    }
+
+    void revealActiveItem(final boolean reveal)
+    {
+        reveal_active_item = reveal;
     }
 
     private static TreeItem<ScanCommand> createTreeItem(final ScanCommand command)
@@ -322,14 +329,16 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         {
             // In principle, need to redraw the previously active item
             // and the one that's now active.
-            // Test, however, show that the complete visible tree is always redrawn,
-            // so could skip refreshing `previous`...
+            // Test, however, shows that the complete visible tree is always redrawn,
+            // so can skip refreshing `previous`...
             if (previous != null)
                 TreeHelper.triggerTreeItemRefresh(previous);
             if (active_item != null)
+            {
                 TreeHelper.triggerTreeItemRefresh(active_item);
-
-            // TODO Mode where active_item is selected
+                if (reveal_active_item)
+                    scrollTo(getRow(active_item));
+            }
         });
     }
 
