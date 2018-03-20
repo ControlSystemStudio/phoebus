@@ -160,11 +160,14 @@ public class BooleanWidgetPropertyBinding
     {
         updating = true;
         undo.execute(new SetMacroizedWidgetPropertyAction(widget_property, value));
-        final String path = widget_property.getPath();
-        for (Widget w : other)
+        if (! other.isEmpty())
         {
-            final BooleanWidgetProperty other_prop = (BooleanWidgetProperty) w.getProperty(path);
-            undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, value));
+            final String path = widget_property.getPath();
+            for (Widget w : other)
+            {
+                final BooleanWidgetProperty other_prop = (BooleanWidgetProperty) w.getProperty(path);
+                undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, value));
+            }
         }
         updating = false;
     }

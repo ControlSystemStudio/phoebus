@@ -51,11 +51,14 @@ public class WidgetColorPropertyBinding
                                          wColor ->
         {
             undo.execute(new SetWidgetPropertyAction<WidgetColor>(widget_property, wColor));
-            final String path = widget_property.getPath();
-            for (Widget w : other)
+            if (! other.isEmpty())
             {
-                final ColorWidgetProperty other_prop = (ColorWidgetProperty) w.getProperty(path);
-                undo.execute(new SetWidgetPropertyAction<WidgetColor>(other_prop, wColor));
+                final String path = widget_property.getPath();
+                for (Widget w : other)
+                {
+                    final ColorWidgetProperty other_prop = (ColorWidgetProperty) w.getProperty(path);
+                    undo.execute(new SetWidgetPropertyAction<WidgetColor>(other_prop, wColor));
+                }
             }
         });
         popover.show(jfx_node.getButton());
