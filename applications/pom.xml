@@ -20,5 +20,6 @@
   	<module>display</module>
     <module>scan</module>
     <module>filebrowser</module>
+    <module>channel</module>
   </modules>
 </project>

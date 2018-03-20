@@ -1,0 +1,51 @@
+package org.phoebus.channel.views;
+
+import java.net.URI;
+import java.util.logging.Logger;
+
+import org.phoebus.channelfinder.ChannelFinderClient;
+import org.phoebus.channelfinder.ChannelFinderService;
+import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.ui.javafx.ImageCache;
+
+import javafx.scene.image.Image;
+
+public class ChannelTableApp implements AppResourceDescriptor {
+
+    public static final Logger logger = Logger.getLogger(ChannelTableApp.class.getName());
+    static final Image icon = ImageCache.getImage(ChannelTableApp.class, "/icons/channel-viewer-16.png");
+    public static final String NAME = "ChannelTableViews";
+
+    private ChannelFinderClient client;
+
+    @Override
+    public void start() {
+        client = ChannelFinderService.getInstance().getClient();
+    }
+    
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public AppInstance create() {
+        return new ChannelTable(this);
+    }
+
+    @Override
+    public AppInstance create(URI resource) {
+        ChannelTable channelTable = new ChannelTable(this);
+        channelTable.setResource(resource);
+        return channelTable;
+    }
+    
+    /**
+     * Get the default {@link ChannelFinderClient} initialized during the creation of this application descriptor
+     * @return {@link ChannelFinderClient} default client
+     */
+    public ChannelFinderClient getClient() {
+        return client;
+    }
+}
