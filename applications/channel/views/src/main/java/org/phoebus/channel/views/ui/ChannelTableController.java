@@ -40,11 +40,9 @@ public class ChannelTableController extends ChannelFinderController {
     public void initialize() {
         tableView.getColumns().clear();
         TableColumn<Channel, String> nameCol = new TableColumn<>("Name");
-        nameCol.setPrefWidth(350);
         nameCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("name"));
 
         TableColumn<Channel, String> ownerCol = new TableColumn<>("Owner");
-        ownerCol.setPrefWidth(350);
         ownerCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("owner"));
         tableView.getColumns().addAll(nameCol, ownerCol);
     }
@@ -68,7 +66,6 @@ public class ChannelTableController extends ChannelFinderController {
             @Override
             public TableColumn<Channel, String> apply(String propName) {
                 TableColumn<Channel, String> propCol = new TableColumn<>(propName);
-                propCol.setPrefWidth(350);
                 propCol.setCellValueFactory(new Callback<CellDataFeatures<Channel, String>, ObservableValue<String>>() {
 
                     @Override
@@ -85,7 +82,6 @@ public class ChannelTableController extends ChannelFinderController {
             @Override
             public TableColumn<Channel, String> apply(String tagName) {
                 TableColumn<Channel, String> tagCol = new TableColumn<>(tagName);
-                tagCol.setPrefWidth(350);
                 tagCol.setCellValueFactory(new Callback<CellDataFeatures<Channel, String>, ObservableValue<String>>() {
 
                     @Override
