@@ -104,6 +104,17 @@
       <artifactId>jmatio</artifactId>
       <version>1.2</version>
     </dependency>
+    
+    <!-- Jetty, web server used by scan server, archive engine, ..
+         For versions check
+         http://central.maven.org/maven2/org/eclipse/jetty/jetty-maven-plugin/
+     -->
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.4.9.v20180320</version>
+    </dependency>
+    
   </dependencies>
 
   <build>

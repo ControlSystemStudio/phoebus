@@ -12,6 +12,11 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/py4j-0.10.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/objenesis-1.0.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javax.servlet-api-3.1.0.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/jetty-http-9.4.9.v20180320.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/jetty-io-9.4.9.v20180320.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/jetty-server-9.4.9.v20180320.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/jetty-util-9.4.9.v20180320.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jython-standalone-2.7.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/postgresql-42.1.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/mysql-connector-java-5.1.45.jar"/>
