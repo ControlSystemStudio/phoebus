@@ -63,9 +63,11 @@ public class AddCommands extends UndoableAction
             if (location == null  && commands.size() > 0)
                 target = commands.get(commands.size()-1);
             boolean insert_after = after;
+            final int N = new_commands.size();
+            int i = 0;
             for (ScanCommand command : new_commands)
             {
-                model.insert(parent, target, command, insert_after);
+                model.insert(parent, target, command, insert_after, ++i, N);
                 // When many items are inserted, the first item may go "before"
                 // the target.
                 // That newly inserted command then becomes the target,
@@ -87,10 +89,11 @@ public class AddCommands extends UndoableAction
         {
             // Perform removal in reverse of addition,
             // so item added last will be removed first
-            for (int i=new_commands.size()-1; i>=0; --i)
+            final int N = new_commands.size();
+            for (int i=N-1; i>=0; --i)
             {
                 final ScanCommand command= new_commands.get(i);
-                model.remove(command);
+                model.remove(command, i+1, N);
             }
         }
         catch (Exception ex)

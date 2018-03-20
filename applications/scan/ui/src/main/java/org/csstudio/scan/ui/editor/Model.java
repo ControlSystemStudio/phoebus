@@ -59,13 +59,26 @@ public class Model
      *                If <code>null</code>, inserts at start of list.
      *  @param command New command to insert
      *  @param after <code>true</code> to insert after target, else before
+     *  @param update_index Hint: This is update i ..
+     *  @param update_total .. out of a series of N total updates
      *  @throws Exception if element cannot be inserted
      */
-    public void insert(final ScanCommandWithBody parent, final ScanCommand target, final ScanCommand command, final boolean after) throws Exception
+    public void insert(final ScanCommandWithBody parent, final ScanCommand target, final ScanCommand command, final boolean after,
+                       final int update_index, final int update_total) throws Exception
     {
-        if (! doInsert(parent, target, command, after))
+        final boolean notify_listeners = update_total <= 1;
+        // Send per-insert update if there's only one insert
+        if (! doInsert(parent, target, command, after, notify_listeners))
             throw new Exception("Cannot locate insertion point for command in list");
-        updateAddresses();
+        if (notify_listeners)
+            updateAddresses();
+        // Otherwise send one bulk event on the last update
+        if (update_total > 1  &&  update_index >= update_total)
+        {
+            updateAddresses();
+            for (ModelListener listener : listeners)
+                listener.commandsChanged();
+        }
     }
 
     /** Insert command in list, recursing down to find insertion target
@@ -77,14 +90,16 @@ public class Model
      *  @return <code>true</code> if command could be inserted in this list
      */
     private boolean doInsert(final ScanCommandWithBody parent,
-            final ScanCommand target, final ScanCommand command, final boolean after)
+            final ScanCommand target, final ScanCommand command, final boolean after,
+            final boolean notify_listeners)
     {
         final List<ScanCommand> commands = parent == null ? getCommands() : parent.getBody();
         if (target == null)
         {
             commands.add(0, command);
-            for (ModelListener listener : listeners)
-                listener.commandAdded(parent, command);
+            if (notify_listeners)
+                for (ModelListener listener : listeners)
+                    listener.commandAdded(parent, command);
             return true;
         }
         for (int i=0; i<commands.size(); ++i)
@@ -93,14 +108,15 @@ public class Model
             if (current == target)
             {   // Found the insertion point
                 commands.add(after ? i+1 : i, command);
-                for (ModelListener listener : listeners)
-                    listener.commandAdded(parent, command);
+                if (notify_listeners)
+                    for (ModelListener listener : listeners)
+                        listener.commandAdded(parent, command);
                 return true;
             }
             else if (current instanceof ScanCommandWithBody)
             {   // Recurse into body, because target may be there.
                 final ScanCommandWithBody cmd = (ScanCommandWithBody) current;
-                if (doInsert(cmd, target, command, after))
+                if (doInsert(cmd, target, command, after, notify_listeners))
                     return true;
                 // else: target wasn't in that body
             }
@@ -109,24 +125,43 @@ public class Model
     }
 
     /** @param command Command to remove
+     *  @param update_index Hint: This is update i ..
+     *  @param update_total .. out of a series of N total updates
      *  @return Info about removal
      *  @throws Exception on error
      */
-    public RemovalInfo remove(final ScanCommand command) throws Exception
+    public RemovalInfo remove(final ScanCommand command,
+                              final int update_index,
+                              final int update_total) throws Exception
     {
-        final RemovalInfo info = remove(null, command);
+        final RemovalInfo info = remove(null, command, update_index, update_total);
         if (info == null)
             throw new Exception("Cannot locate item to be removed");
-        updateAddresses();
+
+        if (update_total <= 1)
+            updateAddresses();
+        else
+            // Otherwise send one bulk event on the last update
+            if (update_total > 1  &&  update_index >= update_total)
+            {
+                updateAddresses();
+                for (ModelListener listener : listeners)
+                    listener.commandsChanged();
+            }
+
         return info;
     }
 
     /** @param parent Parent item, <code>null</code> for root of tree
      *  @param command Command to remove
+     *  @param update_index Hint: This is update i ..
+     *  @param update_total .. out of a series of N total updates
      *  @return Info about removal
      */
     private RemovalInfo remove(final ScanCommandWithBody parent,
-                               final ScanCommand command)
+                               final ScanCommand command,
+                               final int update_index,
+                               final int update_total)
     {
         final List<ScanCommand> commands = parent == null ? model : parent.getBody();
         for (int i=0; i<commands.size(); ++i)
@@ -135,14 +170,15 @@ public class Model
             if (current == command)
             {   // Found the item
                 commands.remove(i);
-                for (ModelListener listener : listeners)
-                    listener.commandRemoved(current);
-                return new RemovalInfo(this, parent, i > 0 ? commands.get(i-1) : null, command);
+                if (update_total <= 1)
+                    for (ModelListener listener : listeners)
+                        listener.commandRemoved(current);
+                return new RemovalInfo(this, parent, i > 0 ? commands.get(i-1) : null, command, update_index, update_total);
             }
             else if (current instanceof ScanCommandWithBody)
             {   // Recurse into body, because target may be inside.
                 final ScanCommandWithBody cmd = (ScanCommandWithBody) current;
-                final RemovalInfo info = remove(cmd, command);
+                final RemovalInfo info = remove(cmd, command, update_index, update_total);
                 if (info != null)
                     return info;
                 // else: target wasn't in that body

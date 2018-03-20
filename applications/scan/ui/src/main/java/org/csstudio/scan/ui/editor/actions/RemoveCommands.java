@@ -48,10 +48,11 @@ public class RemoveCommands extends UndoableAction
         removals = new ArrayList<RemovalInfo>();
         try
         {
-            for (int i=to_remove.size()-1;  i>=0;  --i)
+            final int N = to_remove.size();
+            for (int i=N-1;  i>=0;  --i)
             {
                 final ScanCommand command = to_remove.get(i);
-                removals.add(0, model.remove(command));
+                removals.add(0, model.remove(command, i+1, N));
             }
         }
         catch (Exception ex)

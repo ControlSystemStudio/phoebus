@@ -18,6 +18,7 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.actions.AddCommands;
 import org.csstudio.scan.ui.editor.actions.RemoveCommands;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -36,7 +37,12 @@ import javafx.scene.input.TransferMode;
  *  <p>Opens and displays a scan with ~30k commands within a second,
  *  on a computer where RCP version takes more than 30 seconds.
  *
- *  TODO Faster copy/paste for large scans.
+ *  <p>No problem with copy/paste of a screen full of commands, i.e. about 40 commands,
+ *  within a scan of ~30k commands.
+ *  Selecting 'all' (Ctrl-A) with ~30k commands takes about 10 seconds.
+ *  Then pasting those ~30k commands to the end again takes about 5 seconds.
+ *  ==> Could be better with a multithreaded model (ScanCommandWithBody having CopyOnWriteArrayList for body, ..),
+ *  but for now considered good enough.
  *
  *  @author Kay Kasemir
  */
@@ -56,11 +62,31 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         public void commandsChanged()
         {
             // Convert scan into tree items
-            root.getChildren().clear();
-            addCommands(root, model.getCommands());
+            JobManager.schedule("Create Scan Tree", monitor ->
+            {
+                System.out.println("Create command items...");
+                final TreeItem<ScanCommand> new_root = new TreeItem<>(null);
+                addCommands(new_root, model.getCommands());
 
-            // Expand complete tree
-            expand(root);
+                Platform.runLater(() ->
+                {
+                    System.out.println("Set command items...");
+                    // Clearing the selection results in faster tree update
+                    final int sel = getSelectionModel().getSelectedIndex();
+                    getSelectionModel().clearSelection();
+                    root.getChildren().setAll(new_root.getChildren());
+
+
+                    System.out.println("Select..");
+                    if (sel >= 0)
+                        getSelectionModel().select(sel);
+
+                    System.out.println("Expand..");
+                    // Expand complete tree
+                    expand(root);
+                    System.out.println("Done.");
+                });
+            });
         }
 
         @Override

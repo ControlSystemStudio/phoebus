@@ -20,25 +20,32 @@ import org.csstudio.scan.command.ScanCommandWithBody;
 @SuppressWarnings("nls")
 public class RemovalInfo
 {
-    final private Model model;
-    final private ScanCommandWithBody parent;
-    final private ScanCommand previous;
-    final private ScanCommand command;
+    private final Model model;
+    private final ScanCommandWithBody parent;
+    private final ScanCommand previous;
+    private final ScanCommand command;
+    private final int update_index, update_total;
 
     /** @param model Scan tree model
      *  @param parent Parent item, for example Loop or <code>null</code> for top-level item
      *  @param previous Previous item within the parent or top-level list, <code>null</code> if first
      *  @param command Command that was removed
+     *  @param update_index Hint: This is update i ..
+     *  @param update_total .. out of a series of N total updates
      */
     public RemovalInfo(final Model model,
                        final ScanCommandWithBody parent,
                        final ScanCommand previous,
-                       final ScanCommand command)
+                       final ScanCommand command,
+                       final int update_index,
+                       final int update_total)
     {
         this.model = model;
         this.parent = parent;
         this.previous = previous;
         this.command = command;
+        this.update_index = update_index;
+        this.update_total = update_total;
     }
 
     /** Undo the removal
@@ -61,7 +68,7 @@ public class RemovalInfo
         // Was command removed at this level in the tree?
         if (commands_parent == parent)
         {
-            model.insert(parent, previous, command, true);
+            model.insert(parent, previous, command, true, update_index, update_total);
             return true;
         }
 
