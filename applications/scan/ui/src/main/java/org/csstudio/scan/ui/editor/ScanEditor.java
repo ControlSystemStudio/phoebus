@@ -21,26 +21,34 @@ import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.client.ScanInfoModel;
 import org.csstudio.scan.client.ScanInfoModelListener;
+import org.csstudio.scan.command.ScanCommand;
+import org.csstudio.scan.command.ScanCommandProperty;
 import org.csstudio.scan.command.XMLCommandWriter;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.ui.Messages;
+import org.csstudio.scan.ui.editor.properties.ChangeProperty;
 import org.csstudio.scan.ui.editor.properties.Properties;
 import org.csstudio.scan.ui.simulation.SimulationDisplay;
 import org.csstudio.scan.ui.simulation.SimulationDisplayApplication;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
+import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -64,7 +72,31 @@ public class ScanEditor extends SplitPane
                                 VDIV = "vdiv";
 
     private final Model model = new Model();
-    private final UndoableActionManager undo = new UndoableActionManager(50);
+
+    /** Variation of undo manager that prompts/warns when changing an active scan */
+    private final UndoableActionManager undo = new UndoableActionManager(50)
+    {
+        @Override
+        public void execute(UndoableAction action)
+        {
+            // Warn that changes to the running scan are limited
+            final Alert dlg = new Alert(AlertType.CONFIRMATION);
+            dlg.setHeaderText("");
+            dlg.setContentText(Messages.scan_active_prompt);
+            dlg.setResizable(true);
+            dlg.getDialogPane().setPrefSize(600, 300);
+            DialogHelper.positionDialog(dlg, scan_tree, -100, -100);
+            if (dlg.showAndWait().get() != ButtonType.OK)
+                return;
+
+            // Only property change is possible while running.
+            // Adding/removing commands detaches from the running scan.
+            if (! (action instanceof ChangeProperty))
+                detachFromScan();
+
+            super.execute(action);
+        }
+    };
 
     private final Button pause = new Button(), resume = new Button(), next = new Button(), abort = new Button();
     private final ToggleButton jump_to_current = new ToggleButton();
@@ -122,7 +154,7 @@ public class ScanEditor extends SplitPane
         VBox.setVgrow(scan_tree, Priority.ALWAYS);
         final VBox left_stack = new VBox(toolbar, scan_tree);
 
-        right_stack = new SplitPane(new Palette(model, undo), new Properties(scan_tree, undo));
+        right_stack = new SplitPane(new Palette(model, undo), new Properties(this, scan_tree, undo));
         right_stack.setOrientation(Orientation.VERTICAL);
 
         getItems().setAll(left_stack, right_stack);
@@ -326,6 +358,7 @@ public class ScanEditor extends SplitPane
         final List<ButtonBase> desired;
         final String text;
 
+
         if (info == null)
         {
             // Leave info_text on the last known state?
@@ -356,14 +389,26 @@ public class ScanEditor extends SplitPane
             this.scan_tree.setActiveCommand(info.getCurrentAddress());
         }
 
-        // XXX Optimize, skip the UI call when buttons didn't change?
-
         Platform.runLater(() ->
         {
             buttons.getChildren().setAll(desired);
             if (text != null)
                 info_text.setText(text);
         });
+    }
+
+    /** Change a command's property on the scan server, i.e. for a 'live' scan
+     *  @param command Command to change
+     *  @param property_id Property to change
+     *  @param value New value
+     *  @throws Exception on error
+     */
+    public void changeLiveProperty(final ScanCommand command, final ScanCommandProperty property, final Object value) throws Exception
+    {
+        final long id = active_scan;
+        final ScanInfoModel infos = scan_info_model.get();
+        if (id >= 0  &&  infos != null)
+            infos.getScanClient().patchScan(id, command.getAddress(), property.getID(), value);
     }
 
     /** If currently monitoring a scan, detach */

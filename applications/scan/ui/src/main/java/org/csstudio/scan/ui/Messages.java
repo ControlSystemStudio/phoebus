@@ -14,6 +14,7 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
+    public static String scan_active_prompt;
     public static String scan_abort;
     public static String scan_jump_to_current_command;
     public static String scan_name_id_fmt;

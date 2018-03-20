@@ -11,9 +11,12 @@ import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandProperty;
+import org.csstudio.scan.ui.editor.ScanEditor;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.undo.UndoableAction;
 
+import javafx.application.Platform;
 import javafx.scene.control.TreeItem;
 
 /** Change value of a property
@@ -22,15 +25,17 @@ import javafx.scene.control.TreeItem;
 @SuppressWarnings("nls")
 public class ChangeProperty extends UndoableAction
 {
+    private final ScanEditor editor;
     private final Properties properties;
     private final TreeItem<ScanCommand> tree_item;
     private final ScanCommandProperty property;
     private final Object old_value, new_value;
     private boolean first = true;
 
-    public ChangeProperty(final Properties properties, final TreeItem<ScanCommand> tree_item, final ScanCommandProperty property, final Object new_value) throws Exception
+    public ChangeProperty(final ScanEditor editor, final Properties properties, final TreeItem<ScanCommand> tree_item, final ScanCommandProperty property, final Object new_value) throws Exception
     {
         super("Change property");
+        this.editor = editor;
         this.properties = properties;
         this.tree_item = tree_item;
         this.property = property;
@@ -43,7 +48,7 @@ public class ChangeProperty extends UndoableAction
     {
         changeProperty(new_value);
         // When run the first time, it's triggered by
-        // the property editor which knows to refesh itself.
+        // the property editor which knows to refresh itself.
         // When run again later, it's a re-do after an un-do,
         // so refresh the properties to reflect current values.
         if (! first)
@@ -60,15 +65,22 @@ public class ChangeProperty extends UndoableAction
 
     private void changeProperty(final Object value)
     {
-        try
+        JobManager.schedule(toString(), monitor ->
         {
-            tree_item.getValue().setProperty(property, value);
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot set " + property + " to " + value, ex);
-        }
-        // TODO Update live value on server, see org.csstudio.scan.ui.scantree.operations.PropertyChangeOperation
-        TreeHelper.triggerTreeItemRefresh(tree_item);
+            editor.changeLiveProperty(tree_item.getValue(), property, value);
+
+            Platform.runLater(() ->
+            {
+                try
+                {
+                    tree_item.getValue().setProperty(property, value);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot set " + property + " to " + value, ex);
+                }
+                TreeHelper.triggerTreeItemRefresh(tree_item);
+            });
+        });
     }
 }

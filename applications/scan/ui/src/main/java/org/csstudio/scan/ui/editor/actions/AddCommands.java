@@ -29,7 +29,7 @@ public class AddCommands extends UndoableAction
     private final boolean after;
 
     public AddCommands(final Model model, final ScanCommand location, final List<ScanCommand> new_commands,
-            final boolean after)
+                       final boolean after)
     {
         this(model, null, location, new_commands, after);
     }
