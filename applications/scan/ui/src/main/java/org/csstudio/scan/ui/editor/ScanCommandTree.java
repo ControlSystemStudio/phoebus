@@ -317,6 +317,9 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         });
     }
 
+    /** Set active command, which highlights and optionally reveals it
+     *  @param address Address of active command
+     */
     void setActiveCommand(final long address)
     {
         model.setActiveAddress(address);
@@ -325,6 +328,8 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         final TreeItem<ScanCommand> previous = active_item;
         active_item = findTreeItem(address);
 
+        if (previous == active_item)
+            return;
         Platform.runLater(() ->
         {
             // In principle, need to redraw the previously active item
@@ -337,13 +342,39 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             {
                 TreeHelper.triggerTreeItemRefresh(active_item);
                 if (reveal_active_item)
-                    scrollTo(getRow(active_item));
+                    reveal(active_item);
             }
         });
     }
 
+    private void reveal(final TreeItem<ScanCommand> item)
+    {
+        // Expand tree up to parent because 'getRow' will
+        // only find items that are expanded
+        TreeItem<ScanCommand> parent = item.getParent();
+        while (parent != null)
+        {
+            if (! parent.isExpanded())
+                parent.setExpanded(true);
+            parent = parent.getParent();
+        }
+
+        // Scroll to the active command
+        final int row = getRow(active_item);
+        if (row >= 0)
+        {
+            // Try to show one command above the desired one to get some context
+            if (row > 1)
+                scrollTo(row-1);
+            else
+                scrollTo(row);
+        }
+    }
+
     private TreeItem<ScanCommand> findTreeItem(final long address)
     {
+        if (address < 0)
+            return null;
         while (true)
         {
             try
