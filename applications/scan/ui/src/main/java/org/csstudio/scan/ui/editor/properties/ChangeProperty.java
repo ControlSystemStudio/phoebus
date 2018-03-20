@@ -30,7 +30,6 @@ public class ChangeProperty extends UndoableAction
     private final TreeItem<ScanCommand> tree_item;
     private final ScanCommandProperty property;
     private final Object old_value, new_value;
-    private boolean first = true;
 
     public ChangeProperty(final ScanEditor editor, final Properties properties, final TreeItem<ScanCommand> tree_item, final ScanCommandProperty property, final Object new_value) throws Exception
     {
@@ -47,20 +46,12 @@ public class ChangeProperty extends UndoableAction
     public void run()
     {
         changeProperty(new_value);
-        // When run the first time, it's triggered by
-        // the property editor which knows to refresh itself.
-        // When run again later, it's a re-do after an un-do,
-        // so refresh the properties to reflect current values.
-        if (! first)
-            properties.refresh();
-        first = false;
     }
 
     @Override
     public void undo()
     {
         changeProperty(old_value);
-        properties.refresh();
     }
 
     private void changeProperty(final Object value)
@@ -80,6 +71,7 @@ public class ChangeProperty extends UndoableAction
                     logger.log(Level.WARNING, "Cannot set " + property + " to " + value, ex);
                 }
                 TreeHelper.triggerTreeItemRefresh(tree_item);
+                properties.refresh();
             });
         });
     }
