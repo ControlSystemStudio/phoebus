@@ -17,8 +17,10 @@ import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.phoebus.ui.javafx.Styles;
+import org.phoebus.vtype.Display;
 import org.phoebus.vtype.VNumber;
 import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueUtil;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectPropertyBase;
@@ -48,6 +50,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
     protected volatile String value_text = "<?>";
     protected volatile VType value = null;
+    private volatile double value_max  = 100.0;
+    private volatile double value_min  = 0.0;
 
     @Override
     protected final Spinner<String> createJFXNode() throws Exception
@@ -111,14 +115,12 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         final String text = jfx_node.getEditor().getText();
         Object value =
                 FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text, model_widget.propFormat().getValue());
-        double min = model_widget.propMinimum().getValue();
-        double max = model_widget.propMaximum().getValue();
         if (value instanceof Number)
         {
-            if (((Number)value).doubleValue() < min)
-                value = min;
-            else if (((Number)value).doubleValue() > max)
-                value = max;
+            if (((Number)value).doubleValue() < value_min)
+                value = value_min;
+            else if (((Number)value).doubleValue() > value_max)
+                value = value_max;
         }
         logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
         toolkit.fireWrite(model_widget, value);
@@ -305,7 +307,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         return FormatOptionHandler.format(value,
                                           model_widget.propFormat().getValue(),
                                           model_widget.propPrecision().getValue(),
-                                          false);
+                                          model_widget.propShowUnits().getValue());
     }
 
     @Override
@@ -323,13 +325,15 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propIncrement().addUntypedPropertyListener(this::behaviorChanged);
         model_widget.propMinimum().addUntypedPropertyListener(this::behaviorChanged);
         model_widget.propMaximum().addUntypedPropertyListener(this::behaviorChanged);
+        model_widget.propLimitsFromPV().addUntypedPropertyListener(this::behaviorChanged);
 
         model_widget.propFormat().addUntypedPropertyListener(this::contentChanged);
         model_widget.propPrecision().addUntypedPropertyListener(this::contentChanged);
+        model_widget.propShowUnits().addUntypedPropertyListener(this::contentChanged);
         model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
 
-        contentChanged(null, null, null);
         behaviorChanged(null, null, null);
+        contentChanged(null, null, null);
     }
 
     @Override
@@ -346,15 +350,18 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
     private void behaviorChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+        updateLimits();
         final TextSpinnerValueFactory factory = (TextSpinnerValueFactory)jfx_node.getValueFactory();
         factory.setStepIncrement(model_widget.propIncrement().getValue());
-        factory.setMin(model_widget.propMinimum().getValue());
-        factory.setMax(model_widget.propMaximum().getValue());
+        factory.setMin(value_min);
+        factory.setMax(value_max);
     }
 
 
     private void contentChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+        if (model_widget.propLimitsFromPV().getValue())
+            behaviorChanged(null, null, null);
         value = model_widget.runtimePropValue().getValue();
         value_text = computeText(value);
         scheduleContentUpdate();
@@ -399,5 +406,43 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             jfx_node.getValueFactory().setValue(value_text);
 
         }
+    }
+
+    /** Updates, if required, the limits */
+    private void updateLimits()
+    {
+        //  Model's values.
+        double newMin = model_widget.propMinimum().getValue();
+        double newMax = model_widget.propMaximum().getValue();
+
+        //  If invalid limits, fall back to 0..100 range.
+        if (Double.isNaN(newMin) || Double.isNaN(newMax) || newMin > newMax)
+        {
+            newMin = 0.0;
+            newMax = 100.0;
+        }
+
+        if (model_widget.propLimitsFromPV().getValue())
+        {
+            //  Try to get display range from PV.
+            final Display display_info = ValueUtil.displayOf(model_widget.runtimePropValue().getValue());
+
+            if (display_info != null)
+            {
+                double infoMin = display_info.getLowerCtrlLimit();
+                double infoMax = display_info.getUpperCtrlLimit();
+
+                if (!Double.isNaN(infoMin) && !Double.isNaN(infoMax) && infoMin < infoMax)
+                {
+                    newMin = infoMin;
+                    newMax = infoMax;
+                }
+            }
+        }
+
+        if (Double.compare(value_min, newMin) != 0)
+            value_min = newMin;
+        if (Double.compare(value_max, newMax) != 0)
+            value_max = newMax;
     }
 }

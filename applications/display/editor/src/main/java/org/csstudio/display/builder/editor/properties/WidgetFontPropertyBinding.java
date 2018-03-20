@@ -43,11 +43,14 @@ public class WidgetFontPropertyBinding
             popover = new WidgetFontPopOver(widget_property.getValue(), font ->
             {
                 undo.execute(new SetWidgetPropertyAction<WidgetFont>(widget_property, font));
-                final String path = widget_property.getPath();
-                for (Widget w : other)
+                if (! other.isEmpty())
                 {
-                    final FontWidgetProperty other_prop = (FontWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<WidgetFont>(other_prop, font));
+                    final String path = widget_property.getPath();
+                    for (Widget w : other)
+                    {
+                        final FontWidgetProperty other_prop = (FontWidgetProperty) w.getProperty(path);
+                        undo.execute(new SetWidgetPropertyAction<WidgetFont>(other_prop, font));
+                    }
                 }
             });
 

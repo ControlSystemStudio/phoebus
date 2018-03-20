@@ -50,11 +50,14 @@ public class ColorMapPropertyBinding
         if (result.isPresent())
         {
             undo.execute(new SetWidgetPropertyAction<ColorMap>(widget_property, result.get()));
-            final String path = widget_property.getPath();
-            for (Widget w : other)
+            if (! other.isEmpty())
             {
-                final ColorMapWidgetProperty other_prop = (ColorMapWidgetProperty) w.getProperty(path);
-                undo.execute(new SetWidgetPropertyAction<ColorMap>(other_prop, result.get()));
+                final String path = widget_property.getPath();
+                for (Widget w : other)
+                {
+                    final ColorMapWidgetProperty other_prop = (ColorMapWidgetProperty) w.getProperty(path);
+                    undo.execute(new SetWidgetPropertyAction<ColorMap>(other_prop, result.get()));
+                }
             }
         }
     };

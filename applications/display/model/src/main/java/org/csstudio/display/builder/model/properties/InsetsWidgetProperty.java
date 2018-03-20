@@ -39,6 +39,21 @@ public class InsetsWidgetProperty extends RuntimeWidgetProperty<int[]>
         }
     };
 
+
+    public static final WidgetPropertyDescriptor<int[]> runtimePropExtendedInsets =
+        new WidgetPropertyDescriptor<int[]>(
+            WidgetPropertyCategory.RUNTIME, "insets", Messages.WidgetProperties_Insets)
+    {
+        @Override
+        public WidgetProperty<int[]> createProperty(final Widget widget,
+                                                    final int[] default_value)
+        {
+            return new InsetsWidgetProperty(widget, default_value, 4);
+        }
+    };
+
+
+
     /** Get insets of a container
      *
      *  @param container Presumably a container widget
@@ -52,25 +67,33 @@ public class InsetsWidgetProperty extends RuntimeWidgetProperty<int[]>
         return null;
     }
 
+
+    private final int validSize;
+
     public InsetsWidgetProperty(final Widget widget, final int[] default_value)
     {
+        this(widget, default_value, 2);
+    }
+
+    public InsetsWidgetProperty(final Widget widget, final int[] default_value, final int validSize)
+    {
         super(runtimePropInsets, widget, default_value);
+        this.validSize = validSize;
     }
 
     @Override
     protected int[] restrictValue(final int[] requested_value)
     {
-        if (requested_value.length != 2)
-            throw new IllegalArgumentException("Need int[2], got " + requested_value);
+        if (requested_value.length != validSize)
+            throw new IllegalArgumentException("Need int[" + validSize + "], got " + requested_value);
         return requested_value;
     }
 
     @Override
     public void setValueFromObject(final Object value) throws Exception
     {
-        if (value instanceof int[]  &&  ((int[]) value).length == 2)
+        if (value instanceof int[]  &&  ((int[]) value).length == validSize)
             setValue((int[]) value);
         else
-            throw new Exception("Need int[2], got " + value);
-    }
+            throw new Exception("Need int[" + validSize + "], got " + value);     }
 }

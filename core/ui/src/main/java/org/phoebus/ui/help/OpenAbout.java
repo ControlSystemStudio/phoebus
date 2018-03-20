@@ -13,6 +13,8 @@ import java.util.List;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -52,7 +54,7 @@ public class OpenAbout implements MenuEntry
     @Override
     public Void call()
     {
-        // TODO Useful, but ugly
+        // Useful, but ugly
         // TODO Add version information
         final Alert dialog = new Alert(AlertType.INFORMATION);
         dialog.setTitle("About Phoebus");
@@ -102,6 +104,7 @@ public class OpenAbout implements MenuEntry
 
         dialog.setResizable(true);
         dialog.getDialogPane().setPrefWidth(800);
+        DialogHelper.positionDialog(dialog, DockPane.getActiveDockPane(), -400, -300);
 
         dialog.showAndWait();
 

@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandProperty;
 import org.csstudio.scan.device.DeviceInfo;
+import org.csstudio.scan.ui.editor.ScanEditor;
 import org.csstudio.scan.util.StringOrDouble;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -39,12 +40,14 @@ import javafx.scene.layout.Priority;
 @SuppressWarnings("nls")
 public class Properties extends TitledPane
 {
+    private final ScanEditor editor;
     private final TreeView<ScanCommand> scan_tree;
     private final UndoableActionManager undo;
     private final ScrollPane scroll = new ScrollPane();
 
-    public Properties(final TreeView<ScanCommand> scan_tree, final UndoableActionManager undo)
+    public Properties(final ScanEditor editor, final TreeView<ScanCommand> scan_tree, final UndoableActionManager undo)
     {
+        this.editor = editor;
         this.scan_tree = scan_tree;
         this.undo = undo;
         scroll.setFitToWidth(true);
@@ -194,7 +197,7 @@ public class Properties extends TitledPane
     {
         try
         {
-            undo.execute(new ChangeProperty(this, tree_item, property, value));
+            undo.execute(new ChangeProperty(editor, this, tree_item, property, value));
         }
         catch (Exception ex)
         {

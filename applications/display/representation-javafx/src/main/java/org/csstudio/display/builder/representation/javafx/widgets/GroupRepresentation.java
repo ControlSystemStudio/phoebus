@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
+
+import java.util.List;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -27,15 +29,28 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
  */
 public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget>
 {
-    private final DirtyFlag dirty_border = new DirtyFlag();
+    private static final Insets TITLE_PADDING = new Insets(1, 3, 1, 3);
+    private static final int BORDER_WIDTH = 1;
+    private static final BorderWidths EDTI_NONE_BORDER = new BorderWidths(0.5, 0.5, 0.5, 0.5, false, false, false, false);
+    private static final BorderStrokeStyle EDTI_NONE_DASHED = new BorderStrokeStyle(
+        StrokeType.INSIDE,
+        StrokeLineJoin.MITER,
+        StrokeLineCap.BUTT,
+        10,
+        0,
+        List.of(Double.valueOf(11.11), Double.valueOf(7.7), Double.valueOf(3.3), Double.valueOf(7.7))
+    );
 
-    private static final int border_width = 1;
+    private final DirtyFlag dirty_border = new DirtyFlag();
 
     // top-level 'Pane' provides background color and border
 
@@ -45,6 +60,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     /** Inner pane that holds child widgets */
     private Pane inner;
 
+    private volatile boolean firstUpdate = true;
     private volatile int inset = 10;
     private volatile Color foreground_color, background_color;
 
@@ -97,12 +113,9 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     public void updateChanges()
     {
         super.updateChanges();
+
         if (dirty_border.checkAndClear())
         {
-            final int width = model_widget.propWidth().getValue();
-            final int height = model_widget.propHeight().getValue();
-
-            jfx_node.setPrefSize(width, height);
             if (model_widget.propTransparent().getValue())
                 jfx_node.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, null, null)));
             else
@@ -113,58 +126,116 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
             label.setText(model_widget.propName().getValue());
 
             final Style style = model_widget.propStyle().getValue();
-            if (style == Style.NONE)
+            int x = model_widget.propX().getValue();
+            int y = model_widget.propY().getValue();
+            int width = model_widget.propWidth().getValue();
+            int height = model_widget.propHeight().getValue();
+
+            //  Reset position and size as if style == Style.NONE.
+            int[] insets = new int[4];
+
+            System.arraycopy(model_widget.runtimePropInsets().getValue(), 0, insets, 0, insets.length);
+
+            final boolean hasChildren = !model_widget.runtimeChildren().getValue().isEmpty();
+
+            if (hasChildren)
             {
-                inset = 0;
-                // In edit mode, show outline because otherwise hard to handle the totally invisible group
-                if (toolkit.isEditMode() && model_widget.propTransparent().getValue())
-                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.DASHED, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-                else
-                    jfx_node.setBorder(null);
+                inner.relocate(- insets[0], - insets[1]);
 
-                label.setVisible(false);
-
-                inner.relocate(0, 0);
-                model_widget.runtimePropInsets().setValue(new int[] { 0, 0 });
+                x += insets[0];
+                y += insets[1];
+                width -= insets[2];
+                height -= insets[3];
             }
-            else if (style == Style.TITLE)
+
+            switch (style)
             {
-                inset = (int) (1.2*font.getSize());
-                jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+            case NONE:
+                {
+                    inset = 0;
+                    insets[0] = 0;
+                    insets[1] = 0;
+                    insets[2] = 0;
+                    insets[3] = 0;
 
-                label.setVisible(true);
-                label.relocate(0, 0);
-                label.setPrefSize(width, inset);
-                label.setTextFill(background_color);
-                label.setBackground(new Background(new BackgroundFill(foreground_color, CornerRadii.EMPTY, Insets.EMPTY)));
+                    // In edit mode, show outline because otherwise hard to
+                    // handle the totally invisible group
+                    if (toolkit.isEditMode())
+                        jfx_node.setBorder(new Border(new BorderStroke(foreground_color, EDTI_NONE_DASHED, CornerRadii.EMPTY, EDTI_NONE_BORDER)));
+                    else
+                        jfx_node.setBorder(null);
+                    label.setVisible(false);
+                    break;
+                }
+            case LINE:
+                {
+                    inset = 0;
+                    insets[0] = BORDER_WIDTH;
+                    insets[1] = BORDER_WIDTH;
+                    insets[2] = 2 * insets[0];
+                    insets[3] = 2 * insets[1];
 
-                inner.relocate(border_width, inset+border_width);
-                model_widget.runtimePropInsets().setValue(new int[] { border_width, inset+border_width });
+                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+                    label.setVisible(false);
+                    break;
+                }
+            case TITLE:
+                {
+                    inset = 2 + (int) ( 1.2 * font.getSize() );
+                    insets[0] = BORDER_WIDTH;
+                    insets[1] = inset + BORDER_WIDTH;
+                    insets[2] = 2 * insets[0];
+                    insets[3] = insets[0] + insets[1];
+
+                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+                    label.setVisible(true);
+                    label.relocate(0, BORDER_WIDTH);
+                    label.setPadding(TITLE_PADDING);
+                    label.setPrefSize(width + ( ( !firstUpdate && hasChildren ) ? insets[2] : 0 ), inset);
+                    label.setTextFill(background_color);
+                    label.setBackground(new Background(new BackgroundFill(foreground_color, CornerRadii.EMPTY, Insets.EMPTY)));
+                    break;
+                }
+            case GROUP:
+            default:
+                {
+                    inset = 2 + (int) ( 1.2 * font.getSize() );
+                    insets[0] = inset;
+                    insets[1] = inset;
+                    insets[2] = 2 * insets[0];
+                    insets[3] = 2 * insets[1];
+
+                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT, new Insets(inset / 2))));
+                    label.setVisible(true);
+                    label.relocate(inset, 0);
+                    label.setPadding(TITLE_PADDING);
+                    label.setPrefSize(Label.USE_COMPUTED_SIZE, Label.USE_COMPUTED_SIZE);
+                    label.setTextFill(foreground_color);
+                    label.setBackground(new Background(new BackgroundFill(background_color, CornerRadii.EMPTY, Insets.EMPTY)));
+                    break;
+                }
             }
-            else if (style == Style.LINE)
+
+            inner.relocate(insets[0], insets[1]);
+            model_widget.runtimePropInsets().setValue(insets);
+
+            if (firstUpdate)
+                firstUpdate = false;
+            else if (hasChildren)
             {
-                inset = 0;
-                jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+                x -= insets[0];
+                y -= insets[1];
+                width += insets[2];
+                height += insets[3];
 
-                label.setVisible(false);
-
-                inner.relocate(border_width, border_width);
-                model_widget.runtimePropInsets().setValue(new int[] { border_width, border_width });
+                model_widget.propX().setValue(x);
+                model_widget.propY().setValue(y);
+                model_widget.propWidth().setValue(width);
+                model_widget.propHeight().setValue(height);
             }
-            else // GROUP
-            {
-                inset = (int) (1.2*font.getSize());
-                jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT,
-                                                               new Insets(inset/2))));
-                label.setVisible(true);
-                label.relocate(inset, 0);
-                label.setPrefSize(Label.USE_COMPUTED_SIZE, Label.USE_COMPUTED_SIZE);
-                label.setTextFill(foreground_color);
-                label.setBackground(new Background(new BackgroundFill(background_color, CornerRadii.EMPTY, Insets.EMPTY)));
 
-                inner.relocate(inset, inset);
-                model_widget.runtimePropInsets().setValue(new int[] { inset, inset });
-            }
+            jfx_node.relocate(x, y);
+            jfx_node.setPrefSize(width, height);
         }
     }
 }

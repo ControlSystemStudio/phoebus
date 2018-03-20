@@ -88,7 +88,10 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
                 try
                 {
                     ret = (WidgetProperty<T>) constructor.newInstance(descriptor, widget, default_value);
-                    ret.setValue( this.getValue() );
+                    if (ret instanceof MacroizedWidgetProperty)
+                        ((MacroizedWidgetProperty<T>) ret).setSpecification(((MacroizedWidgetProperty<T>) this).getSpecification());
+                    else
+                        ret.setValue( this.getValue() );
                 }
                 catch (Exception ex)
                 {
