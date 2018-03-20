@@ -72,7 +72,7 @@ public class DataPlot extends VBox
     private ScanInfoModel scan_info_model;
 
     /** Reader for data of selected scan; used to update plot_data */
-    private ScanDataReader reader;
+    private volatile ScanDataReader reader;
 
     /** Devices of the selected scan; used to update device selectors */
     private final AtomicReference<List<String>> scan_devices = new AtomicReference<>(Collections.emptyList());
@@ -122,7 +122,7 @@ public class DataPlot extends VBox
             scan_info_model.addListener(new ScanInfoModelListener()
             {
                 @Override
-                public void scanUpdate(List<ScanInfo> infos)
+                public void scanUpdate(final List<ScanInfo> infos)
                 {
                     updateScans(infos);
                 }
@@ -145,12 +145,15 @@ public class DataPlot extends VBox
     {
         final ToggleGroup group = new ToggleGroup();
         final List<MenuItem> names = new ArrayList<>(infos.size());
+
+        final ScanDataReader safe_reader = reader;
+        final long scan_id = safe_reader != null ? safe_reader.getScanId() : -1;
         for (ScanInfo info : infos)
         {
             final String label = MessageFormat.format(Messages.scan_name_id_fmt, info.getName(), info.getId());
             final RadioMenuItem item = new RadioMenuItem(label);
             item.setToggleGroup(group);
-            if (reader.getScanId() == info.getId())
+            if (scan_id == info.getId())
                 item.setSelected(true);
             item.setOnAction(event -> selectScan(info.getId(), label));
             names.add(item);
