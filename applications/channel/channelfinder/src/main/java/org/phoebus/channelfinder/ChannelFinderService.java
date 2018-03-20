@@ -29,7 +29,6 @@ public class ChannelFinderService {
     
     private ChannelFinderService() {
         channelFinderClients = new HashMap<String, ChannelFinderClient>();
-        channelFinderClients.put(DEFAULT, CFCBuilder.serviceURL("https://localhost:9191/ChannelFinder").create());
     }
 
     public static ChannelFinderService getInstance() {
@@ -47,8 +46,8 @@ public class ChannelFinderService {
         if(channelFinderClients.containsKey(DEFAULT)) {
             return channelFinderClients.get(DEFAULT);
         }else {
-            // Create the default client here:
-            return null;
+            channelFinderClients.put(DEFAULT, CFCBuilder.serviceURL().create());
+            return channelFinderClients.get(DEFAULT);
         }
     }
 
