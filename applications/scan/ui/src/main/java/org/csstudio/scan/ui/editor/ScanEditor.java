@@ -79,21 +79,24 @@ public class ScanEditor extends SplitPane
         @Override
         public void execute(UndoableAction action)
         {
-            // Warn that changes to the running scan are limited
-            final Alert dlg = new Alert(AlertType.CONFIRMATION);
-            dlg.setHeaderText("");
-            dlg.setContentText(Messages.scan_active_prompt);
-            dlg.setResizable(true);
-            dlg.getDialogPane().setPrefSize(600, 300);
-            DialogHelper.positionDialog(dlg, scan_tree, -100, -100);
-            if (dlg.showAndWait().get() != ButtonType.OK)
-                return;
+            final ScanInfoModel infos = scan_info_model.get();
+            if (infos != null)
+            {
+                // Warn that changes to the running scan are limited
+                final Alert dlg = new Alert(AlertType.CONFIRMATION);
+                dlg.setHeaderText("");
+                dlg.setContentText(Messages.scan_active_prompt);
+                dlg.setResizable(true);
+                dlg.getDialogPane().setPrefSize(600, 300);
+                DialogHelper.positionDialog(dlg, scan_tree, -100, -100);
+                if (dlg.showAndWait().get() != ButtonType.OK)
+                    return;
 
-            // Only property change is possible while running.
-            // Adding/removing commands detaches from the running scan.
-            if (! (action instanceof ChangeProperty))
-                detachFromScan();
-
+                // Only property change is possible while running.
+                // Adding/removing commands detaches from the running scan.
+                if (! (action instanceof ChangeProperty))
+                    detachFromScan();
+            }
             super.execute(action);
         }
     };
