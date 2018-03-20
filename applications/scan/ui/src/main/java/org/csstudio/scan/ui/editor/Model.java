@@ -134,11 +134,12 @@ public class Model
                               final int update_index,
                               final int update_total) throws Exception
     {
-        final RemovalInfo info = remove(null, command, update_index, update_total);
+        final boolean notify_listeners = update_total <= 1;
+        final RemovalInfo info = remove(null, command, notify_listeners);
         if (info == null)
             throw new Exception("Cannot locate item to be removed");
 
-        if (update_total <= 1)
+        if (notify_listeners)
             updateAddresses();
         else
             // Otherwise send one bulk event on the last update
@@ -154,14 +155,12 @@ public class Model
 
     /** @param parent Parent item, <code>null</code> for root of tree
      *  @param command Command to remove
-     *  @param update_index Hint: This is update i ..
-     *  @param update_total .. out of a series of N total updates
+     *  @param notify_listeners Send per-item update?
      *  @return Info about removal
      */
     private RemovalInfo remove(final ScanCommandWithBody parent,
                                final ScanCommand command,
-                               final int update_index,
-                               final int update_total)
+                               final boolean notify_listeners)
     {
         final List<ScanCommand> commands = parent == null ? model : parent.getBody();
         for (int i=0; i<commands.size(); ++i)
@@ -170,15 +169,15 @@ public class Model
             if (current == command)
             {   // Found the item
                 commands.remove(i);
-                if (update_total <= 1)
+                if (notify_listeners)
                     for (ModelListener listener : listeners)
                         listener.commandRemoved(current);
-                return new RemovalInfo(this, parent, i > 0 ? commands.get(i-1) : null, command, update_index, update_total);
+                return new RemovalInfo(this, parent, i > 0 ? commands.get(i-1) : null, command);
             }
             else if (current instanceof ScanCommandWithBody)
             {   // Recurse into body, because target may be inside.
                 final ScanCommandWithBody cmd = (ScanCommandWithBody) current;
-                final RemovalInfo info = remove(cmd, command, update_index, update_total);
+                final RemovalInfo info = remove(cmd, command, notify_listeners);
                 if (info != null)
                     return info;
                 // else: target wasn't in that body

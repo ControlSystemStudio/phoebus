@@ -52,7 +52,7 @@ public class RemoveCommands extends UndoableAction
             for (int i=N-1;  i>=0;  --i)
             {
                 final ScanCommand command = to_remove.get(i);
-                removals.add(0, model.remove(command, i+1, N));
+                removals.add(0, model.remove(command, N-i, N));
             }
         }
         catch (Exception ex)
@@ -67,8 +67,12 @@ public class RemoveCommands extends UndoableAction
         try
         {
             if (removals != null)
+            {
+                final int N = to_remove.size();
+                int i = 0;
                 for (RemovalInfo removal : removals)
-                    removal.undo();
+                    removal.undo(++i, N);
+            }
         }
         catch (Exception ex)
         {
