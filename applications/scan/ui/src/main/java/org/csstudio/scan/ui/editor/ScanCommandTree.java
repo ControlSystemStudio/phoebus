@@ -64,27 +64,22 @@ public class ScanCommandTree extends TreeView<ScanCommand>
             // Convert scan into tree items
             JobManager.schedule("Create Scan Tree", monitor ->
             {
-                System.out.println("Create command items...");
                 final TreeItem<ScanCommand> new_root = new TreeItem<>(null);
                 addCommands(new_root, model.getCommands());
 
                 Platform.runLater(() ->
                 {
-                    System.out.println("Set command items...");
                     // Clearing the selection results in faster tree update
                     final int sel = getSelectionModel().getSelectedIndex();
                     getSelectionModel().clearSelection();
+
                     root.getChildren().setAll(new_root.getChildren());
 
-
-                    System.out.println("Select..");
                     if (sel >= 0)
                         getSelectionModel().select(sel);
 
-                    System.out.println("Expand..");
                     // Expand complete tree
                     expand(root);
-                    System.out.println("Done.");
                 });
             });
         }

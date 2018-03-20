@@ -93,7 +93,7 @@ public class AddCommands extends UndoableAction
             for (int i=N-1; i>=0; --i)
             {
                 final ScanCommand command= new_commands.get(i);
-                model.remove(command, i+1, N);
+                model.remove(command, N-i, N);
             }
         }
         catch (Exception ex)
