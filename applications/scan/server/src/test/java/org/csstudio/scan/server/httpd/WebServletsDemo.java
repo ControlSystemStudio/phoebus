@@ -31,6 +31,11 @@ public class WebServletsDemo
 
     public static class HelloServlet extends HttpServlet
     {
+        public HelloServlet()
+        {
+            System.out.println("Creating HelloServlet");
+        }
+
         @Override
         protected void doGet(final HttpServletRequest request,
                              final HttpServletResponse response) throws ServletException, IOException
@@ -47,6 +52,11 @@ public class WebServletsDemo
 
     public static class StopServlet extends HttpServlet
     {
+        public StopServlet()
+        {
+            System.out.println("Creating StopServlet");
+        }
+
         @Override
         protected void doGet(final HttpServletRequest request,
                              final HttpServletResponse response) throws ServletException, IOException
