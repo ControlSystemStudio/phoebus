@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<link rel="stylesheet" type="text/css" href="scan.css">
+<script type="text/javascript" src="jquery-1.8.3.js" ></script>
+<script type="text/javascript" src="index.js" ></script>
+<title>Scan Server REST Interface</title>
+</head>
+
+<body>
+<h1>Scan Server REST Interface</h1>
+
+<h2>Server Info</h2>
+<p>Obtain general server info: Version number, runtime, memory usage.</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd><a href="server/info">/server/info</a></dd>
+<dt>Result</dt>
+<dd>XML with server info</dd>
+</dl>
+
+
+<h2>Submit Scansubmit.js</h2>
+<p>Submit a new scan for execution.</p>
+<dl>
+<dt>Method</dt>
+<dd>POST</dd>
+<dt>URL</dt>
+<dd><a href="submit.html">/scan/{name-of-new-scan}</a> to queue or
+    <a href="submit.html">/scan/{name-of-new-scan}?queue=false</a> for immediate execution.
+</dd>
+<dt>Message Body</dt>
+<dd>XML-formatted scan</dd>
+<dt>Result</dt>
+<dd>
+  <ul>
+  <li>On success, XML with scan ID, example: <code>&ltid>42&lt/id></code>
+  </li>
+  <li>On error, XML with error message and trace, example:
+      <code>&lterror>&ltmessage>Failed to submit&lt/message>&lttrace>java.lang.Exception at ..&lt/trace>&lt/error></code>
+  </li>
+  </ul>
+</dd>
+</dl>
+
+<p>Submit a scan for simulation.</p>
+<dl>
+<dt>Method</dt>
+<dd>POST</dd>
+<dt>URL</dt>
+<dd><a href="simulate.html">/simulate</a></dd>
+<dt>Message Body</dt>
+<dd>XML-formatted scan</dd>
+<dt>Result</dt>
+<dd>
+  <ul>
+  <li>On success, XML with scan ID, example: <code>&ltid>42&lt/id></code>
+  </li>
+  <li>On error, XML with error message and trace, example:
+      <code>&lterror>&ltmessage>Failed to submit&lt/message>&lttrace>java.lang.Exception at ..&lt/trace>&lt/error></code>
+  </li>
+  </ul>
+</dd>
+</dl>
+
+
+<h2>List Scans</h2>
+<p>List all scans on the server.</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd><a href="scans.html">/scans</a></dd>
+<dt>Result</dt>
+<dd>XML with scans</dd>
+</dl>
+
+
+<h2>Get Scan Info</h2>
+<p>Get information for a specific scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd>/scan/{id}</a></dd>
+<dt>Result</dt>
+<dd>XML with scan info</dd>
+</dl>
+
+<p>Get commands of a specific scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/commands</a></dd>
+<dt>Result</dt>
+<dd>XML with scan commands</dd>
+</dl>
+
+<p>Get devices used by a specific scan.
+Returns default devices for scan ID -1: <a href="scan/-1/devices">/scan/-1/devices</a>.
+</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/devices</a></dd>
+<dt>Result</dt>
+<dd>XML with device infos</dd>
+</dl>
+
+<p>Get logged data of a specific scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/data</a></dd>
+<dt>Result</dt>
+<dd>XML with scan data</dd>
+</dl>
+
+<p>Get last sample's serial for logged data of a specific scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/last_serial</a></dd>
+<dt>Result</dt>
+<dd>XML with last sample's serial, example: <code>&ltserial>142&lt/serial></code></dd>
+</dl>
+
+
+<h2>Put Scan into different States</h2>
+<p>Pause a running scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>PUT</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/pause</a></dd>
+<dt>Result</dt>
+<dd>HTTP OK or error</dd>
+</dl>
+
+<p>Resume a paused scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>PUT</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/resume</a></dd>
+<dt>Result</dt>
+<dd>HTTP OK or error</dd>
+</dl>
+
+<p>Abort a running or paused scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>PUT</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/abort</a></dd>
+<dt>Result</dt>
+<dd>HTTP OK or error</dd>
+</dl>
+
+<p>The above pause, resume, abort commands can be used with scan ID -1 to address all scans.</p>
+
+
+<h2>Delete Scans</h2>
+<p>Delete a finished Scan.</p>
+<dl>
+<dt>Method</dt>
+<dd>DELETE</dd>
+<dt>URL</dt>
+<dd>/scan/{id}</a></dd>
+<dt>Result</dt>
+<dd>HTTP OK or error</dd>
+</dl>
+
+<p>Delete all finished Scans</p>
+<dl>
+<dt>Method</dt>
+<dd>DELETE</dd>
+<dt>URL</dt>
+<dd>/scans/completed</a></dd>
+<dt>Result</dt>
+<dd>HTTP OK or error</dd>
+</dl>
+
+<h2>Shutdown</h2>
+
+<p>Shut Scan Server down</p>
+<dl>
+<dt>Method</dt>
+<dd>GET</dd>
+<dt>URL</dt>
+<dd><a href="/server/shutdown" id='shutdown'>/server/shutdown</a>
+
+
+</dd>
+
+
+
+<dt>Result</dt>
+<dd>HTTP OK</dd>
+</dl>
+
+</body>
+</html>
