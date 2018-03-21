@@ -54,7 +54,6 @@ public class Probe implements AppResourceDescriptor {
 
     @Override
     public AppInstance create(URI resource) {
-        final AppDescriptor app = ApplicationService.findApplication(Probe.NAME);
 
         ProbeInstance probe = null;
         try
@@ -62,12 +61,12 @@ public class Probe implements AppResourceDescriptor {
             final List<String> pvs = ResourceParser.parsePVs(resource);
             if (pvs.isEmpty()) {
                 // Open an empty probe
-                probe = (ProbeInstance) app.create();
+                probe = (ProbeInstance) create();
             } else {
                 // Open a probe for each pv
                 for (String pv : pvs)
                 {
-                    probe = (ProbeInstance) app.create();
+                    probe = (ProbeInstance) create();
                     probe.setPV(pv);
                 }
             }
