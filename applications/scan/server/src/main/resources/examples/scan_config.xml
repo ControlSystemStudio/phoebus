@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!-- Scan configuration
+
+     Lists PV names and possible alias.
+
+     Alias can be used in scans instead of the PV name
+  -->
+<scan_config>
+
+  <!-- TCP port used by HTTPD / REST -->
+  <port>4811</port>
+
+  <!-- Jython class that implements the
+       org.csstudio.scan.server.SimulationHook
+
+       May be empty,
+       or provide the name of a Jython class,
+       placed in a file with the lower-case name.
+
+       Example:
+       Class SimulationHookDemo must be
+       implemented in file simulationhookdemo.py,
+       located on the path provided by the script_paths
+       preference.
+    -->
+  <simulation_hook>SimulationHookDemo</simulation_hook>
+
+  <!-- Simulation information for a PV
+
+       Slew rate is in [units of the device] / second
+
+       The (simulated) neutrons change at about 7/sec
+    -->
+  <pv>
+    <name>neutrons</name>
+    <slew_rate>7</slew_rate>
+  </pv>
+  <!-- Proton charge: About 3.5e12 / hour = 9.7e8 / sec -->
+  <pv>
+    <name>pcharge</name>
+    <slew_rate>9.7222e+08</slew_rate>
+  </pv>
+
+  <!-- Alias, if present, is preferred over pv name -->
+  <pv>
+    <name>motor_x</name>
+    <alias>xpos</alias>
+    <slew_rate>0.1</slew_rate>
+  </pv>
+
+  <!-- In addition, a name_pattern is allowed
+       for slew rate (simulation) configuration.
+
+       Name is regular expression
+    -->
+  <pv>
+    <name_pattern>.pos</name_pattern>
+    <slew_rate>0.2</slew_rate>
+  </pv>
+
+  <pv> <name>motor_y</name> <alias>ypos</alias> </pv>
+  <pv> <name>readback</name> <alias>readback</alias> </pv>
+  <pv> <name>setpoint</name> <alias>setpoint</alias> </pv>
+</scan_config>

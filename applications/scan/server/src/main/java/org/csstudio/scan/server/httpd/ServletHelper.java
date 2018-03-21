@@ -186,18 +186,11 @@ public class ServletHelper
         write(writer, "version", info.getVersion());
         write(writer, "start_time", info.getStartTime());
         write(writer, "scan_config", info.getScanConfig());
-
-        // For older clients, also report as "beamline_config"
-        writer.writeComment("beamline_config is deprecated, use scan_config");
-        write(writer, "beamline_config", info.getScanConfig());
-        write(writer, "simulation_config", info.getSimulationConfig());
-
         write(writer, "script_paths", PathUtil.joinPaths(info.getScriptPaths()));
         write(writer, "macros", info.getMacros());
-
         write(writer, "used_mem", info.getUsedMem());
         write(writer, "max_mem", info.getMaxMem());
-        write(writer,  "non_heap", info.getNonHeapUsedMem());
+        write(writer, "non_heap", info.getNonHeapUsedMem());
 
         writer.writeEndElement();
     }
