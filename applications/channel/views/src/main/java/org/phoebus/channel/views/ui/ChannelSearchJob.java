@@ -29,7 +29,17 @@ public class ChannelSearchJob implements JobRunnable {
      * @param archives
      *            Archives to search
      * @param pattern
-     *            Glob-type name pattern
+     *            Space seperated search criterias, patterns may include * and ?
+     *            wildcards
+     *            channelNamePattern propertyName=valuePattern1,valuePattern2 Tags=tagNamePattern
+     *            Each criteria is logically ANDed, || seperated values are
+     *            logically ORed Query for channels based on the Query string
+     *            query 
+     *            example: find("SR* Cell=1,2 Tags=GolderOrbit,myTag") this
+     *            will return all channels with names starting with SR AND have
+     *            property Cell=1 OR 2 AND have tags goldenOrbit AND myTag. IMP:
+     *            each criteria is logically AND'ed while multiple values for
+     *            Properties are OR'ed.
      * @param channel_handler
      *            Invoked when the job located names on the server
      * @param error_handler
@@ -42,7 +52,6 @@ public class ChannelSearchJob implements JobRunnable {
                 new ChannelSearchJob(client, pattern, channel_handler, error_handler));
     }
 
-
     private ChannelSearchJob(ChannelFinderClient client, String pattern, Consumer<Collection<Channel>> channel_handler,
             BiConsumer<String, Exception> error_handler) {
         super();
@@ -51,7 +60,6 @@ public class ChannelSearchJob implements JobRunnable {
         this.channel_handler = channel_handler;
         this.error_handler = error_handler;
     }
-
 
     @Override
     public void run(JobMonitor monitor) throws Exception {

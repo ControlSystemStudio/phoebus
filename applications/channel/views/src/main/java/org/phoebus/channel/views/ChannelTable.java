@@ -2,8 +2,10 @@ package org.phoebus.channel.views;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.phoebus.channel.views.ui.ChannelTableController;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -14,7 +16,7 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.fxml.FXMLLoader;
 
 /**
- * 
+ * An instance of the ChannelTable application to display cf queries.
  * @author Kunal Shroff
  *
  */
@@ -43,6 +45,12 @@ public class ChannelTable implements AppInstance {
     }
 
     public void setResource(URI resource) {
-        controller.setQuery("*");
+        String query = resource.getQuery();
+        // TODO URI parsing might be imporved.
+        String parsedQuery = Arrays.asList(query.split("&")).stream().filter(s->{
+            return s.startsWith("query");
+        }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
+
+        controller.setQuery(parsedQuery);
     }
 }

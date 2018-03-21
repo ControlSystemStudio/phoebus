@@ -15,7 +15,9 @@ public class ChannelTableApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(ChannelTableApp.class.getName());
     static final Image icon = ImageCache.getImage(ChannelTableApp.class, "/icons/channel-viewer-16.png");
-    public static final String NAME = "ChannelTableViews";
+    public static final String NAME = "ChannelTable";
+
+    private static final String SUPPORTED_SCHEMA = "cf";
 
     private ChannelFinderClient client;
 
@@ -34,6 +36,16 @@ public class ChannelTableApp implements AppResourceDescriptor {
         return new ChannelTable(this);
     }
 
+    @Override
+    public boolean canOpenResource(String resource) {
+        return URI.create(resource).getScheme().equals(SUPPORTED_SCHEMA);
+    }
+
+    /**
+     * Support the launching of channeltable using resource cf://?<search_string>
+     * e.g.
+     * -resource cf://?query=SR*
+     */
     @Override
     public AppInstance create(URI resource) {
         ChannelTable channelTable = new ChannelTable(this);

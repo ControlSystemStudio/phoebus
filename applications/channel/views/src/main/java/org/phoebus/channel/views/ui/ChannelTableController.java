@@ -48,7 +48,8 @@ public class ChannelTableController extends ChannelFinderController {
     }
 
     public void setQuery(String string) {
-
+        query.setText(string);
+        search();
     }
 
     @FXML
