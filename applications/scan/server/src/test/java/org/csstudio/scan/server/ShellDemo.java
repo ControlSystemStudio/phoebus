@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.scan.server.httpd;
+package org.csstudio.scan.server;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -114,7 +114,7 @@ public class ShellDemo
         System.out.println("   2 + ");
         System.out.println("   5 ");
         System.out.println();
-        System.out.println("   import org.csstudio.scan.server.httpd.ShellDemo.Demo");
+        System.out.println("   import org.csstudio.scan.server.ShellDemo.Demo");
         System.out.println("   Demo d = new Demo()");
         System.out.println("   d");
         System.out.println();
