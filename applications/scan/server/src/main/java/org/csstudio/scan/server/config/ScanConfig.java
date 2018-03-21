@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import org.csstudio.scan.device.DeviceInfo;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
