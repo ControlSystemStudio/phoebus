@@ -398,7 +398,33 @@ public class PropertyPanelSection extends GridPane
             };
             bindings.add(binding);
             binding.bind();
-            field = text;
+
+            // Allow editing long PV names, including loc://text("Log text with newlines"),
+            // in dialog
+            final Button open_editor = new Button("...");
+            open_editor.setOnAction(event ->
+            {
+                final MultiLineInputDialog dialog = new MultiLineInputDialog(pv_prop.getSpecification());
+                DialogHelper.positionDialog(dialog, open_editor, -600, 0);
+                final Optional<String> result = dialog.showAndWait();
+                if (!result.isPresent())
+                    return;
+                undo.execute(new SetMacroizedWidgetPropertyAction(pv_prop, result.get()));
+                for (Widget w : other)
+                {
+                    final MacroizedWidgetProperty<?> other_prop = (MacroizedWidgetProperty<?>) w.getProperty(pv_prop.getName());
+                    undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, result.get()));
+                }
+            });
+
+            field = new HBox(text, open_editor);
+            HBox.setHgrow(text, Priority.ALWAYS);
+            // For RulesDialog, see above
+            field.focusedProperty().addListener((ob, o, focused) ->
+            {
+                if (focused)
+                    text.requestFocus();
+            });
         }
         else if (property instanceof MacroizedWidgetProperty)
         {   // MacroizedWidgetProperty needs to be checked _after_ subclasses like PVNameWidgetProperty, FilenameWidgetProperty
