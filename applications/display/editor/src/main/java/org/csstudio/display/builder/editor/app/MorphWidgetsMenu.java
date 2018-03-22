@@ -23,6 +23,7 @@ import org.csstudio.display.builder.editor.undo.AddWidgetAction;
 import org.csstudio.display.builder.editor.undo.RemoveWidgetsAction;
 import org.csstudio.display.builder.editor.util.WidgetIcons;
 import org.csstudio.display.builder.model.ChildrenProperty;
+import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.RuntimeWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
@@ -163,7 +164,10 @@ public class MorphWidgetsMenu extends Menu
                 continue;
             try
             {
-                new_prop.setValueFromObject(prop.getValue());
+                if (new_prop instanceof MacroizedWidgetProperty<?>)
+                    ((MacroizedWidgetProperty<?>)new_prop).setSpecification(((MacroizedWidgetProperty<?>) prop).getSpecification());
+                else
+                    new_prop.setValueFromObject(prop.getValue());
             }
             catch (Exception ex)
             {

@@ -129,11 +129,14 @@ public class MacroizedWidgetPropertyBinding
     private void submit()
     {
         undo.execute(new SetMacroizedWidgetPropertyAction(widget_property, jfx_node.getText()));
-        final String path = widget_property.getPath();
-        for (Widget w : other)
+        if (! other.isEmpty())
         {
-            final MacroizedWidgetProperty<?> other_prop = (MacroizedWidgetProperty<?>) w.getProperty(path);
-            undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, jfx_node.getText()));
+            final String path = widget_property.getPath();
+            for (Widget w : other)
+            {
+                final MacroizedWidgetProperty<?> other_prop = (MacroizedWidgetProperty<?>) w.getProperty(path);
+                undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, jfx_node.getText()));
+            }
         }
     }
 

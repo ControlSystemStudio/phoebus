@@ -11,6 +11,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -22,7 +23,10 @@ import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VType;
 
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 
 /** Creates JavaFX item for model widget
@@ -61,6 +65,36 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                     toolkit.fireWrite(model_widget, value);
                 }
             });
+
+            // Also write to PV when user re-selects the current value
+            combo.setCellFactory(list ->
+            {
+                final ListCell<String> cell = new ListCell<String>()
+                {
+                    @Override
+                    public void updateItem(final String item, final boolean empty)
+                    {
+                        super.updateItem(item, empty);
+                        if ( !empty )
+                            setText(item);
+                    }
+                };
+                cell.addEventFilter(MouseEvent.MOUSE_PRESSED, e ->
+                {
+                    // Is this a click on the 'current' value which would by default be ignored?
+                    if (Objects.equals(combo.getValue(), cell.getItem()))
+                    {
+                        combo.fireEvent(new ActionEvent());
+                        //  Alternatively...
+                        //combo.setValue(null);
+                        //combo.getSelectionModel().select(cell.getItem());
+                        e.consume();
+                    }
+                });
+
+                return cell;
+            });
+
         }
         return combo;
     }

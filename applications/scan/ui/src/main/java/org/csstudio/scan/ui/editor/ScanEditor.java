@@ -21,30 +21,40 @@ import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.client.ScanInfoModel;
 import org.csstudio.scan.client.ScanInfoModelListener;
+import org.csstudio.scan.command.ScanCommand;
+import org.csstudio.scan.command.ScanCommandProperty;
 import org.csstudio.scan.command.XMLCommandWriter;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.ui.Messages;
+import org.csstudio.scan.ui.editor.properties.ChangeProperty;
 import org.csstudio.scan.ui.editor.properties.Properties;
 import org.csstudio.scan.ui.simulation.SimulationDisplay;
 import org.csstudio.scan.ui.simulation.SimulationDisplayApplication;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
+import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
@@ -62,9 +72,37 @@ public class ScanEditor extends SplitPane
                                 VDIV = "vdiv";
 
     private final Model model = new Model();
-    private final UndoableActionManager undo = new UndoableActionManager(50);
+
+    /** Variation of undo manager that prompts/warns when changing an active scan */
+    private final UndoableActionManager undo = new UndoableActionManager(50)
+    {
+        @Override
+        public void execute(UndoableAction action)
+        {
+            final ScanInfoModel infos = scan_info_model.get();
+            if (infos != null)
+            {
+                // Warn that changes to the running scan are limited
+                final Alert dlg = new Alert(AlertType.CONFIRMATION);
+                dlg.setHeaderText("");
+                dlg.setContentText(Messages.scan_active_prompt);
+                dlg.setResizable(true);
+                dlg.getDialogPane().setPrefSize(600, 300);
+                DialogHelper.positionDialog(dlg, scan_tree, -100, -100);
+                if (dlg.showAndWait().get() != ButtonType.OK)
+                    return;
+
+                // Only property change is possible while running.
+                // Adding/removing commands detaches from the running scan.
+                if (! (action instanceof ChangeProperty))
+                    detachFromScan();
+            }
+            super.execute(action);
+        }
+    };
 
     private final Button pause = new Button(), resume = new Button(), next = new Button(), abort = new Button();
+    private final ToggleButton jump_to_current = new ToggleButton();
 
     private final Label info_text = new Label();
 
@@ -119,7 +157,7 @@ public class ScanEditor extends SplitPane
         VBox.setVgrow(scan_tree, Priority.ALWAYS);
         final VBox left_stack = new VBox(toolbar, scan_tree);
 
-        right_stack = new SplitPane(new Palette(model, undo), new Properties(scan_tree, undo));
+        right_stack = new SplitPane(new Palette(model, undo), new Properties(this, scan_tree, undo));
         right_stack.setOrientation(Orientation.VERTICAL);
 
         getItems().setAll(left_stack, right_stack);
@@ -204,6 +242,10 @@ public class ScanEditor extends SplitPane
             }
         });
 
+        jump_to_current.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/current.png"));
+        jump_to_current.setTooltip(new Tooltip(Messages.scan_jump_to_current_command));
+        jump_to_current.setOnAction(event -> scan_tree.revealActiveItem(jump_to_current.isSelected()));
+
         final Button[] undo_redo = UndoButtons.createButtons(undo);
         return new ToolBar(info_text, ToolbarHelper.createStrut(), buttons, ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
     }
@@ -238,10 +280,7 @@ public class ScanEditor extends SplitPane
         final ContextMenu menu = new ContextMenu(copy, paste, delete,
                                                  new SeparatorMenuItem(),
                                                  simulate, submit, submit_unqueued);
-        setOnContextMenuRequested(event ->
-        {
-            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        });
+        setContextMenu(menu);
     }
 
     /** @param how true/false to submit queue/un-queued, <code>null</code> to simulate */
@@ -319,8 +358,9 @@ public class ScanEditor extends SplitPane
     /** @param info Info about scan, <code>null</code> if no info available or scan completed */
     void updateScanInfo(final ScanInfo info)
     {
-        final List<Button> desired;
+        final List<ButtonBase> desired;
         final String text;
+
 
         if (info == null)
         {
@@ -340,10 +380,10 @@ public class ScanEditor extends SplitPane
                 desired = List.of(abort);
                 break;
             case Running:
-                desired = List.of(pause, next, abort);
+                desired = List.of(pause, next, abort, jump_to_current);
                 break;
             case Paused:
-                desired = List.of(resume, abort);
+                desired = List.of(resume, abort, jump_to_current);
                 break;
             default:
                 desired = Collections.emptyList();
@@ -352,14 +392,26 @@ public class ScanEditor extends SplitPane
             this.scan_tree.setActiveCommand(info.getCurrentAddress());
         }
 
-        // XXX Optimize, skip the UI call when buttons didn't change?
-
         Platform.runLater(() ->
         {
             buttons.getChildren().setAll(desired);
             if (text != null)
                 info_text.setText(text);
         });
+    }
+
+    /** Change a command's property on the scan server, i.e. for a 'live' scan
+     *  @param command Command to change
+     *  @param property_id Property to change
+     *  @param value New value
+     *  @throws Exception on error
+     */
+    public void changeLiveProperty(final ScanCommand command, final ScanCommandProperty property, final Object value) throws Exception
+    {
+        final long id = active_scan;
+        final ScanInfoModel infos = scan_info_model.get();
+        if (id >= 0  &&  infos != null)
+            infos.getScanClient().patchScan(id, command.getAddress(), property.getID(), value);
     }
 
     /** If currently monitoring a scan, detach */

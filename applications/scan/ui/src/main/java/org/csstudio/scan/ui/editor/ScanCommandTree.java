@@ -18,6 +18,7 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandWithBody;
 import org.csstudio.scan.ui.editor.actions.AddCommands;
 import org.csstudio.scan.ui.editor.actions.RemoveCommands;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -36,7 +37,12 @@ import javafx.scene.input.TransferMode;
  *  <p>Opens and displays a scan with ~30k commands within a second,
  *  on a computer where RCP version takes more than 30 seconds.
  *
- *  TODO Faster copy/paste for large scans.
+ *  <p>No problem with copy/paste of a screen full of commands, i.e. about 40 commands,
+ *  within a scan of ~30k commands.
+ *  Selecting 'all' (Ctrl-A) with ~30k commands takes about 10 seconds.
+ *  Then pasting those ~30k commands to the end again takes about 5 seconds.
+ *  ==> Could be better with a multithreaded model (ScanCommandWithBody having CopyOnWriteArrayList for body, ..),
+ *  but for now considered good enough.
  *
  *  @author Kay Kasemir
  */
@@ -48,17 +54,34 @@ public class ScanCommandTree extends TreeView<ScanCommand>
 
     private volatile TreeItem<ScanCommand> active_item;
 
+    private boolean reveal_active_item = false;
+
     private final ModelListener listener = new ModelListener()
     {
         @Override
         public void commandsChanged()
         {
             // Convert scan into tree items
-            root.getChildren().clear();
-            addCommands(root, model.getCommands());
+            JobManager.schedule("Create Scan Tree", monitor ->
+            {
+                final TreeItem<ScanCommand> new_root = new TreeItem<>(null);
+                addCommands(new_root, model.getCommands());
 
-            // Expand complete tree
-            expand(root);
+                Platform.runLater(() ->
+                {
+                    // Clearing the selection results in faster tree update
+                    final int sel = getSelectionModel().getSelectedIndex();
+                    getSelectionModel().clearSelection();
+
+                    root.getChildren().setAll(new_root.getChildren());
+
+                    if (sel >= 0)
+                        getSelectionModel().select(sel);
+
+                    // Expand complete tree
+                    expand(root);
+                });
+            });
         }
 
         @Override
@@ -148,6 +171,11 @@ public class ScanCommandTree extends TreeView<ScanCommand>
 
         handleKeys();
         hookDrag();
+    }
+
+    void revealActiveItem(final boolean reveal)
+    {
+        reveal_active_item = reveal;
     }
 
     private static TreeItem<ScanCommand> createTreeItem(final ScanCommand command)
@@ -310,6 +338,9 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         });
     }
 
+    /** Set active command, which highlights and optionally reveals it
+     *  @param address Address of active command
+     */
     void setActiveCommand(final long address)
     {
         model.setActiveAddress(address);
@@ -318,23 +349,53 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         final TreeItem<ScanCommand> previous = active_item;
         active_item = findTreeItem(address);
 
+        if (previous == active_item)
+            return;
         Platform.runLater(() ->
         {
             // In principle, need to redraw the previously active item
             // and the one that's now active.
-            // Test, however, show that the complete visible tree is always redrawn,
-            // so could skip refreshing `previous`...
+            // Test, however, shows that the complete visible tree is always redrawn,
+            // so can skip refreshing `previous`...
             if (previous != null)
                 TreeHelper.triggerTreeItemRefresh(previous);
             if (active_item != null)
+            {
                 TreeHelper.triggerTreeItemRefresh(active_item);
-
-            // TODO Mode where active_item is selected
+                if (reveal_active_item)
+                    reveal(active_item);
+            }
         });
+    }
+
+    private void reveal(final TreeItem<ScanCommand> item)
+    {
+        // Expand tree up to parent because 'getRow' will
+        // only find items that are expanded
+        TreeItem<ScanCommand> parent = item.getParent();
+        while (parent != null)
+        {
+            if (! parent.isExpanded())
+                parent.setExpanded(true);
+            parent = parent.getParent();
+        }
+
+        // Scroll to the active command
+        final int row = getRow(active_item);
+        if (row >= 0)
+        {
+            // Try to show one command above the desired one to get some context
+            if (row > 1)
+                scrollTo(row-1);
+            else
+                scrollTo(row);
+        }
     }
 
     private TreeItem<ScanCommand> findTreeItem(final long address)
     {
+        if (address < 0)
+            return null;
         while (true)
         {
             try
