@@ -631,47 +631,53 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
 
     private synchronized void updateSymbols ( ) {
 
-        ArrayWidgetProperty<WidgetProperty<String>> propSymbols = model_widget.propSymbols();
-        List<WidgetProperty<String>> fileNames = propSymbols.getValue();
+        try {
 
-        if ( model_widget.getImportedFrom() != null ) {
-            updateImportedSymbols();
-        }
+            ArrayWidgetProperty<WidgetProperty<String>> propSymbols = model_widget.propSymbols();
+            List<WidgetProperty<String>> fileNames = propSymbols.getValue();
 
-        if ( fileNames == null ) {
-            logger.log(Level.WARNING, "Empty list of file names.");
-        } else {
+            if ( model_widget.getImportedFrom() != null ) {
+                updateImportedSymbols();
+            }
 
-            imagesList.clear();
+            if ( fileNames == null ) {
+                logger.log(Level.WARNING, "Empty list of file names.");
+            } else {
 
-            fileNames.stream().forEach(f -> {
+                imagesList.clear();
 
-                String fileName = f.getValue();
-                Image image = imagesMap.get(fileName);
+                fileNames.stream().forEach(f -> {
 
-                if ( image == null ) {
+                    String fileName = f.getValue();
+                    Image image = imagesMap.get(fileName);
 
-                    image = loadSymbol(fileName);
+                    if ( image == null ) {
 
-                    if ( image != null ) {
-                        imagesMap.put(fileName, image);
+                        image = loadSymbol(fileName);
+
+                        if ( image != null ) {
+                            imagesMap.put(fileName, image);
+                        }
+
                     }
 
-                }
+                    if ( image != null ) {
+                        imagesList.add(image);
+                    }
 
-                if ( image != null ) {
-                    imagesList.add(image);
-                }
+                });
 
-            });
+                Set<String> toBeRemoved = imagesMap.keySet().stream().filter(f -> !imagesList.contains(imagesMap.get(f))).collect(Collectors.toSet());
 
-            Set<String> toBeRemoved = imagesMap.keySet().stream().filter(f -> !imagesList.contains(imagesMap.get(f))).collect(Collectors.toSet());
+                toBeRemoved.stream().forEach(f -> imagesMap.remove(f));
 
-            toBeRemoved.stream().forEach(f -> imagesMap.remove(f));
+                setImageIndex(Math.min(Math.max(getImageIndex(), 0), imagesList.size() - 1));
+                maxSize = computeMaximumSize(model_widget);
 
-            setImageIndex(Math.min(Math.max(getImageIndex(), 0), imagesList.size() - 1));
-            maxSize = computeMaximumSize(model_widget);
+            }
 
+        } finally {
+            valueChanged(null, null, null);
         }
 
     }
