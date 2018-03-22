@@ -194,4 +194,10 @@ public class ScanConfig
         // TODO Auto-generated method stub
         return 50.0;
     }
+
+    public double getLogCommandReadTimeout()
+    {
+        // TODO Auto-generated method stub
+        return 30;
+    }
 }

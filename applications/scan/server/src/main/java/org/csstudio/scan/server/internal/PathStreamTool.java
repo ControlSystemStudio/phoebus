@@ -9,7 +9,7 @@ package org.csstudio.scan.server.internal;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.List;
 
 /** Tool for opening path as stream
  *  @author Kay Kasemir
@@ -34,7 +34,7 @@ public class PathStreamTool
      *  @return InputStream for the file
      *  @throws Exception
      */
-    public static InputStream openStream(final String[] paths, final String filename) throws Exception
+    public static InputStream openStream(final List<String> paths, final String filename) throws Exception
     {
         try
         {
@@ -59,6 +59,6 @@ public class PathStreamTool
                 // Ignore, try next search path element
             }
         }
-        throw new Exception("Cannot open " + filename + ", paths: " + Arrays.toString(paths));
+        throw new Exception("Cannot open " + filename + ", paths: " + paths);
     }
 }

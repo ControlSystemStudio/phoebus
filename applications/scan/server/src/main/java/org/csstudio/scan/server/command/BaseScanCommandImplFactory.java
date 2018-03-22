@@ -20,8 +20,17 @@ import static java.util.Map.entry;
 import java.util.Map;
 
 import org.csstudio.scan.command.CommentCommand;
+import org.csstudio.scan.command.ConfigLogCommand;
 import org.csstudio.scan.command.DelayCommand;
+import org.csstudio.scan.command.IncludeCommand;
+import org.csstudio.scan.command.LogCommand;
+import org.csstudio.scan.command.LoopCommand;
+import org.csstudio.scan.command.ParallelCommand;
 import org.csstudio.scan.command.ScanCommand;
+import org.csstudio.scan.command.ScriptCommand;
+import org.csstudio.scan.command.SequenceCommand;
+import org.csstudio.scan.command.SetCommand;
+import org.csstudio.scan.command.WaitCommand;
 import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplFactory;
@@ -38,7 +47,16 @@ public class BaseScanCommandImplFactory implements ScanCommandImplFactory
     {
         impls = Map.ofEntries(
             entry("comment", (command, jython) -> new CommentCommandImpl((CommentCommand)command, jython)),
-            entry("delay", (command, jython) -> new DelayCommandImpl((DelayCommand)command, jython))
+            entry("config_log", (command, jython) -> new ConfigLogCommandImpl((ConfigLogCommand)command, jython)),
+            entry("delay", (command, jython) -> new DelayCommandImpl((DelayCommand)command, jython)),
+            entry("include", (command, jython) -> new IncludeCommandImpl((IncludeCommand)command, jython)),
+            entry("log", (command, jython) -> new LogCommandImpl((LogCommand)command, jython)),
+            entry("loop", (command, jython) -> new LoopCommandImpl((LoopCommand)command, jython)),
+            entry("parallel", (command, jython) -> new ParallelCommandImpl((ParallelCommand)command, jython)),
+            entry("script", (command, jython) -> new ScriptCommandImpl((ScriptCommand)command, jython)),
+            entry("sequence", (command, jython) -> new SequenceCommandImpl((SequenceCommand)command, jython)),
+            entry("set", (command, jython) -> new SetCommandImpl((SetCommand)command, jython)),
+            entry("wait", (command, jython) -> new WaitCommandImpl((WaitCommand)command, jython))
         );
     }
 
