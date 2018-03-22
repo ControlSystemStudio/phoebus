@@ -97,6 +97,18 @@ public class ScanConfig
         return simulation_hook;
     }
 
+    public String getMacros()
+    {
+        // TODO read macros from config file
+        return "";
+    }
+
+    public double getValueCheckTimeout()
+    {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
     /** @return {@link DeviceInfo}s read from file */
     public List<DeviceInfo> getDevices()
     {

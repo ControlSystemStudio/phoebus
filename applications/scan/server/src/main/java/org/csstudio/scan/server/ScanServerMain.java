@@ -35,7 +35,15 @@ public class ScanServerMain
 
     public static final String VERSION = "4.5.0";
 
+    private static ScanConfig scan_config;
+
     private static ScanServerImpl scan_server;
+
+
+    public static ScanConfig getScanConfig()
+    {
+        return scan_config;
+    }
 
     public static ScanServer getScanServer()
     {
@@ -119,13 +127,13 @@ public class ScanServerMain
         }
 
         logger.info("Configuration: " + scan_config_file);
-        final ScanConfig config = new ScanConfig(scan_config_file.openStream());
+        scan_config = new ScanConfig(scan_config_file.openStream());
 
         scan_server = new ScanServerImpl();
         scan_server.start();
 
-        logger.info("Scan Server REST interface on http://localhost:" + config.getPort() + "/index.html");
-        final ScanWebServer httpd = new ScanWebServer(config.getPort());
+        logger.info("Scan Server REST interface on http://localhost:" + scan_config.getPort() + "/index.html");
+        final ScanWebServer httpd = new ScanWebServer(scan_config.getPort());
         try
         {
             httpd.start();
