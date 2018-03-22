@@ -20,12 +20,11 @@ public class PathUtil
      *  @return Separate path elements
      *  @throws Exception on parse error (missing end of quoted string)
      */
-    public static String[] splitPath(final String path_spec) throws Exception
+    public static List<String> splitPath(final String path_spec) throws Exception
     {
         if (path_spec == null)
-            return new String[0];
-        return path_spec.split("\\s*,\\s*");
-
+            return List.of();
+        return List.of(path_spec.split("\\s*,\\s*"));
     }
 
     /** @param paths Path elements

@@ -264,9 +264,8 @@ public class ScanEditor extends SplitPane
                                              ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         delete.setOnAction(event -> scan_tree.cutToClipboard());
 
-
         final MenuItem simulate = new MenuItem(Messages.scan_simulate,
-                ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
+                                               ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
         simulate.setOnAction(event -> submitOrSimulate(null));
 
         final MenuItem submit = new MenuItem(Messages.scan_submit,
@@ -300,8 +299,15 @@ public class ScanEditor extends SplitPane
             if (how == null)
             {
                 monitor.beginTask("Awaiting simulation results");
-                final SimulationResult simulation = scan_client.simulateScan(xml_commands);
-                display.get().show(simulation);
+                try
+                {
+                    final SimulationResult simulation = scan_client.simulateScan(xml_commands);
+                    display.get().show(simulation);
+                }
+                catch (Exception ex)
+                {
+                    display.get().show(ex);
+                }
             }
             else
             {

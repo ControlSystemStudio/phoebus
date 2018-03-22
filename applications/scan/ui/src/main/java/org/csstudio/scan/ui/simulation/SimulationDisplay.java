@@ -8,8 +8,10 @@
 package org.csstudio.scan.ui.simulation;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.PrintWriter;
 
 import org.csstudio.scan.info.SimulationResult;
 import org.phoebus.framework.jobs.JobManager;
@@ -111,6 +113,23 @@ public class SimulationDisplay implements AppInstance
 
         // On UI thread, update the displayed log
         Platform.runLater(() ->  log.getItems().setAll(lines));
+    }
+
+    public void show(final Exception error)
+    {
+        // Create stack trace
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        final PrintWriter out = new PrintWriter(buf);
+        out.println("Failed to obtain scan simulation");
+        out.println();
+        error.printStackTrace(out);
+        out.flush();
+        out.close();
+        // Split log into lines
+        final String[] lines = buf.toString().split("\n");
+
+        // On UI thread, update the displayed log
+        Platform.runLater(() -> log.getItems().setAll(lines));
     }
 
     private void save()
