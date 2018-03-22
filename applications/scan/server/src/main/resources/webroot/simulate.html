@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<link rel="stylesheet" type="text/css" href="scan.css">
+<script type="text/javascript" src="jquery-1.8.3.js" ></script>
+<script type="text/javascript" src="simulate.js" ></script>
+<title>Scan Server REST Interface</title>
+</head>
+
+<body>
+<h1>Simulate Scan</h1>
+
+<form>
+<p>Scan: <textarea class='scan' id='scan' rows='20'>
+<?xml version="1.0" encoding="UTF-8"?>
+<commands>
+  <comment><text>Example scan submitted via REST interface</text></comment>
+  <set><device>xpos</device><value>1</value></set>
+  <log><devices><device>xpos</device></devices></log>
+  <set><device>xpos</device><value>2</value></set>
+  <log><devices><device>xpos</device></devices></log>
+</commands>
+</textarea></p>
+<p><button type='button' id='simulate'>Simulate</button></p>
+</form>
+
+<textarea class='scan' id='simulation' rows='20'>
+-- Result of simulation --
+</textarea>
+
+<p>
+Estimated Runtime: <span id='runtime'>?</span> seconds
+</p>
+
+
+<hr/>
+
+<a href="index.html">Back to main</a>
+
+</body>
+</html>

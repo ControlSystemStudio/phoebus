@@ -46,6 +46,8 @@ public class MacroContext implements MacroValueProvider
         final String pairs[] = names_and_values.split(",");
         for (String pair : pairs)
         {
+            if (pair.trim().isEmpty())
+                continue;
             final String name_value[] = pair.split("=");
             if (name_value.length != 2)
                 throw new Exception("Input '" + pair + "' does not match 'name=value'");

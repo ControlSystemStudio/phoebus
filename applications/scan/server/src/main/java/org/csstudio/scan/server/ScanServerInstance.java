@@ -35,10 +35,16 @@ public class ScanServerInstance
 
     public static final String VERSION = "4.5.0";
 
+    private static URL scan_config_file = ScanServerInstance.class.getResource("/examples/scan_config.xml");
+
     private static ScanConfig scan_config;
 
     private static ScanServerImpl scan_server;
 
+    public static String getScanConfigPath()
+    {
+        return scan_config_file.toExternalForm();
+    }
 
     public static ScanConfig getScanConfig()
     {
@@ -80,8 +86,6 @@ public class ScanServerInstance
         LogManager.getLogManager().readConfiguration(ScanServerInstance.class.getResourceAsStream("/logging.properties"));
 
         logger.info("Scan Server (PID " + ProcessHandle.current().pid() + ")");
-
-        URL scan_config_file = ScanServerInstance.class.getResource("/examples/scan_config.xml");
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));

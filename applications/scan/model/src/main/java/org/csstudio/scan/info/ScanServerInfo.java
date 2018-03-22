@@ -16,6 +16,7 @@
 package org.csstudio.scan.info;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.csstudio.scan.data.ScanSampleFormatter;
 import org.csstudio.scan.util.PathUtil;
@@ -29,26 +30,24 @@ public class ScanServerInfo extends MemoryInfo
     final private String version;
     final private Instant start_time;
     final private String scan_config;
-    final private String simulation_config;
-    final private String[] script_paths;
+    final private List<String> script_paths;
     final private String macros;
 
     /** Initialize
      *  @param version
      *  @param start_time
      *  @param scan_config
-     *  @param simulation_config
+     *  @param script_paths
+     *  @param macros
      */
     public ScanServerInfo(final String version, final Instant start_time,
             final String scan_config,
-            final String simulation_config,
-            final String[] script_paths,
+            final List<String> script_paths,
             final String macros)
     {
         this.version = version;
         this.start_time = start_time;
         this.scan_config = scan_config;
-        this.simulation_config = simulation_config;
         this.script_paths = script_paths;
         this.macros = macros;
     }
@@ -57,7 +56,6 @@ public class ScanServerInfo extends MemoryInfo
      *  @param version
      *  @param start_time
      *  @param scan_config
-     *  @param simulation_config
      *  @param script_paths
      *  @param macros
      *  @param used_mem Used memory (kB)
@@ -66,8 +64,7 @@ public class ScanServerInfo extends MemoryInfo
      */
     public ScanServerInfo(final String version, final Instant start_time,
             final String scan_config,
-            final String simulation_config,
-            final String[] script_paths,
+            final List<String> script_paths,
             final String macros,
             final long used_mem, final long max_mem, final long non_heap)
     {
@@ -75,7 +72,6 @@ public class ScanServerInfo extends MemoryInfo
         this.version = version;
         this.start_time = start_time;
         this.scan_config = scan_config;
-        this.simulation_config = simulation_config;
         this.script_paths = script_paths;
         this.macros = macros;
     }
@@ -98,16 +94,8 @@ public class ScanServerInfo extends MemoryInfo
         return scan_config;
     }
 
-    /** @return Simulation configuration path (since originally that was a separate file)
-     *  @see #getScanConfig()
-     */
-    public String getSimulationConfig()
-    {
-        return simulation_config;
-    }
-
     /** @return Script paths */
-    public String[] getScriptPaths()
+    public List<String> getScriptPaths()
     {
         return script_paths;
     }
@@ -126,7 +114,6 @@ public class ScanServerInfo extends MemoryInfo
         buf.append("Version: ").append(version).append("\n");
         buf.append("Started: ").append(ScanSampleFormatter.format(start_time)).append("\n");
         buf.append("Scan Configuration: ").append(scan_config).append("\n");
-        buf.append("Simulation Configuration: ").append(simulation_config).append("\n");
         buf.append("Script paths: ").append(PathUtil.joinPaths(script_paths)).append("\n");
         buf.append("Macros: ").append(macros).append("\n");
         buf.append("Memory: ").append(getMemoryInfo()).append("\n");

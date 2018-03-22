@@ -7,8 +7,10 @@
  ******************************************************************************/
 package org.csstudio.scan.server.log;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.csstudio.scan.info.Scan;
 
@@ -22,10 +24,12 @@ public class DataLogFactory
         return new DummyDataLog();
     }
 
+    private static final AtomicLong id = new AtomicLong();
+
     // TODO Implement data log factory
     public static Scan createDataLog(String name)
     {
-        return null;
+        return new Scan(id.incrementAndGet(), name, Instant.now());
     }
 
     public static List<Scan> getScans()

@@ -17,6 +17,7 @@ package org.csstudio.scan.server.config;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,22 @@ public class ScanConfig
     public int getPort()
     {
         return port;
+    }
+
+    public List<String> getScriptPaths()
+    {
+        // TODO Auto-generated method stub
+        return Collections.emptyList();
+    }
+
+    public List<String> getPreScanPaths()
+    {
+        return Collections.emptyList();
+    }
+
+    public List<String> getPostScanPaths()
+    {
+        return Collections.emptyList();
     }
 
     /** @return Jython class to use for simulation hook. May be empty */
@@ -170,5 +187,11 @@ public class ScanConfig
                 patterned_slew_rates.add(new PatternedSlew(pattern, slew_rate.get()));
             }
         }
+    }
+
+    public double getOldScanRemovalMemoryThreshold()
+    {
+        // TODO Auto-generated method stub
+        return 50.0;
     }
 }

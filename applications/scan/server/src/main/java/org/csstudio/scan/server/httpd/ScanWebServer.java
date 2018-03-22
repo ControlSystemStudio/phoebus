@@ -33,6 +33,8 @@ public class ScanWebServer
 
         // Our servlets
         context.addServlet(ServerServlet.class, "/server/*");
+        context.addServlet(ScansServlet.class, "/scans/*");
+        context.addServlet(ScanServlet.class, "/scan/*");
 
         // Serve static files from webroot to "/"
         context.setContextPath("/");
