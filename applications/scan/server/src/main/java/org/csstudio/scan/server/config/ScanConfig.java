@@ -109,6 +109,12 @@ public class ScanConfig
         return 0;
     }
 
+    public String getStatusPvPrefix()
+    {
+        // TODO Status PV Prefix
+        return null;
+    }
+
     /** @return {@link DeviceInfo}s read from file */
     public List<DeviceInfo> getDevices()
     {
