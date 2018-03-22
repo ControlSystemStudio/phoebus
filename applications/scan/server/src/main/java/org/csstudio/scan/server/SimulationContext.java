@@ -41,7 +41,7 @@ public class SimulationContext
      */
     public SimulationContext(final JythonSupport jython, final PrintStream log_stream) throws Exception
     {
-        simulation_info = ScanServerMain.getScanConfig();
+        simulation_info = ScanServerInstance.getScanConfig();
         macros = new MacroContext(simulation_info.getMacros());
         this.log_stream = log_stream;
 

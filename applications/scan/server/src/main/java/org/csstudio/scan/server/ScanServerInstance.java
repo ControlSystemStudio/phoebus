@@ -23,13 +23,13 @@ import org.csstudio.scan.server.httpd.ScanWebServer;
 import org.csstudio.scan.server.internal.ScanServerImpl;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 
-/** Main routine for the Scan Server application
+/** Main Instance of the Scan Server application
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanServerMain
+public class ScanServerInstance
 {
-    public static final Logger logger = Logger.getLogger(ScanServerMain.class.getPackageName());
+    public static final Logger logger = Logger.getLogger(ScanServerInstance.class.getPackageName());
 
     private static final CountDownLatch done = new CountDownLatch(1);
 
@@ -77,11 +77,11 @@ public class ScanServerMain
 
     public static void main(final String[] original_args) throws Exception
     {
-        LogManager.getLogManager().readConfiguration(ScanServerMain.class.getResourceAsStream("/logging.properties"));
+        LogManager.getLogManager().readConfiguration(ScanServerInstance.class.getResourceAsStream("/logging.properties"));
 
         logger.info("Scan Server (PID " + ProcessHandle.current().pid() + ")");
 
-        URL scan_config_file = ScanServerMain.class.getResource("/examples/scan_config.xml");
+        URL scan_config_file = ScanServerInstance.class.getResource("/examples/scan_config.xml");
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));

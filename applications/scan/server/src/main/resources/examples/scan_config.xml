@@ -8,7 +8,7 @@
 <scan_config>
 
   <!-- TCP port used by HTTPD / REST -->
-  <port>4811</port>
+  <port>4810</port>
 
   <!-- Jython class that implements the
        org.csstudio.scan.server.SimulationHook

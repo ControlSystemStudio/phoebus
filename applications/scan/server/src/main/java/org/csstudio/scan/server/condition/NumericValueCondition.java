@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
 import org.csstudio.scan.command.Comparison;
-import org.csstudio.scan.server.ScanServerMain;
+import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.DeviceListener;
 import org.csstudio.scan.server.device.VTypeHelper;
@@ -40,7 +40,7 @@ import org.phoebus.util.time.TimeDuration;
 @SuppressWarnings("nls")
 public class NumericValueCondition implements DeviceCondition, DeviceListener
 {
-    final static Duration value_check_timeout = TimeDuration.ofSeconds(ScanServerMain.getScanConfig().getValueCheckTimeout());
+    final static Duration value_check_timeout = TimeDuration.ofSeconds(ScanServerInstance.getScanConfig().getValueCheckTimeout());
 
     /** Device to monitor */
     final private Device device;

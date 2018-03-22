@@ -24,7 +24,7 @@ import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.server.ScanServer;
-import org.csstudio.scan.server.ScanServerMain;
+import org.csstudio.scan.server.ScanServerInstance;
 
 /** Implementation of the {@link ScanServer}
  *  @author Kay Kasemir
@@ -48,7 +48,7 @@ public class ScanServerImpl implements ScanServer
     @Override
     public ScanServerInfo getInfo() throws Exception
     {
-        return new ScanServerInfo(ScanServerMain.VERSION, start_time,
+        return new ScanServerInfo(ScanServerInstance.VERSION, start_time,
                 // TODO Show actual parameters
                 "Config", "Simu", new String[] { "/a", "/b"},  "X=u");
     }

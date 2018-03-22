@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.scan.server.httpd;
 
+import org.csstudio.scan.server.ScanServer;
+import org.csstudio.scan.server.ScanServerInstance;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -34,7 +36,7 @@ public class ScanWebServer
 
         // Serve static files from webroot to "/"
         context.setContextPath("/");
-        context.setResourceBase(WebServletsDemo.class.getResource("/webroot").toExternalForm());
+        context.setResourceBase(ScanServerInstance.class.getResource("/webroot").toExternalForm());
         context.addServlet(DefaultServlet.class, "/");
 
         server.setHandler(context);

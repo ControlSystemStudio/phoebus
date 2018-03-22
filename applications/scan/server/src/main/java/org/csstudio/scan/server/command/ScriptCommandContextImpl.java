@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.scan.server.commands;
+package org.csstudio.scan.server.command;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,7 +17,7 @@ import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.data.ScanSampleFactory;
 import org.csstudio.scan.server.ScanCommandUtil;
 import org.csstudio.scan.server.ScanContext;
-import org.csstudio.scan.server.ScanServerMain;
+import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.VTypeHelper;
 import org.phoebus.util.array.IteratorNumber;
@@ -35,7 +35,7 @@ import org.phoebus.vtype.ValueUtil;
  */
 public class ScriptCommandContextImpl extends ScanScriptContext
 {
-    protected final static Duration value_check_timeout = TimeDuration.ofSeconds(ScanServerMain.getScanConfig().getValueCheckTimeout());
+    protected final static Duration value_check_timeout = TimeDuration.ofSeconds(ScanServerInstance.getScanConfig().getValueCheckTimeout());
     final private ScanContext context;
 
     /** Initialize

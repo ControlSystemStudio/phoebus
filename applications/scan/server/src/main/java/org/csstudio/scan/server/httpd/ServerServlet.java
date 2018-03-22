@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.server.httpd;
 
-import static org.csstudio.scan.server.ScanServerMain.logger;
+import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -20,7 +20,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.server.ScanServer;
-import org.csstudio.scan.server.ScanServerMain;
+import org.csstudio.scan.server.ScanServerInstance;
 
 /** Servlet for "/server/*": General {@link ScanServer} info
  *  @author Kay Kasemir
@@ -42,7 +42,7 @@ public class ServerServlet extends HttpServlet
             final String detail = path.getString(0);
             if ("info".equals(detail))
             {
-                final ScanServerInfo info = ScanServerMain.getScanServer().getInfo();
+                final ScanServerInfo info = ScanServerInstance.getScanServer().getInfo();
                 final XMLStreamWriter writer = ServletHelper.createXML(response);
                 ServletHelper.write(writer, info);
                 ServletHelper.submitXML(writer);
@@ -53,7 +53,7 @@ public class ServerServlet extends HttpServlet
                 final XMLStreamWriter writer = ServletHelper.createXML(response);
                 writer.writeEmptyElement("bye");
                 ServletHelper.submitXML(writer);
-                ScanServerMain.stop();
+                ScanServerInstance.stop();
             }
             else
                 throw new Exception("Invalid request /server/" + detail);

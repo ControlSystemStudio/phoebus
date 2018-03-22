@@ -15,15 +15,15 @@
  ******************************************************************************/
 package org.csstudio.scan.server;
 
-import static org.csstudio.scan.server.ScanServerMain.logger;
+import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanErrorHandler;
 import org.csstudio.scan.command.ScanErrorHandler.Result;
+import org.csstudio.scan.server.command.ScriptCommandContextImpl;
 import org.csstudio.scan.command.ScanScriptContext;
-import org.csstudio.scan.server.commands.ScriptCommandContextImpl;
 import org.python.core.PyException;
 
 /** Implementation of a command

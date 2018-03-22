@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.server;
 
-import static org.csstudio.scan.server.ScanServerMain.logger;
+import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
