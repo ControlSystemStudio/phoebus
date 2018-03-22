@@ -12,13 +12,19 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.logging.Level;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamWriter;
 
+import org.csstudio.scan.data.ScanData;
+import org.csstudio.scan.device.DeviceInfo;
+import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.server.ScanServer;
 import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.util.IOUtils;
@@ -187,82 +193,83 @@ public class ScanServlet extends HttpServlet
         }
     }
 
-//    /** Get scan information
-//     *  <p>GET scan/{id} - get scan info
-//     *  <p>GET scan/{id}/commands - get scan commands
-//     *  <p>GET scan/{id}/data - get scan data
-//     *  <p>GET scan/{id}/last_serial - get scan data's last serial
-//     *  <p>GET scan/{id}/devices - get devices used by a scan
-//     */
-//    @Override
-//    protected void doGet(final HttpServletRequest request,
-//            final HttpServletResponse response)
-//            throws ServletException, IOException
-//    {
-//        // Determine scan ID and requested object
-//        final RequestPath path = new RequestPath(request);
-//        final long id;
-//        try
-//        {
-//            if (path.size() < 1)
-//                throw new Exception("Missing scan ID");
-//            id = path.getLong(0);
-//        }
-//        catch (Exception ex)
-//        {
-//            logger.log(Level.WARNING, "GET /scan error", ex);
-//            response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-//            return;
-//        }
-//
-//        // Return requested object
-//        final String object = path.size() < 2 ? null : path.getString(1);
-//        try
-//        {
-//            if (object == null)
-//            {   // Get Scan info
-//                final ScanInfo info = scan_server.getScanInfo(id);
-//                if (info == null)
-//                    throw new Exception("Unknown scan ID " + id);
-//                final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-//                doc.appendChild(ServletHelper.createXMLElement(doc, info));
-//                ServletHelper.submitXML(doc, response);
-//            }
-//            else if ("commands".equalsIgnoreCase(object))
-//            {   // Get commands
-//                response.setContentType("text/xml");
-//                final ServletOutputStream out = response.getOutputStream();
-//                out.print(scan_server.getScanCommands(id));
-//                out.flush();
-//            }
-//            else if ("data".equalsIgnoreCase(object))
-//            {   // Get data
-//                final ScanData data = scan_server.getScanData(id);
-//                final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-//                doc.appendChild(ServletHelper.createXMLElement(doc, data));
-//                ServletHelper.submitXML(doc, response);
-//            }
-//            else if ("last_serial".equalsIgnoreCase(object))
-//            {   // Get last serial of data
-//                final long last_serial = scan_server.getLastScanDataSerial(id);
-//                final ServletOutputStream out = response.getOutputStream();
-//                out.print("<serial>" + last_serial + "</serial>");
-//                out.flush();
-//            }
-//            else if ("devices".equalsIgnoreCase(object))
-//            {   // Get devices
-//                final DeviceInfo[] devices = scan_server.getDeviceInfos(id);
-//                final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-//                doc.appendChild(ServletHelper.createXMLElement(doc, devices));
-//                ServletHelper.submitXML(doc, response);
-//            }
-//            else
-//                throw new Exception("Unknown request object " + object);
-//        }
-//        catch (Exception ex)
-//        {
-//            logger.log(Level.WARNING, "GET /scan error", ex);
-//            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
-//        }
-//    }
+    /** Get scan information
+     *  <p>GET scan/{id} - get scan info
+     *  <p>GET scan/{id}/commands - get scan commands
+     *  <p>GET scan/{id}/data - get scan data
+     *  <p>GET scan/{id}/last_serial - get scan data's last serial
+     *  <p>GET scan/{id}/devices - get devices used by a scan
+     */
+    @Override
+    protected void doGet(final HttpServletRequest request,
+            final HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        // Determine scan ID and requested object
+        final RequestPath path = new RequestPath(request);
+        final long id;
+        try
+        {
+            if (path.size() < 1)
+                throw new Exception("Missing scan ID");
+            id = path.getLong(0);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "GET /scan error", ex);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+            return;
+        }
+
+        // Return requested object
+        final String object = path.size() < 2 ? null : path.getString(1);
+        try
+        {
+            if (object == null)
+            {   // Get Scan info
+                final ScanInfo info = scan_server.getScanInfo(id);
+                if (info == null)
+                    throw new Exception("Unknown scan ID " + id);
+                final XMLStreamWriter writer = ServletHelper.createXML(response);
+                ServletHelper.write(writer, info);
+                ServletHelper.submitXML(writer);
+            }
+            else if ("commands".equalsIgnoreCase(object))
+            {   // Get commands
+                response.setContentType("text/xml");
+                final ServletOutputStream out = response.getOutputStream();
+                out.print(scan_server.getScanCommands(id));
+                out.flush();
+            }
+            else if ("data".equalsIgnoreCase(object))
+            {   // Get data
+                final ScanData data = scan_server.getScanData(id);
+                final XMLStreamWriter writer = ServletHelper.createXML(response);
+                ServletHelper.write(writer, data);
+                ServletHelper.submitXML(writer);
+            }
+            else if ("last_serial".equalsIgnoreCase(object))
+            {   // Get last serial of data
+                final long last_serial = scan_server.getLastScanDataSerial(id);
+                response.setContentType("text/xml");
+                final ServletOutputStream out = response.getOutputStream();
+                out.print("<serial>" + last_serial + "</serial>");
+                out.flush();
+            }
+            else if ("devices".equalsIgnoreCase(object))
+            {   // Get devices
+                final List<DeviceInfo> devices = scan_server.getDeviceInfos(id);
+                final XMLStreamWriter writer = ServletHelper.createXML(response);
+                ServletHelper.write(writer, devices);
+                ServletHelper.submitXML(writer);
+            }
+            else
+                throw new Exception("Unknown request object " + object);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "GET /scan error", ex);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
+    }
 }

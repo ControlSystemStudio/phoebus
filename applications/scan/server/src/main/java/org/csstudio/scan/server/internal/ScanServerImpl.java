@@ -119,13 +119,13 @@ public class ScanServerImpl implements ScanServer
 
     /** {@inheritDoc} */
     @Override
-    public DeviceInfo[] getDeviceInfos(final long id) throws Exception
+    public List<DeviceInfo> getDeviceInfos(final long id) throws Exception
     {
         final Device[] devices = getDevices(id);
         // Turn Device[] into DeviceInfo[]
-        final DeviceInfo[] infos = new DeviceInfo[devices.length];
-        for (int i = 0; i < infos.length; i++)
-            infos[i] = devices[i];
+        final List<DeviceInfo> infos = new ArrayList<>(devices.length);
+        for (Device dev : devices)
+            infos.add(dev);
         return infos;
     }
 

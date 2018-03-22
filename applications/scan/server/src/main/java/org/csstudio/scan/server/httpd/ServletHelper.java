@@ -9,12 +9,17 @@ package org.csstudio.scan.server.httpd;
 
 import java.time.Instant;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.csstudio.scan.data.ScanData;
+import org.csstudio.scan.data.ScanSample;
+import org.csstudio.scan.data.ScanSampleFormatter;
+import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.util.PathUtil;
@@ -204,28 +209,65 @@ public class ServletHelper
         write(writer, "created", info.getCreated());
         write(writer, "state", info.getState().name());
         write(writer, "runtime", info.getRuntimeMillisecs());
-// TODO
-//        if (info.getTotalWorkUnits() > 0)
-//        {
-//            scan.appendChild(createXMLElement(doc, "total_work_units", info.getTotalWorkUnits()));
-//            scan.appendChild(createXMLElement(doc, "performed_work_units", info.getPerformedWorkUnits()));
-//        }
-//
-//        final Instant finish = info.getFinishTime();
-//        if (finish != null)
-//            scan.appendChild(createXMLElement(doc, "finish", finish));
-//
-//        scan.appendChild(createXMLElement(doc, "address", info.getCurrentAddress()));
-//        scan.appendChild(createXMLElement(doc, "command", info.getCurrentCommand()));
-//
-//        if (info.getError().isPresent())
-//            scan.appendChild(createXMLElement(doc, "error", info.getError().get()));
-//
 
+        if (info.getTotalWorkUnits() > 0)
+        {
+            write(writer, "total_work_units", info.getTotalWorkUnits());
+            write(writer, "performed_work_units", info.getPerformedWorkUnits());
+        }
+
+        final Instant finish = info.getFinishTime();
+        if (finish != null)
+            write(writer, "finish", finish);
+
+        write(writer, "address", info.getCurrentAddress());
+        write(writer, "command", info.getCurrentCommand());
+
+        if (info.getError().isPresent())
+            write(writer, "error", info.getError().get());
 
         writer.writeEndElement();
     }
 
+    public static void write(final XMLStreamWriter writer, final List<DeviceInfo> devices) throws Exception
+    {
+        writer.writeStartElement("devices");
+
+        for (DeviceInfo info : devices)
+        {
+            writer.writeStartElement("device");
+            write(writer, "name", info.getName());
+            write(writer, "alias", info.getAlias());
+            if (! info.getStatus().isEmpty())
+                write(writer, "status", info.getStatus());
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+    }
+
+    public static void write(final XMLStreamWriter writer, final ScanData data) throws Exception
+    {
+        writer.writeStartElement("data");
+
+        for (String device_name : data.getDevices())
+        {
+            writer.writeStartElement("device");
+            write(writer, "name", device_name);
+            writer.writeEndElement();
+
+            writer.writeStartElement("samples");
+            for (ScanSample data_sample : data.getSamples(device_name))
+            {
+                writer.writeStartElement("sample");
+                write(writer, "id", data_sample.getSerial());
+                write(writer, "time", data_sample.getTimestamp());
+                write(writer, "value", ScanSampleFormatter.asString(data_sample));
+                writer.writeEndElement();
+            }
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+    }
 
     public static void submitXML(XMLStreamWriter writer) throws Exception
     {

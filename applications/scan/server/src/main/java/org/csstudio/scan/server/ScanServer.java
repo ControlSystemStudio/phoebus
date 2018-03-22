@@ -42,7 +42,7 @@ public interface ScanServer
      *  @return Info about devices
      *  @throws Exception on error
      */
-    public DeviceInfo[] getDeviceInfos(long id) throws Exception;
+    public List<DeviceInfo> getDeviceInfos(long id) throws Exception;
 
     /** Submit a scan for simulation
      *  @param commands_as_xml Commands to simulate in XML format
