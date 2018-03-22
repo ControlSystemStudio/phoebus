@@ -35,7 +35,7 @@ public class ScanServerInstance
 
     public static final String VERSION = "4.5.0";
 
-    private static URL scan_config_file = ScanServerInstance.class.getResource("/examples/scan_config.xml");
+    private static URL scan_config_file = ScanServerInstance.class.getResource("/config/scan_config.xml");
 
     private static ScanConfig scan_config;
 

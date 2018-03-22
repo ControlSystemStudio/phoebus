@@ -125,6 +125,13 @@
       <version>9.4.9.v20180320</version>
     </dependency>
     
+    <!-- Derby, database used by scan server -->
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>10.14.1.0</version>
+    </dependency>
+    
   </dependencies>
 
   <build>
