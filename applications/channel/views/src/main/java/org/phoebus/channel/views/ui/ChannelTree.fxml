@@ -14,6 +14,7 @@
     <ColumnConstraints minWidth="10.0" prefWidth="60.0" />
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
     <ColumnConstraints minWidth="10.0" prefWidth="60" />
+      <ColumnConstraints minWidth="10.0" prefWidth="100.0" />
   </columnConstraints>
   <rowConstraints>
     <RowConstraints minHeight="10.0" prefHeight="30.0" />
@@ -27,6 +28,7 @@
         <Insets left="2.0" />
       </GridPane.margin>
     </Button>
-    <TreeView fx:id="treeView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
+      <Button fx:id="configure" mnemonicParsing="false" onAction="#configure" text="Configure" GridPane.columnIndex="3" />
+    <TreeView fx:id="treeView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
   </children>
 </GridPane>

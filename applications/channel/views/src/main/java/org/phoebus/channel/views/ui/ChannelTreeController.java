@@ -2,9 +2,15 @@ package org.phoebus.channel.views.ui;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.management.Query;
 
 import org.phoebus.channelfinder.Channel;
+import org.phoebus.channelfinder.ChannelUtil;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,9 +34,12 @@ public class ChannelTreeController extends ChannelFinderController {
     @FXML
     Button search;
     @FXML
+    Button configure;
+    @FXML
     TreeView<ChannelTreeByPropertyNode> treeView;
 
-    private List<String> properties = Arrays.asList();
+    private List<String> orderedProperties = Collections.emptyList();
+    private Collection<Channel> channels = Collections.emptyList();;
     private ChannelTreeByPropertyModel model;
 
     @FXML
@@ -43,16 +52,44 @@ public class ChannelTreeController extends ChannelFinderController {
         search();
     }
 
-    @FXML
-    public void search() {
-        super.search(query.getText());
+    public void setOrderedProperties(List<String> orderedProperties) {
+        this.orderedProperties = orderedProperties;
+        reconstructTree();
     }
 
     @Override
     public void setChannels(Collection<Channel> channels) {
-        model = new ChannelTreeByPropertyModel(query.getText(), channels, properties, this, true);
+        this.channels = channels;
+        reconstructTree();
+    }
+
+    private void reconstructTree() {
+        model = new ChannelTreeByPropertyModel(query.getText(), channels, orderedProperties, true);
         ChannelTreeItem root = new ChannelTreeItem(model.getRoot());
         treeView.setRoot(root);
+    }
+
+    /**
+     * Reorder the properties used to create the table
+     */
+    @FXML
+    public void configure() {
+        if (model != null) {
+            List<String> allProperties = ChannelUtil.getPropertyNames(model.getRoot().getNodeChannels()).stream().sorted().collect(Collectors.toList());
+            ListMultiOrderedPickerDialog dialog = new ListMultiOrderedPickerDialog(allProperties, orderedProperties);
+            Optional<List<String>> result = dialog.showAndWait();
+            result.ifPresent(r -> {
+                setOrderedProperties(r);
+            });
+        }
+    }
+
+    /**
+     * Search channelfinder for the channels satisfying the query set
+     */
+    @FXML
+    public void search() {
+        super.search(query.getText());
     }
 
     private final class ChannelTreeItem extends TreeItem<ChannelTreeByPropertyNode> {
