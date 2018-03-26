@@ -25,7 +25,7 @@ import org.csstudio.scan.server.ScanServerPreferences;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DerbyDataLogger extends RDBDataLogger
+class DerbyDataLogger extends RDBDataLogger
 {
     final private static String DERBY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
 

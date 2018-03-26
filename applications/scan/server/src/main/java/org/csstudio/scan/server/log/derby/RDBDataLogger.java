@@ -34,7 +34,7 @@ import org.csstudio.scan.info.Scan;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-abstract public class RDBDataLogger
+abstract public class RDBDataLogger implements AutoCloseable
 {
     /** Max 'name' length */
     private volatile static int max_name_length = 0;
@@ -156,7 +156,7 @@ abstract public class RDBDataLogger
      *  @return Scans that have been logged
      *  @throws Exception on error
      */
-    public Scan[] getScans() throws Exception
+    public List<Scan> getScans() throws Exception
     {
         final List<Scan> scans = new ArrayList<Scan>();
         try
@@ -172,7 +172,7 @@ abstract public class RDBDataLogger
                                    result.getTimestamp(3).toInstant()));
             result.close();
         }
-        return scans.toArray(new Scan[scans.size()]);
+        return scans;
     }
 
     /** Find (or create) a device in the database
@@ -430,6 +430,7 @@ abstract public class RDBDataLogger
     /** Close database.
      *  Must be called to release resources.
      */
+    @Override
     public void close()
     {
         try

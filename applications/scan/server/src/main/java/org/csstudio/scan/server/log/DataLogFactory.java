@@ -7,38 +7,56 @@
  ******************************************************************************/
 package org.csstudio.scan.server.log;
 
-import java.time.Instant;
-import java.util.Collections;
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.ServiceLoader;
+import java.util.logging.Level;
 
 import org.csstudio.scan.info.Scan;
+import org.csstudio.scan.server.log.derby.DerbyDataLogFactory;
 
 /** Factory for scan {@link DataLog}
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class DataLogFactory
 {
-    public static DataLog getDataLog(final Scan scan)
+	private static DataLogFactorySPI impl = new DerbyDataLogFactory();
+
+	static
+	{
+	    // Look for alternate implementation via SPI.
+	    // Using the last one found in case there are multiple.
+	    // Otherwise the default is already set
+	    int count = 0;
+	    for (DataLogFactorySPI dlf : ServiceLoader.load(DataLogFactorySPI.class))
+	    {
+	        if (++count > 1)
+	            throw new Error("Found multiple DataLogFactorySPI, " +
+	                            impl + " as well as " + dlf);
+	        impl = dlf;
+	    }
+	    logger.log(Level.CONFIG, "Data Log: " + impl);
+	}
+
+	public static Scan createDataLog(final String name) throws Exception
+	{
+		return impl.createDataLog(name);
+	}
+
+	public static List<Scan> getScans() throws Exception
+	{
+		return impl.getScans();
+	}
+
+    public static DataLog getDataLog(final Scan scan) throws Exception
     {
-        return new DummyDataLog();
+    	return impl.getDataLog(scan);
     }
 
-    private static final AtomicLong id = new AtomicLong();
-
-    // TODO Implement data log factory
-    public static Scan createDataLog(String name)
+    public static void deleteDataLog(final Scan scan) throws Exception
     {
-        return new Scan(id.incrementAndGet(), name, Instant.now());
-    }
-
-    public static List<Scan> getScans()
-    {
-        return Collections.emptyList();
-    }
-
-    public static void deleteDataLog(Scan scan)
-    {
-        // TODO Implement
+    	impl.deleteDataLog(scan);
     }
 }
