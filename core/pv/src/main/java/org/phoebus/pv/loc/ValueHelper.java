@@ -162,14 +162,20 @@ public class ValueHelper
     {
         final double[] values = new double[items.size()];
         for (int i=0; i<values.length; ++i)
+        {
             try
             {
-                values[i] = Double.parseDouble(Objects.toString(items.get(i)));
+                final String text = Objects.toString(items.get(i));
+                if (text.startsWith("0x"))
+                    values[i] = Integer.parseInt(text.substring(2), 16);
+                else
+                    values[i] = Double.parseDouble(text);
             }
             catch (NumberFormatException ex)
             {
                 throw new Exception("Cannot parse number from " + items.get(i));
             }
+        }
 
         return values;
     }
