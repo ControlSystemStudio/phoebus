@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.csstudio.scan.server.httpd.ScanWebServer;
 import org.csstudio.scan.server.internal.ScanServerImpl;
+import org.csstudio.scan.server.log.DataLogFactory;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 
 /** Main Instance of the Scan Server application
@@ -150,6 +151,10 @@ public class ScanServerInstance
             logger.log(Level.SEVERE, "Cannot start", ex);
         }
         httpd.shutdown();
+
+        DataLogFactory.shutdown();
+
         logger.info("Done.");
+        System.exit(0);
     }
 }

@@ -45,4 +45,9 @@ public interface DataLogFactorySPI
      *  @throws Exception on error
      */
     public void deleteDataLog(final Scan scan) throws Exception;
+
+    /** Called on shutdown of scan server to close log infrastructure
+     *  @throws Exception on error
+     */
+    public default void shutdown() throws Exception {};
 }

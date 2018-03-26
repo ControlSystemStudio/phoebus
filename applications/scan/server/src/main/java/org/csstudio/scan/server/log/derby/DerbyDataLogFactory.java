@@ -33,20 +33,7 @@ public class DerbyDataLogFactory implements DataLogFactorySPI
             logger.log(Level.SEVERE, "Cannot start Derby log", ex);
             throw new RuntimeException(ex);
         }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() ->
-        {
-            try
-            {
-                DerbyDataLogger.shutdown();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot stop Derby", ex);
-            }
-        }));
     }
-
 
 	@Override
 	public Scan createDataLog(final String scan_name) throws Exception
@@ -99,8 +86,14 @@ public class DerbyDataLogFactory implements DataLogFactorySPI
 	}
 
 	@Override
-    public String toString()
+    public void shutdown() throws Exception
 	{
-	    return "Derby Data Log";
+        DerbyDataLogger.shutdown();
 	}
+
+    @Override
+    public String toString()
+    {
+        return "Derby Data Log";
+    }
 }

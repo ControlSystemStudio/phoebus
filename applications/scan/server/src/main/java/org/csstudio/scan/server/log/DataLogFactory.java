@@ -59,4 +59,9 @@ public class DataLogFactory
     {
     	impl.deleteDataLog(scan);
     }
+
+    public static void shutdown() throws Exception
+    {
+        impl.shutdown();
+    }
 }
