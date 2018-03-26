@@ -40,6 +40,7 @@ public class OpenDataBrowser implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        return ApplicationService.createInstance(DataBrowserApp.NAME);
+        ApplicationService.createInstance(DataBrowserApp.NAME);
+        return null;
     }
 }
