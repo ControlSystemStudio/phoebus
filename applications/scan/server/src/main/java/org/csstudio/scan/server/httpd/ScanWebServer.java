@@ -35,7 +35,7 @@ public class ScanWebServer
         context.addServlet(ServerServlet.class, "/server/*");
         context.addServlet(ScansServlet.class, "/scans/*");
         context.addServlet(ScanServlet.class, "/scan/*");
-        context.addServlet(SimulateServlet.class, "/simulate");
+        context.addServlet(SimulateServlet.class, "/simulate/*");
 
         // Serve static files from webroot to "/"
         context.setContextPath("/");
