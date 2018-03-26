@@ -45,92 +45,6 @@ public class ServletHelper
         }
     }
 
-//    /** Create XML content for scan info
-//     *  @param doc XML {@link Document}
-//     *  @param info {@link ScanInfo}
-//     *  @return XML {@link Element} for the scan info
-//     */
-//    public static Element createXMLElement(final Document doc, final ScanInfo info)
-//    {
-//        final Element scan = doc.createElement("scan");
-//
-//        scan.appendChild(createXMLElement(doc, "id", info.getId()));
-//        scan.appendChild(createXMLElement(doc, "name", info.getName()));
-//        scan.appendChild(createXMLElement(doc, "created", info.getCreated()));
-//        scan.appendChild(createXMLElement(doc, "state", info.getState().name()));
-//        scan.appendChild(createXMLElement(doc, "runtime", info.getRuntimeMillisecs()));
-//
-//        if (info.getTotalWorkUnits() > 0)
-//        {
-//            scan.appendChild(createXMLElement(doc, "total_work_units", info.getTotalWorkUnits()));
-//            scan.appendChild(createXMLElement(doc, "performed_work_units", info.getPerformedWorkUnits()));
-//        }
-//
-//        final Instant finish = info.getFinishTime();
-//        if (finish != null)
-//            scan.appendChild(createXMLElement(doc, "finish", finish));
-//
-//        scan.appendChild(createXMLElement(doc, "address", info.getCurrentAddress()));
-//        scan.appendChild(createXMLElement(doc, "command", info.getCurrentCommand()));
-//
-//        if (info.getError().isPresent())
-//            scan.appendChild(createXMLElement(doc, "error", info.getError().get()));
-//
-//        return scan;
-//    }
-
-//    /** Create XML content for scan data
-//     *  @param doc XML {@link Document}
-//     *  @param data {@link ScanData}
-//     *  @return XML {@link Element} for the scan data
-//     */
-//    public static Node createXMLElement(final Document doc, final ScanData data)
-//    {
-//        final Element result = doc.createElement("data");
-//
-//        for (String device_name : data.getDevices())
-//        {
-//            final Element device = doc.createElement("device");
-//            device.appendChild(createXMLElement(doc, "name", device_name));
-//
-//            final Element samples = doc.createElement("samples");
-//            for (ScanSample data_sample : data.getSamples(device_name))
-//            {
-//                final Element sample = doc.createElement("sample");
-//                sample.setAttribute("id", Long.toString(data_sample.getSerial()));
-//                sample.appendChild(createXMLElement(doc, "time", data_sample.getTimestamp()));
-//                sample.appendChild(createXMLElement(doc, "value", ScanSampleFormatter.asString(data_sample)));
-//                samples.appendChild(sample);
-//            }
-//
-//            device.appendChild(samples);
-//            result.appendChild(device);
-//        }
-//        return result;
-//    }
-
-//    /** Create XML content for device infos
-//     *  @param doc XML {@link Document}
-//     *  @param devices {@link DeviceInfo}s
-//     *  @return XML {@link Element} for the device infos
-//     */
-//    public static Node createXMLElement(final Document doc, final DeviceInfo... devices)
-//    {
-//        final Element result = doc.createElement("devices");
-//
-//        for (DeviceInfo info : devices)
-//        {
-//            final Element device = doc.createElement("device");
-//            device.appendChild(createXMLElement(doc, "name", info.getName()));
-//            device.appendChild(createXMLElement(doc, "alias", info.getAlias()));
-//            if (! info.getStatus().isEmpty())
-//                device.appendChild(createXMLElement(doc, "status", info.getStatus()));
-//            result.appendChild(device);
-//        }
-//
-//        return result;
-//    }
-
     /** Create XML for HTTP client
      *  @param response {@link HttpServletResponse} to which XML is submitted
      *  @throws Exception on error
@@ -252,16 +166,17 @@ public class ServletHelper
         for (String device_name : data.getDevices())
         {
             writer.writeStartElement("device");
-            write(writer, "name", device_name);
-            writer.writeEndElement();
-
-            writer.writeStartElement("samples");
-            for (ScanSample data_sample : data.getSamples(device_name))
             {
-                writer.writeStartElement("sample");
-                write(writer, "id", data_sample.getSerial());
-                write(writer, "time", data_sample.getTimestamp());
-                write(writer, "value", ScanSampleFormatter.asString(data_sample));
+                write(writer, "name", device_name);
+                writer.writeStartElement("samples");
+                for (ScanSample data_sample : data.getSamples(device_name))
+                {
+                    writer.writeStartElement("sample");
+                    writer.writeAttribute("id", Long.toString(data_sample.getSerial()));
+                    write(writer, "time", data_sample.getTimestamp());
+                    write(writer, "value", ScanSampleFormatter.asString(data_sample));
+                    writer.writeEndElement();
+                }
                 writer.writeEndElement();
             }
             writer.writeEndElement();

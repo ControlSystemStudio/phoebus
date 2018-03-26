@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.data.ScanSample;
@@ -85,7 +86,7 @@ public class ScanDataSAXHandler extends DefaultHandler
             if ("sample".equalsIgnoreCase(qName))
             {
                 state = State.NeedTimeAndValue;
-                serial = Long.parseLong(attributes.getValue("id"));
+                serial = Long.parseLong(Objects.requireNonNull(attributes.getValue("id"), "<sample> need 'id' attribute"));
                 time = null;
                 value = null;
             }
