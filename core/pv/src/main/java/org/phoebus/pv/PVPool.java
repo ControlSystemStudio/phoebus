@@ -80,7 +80,7 @@ public class PVPool
 
             logger.log(Level.INFO, "Default PV type " + default_type + "://");
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
             logger.log(Level.SEVERE, "Cannot initialize PVPool", ex);
         }
