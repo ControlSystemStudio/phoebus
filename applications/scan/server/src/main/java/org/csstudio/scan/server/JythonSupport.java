@@ -11,14 +11,17 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.python.core.Py;
 import org.python.core.PyException;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
+import org.python.core.PyVersionInfo;
 import org.python.util.PythonInterpreter;
 
 /** Helper for obtaining Jython interpreter
@@ -34,25 +37,14 @@ public class JythonSupport implements AutoCloseable
     /** Perform static, one-time initialization */
     private static boolean init()
     {
-        final List<String> paths = new ArrayList<String>();
+        final List<String> paths = new ArrayList<>();
         try
         {
             final Properties pre_props = System.getProperties();
             final Properties props = new Properties();
 
-            // TODO Jython setup
-            // Locate the jython plugin for 'home' to allow use of /Lib in there
-            final String home = "/";
-            // getPluginPath("org.python.jython", "/");
-            if (home == null)
-                throw new Exception("Cannot locate jython bundle");
-
-            // Jython 2.7(b3) needs these to set sys.prefix and sys.executable.
-            // If left undefined, initialization of Lib/site.py fails with
-            // posixpath.py", line 394, in normpath AttributeError:
-            // 'NoneType' object has no attribute 'startswith'
-            props.setProperty("python.home", home);
-            props.setProperty("python.executable", "css");
+            // Compare jython setup with
+            // org.csstudio.display.builder.runtime.script.internal.JythonScriptSupport
 
             // Disable cachedir to avoid creation of cachedir folder.
             // See http://www.jython.org/jythonbook/en/1.0/ModulesPackages.html#java-package-scanning
@@ -70,39 +62,44 @@ public class JythonSupport implements AutoCloseable
             // Options: error, warning, message (default), comment, debug
             // props.setProperty("python.verbose", "debug");
 
-            // TODO Add scan script paths
-//            final String[] pref_paths = ScanSystemPreferences.getScriptPaths();
-//            for (String pref_path : pref_paths)
-//            {   // Resolve platform:/plugin/...
-//                if (pref_path.startsWith("platform:/plugin/"))
-//                {
-//                    final String plugin_path = pref_path.substring(17);
-//                    // Locate name of plugin and path within plugin
-//                    final int sep = plugin_path.indexOf('/');
-//                    final String plugin, path_within;
-//                    if (sep < 0)
-//                    {
-//                        plugin = plugin_path;
-//                        path_within = "/";
-//                    }
-//                    else
-//                    {
-//                        plugin = plugin_path.substring(0, sep);
-//                        path_within = plugin_path.substring(sep + 1);
-//                    }
-//                    final String path = getPluginPath(plugin, path_within);
-//                    if (path == null)
-//                        throw new Exception("Error in scan script path " + pref_path);
-//                    else
-//                        paths.add(path);
-//                }
-//                else // Add as-is
-//                    paths.add(pref_path);
-//            }
+            // Add scan script paths
+            for (String pref_path : ScanServerInstance.getScanConfig().getScriptPaths())
+            {
+                // Resolve built-in examples
+                if (pref_path.startsWith("examples:"))
+                {
+                    String path = "/examples/" + pref_path.substring(9);
+                    path = ScanServerInstance.class.getResource(path).toExternalForm();
+                    if (path == null)
+                        throw new Exception("Error in scan script path " + pref_path);
+                    // Patch file:/path/to/the_file.jar!/path/within
+                    if (path.startsWith("file:"))
+                        path = path.substring(5);
+                    path = path.replace(".jar!", ".jar");
+                    paths.add(path);
+                }
+                else // Add as-is
+                    paths.add(pref_path);
+            }
 
             props.setProperty("python.path", paths.stream().collect(Collectors.joining(java.io.File.pathSeparator)));
 
             PythonInterpreter.initialize(pre_props, props, new String[0]);
+            final PySystemState state = Py.getSystemState();
+            final PyVersionInfo version = PySystemState.version_info;
+            logger.log(Level.INFO, "Initial Paths for Jython " + version.major + "." + version.minor + "." + version.micro + ":");
+            for (Object o : state.path)
+                logger.log(Level.INFO, " * " + Objects.toString(o));
+
+            // Display Builder Scripts would sometimes fail in "from ... import ..." with this error:
+            //
+            // File "..jython-standalone-2.7.1.jar/Lib/warnings.py", line 226, in warn
+            // IndexError: index out of range: 0
+            //
+            // That version of Lib/warnings.py:226 tries to read sys.argv[0],
+            // so setting sys.argv[0] avoids the crash.
+            state.argv.clear();
+            state.argv.add("ScanServerScript");
         }
         catch (Exception ex)
         {
@@ -111,34 +108,6 @@ public class JythonSupport implements AutoCloseable
         }
         return true;
     }
-
-//    /** Locate a path inside a bundle.
-//    *
-//    *  <p>If the bundle is JAR-ed up, the {@link FileLocator} will
-//    *  return a location with "file:" and "..jar!/path".
-//    *  This method patches the location such that it can be used
-//    *  on the Jython path.
-//    *
-//    *  @param bundle_name Name of bundle
-//    *  @param path_in_bundle Path within bundle
-//    *  @return Location of that path within bundle, or <code>null</code> if not found or no bundle support
-//    *  @throws IOException on error
-//    */
-//   private static String getPluginPath(final String bundle_name, final String path_in_bundle) throws IOException
-//   {
-//       final Bundle bundle = Platform.getBundle(bundle_name);
-//       if (bundle == null)
-//           return null;
-//       final URL url = FileLocator.find(bundle, new Path(path_in_bundle), null);
-//       if (url == null)
-//           return null;
-//       String path = FileLocator.resolve(url).getPath();
-//       if (path.startsWith("file:/"))
-//          path = path.substring(5);
-//       path = path.replace(".jar!", ".jar");
-//
-//       return path;
-//   }
 
     /** Initialize
      *  @throws Exception on error
@@ -178,7 +147,7 @@ public class JythonSupport implements AutoCloseable
         // Get package name
         final String pack_name = class_name.toLowerCase();
         logger.log(Level.FINE, "Loading Jython class {0} from {1}",
-            new Object[] { class_name, pack_name });
+                   new Object[] { class_name, pack_name });
 
         try
         {
@@ -192,7 +161,11 @@ public class JythonSupport implements AutoCloseable
         {
             logger.log(Level.WARNING, "Error loading Jython class {0} from {1}",
                 new Object[] { class_name, pack_name });
-            logger.log(Level.WARNING, "Search path: {0}",interpreter.getSystemState().path);
+            logger.log(Level.WARNING, "Jython sys.path:\n * {0}",
+                       interpreter.getSystemState()
+                                  .path
+                                  .stream()
+                                  .collect(Collectors.joining("\n * ")));
 
             throw new Exception("Error loading Jython class " + class_name + ":" + getExceptionMessage(ex), ex);
         }

@@ -68,4 +68,10 @@ public class BaseScanCommandImplFactory implements ScanCommandImplFactory
                ? null
                : factory.createImplementation(command, jython);
     }
+
+    @Override
+    public String toString()
+    {
+        return "BaseScanCommandImplFactory";
+    }
 }

@@ -11,6 +11,8 @@ package org.csstudio.scan.command;
  *
  *  <p>Example:
  *  <pre>
+ *  from org.csstudio.scan.command import ScanScript
+ *
  *  class MyScript(ScanScript):
  *      def __init__(self, args):
  *          pass
@@ -18,7 +20,7 @@ package org.csstudio.scan.command;
  *      def getDeviceNames(self):
  *         return [ "result1", "result2" ]
  *
- *      def run(self, context, args):
+ *      def run(self, context):
  *          [x, y] = context.getData("xpos", "signal")
  *          context.write("result1", x[0])
  *          context.write("result2", y[0])

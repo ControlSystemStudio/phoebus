@@ -34,27 +34,30 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class ScanConfig
 {
-    final private static String XML_SCAN_CONFIG = "scan_config";
-    final private static String XML_SIMULATION_HOOK = "simulation_hook";
-    final private static String XML_PORT = "port";
-    final private static String XML_PV = "pv";
-    final private static String XML_NAME = "name";
-    final private static String XML_NAME_PATTERN = "name_pattern";
-    final private static String XML_ALIAS = "alias";
-    final private static String XML_SLEW_RATE = "slew_rate";
+    final private static String XML_SCAN_CONFIG = "scan_config",
+                                XML_SIMULATION_HOOK = "simulation_hook",
+                                XML_PATH = "path",
+                                XML_PORT = "port",
+                                XML_PV = "pv",
+                                XML_NAME = "name",
+                                XML_NAME_PATTERN = "name_pattern",
+                                XML_ALIAS = "alias",
+                                XML_SLEW_RATE = "slew_rate";
 
     private int port = 4810;
 
     private String simulation_hook = "";
 
+    private final List<String> script_paths = new ArrayList<>();
+
     /** Predefined devices, maybe with alias */
     private final List<DeviceInfo> devices = new ArrayList<>();
 
     /** Map of PV names to slew rate */
-    final private Map<String, Double> pv_slew_rates = new HashMap<String, Double>();
+    private final Map<String, Double> pv_slew_rates = new HashMap<>();
 
     /** Pattern for PV name and associated slew rate */
-    static private class PatternedSlew
+    private static class PatternedSlew
     {
         final Pattern pattern;
         final double slew_rate;
@@ -72,10 +75,10 @@ public class ScanConfig
     };
 
     /** Slew rates for PV name patterns */
-    final private List<PatternedSlew> patterned_slew_rates = new ArrayList<PatternedSlew>();
+    private final List<PatternedSlew> patterned_slew_rates = new ArrayList<>();
 
     /** Default slew rate for PVs that were not specified */
-    final public static double DEFAULT_SLEW_RATE = 0.05;
+    public static final double DEFAULT_SLEW_RATE = 0.05;
 
     /** Read scan configuration from XML stream
      *  @param stream Stream for XML content
@@ -94,8 +97,7 @@ public class ScanConfig
 
     public List<String> getScriptPaths()
     {
-        // TODO Auto-generated method stub
-        return Collections.emptyList();
+        return script_paths;
     }
 
     public List<String> getPreScanPaths()
@@ -166,6 +168,9 @@ public class ScanConfig
 
         XMLUtil.getChildString(xml, XML_SIMULATION_HOOK)
                .ifPresent(hook -> simulation_hook = hook);
+
+        for (Element path : XMLUtil.getChildElements(xml, XML_PATH))
+            script_paths.add(XMLUtil.getString(path));
 
         for (Element pv : XMLUtil.getChildElements(xml, XML_PV))
         {
