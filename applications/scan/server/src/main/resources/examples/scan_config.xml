@@ -10,6 +10,41 @@
   <!-- TCP port used by HTTPD / REST -->
   <port>4810</port>
 
+  <!-- Commands executed before and after each scan
+       Can use built-in 'examples:' or local file path to *.scn
+    -->   
+  <pre_scan>examples:pre_scan.scn</pre_scan> 
+  <!-- There can be more than one
+  <pre_scan>/some/other/initial.scn</pre_scan>
+   -->
+  <post_scan>examples:post_scan.scn</post_scan>
+  
+  <!-- Prefix to scan server status PVs
+       When empty, no status PVs will be updated
+    -->
+  <status_pv_prefix>Demo:Scan:</status_pv_prefix>
+
+  <!-- Value check timeout [seconds]
+       Set and Loop commands have a timeout that is used
+       to wait for completion or
+       to wait for the readback to match.
+       When using completion _and_ checking a readback,
+       the readback check does not use the full timeout but instead
+       checks if the value matches "right away" after completion has been confirmed.
+       This check, however, needs to read the current value of the PV,
+       so it also needs some timeout.
+       Similarly, the Log command uses this timeout to fetch the current
+       value of the devices to log.
+   -->
+  <read_timeout>20</read_timeout>
+  
+  <!-- Paths used to locate SimulationHook, ScanScript, ScanErrorHandler -->
+  <!-- 'examples:' refers to the built-in examples -->
+  <path>examples:</path>
+  <!-- There can be more than one... 
+  <path>/some/other/local/directory</path>
+   -->
+  
   <!-- Jython class that implements the
        org.csstudio.scan.server.SimulationHook
 
@@ -25,22 +60,16 @@
     -->
   <simulation_hook>SimulationHookDemo</simulation_hook>
 
-  <!-- Paths used to locate SimulationHook, ScanScript, ScanErrorHandler -->
-  <!-- 'examples:' refers to the built-in examples -->
-  <path>examples:</path>
-  <!-- There can be more than one... 
-  <path>/some/other/local/directory</path>
+  <!-- Scan server device name macros
+       "macro=value, macro=value"
    -->
-
-  <!-- Commands executed before and after each scan
-       Can use built-in 'examples:' or local file path to *.scn
-    -->   
-  <pre_scan>examples:pre_scan.scn</pre_scan> 
-  <!-- There can be more than one
-  <pre_scan>/some/other/initial.scn</pre_scan>
-   -->
-  <post_scan>examples:post_scan.scn</post_scan>
-
+  <macros>DemoDevice=motor_x</macros>
+  
+  <!-- If memory consumption of scan server is above this percentage,
+       older scans are removed whenever a new scan is added
+    -->
+  <old_scan_removal_threadhold>50</old_scan_removal_threadhold>
+  
   <!-- Simulation information for a PV
 
        Slew rate is in [units of the device] / second

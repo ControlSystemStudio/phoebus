@@ -85,6 +85,18 @@ public class ScanClient
         this.port = port;
     }
 
+    /** @return Scan server host */
+    public String getHost()
+    {
+        return host;
+    }
+
+    /** @return Scan server port */
+    public int getPort()
+    {
+        return port;
+    }
+
     /** Connect to "http://server:port/path"
      *  @param path Path to use in scan server REST interface
      *  @param timeout_seconds Timeout to use for operations

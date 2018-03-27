@@ -23,7 +23,6 @@ import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.DeviceListener;
 import org.csstudio.scan.server.device.VTypeHelper;
-import org.phoebus.util.time.TimeDuration;
 
 /** Condition that waits for a Device to reach a certain numeric value.
  *
@@ -40,7 +39,7 @@ import org.phoebus.util.time.TimeDuration;
 @SuppressWarnings("nls")
 public class NumericValueCondition implements DeviceCondition, DeviceListener
 {
-    final static Duration value_check_timeout = TimeDuration.ofSeconds(ScanServerInstance.getScanConfig().getValueCheckTimeout());
+    final static Duration value_check_timeout = ScanServerInstance.getScanConfig().getReadTimeout();
 
     /** Device to monitor */
     final private Device device;

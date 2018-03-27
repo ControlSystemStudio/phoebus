@@ -1,0 +1,59 @@
+# Scan Server status PVs
+#
+#  softIoc -s -m "P=Demo:Scan:" -d scan.db
+
+record(bi, "$(P)Active")
+{
+    field(DESC, "Scan Server Active?")
+    field(INP,  "0")
+    field(PINI, "YES")
+    field(ZNAM, "Idle")
+    field(ONAM, "Scanning")
+}
+
+# Note:
+# The enum values need to match the org.csstudio.scan.server.ScanState
+record(mbbi, "$(P)State")
+{
+    field(DESC, "State of last executed scan")
+    field(PINI, "YES")
+    field(INP,  "0")
+    field(ZRVL, "0")
+    field(ZRST, "Idle")
+    field(ONVL, "1")
+    field(ONST, "Running")
+    field(TWVL, "2")
+    field(TWST, "Paused")
+    field(THVL, "3")
+    field(THST, "Aborted")
+    field(FRVL, "4")
+    field(FRST, "Failed")
+    field(FRSV, "MAJOR")
+    field(FVVL, "5")
+    field(FVST, "Finished")
+    field(SXVL, "6")
+    field(SXST, "Logged")
+}
+
+record(waveform, "$(P)Status")
+{
+    field(DESC, "Scan Status")
+    field(PINI, "YES")
+    field(FTVL, "CHAR")
+    field(NELM, "100")
+}
+
+record(ai, "$(P)Progress")
+{
+    field(DESC, "Percentage done")
+    field(PINI, "YES")
+    field(INP,  "0")
+    field(HOPR, "100")
+    field(EGU,  "%")
+}
+
+record(stringin, "$(P)Finish")
+{
+    field(DESC, "Estimated Finish")
+    field(PINI, "YES")
+}

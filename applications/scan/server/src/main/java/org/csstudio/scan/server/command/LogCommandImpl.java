@@ -17,6 +17,7 @@ package org.csstudio.scan.server.command;
 
 import static org.csstudio.scan.server.ScanServerInstance.logger;
 
+import java.time.Duration;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.LogCommand;
@@ -28,7 +29,6 @@ import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.VTypeHelper;
 import org.csstudio.scan.server.log.DataLog;
-import org.phoebus.util.time.TimeDuration;
 import org.phoebus.vtype.VType;
 
 /** {@link ScanCommandImpl} that reads data from devices and logs it
@@ -37,7 +37,7 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class LogCommandImpl extends ScanCommandImpl<LogCommand>
 {
-    final private static double timeout = ScanServerInstance.getScanConfig().getLogCommandReadTimeout();
+    final private static Duration timeout = ScanServerInstance.getScanConfig().getReadTimeout();
 
     /** {@inheritDoc} */
     public LogCommandImpl(final LogCommand command, final JythonSupport jython) throws Exception
@@ -73,7 +73,7 @@ public class LogCommandImpl extends ScanCommandImpl<LogCommand>
         for (String device_name : device_names)
         {
             final Device device = context.getDevice(context.getMacros().resolveMacros(device_name));
-            final VType value = device.read(TimeDuration.ofSeconds(timeout));
+            final VType value = device.read(timeout);
             logger.log(Level.FINER, "Log: {0} = {1}", new Object[] { device, value });
             log.log(device.getAlias(), VTypeHelper.createSample(serial, value));
         }

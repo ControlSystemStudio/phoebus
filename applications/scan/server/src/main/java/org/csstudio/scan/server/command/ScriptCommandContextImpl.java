@@ -21,7 +21,6 @@ import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.VTypeHelper;
 import org.phoebus.util.array.IteratorNumber;
-import org.phoebus.util.time.TimeDuration;
 import org.phoebus.vtype.VNumber;
 import org.phoebus.vtype.VNumberArray;
 import org.phoebus.vtype.VType;
@@ -35,7 +34,7 @@ import org.phoebus.vtype.ValueUtil;
  */
 public class ScriptCommandContextImpl extends ScanScriptContext
 {
-    protected final static Duration value_check_timeout = TimeDuration.ofSeconds(ScanServerInstance.getScanConfig().getValueCheckTimeout());
+    protected final static Duration value_check_timeout = ScanServerInstance.getScanConfig().getReadTimeout();
     final private ScanContext context;
 
     /** Initialize

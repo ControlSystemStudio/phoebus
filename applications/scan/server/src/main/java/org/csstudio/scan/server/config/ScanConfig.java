@@ -16,6 +16,7 @@
 package org.csstudio.scan.server.config;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.regex.Pattern;
 
 import org.csstudio.scan.device.DeviceInfo;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.time.TimeDuration;
 import org.w3c.dom.Element;
 
 /** Helper for handling scan_config.xml files
@@ -33,25 +35,38 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class ScanConfig
 {
-    final private static String XML_SCAN_CONFIG = "scan_config",
-                                XML_SIMULATION_HOOK = "simulation_hook",
+    final private static String XML_ALIAS = "alias",
+                                XML_MACROS = "macros",
+                                XML_NAME = "name",
+                                XML_NAME_PATTERN = "name_pattern",
+                                XML_OLD_SCAN_REMOVAL_THRESHOLD = "old_scan_removal_threadhold",
                                 XML_PATH = "path",
                                 XML_PORT = "port",
                                 XML_POST_SCAN = "post_scan",
                                 XML_PRE_SCAN = "pre_scan",
                                 XML_PV = "pv",
-                                XML_NAME = "name",
-                                XML_NAME_PATTERN = "name_pattern",
-                                XML_ALIAS = "alias",
-                                XML_SLEW_RATE = "slew_rate";
+                                XML_READ_TIMEOUT = "read_timeout",
+                                XML_SCAN_CONFIG = "scan_config",
+                                XML_SIMULATION_HOOK = "simulation_hook",
+                                XML_SLEW_RATE = "slew_rate",
+                                XML_STATUS_PV_PREFIX = "status_pv_prefix";
 
     private int port = 4810;
 
-    private String simulation_hook = "";
-
-    private final List<String> script_paths = new ArrayList<>();
     private final List<String> pre_scan = new ArrayList<>();
     private final List<String> post_scan = new ArrayList<>();
+
+    private String status_pv_prefix = "";
+
+    private static Duration read_timeout = TimeDuration.ofSeconds(20);
+
+    private final List<String> script_paths = new ArrayList<>();
+
+    private String simulation_hook = "";
+
+    private String macros = "";
+
+    private double old_scan_removal_threadhold = 50.0;
 
     /** Predefined devices, maybe with alias */
     private final List<DeviceInfo> devices = new ArrayList<>();
@@ -80,6 +95,7 @@ public class ScanConfig
     /** Slew rates for PV name patterns */
     private final List<PatternedSlew> patterned_slew_rates = new ArrayList<>();
 
+
     /** Default slew rate for PVs that were not specified */
     public static final double DEFAULT_SLEW_RATE = 0.05;
 
@@ -98,11 +114,6 @@ public class ScanConfig
         return port;
     }
 
-    public List<String> getScriptPaths()
-    {
-        return script_paths;
-    }
-
     public List<String> getPreScanPaths()
     {
         return pre_scan;
@@ -113,6 +124,21 @@ public class ScanConfig
         return post_scan;
     }
 
+    public String getStatusPvPrefix()
+    {
+        return status_pv_prefix;
+    }
+
+    public Duration getReadTimeout()
+    {
+        return read_timeout;
+    }
+
+    public List<String> getScriptPaths()
+    {
+        return script_paths;
+    }
+
     /** @return Jython class to use for simulation hook. May be empty */
     public String getSimulationHook()
     {
@@ -121,20 +147,12 @@ public class ScanConfig
 
     public String getMacros()
     {
-        // TODO read macros from config file
-        return "";
+        return macros;
     }
 
-    public double getValueCheckTimeout()
+    public double getOldScanRemovalMemoryThreshold()
     {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public String getStatusPvPrefix()
-    {
-        // TODO Status PV Prefix
-        return null;
+        return old_scan_removal_threadhold;
     }
 
     /** @return {@link DeviceInfo}s read from file */
@@ -169,17 +187,29 @@ public class ScanConfig
         XMLUtil.getChildInteger(xml, XML_PORT)
                .ifPresent(p -> port = p);
 
-        XMLUtil.getChildString(xml, XML_SIMULATION_HOOK)
-               .ifPresent(hook -> simulation_hook = hook);
-
-        for (Element path : XMLUtil.getChildElements(xml, XML_PATH))
-            script_paths.add(XMLUtil.getString(path));
-
         for (Element path : XMLUtil.getChildElements(xml, XML_PRE_SCAN))
             pre_scan.add(XMLUtil.getString(path));
 
         for (Element path : XMLUtil.getChildElements(xml, XML_POST_SCAN))
             post_scan.add(XMLUtil.getString(path));
+
+        XMLUtil.getChildString(xml, XML_STATUS_PV_PREFIX)
+               .ifPresent(prefix -> status_pv_prefix = prefix);
+
+        XMLUtil.getChildInteger(xml, XML_READ_TIMEOUT)
+               .ifPresent(sec -> read_timeout = TimeDuration.ofSeconds(sec));
+
+        for (Element path : XMLUtil.getChildElements(xml, XML_PATH))
+            script_paths.add(XMLUtil.getString(path));
+
+        XMLUtil.getChildString(xml, XML_SIMULATION_HOOK)
+               .ifPresent(hook -> simulation_hook = hook);
+
+        XMLUtil.getChildString(xml, XML_MACROS)
+               .ifPresent(m -> macros = m);
+
+        XMLUtil.getChildDouble(xml, XML_OLD_SCAN_REMOVAL_THRESHOLD)
+               .ifPresent(perc -> old_scan_removal_threadhold = perc);
 
         for (Element pv : XMLUtil.getChildElements(xml, XML_PV))
         {
@@ -201,17 +231,5 @@ public class ScanConfig
                 patterned_slew_rates.add(new PatternedSlew(pattern, slew_rate.get()));
             }
         }
-    }
-
-    public double getOldScanRemovalMemoryThreshold()
-    {
-        // TODO Auto-generated method stub
-        return 50.0;
-    }
-
-    public double getLogCommandReadTimeout()
-    {
-        // TODO Auto-generated method stub
-        return 30;
     }
 }
