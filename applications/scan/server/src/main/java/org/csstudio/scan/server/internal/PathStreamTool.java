@@ -11,21 +11,37 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 
+import org.csstudio.scan.server.ScanServerInstance;
+
 /** Tool for opening path as stream
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class PathStreamTool
 {
+    /** Prefix used for built-in scan server examples */
+    public static final String EXAMPLES = "examples:";
+
+    /** @param path "examples:/.." path for built-in scan server examples
+     *  @return Path to actual resource
+     */
+    public static String patchExamplePath(final String path)
+    {
+        return "/examples/" + path.substring(9);
+    }
+
     /** Open stream for path
-     *  @param path Either "jar:/plugin/some.plugin.name/path/file.ext" or plain file path
+     *  @param path Either "examples:file.ext" or plain file path
      *  @return InputStream for the path
      *  @throws Exception
      */
     public static InputStream openStream(final String path) throws Exception
     {
-        // TODO Handle 'jar'/class resources
-        return new FileInputStream(path);
+        // Handle examples
+        if (path.startsWith(EXAMPLES))
+            return ScanServerInstance.class.getResourceAsStream(patchExamplePath(path));
+        else
+            return new FileInputStream(path);
     }
 
     /** Open stream for a location, using multiple search paths

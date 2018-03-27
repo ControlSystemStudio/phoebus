@@ -32,6 +32,15 @@
   <path>/some/other/local/directory</path>
    -->
 
+  <!-- Commands executed before and after each scan
+       Can use built-in 'examples:' or local file path to *.scn
+    -->   
+  <pre_scan>examples:pre_scan.scn</pre_scan> 
+  <!-- There can be more than one
+  <pre_scan>/some/other/initial.scn</pre_scan>
+   -->
+  <post_scan>examples:post_scan.scn</post_scan>
+
   <!-- Simulation information for a PV
 
        Slew rate is in [units of the device] / second

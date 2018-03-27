@@ -36,6 +36,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
@@ -311,8 +312,15 @@ public class ScanEditor extends SplitPane
             }
             else
             {
-                final long id = scan_client.submitScan(scan_name, xml_commands, how);
-                attachScan(id);
+                try
+                {
+                    final long id = scan_client.submitScan(scan_name, xml_commands, how);
+                    attachScan(id);
+                }
+                catch (Exception ex)
+                {
+                    ExceptionDetailsErrorDialog.openError(this, "Error", "Scan Submission failed", ex);
+                }
             }
         });
     }

@@ -17,7 +17,6 @@ package org.csstudio.scan.server.config;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,8 @@ public class ScanConfig
                                 XML_SIMULATION_HOOK = "simulation_hook",
                                 XML_PATH = "path",
                                 XML_PORT = "port",
+                                XML_POST_SCAN = "post_scan",
+                                XML_PRE_SCAN = "pre_scan",
                                 XML_PV = "pv",
                                 XML_NAME = "name",
                                 XML_NAME_PATTERN = "name_pattern",
@@ -49,6 +50,8 @@ public class ScanConfig
     private String simulation_hook = "";
 
     private final List<String> script_paths = new ArrayList<>();
+    private final List<String> pre_scan = new ArrayList<>();
+    private final List<String> post_scan = new ArrayList<>();
 
     /** Predefined devices, maybe with alias */
     private final List<DeviceInfo> devices = new ArrayList<>();
@@ -102,12 +105,12 @@ public class ScanConfig
 
     public List<String> getPreScanPaths()
     {
-        return Collections.emptyList();
+        return pre_scan;
     }
 
     public List<String> getPostScanPaths()
     {
-        return Collections.emptyList();
+        return post_scan;
     }
 
     /** @return Jython class to use for simulation hook. May be empty */
@@ -171,6 +174,12 @@ public class ScanConfig
 
         for (Element path : XMLUtil.getChildElements(xml, XML_PATH))
             script_paths.add(XMLUtil.getString(path));
+
+        for (Element path : XMLUtil.getChildElements(xml, XML_PRE_SCAN))
+            pre_scan.add(XMLUtil.getString(path));
+
+        for (Element path : XMLUtil.getChildElements(xml, XML_POST_SCAN))
+            post_scan.add(XMLUtil.getString(path));
 
         for (Element pv : XMLUtil.getChildElements(xml, XML_PV))
         {

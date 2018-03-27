@@ -9,6 +9,7 @@ package org.csstudio.scan.server;
 
 import static org.csstudio.scan.server.ScanServerInstance.logger;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +17,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.csstudio.scan.server.internal.PathStreamTool;
 import org.python.core.Py;
 import org.python.core.PyException;
 import org.python.core.PyObject;
@@ -66,12 +68,13 @@ public class JythonSupport implements AutoCloseable
             for (String pref_path : ScanServerInstance.getScanConfig().getScriptPaths())
             {
                 // Resolve built-in examples
-                if (pref_path.startsWith("examples:"))
+                if (pref_path.startsWith(PathStreamTool.EXAMPLES))
                 {
-                    String path = "/examples/" + pref_path.substring(9);
-                    path = ScanServerInstance.class.getResource(path).toExternalForm();
-                    if (path == null)
+                    String path = PathStreamTool.patchExamplePath(pref_path);
+                    final URL url = ScanServerInstance.class.getResource(path);
+                    if (url == null)
                         throw new Exception("Error in scan script path " + pref_path);
+                    path = url.toExternalForm();
                     // Patch file:/path/to/the_file.jar!/path/within
                     if (path.startsWith("file:"))
                         path = path.substring(5);
