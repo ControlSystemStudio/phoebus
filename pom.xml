@@ -43,5 +43,6 @@
     <module>core</module>
     <module>applications</module>
     <module>phoebus-product</module>
+    <module>scanserver-product</module>
   </modules>
 </project>
