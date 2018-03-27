@@ -236,7 +236,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     public List<ScanCommand> getScanCommands()
     {
         // Fetch underlying commands for implementations
-        final List<ScanCommand> commands = new ArrayList<ScanCommand>(implementations.size());
+        final List<ScanCommand> commands = new ArrayList<>(implementations.size());
         for (ScanCommandImpl<?> impl : implementations)
             commands.add(impl.getCommand());
         return commands;
@@ -373,7 +373,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     @Override
     public Object call() throws Exception
     {
-        logger.log(Level.CONFIG, "Executing ID {0} \"{1}\" [{2}]", new Object[] { getId(), getName(), new MemoryInfo()});
+        logger.log(Level.CONFIG, "Executing ID " + getId() + " \"" + getName() + "\" [" + new MemoryInfo() + "]");
 
         try
         (
