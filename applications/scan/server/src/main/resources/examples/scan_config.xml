@@ -22,8 +22,8 @@
        implemented in file simulationhookdemo.py,
        located on the path provided by the script_paths
        preference.
-  <simulation_hook>SimulationHookDemo</simulation_hook>
     -->
+  <simulation_hook>SimulationHookDemo</simulation_hook>
 
   <!-- Paths used to locate SimulationHook, ScanScript, ScanErrorHandler -->
   <!-- 'examples:' refers to the built-in examples -->

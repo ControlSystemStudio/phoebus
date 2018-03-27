@@ -1,0 +1,39 @@
+<commands>
+  <comment>
+    <text>Invoke a Script command</text>
+  </comment>
+  <script>
+    <path>MyScanScript</path>
+    <arguments>
+      <argument>Fred</argument>
+    </arguments>
+  </script>
+  <set>
+    <device>loc://x(0)</device>
+    <value>1.0</value>
+    <wait>false</wait>
+    <tolerance>0.1</tolerance>
+  </set>
+  <comment>
+    <text>This command would fail, but error is ignored</text>
+  </comment>
+  <wait>
+    <device>loc://x(0)</device>
+    <value>2.0</value>
+    <comparison>EQUALS</comparison>
+    <tolerance>0.1</tolerance>
+    <timeout>1.0</timeout>
+    <error_handler>OnErrorContinue</error_handler>
+  </wait>
+  <comment>
+    <text>This command will re-try, then fail</text>
+  </comment>
+  <wait>
+    <device>loc://x(0)</device>
+    <value>3.0</value>
+    <comparison>EQUALS</comparison>
+    <tolerance>0.1</tolerance>
+    <timeout>1.0</timeout>
+    <error_handler>OnErrorRetryThenAbort</error_handler>
+  </wait>
+</commands>
