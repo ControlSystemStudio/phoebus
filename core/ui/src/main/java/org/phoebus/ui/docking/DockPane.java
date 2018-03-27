@@ -15,9 +15,11 @@ import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.javafx.Styles;
 
 import javafx.beans.InvalidationListener;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.DragEvent;
@@ -286,8 +288,18 @@ public class DockPane extends TabPane
             if (! (old_parent instanceof DockPane))
                 logger.log(Level.SEVERE, "DockItem is not in DockPane but " + old_parent);
 
+            // When moving to a new scene,
+            // assert that styles used in old scene are still available
+            final Scene old_scene = old_parent.getScene();
+            final Scene scene = getScene();
+            if (scene != old_scene)
+                for (String css : old_scene.getStylesheets())
+                    Styles.set(scene, css);
+
+            // Move item to new tab
             old_parent.getTabs().remove(item);
             getTabs().add(item);
+
             autoHideTabs();
 
             // Select the new item
