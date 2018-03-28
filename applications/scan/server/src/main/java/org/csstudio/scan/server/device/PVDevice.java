@@ -46,7 +46,7 @@ import org.phoebus.vtype.ValueUtil;
 public class PVDevice extends Device
 {
     /** 'compile time' option to treat byte arrays as string */
-    final private static boolean TREAT_BYTES_AS_STRING = true; // TODO Make configurable
+    final private static boolean TREAT_BYTES_AS_STRING = true; // XXX Make treat-byte-as-string configurable?
 
     /** Alarm that is used to identify a disconnected PV */
    final private static Alarm DISCONNECTED = ValueFactory.newAlarm(AlarmSeverity.INVALID, "Disconnected");
