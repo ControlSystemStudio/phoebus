@@ -17,6 +17,12 @@ import org.csstudio.scan.info.Scan;
 // Previously called IDataLogFactory
 public interface DataLogFactorySPI
 {
+    /** Called once on startup
+     *  @param location Parameter for the log implementation, for example path to directory where log is kept
+     *  @throws Exception on error
+     */
+    public default void startup(String location) throws Exception {};
+
     /** Create new log for a new scan
      *  @param scan_name Name of the scan (doesn't need to be unique)
      *  @return Scan with ID that can now and later be used to access the data log

@@ -17,8 +17,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 
-import org.csstudio.scan.server.ScanServerPreferences;
-
 //import org.apache.derby.drda.NetworkServerControl;
 
 /** Derby-based sample logger
@@ -36,10 +34,10 @@ class DerbyDataLogger extends RDBDataLogger
      *  <p>Must be called once before accessing Derby
      *  @throws Exception on error
      */
-    public static void startup() throws InstantiationException, IllegalAccessException, Exception
+    public static void startup(final String location) throws Exception
     {
         // Path where Derby creates databases
-        System.setProperty("derby.system.home", ScanServerPreferences.getDataLogDirectory());
+        System.setProperty("derby.system.home", location);
 
         logger.info("Derby Data Log directory: " + System.getProperty("derby.system.home"));
 

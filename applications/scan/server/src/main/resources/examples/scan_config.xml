@@ -10,6 +10,16 @@
   <!-- TCP port used by HTTPD / REST -->
   <port>4810</port>
 
+  <!-- Location of the data log
+       For DerbyDataLogger, the default logger,
+       this is the directory that will hold the log database.
+       Other implementations might use the parameter in a different way.
+       
+       /tmp/.. is a good location for initial tests
+       but not production because the /tmp directory tends to get cleaned. 
+    -->
+  <data_log>/tmp/scan_log_db</data_log>
+  
   <!-- Commands executed before and after each scan
        Can use built-in 'examples:' or local file path to *.scn
     -->   

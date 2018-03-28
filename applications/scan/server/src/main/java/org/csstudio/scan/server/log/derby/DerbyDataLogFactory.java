@@ -7,10 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.server.log.derby;
 
-import static org.csstudio.scan.server.ScanServerInstance.logger;
-
 import java.util.List;
-import java.util.logging.Level;
 
 import org.csstudio.scan.info.Scan;
 import org.csstudio.scan.server.log.DataLog;
@@ -22,17 +19,10 @@ import org.csstudio.scan.server.log.DataLogFactorySPI;
 @SuppressWarnings("nls")
 public class DerbyDataLogFactory implements DataLogFactorySPI
 {
-    public DerbyDataLogFactory()
+    @Override
+    public void startup(final String location) throws Exception
     {
-        try
-        {
-            DerbyDataLogger.startup();
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.SEVERE, "Cannot start Derby log", ex);
-            throw new RuntimeException(ex);
-        }
+        DerbyDataLogger.startup(location);
     }
 
 	@Override

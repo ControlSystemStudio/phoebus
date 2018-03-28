@@ -134,6 +134,8 @@ public class ScanServerInstance
         logger.info("Configuration: " + scan_config_file);
         scan_config = new ScanConfig(scan_config_file.openStream());
 
+        DataLogFactory.startup(scan_config.getDataLogParm());
+
         scan_server = new ScanServerImpl();
         scan_server.start();
 

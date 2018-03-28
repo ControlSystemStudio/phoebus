@@ -15,6 +15,7 @@
   <xs:complexType>
     <xs:sequence>
       <xs:element name="port" type="xs:decimal" minOccurs="0" maxOccurs="1" default="4810"/>
+      <xs:element name="data_log" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="pre_scan" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="post_scan" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="status_pv_prefix" type="xs:string" minOccurs="0" maxOccurs="1"/>

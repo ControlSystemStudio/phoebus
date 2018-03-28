@@ -24,7 +24,7 @@ public class DerbyLogDemo
     public void demoDerbyLog() throws Exception
     {
         LogManager.getLogManager().readConfiguration(ScanServerInstance.class.getResourceAsStream("/logging.properties"));
-        DerbyDataLogger.startup();
+        DerbyDataLogger.startup("/tmp/scan_log_db");
 
         final RDBDataLogger datalog = new DerbyDataLogger();
 
@@ -40,13 +40,13 @@ public class DerbyLogDemo
         	id = scan.getId();
             System.out.println(scan);
         }
-        
+
         if (id > 0)
         {
             System.out.println("Adding a sample to log " + id);
         	datalog.log(id, "test", new NumberScanSample(Instant.now(), 0, 3.14));
-        	
-        	
+
+
         	ScanDataIterator iter = new ScanDataIterator(datalog.getScanData(id));
         	System.out.println(iter.getDevices());
         	while (iter.hasNext())
@@ -55,7 +55,7 @@ public class DerbyLogDemo
         			System.out.println(sample);
         	}
     	}
-        
+
         datalog.close();
 
         DerbyDataLogger.shutdown();

@@ -22,22 +22,22 @@ import org.csstudio.scan.server.log.derby.DerbyDataLogFactory;
 @SuppressWarnings("nls")
 public class DataLogFactory
 {
-	private static DataLogFactorySPI impl = new DerbyDataLogFactory();
+	private static DataLogFactorySPI impl = null;
 
-	static
-	{
-	    // Look for alternate implementation via SPI.
-	    // Using the last one found in case there are multiple.
-	    // Otherwise the default is already set
-	    int count = 0;
+    public static void startup(final String location) throws Exception
+    {
+	    // Look for implementation via SPI.
 	    for (DataLogFactorySPI dlf : ServiceLoader.load(DataLogFactorySPI.class))
 	    {
-	        if (++count > 1)
+	        if (impl != null)
 	            throw new Error("Found multiple DataLogFactorySPI, " +
 	                            impl + " as well as " + dlf);
 	        impl = dlf;
 	    }
+	    if (impl == null)
+	        impl = new DerbyDataLogFactory();
 	    logger.log(Level.CONFIG, "Data Log: " + impl);
+	    impl.startup(location);
 	}
 
 	public static Scan createDataLog(final String name) throws Exception

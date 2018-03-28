@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 public class ScanConfig
 {
     final private static String XML_ALIAS = "alias",
+                                XML_DATALOG = "data_log",
                                 XML_MACROS = "macros",
                                 XML_NAME = "name",
                                 XML_NAME_PATTERN = "name_pattern",
@@ -52,6 +53,8 @@ public class ScanConfig
                                 XML_STATUS_PV_PREFIX = "status_pv_prefix";
 
     private int port = 4810;
+
+    private String data_log = "/tmp/scan_log_db";
 
     private final List<String> pre_scan = new ArrayList<>();
     private final List<String> post_scan = new ArrayList<>();
@@ -112,6 +115,11 @@ public class ScanConfig
     public int getPort()
     {
         return port;
+    }
+
+    public String getDataLogParm()
+    {
+        return data_log;
     }
 
     public List<String> getPreScanPaths()
@@ -186,6 +194,9 @@ public class ScanConfig
 
         XMLUtil.getChildInteger(xml, XML_PORT)
                .ifPresent(p -> port = p);
+
+        XMLUtil.getChildString(xml, XML_DATALOG)
+               .ifPresent(parm -> data_log = parm);
 
         for (Element path : XMLUtil.getChildElements(xml, XML_PRE_SCAN))
             pre_scan.add(XMLUtil.getString(path));
