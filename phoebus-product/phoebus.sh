@@ -28,5 +28,4 @@ fi
 # To get one instance, use server mode
 OPT="-server 4918"
 
-# Will eventually need --add-modules=ALL-SYSTEM?
-java -jar $JAR $OPT "$@" &
+java --add-modules=java.corba -jar $JAR $OPT "$@" &

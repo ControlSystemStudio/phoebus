@@ -25,5 +25,4 @@ else
   JAR="${TOP}/scan-server-product-${V}-SNAPSHOT.jar"
 fi
 
-# Will eventually need --add-modules=ALL-SYSTEM?
-java -jar $JAR "$@"
+java --add-modules=java.corba -jar $JAR "$@"
