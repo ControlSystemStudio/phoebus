@@ -18,10 +18,10 @@ package org.csstudio.scan.server.command;
 import org.csstudio.scan.command.ScanScript;
 import org.csstudio.scan.command.ScanScriptContext;
 import org.csstudio.scan.command.ScriptCommand;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
+import org.csstudio.scan.server.internal.JythonSupport;
 import org.python.core.PyException;
 
 /** {@link ScanCommandImpl} that executes a script

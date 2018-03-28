@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.csstudio.scan.server.config.ScanConfig;
 import org.csstudio.scan.server.device.SimulatedDevice;
+import org.csstudio.scan.server.internal.JythonSupport;
 import org.phoebus.framework.macros.MacroHandler;
 import org.python.core.PyException;
 

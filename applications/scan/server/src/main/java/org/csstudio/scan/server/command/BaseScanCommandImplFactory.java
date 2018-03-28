@@ -31,9 +31,9 @@ import org.csstudio.scan.command.ScriptCommand;
 import org.csstudio.scan.command.SequenceCommand;
 import org.csstudio.scan.command.SetCommand;
 import org.csstudio.scan.command.WaitCommand;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplFactory;
+import org.csstudio.scan.server.internal.JythonSupport;
 
 /** Factory that implements base commands
  *  @author Kay Kasemir

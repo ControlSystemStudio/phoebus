@@ -16,6 +16,7 @@
 package org.csstudio.scan.server;
 
 import org.csstudio.scan.command.ScanCommand;
+import org.csstudio.scan.server.internal.JythonSupport;
 
 /** SPI for Factory that creates {@link ScanCommandImpl} for given {@link ScanCommand}
  *

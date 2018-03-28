@@ -16,9 +16,9 @@
 package org.csstudio.scan.server.command;
 
 import org.csstudio.scan.command.ConfigLogCommand;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
+import org.csstudio.scan.server.internal.JythonSupport;
 
 /** {@link ScanCommandImpl} that configures the log mode
  *  @author Kay Kasemir

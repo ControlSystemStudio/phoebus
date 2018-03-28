@@ -15,11 +15,11 @@
  ******************************************************************************/
 package org.csstudio.scan.server.command;
 
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.condition.DeviceCondition;
 import org.csstudio.scan.server.condition.WaitForDevicesCondition;
+import org.csstudio.scan.server.internal.JythonSupport;
 
 /** Implementation of the {@link WaitForDevicesCommand}
  *  @author Kay Kasemir

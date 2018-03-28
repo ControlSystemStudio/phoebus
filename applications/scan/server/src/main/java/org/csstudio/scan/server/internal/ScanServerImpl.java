@@ -34,7 +34,6 @@ import org.csstudio.scan.info.Scan;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.info.SimulationResult;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
 import org.csstudio.scan.server.ScanContext;

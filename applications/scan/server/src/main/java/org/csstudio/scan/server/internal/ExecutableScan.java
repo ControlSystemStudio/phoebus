@@ -39,7 +39,6 @@ import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.info.MemoryInfo;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanState;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandUtil;

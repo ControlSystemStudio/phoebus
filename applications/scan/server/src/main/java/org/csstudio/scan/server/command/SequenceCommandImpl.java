@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.csstudio.scan.command.SequenceCommand;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.SimulationContext;
+import org.csstudio.scan.server.internal.JythonSupport;
 
 /** Command that executes the commands in its body
  *  @author Kay Kasemir

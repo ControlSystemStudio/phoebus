@@ -30,12 +30,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ParallelCommand;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.SimulationContext;
+import org.csstudio.scan.server.internal.JythonSupport;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
 /** Command that executes the commands in its body in parallel

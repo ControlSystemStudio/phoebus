@@ -23,13 +23,13 @@ import java.util.Set;
 import org.csstudio.scan.command.IncludeCommand;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.XMLCommandReader;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.SimulationContext;
+import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.server.internal.PathStreamTool;
 
 /** {@link ScanCommandImpl} that includes another scan

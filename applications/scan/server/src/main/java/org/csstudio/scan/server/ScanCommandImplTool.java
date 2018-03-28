@@ -23,6 +23,7 @@ import java.util.ServiceLoader;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ScanCommand;
+import org.csstudio.scan.server.internal.JythonSupport;
 
 /** Tool that creates executable command implementations of a {@link ScanCommand}.
  *

@@ -23,6 +23,7 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanErrorHandler;
 import org.csstudio.scan.command.ScanErrorHandler.Result;
 import org.csstudio.scan.server.command.ScriptCommandContextImpl;
+import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.command.ScanScriptContext;
 import org.python.core.PyException;
 

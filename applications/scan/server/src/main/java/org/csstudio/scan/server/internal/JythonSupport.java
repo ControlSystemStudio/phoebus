@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.scan.server;
+package org.csstudio.scan.server.internal;
 
 import static org.csstudio.scan.server.ScanServerInstance.logger;
 
@@ -17,7 +17,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.csstudio.scan.server.internal.PathStreamTool;
+import org.csstudio.scan.server.ScanServerInstance;
 import org.python.core.Py;
 import org.python.core.PyException;
 import org.python.core.PyObject;

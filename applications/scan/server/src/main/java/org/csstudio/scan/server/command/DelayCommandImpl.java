@@ -19,10 +19,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.csstudio.scan.command.DelayCommand;
-import org.csstudio.scan.server.JythonSupport;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.SimulationContext;
+import org.csstudio.scan.server.internal.JythonSupport;
 
 /** {@link ScanCommandImpl} that delays the scan for some time
  *  @author Kay Kasemir
