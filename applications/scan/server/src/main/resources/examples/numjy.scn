@@ -6,8 +6,8 @@
     <device>loc://x(0)</device>
     <start>0.0</start>
     <end>10.0</end>
-    <step>1.0</step>
-    <tolerance>0.1</tolerance>
+    <step>0.5</step>
+    <tolerance>0.05</tolerance>
     <body>
       <log>
         <devices>
@@ -26,4 +26,9 @@
       <argument>loc://avg(-1)</argument>
     </arguments>
   </script>
+  <log>
+    <devices>
+      <device>loc://avg(-1)</device>
+    </devices>
+  </log>
 </commands>

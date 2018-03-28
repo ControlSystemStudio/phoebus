@@ -11,6 +11,7 @@ class ComputeAverage(ScanScript):
     def __init__(self, data_pv, avg_pv):
         self.data_pv = data_pv
         self.avg_pv = avg_pv
+        # print("Using numjy " + str(np))
 
     def getDeviceNames(self):
         return [ self.avg_pv ]

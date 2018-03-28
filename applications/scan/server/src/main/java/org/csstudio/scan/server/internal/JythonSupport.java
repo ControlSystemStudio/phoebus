@@ -64,6 +64,9 @@ public class JythonSupport implements AutoCloseable
             // Options: error, warning, message (default), comment, debug
             // props.setProperty("python.verbose", "debug");
 
+            // No need to add numjy,
+            // it's found on __pyclasspath__ because it's in the scan-model module
+
             // Add scan script paths
             for (String pref_path : ScanServerInstance.getScanConfig().getScriptPaths())
             {
