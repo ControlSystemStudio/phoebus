@@ -30,6 +30,7 @@ import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.editor.properties.ChangeProperty;
 import org.csstudio.scan.ui.editor.properties.Properties;
+import org.csstudio.scan.ui.monitor.ScanMonitorApplication;
 import org.csstudio.scan.ui.simulation.SimulationDisplay;
 import org.csstudio.scan.ui.simulation.SimulationDisplayApplication;
 import org.phoebus.framework.jobs.JobManager;
@@ -277,9 +278,15 @@ public class ScanEditor extends SplitPane
                                                       ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
         submit_unqueued.setOnAction(event -> submitOrSimulate(false));
 
+        final MenuItem open_monitor = new MenuItem(ScanMonitorApplication.DISPLAY_NAME,
+                                                   ImageCache.getImageView(ScanSystem.class, "/icons/scan_monitor.png"));
+        open_monitor.setOnAction(event -> ApplicationService.createInstance(ScanMonitorApplication.NAME));
+
         final ContextMenu menu = new ContextMenu(copy, paste, delete,
                                                  new SeparatorMenuItem(),
-                                                 simulate, submit, submit_unqueued);
+                                                 simulate, submit, submit_unqueued,
+                                                 new SeparatorMenuItem(),
+                                                 open_monitor);
         setContextMenu(menu);
     }
 
