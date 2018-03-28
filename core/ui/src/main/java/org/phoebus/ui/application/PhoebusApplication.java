@@ -824,9 +824,11 @@ public class PhoebusApplication extends Application {
 
         if (freezeup_check != null)
             freezeup_check.close();
+
+        logger.log(Level.INFO, "Exiting");
         // Hard exit because otherwise background threads
         // might keep us from quitting the VM
-        logger.log(Level.INFO, "Exiting");
+        Platform.exit();
         System.exit(0);
     }
 }
