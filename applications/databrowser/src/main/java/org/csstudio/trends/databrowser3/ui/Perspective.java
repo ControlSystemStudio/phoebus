@@ -108,18 +108,6 @@ public class Perspective extends SplitPane
         heightProperty().addListener(prop -> Platform.runLater(() -> autoMinimizeBottom()));
     }
 
-    @Override
-    public Node lookup(final String selector)
-    {
-        // {@link DockPane} calls lookup to locate the header to show/hide.
-        // That search erroneously locates some header within this perspective,
-        // instead of the header for the DockItem's tab.
-        // ==> Don't return any tab header within this perspective
-        if (".tab-header-area".equals(selector))
-            return null;
-        return super.lookup(selector);
-    }
-
     /** @return {@link Model} */
     public Model getModel()
     {

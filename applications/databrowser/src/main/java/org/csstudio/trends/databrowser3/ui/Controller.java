@@ -340,7 +340,10 @@ public class Controller
             @Override
             public void changedTitle()
             {
-                plot.getPlot().setTitle(model.getTitle().orElse(null));
+                String title = model.getTitle().orElse(null);
+                if (title != null)
+                    title = model.resolveMacros(title);
+                plot.getPlot().setTitle(title);
             }
 
             @Override

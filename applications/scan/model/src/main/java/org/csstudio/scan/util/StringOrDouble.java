@@ -27,11 +27,12 @@ public class StringOrDouble
 
     /** @param text Text that contains quoted string or a number
      *  @return {@link String} or {@link Double}
-     *  @throws NumberFormatException if number cannot be parsed, so needs to be handled as {@link String}
      */
-    public static Object parse(String text) throws NumberFormatException
+    public static Object parse(String text)
     {
         text = text.trim();
+        if (text.isEmpty())
+            return Double.valueOf(0);
         if (text.startsWith("\""))
         {
             if (text.endsWith("\""))
@@ -39,6 +40,13 @@ public class StringOrDouble
             // Only starting quote: Still assume it's a string
             return text.substring(1, text.length());
         }
-        return Double.parseDouble(text);
+        try
+        {
+            return Double.parseDouble(text);
+        }
+        catch (NumberFormatException ex)
+        {   // Use String
+            return text;
+        }
     }
 }

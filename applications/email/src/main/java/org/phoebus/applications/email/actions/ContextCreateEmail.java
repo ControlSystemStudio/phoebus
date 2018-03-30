@@ -25,7 +25,7 @@ public class ContextCreateEmail implements ContextMenuEntry {
 
     @Override
     public Object callWithSelection(Selection selection) {
-        ApplicationService.findApplication(EmailApp.NAME).create();
+        ApplicationService.createInstance(EmailApp.NAME);
         return null;
     }
 

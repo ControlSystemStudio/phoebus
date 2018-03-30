@@ -11,7 +11,7 @@ import java.net.URI;
 
 import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
-import org.csstudio.scan.ui.ScanUI;
+import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -26,12 +26,12 @@ public class ScanDataTableInstance implements AppInstance
     private final ScanDataTableApplication app;
     private final DockItemWithInput tab;
 
-    public ScanDataTableInstance(final ScanDataTableApplication app, final long scan_id)
+    ScanDataTableInstance(final ScanDataTableApplication app, final long scan_id)
     {
         this.app = app;
 
         final DataTable data_table = create(scan_id);
-        final URI input = ScanUI.createURI(scan_id);
+        final URI input = ScanURI.createURI(scan_id);
         tab = new DockItemWithInput(this, data_table, input, null, null);
         tab.setLabel("Scan Data #" + scan_id);
         tab.addCloseCheck(() ->

@@ -49,11 +49,14 @@ public class ScriptsPropertyBinding
         if (result.isPresent())
         {
             undo.execute(new SetWidgetPropertyAction<List<ScriptInfo>>(widget_property, result.get()));
-            final String path = widget_property.getPath();
-            for (Widget w : other)
+            if (! other.isEmpty())
             {
-                final ScriptsWidgetProperty other_prop = (ScriptsWidgetProperty) w.getProperty(path);
-                undo.execute(new SetWidgetPropertyAction<List<ScriptInfo>>(other_prop, result.get()));
+                final String path = widget_property.getPath();
+                for (Widget w : other)
+                {
+                    final ScriptsWidgetProperty other_prop = (ScriptsWidgetProperty) w.getProperty(path);
+                    undo.execute(new SetWidgetPropertyAction<List<ScriptInfo>>(other_prop, result.get()));
+                }
             }
         }
     };

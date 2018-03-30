@@ -40,6 +40,7 @@ import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.undo.UndoButtons;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -187,15 +188,7 @@ public class DisplayEditor
 
     private ToolBar createToolbar()
     {
-        final Button undo_button = createButton(ActionDescription.UNDO);
-        final Button redo_button = createButton(ActionDescription.REDO);
-        undo_button.setDisable(true);
-        redo_button.setDisable(true);
-        undo.addListener((to_undo, to_redo) ->
-        {
-            undo_button.setDisable(to_undo == null);
-            redo_button.setDisable(to_redo == null);
-        });
+        final Button[] undo_redo = UndoButtons.createButtons(undo);
 
         final ComboBox<String> zoom_levels = new ComboBox<>();
         zoom_levels.getItems().addAll(JFXRepresentation.ZOOM_LEVELS);
@@ -266,8 +259,8 @@ public class DisplayEditor
             size,
             dist,
             new Separator(),
-            undo_button,
-            redo_button,
+            undo_redo[0],
+            undo_redo[1],
             new Separator(),
             zoom_levels);
     }
@@ -280,6 +273,7 @@ public class DisplayEditor
         {
             this.zoom_levels = zoom_levels;
         }
+        @Override
         public void accept(String zoom_level)
         {
             zoom_levels.getEditor().setText(zoom_level);
@@ -301,22 +295,6 @@ public class DisplayEditor
         item.setText(action.getToolTip());
         item.setOnAction(event -> action.run(this));
         return item;
-    }
-
-    private Button createButton(final ActionDescription action)
-    {
-        final Button button = new Button();
-        try
-        {
-            button.setGraphic(ImageCache.getImageView(action.getIconResourcePath()));
-        }
-        catch (final Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot load action icon", ex);
-        }
-        button.setTooltip(new Tooltip(action.getToolTip()));
-        button.setOnAction(event -> action.run(this));
-        return button;
     }
 
     private ToggleButton createToggleButton(final ActionDescription action)

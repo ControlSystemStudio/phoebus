@@ -100,7 +100,6 @@ public class PVTableItem {
                 setText(null);
                 setGraphic(textField);
 
-                PVAutocompleteMenu.INSTANCE.attachField(textField);
                 textField.selectAll();
 
             }
@@ -130,11 +129,6 @@ public class PVTableItem {
 
                 setText(getItem() == null ? "" : getItem());
                 setGraphic(null);
-
-                if ( textField != null ) {
-                    PVAutocompleteMenu.INSTANCE.detachField(textField);
-                }
-
             }
 
         }
@@ -151,6 +145,7 @@ public class PVTableItem {
                         cancelEdit();
                     }
                 });
+                PVAutocompleteMenu.INSTANCE.attachField(textField);
 
             } else {
                 textField.setText(getItem() == null ? "" : getItem());

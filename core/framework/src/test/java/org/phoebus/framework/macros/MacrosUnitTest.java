@@ -9,6 +9,8 @@ package org.phoebus.framework.macros;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -20,6 +22,20 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class MacrosUnitTest
 {
+    /** Test check of macro name */
+    @Test
+    public void testNames() throws Exception
+    {
+        assertThat(Macros.checkMacroName("ExampleMacro"), nullValue());
+        assertThat(Macros.checkMacroName("My_Macro"), nullValue());
+        assertThat(Macros.checkMacroName("My-Macro"), nullValue());
+        assertThat(Macros.checkMacroName("Macro2"), nullValue());
+
+        assertThat(Macros.checkMacroName("2MustStartWithCharacter"), not(nullValue()));
+        assertThat(Macros.checkMacroName("-CannotHaveNon-CharacterAtStart"), not(nullValue()));
+        assertThat(Macros.checkMacroName("No Spaces"), not(nullValue()));
+    }
+
     /** Test check for unresolved macros
      *  @throws Exception on error
      */

@@ -193,7 +193,6 @@ public class PVTable extends VBox
         @Override
         public void commitEdit(final String newValue)
         {
-            PVAutocompleteMenu.INSTANCE.detachField(textField);
             textField = null;
             super.commitEdit(newValue);
         }
@@ -201,7 +200,6 @@ public class PVTable extends VBox
         @Override
         public void cancelEdit()
         {
-            PVAutocompleteMenu.INSTANCE.detachField(textField);
             textField = null;
             super.cancelEdit();
         }

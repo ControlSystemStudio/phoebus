@@ -9,7 +9,6 @@ package org.csstudio.javafx.rtplot.internal;
 
 import static org.csstudio.javafx.rtplot.Activator.logger;
 
-import java.text.MessageFormat;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Activator;
@@ -19,7 +18,7 @@ import org.csstudio.javafx.rtplot.RTPlot;
 import org.csstudio.javafx.rtplot.RTPlotListener;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.undo.UndoableActionManager;
+import org.phoebus.ui.undo.UndoButtons;
 
 import javafx.application.Platform;
 import javafx.scene.control.Button;
@@ -48,9 +47,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
         ZOOM_IN,
         ZOOM_OUT,
         PAN,
-        POINTER,
-        UNDO,
-        REDO
+        POINTER
     };
 
     final private RTPlot<XTYPE> plot;
@@ -211,43 +208,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
 
     private void addUndo(final boolean active)
     {
-        final Button undo = newButton(ToolIcons.UNDO, Messages.Undo_TT);
-        final Button redo = newButton(ToolIcons.REDO, Messages.Redo_TT);
-        final UndoableActionManager undo_mgr = plot.getUndoableActionManager();
-        undo.setDisable(!undo_mgr.canUndo());
-        redo.setDisable(!undo_mgr.canRedo());
-
-        if (active)
-        {
-            undo.setOnAction(event -> plot.getUndoableActionManager().undoLast());
-            redo.setOnAction(event -> plot.getUndoableActionManager().redoLast());
-            undo_mgr.addListener((to_undo, to_redo) ->
-            {
-                Platform.runLater(()->
-                {
-                    if (to_undo == null)
-                    {
-                        undo.setDisable(true);
-                        undo.setTooltip(new Tooltip(Messages.Undo_TT));
-                    }
-                    else
-                    {
-                        undo.setDisable(false);
-                        undo.setTooltip(new Tooltip(MessageFormat.format(Messages.Undo_Fmt_TT, to_undo)));
-                    }
-                    if (to_redo == null)
-                    {
-                        redo.setDisable(true);
-                        redo.setTooltip(new Tooltip(Messages.Redo_TT));
-                    }
-                    else
-                    {
-                        redo.setDisable(false);
-                        redo.setTooltip(new Tooltip(MessageFormat.format(Messages.Redo_Fmt_TT, to_redo)));
-                    }
-                });
-            });
-        }
+        toolbar.getItems().addAll(UndoButtons.createButtons(plot.getUndoableActionManager()));
     }
 
     private Button newButton(final ToolIcons icon, final String tool_tip)

@@ -24,7 +24,7 @@ public class RemoveSelectedScansAction extends MenuItem
 {
     public RemoveSelectedScansAction(final ScanClient scan_client, final List<ScanInfo> scans)
     {
-        super("Remove selected Scans",  ImageCache.getImageView(ScansTable.class, "/icons/remove.png"));
+        super("Remove selected Scans",  ImageCache.getImageView(ImageCache.class, "/icons/remove.png"));
         setOnAction(event -> JobManager.schedule(getText(), monitor ->
         {
             for (ScanInfo info : scans)

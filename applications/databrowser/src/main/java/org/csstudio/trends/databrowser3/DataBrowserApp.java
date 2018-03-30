@@ -26,6 +26,7 @@ import org.phoebus.ui.docking.DockStage;
 @SuppressWarnings("nls")
 public class DataBrowserApp implements AppResourceDescriptor
 {
+    private static final List<String> FILE_EXTENSIONS = List.of("plt");
     public static final String NAME = "databrowser";
 
     @Override
@@ -49,7 +50,7 @@ public class DataBrowserApp implements AppResourceDescriptor
     @Override
     public List<String> supportedFileExtentions()
     {
-        return List.of("plt");
+        return FILE_EXTENSIONS;
     }
 
     @Override

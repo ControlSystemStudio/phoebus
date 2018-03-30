@@ -17,8 +17,8 @@ import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.XMLCommandReader;
 import org.csstudio.scan.command.XMLCommandWriter;
 
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
 
 /** Helper to drag and drop {@link ScanCommand}s
  *  @author Kay Kasemir
@@ -45,13 +45,13 @@ public class ScanCommandDragDrop
         return content;
     }
 
-    public static boolean hasCommands(final Dragboard db)
+    public static boolean hasCommands(final Clipboard db)
     {
         return db.hasString()  &&
                db.getString().contains("<commands>");
     }
 
-    public static List<ScanCommand> getCommands(final Dragboard db)
+    public static List<ScanCommand> getCommands(final Clipboard db)
     {
         try
         {

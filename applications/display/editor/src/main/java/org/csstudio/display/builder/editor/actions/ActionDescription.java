@@ -408,30 +408,6 @@ public abstract class ActionDescription
         }
     };
 
-    /** Un-do last change */
-    public static final ActionDescription UNDO =
-        new ActionDescription("icons/undo.png", Messages.Undo_TT)
-    {
-        @Override
-        public void run(final DisplayEditor editor, final boolean selected)
-        {
-            final UndoableActionManager undo = editor.getUndoableActionManager();
-            undo.undoLast();
-        }
-    };
-
-    /** Re-do last change */
-    public static final ActionDescription REDO =
-        new ActionDescription("icons/redo.png", Messages.Redo_TT)
-    {
-        @Override
-        public void run(final DisplayEditor editor, final boolean selected)
-        {
-            final UndoableActionManager undo = editor.getUndoableActionManager();
-            undo.redoLast();
-        }
-    };
-
     private final String icon;
     private final String tool_tip;
 

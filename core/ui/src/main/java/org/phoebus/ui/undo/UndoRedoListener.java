@@ -11,6 +11,7 @@ package org.phoebus.ui.undo;
  *  @author Xihui Chen original org.csstudio.swt.xygraph.undo.IOperationsManagerListener
  *  @author Kay Kasemir
  */
+@FunctionalInterface
 public interface UndoRedoListener
 {
     /** @param to_undo Description of action to undo or <code>null</code>

@@ -53,6 +53,7 @@ import javafx.scene.transform.Scale;
 @SuppressWarnings("nls")
 public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<ScrollPane, EmbeddedDisplayWidget>
 {
+    private static final Background TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
     private static final Border EDIT_BORDER = new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
@@ -101,16 +102,9 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         inner.getTransforms().add(zoom = new Scale());
 
         scroll = new ScrollPane(inner);
+        scroll.getStyleClass().add("embedded_display");
         // Panning tends to 'jerk' the content when clicked
         // scroll.setPannable(true);
-
-        if (!toolkit.isEditMode())
-        {   // Hide border around the ScrollPane
-            // Details changed w/ JFX versions, see
-            // http://stackoverflow.com/questions/17540137/javafx-scrollpane-border-and-background/17540428#17540428
-            scroll.setStyle("-fx-background-color:transparent;");
-        }
-
         return scroll;
     }
 
@@ -277,9 +271,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         final DisplayModel content_model = active_content_model.get();
         if (model_widget.propTransparent().getValue())
         {
-            inner_background = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
-            // Make scroll transparent
-            scroll.setStyle("-fx-background: null;");
+            inner_background = TRANSPARENT_BACKGROUND;
+
             // Reinstall the frame in edit mode. Scroll is unusable, so make it with inner
             if (toolkit.isEditMode())
                 inner_border = EDIT_BORDER;

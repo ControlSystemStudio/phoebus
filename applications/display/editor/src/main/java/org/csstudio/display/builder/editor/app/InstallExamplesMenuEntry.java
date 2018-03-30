@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.editor.Plugin.logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -29,7 +30,6 @@ import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
-import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -154,8 +154,8 @@ public class InstallExamplesMenuEntry implements MenuEntry
             // Open editor on UI thread
             Platform.runLater(() ->
             {
-                final AppResourceDescriptor editor = ApplicationService.findApplication(INITIAL_EXAMPLE_APPLICATION);
-                editor.create(new File(examples, INITIAL_EXAMPLE_TO_OPEN).toURI());
+                final URI uri = new File(examples, INITIAL_EXAMPLE_TO_OPEN).toURI();
+                ApplicationService.createInstance(INITIAL_EXAMPLE_APPLICATION, uri);
 
                 // Tell user what was done
                 final Alert info = new Alert(AlertType.INFORMATION);

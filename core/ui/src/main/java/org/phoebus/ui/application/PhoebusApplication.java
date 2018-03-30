@@ -631,13 +631,7 @@ public class PhoebusApplication extends Application {
      *            Application name received as '-app ..' command line argument
      */
     private void launchApp(final String appName) {
-        final AppDescriptor app = ApplicationService.findApplication(appName);
-        if (app == null)
-        {
-            logger.log(Level.SEVERE, "Unknown application '" + appName + "'");
-            return;
-        }
-        app.create();
+        ApplicationService.createInstance(appName);
     }
 
     /** @param monitor

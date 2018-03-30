@@ -17,6 +17,7 @@ package org.csstudio.scan.command;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.csstudio.scan.device.DeviceInfo;
@@ -61,7 +62,7 @@ import org.w3c.dom.Element;
 abstract public class ScanCommand
 {
     /** Configurable properties of this command */
-    final private ScanCommandProperty[] properties;
+    final private List<ScanCommandProperty> properties;
 
     /** Address of this command within command sequence.
      *  <p>The {@link CommandSequence} assigns addresses 0, 1, 2, ...
@@ -78,7 +79,7 @@ abstract public class ScanCommand
     {
         final List<ScanCommandProperty> properties = new ArrayList<>();
         configureProperties(properties);
-        this.properties = properties.toArray(new ScanCommandProperty[properties.size()]);
+        this.properties = Collections.unmodifiableList(properties);
     }
 
     /** @return Name of the command, which is the base of the class name */
@@ -157,7 +158,7 @@ abstract public class ScanCommand
     }
 
     /** @return Descriptions of Properties for this command */
-    final public ScanCommandProperty[] getProperties()
+    final public List<ScanCommandProperty> getProperties()
     {
         return properties;
     }

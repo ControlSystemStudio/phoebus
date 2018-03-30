@@ -11,8 +11,10 @@ import static org.csstudio.scan.ScanSystem.logger;
 
 import java.util.logging.Level;
 
+import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.info.ScanState;
+import org.csstudio.scan.ui.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.Button;
@@ -33,7 +35,7 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
 {
     private final ScanClient scan_client;
     private final Label text = new Label();
-    private Button next, pause, resume, abort, remove;
+    private Button pause, resume, next, abort, remove;
     private final HBox graphics = new HBox(5, text);
 
     /** Perform action on a scan */
@@ -56,7 +58,7 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
         final Button button = new Button();
         button.setMinSize(ButtonBase.USE_PREF_SIZE, ButtonBase.USE_PREF_SIZE);
         button.setPrefHeight(20);
-        button.setGraphic(ImageCache.getImageView(ScansTable.class, icon));
+        button.setGraphic(ImageCache.getImageView(ScanSystem.class, icon));
         button.setTooltip(new Tooltip(tooltip));
         button.setOnAction(event ->
         {
@@ -75,35 +77,35 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
     private Button getNext()
     {
         if (next == null)
-            next = createButton("/icons/next.png", "Force move to next command", id -> scan_client.nextCommand(id));
+            next = createButton("/icons/next.png", Messages.scan_next, id -> scan_client.nextCommand(id));
         return next;
     }
 
     private Button getPause()
     {
         if (pause == null)
-            pause = createButton("/icons/pause.png", "Pause on next command", id -> scan_client.pauseScan(id));
+            pause = createButton("/icons/pause.png", Messages.scan_pause, id -> scan_client.pauseScan(id));
         return pause;
     }
 
     private Button getResume()
     {
         if (resume == null)
-            resume = createButton("/icons/resume.png", "Resume execution", id -> scan_client.resumeScan(id));
+            resume = createButton("/icons/resume.png", Messages.scan_resume, id -> scan_client.resumeScan(id));
         return resume;
     }
 
     private Button getAbort()
     {
         if (abort == null)
-            abort = createButton("/icons/abort.png", "Abort execution", id -> scan_client.abortScan(id));
+            abort = createButton("/icons/abort.png", Messages.scan_abort, id -> scan_client.abortScan(id));
         return abort;
     }
 
     private Button getRemove()
     {
         if (remove == null)
-            remove = createButton("/icons/remove.png", "Remove this scan", id -> scan_client.removeScan(id));
+            remove = createButton("/icons/remove.png", Messages.scan_remove, id -> scan_client.removeScan(id));
         return remove;
     }
 

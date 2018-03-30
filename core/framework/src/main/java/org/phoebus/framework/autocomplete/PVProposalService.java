@@ -24,7 +24,7 @@ public class PVProposalService extends ProposalService
     {
         super(SimProposalProvider.INSTANCE, LocProposalProvider.INSTANCE);
 
-        // TODO Could use SPI to add site-specific PV name providers
+        // Use SPI to add site-specific PV name providers
         for (PVProposalProvider add : ServiceLoader.load(PVProposalProvider.class))
         {
             logger.config("Adding PV Proposal Provider '" + add.getName() + "'");

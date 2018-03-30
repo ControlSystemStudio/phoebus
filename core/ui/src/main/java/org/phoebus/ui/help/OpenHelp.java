@@ -40,7 +40,7 @@ public class OpenHelp implements MenuEntry
     @Override
     public Void call()
     {
-        ApplicationService.findApplication(HelpApplication.NAME).create();
+        ApplicationService.createInstance(HelpApplication.NAME);
         return null;
     }
 }

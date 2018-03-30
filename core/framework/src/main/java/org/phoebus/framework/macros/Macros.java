@@ -26,7 +26,7 @@ public class Macros implements MacroValueProvider
 {
     private final Map<String, String> macros = new ConcurrentHashMap<>();
 
-    public final static Pattern MACRO_NAME_PATTERN = Pattern.compile("[A-Za-z][A-Za-z0-9_.\\[\\]]*");
+    public final static Pattern MACRO_NAME_PATTERN = Pattern.compile("[A-Za-z][A-Za-z0-9_.\\-\\[\\]]*");
 
     /** Check macro name
      *

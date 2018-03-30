@@ -28,7 +28,7 @@ public class ProbeMenuEntry implements MenuEntry {
      */
     @Override
     public Void call() throws Exception {
-        ApplicationService.findApplication(Probe.NAME).create();
+        ApplicationService.createInstance(Probe.NAME);
         return null;
     }
 

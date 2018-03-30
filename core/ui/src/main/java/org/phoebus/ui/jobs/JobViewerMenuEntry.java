@@ -31,7 +31,7 @@ public class JobViewerMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.findApplication(JobViewerApplication.NAME).create();
+        ApplicationService.createInstance(JobViewerApplication.NAME);
         return null;
     }
 }

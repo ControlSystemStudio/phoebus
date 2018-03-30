@@ -455,7 +455,6 @@ public class ActionsDialog extends Dialog<ActionInfos>
         write_pv_details.add(new Label(Messages.ActionsDialog_PVName), 0, 1);
         write_pv_name = new TextField();
         PVAutocompleteMenu.INSTANCE.attachField(write_pv_name);
-        setOnHidden((event) -> PVAutocompleteMenu.INSTANCE.detachField(write_pv_name));
         write_pv_name.textProperty().addListener(update);
         write_pv_details.add(write_pv_name, 1, 1);
 

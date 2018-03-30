@@ -47,11 +47,14 @@ public class PointsPropertyBinding
         if (result.isPresent())
         {
             undo.execute(new SetWidgetPointsAction(widget_property, result.get()));
-            final String path = widget_property.getPath();
-            for (Widget w : other)
+            if (! other.isEmpty())
             {
-                final PointsWidgetProperty other_prop = (PointsWidgetProperty) w.getProperty(path);
-                undo.execute(new SetWidgetPointsAction(other_prop, result.get()));
+                final String path = widget_property.getPath();
+                for (Widget w : other)
+                {
+                    final PointsWidgetProperty other_prop = (PointsWidgetProperty) w.getProperty(path);
+                    undo.execute(new SetWidgetPointsAction(other_prop, result.get()));
+                }
             }
         }
     };
