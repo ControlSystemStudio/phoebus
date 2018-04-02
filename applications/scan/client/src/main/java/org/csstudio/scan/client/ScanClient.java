@@ -85,16 +85,28 @@ public class ScanClient
         this.port = port;
     }
 
+    /** @return Scan server host */
+    public String getHost()
+    {
+        return host;
+    }
+
+    /** @return Scan server port */
+    public int getPort()
+    {
+        return port;
+    }
+
     /** Connect to "http://server:port/path"
      *  @param path Path to use in scan server REST interface
      *  @param timeout_seconds Timeout to use for operations
      *  @return {@link HttpURLConnection}
      *  @throws Exception on error
      */
-    private HttpURLConnection connect(final String path, final int timeout_seconds) throws Exception
+    private HttpURLConnection connect(final String path, final String query, final int timeout_seconds) throws Exception
     {
         // URI will properly escape content of path
-        final URI uri = new URI("http", null, host, port, path, null, null);
+        final URI uri = new URI("http", null, host, port, path, query, null);
         final URL url = uri.toURL();
         final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Content-Type", "text/xml");
@@ -109,7 +121,7 @@ public class ScanClient
      */
     private HttpURLConnection connect(final String path) throws Exception
     {
-        return connect(path, default_timeout);
+        return connect(path, null, default_timeout);
     }
 
     /** POST data to connection
@@ -225,14 +237,12 @@ public class ScanClient
             // Support deprecated server that still uses beamline_config
             final String scan_config = XMLUtil.getChildString(root_node, "scan_config")
                                               .orElse(XMLUtil.getChildString(root_node, "beamline_config").orElse(""));
-            final String simulation_config = XMLUtil.getChildString(root_node, "simulation_config").orElse("");
             final long used_mem = XMLUtil.getChildLong(root_node, "used_mem").orElse(0l);
             final long max_mem = XMLUtil.getChildLong(root_node, "max_mem").orElse(0l);
             final long non_heap = XMLUtil.getChildLong(root_node, "non_heap").orElse(0l);
-            final String[] paths = PathUtil.splitPath(XMLUtil.getChildString(root_node, "script_paths").orElse(""));
+            final List<String> paths = PathUtil.splitPath(XMLUtil.getChildString(root_node, "script_paths").orElse(""));
             final String macros = XMLUtil.getChildString(root_node, "macros").orElse("");
-            return new ScanServerInfo(version, start_time,
-                    scan_config, simulation_config, paths, macros, used_mem, max_mem, non_heap);
+            return new ScanServerInfo(version, start_time, scan_config, paths, macros, used_mem, max_mem, non_heap);
         }
         finally
         {
@@ -406,7 +416,7 @@ public class ScanClient
      */
     public long submitScan(final String name, final String xml_commands, final boolean queue) throws Exception
     {
-        final HttpURLConnection connection = connect("/scan/" + name + (queue ? "" : "?queue=false"), long_timeout);
+        final HttpURLConnection connection = connect("/scan/" + name, queue ? "" : "queue=false", long_timeout);
         connection.setReadTimeout(0);
         try
         {
@@ -433,7 +443,7 @@ public class ScanClient
      */
     public SimulationResult simulateScan(final String xml_commands) throws Exception
     {
-        final HttpURLConnection connection = connect("/simulate", long_timeout);
+        final HttpURLConnection connection = connect("/simulate", null, long_timeout);
         try
         {
             post(connection, xml_commands);

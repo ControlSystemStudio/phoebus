@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!-- Scan system configuration: Alias names for PVs
+
+     scan config file can link to this schema:
+     <scan_config
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:noNamespaceSchemaLocation="scan_config.xsd">
+	 
+	 Or run standalone validation  (use double'-', can't show that in XML comment):
+	  xmllint -schema scan_config.xsd scan_config.xml
+  -->
+<xs:element name="scan_config">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element name="port" type="xs:decimal" minOccurs="0" maxOccurs="1" default="4810"/>
+      <xs:element name="data_log" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="pre_scan" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="post_scan" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="status_pv_prefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="read_timeout" type="xs:decimal" minOccurs="0" maxOccurs="1" default="4810"/>
+      <xs:element name="path" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="simulation_hook" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="macros" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="old_scan_removal_threadhold" type="xs:double" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="pv" type="pv" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+   </xs:complexType>
+</xs:element>
+
+<xs:complexType name="pv">
+	<xs:sequence>
+	    <xs:choice>
+	        <!-- PVs may be specific names.
+	             For simulation config, a name pattern (regular expression)
+	             is allowed instead of one specific name
+	          -->
+		    <xs:element name="name" type="xs:string"/>
+	        <xs:element name="name_pattern" type="xs:string"/>
+	    </xs:choice>
+        <xs:element name="alias" type="xs:string" minOccurs="0"/>
+	    <xs:element name="log" minOccurs="0">
+	      <xs:complexType></xs:complexType>
+	    </xs:element>
+	    <!-- Slew rate (value change per second) for simulation -->
+        <xs:element name="slew_rate" type="xs:double" minOccurs="0"/>
+	</xs:sequence>
+</xs:complexType>
+
+</xs:schema>

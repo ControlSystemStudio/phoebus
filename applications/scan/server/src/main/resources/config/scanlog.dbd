@@ -1,0 +1,52 @@
+-- Scan Log Database
+--
+-- Commands in here are read by java code to initialize the database
+--
+-- Format must be:
+--  '-- ...' for comment to ignore
+--  'whatever ...;' for commands, may be multi-line, must end in ';'
+--
+--  @author Kay Kasemir
+
+-- Warning if database already exists
+--  CONNECT 'jdbc:derby:/tmp/scan_log_db/scan;create=true';
+
+-- Derby has no convenient "DROP TABLE IF EXISTS", so
+-- these will generate error 42Y55 when tables don't exist.
+-- Error is ignored in DerbyDataLogger#createTables()
+DROP TABLE scans;
+DROP TABLE devices;
+DROP TABLE samples;
+DROP FUNCTION createSampleValue;
+DROP TYPE SampleValue RESTRICT;
+
+-- Create tables
+CREATE TABLE scans
+(
+	id BIGINT PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+	name VARCHAR(100),
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE devices
+(
+	id BIGINT PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+	name VARCHAR(100)
+);
+
+CREATE TYPE SampleValue EXTERNAL NAME 'org.csstudio.scan.server.log.derby.SampleValue' LANGUAGE JAVA;
+
+CREATE FUNCTION createSampleValue (FLOAT) RETURNS SampleValue NO SQL LANGUAGE JAVA PARAMETER STYLE JAVA EXTERNAL NAME 'org.csstudio.scan.server.log.derby.SampleValue.create';
+
+CREATE TABLE samples
+(
+	scan_id BIGINT NOT NULL,
+	device_id BIGINT NOT NULL,
+	serial BIGINT,
+	timestamp TIMESTAMP,
+    value SampleValue
+);
+
+-- Indices
+CREATE INDEX sample_scan_id ON samples ( scan_id );
+CREATE INDEX sample_ids ON samples ( scan_id, device_id );

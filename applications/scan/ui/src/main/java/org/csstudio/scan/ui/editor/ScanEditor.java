@@ -30,12 +30,14 @@ import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.editor.properties.ChangeProperty;
 import org.csstudio.scan.ui.editor.properties.Properties;
+import org.csstudio.scan.ui.monitor.ScanMonitorApplication;
 import org.csstudio.scan.ui.simulation.SimulationDisplay;
 import org.csstudio.scan.ui.simulation.SimulationDisplayApplication;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoButtons;
@@ -264,9 +266,8 @@ public class ScanEditor extends SplitPane
                                              ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         delete.setOnAction(event -> scan_tree.cutToClipboard());
 
-
         final MenuItem simulate = new MenuItem(Messages.scan_simulate,
-                ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
+                                               ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
         simulate.setOnAction(event -> submitOrSimulate(null));
 
         final MenuItem submit = new MenuItem(Messages.scan_submit,
@@ -277,9 +278,15 @@ public class ScanEditor extends SplitPane
                                                       ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
         submit_unqueued.setOnAction(event -> submitOrSimulate(false));
 
+        final MenuItem open_monitor = new MenuItem(ScanMonitorApplication.DISPLAY_NAME,
+                                                   ImageCache.getImageView(ScanSystem.class, "/icons/scan_monitor.png"));
+        open_monitor.setOnAction(event -> ApplicationService.createInstance(ScanMonitorApplication.NAME));
+
         final ContextMenu menu = new ContextMenu(copy, paste, delete,
                                                  new SeparatorMenuItem(),
-                                                 simulate, submit, submit_unqueued);
+                                                 simulate, submit, submit_unqueued,
+                                                 new SeparatorMenuItem(),
+                                                 open_monitor);
         setContextMenu(menu);
     }
 
@@ -300,13 +307,27 @@ public class ScanEditor extends SplitPane
             if (how == null)
             {
                 monitor.beginTask("Awaiting simulation results");
-                final SimulationResult simulation = scan_client.simulateScan(xml_commands);
-                display.get().show(simulation);
+                try
+                {
+                    final SimulationResult simulation = scan_client.simulateScan(xml_commands);
+                    display.get().show(simulation);
+                }
+                catch (Exception ex)
+                {
+                    display.get().show(ex);
+                }
             }
             else
             {
-                final long id = scan_client.submitScan(scan_name, xml_commands, how);
-                attachScan(id);
+                try
+                {
+                    final long id = scan_client.submitScan(scan_name, xml_commands, how);
+                    attachScan(id);
+                }
+                catch (Exception ex)
+                {
+                    ExceptionDetailsErrorDialog.openError(this, "Error", "Scan Submission failed", ex);
+                }
             }
         });
     }

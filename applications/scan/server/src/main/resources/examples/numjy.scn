@@ -1,0 +1,34 @@
+<commands>
+  <comment>
+    <text>Collect some data..</text>
+  </comment>
+  <loop>
+    <device>loc://x(0)</device>
+    <start>0.0</start>
+    <end>10.0</end>
+    <step>0.5</step>
+    <tolerance>0.05</tolerance>
+    <body>
+      <log>
+        <devices>
+          <device>loc://x(0)</device>
+        </devices>
+      </log>
+    </body>
+  </loop>
+  <comment>
+    <text>Invoke script that uses the collected data</text>
+  </comment>
+  <script>
+    <path>ComputeAverage</path>
+    <arguments>
+      <argument>loc://x(0)</argument>
+      <argument>loc://avg(-1)</argument>
+    </arguments>
+  </script>
+  <log>
+    <devices>
+      <device>loc://avg(-1)</device>
+    </devices>
+  </log>
+</commands>

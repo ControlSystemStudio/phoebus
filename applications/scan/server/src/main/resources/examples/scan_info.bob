@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <width>330</width>
+  <height>100</height>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>$(P=Demo:Scan):Status</pv_name>
+    <x>80</x>
+    <y>10</y>
+    <width>240</width>
+    <format>6</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Scan:</text>
+    <x>10</x>
+    <y>10</y>
+    <width>50</width>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_1</name>
+    <pv_name>$(P=Demo:Scan):Active</pv_name>
+    <x>300</x>
+    <y>40</y>
+    <off_color>
+      <color name="Off" red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="On" red="0" green="255" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>$(P=Demo:Scan):State</pv_name>
+    <x>60</x>
+    <y>70</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>$(P=Demo:Scan):Finish</pv_name>
+    <x>220</x>
+    <y>70</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>State:</text>
+    <x>10</x>
+    <y>70</y>
+    <width>50</width>
+  </widget>
+  <widget type="progressbar" version="2.0.0">
+    <name>Progress Bar</name>
+    <pv_name>$(P=Demo:Scan):Progress</pv_name>
+    <x>80</x>
+    <y>40</y>
+    <width>200</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Progress:</text>
+    <x>10</x>
+    <y>40</y>
+    <width>60</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Finish:</text>
+    <x>170</x>
+    <y>70</y>
+    <width>50</width>
+  </widget>
+</display>

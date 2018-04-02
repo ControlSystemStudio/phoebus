@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.monitor;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.List;
@@ -17,13 +19,18 @@ import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.info.ScanState;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -230,6 +237,9 @@ public class ScansTable extends VBox
 
     private void createContextMenu()
     {
+        final MenuItem server_info = new MenuItem("Scan Server Info", ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
+        server_info.setOnAction(event -> JobManager.schedule(server_info.getText(), this::showServerInfo));
+
         final MenuItem abort_all = new MenuItem("Abort All Scans", ImageCache.getImageView(ScansTable.class, "/icons/abort.png"));
         abort_all.setOnAction(event ->
             JobManager.schedule(abort_all.getText(), monitor ->  scan_client.abortScan(-1)));
@@ -242,7 +252,7 @@ public class ScansTable extends VBox
         scan_table.setOnContextMenuRequested(event ->
         {
             // Update menu based on selected scan and states of scans in the table
-            menu.getItems().clear();
+            menu.getItems().setAll(server_info, new SeparatorMenuItem());
 
             final List<ScanInfo> selection = scan_table.getSelectionModel().getSelectedItems().stream().map(proxy -> proxy.info).collect(Collectors.toList());
             if (selection.size() == 1)
@@ -287,6 +297,43 @@ public class ScansTable extends VBox
             if (any_completed)
                 menu.getItems().add(remove_completed);
             menu.show(scan_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
+    }
+
+    private void showServerInfo(final JobMonitor monitor)
+    {
+        final StringBuilder buf = new StringBuilder();
+        try
+        {
+            final ScanServerInfo info = scan_client.getServerInfo();
+            buf.append("Version: ").append(info.getVersion()).append("\n");
+            buf.append("Started: ").append(TimestampFormats.SECONDS_FORMAT.format(info.getStartTime())).append("\n");
+            buf.append("Configuration: ").append(info.getScanConfig()).append("\n");
+            buf.append("Script Paths: ").append(info.getScriptPaths()).append("\n");
+        }
+        catch (Exception ex)
+        {
+            final ByteArrayOutputStream tmp = new ByteArrayOutputStream();
+            final PrintWriter out = new PrintWriter(tmp);
+            out.println("Cannot get scan server information,");
+            out.println("host " + scan_client.getHost() + ", port " + scan_client.getPort());
+            out.println();
+            ex.printStackTrace(out);
+            out.flush();
+            out.close();
+            buf.append(tmp.toString());
+        }
+
+        Platform.runLater(() ->
+        {
+            final Alert dlg = new Alert(AlertType.INFORMATION);
+            dlg.setHeaderText("");
+            dlg.setContentText(buf.toString());
+            dlg.setResizable(true);
+            dlg.getDialogPane().setPrefWidth(800);
+
+            DialogHelper.positionDialog(dlg, this, -200, -200);
+            dlg.showAndWait();
         });
     }
 

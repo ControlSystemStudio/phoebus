@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.csstudio.scan.util;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /** Scan system path utils
  *  @author Kay Kasemir
  */
@@ -17,26 +20,18 @@ public class PathUtil
      *  @return Separate path elements
      *  @throws Exception on parse error (missing end of quoted string)
      */
-    public static String[] splitPath(final String path_spec) throws Exception
+    public static List<String> splitPath(final String path_spec) throws Exception
     {
         if (path_spec == null)
-            return new String[0];
-        return path_spec.split("\\s*,\\s*");
-
+            return List.of();
+        return List.of(path_spec.split("\\s*,\\s*"));
     }
 
     /** @param paths Path elements
      *  @return Path elements joined by ","
      */
-    public static String joinPaths(final String[] paths)
+    public static String joinPaths(final List<String> paths)
     {
-        final StringBuilder buf = new StringBuilder();
-        for (String path : paths)
-        {
-            if (buf.length() > 0)
-                buf.append(", ");
-            buf.append(path);
-        }
-        return buf.toString();
+        return paths.stream().collect(Collectors.joining(", "));
     }
 }

@@ -11,5 +11,6 @@
     <module>model</module>
     <module>client</module>
     <module>ui</module>
+    <module>server</module>
   </modules>
 </project>

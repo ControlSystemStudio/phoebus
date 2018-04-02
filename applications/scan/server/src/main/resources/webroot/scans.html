@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<link rel="stylesheet" type="text/css" href="scan.css">
+<script type="text/javascript" src="jquery-1.8.3.js" ></script>
+<script type="text/javascript" src="scans.js" ></script>
+<title>Scan Server REST Interface</title>
+</head>
+
+<body>
+<h1>Scans</h1>
+
+<table id='scans'>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Created</th>
+      <th>State</th>
+      <th>Percentage</th>
+      <th>Runtime</th>
+      <th>Finish</th>
+      <th>Command</th>
+      <th>Error</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<button onclick='deleteCompletedScans()'>Delete Completed Scans</button>
+
+<p>Refresh web browser for update</p>
+
+<a href="/scans">Raw XML data</a>
+
+<hr/>
+
+<a href="index.html">Back to main</a>
+
+
+</body>
+</html>

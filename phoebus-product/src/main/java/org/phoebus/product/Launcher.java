@@ -54,11 +54,11 @@ public class Launcher
                     final String filename = iter.next();
                     iter.remove();
 
+                    logger.info("Loading settings from " + filename);
                     if (filename.endsWith(".xml"))
                         Preferences.importPreferences(new FileInputStream(filename));
                     else
                         PropertyPreferenceLoader.load(new FileInputStream(filename));
-                    logger.info("Loading settings from " + filename);
                 }
                 else if (cmd.equals("-export_settings"))
                 {
@@ -161,7 +161,5 @@ public class Launcher
         System.out.println("-resource file:/path/to/file?app=display_runtime&MACRO1=value+1&MACRO2=abc - Opens file with 'display_runtime' app, passing macros.");
         System.out.println("-resource pv://?sim://sine&app=probe                                       - Opens the 'sim://sine' PV with 'probe'.");
         System.out.println("-resource pv://?Fred&sim://sine&app=pv_table                               - Opens two PVs PV with 'pv_table'.");
-
-
     }
 }

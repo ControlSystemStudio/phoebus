@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<!-- Scan configuration
+
+     Lists PV names and possible alias.
+
+     Alias can be used in scans instead of the PV name
+  -->
+<scan_config>
+
+  <!-- TCP port used by HTTPD / REST -->
+  <port>4810</port>
+
+  <!-- Location of the data log
+       For DerbyDataLogger, the default logger,
+       this is the directory that will hold the log database.
+       Other implementations might use the parameter in a different way.
+       
+       /tmp/.. is a good location for initial tests
+       but not production because the /tmp directory tends to get cleaned. 
+    -->
+  <data_log>/tmp/scan_log_db</data_log>
+  
+  <!-- Commands executed before and after each scan
+       Can use built-in 'examples:' or local file path to *.scn
+    -->   
+  <pre_scan>examples:pre_scan.scn</pre_scan> 
+  <!-- There can be more than one
+  <pre_scan>/some/other/initial.scn</pre_scan>
+   -->
+  <post_scan>examples:post_scan.scn</post_scan>
+  
+  <!-- Prefix to scan server status PVs
+       When empty, no status PVs will be updated
+    -->
+  <status_pv_prefix>Demo:Scan:</status_pv_prefix>
+
+  <!-- Value check timeout [seconds]
+       Set and Loop commands have a timeout that is used
+       to wait for completion or
+       to wait for the readback to match.
+       When using completion _and_ checking a readback,
+       the readback check does not use the full timeout but instead
+       checks if the value matches "right away" after completion has been confirmed.
+       This check, however, needs to read the current value of the PV,
+       so it also needs some timeout.
+       Similarly, the Log command uses this timeout to fetch the current
+       value of the devices to log.
+   -->
+  <read_timeout>20</read_timeout>
+  
+  <!-- Paths used to locate SimulationHook, ScanScript, ScanErrorHandler -->
+  <!-- 'examples:' refers to the built-in examples -->
+  <path>examples:</path>
+  <!-- There can be more than one... 
+  <path>/some/other/local/directory</path>
+   -->
+  
+  <!-- Jython class that implements the
+       org.csstudio.scan.server.SimulationHook
+
+       May be empty,
+       or provide the name of a Jython class,
+       placed in a file with the lower-case name.
+
+       Example:
+       Class SimulationHookDemo must be
+       implemented in file simulationhookdemo.py,
+       located on the path provided by the script_paths
+       preference.
+    -->
+  <simulation_hook>SimulationHookDemo</simulation_hook>
+
+  <!-- Scan server device name macros
+       "macro=value, macro=value"
+   -->
+  <macros>DemoDevice=motor_x</macros>
+  
+  <!-- If memory consumption of scan server is above this percentage,
+       older scans are removed whenever a new scan is added
+    -->
+  <old_scan_removal_threadhold>50</old_scan_removal_threadhold>
+  
+  <!-- Simulation information for a PV
+
+       Slew rate is in [units of the device] / second
+
+       The (simulated) neutrons change at about 7/sec
+    -->
+  <pv>
+    <name>neutrons</name>
+    <slew_rate>7</slew_rate>
+  </pv>
+  <!-- Proton charge: About 3.5e12 / hour = 9.7e8 / sec -->
+  <pv>
+    <name>pcharge</name>
+    <slew_rate>9.7222e+08</slew_rate>
+  </pv>
+
+  <!-- Alias, if present, is preferred over pv name -->
+  <pv>
+    <name>motor_x</name>
+    <alias>xpos</alias>
+    <slew_rate>0.1</slew_rate>
+  </pv>
+
+  <!-- In addition, a name_pattern is allowed
+       for slew rate (simulation) configuration.
+
+       Name is regular expression
+    -->
+  <pv>
+    <name_pattern>.pos</name_pattern>
+    <slew_rate>0.2</slew_rate>
+  </pv>
+
+  <pv> <name>motor_y</name> <alias>ypos</alias> </pv>
+  <pv> <name>readback</name> <alias>readback</alias> </pv>
+  <pv> <name>setpoint</name> <alias>setpoint</alias> </pv>
+</scan_config>

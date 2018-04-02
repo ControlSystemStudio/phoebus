@@ -1,0 +1,59 @@
+<project default="product">
+  <import file="../dependencies/ant_settings.xml"/>
+
+  <target name="product" description="Assemble product">
+    <!-- Assemble lib/ -->
+    <copy todir="${build}/lib" flatten="true">
+      <fileset dir="..">
+        <include name="dependencies/**/derby*.jar"/>
+        <include name="dependencies/**/epics-pvaccess*.jar"/>
+        <include name="dependencies/**/epics-pvdata*.jar"/>
+        <include name="dependencies/**/javax.servlet-api*.jar"/>
+        <include name="dependencies/**/jca*.jar"/>
+        <include name="dependencies/**/jetty*.jar"/>
+        <include name="dependencies/**/jython-standalone*.jar"/>
+        <include name="core/vtype/target/vtype*.jar"/>
+        <include name="core/util/target/util*.jar"/>
+        <include name="core/framework/target/framework*.jar"/>
+        <include name="core/pv/target/pv*.jar"/>
+        <include name="applications/scan/model/target/scan-model*.jar"/>
+        <include name="applications/scan/server/target/scan-server*.jar"/>
+      </fileset>
+    </copy>
+
+    <!-- Create classpath for lib/*jar -->
+    <manifestclasspath property="manifest-classpath"
+                       jarfile="${build}/product-${version}.jar">
+      <classpath>
+        <path>
+          <fileset dir="${build}/lib">
+            <include name="*.jar"/>
+          </fileset>
+        </path>
+      </classpath>
+    </manifestclasspath>
+
+    <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
+
+    <jar destfile="${build}/scan-server-product-${version}.jar">
+      <manifest>
+        <attribute name="Main-Class" value="org.csstudio.scan.server.ScanServerInstance" />
+        <attribute name="Class-Path" value="${manifest-classpath}" />
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- Create ZIP of the product.jar, lib/, launcher -->
+  <target name="dist" depends="product" description="Pack for distribution">
+    <zip destfile="${build}/scan-server-${version}.zip">
+      <zipfileset dir="${build}" includes="**/*.jar" prefix="scan-server-${version}"/>
+      <zipfileset dir="." includes="scan-server.sh" fullpath="scan-server-${version}/scan-server.sh" filemode="755"/>
+    </zip>
+  </target>
+
+  <target name="run" depends="product" description="Run the product">
+    <java jar="${build}/scan-server-product-${version}.jar" fork="true">
+      <jvmarg value="--add-modules=java.corba"/>
+	</java>
+  </target>
+</project>

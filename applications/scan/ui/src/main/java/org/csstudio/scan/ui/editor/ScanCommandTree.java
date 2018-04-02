@@ -312,20 +312,26 @@ public class ScanCommandTree extends TreeView<ScanCommand>
         final List<ScanCommand> commands = new ArrayList<>();
         setOnDragDetected(event ->
         {
-            commands.clear();
-            commands.addAll(getSelectedCommands());
-            if (! commands.isEmpty())
+            // Only start drag on left (primary) button,
+            // not also on right button which opens the context menu,
+            // or the apple 'Command' button which is again for the context menu
+            if (event.isPrimaryButtonDown() &&  !event.isMetaDown())
             {
-                // Would like to default to move,
-                // allowing key modifiers for copy.
-                // TransferMode.COPY_OR_MOVE will default to copy,
-                // i.e. wrong order.
-                // --> Deciding based on key modifier at start of drag
-                // https://stackoverflow.com/questions/38699306/how-to-adjust-or-deviate-from-the-default-javafx-transfer-mode-behavior
-                final Dragboard db = startDragAndDrop(event.isShortcutDown()
-                                                      ? TransferMode.COPY
-                                                      : TransferMode.MOVE);
-                db.setContent(ScanCommandDragDrop.createClipboardContent(commands));
+                commands.clear();
+                commands.addAll(getSelectedCommands());
+                if (! commands.isEmpty())
+                {
+                    // Would like to default to move,
+                    // allowing key modifiers for copy.
+                    // TransferMode.COPY_OR_MOVE will default to copy,
+                    // i.e. wrong order.
+                    // --> Deciding based on key modifier at start of drag
+                    // https://stackoverflow.com/questions/38699306/how-to-adjust-or-deviate-from-the-default-javafx-transfer-mode-behavior
+                    final Dragboard db = startDragAndDrop(event.isShortcutDown()
+                                                          ? TransferMode.COPY
+                                                          : TransferMode.MOVE);
+                    db.setContent(ScanCommandDragDrop.createClipboardContent(commands));
+                }
             }
             event.consume();
         });

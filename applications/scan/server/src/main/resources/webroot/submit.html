@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<link rel="stylesheet" type="text/css" href="scan.css">
+<script type="text/javascript" src="jquery-1.8.3.js" ></script>
+<script type="text/javascript" src="submit.js" ></script>
+<title>Scan Server REST Interface</title>
+</head>
+
+<body>
+<h1>Submit Scan</h1>
+
+<form>
+<p>Name: <input type='text' name='name' value='Example'/> </p>
+<p>Scan: <textarea class='scan' name='scan' rows='20'>
+<?xml version="1.0" encoding="UTF-8"?>
+<commands>
+  <comment><text>Example scan submitted via REST interface</text></comment>
+  <set><device>xpos</device><value>1</value></set>
+  <log><devices><device>xpos</device></devices></log>
+  <set><device>xpos</device><value>2</value></set>
+  <log><devices><device>xpos</device></devices></log>
+  <delay><seconds>10</seconds></delay>
+</commands>
+</textarea></p>
+<p><button type='button' id='submit'>Submit</button>
+   <input type='checkbox' name='queue' value='true' checked='yes'/> Queue
+</p>
+</form>
+
+<hr/>
+
+<a href="index.html">Back to main</a>
+
+</body>
+</html>

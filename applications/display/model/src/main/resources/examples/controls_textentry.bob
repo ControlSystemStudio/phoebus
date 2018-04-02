@@ -167,7 +167,9 @@ Pressing 'Enter' confirms editing and writes the entered value to the PV.</text>
   </widget>
   <widget type="textentry" version="3.0.0">
     <name>Text Entry_6</name>
-    <pv_name>loc://long_text("Some long text...")</pv_name>
+    <pv_name>loc://long_text("Some long text
+with multiple
+lines...")</pv_name>
     <x>470</x>
     <y>261</y>
     <width>289</width>

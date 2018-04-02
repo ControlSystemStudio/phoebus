@@ -2,11 +2,10 @@
 <classpath>
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/resources"/>
-	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/"/>
 	<classpathentry kind="output" path="target/classes"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/channelfinder"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-channelfinder"/>
 </classpath>

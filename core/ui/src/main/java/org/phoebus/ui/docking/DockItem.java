@@ -22,6 +22,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.Styles;
 
 import javafx.beans.property.StringProperty;
 import javafx.event.Event;
@@ -378,6 +379,10 @@ public class DockItem extends Tab
         final Scene old_scene = old_parent.getScene();
         other.setWidth(old_scene.getWidth());
         other.setHeight(old_scene.getHeight());
+
+        // Assert that styles used in old scene are still available
+        for (String css : old_scene.getStylesheets())
+            Styles.set(other.getScene(), css);
 
         other.show();
 

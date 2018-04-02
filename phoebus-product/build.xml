@@ -64,6 +64,8 @@
   </target>
 
   <target name="run" depends="product" description="Run the product">
-    <java jar="${build}/product-${version}.jar" fork="true"/>
+    <java jar="${build}/product-${version}.jar" fork="true">
+      <jvmarg value="--add-modules=java.corba"/>
+    </java>	
   </target>
 </project>

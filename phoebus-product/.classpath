@@ -54,8 +54,8 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-representation-javafx"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-runtime"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-editor"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/channel-views"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/channelfinder"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/channel-utility"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-channel-views"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-channelfinder"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-channel-utility"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
