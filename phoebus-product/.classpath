@@ -17,27 +17,45 @@
 	<classpathentry kind="lib" path="/dependencies/target/lib/objenesis-1.0.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/epics-pvaccess-5.1.1.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/epics-pvdata-6.1.1.jar"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-framework"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-logging"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-util"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-vtype"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-pv"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-types"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-ui"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-greetings"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-file-browser"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-logbook-inmemory"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-probe"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtree"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/logConfiguration"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/email"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-pvtable"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-rtplot"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-databrowser"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-model"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-representation"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-representation-javafx"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-runtime"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/applications-display-editor"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/guava-21.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/javax.activation-1.2.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/javax.json-1.0.4.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/javax.persistence-2.2.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jaxb-api-2.3.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jersey-client-1.19.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jersey-core-1.19.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jersey-multipart-1.19.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jersey-server-1.19.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jsr311-api-1.1.1.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/mimepull-1.9.3.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/validation-api-1.1.0.Final.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jackson-annotations-2.9.4.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jackson-core-2.9.4.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/jackson-databind-2.9.4.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-logging"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-vtype"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-greetings"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-file-browser"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-logbook-inmemory"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-probe"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-pvtree"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/logConfiguration"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/email"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-pvtable"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-rtplot"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-databrowser"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-model"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-representation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-representation-javafx"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-runtime"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-display-editor"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/channel-views"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/channelfinder"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/channel-utility"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

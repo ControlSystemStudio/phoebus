@@ -12,6 +12,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
  * A headless context menu entry for creating log entries from adaptable selections.
+ * TODO this temporary headless action needs to removed once the create log entry dialog is complete. 
  * @author Kunal Shroff
  *
  */
