@@ -105,8 +105,17 @@
       <artifactId>diirt-pva</artifactId>
       <version>${diirt.version}</version>
     </dependency>
-      -->    
-    
+      -->
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>channel-views</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>channelfinder</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
