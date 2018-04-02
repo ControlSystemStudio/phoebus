@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.junit.Test;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
 
@@ -114,5 +115,63 @@ public class MacroHierarchyUnitTest
         }else {
             assertThat(value, not(nullValue()));
         }
+    }
+
+    /** Test when macros get expanded
+     *  @throws Exception on error
+     */
+    @Test
+    public void testTimeOfExpansion() throws Exception
+    {
+        // model -> group -> subgroup -> label
+        final DisplayModel model = new DisplayModel();
+
+        final GroupWidget group = new GroupWidget();
+        model.runtimeChildren().addChild(group);
+
+        final GroupWidget subgroup = new GroupWidget();
+        group.runtimeChildren().addChild(subgroup);
+
+        final LabelWidget label = new LabelWidget();
+        subgroup.runtimeChildren().addChild(label);
+
+        // Sanity check: Straight forward macro value replacement.
+        // Display value replaced by group,
+        // then replaced by subgroup,
+        // so label sees "subgroup"
+        model.propMacros().getValue().add("P", "display");
+        group.propMacros().getValue().add("P", "group");
+        subgroup.propMacros().getValue().add("P", "subgroup");
+        Macros macros = label.getEffectiveMacros();
+        System.out.println(macros);
+        assertThat(macros.getValue("P"), equalTo("subgroup"));
+
+        // When are macros expanded?
+        // In BOY, they were mostly expanded when set,
+        // except the following example would fail if all widgets
+        // were within one display.
+        model.propMacros().getValue().add("P", "display");
+
+        // If macros are expanded early on,
+        // this sets SAVE=display,
+        // then redefines P
+        group.propMacros().getValue().add("SAVE", "$(P)");
+        group.propMacros().getValue().add("P", "group");
+
+        // .. and this would restore P='display', since that's what's im $(SAVE):
+        subgroup.propMacros().getValue().add("P", "$(SAVE)");
+
+        // With lazy macro expansion,
+        // the label widget would have P=$(SAVE), SAVE=$(P),
+        // so $(P) results in a "recursive macro" error.
+
+        // When macros are expanded as the runtime starts..
+        DisplayMacroExpander.expandDisplayMacros(model);
+
+        // ..you get $(P)="display"
+        macros = label.getEffectiveMacros();
+        System.out.println(macros);
+        assertThat(macros.getValue("P"), equalTo("display"));
+        assertThat(MacroHandler.replace(macros, "$(P)"), equalTo("display"));
     }
 }

@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.macros.DisplayMacroExpander;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
@@ -213,6 +214,10 @@ public class DisplayRuntimeInstance implements AppInstance
             //    allows for newly added macros in the display file.
             final Macros macros = Macros.merge(model.propMacros().getValue(), info.getMacros());
             model.propMacros().setValue(macros);
+
+            // For runtime, expand macros
+            if (! representation.isEditMode())
+                DisplayMacroExpander.expandDisplayMacros(model);
 
             // Schedule representation on UI thread
             representation.execute(() -> representModel(model));
