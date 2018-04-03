@@ -80,7 +80,9 @@ public class ActionUtil
         try
         {
             // Path to resolve, after expanding macros of source widget and action
-            final Macros macros = Macros.merge(source_widget.getEffectiveMacros(), action.getMacros());
+            final Macros expanded = new Macros(action.getMacros());
+            expanded.expandValues(source_widget.getEffectiveMacros());
+            final Macros macros = Macros.merge(source_widget.getEffectiveMacros(), expanded);
             final String expanded_path = MacroHandler.replace(macros, action.getFile());
             logger.log(Level.FINER, "{0}, effective macros {1} ({2})", new Object[] { action, macros, expanded_path });
 
