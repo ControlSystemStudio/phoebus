@@ -179,7 +179,7 @@ public class XMLPersistence
             }
             else
             {   // Absolute start ... end
-                interval = TimeRelativeInterval.of(TimestampFormats.parse(start), TimestampFormats.parse(end));
+                interval = TimeRelativeInterval.of(TimestampFormats.parse(patchLegacyAbsTime(start)), TimestampFormats.parse(patchLegacyAbsTime(end)));
             }
             model.setTimerange(interval);
         }
@@ -332,6 +332,15 @@ public class XMLPersistence
                 XMLUtil.getChildString(item, "name").ifPresent(value -> pv.setDisplayName(value));
             }
         }
+    }
+
+    private static String patchLegacyAbsTime(final String spec)
+    {
+        // Older absolute time spec used "yyyy/mm/dd ...",
+        // which now must be "yyyy-mm-dd ...",
+        if (spec.length() > 10  && spec.charAt(4)=='/'  &&  spec.charAt(7) =='/')
+            return spec.replace('/', '-');
+        return spec;
     }
 
     /** Load RGB color from XML document
