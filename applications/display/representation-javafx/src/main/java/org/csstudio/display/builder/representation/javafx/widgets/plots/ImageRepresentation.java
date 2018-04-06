@@ -273,6 +273,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         image_plot.setListener(plot_listener);
 
         // Initial update
+        rangeChanged(null, null, null);
         coloringChanged(null, null,null);
         configChanged(null, null, null);
     }
