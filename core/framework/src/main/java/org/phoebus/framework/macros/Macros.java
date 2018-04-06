@@ -10,9 +10,9 @@ package org.phoebus.framework.macros;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -24,7 +24,14 @@ import java.util.stream.Collectors;
 @SuppressWarnings("nls")
 public class Macros implements MacroValueProvider
 {
-    private final Map<String, String> macros = new ConcurrentHashMap<>();
+    // Using linked map for predictable order.
+    //
+    // Example, a tool that tries to first "save" a current macro value in another macro,
+    // then set it to a new value like this depends on the order of macros:
+    // SAVE = $(M), M = "new value"
+    //
+    // SYNC on access
+    private final Map<String, String> macros = new LinkedHashMap<>();
 
     public final static Pattern MACRO_NAME_PATTERN = Pattern.compile("[A-Za-z][A-Za-z0-9_.\\-\\[\\]]*");
 
@@ -65,13 +72,22 @@ public class Macros implements MacroValueProvider
      */
     public Macros(final Macros other)
     {
-        macros.putAll(other.macros);
+        synchronized (other.macros)
+        {
+            synchronized (macros)
+            {
+                macros.putAll(other.macros);
+            }
+        }
     }
 
     /** @return Are the macros empty? */
     public boolean isEmpty()
     {
-        return macros.isEmpty();
+        synchronized (macros)
+        {
+            return macros.isEmpty();
+        }
     }
 
     /** Merge two macro maps
@@ -87,14 +103,20 @@ public class Macros implements MacroValueProvider
     public static Macros merge(final Macros base, final Macros addition)
     {
         // Optimize if one is empty
-        if (addition == null  ||  addition.macros.isEmpty())
+        if (addition == null  ||  addition.isEmpty())
             return base;
-        if (base == null  ||  base.macros.isEmpty())
+        if (base == null  ||  base.isEmpty())
             return addition;
         // Construct new macros
         final Macros merged = new Macros();
-        merged.macros.putAll(base.macros);
-        merged.macros.putAll(addition.macros);
+        synchronized (base.macros)
+        {
+            merged.macros.putAll(base.macros);
+        }
+        synchronized (addition.macros)
+        {
+            merged.macros.putAll(addition.macros);
+        }
         return merged;
     }
 
@@ -109,29 +131,60 @@ public class Macros implements MacroValueProvider
         final String error = checkMacroName(name);
         if (error != null)
             throw new IllegalArgumentException(error);
-        macros.put(name, value);
+        synchronized (macros)
+        {
+            macros.put(name, value);
+        }
     }
 
     /** @return Macro names, sorted alphabetically */
     public Collection<String> getNames()
     {
-        final List<String> names = new ArrayList<>(macros.keySet());
+        final List<String> names;
+        synchronized (macros)
+        {
+            names = new ArrayList<>(macros.keySet());
+        }
         Collections.sort(names);
         return names;
+    }
+
+    /** Expand values of all macros
+     *  @param input Value provider, usually from the 'parent' widget
+     *  @throws Exception on error
+     */
+    public void expandValues(final MacroValueProvider input) throws Exception
+    {
+        synchronized (macros)
+        {
+            for (String name : macros.keySet())
+            {
+                final String orig = macros.get(name);
+                final String expanded = MacroHandler.replace(input, orig);
+                if (! expanded.equals(orig))
+                    macros.put(name, expanded);
+            }
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public String getValue(final String name)
     {
-        return macros.get(name);
+        synchronized (macros)
+        {
+            return macros.get(name);
+        }
     }
 
     // Hash based on content
     @Override
     public int hashCode()
     {
-        return macros.hashCode();
+        synchronized (macros)
+        {
+            return macros.hashCode();
+        }
     }
 
     // Compare based on content
@@ -141,16 +194,25 @@ public class Macros implements MacroValueProvider
         if (! (obj instanceof Macros))
             return false;
         final Macros other = (Macros) obj;
-        return other.macros.equals(macros);
+        synchronized (other.macros)
+        {
+            synchronized (macros)
+            {
+                return other.macros.equals(macros);
+            }
+        }
     }
 
     /** @return String representation for debugging */
     @Override
     public String toString()
     {
-        return "[" + getNames().stream()
-                               .map((macro) -> macro + " = '" + macros.get(macro) + "'")
-                               .collect(Collectors.joining(", ")) +
-               "]";
+        synchronized (macros)
+        {
+            return "[" + getNames().stream()
+                                   .map((macro) -> macro + " = '" + macros.get(macro) + "'")
+                                   .collect(Collectors.joining(", ")) +
+                   "]";
+        }
     }
 }
