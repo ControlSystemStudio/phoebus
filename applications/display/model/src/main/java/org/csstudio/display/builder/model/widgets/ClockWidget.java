@@ -62,7 +62,7 @@ public class ClockWidget extends BaseClockWidget {
         YOTA2
     }
 
-    public static final WidgetPropertyDescriptor<Skin>        propSkin                  = new WidgetPropertyDescriptor<Skin>(WidgetPropertyCategory.WIDGET,   "skin",                     Messages.WidgetProperties_Skin) {
+    public static final WidgetPropertyDescriptor<Skin>        propSkin                  = new WidgetPropertyDescriptor<>(WidgetPropertyCategory.WIDGET,   "skin",                     Messages.WidgetProperties_Skin) {
         @Override
         public EnumWidgetProperty<Skin> createProperty ( Widget widget, Skin defaultValue ) {
             return new EnumWidgetProperty<>(this, widget, defaultValue);
@@ -73,8 +73,6 @@ public class ClockWidget extends BaseClockWidget {
     public static final WidgetPropertyDescriptor<Boolean>     propDiscreteMinutes       = newBooleanPropertyDescriptor      (WidgetPropertyCategory.BEHAVIOR, "discrete_minutes",         Messages.WidgetProperties_DiscreteMinutes);
     public static final WidgetPropertyDescriptor<Boolean>     propDiscreteSeconds       = newBooleanPropertyDescriptor      (WidgetPropertyCategory.BEHAVIOR, "discrete_seconds",         Messages.WidgetProperties_DiscreteSeconds);
 
-    public static final WidgetPropertyDescriptor<WidgetColor> propBorderColor           = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "border_color",             Messages.WidgetProperties_BorderColor);
-    public static final WidgetPropertyDescriptor<Double>      propBorderWidth           = newDoublePropertyDescriptor       (WidgetPropertyCategory.MISC,     "border_width",             Messages.WidgetProperties_BorderWidth);
     public static final WidgetPropertyDescriptor<WidgetColor> propDateColor             = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "date_color",               Messages.WidgetProperties_DateColor);
     public static final WidgetPropertyDescriptor<WidgetColor> propHourColor             = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "hour_color",               Messages.WidgetProperties_HourColor);
     public static final WidgetPropertyDescriptor<WidgetColor> propHourTickMarkColor     = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "hour_tick_mark_color",     Messages.WidgetProperties_HourTickMarkColor);
@@ -83,6 +81,8 @@ public class ClockWidget extends BaseClockWidget {
     public static final WidgetPropertyDescriptor<WidgetColor> propMinuteColor           = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "minute_color",             Messages.WidgetProperties_MinuteColor);
     public static final WidgetPropertyDescriptor<WidgetColor> propMinuteTickMarkColor   = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "minute_tick_mark_color",   Messages.WidgetProperties_MinuteTickMarkColor);
     public static final WidgetPropertyDescriptor<Boolean>     propMinuteTickMarkVisible = newBooleanPropertyDescriptor      (WidgetPropertyCategory.MISC,     "minute_tick_mark_visible", Messages.WidgetProperties_MinuteTickMarkVisible);
+    public static final WidgetPropertyDescriptor<WidgetColor> propRingColor             = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "ring_color",               Messages.WidgetProperties_RingColor);
+    public static final WidgetPropertyDescriptor<Double>      propRingWidth             = newDoublePropertyDescriptor       (WidgetPropertyCategory.MISC,     "ring_width",               Messages.WidgetProperties_RingWidth);
     public static final WidgetPropertyDescriptor<WidgetColor> propSecondColor           = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "second_color",             Messages.WidgetProperties_SecondColor);
     public static final WidgetPropertyDescriptor<WidgetColor> propTextColor             = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "text_color",               Messages.WidgetProperties_TextColor);
     public static final WidgetPropertyDescriptor<Boolean>     propTextVisible           = newBooleanPropertyDescriptor      (WidgetPropertyCategory.MISC,     "text_visible",             Messages.WidgetProperties_TextVisible);
@@ -91,8 +91,8 @@ public class ClockWidget extends BaseClockWidget {
     public static final WidgetPropertyDescriptor<WidgetColor> propTitleColor            = newColorPropertyDescriptor        (WidgetPropertyCategory.MISC,     "title_color",              Messages.WidgetProperties_TitleColor);
 
     private volatile WidgetProperty<WidgetColor> background_color;
-    private volatile WidgetProperty<WidgetColor> borderColor;
-    private volatile WidgetProperty<Double>      borderWidth;
+    private volatile WidgetProperty<WidgetColor> ringColor;
+    private volatile WidgetProperty<Double>      ringWidth;
     private volatile WidgetProperty<WidgetColor> dateColor;
     private volatile WidgetProperty<Boolean>     discreteHours;
     private volatile WidgetProperty<Boolean>     discreteMinutes;
@@ -119,14 +119,6 @@ public class ClockWidget extends BaseClockWidget {
 
     public WidgetProperty<WidgetColor> propBackgroundColor ( ) {
         return background_color;
-    }
-
-    public WidgetProperty<WidgetColor> propBorderColor ( ) {
-        return borderColor;
-    }
-
-    public WidgetProperty<Double> propBorderWidth ( ) {
-        return borderWidth;
     }
 
     public WidgetProperty<WidgetColor> propDateColor ( ) {
@@ -171,6 +163,14 @@ public class ClockWidget extends BaseClockWidget {
 
     public WidgetProperty<Boolean> propMinuteTickMarkVisible ( ) {
         return minuteTickMarkVisible;
+    }
+
+    public WidgetProperty<WidgetColor> propRingColor ( ) {
+        return ringColor;
+    }
+
+    public WidgetProperty<Double> propRingWidth ( ) {
+        return ringWidth;
     }
 
     public WidgetProperty<WidgetColor> propSecondColor ( ) {
@@ -219,8 +219,6 @@ public class ClockWidget extends BaseClockWidget {
         properties.add(discreteMinutes       = propDiscreteMinutes.createProperty(this, false));
         properties.add(discreteSeconds       = propDiscreteSeconds.createProperty(this, false));
 
-        properties.add(borderColor           = propBorderColor.createProperty(this, new WidgetColor(153, 230, 230)));
-        properties.add(borderWidth           = propBorderWidth.createProperty(this, 0.0));
         properties.add(dateColor             = propDateColor.createProperty(this, new WidgetColor(102, 51, 102)));
         properties.add(hourColor             = propHourColor.createProperty(this, new WidgetColor(255, 127, 80)));
         properties.add(hourTickMarkColor     = propHourTickMarkColor.createProperty(this, new WidgetColor(196, 127, 80)));
@@ -229,6 +227,8 @@ public class ClockWidget extends BaseClockWidget {
         properties.add(minuteColor           = propMinuteColor.createProperty(this, new WidgetColor(255, 136, 98)));
         properties.add(minuteTickMarkColor   = propMinuteTickMarkColor.createProperty(this, new WidgetColor(196, 136, 98)));
         properties.add(minuteTickMarkVisible = propMinuteTickMarkVisible.createProperty(this, true));
+        properties.add(ringColor             = propRingColor.createProperty(this, new WidgetColor(153, 230, 230)));
+        properties.add(ringWidth             = propRingWidth.createProperty(this, 0.0));
         properties.add(secondColor           = propSecondColor.createProperty(this, new WidgetColor(98, 196, 136)));
         properties.add(textColor             = propTextColor.createProperty(this, new WidgetColor(136, 196, 136)));
         properties.add(textVisible           = propTextVisible.createProperty(this, false));

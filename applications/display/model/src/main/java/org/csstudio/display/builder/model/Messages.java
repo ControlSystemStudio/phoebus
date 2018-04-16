@@ -255,6 +255,8 @@ public class Messages
     public static String WidgetProperties_ReadbackPVName;
     public static String WidgetProperties_ReadbackPVValue;
     public static String WidgetProperties_ResizeBehavior;
+    public static String WidgetProperties_RingColor;
+    public static String WidgetProperties_RingWidth;
     public static String WidgetProperties_Rotation;
     public static String WidgetProperties_Rules;
     public static String WidgetProperties_Running;
