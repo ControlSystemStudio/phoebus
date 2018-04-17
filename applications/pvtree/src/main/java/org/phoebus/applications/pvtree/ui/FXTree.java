@@ -21,6 +21,7 @@ import org.phoebus.applications.pvtree.model.TreeModelListener;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.TreeHelper;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -169,7 +170,7 @@ public class FXTree
 
     private TreeItem<TreeModelItem> createTree(final TreeModelItem model_item)
     {
-        final TreeItem<TreeModelItem> node = new TreeItem<TreeModelItem>(model_item);
+        final TreeItem<TreeModelItem> node = new TreeItem<>(model_item);
         model2ui.put(model_item, node);
         for (TreeModelItem link : model_item.getLinks())
             node.getChildren().add(createTree(link));

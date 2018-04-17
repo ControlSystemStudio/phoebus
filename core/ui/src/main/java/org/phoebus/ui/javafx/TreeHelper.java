@@ -10,6 +10,7 @@ package org.phoebus.ui.javafx;
 import javafx.event.Event;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeItem.TreeModificationEvent;
+import javafx.scene.control.TreeView;
 
 /** Helper for TreeView
  *  @author Kay Kasemir
@@ -34,6 +35,46 @@ public class TreeHelper
         // item.setValue(value);
 
         // The API does expose the valueChangedEvent(), so send that
-        Event.fireEvent(item, new TreeModificationEvent<TV>(TreeItem.<TV>valueChangedEvent(), item, item.getValue()));
+        Event.fireEvent(item, new TreeModificationEvent<>(TreeItem.<TV>valueChangedEvent(), item, item.getValue()));
+    }
+
+    /** Expand or collapse complete tree
+     *
+     *  @param tree {@link TreeView}
+     *  @param expand Expand or collapse?
+     */
+    public static void setExpanded(final TreeView<?> tree, final boolean expand)
+    {
+        final TreeItem<?> root = tree.getRoot();
+        if (root != null)
+            setExpanded(root, expand);
+    }
+
+    /** Expand or collapse complete sub tree
+     *
+     *  @param node Node from which on to expand
+     *  @param expand Expand or collapse?
+     */
+    public static void setExpanded(final TreeItem<?> node, final boolean expand)
+    {
+        if (node.isLeaf())
+            return;
+        node.setExpanded(expand);
+        for (TreeItem<?> sub : node.getChildren())
+            setExpanded(sub, expand);
+    }
+
+    /** Expand path from root to given node
+     *
+     *  @param node Node to expand
+     */
+    public static void expandItemPath(final TreeItem<?> node)
+    {
+        TreeItem<?> parent = node.getParent();
+        while (parent != null)
+        {
+            parent.setExpanded(true);
+            parent = parent.getParent();
+        }
     }
 }
