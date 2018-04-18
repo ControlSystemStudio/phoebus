@@ -349,13 +349,13 @@ public class Perspective extends SplitPane
     public void restore(final Memento memento)
     {
         property_panel.restore(memento);
-        search.restore(memento);
 
         memento.getBoolean(SHOW_SEARCH).ifPresent(show ->
         {
             if (show)
             {
                 createSearchTab();
+                search.restore(memento);
                 left_tabs.getTabs().add(search_tab);
             }
         });
@@ -384,7 +384,8 @@ public class Perspective extends SplitPane
     /** @param memento Where to store current settings */
     public void save(final Memento memento)
     {
-        search.save(memento);
+        if (search != null)
+            search.save(memento);
         property_panel.save(memento);
         if (export != null)
             export.save(memento);
