@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
@@ -35,7 +36,7 @@ import org.csstudio.display.builder.model.properties.WidgetFont;
  *  @author Amanda Carpenter
  */
 @SuppressWarnings("nls")
-public class RadioWidget extends PVWidget
+public class RadioWidget extends WritablePVWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -59,7 +60,7 @@ public class RadioWidget extends PVWidget
 
     /** 'items' property: list of items (string properties) for combo box */
     public static final WidgetPropertyDescriptor< List<WidgetProperty<String>> > propItems =
-            new ArrayWidgetProperty.Descriptor< WidgetProperty<String> >(WidgetPropertyCategory.BEHAVIOR, "items", Messages.ComboWidget_Items,
+            new ArrayWidgetProperty.Descriptor< >(WidgetPropertyCategory.BEHAVIOR, "items", Messages.ComboWidget_Items,
                                                                          (widget, index) -> propItem.createProperty(widget, "Item " + index));
 
     private volatile WidgetProperty<WidgetColor> foreground;
@@ -67,6 +68,7 @@ public class RadioWidget extends PVWidget
     private volatile WidgetProperty<List<WidgetProperty<String>>> items;
     private volatile WidgetProperty<Boolean> items_from_pv;
     private volatile WidgetProperty<Boolean> horizontal;
+    private volatile WidgetProperty<Boolean> enabled;
 
     public RadioWidget()
     {
@@ -82,6 +84,7 @@ public class RadioWidget extends PVWidget
         properties.add(items = propItems.createProperty(this, Arrays.asList(propItem.createProperty(this, "Item 1"), propItem.createProperty(this, "Item 2"))));
         properties.add(items_from_pv = propItemsFromPV.createProperty(this, true));
         properties.add(horizontal = propHorizontal.createProperty(this, true));
+        properties.add(enabled = propEnabled.createProperty(this, true));
     }
 
     /** @return 'foreground_color' property */
@@ -114,7 +117,12 @@ public class RadioWidget extends PVWidget
         return horizontal;
     }
 
+    /** @return 'enabled' property */
+    public WidgetProperty<Boolean> propEnabled()
+    {
+        return enabled;
+    }
+
     //  TODO: CR: Changing the name of a radio button item has no immediate effect,
     //            only after a resize the name is changed.
-
 }

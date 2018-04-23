@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.ui.javafx.Styles;
 import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VNumber;
 import org.phoebus.vtype.VType;
@@ -50,6 +51,7 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
     private final DirtyFlag dirty_content = new DirtyFlag();
     private volatile List<String> items = Collections.emptyList();
     private volatile int index = -1;
+    protected volatile boolean enabled = true;
 
     @Override
     public TilePane createJFXNode() throws Exception
@@ -77,6 +79,8 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
 
         model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
         model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
+        model_widget.runtimePropPVWritable().addUntypedPropertyListener(this::styleChanged);
 
         model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
         model_widget.propItemsFromPV().addUntypedPropertyListener(this::contentChanged);
@@ -106,17 +110,20 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
                 // New value will be shown if the PV accepts it and sends a value update.
                 toggle.selectToggle(oldval);
 
-                final Object value;
-                final VType pv_value = model_widget.runtimePropValue().getValue();
-                if (pv_value instanceof VEnum  ||  pv_value instanceof VNumber)
-                    // PV uses enumerated or numeric type, so write the index
-                    value = toggle.getToggles().indexOf(newval);
-                else // PV uses text
-                    value = FormatOptionHandler.parse(pv_value,
-                                                      ((RadioButton) newval).getText(),
-                                                      FormatOption.DEFAULT);
-                logger.log(Level.FINE, "Writing " + value);
-                toolkit.fireWrite(model_widget, value);
+                if (enabled)
+                {
+                    final Object value;
+                    final VType pv_value = model_widget.runtimePropValue().getValue();
+                    if (pv_value instanceof VEnum  ||  pv_value instanceof VNumber)
+                        // PV uses enumerated or numeric type, so write the index
+                        value = toggle.getToggles().indexOf(newval);
+                    else // PV uses text
+                        value = FormatOptionHandler.parse(pv_value,
+                                                          ((RadioButton) newval).getText(),
+                                                          FormatOption.DEFAULT);
+                    logger.log(Level.FINE, "Writing " + value);
+                    toolkit.fireWrite(model_widget, value);
+                }
             }
             finally
             {
@@ -147,7 +154,7 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
             return ((VEnum)value).getLabels();
 
         final List<WidgetProperty<String>> itemProps = model_widget.propItems().getValue();
-        final List<String> new_items = new ArrayList<String>(itemProps.size());
+        final List<String> new_items = new ArrayList<>(itemProps.size());
         for (WidgetProperty<String> itemProp : itemProps)
             new_items.add(itemProp.getValue());
         return new_items;
@@ -192,8 +199,8 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
             try
             {
                 // Copy volatile lists before iteration
-                final List<String> save_items = new ArrayList<String>(items);
-                final List<Node> save_buttons = new ArrayList<Node>(jfx_node.getChildren());
+                final List<String> save_items = new ArrayList<>(items);
+                final List<Node> save_buttons = new ArrayList<>(jfx_node.getChildren());
 
                 // Set text of buttons, adding new ones as needed
                 int i, save_index = index;
@@ -222,6 +229,12 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
         {
             final Color fg = JFXUtil.convert(model_widget.propForegroundColor().getValue());
             final Font font = JFXUtil.convert(model_widget.propFont().getValue());
+            // Don't disable the widget, because that would also remove the
+            // context menu etc.
+            // Just apply a style that matches the disabled look.
+            enabled = model_widget.propEnabled().getValue() &&
+                      model_widget.runtimePropPVWritable().getValue();
+            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
             for (Node rb_node : jfx_node.getChildren())
             {
                 final RadioButton rb = (RadioButton) rb_node;
