@@ -23,7 +23,6 @@ import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.util.RGBFactory;
-import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.client.ScanInfoModel;
@@ -59,8 +58,8 @@ public class DataPlot extends VBox
     private final MenuButton scan_selector = new MenuButton("Scan");
     private final MenuButton x_device_selector = new MenuButton("X Axis");
     private final List<MenuButton> y_device_selectors = new ArrayList<>();
-    private final MenuButton add_y_device = new MenuButton(null, ImageCache.getImageView(ScanSystem.class, "/icons/add_obj.png"));
-    private final Button remove_y_device = new Button(null, ImageCache.getImageView(ScanSystem.class, "/icons/remove.png"));
+    private final MenuButton add_y_device = new MenuButton(null, ImageCache.getImageView(ImageCache.class, "/icons/add.png"));
+    private final Button remove_y_device = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/remove.png"));
 
     // Plot
     private final RTValuePlot plot = new RTValuePlot(true);
