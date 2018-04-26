@@ -27,14 +27,19 @@ public class TreeHelper
      */
     public static <TV> void triggerTreeItemRefresh(final TreeItem<TV> item)
     {
-        // TreeView or TreeItem has no 'refresh()', update or redraw method.
-        // 'setValue' only triggers a refresh of the item if value is different
-        //
+        // TreeView has a refresh() for triggering a complete update.
+
+        // TreeItem has no 'refresh()', update or redraw method to trigger a single-node update.
+        // 'setValue' can trigger a refresh if value is different, for example by briefly
+        // changing to null and back:
         // final TV value = item.getValue();
         // item.setValue(null);
         // item.setValue(value);
 
-        // The API does expose the valueChangedEvent(), so send that
+        // The API does expose the valueChangedEvent(), so send that.
+        // Checking in the debugger, the effect seems to be a redraw
+        // of all visible tree nodes, not just the modified one.
+        // Still, we use this as a best effort to limit updates.
         Event.fireEvent(item, new TreeModificationEvent<>(TreeItem.<TV>valueChangedEvent(), item, item.getValue()));
     }
 
