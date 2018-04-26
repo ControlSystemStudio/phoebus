@@ -23,7 +23,7 @@ public class AlarmTreeUIDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+        final AlarmClient client = new AlarmClient("localhost:9092", "Accelerator");
 
         final AlarmTreeView tree_view = new AlarmTreeView(client);
         final Scene scene = new Scene(tree_view, 600, 800);
