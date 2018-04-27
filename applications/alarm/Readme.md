@@ -4,7 +4,7 @@ Alarm System
 Update of the alarm system that originally used RDB for configuration,
 JMS for updates, RDB for persistence of most recent state.
  
-This developemnt uses Kafka to handle both, using "Compacted Topics".
+This development uses Kafka to handle both, using "Compacted Topics".
 For an "Accelerator" configuration, a topic of that name holds the configuration,
 and an "AcceleratorState" topic holds the state changes.
 Clients subscribe to both topics.
@@ -14,13 +14,15 @@ They receive the most recent configuration and state, and from then on updates.
 Setup
 -----
 
-Download Kafka from https://www.apache.org/dyn/closer.cgi?path=/kafka/1.1.0/kafka_2.11-1.1.0.tgz
+Download Kafka as described on https://kafka.apache.org/quickstart
 
+    # The 'examples' folder of this project contains some example scripts
+    # that can be used with a kafka server in the same directory
+    cd examples
     wget http://mirrors.gigenet.com/apache/kafka/1.1.0/kafka_2.11-1.1.0.tgz
 
-
     tar -vzxf kafka_2.11-1.1.0.tgz
-    cd kafka_2.11-1.1.0
+    ln -s kafka_2.11-1.1.0 kafka
     
 Check `config/server.properties`. By default it contains this, which "works",
 but means data will periodically get deleted by Linux:
@@ -29,6 +31,7 @@ but means data will periodically get deleted by Linux:
     
 Start local instance:
     
+    cd kafka
     bin/zookeeper-server-start.sh config/zookeeper.properties
     # Other terminal
     bin/kafka-server-start.sh config/server.properties
@@ -44,12 +47,12 @@ First steps:
     bin/kafka-topics.sh  --zookeeper localhost:2181 --describe --topic test
     bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --describe
     
-    # Produce messages for topic 
+    # Produce messages for topic (no key) 
     bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
     Message 1
     Message 2
     <Ctrl-D>
-     
+
     # Trace messages for topic
     bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
     <Wait until messages are dumped, then Ctrl-C>
@@ -81,18 +84,12 @@ writing at least one more message after the "segment.ms" to create a new segment
 
 More on this in http://www.shayne.me/blog/2015/2015-06-25-everything-about-kafka-part-2/
 
-The following settings request a new segment every 10 seconds with an aggressive cleanup ratio for the 'Accelerator' config and state topics:
+The following settings request a new segment every 10 seconds with an aggressive cleanup ratio for the 'Accelerator' config topic:
 
     bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic Accelerator
 
     # Configure (existing) topic to be compact, and start a new segment every 10 seconds
     bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --alter --entity-name Accelerator \
-           --add-config cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01
-
-    bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic AcceleratorState
-
-    # Configure (existing) topic to be compact, and start a new segment every 10 seconds
-    bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --alter --entity-name AcceleratorState \
            --add-config cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01
 
 You can track the log cleaner runs via
@@ -103,6 +100,9 @@ You can track the log cleaner runs via
 
 Demos
 -----
+
+`examples/create_alarm_topics.sh Accelerator`
+Run to create the topics used by the following demos.
 
 `AlarmConfigProducerDemo`: Run to create demo configuration.
 Loading a demo config with a total of 100000 PVs arranged into several sub and sub-sub sections
@@ -127,13 +127,10 @@ It can be avoided by for example adding sub-nodes.
 
 
 
-
 Next
 ----
 
 Alarm Server.
-
-Another topic for client to send 'acknowledge', 'un-acknowledge' messages to server.
 
 Alarm Table UI.
 
@@ -141,3 +138,4 @@ Alarm Area Panel.
 
 Import/export XML format used by original alarm server into/out of Kafka.
 
+Annunciator.
