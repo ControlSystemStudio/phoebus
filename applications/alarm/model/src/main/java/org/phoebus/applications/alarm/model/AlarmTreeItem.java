@@ -22,7 +22,7 @@ public class AlarmTreeItem<STATE extends BasicState>
     private final String name;
 
     /** Parent node */
-    private volatile AlarmTreeNode parent;
+    protected volatile AlarmTreeNode parent;
 
     /** Sub-tree elements of this item
      *
@@ -87,7 +87,7 @@ public class AlarmTreeItem<STATE extends BasicState>
     }
 
     /** @return Parent item. <code>null</code> for root */
-    public final AlarmTreeNode getParent()
+    public AlarmTreeNode getParent()
     {
         return parent;
     }

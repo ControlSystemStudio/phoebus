@@ -40,6 +40,12 @@ public class AlarmTreePV extends AlarmTreeLeaf implements PVListener
         this.model = model;
     }
 
+    @Override
+    public AlarmServerNode getParent()
+    {
+        return (AlarmServerNode) parent;
+    }
+
     public void start()
     {
         if (! isEnabled())
@@ -86,6 +92,8 @@ public class AlarmTreePV extends AlarmTreeLeaf implements PVListener
     {
         logger.log(Level.FINE, getPathName() + " = " + value);
 
+        final SeverityLevel old_severity = getState().severity;
+
         // TODO Decouple handling of received value from PV thread
         // TODO Use actual alarm logic
         // TODO Send updates for state up to the alarm tree root
@@ -103,7 +111,11 @@ public class AlarmTreePV extends AlarmTreeLeaf implements PVListener
         else
             new_state = new AlarmState(SeverityLevel.UNDEFINED, "undefined", null, Instant.now(), SeverityLevel.UNDEFINED, "undefined");
         setState(new_state);
-        model.sentStateUpdate(this, new_state);
+        model.sentStateUpdate(getPathName(), new_state);
+
+        // Whenever logic computes new state, maximize up parent tree
+        if (new_state.severity != old_severity)
+            getParent().maximizeSeverity();
     }
 
     // PVListener

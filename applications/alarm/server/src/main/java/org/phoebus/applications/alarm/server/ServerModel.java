@@ -31,10 +31,10 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeNode;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
+import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 
@@ -63,7 +63,7 @@ class ServerModel
     // The alarm server needs to handle the removal of each PV in the sub tree.
     private final String config_topic, command_topic, state_topic;
     private final ServerModelListener listener;
-    private final AlarmTreeNode root;
+    private final AlarmServerNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
@@ -81,7 +81,7 @@ class ServerModel
         state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
         this.listener = Objects.requireNonNull(listener);
 
-        root = new AlarmTreeNode(null, config_name);
+        root = new AlarmServerNode(this, null, config_name);
         consumer = connectConsumer(Objects.requireNonNull(kafka_servers), config_name);
         producer = connectProducer(kafka_servers, config_name);
 
@@ -298,7 +298,7 @@ class ServerModel
                     return new AlarmTreePV(this, parent, name);
                 else
                 {
-                    node = new AlarmTreeNode(parent, name);
+                    node = new AlarmServerNode(this, parent, name);
                     // No listener interested in changes to node?
                     // TODO Check for action to update 'severity PV'
                 }
@@ -351,20 +351,20 @@ class ServerModel
 
     /** Send alarm state update
      *
-     *  @param pv PV that has a new state
+     *  @param path Path of item that has a new state
      *  @param new_state That new state
      */
-    public void sentStateUpdate(final AlarmTreePV pv, final AlarmState new_state)
+    public void sentStateUpdate(final String path, final BasicState new_state)
     {
         try
         {
             final String json = new String(JsonModelWriter.toJsonBytes(new_state));
-            final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, pv.getPathName(), json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, path, json);
             producer.send(record);
         }
         catch (Throwable ex)
         {
-            logger.log(Level.WARNING, "Cannot send state update for " + pv.getPathName(), ex);
+            logger.log(Level.WARNING, "Cannot send state update for " + path, ex);
         }
     }
 
