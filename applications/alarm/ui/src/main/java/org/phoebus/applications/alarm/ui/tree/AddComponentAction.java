@@ -65,7 +65,7 @@ class AddComponentAction extends MenuItem
                 type_pv.setSelected(true);
 
             layout.add(new Label("Name:"), 0, 1);
-            name.setPromptText("Name of new node or PV");
+            name.setTooltip(new Tooltip("Name of new node or PV"));
             GridPane.setHgrow(name, Priority.ALWAYS);
             layout.add(name, 1, 1);
 
@@ -81,6 +81,9 @@ class AddComponentAction extends MenuItem
 
             // Initial focus on name
             Platform.runLater(() -> name.requestFocus());
+
+            // Selecting a type then also focuses on the name
+            type_pv.selectedProperty().addListener(p -> Platform.runLater(() -> name.requestFocus()));
         }
 
         public boolean isPV()

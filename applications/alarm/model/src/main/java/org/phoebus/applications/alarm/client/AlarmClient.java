@@ -31,6 +31,7 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeNode;
@@ -53,9 +54,6 @@ import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 @SuppressWarnings("nls")
 public class AlarmClient
 {
-    /** Suffix for the topic that reports alarm state */
-    public static final String STATE_TOPIC_SUFFIX = "State";
-
     private final String config_topic, state_topic;
     private final CopyOnWriteArrayList<AlarmClientListener> listeners = new CopyOnWriteArrayList<>();
     private final AlarmTreeNode root;
@@ -64,8 +62,8 @@ public class AlarmClient
     private final Producer<String, String> producer;
     private final Thread thread;
 
-    /** @param config_name Name of alarm tree root
-     *  @throws Exception on error
+    /** @param kafka_servers Servers
+     *  @param config_name Name of alarm tree root
      */
     public AlarmClient(final String kafka_servers, final String config_name)
     {
@@ -73,7 +71,7 @@ public class AlarmClient
         Objects.requireNonNull(config_name);
 
         config_topic = config_name;
-        state_topic = config_name + STATE_TOPIC_SUFFIX;
+        state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
 
         root = new AlarmTreeNode(null, config_name);
         consumer = connectConsumer(kafka_servers, config_name);

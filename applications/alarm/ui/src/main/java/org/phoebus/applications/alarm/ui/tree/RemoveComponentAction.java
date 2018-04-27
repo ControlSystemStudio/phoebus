@@ -19,6 +19,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TreeView;
 
 /** Action that adds a new item to the alarm tree configuration
  *  @author Kay Kasemir
@@ -58,6 +59,11 @@ class RemoveComponentAction extends MenuItem
             DialogHelper.positionDialog(dialog, node, -100, -50);
             if (dialog.showAndWait().get() != ButtonType.OK)
                 return;
+
+            // Tree view keeps the selection indices, which will point to wrong content
+            // after those items have been removed
+            if (node instanceof TreeView<?>)
+                ((TreeView<?>) node).getSelectionModel().clearSelection();
 
             for (AlarmTreeItem<?> item : items)
                 model.removeComponent(item);
