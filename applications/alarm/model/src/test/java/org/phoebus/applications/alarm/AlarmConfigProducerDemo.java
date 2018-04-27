@@ -19,9 +19,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
+import org.phoebus.applications.alarm.model.AlarmClientLeaf;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 
@@ -50,29 +50,29 @@ public class AlarmConfigProducerDemo
         final Instant start = Instant.now();
 
         // Create alarm tree model
-        AlarmTreeNode root = new AlarmTreeNode(null, "Accelerator");
+        AlarmClientNode root = new AlarmClientNode(null, "Accelerator");
 
-        AlarmTreeNode area = new AlarmTreeNode(root, "Vacuum");
+        AlarmClientNode area = new AlarmClientNode(root, "Vacuum");
         area.setDisplays(List.of(new TitleDetail("A", "one.opi"), new TitleDetail("B", "other.opi")));
 
-        AlarmTreeNode system = new AlarmTreeNode(area, "Sector000001");
+        AlarmClientNode system = new AlarmClientNode(area, "Sector000001");
         system.setGuidance(List.of(new TitleDetail("Contacts", "Call Jane")));
 
-        AlarmTreeLeaf pv1 = new AlarmTreeLeaf(system, "SomePVName");
+        AlarmClientLeaf pv1 = new AlarmClientLeaf(system, "SomePVName");
         pv1.setDisplays(List.of(new TitleDetail("X", "Specific.opi")));
 
-        AlarmTreeLeaf pv2 = new AlarmTreeLeaf(system, "SomeOtherPVName");
+        AlarmClientLeaf pv2 = new AlarmClientLeaf(system, "SomeOtherPVName");
         pv2.setEnabled(false);
 
         // 1000 'sections' of 10 subsections of 10 PVs  -> 100k PVs
         for (int s=0; s<1000; ++s)
         {
-            final AlarmTreeNode sys = s == 1 ? system : new AlarmTreeNode(area, String.format("Sector%06d", s));
+            final AlarmClientNode sys = s == 1 ? system : new AlarmClientNode(area, String.format("Sector%06d", s));
             for (int sub=0; sub<10; ++sub)
             {
-                final AlarmTreeNode subsys = new AlarmTreeNode(sys, String.format("Sub%02d", sub));
+                final AlarmClientNode subsys = new AlarmClientNode(sys, String.format("Sub%02d", sub));
                 for (int i=0; i<10; ++i)
-                    new AlarmTreeLeaf(subsys, String.format("PV%06d", s*100 + sub*10 + i));
+                    new AlarmClientLeaf(subsys, String.format("PV%06d", s*100 + sub*10 + i));
             }
         }
 

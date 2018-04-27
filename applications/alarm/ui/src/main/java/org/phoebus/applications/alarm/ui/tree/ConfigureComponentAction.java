@@ -9,9 +9,9 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.model.AlarmClientLeaf;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -65,9 +65,9 @@ class ConfigureComponentAction extends MenuItem
             layout.setVgap(5);
 
             int row = 0;
-            if (item instanceof AlarmTreeLeaf)
+            if (item instanceof AlarmClientLeaf)
             {
-                final AlarmTreeLeaf leaf = (AlarmTreeLeaf) item;
+                final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
 
                 layout.add(new Label("Description:"), 0, row);
                 description = new TextField(leaf.getName());
@@ -182,9 +182,9 @@ class ConfigureComponentAction extends MenuItem
         {
             final AlarmTreeItem<?> config;
 
-            if (item instanceof AlarmTreeLeaf)
+            if (item instanceof AlarmClientLeaf)
             {
-                final AlarmTreeLeaf pv = new AlarmTreeLeaf(null, item.getName());
+                final AlarmClientLeaf pv = new AlarmClientLeaf(null, item.getName());
                 pv.setEnabled(enabled.isSelected());
                 pv.setLatching(latching.isSelected());
                 pv.setAnnunciating(annunciating.isSelected());
@@ -195,7 +195,7 @@ class ConfigureComponentAction extends MenuItem
                 config = pv;
             }
             else
-                config = new AlarmTreeNode(null, item.getName());
+                config = new AlarmClientNode(null, item.getName());
             config.setGuidance(guidance.getItems());
             config.setDisplays(displays.getItems());
             config.setCommands(commands.getItems());

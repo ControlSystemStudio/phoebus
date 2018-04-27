@@ -10,12 +10,16 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
+import org.phoebus.applications.alarm.model.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVListener;
@@ -24,20 +28,29 @@ import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VType;
 
-/** Alarm tree leaf with PV detail
+/** Alarm tree leaf
+ *
+ *  <p>Has PV,
+ *  alarm state (which latches etc.)
+ *  as well as the 'current' state of the PV.
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmTreePV extends AlarmTreeLeaf implements PVListener
+public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTreeLeaf, PVListener
 {
     private final AtomicReference<PV> pv = new AtomicReference<>();
     private final ServerModel model;
+    private volatile String description = "";
+    private volatile AlarmState current;
 
-    public AlarmTreePV(final ServerModel model, final AlarmTreeNode parent, final String name)
+    public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name)
     {
-        super(parent, name);
+        super(parent, name, Collections.emptyList());
         this.model = model;
+        description = name;
+        state = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
+        current = state;
     }
 
     @Override
@@ -45,6 +58,103 @@ public class AlarmTreePV extends AlarmTreeLeaf implements PVListener
     {
         return (AlarmServerNode) parent;
     }
+
+    @Override
+    public String getDescription()
+    {
+        return description;
+    }
+
+    @Override
+    public synchronized boolean setDescription(final String description)
+    {
+        if (this.description.equals(description))
+            return false;
+        this.description = description;
+        return true;
+    }
+
+
+    // TODO Use enabled setting of AlarmLogic
+    private final AtomicBoolean enabled = new AtomicBoolean(true);
+
+    @Override
+    public boolean isEnabled()
+    {
+        return enabled.get();
+    }
+
+    @Override
+    public boolean setEnabled(boolean enable)
+    {
+        return enabled.compareAndSet(! enable, enable);
+    }
+
+    // TODO Get/set from AlarmLogic
+    @Override
+    public boolean isLatching()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean setLatching(boolean latch)
+    {
+        return false;
+    }
+
+    // TODO Get/set from AlarmLogic
+    @Override
+    public boolean isAnnunciating()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean setAnnunciating(boolean annunciate)
+    {
+        return false;
+    }
+
+    // TODO Get/set from AlarmLogic
+    @Override
+    public int getDelay()
+    {
+        return 0;
+    }
+
+    @Override
+    public boolean setDelay(int seconds)
+    {
+        return false;
+    }
+
+    // TODO Get/set from AlarmLogic
+    @Override
+    public int getCount()
+    {
+        return 0;
+    }
+
+    @Override
+    public boolean setCount(int times)
+    {
+        return false;
+    }
+
+    // TODO Get/set from AlarmLogic
+    @Override
+    public String getFilter()
+    {
+        return null;
+    }
+
+    @Override
+    public boolean setFilter(String expression)
+    {
+        return false;
+    }
+
 
     public void start()
     {
@@ -97,19 +207,19 @@ public class AlarmTreePV extends AlarmTreeLeaf implements PVListener
         // TODO Decouple handling of received value from PV thread
         // TODO Use actual alarm logic
         // TODO Send updates for state up to the alarm tree root
-        final AlarmState new_state;
+        final ClientState new_state;
         if (value == null)
-            new_state = new AlarmState(SeverityLevel.UNDEFINED, "disconnected", null, Instant.now(), SeverityLevel.UNDEFINED, "disconnected");
+            new_state = new ClientState(SeverityLevel.UNDEFINED, "disconnected", null, Instant.now(), SeverityLevel.UNDEFINED, "disconnected");
         else if (value instanceof Alarm)
         {
             final Alarm alarm = (Alarm) value;
             final SeverityLevel severity = alarm.getAlarmSeverity() == AlarmSeverity.NONE
                                          ? SeverityLevel.OK
                                          : SeverityLevel.values()[SeverityLevel.UNDEFINED_ACK.ordinal() + alarm.getAlarmSeverity().ordinal()];
-            new_state = new AlarmState(severity, alarm.getAlarmName(), value.toString(), Instant.now(), severity, alarm.getAlarmName());
+            new_state = new ClientState(severity, alarm.getAlarmName(), value.toString(), Instant.now(), severity, alarm.getAlarmName());
         }
         else
-            new_state = new AlarmState(SeverityLevel.UNDEFINED, "undefined", null, Instant.now(), SeverityLevel.UNDEFINED, "undefined");
+            new_state = new ClientState(SeverityLevel.UNDEFINED, "undefined", null, Instant.now(), SeverityLevel.UNDEFINED, "undefined");
         setState(new_state);
         model.sentStateUpdate(getPathName(), new_state);
 

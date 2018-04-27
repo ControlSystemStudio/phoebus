@@ -10,7 +10,7 @@ package org.phoebus.applications.alarm.model.json;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
@@ -43,9 +43,9 @@ public class JsonModelWriter
         {
             jg.writeStartObject();
             jg.writeStringField(JsonTags.SEVERITY, state.severity.name());
-            if (state instanceof AlarmState)
+            if (state instanceof ClientState)
             {
-                final AlarmState as = (AlarmState) state;
+                final ClientState as = (ClientState) state;
                 jg.writeStringField(JsonTags.MESSAGE, as.message);
                 jg.writeStringField(JsonTags.VALUE, as.value);
                 {

@@ -8,7 +8,7 @@
 package org.phoebus.applications.alarm.server;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
@@ -17,11 +17,11 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  *  <p>Is part of ServerModel, can maximize severity.
  *  @author Kay Kasemir
  */
-public class AlarmServerNode extends AlarmTreeNode
+public class AlarmServerNode extends AlarmClientNode
 {
     private final ServerModel model;
 
-    public AlarmServerNode(final ServerModel model, final AlarmTreeNode parent, final String name)
+    public AlarmServerNode(final ServerModel model, final AlarmClientNode parent, final String name)
     {
         super(parent, name);
         this.model = model;
@@ -59,4 +59,6 @@ public class AlarmServerNode extends AlarmTreeNode
         if (parent instanceof AlarmServerNode)
             ((AlarmServerNode) parent).maximizeSeverity();
     }
+
+    // TODO Port ServerTreeItem#updateSeverityPV()
 }

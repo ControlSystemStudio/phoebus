@@ -7,138 +7,68 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.model;
 
-import java.time.Instant;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-/** Alarm tree leaf
+/** Additional methods of an alarm tree leaf
  *
- *  <p>No further child nodes, holds PV name and full {@link AlarmState}
+ *  <p>An alarm tree lead is always an {@link AlarmTreeItem},
+ *  but with these additional methods.
+ *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
-public class AlarmTreeLeaf extends AlarmTreeItem<AlarmState>
+public interface AlarmTreeLeaf
 {
-    private volatile String description;
-
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
-    private final AtomicBoolean latching = new AtomicBoolean(true);
-    private final AtomicBoolean annunciating = new AtomicBoolean(true);
-
-    private final AtomicInteger delay = new AtomicInteger(0);
-    private final AtomicInteger count = new AtomicInteger(0);
-
-    private volatile String filter = "";
-
-    public AlarmTreeLeaf(final AlarmTreeNode parent, final String name)
-    {
-        super(parent, name, Collections.emptyList());
-        description = name;
-        state = new AlarmState(SeverityLevel.OK, "", "", Instant.now(), SeverityLevel.OK, "");
-    }
-
     /** @return Return description */
-    public String getDescription()
-    {
-        return description;
-    }
+    public String getDescription();
 
     /** @param description Description
      *  @return <code>true</code> if this is a change
      */
-    public synchronized boolean setDescription(final String description)
-    {
-        if (this.description.equals(description))
-            return false;
-        this.description = description;
-        return true;
-    }
+    public boolean setDescription(final String description);
 
     /** @return <code>true</code> if alarms from PV are enabled */
-    public boolean isEnabled()
-    {
-        return enabled.get();
-    }
+    public boolean isEnabled();
 
     /** @param enable Enable the PV?
      *  @return <code>true</code> if this is a change
      */
-    public boolean setEnabled(final boolean enable)
-    {
-        return enabled.compareAndSet(! enable, enable);
-    }
+    public boolean setEnabled(final boolean enable);
 
     /** @return <code>true</code> if alarms from PV are latched */
-    public boolean isLatching()
-    {
-        return latching.get();
-    }
+    public boolean isLatching();
 
     /** @param latch Latch alarms from the PV?
      *  @return <code>true</code> if this is a change
      */
-    public boolean setLatching(final boolean latch)
-    {
-        return latching.compareAndSet(! latch, latch);
-    }
+    public boolean setLatching(final boolean latch);
 
     /** @return <code>true</code> if alarms from PV are annunciated */
-    public boolean isAnnunciating()
-    {
-        return annunciating.get();
-    }
+    public boolean isAnnunciating();
 
     /** @param latch Annunciate alarms from the PV?
      *  @return <code>true</code> if this is a change
      */
-    public boolean setAnnunciating(final boolean annunciate)
-    {
-        return annunciating.compareAndSet(! annunciate, annunciate);
-    }
+    public boolean setAnnunciating(final boolean annunciate);
 
     /** @return Alarm delay in seconds. */
-    public int getDelay()
-    {
-        return delay.get();
-    }
+    public int getDelay();
 
     /** @param seconds Alarm delay
      *  @return <code>true</code> if this is a change
      */
-    public boolean setDelay(final int seconds)
-    {
-        return delay.getAndSet(seconds) != seconds;
-    }
+    public boolean setDelay(final int seconds);
 
     /** @return Alarm count. Alarm needs to exceed this count within the delay */
-    public int getCount()
-    {
-        return count.get();
-    }
+    public int getCount();
 
     /** @param times Alarm when PV not OK more often than this count within delay
      *  @return <code>true</code> if this is a change
      */
-    public boolean setCount(final int times)
-    {
-        return count.getAndSet(times) != times;
-    }
+    public boolean setCount(final int times);
 
     /** @return Enabling filter expression. */
-    public String getFilter()
-    {
-        return filter;
-    }
+    public String getFilter();
 
     /** @param expression Expression that enables the alarm
      *  @return <code>true</code> if this is a change
      */
-    public synchronized boolean setFilter(final String expression)
-    {
-        if (filter.equals(expression))
-            return false;
-        filter = expression;
-        return true;
-    }
+    public boolean setFilter(final String expression);
 }

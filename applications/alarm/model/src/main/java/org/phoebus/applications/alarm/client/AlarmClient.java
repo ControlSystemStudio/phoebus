@@ -32,9 +32,9 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.model.AlarmClientLeaf;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
@@ -56,7 +56,7 @@ public class AlarmClient
 {
     private final String config_topic, state_topic;
     private final CopyOnWriteArrayList<AlarmClientListener> listeners = new CopyOnWriteArrayList<>();
-    private final AlarmTreeNode root;
+    private final AlarmClientNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
@@ -73,7 +73,7 @@ public class AlarmClient
         config_topic = config_name;
         state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
 
-        root = new AlarmTreeNode(null, config_name);
+        root = new AlarmClientNode(null, config_name);
         consumer = connectConsumer(kafka_servers, config_name);
         producer = connectProducer(kafka_servers, config_name);
 
@@ -108,7 +108,7 @@ public class AlarmClient
         return thread.isAlive();
     }
 
-    public AlarmTreeNode getRoot()
+    public AlarmClientNode getRoot()
     {
         return root;
     }
@@ -297,7 +297,7 @@ public class AlarmClient
             throw new Exception("Invalid path for alarm configuration " + root.getName() + ": " + path);
 
         // Walk down the path
-        AlarmTreeNode parent = root;
+        AlarmClientNode parent = root;
         for (int i=1; i<path_elements.length; ++i)
         {
             final String name = path_elements[i];
@@ -308,14 +308,14 @@ public class AlarmClient
             {   // Done when creating leaf
                 if (last &&  is_leaf)
                 {
-                    node = new AlarmTreeLeaf(parent, name);
+                    node = new AlarmClientLeaf(parent, name);
                     for (AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
                     return node;
                 }
                 else
                 {
-                    node = new AlarmTreeNode(parent, name);
+                    node = new AlarmClientNode(parent, name);
                     for (AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
                 }
@@ -324,7 +324,7 @@ public class AlarmClient
             if (last)
                 return node;
             // Found or created intermediate node; continue walking down the path
-            parent = (AlarmTreeNode) node;
+            parent = (AlarmClientNode) node;
         }
 
         // If path_elements.length == 1, loop never ran. Return root == parent
@@ -339,7 +339,7 @@ public class AlarmClient
     {
         try
         {
-            sendNewItemInfo(parent, new_name, new AlarmTreeNode(null, new_name));
+            sendNewItemInfo(parent, new_name, new AlarmClientNode(null, new_name));
         }
         catch (Exception ex)
         {
@@ -355,7 +355,7 @@ public class AlarmClient
     {
         try
         {
-            sendNewItemInfo(parent, new_name, new AlarmTreeLeaf(null, new_name));
+            sendNewItemInfo(parent, new_name, new AlarmClientLeaf(null, new_name));
         }
         catch (Exception ex)
         {

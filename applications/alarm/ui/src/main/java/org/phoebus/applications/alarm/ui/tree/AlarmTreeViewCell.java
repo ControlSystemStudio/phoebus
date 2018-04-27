@@ -7,10 +7,10 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.AlarmClientLeaf;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
+import org.phoebus.applications.alarm.model.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 
@@ -37,10 +37,10 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
         else
         {
             final SeverityLevel severity;
-            if (item instanceof AlarmTreeLeaf)
+            if (item instanceof AlarmClientLeaf)
             {
-                final AlarmTreeLeaf leaf = (AlarmTreeLeaf) item;
-                final AlarmState state = leaf.getState();
+                final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
+                final ClientState state = leaf.getState();
 
                 final StringBuilder text = new StringBuilder();
                 text.append("PV: ").append(leaf.getName());
@@ -69,7 +69,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             }
             else
             {
-                final AlarmTreeNode node = (AlarmTreeNode) item;
+                final AlarmClientNode node = (AlarmClientNode) item;
                 setText(item.getName());
 
                 severity = node.getState().severity;

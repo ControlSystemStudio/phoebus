@@ -16,7 +16,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.ClientState;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
@@ -106,7 +106,7 @@ public class AlarmStateProducerDemo
                 default: key = "/Accelerator/Vacuum/Sector000002/SomeOtherPVName";
                 }
 
-                BasicState state = new AlarmState(i % 2 == 0 ? SeverityLevel.MAJOR_ACK : SeverityLevel.MAJOR, "demo",
+                BasicState state = new ClientState(i % 2 == 0 ? SeverityLevel.MAJOR_ACK : SeverityLevel.MAJOR, "demo",
                                                   "-10",
                                                   Instant.now(),
                                                   SeverityLevel.MAJOR, "demo");

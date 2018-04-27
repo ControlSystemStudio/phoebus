@@ -25,7 +25,7 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.TreeHelper;
@@ -124,7 +124,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         // System.out.println("Add " + item.getPathName());
 
         // Parent must already exist
-        final AlarmTreeNode model_parent = item.getParent();
+        final AlarmClientNode model_parent = item.getParent();
         final TreeItem<AlarmTreeItem<?>> view_parent = path2view.get(model_parent.getPathName());
         if (view_parent == null)
             throw new IllegalStateException("Missing parent view item for " + item.getPathName());
@@ -286,7 +286,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
                 menu_items.add(new ConfigureComponentAction(tree_view, model, item));
                 menu_items.add(new SeparatorMenuItem());
 
-                if (item instanceof AlarmTreeNode)
+                if (item instanceof AlarmClientNode)
                     menu_items.add(new AddComponentAction(tree_view, model, item));
 
                 menu_items.add(new MenuItem("Rename Item", ImageCache.getImageView(AlarmSystem.class, "/icons/rename.png")));

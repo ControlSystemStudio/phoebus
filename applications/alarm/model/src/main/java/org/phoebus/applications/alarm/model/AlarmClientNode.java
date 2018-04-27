@@ -12,13 +12,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** Node in the body of the alarm tree, i.e. non-leaf
  *  @author Kay Kasemir
  */
-public class AlarmTreeNode extends AlarmTreeItem<BasicState>
+public class AlarmClientNode extends AlarmTreeItem<BasicState>
 {
     /** Create alarm tree item (non-leaf)
      *  @param parent Parent item, <code>null</code> for root
      *  @param name Name of this item
      */
-    public AlarmTreeNode(final AlarmTreeNode parent, final String name)
+    public AlarmClientNode(final AlarmClientNode parent, final String name)
     {
         super(parent, name, new CopyOnWriteArrayList<>());
         state = new BasicState(SeverityLevel.OK);

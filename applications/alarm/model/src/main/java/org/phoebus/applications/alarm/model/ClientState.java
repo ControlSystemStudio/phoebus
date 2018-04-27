@@ -11,23 +11,22 @@ import java.time.Instant;
 
 import org.phoebus.util.time.TimestampFormats;
 
-/** 'Full' alarm state that includes severity, message, value, time
+/** A 'full' alarm state with added 'current' severity and message
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmState extends BasicState
+public class ClientState extends AlarmState
 {
-    final public String message;
-    final public String value;
-    final public Instant time;
+    final public SeverityLevel current_severity;
+    final public String current_message;
 
-    public AlarmState(final SeverityLevel severity, final String message,
-                      final String value, final Instant time)
+    public ClientState(final SeverityLevel severity, final String message, final String value,
+            final Instant time, final SeverityLevel current_severity,
+            final String current_message)
     {
-        super(severity);
-        this.message = message;
-        this.value = value;
-        this.time = time;
+        super(severity, message, value, time);
+        this.current_severity = current_severity;
+        this.current_message = current_message;
     }
 
     @Override
@@ -36,6 +35,7 @@ public class AlarmState extends BasicState
         final StringBuilder buf = new StringBuilder();
         buf.append(severity).append("/").append(message);
         buf.append(" (").append(value).append("), ").append(TimestampFormats.MILLI_FORMAT.format(time));
+        buf.append(", current ").append(current_severity).append("/").append(current_message);
         return buf.toString();
     }
 }

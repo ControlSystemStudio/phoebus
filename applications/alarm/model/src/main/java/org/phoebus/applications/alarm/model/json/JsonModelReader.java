@@ -11,11 +11,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.AlarmClientLeaf;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 
@@ -31,10 +32,10 @@ public class JsonModelReader
 {
     /** Parse alarm state from JSON bytes
      *  @param data JSON test bytes
-     *  @return {@link AlarmState}
+     *  @return {@link ClientState}
      *  @throws Exception on error
      */
-    public static AlarmState readAlarmState(final byte[] data) throws Exception
+    public static ClientState readAlarmState(final byte[] data) throws Exception
     {
         // Alarm state updates are the most frequent alarm system traffic,
         // and Jackson streaming API is supposedly the fastest.
@@ -90,7 +91,7 @@ public class JsonModelReader
                     break;
                 }
             }
-            return new AlarmState(severity, message, value, time, current_severity, current_message);
+            return new ClientState(severity, message, value, time, current_severity, current_message);
         }
     }
 
@@ -117,7 +118,7 @@ public class JsonModelReader
 
     /** Is this the configuration or alarm state for a leaf?
      *  @param json JSON returned by {@link #parseAlarmItemConfig(String)}
-     *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmTreeNode}
+     *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmClientNode}
      */
     public static boolean isLeafConfigOrState(final Object json)
     {
@@ -217,14 +218,14 @@ public class JsonModelReader
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {
         final JsonNode actual = (JsonNode) json;
-        if (node instanceof AlarmTreeLeaf)
-            return updateAlarmLeafState((AlarmTreeLeaf) node, actual);
-        if (node instanceof AlarmTreeNode)
-            return updateAlarmNodeState((AlarmTreeNode) node, actual);
+        if (node instanceof AlarmClientLeaf)
+            return updateAlarmLeafState((AlarmClientLeaf) node, actual);
+        if (node instanceof AlarmClientNode)
+            return updateAlarmNodeState((AlarmClientNode) node, actual);
         return false;
     }
 
-    private static boolean updateAlarmLeafState(final AlarmTreeLeaf node, final JsonNode json)
+    private static boolean updateAlarmLeafState(final AlarmClientLeaf node, final JsonNode json)
     {
         SeverityLevel severity = SeverityLevel.UNDEFINED;
         String message = "<?>";
@@ -267,13 +268,13 @@ public class JsonModelReader
             time = Instant.ofEpochSecond(secs, nano);
         }
 
-        final AlarmState state = new AlarmState(severity, message, value, time, current_severity, current_message);
+        final ClientState state = new ClientState(severity, message, value, time, current_severity, current_message);
         node.setState(state);
 
         return true;
     }
 
-    private static boolean updateAlarmNodeState(final AlarmTreeNode node, final JsonNode json)
+    private static boolean updateAlarmNodeState(final AlarmClientNode node, final JsonNode json)
     {
         SeverityLevel severity = SeverityLevel.UNDEFINED;
 

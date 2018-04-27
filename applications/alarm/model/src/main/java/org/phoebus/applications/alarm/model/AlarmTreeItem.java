@@ -22,7 +22,7 @@ public class AlarmTreeItem<STATE extends BasicState>
     private final String name;
 
     /** Parent node */
-    protected volatile AlarmTreeNode parent;
+    protected volatile AlarmClientNode parent;
 
     /** Sub-tree elements of this item
      *
@@ -54,7 +54,7 @@ public class AlarmTreeItem<STATE extends BasicState>
      *  @param name Name of this item
      *  @param children {@link CopyOnWriteArrayList} for item, empty list for leaf
      */
-    protected AlarmTreeItem(final AlarmTreeNode parent, final String name, final List<AlarmTreeItem<?>> children)
+    protected AlarmTreeItem(final AlarmClientNode parent, final String name, final List<AlarmTreeItem<?>> children)
     {
         this.parent = parent;
         this.name = name;
@@ -87,7 +87,7 @@ public class AlarmTreeItem<STATE extends BasicState>
     }
 
     /** @return Parent item. <code>null</code> for root */
-    public AlarmTreeNode getParent()
+    public AlarmClientNode getParent()
     {
         return parent;
     }
@@ -97,7 +97,7 @@ public class AlarmTreeItem<STATE extends BasicState>
      */
     public void detachFromParent()
     {
-        final AlarmTreeNode p = parent;
+        final AlarmClientNode p = parent;
         parent = null;
         if (p != null)
             if (! p.children.remove(this))

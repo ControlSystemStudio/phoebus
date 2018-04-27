@@ -31,8 +31,8 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeNode;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
@@ -97,7 +97,7 @@ class ServerModel
         thread.start();
     }
 
-    public AlarmTreeNode getRoot()
+    public AlarmClientNode getRoot()
     {
         return root;
     }
@@ -153,6 +153,8 @@ class ServerModel
     {
         final Properties props = new Properties();
         props.put("bootstrap.servers", kafka_servers);
+        // Collect messages for 20ms until sending them out as a batch
+        props.put("linger.ms", 20);
 
         // Write String key, value
         final Serializer<String> serializer = new StringSerializer();
@@ -216,16 +218,16 @@ class ServerModel
                             node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
 
                         // If an existing (i.e. started) PV is about to be updated, stop it.
-                        if (node instanceof AlarmTreePV   &&  !new_node)
-                            ((AlarmTreePV)node).stop();
+                        if (node instanceof AlarmServerPV   &&  !new_node)
+                            ((AlarmServerPV)node).stop();
 
                         // Return value of update..() tells us if it really changed.
                         // It might not have been necessary to stop the PV, but hard to tell in advance...
                         JsonModelReader.updateAlarmItemConfig(node, json);
 
                         // A new PV, or an existing one that was stopped: Start it
-                        if (node instanceof AlarmTreePV)
-                            ((AlarmTreePV)node).start();
+                        if (node instanceof AlarmServerPV)
+                            ((AlarmServerPV)node).start();
                     }
                 }
                 catch (Exception ex)
@@ -285,7 +287,7 @@ class ServerModel
             throw new Exception("Invalid path for alarm configuration " + root.getName() + ": " + path);
 
         // Walk down the path
-        AlarmTreeNode parent = root;
+        AlarmClientNode parent = root;
         for (int i=1; i<path_elements.length; ++i)
         {
             final String name = path_elements[i];
@@ -295,7 +297,7 @@ class ServerModel
             if (node == null)
             {   // Done when creating leaf
                 if (last &&  is_leaf)
-                    return new AlarmTreePV(this, parent, name);
+                    return new AlarmServerPV(this, parent, name);
                 else
                 {
                     node = new AlarmServerNode(this, parent, name);
@@ -307,7 +309,7 @@ class ServerModel
             if (last)
                 return node;
             // Found or created intermediate node; continue walking down the path
-            parent = (AlarmTreeNode) node;
+            parent = (AlarmClientNode) node;
         }
 
         // If path_elements.length == 1, loop never ran. Return root == parent
@@ -342,8 +344,8 @@ class ServerModel
     private void stopPVs(final AlarmTreeItem<?> node)
     {
         // If this was a known PV, notify listener
-        if (node instanceof AlarmTreePV)
-            ((AlarmTreePV) node).stop();
+        if (node instanceof AlarmServerPV)
+            ((AlarmServerPV) node).stop();
         else
             for (AlarmTreeItem<?> child : node.getChildren())
                 stopPVs(child);
