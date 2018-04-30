@@ -7,11 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.ui.javafx.ImageCache;
@@ -26,6 +28,14 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class AlarmContextMenuHelper
 {
+    private final boolean allow_write;
+
+    public AlarmContextMenuHelper()
+    {
+        // TODO Determine if user has write permissions
+        allow_write = true;
+    }
+
     /** Track entries that have already been added.
      *
      *  <p>For a given entry, the guidance, display links etc. are
@@ -42,13 +52,20 @@ public class AlarmContextMenuHelper
 
     /** Add guidance etc. based on selected items
      *  @param node Node for positioning dialog
+     *  @param model {@link AlarmClient}
      *  @param menu_items Menu items to extend
      *  @param selection Selected alarm tree items
      */
     public void addSupportedEntries(final Node node,
+                                    final AlarmClient model,
                                     final ObservableList<MenuItem> menu_items,
                                     final List<AlarmTreeItem<?>> selection)
     {
+        final List<AlarmTreeItem<?>> active = new ArrayList<>();
+        for (AlarmTreeItem<?> item : selection)
+            if (item.getState().severity.isActive())
+                active.add(item);
+
         // TODO Initial context menu item for alarm info, if in alarm
 
         // TODO Somehow indicate the origin of guidance, display, command.
@@ -66,6 +83,9 @@ public class AlarmContextMenuHelper
         for (AlarmTreeItem<?> item : selection)
             addCommands(node, menu_items, item);
         added.clear();
+
+        if (allow_write  &&  ! active.isEmpty())
+            menu_items.add(new AcknowledgeAction(model, active));
     }
 
     private void addGuidance(final Node node,

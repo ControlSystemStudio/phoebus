@@ -23,9 +23,10 @@ import java.util.stream.Collectors;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.TreeHelper;
@@ -124,7 +125,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         // System.out.println("Add " + item.getPathName());
 
         // Parent must already exist
-        final AlarmClientNode model_parent = item.getParent();
+        final AlarmTreeItem<BasicState> model_parent = item.getParent();
         final TreeItem<AlarmTreeItem<?>> view_parent = path2view.get(model_parent.getPathName());
         if (view_parent == null)
             throw new IllegalStateException("Missing parent view item for " + item.getPathName());
@@ -271,7 +272,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             final List<AlarmTreeItem<?>> selection = tree_view.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
 
             // Add guidance etc.
-            new AlarmContextMenuHelper().addSupportedEntries(tree_view, menu_items, selection);
+            new AlarmContextMenuHelper().addSupportedEntries(tree_view, model, menu_items, selection);
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 

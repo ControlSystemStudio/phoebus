@@ -54,7 +54,7 @@ import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 @SuppressWarnings("nls")
 public class AlarmClient
 {
-    private final String config_topic, state_topic;
+    private final String config_topic, state_topic, command_topic;
     private final CopyOnWriteArrayList<AlarmClientListener> listeners = new CopyOnWriteArrayList<>();
     private final AlarmClientNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -72,6 +72,7 @@ public class AlarmClient
 
         config_topic = config_name;
         state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
+        command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
 
         root = new AlarmClientNode(null, config_name);
         consumer = connectConsumer(kafka_servers, config_name);
@@ -401,6 +402,21 @@ public class AlarmClient
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot remove component " + item, ex);
+        }
+    }
+
+    /** @param item Item for which to acknowledge alarm
+     */
+    public void acknowledge(final AlarmTreeItem<?> item)
+    {
+        try
+        {
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, "acknowledge", item.getPathName());
+            producer.send(record);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot acknowledge component " + item, ex);
         }
     }
 
