@@ -18,6 +18,7 @@
   	<module>rtplot</module>
   	<module>databrowser</module>
   	<module>display</module>
+  	<module>alarm</module>
     <module>scan</module>
     <module>filebrowser</module>
     <module>channel</module>

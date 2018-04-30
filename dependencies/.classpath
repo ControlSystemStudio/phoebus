@@ -40,5 +40,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-annotations-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-core-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-databind-2.9.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-1.1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/slf4j-api-1.7.25.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,0 +1,325 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+package org.phoebus.applications.alarm.ui.tree;
+
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.TreeHelper;
+import org.phoebus.ui.javafx.UpdateThrottle;
+
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.layout.StackPane;
+
+/** Tree-based UI for alarm configuration
+ *
+ *  <p>Implemented as StackPane, but should be treated
+ *  as generic JavaFX Node, only calling public methods
+ *  defined on this class.
+ *
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
+public class AlarmTreeView extends StackPane implements AlarmClientListener
+{
+    private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
+
+    private final AlarmClient model;
+
+    /** Map from alarm tree path to view's TreeItem */
+    private final ConcurrentHashMap<String, TreeItem<AlarmTreeItem<?>>> path2view = new ConcurrentHashMap<>();
+
+    /** Items to update, ordered by time of original update request
+     *
+     *  SYNC on access
+     */
+    private final Set<TreeItem<AlarmTreeItem<?>>> items_to_update = new LinkedHashSet<>();
+
+    /** Throttle [5Hz] used for updates of existing items */
+    private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::performUpdates);
+
+
+    // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
+    // to dynamically create TreeItem as TreeView requests information.
+    //
+    // The alarm tree, however, keeps changing, and needs to locate the TreeItem
+    // for the changed AlarmTreeItem.
+    // Added code for checking if a TreeItem has been created, yet,
+    // can only make things slower,
+    // and the overall performance should not degrade when user opens more and more
+    // sections of the overall tree.
+    // --> Create the complete TreeItems ASAP and then keep updating to get
+    //     constant performance?
+
+    /** @param model Model to represent. Must <u>not</u> be running, yet */
+    public AlarmTreeView(final AlarmClient model)
+    {
+        if (model.isRunning())
+            throw new IllegalStateException();
+
+        this.model = model;
+
+        tree_view.setShowRoot(false);
+        tree_view.setCellFactory(view -> new AlarmTreeViewCell());
+        tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        getChildren().setAll(tree_view);
+
+        tree_view.setRoot(createViewItem(model.getRoot()));
+
+        model.addListener(this);
+
+        createContextMenu();
+    }
+
+    private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
+    {
+        // Create view item for model item itself
+        final TreeItem<AlarmTreeItem<?>> view_item = new TreeItem<>(model_item);
+        final TreeItem<AlarmTreeItem<?>> previous = path2view.put(model_item.getPathName(), view_item);
+        if (previous != null)
+            throw new IllegalStateException("Found existing view item for " + model_item.getPathName());
+
+        // Create view items for model item's children
+        for (AlarmTreeItem<?> model_child : model_item.getChildren())
+            view_item.getChildren().add(createViewItem(model_child));
+
+        return view_item;
+    }
+
+    // AlarmClientModelListener
+    @Override
+    public void itemAdded(final AlarmTreeItem<?> item)
+    {
+        // System.out.println("Add " + item.getPathName());
+
+        // Parent must already exist
+        final AlarmClientNode model_parent = item.getParent();
+        final TreeItem<AlarmTreeItem<?>> view_parent = path2view.get(model_parent.getPathName());
+        if (view_parent == null)
+            throw new IllegalStateException("Missing parent view item for " + item.getPathName());
+
+        // Create view item ASAP so that following updates will find it..
+        final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
+
+        // .. but defer showing it on screen to UI thread
+        final CountDownLatch done = new CountDownLatch(1);
+        Platform.runLater(() ->
+        {
+            // Keep sorted by inserting at appropriate index
+            final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
+            final int index = Collections.binarySearch(items, view_item, (a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
+            if (index < 0)
+                items.add(-index-1, view_item);
+            else
+                items.add(index, view_item);
+            done.countDown();
+        });
+        updateStats();
+
+        // Waiting on the UI thread throttles the model's updates
+        // to a rate that the UI can handle.
+        // The result is a slower startup when loading the model,
+        // but keeping the UI responsive
+        try
+        {
+            done.await();
+        }
+        catch (InterruptedException ex)
+        {
+            logger.log(Level.WARNING, "Alarm tree update error for added item " + item.getPathName(), ex);
+        }
+    }
+
+    // AlarmClientModelListener
+    @Override
+    public void itemRemoved(final AlarmTreeItem<?> item)
+    {
+        // System.out.println("Removed " + item.getPathName());
+
+        // Remove item and all sub-items from model2ui
+        final TreeItem<AlarmTreeItem<?>> view_item = removeViewItems(item);
+        if (view_item == null)
+            throw new IllegalStateException("No view item for " + item.getPathName());
+
+        // Remove the corresponding view
+        final CountDownLatch done = new CountDownLatch(1);
+        Platform.runLater(() ->
+        {
+            // Can only locate the parent view item on UI thread,
+            // because item might just have been created by itemAdded() event
+            // and won't be on the screen until UI thread runs.
+            final TreeItem<AlarmTreeItem<?>> view_parent = view_item.getParent();
+            if (view_parent == null)
+                throw new IllegalStateException("No parent in view for " + item.getPathName());
+            view_parent.getChildren().remove(view_item);
+            done.countDown();
+        });
+        updateStats();
+
+        // Waiting on the UI thread throttles the model's updates
+        // to a rate that the UI can handle.
+        // The result is a slower startup when loading the model,
+        // but keeping the UI responsive
+        try
+        {
+            done.await();
+        }
+        catch (InterruptedException ex)
+        {
+            logger.log(Level.WARNING, "Alarm tree update error for removed item " + item.getPathName(), ex);
+        }
+    }
+
+    /** @param item Item for which the TreeItem should be removed from path2view. Recurses to all child entries.
+     *  @return TreeItem for 'item'
+     */
+    private TreeItem<AlarmTreeItem<?>> removeViewItems(final AlarmTreeItem<?> item)
+    {
+        final TreeItem<AlarmTreeItem<?>> view_item = path2view.remove(item.getPathName());
+
+        for (AlarmTreeItem<?> child : item.getChildren())
+            removeViewItems(child);
+
+        return view_item;
+    }
+
+    // AlarmClientModelListener
+    @Override
+    public void itemUpdated(final AlarmTreeItem<?> item)
+    {
+        // System.out.println("Updated " + item.getPathName());
+        final TreeItem<AlarmTreeItem<?>> view_item = path2view.get(item.getPathName());
+        if (view_item == null)
+        {
+            System.out.println("Unknown view for " + item.getPathName());
+            path2view.keySet().stream().forEach(System.out::println);
+            throw new IllegalStateException("No view item for " + item.getPathName());
+        }
+
+        // UI update of existing item, i.e.
+        //  Platform.runLater(() -> TreeHelper.triggerTreeItemRefresh(view_item));
+        // is throttled.
+        // If several items update, they're all redrawn in one Platform call,
+        // and rapid updates of the same item are merged into just one final update
+        synchronized (items_to_update)
+        {
+            items_to_update.add(view_item);
+        }
+        throttle.trigger();
+        updateStats();
+    }
+
+    /** Called by throttle to perform accumulated updates */
+    private void performUpdates()
+    {
+        final TreeItem<?>[] view_items;
+        synchronized (items_to_update)
+        {
+            // Creating a direct copy, i.e. another new LinkedHashSet<>(items_to_update),
+            // would be expensive, since we only need a _list_ of what's to update.
+            // Could use type-safe
+            //    new ArrayList<TreeItem<AlarmTreeItem<?>>>(items_to_update)
+            // but that calls toArray() internally, so doing that directly
+            view_items = items_to_update.toArray(new TreeItem[items_to_update.size()]);
+            items_to_update.clear();
+        }
+
+        for (TreeItem<?> view_item : view_items)
+            TreeHelper.triggerTreeItemRefresh(view_item);
+    }
+
+    private void createContextMenu()
+    {
+        final ContextMenu menu = new ContextMenu();
+
+        tree_view.setOnContextMenuRequested(event ->
+        {
+            final ObservableList<MenuItem> menu_items = menu.getItems();
+            menu_items.clear();
+
+            final List<AlarmTreeItem<?>> selection = tree_view.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+
+            // Add guidance etc.
+            new AlarmContextMenuHelper().addSupportedEntries(tree_view, menu_items, selection);
+            if (menu_items.size() > 0)
+                menu_items.add(new SeparatorMenuItem());
+
+            if (selection.size() <= 0)
+            {
+                // Add first item to empty config
+                menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
+            }
+            else if (selection.size() == 1)
+            {
+                final AlarmTreeItem<?> item = selection.get(0);
+                menu_items.add(new ConfigureComponentAction(tree_view, model, item));
+                menu_items.add(new SeparatorMenuItem());
+
+                if (item instanceof AlarmClientNode)
+                    menu_items.add(new AddComponentAction(tree_view, model, item));
+
+                menu_items.add(new MenuItem("Rename Item", ImageCache.getImageView(AlarmSystem.class, "/icons/rename.png")));
+
+                if (item instanceof AlarmTreeLeaf)
+                    menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+
+                menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+            }
+            if (selection.size() >= 1)
+                menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+
+            // TODO Add context menu actions for "PV"
+
+            menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
+    }
+
+    private long next_stats = 0;
+    private AtomicInteger update_count = new AtomicInteger();
+    private volatile double updates_per_sec = 0.0;
+
+    private void updateStats()
+    {
+        final long time = System.currentTimeMillis();
+        if (time > next_stats)
+        {
+            final int updates = update_count.getAndSet(0);
+            updates_per_sec = updates_per_sec * 0.9 + updates * 0.1;
+            next_stats = time + 1000;
+            System.out.format("%.2f updates/sec\n", updates_per_sec);
+        }
+        else
+            update_count.incrementAndGet();
+    }
+}
