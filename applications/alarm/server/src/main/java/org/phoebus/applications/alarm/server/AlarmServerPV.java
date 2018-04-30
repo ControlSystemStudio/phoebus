@@ -11,10 +11,10 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -24,8 +24,6 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VType;
 
 /** Alarm tree leaf
@@ -41,7 +39,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 {
     private final ServerModel model;
     private volatile String description = "";
-    private volatile AlarmState current;
+
+    private final AlarmLogic logic;
 
     private final AtomicReference<PV> pv = new AtomicReference<>();
 
@@ -53,8 +52,55 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         super(parent, name, Collections.emptyList());
         this.model = model;
         description = name;
-        state = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
-        current = state;
+
+        final AlarmState initial = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
+        AlarmLogicListener listener = new AlarmLogicListener()
+        {
+            @Override
+            public void globalStateChanged(AlarmState alarm)
+            {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void annunciateAlarm(SeverityLevel level)
+            {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void alarmStateChanged(AlarmState current, AlarmState alarm)
+            {
+                // Send alarm and current state to clients
+                logger.log(Level.FINE, () -> getPathName() + " changes to " + current + ", " + alarm);
+                final ClientState new_state = new ClientState(alarm,
+                                                              current.severity,
+                                                              current.message);
+                model.sentStateUpdate(getPathName(), new_state);
+            }
+
+            @Override
+            public void alarmEnablementChanged(boolean is_enabled)
+            {
+                // TODO Auto-generated method stub
+            }
+        };
+        logic = new AlarmLogic(listener, true, true, 0, 0, initial, initial, 0);
+    }
+
+    @Override
+    public AlarmState getState()
+    {
+        return logic.getAlarmState();
+    }
+
+
+    /** Acknowledge current alarm severity
+     *  @param acknowledge Acknowledge or un-acknowledge?
+     */
+    public void acknowledge(boolean acknowledge)
+    {
+        logic.acknowledge(acknowledge);
     }
 
     @Override
@@ -78,75 +124,67 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
-
-    // TODO Use enabled setting of AlarmLogic
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
-
     @Override
     public boolean isEnabled()
     {
-        return enabled.get();
+        return logic.isEnabled();
     }
 
     @Override
-    public boolean setEnabled(boolean enable)
+    public boolean setEnabled(final boolean enable)
     {
-        return enabled.compareAndSet(! enable, enable);
+        return logic.setEnabled(enable);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public boolean isLatching()
     {
-        return false;
+        return logic.isLatching();
     }
 
     @Override
-    public boolean setLatching(boolean latch)
+    public boolean setLatching(final boolean latch)
     {
-        return false;
+        return logic.setLatching(latch);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public boolean isAnnunciating()
     {
-        return false;
+        return logic.isAnnunciating();
     }
 
     @Override
-    public boolean setAnnunciating(boolean annunciate)
+    public boolean setAnnunciating(final boolean annunciate)
     {
-        return false;
+        return logic.setAnnunciating(annunciate);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public int getDelay()
     {
-        return 0;
+        return logic.getDelay();
     }
 
     @Override
-    public boolean setDelay(int seconds)
+    public boolean setDelay(final int seconds)
     {
-        return false;
+        return logic.setDelay(seconds);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public int getCount()
     {
-        return 0;
+        return logic.getCount();
     }
 
     @Override
-    public boolean setCount(int times)
+    public boolean setCount(final int times)
     {
-        return false;
+        return logic.setCount(times);
     }
 
-    // TODO Get/set from AlarmLogic
+    // TODO Implement filter
     @Override
     public String getFilter()
     {
@@ -154,11 +192,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     }
 
     @Override
-    public boolean setFilter(String expression)
+    public boolean setFilter(final String expression)
     {
         return false;
     }
-
 
     public void start()
     {
@@ -182,7 +219,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     public void stop()
     {
-        if (! isEnabled())
+        if (! logic.isEnabled())
             return;
         try
         {
@@ -210,33 +247,20 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public void valueChanged(final PV pv, final VType value)
     {
+        // Inspect alarm state of received value
         is_connected = true;
-
-        logger.log(Level.FINE, getPathName() + " = " + value);
-
-        final SeverityLevel old_severity = getState().severity;
-
-        // TODO Decouple handling of received value from PV thread
-        // TODO Use actual alarm logic
-        // TODO Send updates for state up to the alarm tree root
-        final ClientState new_state;
-        if (value == null)
-            new_state = new ClientState(SeverityLevel.UNDEFINED, "disconnected", null, Instant.now(), SeverityLevel.UNDEFINED, "disconnected");
-        else if (value instanceof Alarm)
-        {
-            final Alarm alarm = (Alarm) value;
-            final SeverityLevel severity = alarm.getAlarmSeverity() == AlarmSeverity.NONE
-                                         ? SeverityLevel.OK
-                                         : SeverityLevel.values()[SeverityLevel.UNDEFINED_ACK.ordinal() + alarm.getAlarmSeverity().ordinal()];
-            new_state = new ClientState(severity, alarm.getAlarmName(), value.toString(), Instant.now(), severity, alarm.getAlarmName());
-        }
-        else
-            new_state = new ClientState(SeverityLevel.UNDEFINED, "undefined", null, Instant.now(), SeverityLevel.UNDEFINED, "undefined");
-        setState(new_state);
-        model.sentStateUpdate(getPathName(), new_state);
+        final SeverityLevel old_severity = logic.getAlarmState().getSeverity();
+        final SeverityLevel new_severity = VTypeHelper.decodeSeverity(value);
+        final String new_message = VTypeHelper.getStatusMessage(value);
+        final AlarmState received = new AlarmState(new_severity, new_message,
+                                                   VTypeHelper.toString(value),
+                                                   VTypeHelper.getTimestamp(value));
+        // Update alarm logic
+        logic.computeNewState(received);
+        logger.log(Level.FINE, () -> getPathName() + " received " + value + " -> " + logic);
 
         // Whenever logic computes new state, maximize up parent tree
-        if (new_state.severity != old_severity)
+        if (! logic.getAlarmState().getSeverity().equals(old_severity))
             getParent().maximizeSeverity();
     }
 
@@ -244,8 +268,11 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public void disconnected(final PV pv)
     {
+        final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.Disconnected, "", Instant.now());
+        logic.computeNewState(received);
         logger.log(Level.FINE, getPathName() + " disconnected");
-        valueChanged(pv, null);
+
+        getParent().maximizeSeverity();
     }
 
     @Override

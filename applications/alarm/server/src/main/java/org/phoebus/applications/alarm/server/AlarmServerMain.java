@@ -97,7 +97,14 @@ public class AlarmServerMain implements ServerModelListener
     {
         try
         {
-            if (command.equalsIgnoreCase("dump"))
+            if (command.startsWith("ack"))
+            {
+                final AlarmTreeItem<?> node = model.findNode(detail);
+                if (node == null)
+                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                acknowledge(node);
+            }
+            else if (command.equalsIgnoreCase("dump"))
             {
                 final AlarmTreeItem<?> node;
                 if (detail.isEmpty())
@@ -135,6 +142,18 @@ public class AlarmServerMain implements ServerModelListener
         {
             logger.log(Level.WARNING, "Error for command: '" + command + "', detail '" + detail + "'", ex);
         }
+    }
+
+    private void acknowledge(final AlarmTreeItem<?> node)
+    {
+        if (node instanceof AlarmServerPV)
+        {
+            final AlarmServerPV pv_node = (AlarmServerPV) node;
+            pv_node.acknowledge(true);
+        }
+        else
+            for (AlarmTreeItem<?> child : node.getChildren())
+                acknowledge(child);
     }
 
     private void listPVs(final AlarmTreeItem<?> node, final boolean disconnected_only)

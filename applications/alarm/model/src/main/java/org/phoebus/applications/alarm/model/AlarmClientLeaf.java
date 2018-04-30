@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmClientLeaf extends AlarmTreeItem<ClientState> implements AlarmTreeLeaf
+public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> implements AlarmTreeLeaf
 {
     private volatile String description;
 

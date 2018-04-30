@@ -12,17 +12,17 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Base class for all nodes in the alarm tree
- *  @param S Type used for the alarm state
+ *  @param STATE Type used for the alarm state
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmTreeItem<STATE extends BasicState>
+abstract public class AlarmTreeItem<STATE extends BasicState>
 {
     /** Visible name of the item */
     private final String name;
 
     /** Parent node */
-    protected volatile AlarmClientNode parent;
+    protected volatile AlarmTreeItem<BasicState> parent;
 
     /** Sub-tree elements of this item
      *
@@ -47,14 +47,12 @@ public class AlarmTreeItem<STATE extends BasicState>
 
     private List<TitleDetail> actions = Collections.emptyList();
 
-    protected volatile STATE state;
-
     /** Constructor for item or leaf
      *  @param parent Parent item, <code>null</code> for root
      *  @param name Name of this item
      *  @param children {@link CopyOnWriteArrayList} for item, empty list for leaf
      */
-    protected AlarmTreeItem(final AlarmClientNode parent, final String name, final List<AlarmTreeItem<?>> children)
+    protected AlarmTreeItem(final AlarmTreeItem<BasicState> parent, final String name, final List<AlarmTreeItem<?>> children)
     {
         this.parent = parent;
         this.name = name;
@@ -87,7 +85,7 @@ public class AlarmTreeItem<STATE extends BasicState>
     }
 
     /** @return Parent item. <code>null</code> for root */
-    public AlarmClientNode getParent()
+    public AlarmTreeItem<BasicState> getParent()
     {
         return parent;
     }
@@ -97,7 +95,7 @@ public class AlarmTreeItem<STATE extends BasicState>
      */
     public void detachFromParent()
     {
-        final AlarmClientNode p = parent;
+        final AlarmTreeItem<BasicState> p = parent;
         parent = null;
         if (p != null)
             if (! p.children.remove(this))
@@ -132,15 +130,7 @@ public class AlarmTreeItem<STATE extends BasicState>
         return null;
     }
 
-    public void setState(final STATE state)
-    {
-        this.state = state;
-    }
-
-    public STATE getState()
-    {
-        return state;
-    }
+    abstract public STATE getState();
 
     /** @param guidance Guidance entries
      *  @return <code>true</code> if guidance was changed, <code>false</code> if no change

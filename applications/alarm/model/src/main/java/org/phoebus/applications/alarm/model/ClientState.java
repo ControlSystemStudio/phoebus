@@ -21,10 +21,19 @@ public class ClientState extends AlarmState
     final public String current_message;
 
     public ClientState(final SeverityLevel severity, final String message, final String value,
-            final Instant time, final SeverityLevel current_severity,
-            final String current_message)
+                       final Instant time, final SeverityLevel current_severity,
+                       final String current_message)
     {
         super(severity, message, value, time);
+        this.current_severity = current_severity;
+        this.current_message = current_message;
+    }
+
+    public ClientState(final AlarmState state,
+                       final SeverityLevel current_severity,
+                       final String current_message)
+    {
+        super(state.severity, state.message, state.value, state.time);
         this.current_severity = current_severity;
         this.current_message = current_message;
     }

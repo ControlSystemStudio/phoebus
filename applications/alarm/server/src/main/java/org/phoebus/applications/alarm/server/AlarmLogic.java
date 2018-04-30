@@ -221,15 +221,17 @@ public class AlarmLogic // implements GlobalAlarmListener
     }
 
     /** @return <code>true</code> for latching behavior */
-    synchronized public boolean isLatching()
+    public boolean isLatching()
     {
         return latching.get();
     }
 
-    /** @param seconds Alarm delay in seconds */
-    public void setDelay(final int seconds)
+    /** @param seconds Alarm delay in seconds
+     *  @return <code>true</code> if this is a change
+     */
+    public boolean setDelay(final int seconds)
     {
-        delay.set(seconds);
+        return delay.getAndSet(seconds) != seconds;
     }
 
     /** @return Alarm delay in seconds */
@@ -239,7 +241,7 @@ public class AlarmLogic // implements GlobalAlarmListener
     }
 
     /** @return count Alarm when PV != OK more often than this count within delay */
-    protected int getCount()
+    public int getCount()
     {
         final AlarmStateHistory hist = alarm_history.get();
         if (hist == null)
@@ -249,14 +251,23 @@ public class AlarmLogic // implements GlobalAlarmListener
 
     /** Alarm when PV != OK more often than this count within delay
      *  @param count New count
+     *  @return <code>true</code> if this is a change
      */
-    protected void setCount(final int count)
+    public boolean setCount(final int count)
     {
+        // Not 100% atomic.
+        // Concurrent callers could set the same count,
+        // and this would install the same history twice,
+        // needlessly creating and then disposing one of them.
+        // --> Fine.
+        if (getCount() == count)
+            return false;
         AlarmStateHistory hist = alarm_history.get();
         if (hist != null)
             hist.dispose();
         if (count > 0)
             alarm_history.set(new AlarmStateHistory(count));
+        return true;
     }
 
     /** @return Current state of PV */
