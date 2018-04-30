@@ -39,10 +39,14 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTreeLeaf, PVListener
 {
-    private final AtomicReference<PV> pv = new AtomicReference<>();
     private final ServerModel model;
     private volatile String description = "";
     private volatile AlarmState current;
+
+    private final AtomicReference<PV> pv = new AtomicReference<>();
+
+    /** Track connection state */
+    private volatile boolean is_connected = false;
 
     public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name)
     {
@@ -146,7 +150,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public String getFilter()
     {
-        return null;
+        return "";
     }
 
     @Override
@@ -192,14 +196,22 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot create PV for " + getPathName(), ex);
-            return;
         }
+        is_connected = false;
+    }
+
+    /** @return <code>true</code> if PV is connected */
+    public boolean isConnected()
+    {
+        return is_connected;
     }
 
     // PVListener
     @Override
     public void valueChanged(final PV pv, final VType value)
     {
+        is_connected = true;
+
         logger.log(Level.FINE, getPathName() + " = " + value);
 
         final SeverityLevel old_severity = getState().severity;
@@ -234,5 +246,37 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         logger.log(Level.FINE, getPathName() + " disconnected");
         valueChanged(pv, null);
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder buf = new StringBuilder();
+        buf.append(getPathName())
+           .append(" [").append(getDescription()).append("] - ");
+
+        final PV safe_pv = pv.get();
+        if (safe_pv != null)
+        {
+            if (is_connected)
+                buf.append("connected, ");
+            else
+                buf.append("disconnected, ");
+            buf.append(safe_pv.read()).append(" - ");
+        }
+        if (! isEnabled())
+            buf.append("disabled - ");
+        if (isAnnunciating())
+            buf.append("annunciating - ");
+        if  (isLatching())
+            buf.append("latching - ");
+        if (getDelay() > 0)
+            buf.append(getDelay()).append(" sec delay - ");
+        if (getFilter().length() > 0)
+            buf.append(getFilter()).append(" - ");
+
+        // TODO  buf.append(logic.toString());
+
+        return buf.toString();
     }
 }

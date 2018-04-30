@@ -72,7 +72,7 @@ public class AlarmConfigProducerDemo
             {
                 final AlarmClientNode subsys = new AlarmClientNode(sys, String.format("Sub%02d", sub));
                 for (int i=0; i<10; ++i)
-                    new AlarmClientLeaf(subsys, String.format("PV%06d", s*100 + sub*10 + i));
+                    new AlarmClientLeaf(subsys, String.format("loc://PV%06d(0)", s*100 + sub*10 + i));
             }
         }
 

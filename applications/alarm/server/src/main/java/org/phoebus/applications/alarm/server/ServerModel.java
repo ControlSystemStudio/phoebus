@@ -97,7 +97,7 @@ class ServerModel
         thread.start();
     }
 
-    public AlarmClientNode getRoot()
+    public AlarmServerNode getRoot()
     {
         return root;
     }
