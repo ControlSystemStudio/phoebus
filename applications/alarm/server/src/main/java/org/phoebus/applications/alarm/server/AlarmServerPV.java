@@ -77,6 +77,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                                                               current.severity,
                                                               current.message);
                 model.sentStateUpdate(getPathName(), new_state);
+
+                // Whenever logic computes new state, maximize up parent tree
+                getParent().maximizeSeverity();
             }
 
             @Override
@@ -98,7 +101,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     /** Acknowledge current alarm severity
      *  @param acknowledge Acknowledge or un-acknowledge?
      */
-    public void acknowledge(boolean acknowledge)
+    public void acknowledge(final boolean acknowledge)
     {
         logic.acknowledge(acknowledge);
     }
@@ -258,10 +261,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         // Update alarm logic
         logic.computeNewState(received);
         logger.log(Level.FINE, () -> getPathName() + " received " + value + " -> " + logic);
-
-        // Whenever logic computes new state, maximize up parent tree
-        if (! logic.getAlarmState().getSeverity().equals(old_severity))
-            getParent().maximizeSeverity();
     }
 
     // PVListener

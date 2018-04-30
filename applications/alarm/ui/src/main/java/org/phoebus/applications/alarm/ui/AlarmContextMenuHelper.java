@@ -15,6 +15,7 @@ import java.util.Set;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -62,9 +63,18 @@ public class AlarmContextMenuHelper
                                     final List<AlarmTreeItem<?>> selection)
     {
         final List<AlarmTreeItem<?>> active = new ArrayList<>();
+        final List<AlarmTreeItem<?>> acked = new ArrayList<>();
         for (AlarmTreeItem<?> item : selection)
-            if (item.getState().severity.isActive())
-                active.add(item);
+        {
+            final SeverityLevel sev = item.getState().severity;
+            if (sev.ordinal() > SeverityLevel.OK.ordinal())
+            {
+                if (sev.isActive())
+                    active.add(item);
+                else
+                    acked.add(item);
+            }
+        }
 
         // TODO Initial context menu item for alarm info, if in alarm
 
@@ -84,8 +94,13 @@ public class AlarmContextMenuHelper
             addCommands(node, menu_items, item);
         added.clear();
 
-        if (allow_write  &&  ! active.isEmpty())
-            menu_items.add(new AcknowledgeAction(model, active));
+        if (allow_write)
+        {
+            if (active.size() > 0)
+                menu_items.add(new AcknowledgeAction(model, active));
+            if (acked.size() > 0)
+                menu_items.add(new UnAcknowledgeAction(model, acked));
+        }
     }
 
     private void addGuidance(final Node node,

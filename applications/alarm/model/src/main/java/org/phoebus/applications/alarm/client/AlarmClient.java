@@ -406,12 +406,14 @@ public class AlarmClient
     }
 
     /** @param item Item for which to acknowledge alarm
+     *  @param acknowledge <code>true</code> to acknowledge, else un-acknowledge
      */
-    public void acknowledge(final AlarmTreeItem<?> item)
+    public void acknowledge(final AlarmTreeItem<?> item, final boolean acknowledge)
     {
         try
         {
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, "acknowledge", item.getPathName());
+            final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, cmd, item.getPathName());
             producer.send(record);
         }
         catch (Exception ex)

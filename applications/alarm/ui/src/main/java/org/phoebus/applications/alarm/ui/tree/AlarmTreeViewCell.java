@@ -49,13 +49,13 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 {   // Add alarm info
                     if (state.severity != SeverityLevel.OK)
                     {
-                        text.append(" (")
+                        text.append(" - ")
                             .append(state.severity).append('/').append(state.message);
-                        // For ack'ed alarm show the current severity
-                        if (state.severity.ordinal() <= SeverityLevel.UNDEFINED_ACK.ordinal())
-                            text.append(", ")
-                                .append(state.current_severity).append('/').append(state.current_message);
-                        text.append(')');
+                        // Show current severity if different
+                        if (state.current_severity != state.severity)
+                            text.append(" (")
+                                .append(state.current_severity).append('/').append(state.current_message)
+                                .append(")");
                     }
                     setTextFill(AlarmUI.getColor(state.severity));
                 }

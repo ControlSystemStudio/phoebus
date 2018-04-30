@@ -26,10 +26,10 @@ public class AlarmUI
     private static Color[] severity_colors = new Color[]
     {
         Color.rgb(  0, 100,   0), // OK
-        Color.rgb(180, 170,  70), // MINOR_ACK
-        Color.rgb(255,  90,  90), // MAJOR_ACK
-        Color.rgb(255, 128, 255), // INVALID_ACK
-        Color.rgb(255, 128, 255), // UNDEFINED_ACK
+        Color.rgb(120,  90,  10), // MINOR_ACK
+        Color.rgb(100,   0,   0), // MAJOR_ACK
+        Color.rgb(100,   0, 100), // INVALID_ACK
+        Color.rgb(100,   0, 100), // UNDEFINED_ACK
         Color.rgb(207, 192,   0), // MINOR
         Color.rgb(255,   0,   0), // MAJOR
         Color.rgb(255,   0, 255), // INVALID

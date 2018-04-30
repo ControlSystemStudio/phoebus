@@ -102,7 +102,14 @@ public class AlarmServerMain implements ServerModelListener
                 final AlarmTreeItem<?> node = model.findNode(detail);
                 if (node == null)
                     throw new Exception("Unknown alarm tree node '" + detail + "'");
-                acknowledge(node);
+                acknowledge(node, true);
+            }
+            else if (command.startsWith("unack"))
+            {
+                final AlarmTreeItem<?> node = model.findNode(detail);
+                if (node == null)
+                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                acknowledge(node, false);
             }
             else if (command.equalsIgnoreCase("dump"))
             {
@@ -144,16 +151,16 @@ public class AlarmServerMain implements ServerModelListener
         }
     }
 
-    private void acknowledge(final AlarmTreeItem<?> node)
+    private void acknowledge(final AlarmTreeItem<?> node, final boolean acknowledge)
     {
         if (node instanceof AlarmServerPV)
         {
             final AlarmServerPV pv_node = (AlarmServerPV) node;
-            pv_node.acknowledge(true);
+            pv_node.acknowledge(acknowledge);
         }
         else
             for (AlarmTreeItem<?> child : node.getChildren())
-                acknowledge(child);
+                acknowledge(child, acknowledge);
     }
 
     private void listPVs(final AlarmTreeItem<?> node, final boolean disconnected_only)

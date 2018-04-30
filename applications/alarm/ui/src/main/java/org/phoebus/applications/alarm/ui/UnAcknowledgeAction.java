@@ -19,12 +19,12 @@ import javafx.scene.control.MenuItem;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class AcknowledgeAction extends MenuItem
+class UnAcknowledgeAction extends MenuItem
 {
-    public AcknowledgeAction(final AlarmClient model, final List<AlarmTreeItem<?>> active)
+    public UnAcknowledgeAction(final AlarmClient model, final List<AlarmTreeItem<?>> active)
     {
-        super("Acknowledge", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
+        super("Un-Acknowledge", ImageCache.getImageView(AlarmUI.class, "/icons/unacknowledge.png"));
         setOnAction(event ->
-            active.forEach(item -> model.acknowledge(item, true)));
+            active.forEach(item -> model.acknowledge(item, false)));
     }
 }
