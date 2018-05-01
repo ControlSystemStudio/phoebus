@@ -5,19 +5,20 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.trends.databrowser3.formula;
+package org.csstudio.apputil.formula;
 
-import org.csstudio.apputil.formula.Formula;
-import org.csstudio.apputil.formula.VariableNode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
-
-import junit.framework.TestCase;
 
 /** Formula tests.
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class FormulaUnitTest extends TestCase
+public class FormulaUnitTest
 {
     private final static double epsilon = 0.001;
 

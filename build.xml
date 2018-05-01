@@ -13,6 +13,7 @@
     <ant target="clean" dir="core/ui"/>
     <ant target="clean" dir="core/logging"/>
     <ant target="clean" dir="core/types"/>
+    <ant target="clean" dir="core/formula"/>
     <ant target="clean" dir="applications/greetings"/>
     <ant target="clean" dir="applications/probe"/>
     <ant target="clean" dir="applications/logbook/inmemory"/>
@@ -47,6 +48,7 @@
     <ant dir="core/ui"/>
     <ant dir="core/logging"/>
     <ant dir="core/types"/>
+    <ant dir="core/formula"/>
   </target>
 
   <target name="applications" depends="core" description="Build application modules">

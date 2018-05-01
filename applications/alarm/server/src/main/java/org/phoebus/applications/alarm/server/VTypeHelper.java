@@ -97,4 +97,17 @@ public class VTypeHelper
             return time.getTimestamp();
         return Instant.now();
     }
+
+    /** Read number from a {@link VType}
+     *  @param value Value
+     *  @return double or NaN
+     */
+    final public static double toDouble(final VType value)
+    {
+        if (value instanceof VNumber)
+            return ((VNumber)value).getValue().doubleValue();
+        if (value instanceof VEnum)
+            return ((VEnum)value).getIndex();
+        return Double.NaN;
+    }
 }

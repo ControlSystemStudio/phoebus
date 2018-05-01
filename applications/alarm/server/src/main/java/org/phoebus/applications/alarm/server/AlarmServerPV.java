@@ -51,7 +51,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return thread;
     });
 
+    // TODO Remove?
     private final ServerModel model;
+
     private volatile String description = "";
 
     private final AlarmLogic logic;
@@ -62,6 +64,11 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     private volatile boolean is_connected = false;
 
     private volatile ScheduledFuture<?> connection_timeout_task = null;
+
+    /** Filter that might be used to compute 'enabled' state;
+     *  can be <code>null</code>
+     */
+    private volatile Filter filter = null;
 
     public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name)
     {
@@ -203,22 +210,43 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return logic.setCount(times);
     }
 
-    // TODO Implement filter
     @Override
     public String getFilter()
     {
-        return "";
+        final Filter safe_copy = filter;
+        return safe_copy == null ? "" : safe_copy.getExpression();
     }
 
     @Override
     public boolean setFilter(final String expression)
     {
-        return false;
+        if (pv.get() != null)
+            throw new IllegalStateException("Cannot change filter while running for " + getPathName());
+        try
+        {
+            if (expression == null  ||  expression.isEmpty())
+            {
+                if (filter == null)
+                    return false;
+                filter = null;
+            }
+            else
+            {
+                if (filter != null  &&  filter.getExpression().equals(expression))
+                    return false;
+                filter = new Filter(expression, this::filterChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot set filter for " + getPathName() + " to " + expression, ex);
+            return false;
+        }
+        return true;
     }
 
     public void start()
     {
-        // TODO Connect timer
         if (! isEnabled())
             return;
         try
@@ -239,6 +267,17 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.NoPV, "", Instant.now());
             logic.computeNewState(received);
         }
+
+        try
+        {
+            final Filter safe_copy = filter;
+            if (safe_copy != null)
+                safe_copy.start();
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot start filter for " + getPathName(), ex);
+        }
     }
 
     private void checkConnection()
@@ -248,6 +287,14 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             logger.log(Level.INFO, () -> getPathName() + " connection timed out");
             disconnected(null);
         }
+    }
+
+    /** Listener to filter */
+    private void filterChanged(final double value)
+    {
+        final boolean new_enable_state = value > 0.0;
+        logger.log(Level.WARNING, () -> getPathName() + " " + filter + " value " + value);
+        logic.setEnabled(new_enable_state);
     }
 
     public void stop()
@@ -269,6 +316,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             }
 
             // TODO Stop filter
+            final Filter safe_copy = filter;
+            if (safe_copy != null)
+                safe_copy.stop();
 
             // Dispose PV
             the_pv.removeListener(this);

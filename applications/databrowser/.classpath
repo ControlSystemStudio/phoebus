@@ -9,6 +9,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-formula"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-rtplot"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
