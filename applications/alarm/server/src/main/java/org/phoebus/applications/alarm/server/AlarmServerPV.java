@@ -11,9 +11,14 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmState;
@@ -37,6 +42,15 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTreeLeaf, PVListener
 {
+    /** Timer used to check for the initial connection */
+    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(runnable ->
+    {
+        final Thread thread = new Thread(runnable);
+        thread.setName("PVConnectionTimeout");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     private final ServerModel model;
     private volatile String description = "";
 
@@ -46,6 +60,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     /** Track connection state */
     private volatile boolean is_connected = false;
+
+    private volatile ScheduledFuture<?> connection_timeout_task = null;
 
     public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name)
     {
@@ -72,7 +88,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             public void alarmStateChanged(AlarmState current, AlarmState alarm)
             {
                 // Send alarm and current state to clients
-                logger.log(Level.FINE, () -> getPathName() + " changes to " + current + ", " + alarm);
+                logger.log(Level.FINER, () -> getPathName() + " changes to " + current + ", " + alarm);
                 final ClientState new_state = new ClientState(alarm,
                                                               current.severity,
                                                               current.message);
@@ -202,10 +218,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     public void start()
     {
+        // TODO Connect timer
         if (! isEnabled())
             return;
         try
         {
+            connection_timeout_task = timer.schedule(this::checkConnection, AlarmSystem.connection_timeout, TimeUnit.SECONDS);
+
             final PV new_pv = PVPool.getPV(getName());
             logger.log(Level.FINE, "Start " + new_pv.getName());
             final PV previous = pv.getAndSet(new_pv);
@@ -216,26 +235,49 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot create PV for " + getPathName(), ex);
-            return;
+
+            final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.NoPV, "", Instant.now());
+            logic.computeNewState(received);
+        }
+    }
+
+    private void checkConnection()
+    {
+        if (! isConnected())
+        {
+            logger.log(Level.INFO, () -> getPathName() + " connection timed out");
+            disconnected(null);
         }
     }
 
     public void stop()
     {
-        if (! logic.isEnabled())
-            return;
         try
         {
             final PV the_pv = pv.getAndSet(null);
+            // Be lenient if already stopped,
+            // or never started because ! isEnabled()
             if (the_pv == null)
-                throw new IllegalStateException("Alarm tree leaf " + getPathName() + " has no PV");
+                return;
+
+            // Stop checking for initial connection
+            final ScheduledFuture<?> conn_to = connection_timeout_task;
+            if (conn_to != null)
+            {
+                conn_to.cancel(false);
+                connection_timeout_task = null;
+            }
+
+            // TODO Stop filter
+
+            // Dispose PV
             the_pv.removeListener(this);
             PVPool.releasePV(the_pv);
             logger.log(Level.FINE, "Stop " + the_pv.getName());
         }
         catch (Throwable ex)
         {
-            logger.log(Level.WARNING, "Cannot create PV for " + getPathName(), ex);
+            logger.log(Level.WARNING, "Cannot stop " + getPathName(), ex);
         }
         is_connected = false;
     }
@@ -260,18 +302,16 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                                                    VTypeHelper.getTimestamp(value));
         // Update alarm logic
         logic.computeNewState(received);
-        logger.log(Level.FINE, () -> getPathName() + " received " + value + " -> " + logic);
+        logger.log(Level.FINER, () -> getPathName() + " received " + value + " -> " + logic);
     }
 
     // PVListener
     @Override
     public void disconnected(final PV pv)
     {
+        logger.log(Level.FINE, getPathName() + " disconnected");
         final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.Disconnected, "", Instant.now());
         logic.computeNewState(received);
-        logger.log(Level.FINE, getPathName() + " disconnected");
-
-        getParent().maximizeSeverity();
     }
 
     @Override

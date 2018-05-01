@@ -6,6 +6,7 @@ public class Messages
 {
     public static String Disabled;
     public static String Disconnected;
+    public static String NoPV;
 
     static
     {

@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.model.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
@@ -290,11 +290,14 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
                 if (item instanceof AlarmClientNode)
                     menu_items.add(new AddComponentAction(tree_view, model, item));
 
-                menu_items.add(new MenuItem("Rename Item", ImageCache.getImageView(AlarmSystem.class, "/icons/rename.png")));
+                // TODO Should be able to rename any item, not just a leaf
+                if (item instanceof AlarmClientLeaf)
+                    menu_items.add(new RenameTreeItemAction(tree_view, model, (AlarmClientLeaf) item));
 
-                if (item instanceof AlarmTreeLeaf)
+                if (item instanceof AlarmClientLeaf)
                     menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
 
+                // TODO Implement move
                 menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
             }
             if (selection.size() >= 1)

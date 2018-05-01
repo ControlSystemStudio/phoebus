@@ -9,6 +9,8 @@ package org.phoebus.applications.alarm;
 
 import java.util.logging.Logger;
 
+import org.phoebus.framework.preferences.PreferencesReader;
+
 /** Common alarm system code
  *  @author Kay Kasemir
  */
@@ -23,4 +25,14 @@ public class AlarmSystem
 
     /** Suffix for the topic that clients use to send commands to alarm server */
     public static final String COMMAND_TOPIC_SUFFIX = "Command";
+
+
+    /** Timeout in seconds for initial PV connection */
+    public static final int connection_timeout;
+
+    static
+    {
+        final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
+        connection_timeout = prefs.getInt("connection_timeout");
+    }
 }

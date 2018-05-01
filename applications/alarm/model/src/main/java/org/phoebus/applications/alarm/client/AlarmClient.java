@@ -396,7 +396,12 @@ public class AlarmClient
         // All clients, including this one, will receive and then remove the item.
         try
         {
-            final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
+            // Remove from configuration
+            ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
+            producer.send(record);
+            // Also remove from state updates, because otherwise old state update
+            // will cause clients to add the item back into their alarm tree
+            record = new ProducerRecord<>(state_topic, item.getPathName(), null);
             producer.send(record);
         }
         catch (Exception ex)
