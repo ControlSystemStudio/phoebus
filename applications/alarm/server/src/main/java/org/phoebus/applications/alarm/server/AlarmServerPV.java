@@ -319,27 +319,27 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         final StringBuilder buf = new StringBuilder();
         buf.append(getPathName())
-           .append(" [").append(getDescription()).append("] - ");
+           .append(" [").append(getDescription()).append("]");
 
         final PV safe_pv = pv.get();
         if (safe_pv != null)
         {
             if (is_connected)
-                buf.append("connected, ");
+                buf.append(" - connected, ");
             else
-                buf.append("disconnected, ");
-            buf.append(safe_pv.read()).append(" - ");
+                buf.append(" - disconnected, ");
+            buf.append(safe_pv.read());
         }
         if (! isEnabled())
-            buf.append("disabled - ");
+            buf.append(" - disabled");
         if (isAnnunciating())
-            buf.append("annunciating - ");
+            buf.append(" - annunciating");
         if  (isLatching())
-            buf.append("latching - ");
+            buf.append(" - latching");
         if (getDelay() > 0)
-            buf.append(getDelay()).append(" sec delay - ");
+            buf.append(" - ").append(getDelay()).append(" sec delay");
         if (getFilter().length() > 0)
-            buf.append(getFilter()).append(" - ");
+            buf.append(" - ").append(getFilter());
 
         // TODO  buf.append(logic.toString());
 

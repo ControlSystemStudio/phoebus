@@ -72,7 +72,14 @@ public class AlarmConfigProducerDemo
             {
                 final AlarmClientNode subsys = new AlarmClientNode(sys, String.format("Sub%02d", sub));
                 for (int i=0; i<10; ++i)
-                    new AlarmClientLeaf(subsys, String.format("loc://PV%06d(0)", s*100 + sub*10 + i));
+                {
+                    // Create 1000 PVs that change, rest static
+                    final int n = s*100 + sub*10 + i;
+                    final AlarmClientLeaf pv = (n>0  &&  n <= 1000)
+                        ? new AlarmClientLeaf(subsys, String.format("sim://sine(-%d, %d, 1)", n, n))
+                        : new AlarmClientLeaf(subsys, String.format("loc://PV%06d(0)", n));
+                    pv.setLatching(false);
+                }
             }
         }
 
