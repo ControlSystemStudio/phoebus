@@ -205,6 +205,13 @@ class ServerModel
                         final AlarmTreeItem<?> node = deleteNode(path);
                         if (node != null)
                             stopPVs(node);
+
+                        // If this was the configuration message where client
+                        // removed an item, add a null state update.
+                        // Otherwise, if there ever was a state update,
+                        // that last state update would add the item back into the client alarm tree
+                        if (record.topic().equals(config_topic))
+                            sentStateUpdate(path, null);
                     }
                     else
                     {
@@ -360,7 +367,7 @@ class ServerModel
     {
         try
         {
-            final String json = new String(JsonModelWriter.toJsonBytes(new_state));
+            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state));
             final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, path, json);
             producer.send(record);
         }

@@ -198,6 +198,10 @@ public class AlarmClient
                 // System.out.printf("\n%s - %s:\n", path, node_config);
                 if (node_config == null)
                 {   // No config -> Delete node
+                    // Message may actually come from either config topic,
+                    // where some client originally requested the removal,
+                    // or the state topic, where running alarm server
+                    // replaced the last state update with an empty one.
                     final AlarmTreeItem<?> node = deleteNode(path);
                     // If this was a known node, notify listeners
                     if (node != null)
@@ -397,11 +401,7 @@ public class AlarmClient
         try
         {
             // Remove from configuration
-            ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
-            producer.send(record);
-            // Also remove from state updates, because otherwise old state update
-            // will cause clients to add the item back into their alarm tree
-            record = new ProducerRecord<>(state_topic, item.getPathName(), null);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
             producer.send(record);
         }
         catch (Exception ex)
