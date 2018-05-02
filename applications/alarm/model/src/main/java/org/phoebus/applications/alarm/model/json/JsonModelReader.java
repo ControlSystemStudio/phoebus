@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.model.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -21,7 +22,6 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /** Read alarm model from JSON
@@ -30,71 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 @SuppressWarnings("nls")
 public class JsonModelReader
 {
-    /** Parse alarm state from JSON bytes
-     *  @param data JSON test bytes
-     *  @return {@link ClientState}
-     *  @throws Exception on error
-     */
-    public static ClientState readAlarmState(final byte[] data) throws Exception
-    {
-        // Alarm state updates are the most frequent alarm system traffic,
-        // and Jackson streaming API is supposedly the fastest.
-        try
-        (
-            final JsonParser jp = JsonModelWriter.mapper.getFactory().createParser(data);
-        )
-        {
-            if (jp.nextToken() != JsonToken.START_OBJECT)
-                throw new Exception("Missing JSON in " + new String(data));
-            SeverityLevel severity = SeverityLevel.UNDEFINED;
-            String message = "<?>";
-            String value = "<?>";
-            Instant time = null;
-            SeverityLevel current_severity = SeverityLevel.UNDEFINED;
-            String current_message = "<?>";
-            while (jp.nextToken() != JsonToken.END_OBJECT)
-            {
-                String name = jp.getCurrentName();
-                jp.nextToken();
-
-                switch (name)
-                {
-                case JsonTags.SEVERITY:
-                    severity = SeverityLevel.valueOf(jp.getText());
-                    break;
-                case JsonTags.MESSAGE:
-                    message = jp.getText();
-                    break;
-                case JsonTags.VALUE:
-                    value = jp.getText();
-                    break;
-                case JsonTags.TIME:
-                    {
-                        long secs = 0, nano = 0;
-                        while (jp.nextToken() != JsonToken.END_OBJECT)
-                        {
-                            String n = jp.getCurrentName();
-                            jp.nextToken();
-                            if (JsonTags.SECONDS.equals(n))
-                                secs = jp.getLongValue();
-                            else if (JsonTags.NANO.equals(n))
-                                nano = jp.getLongValue();
-                        }
-                        time = Instant.ofEpochSecond(secs, nano);
-                    }
-                    break;
-                case JsonTags.CURRENT_SEVERITY:
-                    current_severity = SeverityLevel.valueOf(jp.getText());
-                    break;
-                case JsonTags.CURRENT_MESSAGE:
-                    current_message = jp.getText();
-                    break;
-                }
-            }
-            return new ClientState(severity, message, value, time, current_severity, current_message);
-        }
-    }
-
     // The following use 'Object' for the json node instead of actual
     // JsonNode to keep Jackson specifics within this package.
     // Later updates of the JsonModelReader/Writer will not affect code
@@ -268,10 +203,18 @@ public class JsonModelReader
             time = Instant.ofEpochSecond(secs, nano);
         }
 
-        final ClientState state = new ClientState(severity, message, value, time, current_severity, current_message);
-        node.setState(state);
+        boolean changed;
+        // Special message that indicates dynamic disable via filter?
+        // Otherwise it's a state update, so clearly not disabled
+        if (severity == SeverityLevel.OK  &&  message.equals(Messages.Disabled))
+            changed = node.setEnabled(false);
+        else
+            changed = node.setEnabled(true);
 
-        return true;
+        final ClientState state = new ClientState(severity, message, value, time, current_severity, current_message);
+        changed |= node.setState(state);
+
+        return changed;
     }
 
     private static boolean updateAlarmNodeState(final AlarmClientNode node, final JsonNode json)

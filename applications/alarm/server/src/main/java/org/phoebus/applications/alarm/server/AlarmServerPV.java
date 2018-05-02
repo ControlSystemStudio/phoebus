@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -51,10 +52,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return thread;
     });
 
-    // TODO Remove?
-    private final ServerModel model;
-
     private volatile String description = "";
+
+    private final AtomicBoolean enabled = new AtomicBoolean(true);
 
     private final AlarmLogic logic;
 
@@ -73,7 +73,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name)
     {
         super(parent, name, Collections.emptyList());
-        this.model = model;
         description = name;
 
         final AlarmState initial = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
@@ -153,13 +152,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public boolean isEnabled()
     {
-        return logic.isEnabled();
+        return enabled.get();
     }
 
     @Override
     public boolean setEnabled(final boolean enable)
     {
-        return logic.setEnabled(enable);
+        return enabled.compareAndSet(! enable, enable);
     }
 
     @Override
@@ -294,6 +293,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         final boolean new_enable_state = value > 0.0;
         logger.log(Level.WARNING, () -> getPathName() + " " + filter + " value " + value);
+
         logic.setEnabled(new_enable_state);
     }
 
@@ -389,7 +389,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if (getDelay() > 0)
             buf.append(" - ").append(getDelay()).append(" sec delay");
         if (getFilter().length() > 0)
-            buf.append(" - ").append(getFilter());
+        {
+            if (logic.isEnabled())
+               buf.append("- dynamically enabled via '");
+            else
+                buf.append("- dynamically disabled via '");
+            buf.append(getFilter()).append("'");
+        }
 
         // TODO  buf.append(logic.toString());
 

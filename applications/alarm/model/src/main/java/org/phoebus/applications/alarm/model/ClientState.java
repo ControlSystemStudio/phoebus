@@ -17,8 +17,8 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class ClientState extends AlarmState
 {
-    final public SeverityLevel current_severity;
-    final public String current_message;
+    public final SeverityLevel current_severity;
+    public final String current_message;
 
     public ClientState(final SeverityLevel severity, final String message, final String value,
                        final Instant time, final SeverityLevel current_severity,
@@ -33,9 +33,32 @@ public class ClientState extends AlarmState
                        final SeverityLevel current_severity,
                        final String current_message)
     {
-        super(state.severity, state.message, state.value, state.time);
-        this.current_severity = current_severity;
-        this.current_message = current_message;
+        this(state.severity, state.message, state.value, state.time,
+             current_severity, current_message);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + current_message.hashCode();
+        result = prime * result + current_severity.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj)
+    {
+        if (! (obj instanceof ClientState))
+            return false;
+        final ClientState other = (ClientState) obj;
+        return severity == other.severity                 &&
+               message.equals(other.message)              &&
+               value.equals(other.value)                  &&
+               time.equals(other.time)                    &&
+               current_severity == other.current_severity &&
+               current_message.equals(other.current_message);
     }
 
     @Override

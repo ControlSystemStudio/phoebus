@@ -17,9 +17,9 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class AlarmState extends BasicState
 {
-    final public String message;
-    final public String value;
-    final public Instant time;
+    public final String message;
+    public final String value;
+    public final Instant time;
 
     public AlarmState(final SeverityLevel severity, final String message,
                       final String value, final Instant time)
@@ -28,12 +28,6 @@ public class AlarmState extends BasicState
         this.message = message;
         this.value = value;
         this.time = time;
-    }
-
-    /** @return Severity level of alarm */
-    public SeverityLevel getSeverity()
-    {
-        return severity;
     }
 
     /** @return Alarm message */
@@ -161,9 +155,9 @@ public class AlarmState extends BasicState
         if (! (obj instanceof AlarmState))
             return false;
         final AlarmState other = (AlarmState) obj;
-        return other.severity == severity  &&
+        return other.severity == severity    &&
                other.message.equals(message) &&
-               other.value.equals(value) &&
+               other.value.equals(value)     &&
                other.time.equals(time);
     }
 
