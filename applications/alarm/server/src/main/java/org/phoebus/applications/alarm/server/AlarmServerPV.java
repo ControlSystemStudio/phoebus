@@ -388,16 +388,18 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             buf.append(" - latching");
         if (getDelay() > 0)
             buf.append(" - ").append(getDelay()).append(" sec delay");
-        if (getFilter().length() > 0)
+
+        buf.append(" - ").append(logic.toString());
+
+        final Filter safe_copy = filter;
+        if (safe_copy != null)
         {
             if (logic.isEnabled())
-               buf.append("- dynamically enabled via '");
+               buf.append(" - dynamically enabled via ");
             else
-                buf.append("- dynamically disabled via '");
-            buf.append(getFilter()).append("'");
+                buf.append(" - dynamically disabled via ");
+            buf.append(safe_copy);
         }
-
-        // TODO  buf.append(logic.toString());
 
         return buf.toString();
     }

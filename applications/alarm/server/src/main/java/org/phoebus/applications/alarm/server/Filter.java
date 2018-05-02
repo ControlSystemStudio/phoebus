@@ -153,6 +153,11 @@ public class Filter implements PVListener
     @Override
     public String toString()
     {
-        return "Filter '" + formula.getFormula() + "'";
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Filter '").append(formula.getFormula()).append("'");
+        for (PV pv : pvs)
+            if (pv != null)
+                buf.append(", PV ").append(pv.getName()).append(" = ").append(pv.read());
+        return buf.toString();
     }
 }
