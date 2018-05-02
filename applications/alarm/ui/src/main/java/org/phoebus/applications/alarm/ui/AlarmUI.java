@@ -65,4 +65,16 @@ public class AlarmUI
     {
         return severity_icons[severity.ordinal()];
     }
+
+    public static boolean mayAcknowledge()
+    {
+        // TODO Check if current user is authorized to ack/un-ack alarms
+        return true;
+    }
+
+    public static boolean mayConfigure()
+    {
+        // TODO Check if current user is authorized to change configuration
+        return true;
+    }
 }

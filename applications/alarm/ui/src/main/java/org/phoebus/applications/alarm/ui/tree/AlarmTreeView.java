@@ -28,6 +28,8 @@ import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
+import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
@@ -101,6 +103,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         model.addListener(this);
 
         createContextMenu();
+        addClickSupport();
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
@@ -276,31 +279,37 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
+            final boolean may_configure = AlarmUI.mayConfigure();
             if (selection.size() <= 0)
             {
                 // Add first item to empty config
-                menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
+                if (may_configure)
+                    menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
             }
             else if (selection.size() == 1)
             {
                 final AlarmTreeItem<?> item = selection.get(0);
-                menu_items.add(new ConfigureComponentAction(tree_view, model, item));
-                menu_items.add(new SeparatorMenuItem());
 
-                if (item instanceof AlarmClientNode)
-                    menu_items.add(new AddComponentAction(tree_view, model, item));
+                if (may_configure)
+                {
+                    menu_items.add(new ConfigureComponentAction(tree_view, model, item));
+                    menu_items.add(new SeparatorMenuItem());
 
-                // TODO Should be able to rename any item, not just a leaf
-                if (item instanceof AlarmClientLeaf)
-                    menu_items.add(new RenameTreeItemAction(tree_view, model, (AlarmClientLeaf) item));
+                    if (item instanceof AlarmClientNode)
+                        menu_items.add(new AddComponentAction(tree_view, model, item));
 
-                if (item instanceof AlarmClientLeaf)
-                    menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+                    // TODO Should be able to rename any item, not just a leaf
+                    if (item instanceof AlarmClientLeaf)
+                        menu_items.add(new RenameTreeItemAction(tree_view, model, item));
 
-                // TODO Implement move
-                menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+                    if (item instanceof AlarmClientLeaf)
+                        menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+
+                    // TODO Implement move
+                    menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+                }
             }
-            if (selection.size() >= 1)
+            if (selection.size() >= 1  && may_configure)
                 menu_items.add(new RemoveComponentAction(tree_view, model, selection));
 
             // TODO Add context menu actions for "PV"
@@ -308,6 +317,26 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
+
+    private void addClickSupport()
+    {
+        tree_view.setOnMouseClicked(event ->
+        {
+            if (!AlarmUI.mayConfigure()       ||
+                event.getClickCount() != 2    ||
+                tree_view.getSelectionModel().getSelectedItems().size() != 1)
+                return;
+
+            final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
+            final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
+            DialogHelper.positionDialog(dialog, tree_view, -250, -400);
+            // Show dialog, not waiting for it to close with OK or Cancel
+            dialog.show();
+
+        });
+    }
+
+
 
     private long next_stats = 0;
     private AtomicInteger update_count = new AtomicInteger();

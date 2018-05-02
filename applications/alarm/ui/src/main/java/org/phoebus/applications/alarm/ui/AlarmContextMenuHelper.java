@@ -29,14 +29,6 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class AlarmContextMenuHelper
 {
-    private final boolean allow_write;
-
-    public AlarmContextMenuHelper()
-    {
-        // TODO Determine if user has write permissions
-        allow_write = true;
-    }
-
     /** Track entries that have already been added.
      *
      *  <p>For a given entry, the guidance, display links etc. are
@@ -94,7 +86,7 @@ public class AlarmContextMenuHelper
             addCommands(node, menu_items, item);
         added.clear();
 
-        if (allow_write)
+        if (AlarmUI.mayAcknowledge())
         {
             if (active.size() > 0)
                 menu_items.add(new AcknowledgeAction(model, active));
