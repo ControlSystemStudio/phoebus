@@ -23,7 +23,7 @@ import javafx.scene.paint.Color;
 public class AlarmUI
 {
     // Next arrays follow the ordinal of SeverityLevel
-    private static Color[] severity_colors = new Color[]
+    private static final Color[] severity_colors = new Color[]
     {
         Color.rgb(  0, 100,   0), // OK
         Color.rgb(120,  90,  10), // MINOR_ACK
@@ -36,7 +36,7 @@ public class AlarmUI
         Color.rgb(255,   0, 255), // UNDEFINED
     };
 
-    private static Image[] severity_icons = new Image[]
+    private static final Image[] severity_icons = new Image[]
     {
         null, // OK
         ImageCache.getImage(AlarmUI.class, "/icons/minor_ack.png"),
@@ -49,6 +49,8 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/unknown.png")
     };
 
+    public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
+    
     /** @param severity {@link SeverityLevel}
      *  @return Color
      */
