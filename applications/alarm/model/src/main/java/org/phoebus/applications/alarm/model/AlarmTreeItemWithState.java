@@ -8,8 +8,7 @@
 package org.phoebus.applications.alarm.model;
 
 import java.util.List;
-
-import org.python.google.common.base.Objects;
+import java.util.Objects;
 
 /** Base class for all nodes in the alarm tree that hold a 'state'
  *  @param STATE Type used for the alarm state
@@ -31,7 +30,7 @@ public class AlarmTreeItemWithState<STATE extends BasicState> extends AlarmTreeI
      */
     public boolean setState(final STATE state)
     {
-        if (Objects.equal(this.state, state))
+        if (Objects.equals(this.state, state))
             return false;
         this.state = state;
         return true;
