@@ -19,6 +19,8 @@ Download Kafka as described on https://kafka.apache.org/quickstart
     # The 'examples' folder of this project contains some example scripts
     # that can be used with a kafka server in the same directory
     cd examples
+    
+    # Use wget, 'curl -O', or web browser
     wget http://mirrors.gigenet.com/apache/kafka/1.1.0/kafka_2.11-1.1.0.tgz
 
     tar -vzxf kafka_2.11-1.1.0.tgz

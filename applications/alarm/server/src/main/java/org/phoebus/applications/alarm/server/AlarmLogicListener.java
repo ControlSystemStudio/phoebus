@@ -18,7 +18,7 @@ public interface AlarmLogicListener
     /** Invoked when enablement changes.
      *  @param is_enabled Is alarm logic now enabled?
      */
-    public void alarmEnablementChanged(boolean is_enabled);
+    public default void alarmEnablementChanged(boolean is_enabled) {}
 
     /** Invoked on change in alarm state, current or latched,
      *  to allow for notification of clients.
@@ -37,5 +37,5 @@ public interface AlarmLogicListener
      *  or such a global alarm state cleared.
      *  @param alarm Global Alarm state
      */
-    public void globalStateChanged(AlarmState alarm);
+    public default void globalStateChanged(AlarmState alarm) {}
 }

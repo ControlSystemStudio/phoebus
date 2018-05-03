@@ -45,7 +45,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 final StringBuilder text = new StringBuilder();
                 text.append("PV: ").append(leaf.getName());
 
-                if (leaf.isEnabled())
+                if (leaf.isEnabled()  &&  !state.isDynamicallyDisabled())
                 {   // Add alarm info
                     if (state.severity != SeverityLevel.OK)
                     {

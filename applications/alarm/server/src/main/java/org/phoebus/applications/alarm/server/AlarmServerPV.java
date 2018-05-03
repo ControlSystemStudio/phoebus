@@ -76,20 +76,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         description = name;
 
         final AlarmState initial = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
-        AlarmLogicListener listener = new AlarmLogicListener()
+        final AlarmLogicListener listener = new AlarmLogicListener()
         {
-            @Override
-            public void globalStateChanged(AlarmState alarm)
-            {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void annunciateAlarm(SeverityLevel level)
-            {
-                // TODO Auto-generated method stub
-            }
-
             @Override
             public void alarmStateChanged(AlarmState current, AlarmState alarm)
             {
@@ -105,9 +93,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             }
 
             @Override
-            public void alarmEnablementChanged(boolean is_enabled)
+            public void annunciateAlarm(SeverityLevel level)
             {
-                // TODO Auto-generated method stub
+                // TODO Send text to Kafka, so that annunciators can, well, annunciate
+                // model.sentAnnunciationMessage(...)
             }
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, initial, initial, 0);
@@ -283,7 +272,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         if (! isConnected())
         {
-            logger.log(Level.INFO, () -> getPathName() + " connection timed out");
+            logger.log(Level.WARNING, () -> getPathName() + " connection timed out");
             disconnected(null);
         }
     }
@@ -292,7 +281,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     private void filterChanged(final double value)
     {
         final boolean new_enable_state = value > 0.0;
-        logger.log(Level.WARNING, () -> getPathName() + " " + filter + " value " + value);
+        logger.log(Level.FINE, () -> getPathName() + " " + filter + " value " + value);
 
         logic.setEnabled(new_enable_state);
     }
@@ -344,7 +333,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         // Inspect alarm state of received value
         is_connected = true;
-        final SeverityLevel old_severity = logic.getAlarmState().getSeverity();
         final SeverityLevel new_severity = VTypeHelper.decodeSeverity(value);
         final String new_message = VTypeHelper.getStatusMessage(value);
         final AlarmState received = new AlarmState(new_severity, new_message,

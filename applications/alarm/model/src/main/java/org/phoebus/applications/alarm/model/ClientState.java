@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.model;
 
 import java.time.Instant;
 
+import org.phoebus.applications.alarm.Messages;
 import org.phoebus.util.time.TimestampFormats;
 
 /** A 'full' alarm state with added 'current' severity and message
@@ -35,6 +36,13 @@ public class ClientState extends AlarmState
     {
         this(state.severity, state.message, state.value, state.time,
              current_severity, current_message);
+    }
+
+    /** @return <code>true</code> if disabled via filter */
+    public boolean isDynamicallyDisabled()
+    {
+        return severity == SeverityLevel.OK  &&
+               message.equals(Messages.Disabled);
     }
 
     @Override

@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.model.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -203,18 +202,8 @@ public class JsonModelReader
             time = Instant.ofEpochSecond(secs, nano);
         }
 
-        boolean changed;
-        // Special message that indicates dynamic disable via filter?
-        // Otherwise it's a state update, so clearly not disabled
-        if (severity == SeverityLevel.OK  &&  message.equals(Messages.Disabled))
-            changed = node.setEnabled(false);
-        else
-            changed = node.setEnabled(true);
-
         final ClientState state = new ClientState(severity, message, value, time, current_severity, current_message);
-        changed |= node.setState(state);
-
-        return changed;
+        return node.setState(state);
     }
 
     private static boolean updateAlarmNodeState(final AlarmClientNode node, final JsonNode json)
