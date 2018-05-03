@@ -28,7 +28,20 @@ Check `config/server.properties`. By default it contains this, which "works",
 but means data will periodically get deleted by Linux:
 
     log.dirs=/tmp/kafka-logs
+
+
+If the following "First steps" generate errors of the type
+
+    WARN Error while fetching metadata with correlation id 39 : .. LEADER_NOT_AVAILABLE
     
+then define the host name in  `config/server.properties`.
+For tests, you can use localhost:
+
+    listeners=PLAINTEXT://localhost:9092
+    advertised.host.name = localhost
+    advertised.listeners=PLAINTEXT://localhost:9092
+
+
 Start local instance:
     
     cd kafka
