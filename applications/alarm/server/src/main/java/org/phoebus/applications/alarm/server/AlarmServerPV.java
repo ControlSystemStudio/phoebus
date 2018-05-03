@@ -304,7 +304,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                 connection_timeout_task = null;
             }
 
-            // TODO Stop filter
+            // Stop filter
             final Filter safe_copy = filter;
             if (safe_copy != null)
                 safe_copy.stop();
