@@ -62,12 +62,12 @@ public class AlarmClient
     private final Producer<String, String> producer;
     private final Thread thread;
 
-    /** @param kafka_servers Servers
+    /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
      */
-    public AlarmClient(final String kafka_servers, final String config_name)
+    public AlarmClient(final String server, final String config_name)
     {
-        Objects.requireNonNull(kafka_servers);
+        Objects.requireNonNull(server);
         Objects.requireNonNull(config_name);
 
         config_topic = config_name;
@@ -75,8 +75,8 @@ public class AlarmClient
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
 
         root = new AlarmClientNode(null, config_name);
-        consumer = connectConsumer(kafka_servers, config_name);
-        producer = connectProducer(kafka_servers, config_name);
+        consumer = connectConsumer(server, config_name);
+        producer = connectProducer(server, config_name);
 
         thread = new Thread(this::run, "AlarmClientModel");
         thread.setDaemon(true);

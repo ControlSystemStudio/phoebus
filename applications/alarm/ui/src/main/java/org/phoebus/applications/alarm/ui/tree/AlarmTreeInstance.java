@@ -11,6 +11,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.logging.Level;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -63,8 +64,7 @@ class AlarmTreeInstance implements AppInstance
     {
         try
         {
-            // TODO Preferences
-            client = new AlarmClient("localhost:9092", "Accelerator");
+            client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name);
             final AlarmTreeView tree_view = new AlarmTreeView(client);
             client.start();
             return tree_view;

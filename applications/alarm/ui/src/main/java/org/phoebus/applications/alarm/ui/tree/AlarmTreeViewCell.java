@@ -78,7 +78,8 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
                 severity = node.getState().severity;
                 setTextFill(AlarmUI.getColor(severity));
-                setGraphic(new ImageView(AlarmUI.getIcon(severity)));
+                final Image icon = AlarmUI.getIcon(severity);
+                setGraphic(icon == null ? null : new ImageView(icon));
             }
         }
     }
