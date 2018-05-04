@@ -5,14 +5,16 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.model;
+package org.phoebus.applications.alarm.client;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.phoebus.applications.alarm.client.ClientState;
+import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /** Alarm tree leaf
  *
@@ -38,6 +40,22 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         super(parent, name, Collections.emptyList());
         description = name;
         state = new ClientState(SeverityLevel.OK, "", "", Instant.now(), SeverityLevel.OK, "");
+    }
+
+    /** When requesting a configuration update,
+     *  a detached copy is used to send the request.
+     *  @return {@link AlarmClientLeaf} with same configuration, but no parent
+     */
+    public AlarmClientLeaf createDetachedCopy()
+    {
+        final AlarmClientLeaf pv = new AlarmClientLeaf(null, getName());
+        pv.setEnabled(isEnabled());
+        pv.setLatching(isLatching());
+        pv.setAnnunciating(isAnnunciating());
+        pv.setDelay(getDelay());
+        pv.setCount(getCount());
+        pv.setFilter(getFilter());
+        return pv;
     }
 
     /** @return Return description */

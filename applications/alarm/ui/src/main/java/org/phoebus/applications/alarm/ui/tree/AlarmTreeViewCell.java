@@ -7,9 +7,9 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
-import org.phoebus.applications.alarm.model.AlarmClientLeaf;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;

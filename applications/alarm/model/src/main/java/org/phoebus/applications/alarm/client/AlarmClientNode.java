@@ -5,9 +5,13 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.model;
+package org.phoebus.applications.alarm.client;
 
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
+import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /** Node in the body of the alarm tree, i.e. non-leaf
  *  @author Kay Kasemir

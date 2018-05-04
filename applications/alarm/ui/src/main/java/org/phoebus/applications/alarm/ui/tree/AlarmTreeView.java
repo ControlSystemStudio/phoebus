@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
-import org.phoebus.applications.alarm.model.AlarmClientLeaf;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
@@ -279,19 +279,14 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            final boolean may_configure = AlarmUI.mayConfigure();
-            if (selection.size() <= 0)
+            if (AlarmUI.mayConfigure())
             {
-                // Add first item to empty config
-                if (may_configure)
+                if (selection.size() <= 0)
+                    // Add first item to empty config
                     menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
-            }
-            else if (selection.size() == 1)
-            {
-                final AlarmTreeItem<?> item = selection.get(0);
-
-                if (may_configure)
+                else if (selection.size() == 1)
                 {
+                    final AlarmTreeItem<?> item = selection.get(0);
                     menu_items.add(new ConfigureComponentAction(tree_view, model, item));
                     menu_items.add(new SeparatorMenuItem());
 
@@ -308,10 +303,13 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
                     // TODO Implement move
                     menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
                 }
+                if (selection.size() >= 1)
+                {
+                    menu_items.add(new EnableComponentAction(tree_view, model, selection));
+                    menu_items.add(new DisableComponentAction(tree_view, model, selection));
+                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+                }
             }
-            if (selection.size() >= 1  && may_configure)
-                menu_items.add(new RemoveComponentAction(tree_view, model, selection));
-
             // TODO Add context menu actions for "PV"
 
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
