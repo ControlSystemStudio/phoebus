@@ -50,7 +50,7 @@ public class AlarmUI
     };
 
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
-    
+
     /** @param severity {@link SeverityLevel}
      *  @return Color
      */
