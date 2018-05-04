@@ -32,7 +32,8 @@
     <ant target="clean" dir="applications/scan/ui"/>
     <ant target="clean" dir="applications/scan/server"/>
     <ant target="clean" dir="phoebus-product"/>
-    <ant target="clean" dir="scanserver-product"/>
+    <ant target="clean" dir="scan-server-product"/>
+    <ant target="clean" dir="alarm-server-product"/>
   </target>
 
   <target name="core" description="Build core modules">
@@ -73,12 +74,14 @@
 
   <target name="product" depends="applications" description="Assemble product">
     <ant target="product" dir="phoebus-product"/>
-    <ant target="product" dir="scanserver-product"/>
+    <ant target="product" dir="scan-server-product"/>
+    <ant target="product" dir="alarm-server-product"/>
   </target>
 
   <target name="dist" depends="product" description="Pack for distribution">
     <ant target="dist" dir="phoebus-product"/>
-    <ant target="dist" dir="scanserver-product"/>
+    <ant target="dist" dir="scan-server-product"/>
+    <ant target="dist" dir="alarm-server-product"/>
   </target>
 
   <target name="run" depends="product" description="Run the product">
@@ -86,7 +89,10 @@
   </target>
 
   <target name="scan-server" depends="product" description="Run the product">
-    <ant target="run" dir="scanserver-product"/>
+    <ant target="run" dir="scan-server-product"/>
   </target>
 
+  <target name="alarm-server" depends="product" description="Run the product">
+    <ant target="run" dir="alarm-server-product"/>
+  </target>
 </project>

@@ -7,4 +7,5 @@ mvn -DskipTests clean install
 (cd phoebus-product/target; java -jar product-0.0.1-SNAPSHOT.jar  --add-modules=ALL-SYSTEM )
 
 # Or:
-# (cd scanserver-product/target; java -jar scan-server-product-0.0.1-SNAPSHOT.jar )
+# (cd scan-server-product/target; java -jar scan-server-product-0.0.1-SNAPSHOT.jar )
+# (cd alarm-server-product/target; java -jar alarm-server-product-0.0.1-SNAPSHOT.jar )

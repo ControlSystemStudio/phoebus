@@ -30,6 +30,33 @@
       <artifactId>pv</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+
+    <!-- These are dependencies of core-pv, but
+         since they are system deps,
+         they need to be listed once more
+      -->
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>jca</artifactId>
+      <version>2.4.1</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/../../../dependencies/target/lib/jca-2.4.1.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>epics-pvdata</artifactId>
+      <version>6.1.1</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/../../../dependencies/target/lib/epics-pvdata-6.1.1.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>epics-pvaccess</artifactId>
+      <version>5.1.1</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/../../../dependencies/target/lib/epics-pvaccess-5.1.1.jar</systemPath>
+    </dependency>
+    
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>formula</artifactId>
