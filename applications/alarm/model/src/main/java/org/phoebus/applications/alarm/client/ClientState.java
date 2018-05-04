@@ -5,11 +5,14 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.model;
+package org.phoebus.applications.alarm.client;
 
 import java.time.Instant;
+import java.util.Objects;
 
 import org.phoebus.applications.alarm.Messages;
+import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.util.time.TimestampFormats;
 
 /** A 'full' alarm state with added 'current' severity and message
@@ -26,8 +29,8 @@ public class ClientState extends AlarmState
                        final String current_message)
     {
         super(severity, message, value, time);
-        this.current_severity = current_severity;
-        this.current_message = current_message;
+        this.current_severity = Objects.requireNonNull(current_severity);
+        this.current_message = Objects.requireNonNull(current_message);
     }
 
     public ClientState(final AlarmState state,
@@ -58,15 +61,17 @@ public class ClientState extends AlarmState
     @Override
     public boolean equals(final Object obj)
     {
+        if (obj == this)
+            return true;
         if (! (obj instanceof ClientState))
             return false;
         final ClientState other = (ClientState) obj;
-        return severity == other.severity                 &&
-               message.equals(other.message)              &&
-               value.equals(other.value)                  &&
-               time.equals(other.time)                    &&
-               current_severity == other.current_severity &&
-               current_message.equals(other.current_message);
+        return severity == other.severity                  &&
+               Objects.equals(message, other.message)      &&
+               Objects.equals(value, other.value)          &&
+               Objects.equals(time, other.time)            &&
+               current_severity == other.current_severity  &&
+               Objects.equals(current_message, other.current_message);
     }
 
     @Override

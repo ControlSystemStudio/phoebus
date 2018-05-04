@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.phoebus.applications.alarm.client.ClientState;
+
 /** Alarm tree leaf
  *
  *  <p>No further child nodes, holds PV name and full {@link ClientState}

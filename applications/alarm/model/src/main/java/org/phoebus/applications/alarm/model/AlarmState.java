@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.model;
 
 import java.time.Instant;
+import java.util.Objects;
 
 import org.phoebus.util.time.TimestampFormats;
 
@@ -25,9 +26,9 @@ public class AlarmState extends BasicState
                       final String value, final Instant time)
     {
         super(severity);
-        this.message = message;
-        this.value = value;
-        this.time = time;
+        this.message = Objects.requireNonNull(message);
+        this.value = value; // May be null
+        this.time = Objects.requireNonNull(time);
     }
 
     /** @return Alarm message */
@@ -152,13 +153,15 @@ public class AlarmState extends BasicState
     @Override
     public boolean equals(final Object obj)
     {
+        if (obj == this)
+            return true;
         if (! (obj instanceof AlarmState))
             return false;
         final AlarmState other = (AlarmState) obj;
         return other.severity == severity    &&
-               other.message.equals(message) &&
-               other.value.equals(value)     &&
-               other.time.equals(time);
+               Objects.equals(other.message, message) &&
+               Objects.equals(other.value, value)     &&
+               Objects.equals(other.time, time);
     }
 
     /** {@inheritDoc} */
@@ -169,7 +172,7 @@ public class AlarmState extends BasicState
         int result = message.hashCode();
         result = prime * result + severity.hashCode();
         result = prime * result + time.hashCode();
-        result = prime * result + value.hashCode();
+        result = prime * result + (value == null ? 0 : value.hashCode());
         return result;
     }
 

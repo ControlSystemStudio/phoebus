@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.model;
 
+import java.util.Objects;
+
 /** Basic state held by every node in the alarm hierarchy
  *  @author Kay Kasemir
  */
@@ -16,10 +18,10 @@ public class BasicState
 
     public BasicState(final SeverityLevel severity)
     {
-        this.severity = severity;
+        this.severity = Objects.requireNonNull(severity);
     }
 
-    /** @return Severity level of alarm. <code>null</code> if dynamically disabled */
+    /** @return Severity level of alarm */
     public SeverityLevel getSeverity()
     {
         return severity;
@@ -28,7 +30,7 @@ public class BasicState
     @Override
     public int hashCode()
     {
-        return (severity == null) ? 0 : severity.hashCode();
+        return severity.hashCode();
     }
 
     @Override
