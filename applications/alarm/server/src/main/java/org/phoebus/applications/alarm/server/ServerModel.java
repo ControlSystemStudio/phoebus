@@ -340,8 +340,14 @@ class ServerModel
         final AlarmTreeItem<?> node = findNode(path);
         if (node == null)
             return null;
+
         // Node is known: Detach it
+        final AlarmTreeItem<BasicState> parent = node.getParent();
         node.detachFromParent();
+
+        // Removing a node that was in alarm can update the severity of the parent
+        if (parent instanceof AlarmServerNode)
+            ((AlarmServerNode)parent).maximizeSeverity();
         return node;
     }
 
