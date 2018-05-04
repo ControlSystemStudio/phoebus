@@ -234,7 +234,15 @@ class ServerModel
 
                         // A new PV, or an existing one that was stopped: Start it
                         if (node instanceof AlarmServerPV)
-                            ((AlarmServerPV)node).start();
+                        {
+                            final AlarmServerPV pv = (AlarmServerPV) node;
+                            // Update parents in case node was disabled
+                            // (i.e. 'start()' won't do anything),
+                            // and to reflect last known state ASAP
+                            // before the PV connects
+                            pv.getParent().maximizeSeverity();
+                            pv.start();
+                        }
                     }
                 }
                 catch (Exception ex)
