@@ -32,8 +32,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.model.AlarmClientLeaf;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
@@ -54,7 +52,7 @@ import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 @SuppressWarnings("nls")
 public class AlarmClient
 {
-    private final String config_topic, state_topic;
+    private final String config_topic, state_topic, command_topic;
     private final CopyOnWriteArrayList<AlarmClientListener> listeners = new CopyOnWriteArrayList<>();
     private final AlarmClientNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -62,20 +60,21 @@ public class AlarmClient
     private final Producer<String, String> producer;
     private final Thread thread;
 
-    /** @param kafka_servers Servers
+    /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
      */
-    public AlarmClient(final String kafka_servers, final String config_name)
+    public AlarmClient(final String server, final String config_name)
     {
-        Objects.requireNonNull(kafka_servers);
+        Objects.requireNonNull(server);
         Objects.requireNonNull(config_name);
 
         config_topic = config_name;
         state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
+        command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
 
         root = new AlarmClientNode(null, config_name);
-        consumer = connectConsumer(kafka_servers, config_name);
-        producer = connectProducer(kafka_servers, config_name);
+        consumer = connectConsumer(server, config_name);
+        producer = connectProducer(server, config_name);
 
         thread = new Thread(this::run, "AlarmClientModel");
         thread.setDaemon(true);
@@ -197,6 +196,10 @@ public class AlarmClient
                 // System.out.printf("\n%s - %s:\n", path, node_config);
                 if (node_config == null)
                 {   // No config -> Delete node
+                    // Message may actually come from either config topic,
+                    // where some client originally requested the removal,
+                    // or the state topic, where running alarm server
+                    // replaced the last state update with an empty one.
                     final AlarmTreeItem<?> node = deleteNode(path);
                     // If this was a known node, notify listeners
                     if (node != null)
@@ -395,12 +398,30 @@ public class AlarmClient
         // All clients, including this one, will receive and then remove the item.
         try
         {
+            // Remove from configuration
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
             producer.send(record);
         }
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot remove component " + item, ex);
+        }
+    }
+
+    /** @param item Item for which to acknowledge alarm
+     *  @param acknowledge <code>true</code> to acknowledge, else un-acknowledge
+     */
+    public void acknowledge(final AlarmTreeItem<?> item, final boolean acknowledge)
+    {
+        try
+        {
+            final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, cmd, item.getPathName());
+            producer.send(record);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot acknowledge component " + item, ex);
         }
     }
 

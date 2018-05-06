@@ -22,11 +22,14 @@ import java.util.stream.Collectors;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
+import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
@@ -100,6 +103,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         model.addListener(this);
 
         createContextMenu();
+        addClickSupport();
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
@@ -124,7 +128,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         // System.out.println("Add " + item.getPathName());
 
         // Parent must already exist
-        final AlarmClientNode model_parent = item.getParent();
+        final AlarmTreeItem<BasicState> model_parent = item.getParent();
         final TreeItem<AlarmTreeItem<?>> view_parent = path2view.get(model_parent.getPathName());
         if (view_parent == null)
             throw new IllegalStateException("Missing parent view item for " + item.getPathName());
@@ -271,39 +275,66 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             final List<AlarmTreeItem<?>> selection = tree_view.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
 
             // Add guidance etc.
-            new AlarmContextMenuHelper().addSupportedEntries(tree_view, menu_items, selection);
+            new AlarmContextMenuHelper().addSupportedEntries(tree_view, model, menu_items, selection);
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (selection.size() <= 0)
+            if (AlarmUI.mayConfigure())
             {
-                // Add first item to empty config
-                menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
+                if (selection.size() <= 0)
+                    // Add first item to empty config
+                    menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
+                else if (selection.size() == 1)
+                {
+                    final AlarmTreeItem<?> item = selection.get(0);
+                    menu_items.add(new ConfigureComponentAction(tree_view, model, item));
+                    menu_items.add(new SeparatorMenuItem());
+
+                    if (item instanceof AlarmClientNode)
+                        menu_items.add(new AddComponentAction(tree_view, model, item));
+
+                    // TODO Should be able to rename any item, not just a leaf
+                    if (item instanceof AlarmClientLeaf)
+                        menu_items.add(new RenameTreeItemAction(tree_view, model, item));
+
+                    if (item instanceof AlarmClientLeaf)
+                        menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+
+                    // TODO Implement move
+                    menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+                }
+                if (selection.size() >= 1)
+                {
+                    menu_items.add(new EnableComponentAction(tree_view, model, selection));
+                    menu_items.add(new DisableComponentAction(tree_view, model, selection));
+                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+                }
             }
-            else if (selection.size() == 1)
-            {
-                final AlarmTreeItem<?> item = selection.get(0);
-                menu_items.add(new ConfigureComponentAction(tree_view, model, item));
-                menu_items.add(new SeparatorMenuItem());
-
-                if (item instanceof AlarmClientNode)
-                    menu_items.add(new AddComponentAction(tree_view, model, item));
-
-                menu_items.add(new MenuItem("Rename Item", ImageCache.getImageView(AlarmSystem.class, "/icons/rename.png")));
-
-                if (item instanceof AlarmTreeLeaf)
-                    menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
-
-                menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
-            }
-            if (selection.size() >= 1)
-                menu_items.add(new RemoveComponentAction(tree_view, model, selection));
-
             // TODO Add context menu actions for "PV"
 
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
+
+    private void addClickSupport()
+    {
+        tree_view.setOnMouseClicked(event ->
+        {
+            if (!AlarmUI.mayConfigure()       ||
+                event.getClickCount() != 2    ||
+                tree_view.getSelectionModel().getSelectedItems().size() != 1)
+                return;
+
+            final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
+            final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
+            DialogHelper.positionDialog(dialog, tree_view, -250, -400);
+            // Show dialog, not waiting for it to close with OK or Cancel
+            dialog.show();
+
+        });
+    }
+
+
 
     private long next_stats = 0;
     private AtomicInteger update_count = new AtomicInteger();

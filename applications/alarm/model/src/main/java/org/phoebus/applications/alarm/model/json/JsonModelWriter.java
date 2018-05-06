@@ -10,7 +10,7 @@ package org.phoebus.applications.alarm.model.json;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-import org.phoebus.applications.alarm.model.ClientState;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;

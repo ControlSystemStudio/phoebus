@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -21,7 +22,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeView;
 
-/** Action that adds a new item to the alarm tree configuration
+/** Action that deletes item from the alarm tree configuration
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -65,8 +66,11 @@ class RemoveComponentAction extends MenuItem
             if (node instanceof TreeView<?>)
                 ((TreeView<?>) node).getSelectionModel().clearSelection();
 
-            for (AlarmTreeItem<?> item : items)
-                model.removeComponent(item);
+            JobManager.schedule(getText(), monitor ->
+            {
+                for (AlarmTreeItem<?> item : items)
+                    model.removeComponent(item);
+            });
         });
     }
 }

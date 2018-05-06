@@ -57,5 +57,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-channel-views"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-channelfinder"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-channel-utility"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-scan-ui"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-alarm-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

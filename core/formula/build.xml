@@ -1,0 +1,34 @@
+<project default="module-formula">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-formula">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  	<jar destfile="${build}/formula-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+	
+  <target name="test-formula" depends="module-formula">
+    <junit printsummary="withOutAndErr" haltonfailure="yes">
+      <classpath>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${build}/formula-${version}.jar"/>
+      </classpath>
+      <batchtest>
+        <zipfileset src="${build}/formula-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+    </junit>
+  </target>
+
+</project>

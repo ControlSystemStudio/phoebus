@@ -10,6 +10,7 @@
     <module>ui</module>
     <module>vtype</module>
     <module>util</module>
+    <module>formula</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>

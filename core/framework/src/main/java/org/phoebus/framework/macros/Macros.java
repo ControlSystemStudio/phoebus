@@ -72,13 +72,14 @@ public class Macros implements MacroValueProvider
      */
     public Macros(final Macros other)
     {
-        synchronized (other.macros)
-        {
-            synchronized (macros)
+        if (other != null)
+            synchronized (other.macros)
             {
-                macros.putAll(other.macros);
+                synchronized (macros)
+                {
+                    macros.putAll(other.macros);
+                }
             }
-        }
     }
 
     /** @return Are the macros empty? */

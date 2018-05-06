@@ -7,12 +7,15 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -42,13 +45,29 @@ public class AlarmContextMenuHelper
 
     /** Add guidance etc. based on selected items
      *  @param node Node for positioning dialog
+     *  @param model {@link AlarmClient}
      *  @param menu_items Menu items to extend
      *  @param selection Selected alarm tree items
      */
     public void addSupportedEntries(final Node node,
+                                    final AlarmClient model,
                                     final ObservableList<MenuItem> menu_items,
                                     final List<AlarmTreeItem<?>> selection)
     {
+        final List<AlarmTreeItem<?>> active = new ArrayList<>();
+        final List<AlarmTreeItem<?>> acked = new ArrayList<>();
+        for (AlarmTreeItem<?> item : selection)
+        {
+            final SeverityLevel sev = item.getState().severity;
+            if (sev.ordinal() > SeverityLevel.OK.ordinal())
+            {
+                if (sev.isActive())
+                    active.add(item);
+                else
+                    acked.add(item);
+            }
+        }
+
         // TODO Initial context menu item for alarm info, if in alarm
 
         // TODO Somehow indicate the origin of guidance, display, command.
@@ -66,6 +85,14 @@ public class AlarmContextMenuHelper
         for (AlarmTreeItem<?> item : selection)
             addCommands(node, menu_items, item);
         added.clear();
+
+        if (AlarmUI.mayAcknowledge())
+        {
+            if (active.size() > 0)
+                menu_items.add(new AcknowledgeAction(model, active));
+            if (acked.size() > 0)
+                menu_items.add(new UnAcknowledgeAction(model, acked));
+        }
     }
 
     private void addGuidance(final Node node,

@@ -7,14 +7,15 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import org.phoebus.applications.alarm.model.AlarmClientLeaf;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 
 import javafx.scene.control.TreeCell;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
@@ -43,29 +44,32 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 final ClientState state = leaf.getState();
 
                 final StringBuilder text = new StringBuilder();
+                final Image icon;
                 text.append("PV: ").append(leaf.getName());
 
-                if (leaf.isEnabled())
+                if (leaf.isEnabled()  &&  !state.isDynamicallyDisabled())
                 {   // Add alarm info
                     if (state.severity != SeverityLevel.OK)
                     {
-                        text.append(" (")
+                        text.append(" - ")
                             .append(state.severity).append('/').append(state.message);
-                        // For ack'ed alarm show the current severity
-                        if (state.severity.ordinal() <= SeverityLevel.UNDEFINED_ACK.ordinal())
-                            text.append(", ")
-                                .append(state.current_severity).append('/').append(state.current_message);
-                        text.append(')');
+                        // Show current severity if different
+                        if (state.current_severity != state.severity)
+                            text.append(" (")
+                                .append(state.current_severity).append('/').append(state.current_message)
+                                .append(")");
                     }
                     setTextFill(AlarmUI.getColor(state.severity));
+                    icon = AlarmUI.getIcon(state.severity);
                 }
                 else
                 {
                     text.append(" (disabled)");
                     setTextFill(Color.GRAY);
+                    icon = AlarmUI.disabled_icon;
                 }
                 setText(text.toString());
-                setGraphic(new ImageView(AlarmUI.getIcon(state.severity)));
+                setGraphic(icon == null ? null : new ImageView(icon));
             }
             else
             {
@@ -74,7 +78,8 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
                 severity = node.getState().severity;
                 setTextFill(AlarmUI.getColor(severity));
-                setGraphic(new ImageView(AlarmUI.getIcon(severity)));
+                final Image icon = AlarmUI.getIcon(severity);
+                setGraphic(icon == null ? null : new ImageView(icon));
             }
         }
     }

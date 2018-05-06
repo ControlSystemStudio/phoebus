@@ -9,9 +9,12 @@ package org.csstudio.display.builder.representation.javafx;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
+import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.phoebus.framework.macros.Macros;
 
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
@@ -74,6 +77,8 @@ public class MacrosTable
      */
     public MacrosTable(final Macros initial_macros)
     {
+        final TableView<MacroItem> table = new TableView<>(data);
+
         // Layout:
         //
         // | table |  [Add]
@@ -87,6 +92,8 @@ public class MacrosTable
 
         // Create table with editable columns
         final TableColumn<MacroItem, String> name_col = new TableColumn<>(Messages.MacrosDialog_NameCol);
+        final TableColumn<MacroItem, String> value_col = new TableColumn<>(Messages.MacrosDialog_ValueCol);
+
         name_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<MacroItem,String>, ObservableValue<String>>()
         {
             @Override
@@ -120,9 +127,13 @@ public class MacrosTable
                 name_col.setVisible(false);
                 name_col.setVisible(true);
             }
+            // Next edit the value
+            ModelThreadPool.getTimer().schedule(() ->
+            {
+                Platform.runLater(() -> table.edit(row, value_col));
+            }, 123, TimeUnit.MILLISECONDS);
         });
 
-        final TableColumn<MacroItem, String> value_col = new TableColumn<>(Messages.MacrosDialog_ValueCol);
         value_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<MacroItem,String>, ObservableValue<String>>()
         {
             @Override
@@ -142,7 +153,6 @@ public class MacrosTable
             fixup(row);
         });
 
-        final TableView<MacroItem> table = new TableView<>(data);
         table.getColumns().add(name_col);
         table.getColumns().add(value_col);
         table.setEditable(true);
@@ -159,7 +169,11 @@ public class MacrosTable
         content.add(add, 1, 0);
         add.setOnAction(event ->
         {
-            data.add(new MacroItem("", ""));
+            // Start editing name of the last line, i.e. the new macro
+            ModelThreadPool.getTimer().schedule(() ->
+            {
+                Platform.runLater(() -> table.edit(data.size()-1, name_col));
+            }, 123, TimeUnit.MILLISECONDS);
         });
 
         final Button remove = new Button(Messages.Remove, JFXUtil.getIcon("delete.png"));

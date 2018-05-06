@@ -64,7 +64,32 @@ public class AlarmServerMain implements ServerModelListener
 
     }
 
-    /** @param command Command received from the client
+    /** Handle commands
+     *
+     *  <ul>
+     *  <li>dump -
+     *      Dumps complete alarm tree
+     *  <li>dump some/path -
+     *      Dumps subtree
+     *  <li>pvs -
+     *      Prints all PVs
+     *  <li>pvs disconnected -
+     *      Prints all disconnected PVs
+     *  <li>pvs /some/path -
+     *      Prints PVs in subtree
+     *  <li>restart -
+     *      Re-load configuration
+     *  <li>shutdown -
+     *      Quit
+     *  </ul>
+     *
+     *  TODO Alarm server console?
+     *  At this time, the alarm server has no console/shell/terminal interface.
+     *  It can only receive alarms from a "..Command" topic,
+     *  and then prints the result on the console.
+     *  Ideally, command and reply could be seen in the same terminal.
+     *
+     *  @param command Command received from the client
      *  @param detail Detail for the command, usually path to alarm tree node
      */
     @Override
@@ -72,7 +97,21 @@ public class AlarmServerMain implements ServerModelListener
     {
         try
         {
-            if (command.equalsIgnoreCase("dump"))
+            if (command.startsWith("ack"))
+            {
+                final AlarmTreeItem<?> node = model.findNode(detail);
+                if (node == null)
+                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                acknowledge(node, true);
+            }
+            else if (command.startsWith("unack"))
+            {
+                final AlarmTreeItem<?> node = model.findNode(detail);
+                if (node == null)
+                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                acknowledge(node, false);
+            }
+            else if (command.equalsIgnoreCase("dump"))
             {
                 final AlarmTreeItem<?> node;
                 if (detail.isEmpty())
@@ -83,6 +122,18 @@ public class AlarmServerMain implements ServerModelListener
                     throw new Exception("Unknown alarm tree node '" + detail + "'");
                 System.out.println(node.getPathName() + ":");
                 ModelPrinter.print(node);
+            }
+            else if (command.equalsIgnoreCase("pvs"))
+            {
+                final AlarmTreeItem<?> node;
+                if (detail.startsWith("/"))
+                    node = model.findNode(detail);
+                else
+                    node = model.getRoot();
+                if (node == null)
+                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                System.out.println("PVs for " + node.getPathName() + ":");
+                listPVs(node, detail != null && detail.startsWith("dis"));
             }
             else if (command.equalsIgnoreCase("shutdown"))
                 restart.offer(false);
@@ -98,6 +149,32 @@ public class AlarmServerMain implements ServerModelListener
         {
             logger.log(Level.WARNING, "Error for command: '" + command + "', detail '" + detail + "'", ex);
         }
+    }
+
+    private void acknowledge(final AlarmTreeItem<?> node, final boolean acknowledge)
+    {
+        if (node instanceof AlarmServerPV)
+        {
+            final AlarmServerPV pv_node = (AlarmServerPV) node;
+            pv_node.acknowledge(acknowledge);
+        }
+        else
+            for (AlarmTreeItem<?> child : node.getChildren())
+                acknowledge(child, acknowledge);
+    }
+
+    private void listPVs(final AlarmTreeItem<?> node, final boolean disconnected_only)
+    {
+        if (node instanceof AlarmServerPV)
+        {
+            final AlarmServerPV pv_node = (AlarmServerPV) node;
+            if (disconnected_only  && pv_node.isConnected())
+                return;
+            System.out.println(pv_node);
+        }
+        else
+            for (AlarmTreeItem<?> child : node.getChildren())
+                listPVs(child, disconnected_only);
     }
 
     private static void help()

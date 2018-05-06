@@ -23,20 +23,20 @@ import javafx.scene.paint.Color;
 public class AlarmUI
 {
     // Next arrays follow the ordinal of SeverityLevel
-    private static Color[] severity_colors = new Color[]
+    private static final Color[] severity_colors = new Color[]
     {
         Color.rgb(  0, 100,   0), // OK
-        Color.rgb(180, 170,  70), // MINOR_ACK
-        Color.rgb(255,  90,  90), // MAJOR_ACK
-        Color.rgb(255, 128, 255), // INVALID_ACK
-        Color.rgb(255, 128, 255), // UNDEFINED_ACK
+        Color.rgb(120,  90,  10), // MINOR_ACK
+        Color.rgb(100,   0,   0), // MAJOR_ACK
+        Color.rgb(100,   0, 100), // INVALID_ACK
+        Color.rgb(100,   0, 100), // UNDEFINED_ACK
         Color.rgb(207, 192,   0), // MINOR
         Color.rgb(255,   0,   0), // MAJOR
         Color.rgb(255,   0, 255), // INVALID
         Color.rgb(255,   0, 255), // UNDEFINED
     };
 
-    private static Image[] severity_icons = new Image[]
+    private static final Image[] severity_icons = new Image[]
     {
         null, // OK
         ImageCache.getImage(AlarmUI.class, "/icons/minor_ack.png"),
@@ -48,6 +48,8 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/unknown.png"),
         ImageCache.getImage(AlarmUI.class, "/icons/unknown.png")
     };
+
+    public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
 
     /** @param severity {@link SeverityLevel}
      *  @return Color
@@ -64,5 +66,17 @@ public class AlarmUI
     public static Image getIcon(final SeverityLevel severity)
     {
         return severity_icons[severity.ordinal()];
+    }
+
+    public static boolean mayAcknowledge()
+    {
+        // TODO Check if current user is authorized to ack/un-ack alarms
+        return true;
+    }
+
+    public static boolean mayConfigure()
+    {
+        // TODO Check if current user is authorized to change configuration
+        return true;
     }
 }

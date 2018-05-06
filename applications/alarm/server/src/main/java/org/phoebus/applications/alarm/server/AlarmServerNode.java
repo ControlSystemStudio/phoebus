@@ -7,8 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
@@ -42,7 +42,10 @@ public class AlarmServerNode extends AlarmClientNode
 
         for (AlarmTreeItem<?> child : getChildren())
         {
-            // TODO if child is PV, and disabled, will sevr be OK?
+            // Skip disabled PVs
+            if ((child instanceof AlarmServerPV)  &&
+                ! ((AlarmServerPV) child).isEnabled())
+                continue;
             final SeverityLevel child_severity = child.getState().severity;
             if (child_severity.ordinal() > new_severity.ordinal())
                 new_severity = child_severity;

@@ -19,8 +19,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
-import org.phoebus.applications.alarm.model.AlarmClientLeaf;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
@@ -72,7 +72,14 @@ public class AlarmConfigProducerDemo
             {
                 final AlarmClientNode subsys = new AlarmClientNode(sys, String.format("Sub%02d", sub));
                 for (int i=0; i<10; ++i)
-                    new AlarmClientLeaf(subsys, String.format("PV%06d", s*100 + sub*10 + i));
+                {
+                    // Create 1000 PVs that change, rest static
+                    final int n = s*100 + sub*10 + i;
+                    final AlarmClientLeaf pv = (n>0  &&  n <= 1000)
+                        ? new AlarmClientLeaf(subsys, String.format("sim://sine(-%d, %d, 1)", n, n))
+                        : new AlarmClientLeaf(subsys, String.format("loc://PV%06d(0)", n));
+                    pv.setLatching(false);
+                }
             }
         }
 

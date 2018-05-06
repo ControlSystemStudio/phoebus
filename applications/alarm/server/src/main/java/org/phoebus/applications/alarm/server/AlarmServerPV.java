@@ -11,21 +11,25 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.Messages;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VType;
 
 /** Alarm tree leaf
@@ -39,18 +43,78 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTreeLeaf, PVListener
 {
-    private final AtomicReference<PV> pv = new AtomicReference<>();
-    private final ServerModel model;
+    /** Timer used to check for the initial connection */
+    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(runnable ->
+    {
+        final Thread thread = new Thread(runnable);
+        thread.setName("PVConnectionTimeout");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     private volatile String description = "";
-    private volatile AlarmState current;
+
+    private final AtomicBoolean enabled = new AtomicBoolean(true);
+
+    private final AlarmLogic logic;
+
+    private final AtomicReference<PV> pv = new AtomicReference<>();
+
+    /** Track connection state */
+    private volatile boolean is_connected = false;
+
+    private volatile ScheduledFuture<?> connection_timeout_task = null;
+
+    /** Filter that might be used to compute 'enabled' state;
+     *  can be <code>null</code>
+     */
+    private volatile Filter filter = null;
 
     public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name)
     {
         super(parent, name, Collections.emptyList());
-        this.model = model;
         description = name;
-        state = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
-        current = state;
+
+        final AlarmState initial = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
+        final AlarmLogicListener listener = new AlarmLogicListener()
+        {
+            @Override
+            public void alarmStateChanged(AlarmState current, AlarmState alarm)
+            {
+                // Send alarm and current state to clients
+                logger.log(Level.FINER, () -> getPathName() + " changes to " + current + ", " + alarm);
+                final ClientState new_state = new ClientState(alarm,
+                                                              current.severity,
+                                                              current.message);
+                model.sentStateUpdate(getPathName(), new_state);
+
+                // Whenever logic computes new state, maximize up parent tree
+                getParent().maximizeSeverity();
+            }
+
+            @Override
+            public void annunciateAlarm(SeverityLevel level)
+            {
+                // TODO Send text to Kafka, so that annunciators can, well, annunciate
+                // model.sentAnnunciationMessage(...)
+            }
+        };
+        logic = new AlarmLogic(listener, true, true, 0, 0, initial, initial, 0);
+    }
+
+    @Override
+    public AlarmState getState()
+    {
+        return logic.getAlarmState();
+    }
+
+
+    /** Acknowledge current alarm severity
+     *  @param acknowledge Acknowledge or un-acknowledge?
+     */
+    public void acknowledge(final boolean acknowledge)
+    {
+        logic.acknowledge(acknowledge);
     }
 
     @Override
@@ -74,10 +138,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
-
-    // TODO Use enabled setting of AlarmLogic
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
-
     @Override
     public boolean isEnabled()
     {
@@ -85,76 +145,93 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     }
 
     @Override
-    public boolean setEnabled(boolean enable)
+    public boolean setEnabled(final boolean enable)
     {
         return enabled.compareAndSet(! enable, enable);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public boolean isLatching()
     {
-        return false;
+        return logic.isLatching();
     }
 
     @Override
-    public boolean setLatching(boolean latch)
+    public boolean setLatching(final boolean latch)
     {
-        return false;
+        return logic.setLatching(latch);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public boolean isAnnunciating()
     {
-        return false;
+        return logic.isAnnunciating();
     }
 
     @Override
-    public boolean setAnnunciating(boolean annunciate)
+    public boolean setAnnunciating(final boolean annunciate)
     {
-        return false;
+        return logic.setAnnunciating(annunciate);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public int getDelay()
     {
-        return 0;
+        return logic.getDelay();
     }
 
     @Override
-    public boolean setDelay(int seconds)
+    public boolean setDelay(final int seconds)
     {
-        return false;
+        return logic.setDelay(seconds);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public int getCount()
     {
-        return 0;
+        return logic.getCount();
     }
 
     @Override
-    public boolean setCount(int times)
+    public boolean setCount(final int times)
     {
-        return false;
+        return logic.setCount(times);
     }
 
-    // TODO Get/set from AlarmLogic
     @Override
     public String getFilter()
     {
-        return null;
+        final Filter safe_copy = filter;
+        return safe_copy == null ? "" : safe_copy.getExpression();
     }
 
     @Override
-    public boolean setFilter(String expression)
+    public boolean setFilter(final String expression)
     {
-        return false;
+        if (pv.get() != null)
+            throw new IllegalStateException("Cannot change filter while running for " + getPathName());
+        try
+        {
+            if (expression == null  ||  expression.isEmpty())
+            {
+                if (filter == null)
+                    return false;
+                filter = null;
+            }
+            else
+            {
+                if (filter != null  &&  filter.getExpression().equals(expression))
+                    return false;
+                filter = new Filter(expression, this::filterChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot set filter for " + getPathName() + " to " + expression, ex);
+            return false;
+        }
+        return true;
     }
-
 
     public void start()
     {
@@ -162,6 +239,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             return;
         try
         {
+            connection_timeout_task = timer.schedule(this::checkConnection, AlarmSystem.connection_timeout, TimeUnit.SECONDS);
+
             final PV new_pv = PVPool.getPV(getName());
             logger.log(Level.FINE, "Start " + new_pv.getName());
             final PV previous = pv.getAndSet(new_pv);
@@ -172,60 +251,96 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot create PV for " + getPathName(), ex);
-            return;
+
+            final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.NoPV, "", Instant.now());
+            logic.computeNewState(received);
         }
+
+        try
+        {
+            final Filter safe_copy = filter;
+            if (safe_copy != null)
+                safe_copy.start();
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot start filter for " + getPathName(), ex);
+        }
+    }
+
+    private void checkConnection()
+    {
+        if (! isConnected())
+        {
+            logger.log(Level.WARNING, () -> getPathName() + " connection timed out");
+            disconnected(null);
+        }
+    }
+
+    /** Listener to filter */
+    private void filterChanged(final double value)
+    {
+        final boolean new_enable_state = value > 0.0;
+        logger.log(Level.FINE, () -> getPathName() + " " + filter + " value " + value);
+
+        logic.setEnabled(new_enable_state);
     }
 
     public void stop()
     {
-        if (! isEnabled())
-            return;
         try
         {
             final PV the_pv = pv.getAndSet(null);
+            // Be lenient if already stopped,
+            // or never started because ! isEnabled()
             if (the_pv == null)
-                throw new IllegalStateException("Alarm tree leaf " + getPathName() + " has no PV");
+                return;
+
+            // Stop checking for initial connection
+            final ScheduledFuture<?> conn_to = connection_timeout_task;
+            if (conn_to != null)
+            {
+                conn_to.cancel(false);
+                connection_timeout_task = null;
+            }
+
+            // Stop filter
+            final Filter safe_copy = filter;
+            if (safe_copy != null)
+                safe_copy.stop();
+
+            // Dispose PV
             the_pv.removeListener(this);
             PVPool.releasePV(the_pv);
             logger.log(Level.FINE, "Stop " + the_pv.getName());
         }
         catch (Throwable ex)
         {
-            logger.log(Level.WARNING, "Cannot create PV for " + getPathName(), ex);
-            return;
+            logger.log(Level.WARNING, "Cannot stop " + getPathName(), ex);
         }
+        is_connected = false;
+    }
+
+    /** @return <code>true</code> if PV is connected */
+    public boolean isConnected()
+    {
+        return is_connected;
     }
 
     // PVListener
     @Override
     public void valueChanged(final PV pv, final VType value)
     {
-        logger.log(Level.FINE, getPathName() + " = " + value);
-
-        final SeverityLevel old_severity = getState().severity;
-
-        // TODO Decouple handling of received value from PV thread
-        // TODO Use actual alarm logic
-        // TODO Send updates for state up to the alarm tree root
-        final ClientState new_state;
-        if (value == null)
-            new_state = new ClientState(SeverityLevel.UNDEFINED, "disconnected", null, Instant.now(), SeverityLevel.UNDEFINED, "disconnected");
-        else if (value instanceof Alarm)
-        {
-            final Alarm alarm = (Alarm) value;
-            final SeverityLevel severity = alarm.getAlarmSeverity() == AlarmSeverity.NONE
-                                         ? SeverityLevel.OK
-                                         : SeverityLevel.values()[SeverityLevel.UNDEFINED_ACK.ordinal() + alarm.getAlarmSeverity().ordinal()];
-            new_state = new ClientState(severity, alarm.getAlarmName(), value.toString(), Instant.now(), severity, alarm.getAlarmName());
-        }
-        else
-            new_state = new ClientState(SeverityLevel.UNDEFINED, "undefined", null, Instant.now(), SeverityLevel.UNDEFINED, "undefined");
-        setState(new_state);
-        model.sentStateUpdate(getPathName(), new_state);
-
-        // Whenever logic computes new state, maximize up parent tree
-        if (new_state.severity != old_severity)
-            getParent().maximizeSeverity();
+        // Inspect alarm state of received value
+        is_connected = true;
+        final SeverityLevel new_severity = VTypeHelper.decodeSeverity(value);
+        final String new_message = VTypeHelper.getStatusMessage(value);
+        final AlarmState received = new AlarmState(new_severity, new_message,
+                                                   VTypeHelper.toString(value),
+                                                   VTypeHelper.getTimestamp(value));
+        // Update alarm logic
+        logic.computeNewState(received);
+        logger.log(Level.FINER, () -> getPathName() + " received " + value + " -> " + logic);
     }
 
     // PVListener
@@ -233,6 +348,47 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     public void disconnected(final PV pv)
     {
         logger.log(Level.FINE, getPathName() + " disconnected");
-        valueChanged(pv, null);
+        final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.Disconnected, "", Instant.now());
+        logic.computeNewState(received);
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder buf = new StringBuilder();
+        buf.append(getPathName())
+           .append(" [").append(getDescription()).append("]");
+
+        final PV safe_pv = pv.get();
+        if (safe_pv != null)
+        {
+            if (is_connected)
+                buf.append(" - connected, ");
+            else
+                buf.append(" - disconnected, ");
+            buf.append(safe_pv.read());
+        }
+        if (! isEnabled())
+            buf.append(" - disabled");
+        if (isAnnunciating())
+            buf.append(" - annunciating");
+        if  (isLatching())
+            buf.append(" - latching");
+        if (getDelay() > 0)
+            buf.append(" - ").append(getDelay()).append(" sec delay");
+
+        buf.append(" - ").append(logic.toString());
+
+        final Filter safe_copy = filter;
+        if (safe_copy != null)
+        {
+            if (logic.isEnabled())
+               buf.append(" - dynamically enabled via ");
+            else
+                buf.append(" - dynamically disabled via ");
+            buf.append(safe_copy);
+        }
+
+        return buf.toString();
     }
 }

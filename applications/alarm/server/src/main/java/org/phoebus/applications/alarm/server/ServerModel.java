@@ -31,7 +31,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.model.AlarmClientNode;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
@@ -97,7 +97,7 @@ class ServerModel
         thread.start();
     }
 
-    public AlarmClientNode getRoot()
+    public AlarmServerNode getRoot()
     {
         return root;
     }
@@ -205,6 +205,13 @@ class ServerModel
                         final AlarmTreeItem<?> node = deleteNode(path);
                         if (node != null)
                             stopPVs(node);
+
+                        // If this was the configuration message where client
+                        // removed an item, add a null state update.
+                        // Otherwise, if there ever was a state update,
+                        // that last state update would add the item back into the client alarm tree
+                        if (record.topic().equals(config_topic))
+                            sentStateUpdate(path, null);
                     }
                     else
                     {
@@ -227,7 +234,15 @@ class ServerModel
 
                         // A new PV, or an existing one that was stopped: Start it
                         if (node instanceof AlarmServerPV)
-                            ((AlarmServerPV)node).start();
+                        {
+                            final AlarmServerPV pv = (AlarmServerPV) node;
+                            // Update parents in case node was disabled
+                            // (i.e. 'start()' won't do anything),
+                            // and to reflect last known state ASAP
+                            // before the PV connects
+                            pv.getParent().maximizeSeverity();
+                            pv.start();
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -333,8 +348,14 @@ class ServerModel
         final AlarmTreeItem<?> node = findNode(path);
         if (node == null)
             return null;
+
         // Node is known: Detach it
+        final AlarmTreeItem<BasicState> parent = node.getParent();
         node.detachFromParent();
+
+        // Removing a node that was in alarm can update the severity of the parent
+        if (parent instanceof AlarmServerNode)
+            ((AlarmServerNode)parent).maximizeSeverity();
         return node;
     }
 
@@ -360,7 +381,7 @@ class ServerModel
     {
         try
         {
-            final String json = new String(JsonModelWriter.toJsonBytes(new_state));
+            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state));
             final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, path, json);
             producer.send(record);
         }
