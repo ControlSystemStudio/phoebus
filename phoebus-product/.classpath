@@ -33,6 +33,7 @@
 	<classpathentry kind="lib" path="/dependencies/target/lib/jackson-core-2.9.4.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/jackson-databind-2.9.4.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-formula"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logging"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-vtype"/>
@@ -57,7 +58,10 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-channel-views"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-channelfinder"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-channel-utility"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-scan-client"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-scan-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-scan-ui"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-alarm-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-alarm-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
