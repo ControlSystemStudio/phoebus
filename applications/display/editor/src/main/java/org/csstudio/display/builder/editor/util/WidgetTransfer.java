@@ -11,8 +11,6 @@ import static org.csstudio.display.builder.editor.Plugin.logger;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -64,7 +62,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -154,12 +151,9 @@ public class WidgetTransfer {
             content.putString(xml);
             db.setContent(content);
 
-            final int width = widget.propWidth().getValue();
-            final int height = widget.propHeight().getValue();
-
-            db.setDragView(createDragImage(widget, image, width, height), 0, 0);
+            if (image != null)
+                db.setDragView(image, 0, 0);
             event.consume();
-
         });
 
         source.setOnDragDone(event -> {
@@ -285,48 +279,6 @@ public class WidgetTransfer {
                 return true;
 
         return false;
-    }
-
-    /**
-     * Create a image representing the dragged widget.
-     *
-     * @param widget The {@link Widget} being dragged.
-     * @param image The widget's type image. Can be {@code null}.
-     * @return An {@link Image} instance.
-     */
-    private static Image createDragImage ( final Widget widget, final Image image, final int width, final int height ) {
-
-        final BufferedImage bImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        final Graphics2D g2d = bImage.createGraphics();
-
-        g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-
-        g2d.setBackground(TRANSPARENT);
-        g2d.clearRect(0, 0, width, height);
-        g2d.setColor(Color.ORANGE);
-        g2d.setStroke(OUTLINE_STROKE);
-        g2d.drawRect(0, 0, width, height);
-
-        if ( image != null ) {
-
-            int w = (int) image.getWidth();
-            int h = (int) image.getHeight();
-            BufferedImage bbImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-
-            SwingFXUtils.fromFXImage(image, bbImage);
-            g2d.drawImage(bbImage, (int) ( ( width - w ) / 2.0 ), (int) ( ( height - h ) / 2.0 ), null);
-
-        }
-
-        final WritableImage dImage = new WritableImage(width, height);
-        SwingFXUtils.toFXImage(bImage, dImage);
-
-        return dImage;
-
     }
 
     /**
