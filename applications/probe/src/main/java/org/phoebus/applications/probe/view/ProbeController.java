@@ -104,7 +104,9 @@ public class ProbeController {
             pv = null;
         }
 
-        // search for pv
+        // search for pv, unless empty
+        if (txtPVName.getText().isEmpty())
+            return;
         try
         {
             pv = PVPool.getPV(txtPVName.getText());
