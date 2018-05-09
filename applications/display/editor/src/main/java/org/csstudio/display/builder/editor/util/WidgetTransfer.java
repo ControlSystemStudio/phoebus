@@ -7,12 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.util;
 
-import static org.csstudio.display.builder.editor.Plugin.logger;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -28,12 +24,24 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Dimension2D;
+import javafx.geometry.Point2D;
+import javafx.scene.Node;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javax.imageio.ImageIO;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.rtf.RTFEditorKit;
-
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.editor.Messages;
@@ -58,18 +66,8 @@ import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.SymbolRepresentation;
 
-import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Dimension2D;
-import javafx.geometry.Point2D;
-import javafx.scene.Node;
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
+import static javafx.scene.paint.Color.GRAY;
+import static org.csstudio.display.builder.editor.Plugin.logger;
 
 /** Helper for widget drag/drop
  *
@@ -157,7 +155,7 @@ public class WidgetTransfer {
             final int width = widget.propWidth().getValue();
             final int height = widget.propHeight().getValue();
 
-            db.setDragView(createDragImage(widget, image, width, height), 0, 0);
+            db.setDragView(createDragImage(widget, image, width, height), width / 2.0, - height / 2.0);
             event.consume();
 
         });
@@ -296,36 +294,52 @@ public class WidgetTransfer {
      */
     private static Image createDragImage ( final Widget widget, final Image image, final int width, final int height ) {
 
-        final BufferedImage bImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        final Graphics2D g2d = bImage.createGraphics();
-
-        g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-
-        g2d.setBackground(TRANSPARENT);
-        g2d.clearRect(0, 0, width, height);
-        g2d.setColor(Color.ORANGE);
-        g2d.setStroke(OUTLINE_STROKE);
-        g2d.drawRect(0, 0, width, height);
+        WritableImage dImage = new WritableImage(width, height);
 
         if ( image != null ) {
 
             int w = (int) image.getWidth();
             int h = (int) image.getHeight();
-            BufferedImage bbImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            int xo = (int) ( ( width - w ) / 2.0 );
+            int yo = (int) ( ( height - h ) / 2.0 );
+            PixelReader pixelReader = image.getPixelReader();
+            PixelWriter pixelWriter = dImage.getPixelWriter();
 
-            SwingFXUtils.fromFXImage(image, bbImage);
-            g2d.drawImage(bbImage, (int) ( ( width - w ) / 2.0 ), (int) ( ( height - h ) / 2.0 ), null);
+//  TODO: CR: It seems there is a bug pixelReader.getArgb(...) when on Mac when
+//  screen is scaled to have more resolution (no retina scaling is used).
+//            for ( int x = 0; x < w; x++ ) {
+//                for ( int y = 0; y < h; y++ ) {
+//
+//                    int wx = xo + x;
+//                    int wy = yo + y;
+//
+//                    if ( wx > 0 && wx < width && wy > 0 && wy < height ) {
+//
+//                        int argb = pixelReader.getArgb(x, y);
+//
+//                        pixelWriter.setArgb(wx, wy, pixelReader.getArgb(x, y));
+//
+//                    }
+//
+//                }
+//            }
+
+            //  TODO: CR: Solution #1 - draw only the widget ouline.
+            for ( int x = 0; x < width; x++ ) {
+                pixelWriter.setColor(x, 0, GRAY);
+                pixelWriter.setColor(x, height - 1, GRAY);
+            }
+            for ( int y = 0; y < height; y++ ) {
+                pixelWriter.setColor(0, y, GRAY);
+                pixelWriter.setColor(width - 1, y, GRAY);
+            }
 
         }
 
-        final WritableImage dImage = new WritableImage(width, height);
-        SwingFXUtils.toFXImage(bImage, dImage);
-
         return dImage;
+
+//  TODO: CR: Solution #2 - draw only the widget type image.
+//        return image;
 
     }
 
