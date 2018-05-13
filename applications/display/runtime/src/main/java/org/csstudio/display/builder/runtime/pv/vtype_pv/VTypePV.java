@@ -79,21 +79,21 @@ public class VTypePV implements RuntimePV, PVListener
     }
 
     @Override
-    public void permissionsChanged(final PV pv, final boolean readonly)
+    public void permissionsChanged(final boolean readonly)
     {
         for (RuntimePVListener listener : listeners)
             listener.permissionsChanged(this, readonly);
     }
 
     @Override
-    public void valueChanged(final PV pv, final VType value)
+    public void valueChanged(final VType value)
     {
         for (RuntimePVListener listener : listeners)
             listener.valueChanged(this, value);
     }
 
     @Override
-    public void disconnected(final PV pv)
+    public void disconnected()
     {
         for (RuntimePVListener listener : listeners)
             listener.disconnected(this);

@@ -36,7 +36,7 @@ import org.phoebus.vtype.VType;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Filter implements PVListener
+public class Filter
 {
     /** Listener to notify when the filter computes a new value */
     final private Consumer<Double> listener;
@@ -52,7 +52,36 @@ public class Filter implements PVListener
      */
     final private PV pvs[];
 
+    private final PVListener[] listeners;
+
     private double previous_value = Double.NaN;
+
+    private class FilterPVListener implements PVListener
+    {
+        private final int index;
+
+        FilterPVListener(final int index)
+        {
+            this.index = index;
+        }
+
+        @Override
+        public void valueChanged(final VType value)
+        {
+            final double number = VTypeHelper.toDouble(value);
+            logger.log(Level.FINER, () -> { return "Filter " + formula.getFormula() + ": " + pvs[index].getName() + " = " + number; });
+            variables[index].setValue(number);
+            evaluate();
+        }
+
+        @Override
+        public void disconnected()
+        {
+            logger.log(Level.WARNING, "PV " + pvs[index].getName() + " (var. " + variables[index].getName() + ") disconnected");
+            variables[index].setValue(Double.NaN);
+            evaluate();
+        }
+    }
 
     /** Initialize
      *  @param filter_expression Formula that might contain PV names
@@ -70,6 +99,7 @@ public class Filter implements PVListener
             variables = vars;
 
         pvs = new PV[variables.length];
+        listeners = new PVListener[variables.length];
     }
 
     public String getExpression()
@@ -83,7 +113,8 @@ public class Filter implements PVListener
         for (int i=0; i<pvs.length; ++i)
         {
             pvs[i] = PVPool.getPV(variables[i].getName());
-            pvs[i].addListener(this);
+            listeners[i] = new FilterPVListener(i);
+            pvs[i].addListener(listeners[i]);
         }
     }
 
@@ -92,47 +123,10 @@ public class Filter implements PVListener
     {
         for (int i=0; i<pvs.length; ++i)
         {
-            pvs[i].removeListener(this);
+            pvs[i].removeListener(listeners[i]);
             PVPool.releasePV(pvs[i]);
             pvs[i] = null;
         }
-    }
-
-    /** @param pv PV used by the formula
-     *  @return Associated variable node
-     */
-    private VariableNode findVariableForPV(final PV pv)
-    {
-        for (int i=0; i<pvs.length; ++i) // Linear, assuming there are just a few PVs in one formula
-            if (pvs[i] == pv)
-                return variables[i];
-        logger.log(Level.WARNING, "Got update for PV {0} that is not assigned to variable", pv.getName());
-        return null;
-    }
-
-    /** @see PVListener */
-    @Override
-    public void valueChanged(final PV pv, final VType value)
-    {
-        final VariableNode variable = findVariableForPV(pv);
-        if (variable == null)
-            return;
-        final double number = VTypeHelper.toDouble(value);
-        logger.log(Level.FINER, () -> { return "Filter " + formula.getFormula() + ": " + pv.getName() + " = " + number; });
-        variable.setValue(number);
-        evaluate();
-    }
-
-    /** @see PVListener */
-    @Override
-    public void disconnected(final PV pv)
-    {
-        final VariableNode variable = findVariableForPV(pv);
-        if (variable == null)
-            return;
-        logger.log(Level.WARNING, "PV " + pv.getName() + " (var. " + variable.getName() + ") disconnected");
-        variable.setValue(Double.NaN);
-        evaluate();
     }
 
     /** Evaluate filter formula with current input values */

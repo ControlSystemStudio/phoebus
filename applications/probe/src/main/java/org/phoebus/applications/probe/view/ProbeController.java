@@ -79,7 +79,7 @@ public class ProbeController {
     private final PVListener pv_listener = new PVListener()
     {
         @Override
-        public void valueChanged(final PV pv, final VType value)
+        public void valueChanged(final VType value)
         {
             throttle.trigger();
         }

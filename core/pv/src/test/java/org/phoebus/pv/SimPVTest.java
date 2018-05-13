@@ -24,9 +24,9 @@ public class SimPVTest
         final PVListener listener = new PVListener()
         {
             @Override
-            public void valueChanged(final PV pv, final VType value)
+            public void valueChanged(final VType value)
             {
-                System.out.println(pv.getName() + " sent update " + value);
+                System.out.println("Received update " + value);
                 done.countDown();
             }
         };

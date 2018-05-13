@@ -70,7 +70,7 @@ abstract public class PV
         // If there is a known value, perform initial update
         final VType value = last_value;
         if (value != null)
-            listener.valueChanged(this, value);
+            listener.valueChanged(value);
         listeners.add(listener);
     }
 
@@ -148,7 +148,7 @@ abstract public class PV
         {
             try
             {
-                listener.disconnected(this);
+                listener.disconnected();
             }
             catch (Throwable ex)
             {
@@ -165,7 +165,7 @@ abstract public class PV
         {
             try
             {
-                listener.permissionsChanged(this, readonly);
+                listener.permissionsChanged(readonly);
             }
             catch (Throwable ex)
             {
@@ -182,7 +182,7 @@ abstract public class PV
         {
             try
             {
-                listener.valueChanged(this, value);
+                listener.valueChanged(value);
             }
             catch (Throwable ex)
             {

@@ -273,7 +273,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if (! isConnected())
         {
             logger.log(Level.WARNING, () -> getPathName() + " connection timed out");
-            disconnected(null);
+            disconnected();
         }
     }
 
@@ -329,7 +329,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     // PVListener
     @Override
-    public void valueChanged(final PV pv, final VType value)
+    public void valueChanged(final VType value)
     {
         // Inspect alarm state of received value
         is_connected = true;
@@ -345,7 +345,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     // PVListener
     @Override
-    public void disconnected(final PV pv)
+    public void disconnected()
     {
         logger.log(Level.FINE, getPathName() + " disconnected");
         final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.Disconnected, "", Instant.now());

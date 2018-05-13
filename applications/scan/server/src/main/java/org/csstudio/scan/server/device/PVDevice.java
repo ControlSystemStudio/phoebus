@@ -69,7 +69,7 @@ public class PVDevice extends Device
     final private PVListener pv_listener = new PVListener()
     {
         @Override
-        public void valueChanged(final PV pv, final VType new_value)
+        public void valueChanged(final VType new_value)
         {
             logger.log(Level.FINE,
                 "PV {0} received {1}", new Object[] { getName(), new_value });
@@ -81,7 +81,7 @@ public class PVDevice extends Device
         }
 
         @Override
-        public void disconnected(PV pv)
+        public void disconnected()
         {
             value = getDisconnectedValue();
             logger.log(Level.WARNING, "PV " + getName() + " disconnected");

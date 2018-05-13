@@ -73,11 +73,11 @@ public class TreeModelItem
     private final List<TreeModelItem> links = new CopyOnWriteArrayList<>();
 
     /** PV for value of this item */
-    private final AtomicReference<PV> value_pv = new AtomicReference<PV>();
+    private final AtomicReference<PV> value_pv = new AtomicReference<>();
     private final PVListener value_listener = new PVListener()
     {
         @Override
-        public void valueChanged(final PV pv, final VType value)
+        public void valueChanged(final VType value)
         {
             current_value = VTypeHelper.format(value);
             current_severity = VTypeHelper.getSeverity(value);
@@ -90,7 +90,7 @@ public class TreeModelItem
     private final PVListener type_listener = new PVListener()
     {
         @Override
-        public void valueChanged(final PV pv, final VType value)
+        public void valueChanged(final VType value)
         {
             type = VTypeHelper.formatValue(value);
             logger.fine("Type " + type);
@@ -109,12 +109,12 @@ public class TreeModelItem
     private final PVListener link_listener = new PVListener()
     {
         @Override
-        public void valueChanged(final PV pv, final VType value)
+        public void valueChanged(final VType value)
         {
             final String field = links_to_read.poll();
             if (field == null)
             {
-                logger.log(Level.WARNING, "Unexpected link update " + pv.getName() + " = " + value);
+                logger.log(Level.WARNING, "Unexpected link update " + getPVName() + " = " + value);
                 return;
             }
             String text = VTypeHelper.formatValue(value);

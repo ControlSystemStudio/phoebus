@@ -72,19 +72,19 @@ public class PVTableItem
     final private PVListener pv_listener = new PVListener()
     {
         @Override
-        public void permissionsChanged(final PV pv, final boolean readonly)
+        public void permissionsChanged(final boolean readonly)
         {
             listener.tableItemChanged(PVTableItem.this);
         }
 
         @Override
-        public void valueChanged(final PV pv, final VType value)
+        public void valueChanged(final VType value)
         {
             updateValue(value);
         }
 
         @Override
-        public void disconnected(final PV pv)
+        public void disconnected()
         {
             updateValue(ValueFactory.newVString(
                     "Disconnected", ValueFactory
@@ -97,7 +97,7 @@ public class PVTableItem
     final private PVListener desc_pv_listener = new PVListener()
     {
         @Override
-        public void valueChanged(final PV pv, final VType value)
+        public void valueChanged(final VType value)
         {
             if (value instanceof VString)
             {
@@ -111,7 +111,7 @@ public class PVTableItem
         }
 
         @Override
-        public void disconnected(final PV pv)
+        public void disconnected()
         {
             desc_value = "";
         }

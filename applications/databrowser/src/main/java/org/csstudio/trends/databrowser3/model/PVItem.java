@@ -65,7 +65,7 @@ public class PVItem extends ModelItem
     private final PVListener listener = new PVListener()
     {
         @Override
-        public void valueChanged(final PV pv, final VType value)
+        public void valueChanged(final VType value)
         {
             boolean added = false;
             // Cache most recent for 'scanned' operation
@@ -87,7 +87,7 @@ public class PVItem extends ModelItem
         }
 
         @Override
-        public void disconnected(final PV pv)
+        public void disconnected()
         {
             // No current value
             current_value = null;
