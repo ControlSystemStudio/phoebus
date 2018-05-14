@@ -11,8 +11,10 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -37,6 +39,12 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class FormatOptionHandler
 {
+    /** Neutral locale */
+    static final Locale LOCALE = Locale.ROOT;
+
+    /** Use 'E' for exponential notation, not 'x10' */
+    private static final DecimalFormatSymbols SYMBOLS = DecimalFormatSymbols.getInstance(LOCALE);
+
     /** Cached formats for DECIMAL by precision */
     private final static ConcurrentHashMap<Integer, NumberFormat> decimal_formats = new ConcurrentHashMap<>();
 
@@ -159,7 +167,7 @@ public class FormatOptionHandler
 
     private static NumberFormat createDecimalFormat(int precision)
     {
-        final NumberFormat fmt = NumberFormat.getNumberInstance();
+        final NumberFormat fmt = NumberFormat.getNumberInstance(LOCALE);
         fmt.setGroupingUsed(false);
         fmt.setMinimumFractionDigits(precision);
         fmt.setMaximumFractionDigits(precision);
@@ -181,7 +189,8 @@ public class FormatOptionHandler
         for (int i=0; i<precision; ++i)
             pattern.append('0');
         pattern.append("E0");
-        return new DecimalFormat(pattern.toString());
+
+        return new DecimalFormat(pattern.toString(), SYMBOLS);
     }
 
     private static String formatNumber(final Number value, final Display display,
@@ -204,7 +213,7 @@ public class FormatOptionHandler
                 return formatNumber(value, display, FormatOption.EXPONENTIAL, precision);
             final double log10 = Math.log10(Math.abs(num));
             final int power = 3 * (int) Math.floor(log10 / 3);
-            return String.format("%." + precision + "fE%d", num / Math.pow(10, power), power);
+            return String.format(LOCALE, "%." + precision + "fE%d", num / Math.pow(10, power), power);
         }
         if (option == FormatOption.HEX)
         {

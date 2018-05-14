@@ -14,7 +14,7 @@ import java.util.Locale;
  */
 public class SecondsParser
 {
-    /** Neutral locate */
+    /** Neutral locale */
     private final static Locale LOCALE = Locale.ROOT;
 
     /** Seconds in a minute */
