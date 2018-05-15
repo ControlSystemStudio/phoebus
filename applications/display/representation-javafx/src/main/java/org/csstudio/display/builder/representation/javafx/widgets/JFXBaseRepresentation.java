@@ -50,7 +50,13 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     {
         jfx_node = createJFXNode();
         if (jfx_node != null)
-        {   // Order JFX children same as model widgets within their container
+        {
+            // Perform initial update _before_ node is in the scene graph
+            // to minimize calls up the parent tree about changed size etc.
+            registerListeners();
+            updateChanges();
+
+            // Order JFX children same as model widgets within their container
             int index = -1;
             final Optional<Widget> container = model_widget.getParent();
             if (container.isPresent())
@@ -99,8 +105,6 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                     toolkit.fireContextMenu(model_widget, (int)event.getScreenX(), (int)event.getScreenY());
                 });
         }
-        registerListeners();
-        updateChanges();
         return getChildParent(parent);
     }
 

@@ -63,7 +63,9 @@ public class SaveAsDialog
 
         if (file != null)
         {
-            dialog.setInitialDirectory(file.getParentFile());
+            // Dialog will fail if the directory does not exist
+            if (file.getParentFile().exists())
+                dialog.setInitialDirectory(file.getParentFile());
             dialog.setInitialFileName(file.getName());
         }
         if (filters != null)
