@@ -8,7 +8,6 @@
 package org.phoebus.pv;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,9 +34,12 @@ public class FlowablePV implements Publisher<VType>, Closeable
 {
     private final PV pv;
 
+    // "Rule" in the following refers to the rules from
+    // https://github.com/reactive-streams/reactive-streams-jvm#reactive-streams
     private class PVSubscription implements Subscription, PVListener
     {
         private final AtomicBoolean subscribed = new AtomicBoolean();
+        private final AtomicBoolean cancelled = new AtomicBoolean(false);
         private final AtomicLong requested = new AtomicLong();
         private Subscriber<? super VType> subscriber;
 
@@ -51,7 +53,38 @@ public class FlowablePV implements Publisher<VType>, Closeable
         public void request(final long n)
         {
             // System.out.println("Request " + n);
+
+            // Rule 6:
+            // After the Subscription is cancelled,
+            // additional Subscription.request(long n) MUST be NOPs.
+            if (cancelled.get())
+                return;
+
+            // Rule 8:
+            // While .. not cancelled, .. MUST signal onError
+            // with a IllegalArgumentException if the argument is <= 0.
+            if (n <= 0)
+            {
+                subscriber.onError(new IllegalArgumentException("Requested " + n));
+                return;
+            }
+
             requested.addAndGet(n);
+            // Listen to PV on first request
+            // Rule 2:
+            // The Subscription MUST allow the Subscriber
+            // to request() synchronously from within onNext or onSubscribe.
+            //
+            // Calling 'addListener()' can result in valueChanged()
+            // and thus onNext() for the first sample.
+            //
+            // Good news: The case onNext() -> request() -> addListener()
+            // is not possible.
+            // Without the initial addListener(), onNext() won't be invoked.
+            // The only possible scenario:
+            // First request -> addListener -> onNext
+            // If onNext now calls request again, subscribed is set
+            // so we won't call onNext from within request -> addListener
             if (subscribed.getAndSet(true) == false)
                 pv.addListener(this);
         }
@@ -61,6 +94,8 @@ public class FlowablePV implements Publisher<VType>, Closeable
         public void cancel()
         {
             // System.out.println("Cancel");
+            if (cancelled.getAndSet(true) == true)
+                return;
             if (subscribed.getAndSet(false) == true)
                 pv.removeListener(this);
         }
@@ -96,7 +131,7 @@ public class FlowablePV implements Publisher<VType>, Closeable
     }
 
     @Override
-    public void close() throws IOException
+    public void close()
     {
         PVPool.releasePV(pv);
     }
