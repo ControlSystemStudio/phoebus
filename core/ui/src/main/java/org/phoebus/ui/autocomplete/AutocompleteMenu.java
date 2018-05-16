@@ -31,6 +31,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 /** Menu for use with auto-completion.
@@ -257,6 +258,16 @@ public class AutocompleteMenu
     private void handleLookupResult(final TextInputControl field, final String text, final String name, final int priority, final List<Proposal> proposals)
     {
         final List<MenuItem> items = new ArrayList<>();
+
+        // Assume the user is typing in the text field.
+        // When the menu is shown, the first item will _sometimes_ be auto-selected.
+        // When user presses ENTER, the text that the user just entered in the text field
+        // is replaced by the value of the first menu item, because it had been unwittingly invoked.
+        // By starting the menu with a bogus no-op item, that problem is averted.
+        // By making the text of that item match what the user entered,
+        // this almost appears to be on-purpose.
+        final MenuItem bogus = new MenuItem(null, new Text(text));
+        items.add(bogus);
 
         synchronized (results)
         {
