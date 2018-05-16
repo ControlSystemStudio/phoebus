@@ -17,10 +17,12 @@ import java.util.logging.Level;
 
 import org.phoebus.applications.pvtree.Settings;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VType;
+
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 
 /** One 'item' in the PV Tree
  *
@@ -74,42 +76,45 @@ public class TreeModelItem
 
     /** PV for value of this item */
     private final AtomicReference<PV> value_pv = new AtomicReference<>();
-    private final PVListener value_listener = new PVListener()
-    {
-        @Override
-        public void valueChanged(final VType value)
-        {
-            current_value = VTypeHelper.format(value);
-            current_severity = VTypeHelper.getSeverity(value);
-            updateValue();
-        }
-    };
+    private volatile Disposable value_flow;
 
     /** PV for type of this item (released after read once) */
     private AtomicReference<PV> type_pv = new AtomicReference<>();
-    private final PVListener type_listener = new PVListener()
-    {
-        @Override
-        public void valueChanged(final VType value)
-        {
-            type = VTypeHelper.formatValue(value);
-            logger.fine("Type " + type);
-            disposeTypePV();
-            // Notify model to redraw this PV
-            model.itemUpdated(TreeModelItem.this);
-            fetchLinks();
-        }
-    };
+    private volatile Disposable type_flow;
 
     /** List of links to read (empty when done) */
     private final ConcurrentLinkedQueue<String> links_to_read = new ConcurrentLinkedQueue<>();
 
     /** Current link to read (released when all links were read) */
     private AtomicReference<PV> link_pv = new AtomicReference<>();
-    private final PVListener link_listener = new PVListener()
+    private volatile Disposable link_flow;
+    private final Consumer<? super VType> link_consumer;
+
+    /** PV tree item
+     *  @param model The model to which this whole tree belongs.
+     *  @param parent The parent of this item, or <code>null</code> for the root.
+     *  @param info The info provided by the parent or creator ("PV", "INPA", ...)
+     *  @param pv_name The PV name of this tree node.
+     */
+    public TreeModelItem(final TreeModel model, final TreeModelItem parent, final String info, final String pv_name)
     {
-        @Override
-        public void valueChanged(final VType value)
+        this.model = model;
+        this.parent = parent;
+        this.pv_name = pv_name;
+        this.info = info;
+
+        // In case this is "record.field", get the record name.
+        final int sep = pv_name.lastIndexOf('.');
+        if (sep > 0)
+            record_name = pv_name.substring(0, sep);
+        else
+            record_name = pv_name;
+
+        logger.log(Level.FINE,
+                "New Tree item {0}, record name {1}",
+                new Object[] { pv_name, record_name});
+
+        link_consumer = value->
         {
             final String field = links_to_read.poll();
             if (field == null)
@@ -155,33 +160,12 @@ public class TreeModelItem
             // but at least not for every single change
             model.decrementLinks();
             resolveNextLink();
-        }
-    };
+        };
 
 
-    /** PV tree item
-     *  @param model The model to which this whole tree belongs.
-     *  @param parent The parent of this item, or <code>null</code> for the root.
-     *  @param info The info provided by the parent or creator ("PV", "INPA", ...)
-     *  @param pv_name The PV name of this tree node.
-     */
-    public TreeModelItem(final TreeModel model, final TreeModelItem parent, final String info, final String pv_name)
-    {
-        this.model = model;
-        this.parent = parent;
-        this.pv_name = pv_name;
-        this.info = info;
 
-        // In case this is "record.field", get the record name.
-        final int sep = pv_name.lastIndexOf('.');
-        if (sep > 0)
-            record_name = pv_name.substring(0, sep);
-        else
-            record_name = pv_name;
 
-        logger.log(Level.FINE,
-                "New Tree item {0}, record name {1}",
-                new Object[] { pv_name, record_name});
+
     }
 
     /** @return Parent or <code>null</code> for root */
@@ -210,7 +194,12 @@ public class TreeModelItem
             else
             {
                 final PV pv = PVPool.getPV(pv_name);
-                pv.addListener(value_listener);
+                value_flow = pv.onValueEvent().subscribe(value ->
+                {
+                    current_value = VTypeHelper.format(value);
+                    current_severity = VTypeHelper.getSeverity(value);
+                    updateValue();
+                });
                 value_pv.set(pv);
             }
 
@@ -245,8 +234,15 @@ public class TreeModelItem
         try
         {
             final PV pv = PVPool.getPV(record_name + ".RTYP");
-
-            pv.addListener(type_listener);
+            type_flow = pv.onValueEvent().firstOrError().subscribe(value ->
+            {
+                type = VTypeHelper.formatValue(value);
+                logger.fine("Type " + type);
+                disposeTypePV();
+                // Notify model to redraw this PV
+                model.itemUpdated(TreeModelItem.this);
+                fetchLinks();
+            });
             type_pv.set(pv);
         }
         catch (Exception ex)
@@ -296,7 +292,7 @@ public class TreeModelItem
         try
         {
             final PV pv = PVPool.getPV(link_name);
-            pv.addListener(link_listener);
+            link_flow = pv.onValueEvent().firstOrError().subscribe(link_consumer);
             link_pv.set(pv);
         }
         catch (Exception ex)
@@ -322,7 +318,7 @@ public class TreeModelItem
         final PV pv = link_pv.getAndSet(null);
         if (pv == null)
             return;
-        pv.removeListener(link_listener);
+        link_flow.dispose();
         PVPool.releasePV(pv);
     }
 
@@ -331,7 +327,7 @@ public class TreeModelItem
         final PV pv = type_pv.getAndSet(null);
         if (pv == null)
             return;
-        pv.removeListener(type_listener);
+        type_flow.dispose();
         PVPool.releasePV(pv);
     }
 
@@ -340,7 +336,7 @@ public class TreeModelItem
         final PV pv = value_pv.getAndSet(null);
         if (pv == null)
             return;
-        pv.removeListener(value_listener);
+        value_flow.dispose();
         PVPool.releasePV(pv);
     }
 
