@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,14 +16,18 @@ import java.util.logging.Logger;
 
 import org.phoebus.vtype.VType;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+
 /** Process Variable, API for accessing life control system data.
  *
  *  <p>PVs are to be fetched from the {@link PVPool}
- *  and release to it when no longer used.
+ *  and released to it when no longer used.
  *
  *  <p>The name of the PV is the name by which it was created.
  *  The underlying implementation might use a slightly different name.
  *
+ *  @author Eric Berryman
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -31,6 +35,9 @@ abstract public class PV
 {
     /** Suggested logger for all vtype.pv packages */
     public static final Logger logger = Logger.getLogger(PV.class.getName());
+
+    /** Alarm message used with UNDEFINED severity for disconnected state */
+    public static final String DISCONNECTED = "Disconnected";
 
     final private String name;
 
@@ -65,6 +72,7 @@ abstract public class PV
      *  @param listener Listener that will receive value updates
      *  @see #removeListener(PVListener)
      */
+    @Deprecated
     public void addListener(final PVListener listener)
     {
         // If there is a known value, perform initial update
@@ -75,10 +83,19 @@ abstract public class PV
     }
 
     /** @param listener Listener that will no longer receive value updates */
+    @Deprecated
     public void removeListener(final PVListener listener)
     {
         listeners.remove(listener);
     }
+
+    /** @return {@link Flowable} that receives {@link VType} for each updated value of the PV */
+    public Flowable<VType> onValueEvent(final BackpressureStrategy mode)
+    {
+        return Flowable.create(new ValueEventOnSubscribe(this), mode);
+    }
+
+    // TODO public Flowable<Boolean> onConnectionEvent(final BackpressureStrategy mode)
 
     /** Read current value
      *

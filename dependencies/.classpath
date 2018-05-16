@@ -42,7 +42,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-databind-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-1.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/slf4j-api-1.7.25.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/reactive-streams-1.0.2.jar" sourcepath="/home/ky9/.m2/repository/org/reactivestreams/reactive-streams/1.0.2/reactive-streams-1.0.2-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/rxjava-2.1.9.jar" sourcepath="/home/ky9/.m2/repository/io/reactivex/rxjava2/rxjava/2.1.9/rxjava-2.1.9-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/reactive-streams-1.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/rxjava-2.1.13.jar" sourcepath="/home/ky9/.m2/repository/io/reactivex/rxjava2/rxjava/2.1.13/rxjava-2.1.13-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
