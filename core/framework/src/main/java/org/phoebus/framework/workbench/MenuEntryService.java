@@ -1,7 +1,6 @@
 package org.phoebus.framework.workbench;
 
 import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -11,9 +10,9 @@ import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
 import org.phoebus.framework.spi.MenuEntry;
-import java.util.Comparator;;
+
 /**
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -25,7 +24,7 @@ public class MenuEntryService {
     private List<MenuEntry> menuEntries = Collections.emptyList();
 
     private MenuTreeNode menuEntryTree = new MenuTreeNode("Applications");
-    
+
     private MenuEntryService() {
         loader = ServiceLoader.load(MenuEntry.class);
         menuEntries = loader.stream().map(Provider::get).collect(Collectors.toList());
@@ -33,7 +32,7 @@ public class MenuEntryService {
     }
 
     /**
-     * 
+     *
      * @param root
      * @param menuEntries
      */
@@ -54,7 +53,7 @@ public class MenuEntryService {
             parent.addMenuEntries(menuEntry);
         }
     }
-    
+
     public static synchronized MenuEntryService getInstance() {
         if (menuEntryService == null) {
             menuEntryService = new MenuEntryService();
@@ -64,16 +63,16 @@ public class MenuEntryService {
 
     /**
      * Get the list of registered menu entries
-     * 
+     *
      * @return List of registered {@link MenuEntry}
      */
     public List<MenuEntry> listMenuEntries() {
         return menuEntries;
     }
-    
+
     /**
      * Get Menu Entry tree
-     * 
+     *
      * @return {@link MenuTreeNode} a tree representation of the menu entries
      */
     public MenuTreeNode getMenuEntriesTree() {
@@ -87,8 +86,8 @@ public class MenuEntryService {
 
         public MenuTreeNode(String name) {
         	this.name = name;
-            this.children = new ArrayList<MenuTreeNode>();
-            this.menuItems = new ArrayList<MenuEntry>();
+            this.children = new ArrayList<>();
+            this.menuItems = new ArrayList<>();
         }
 
         public void addChildren(MenuTreeNode... children) {
@@ -100,35 +99,20 @@ public class MenuEntryService {
                 return node.getName().equals(name);
             }).findFirst();
         }
-        
-        private class MenuEntryComparator implements Comparator<MenuEntry>
-        {
-        	@Override
-        	public int compare(MenuEntry x, MenuEntry y)
-        	{
-        		return x.getName().compareTo(y.getName());
-        	}
-        }
-        
+
         public void addMenuEntries(MenuEntry... menuItems) {
             this.menuItems.addAll(Arrays.asList(menuItems));
         }
-        
-        private class MenuTreeNodeComparator implements Comparator<MenuTreeNode>
-        {
-        	@Override
-        	public int compare(MenuTreeNode x, MenuTreeNode y)
-        	{
-        		return x.getName().compareTo(y.getName());
-        	}
-        }
+
         public List<MenuTreeNode> getChildren() {
-        	Collections.sort(this.children, new MenuTreeNodeComparator());
+        	Collections.sort(this.children,
+        	                 (x, y) -> x.getName().compareTo(y.getName()));
         	return children;
         }
 
         public List<MenuEntry> getMenuItems() {
-        	Collections.sort(this.menuItems, new MenuEntryComparator());
+        	Collections.sort(this.menuItems,
+        	                 (x, y) -> x.getName().compareTo(y.getName()));
         	return menuItems;
         }
 
