@@ -86,7 +86,6 @@ public class MenuEntryService {
         private List<MenuEntry> menuItems;
 
         public MenuTreeNode(String name) {
-            this.iter = 0;
         	this.name = name;
             this.children = new ArrayList<MenuTreeNode>();
             this.menuItems = new ArrayList<MenuEntry>();
