@@ -1,6 +1,7 @@
 package org.phoebus.framework.workbench;
 
 import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
 import org.phoebus.framework.spi.MenuEntry;
-
+import java.util.Comparator;;
 /**
  * 
  * @author Kunal Shroff
@@ -24,7 +25,7 @@ public class MenuEntryService {
     private List<MenuEntry> menuEntries = Collections.emptyList();
 
     private MenuTreeNode menuEntryTree = new MenuTreeNode("Applications");
-
+    
     private MenuEntryService() {
         loader = ServiceLoader.load(MenuEntry.class);
         menuEntries = loader.stream().map(Provider::get).collect(Collectors.toList());
@@ -85,7 +86,8 @@ public class MenuEntryService {
         private List<MenuEntry> menuItems;
 
         public MenuTreeNode(String name) {
-            this.name = name;
+            this.iter = 0;
+        	this.name = name;
             this.children = new ArrayList<MenuTreeNode>();
             this.menuItems = new ArrayList<MenuEntry>();
         }
@@ -99,17 +101,36 @@ public class MenuEntryService {
                 return node.getName().equals(name);
             }).findFirst();
         }
-
+        
+        private class MenuEntryComparator implements Comparator<MenuEntry>
+        {
+        	@Override
+        	public int compare(MenuEntry x, MenuEntry y)
+        	{
+        		return x.getName().compareTo(y.getName());
+        	}
+        }
+        
         public void addMenuEntries(MenuEntry... menuItems) {
             this.menuItems.addAll(Arrays.asList(menuItems));
         }
-
+        
+        private class MenuTreeNodeComparator implements Comparator<MenuTreeNode>
+        {
+        	@Override
+        	public int compare(MenuTreeNode x, MenuTreeNode y)
+        	{
+        		return x.getName().compareTo(y.getName());
+        	}
+        }
         public List<MenuTreeNode> getChildren() {
-            return children;
+        	Collections.sort(this.children, new MenuTreeNodeComparator());
+        	return children;
         }
 
         public List<MenuEntry> getMenuItems() {
-            return menuItems;
+        	Collections.sort(this.menuItems, new MenuEntryComparator());
+        	return menuItems;
         }
 
         public String getName() {
