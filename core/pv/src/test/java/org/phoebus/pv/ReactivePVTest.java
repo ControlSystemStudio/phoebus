@@ -49,7 +49,7 @@ public class ReactivePVTest
         count.await(10, TimeUnit.SECONDS);
         dis.dispose();
 
-        pv.close();
+        PVPool.releasePV(pv);
     }
 
     @Test
@@ -64,7 +64,7 @@ public class ReactivePVTest
             .blockingGet();
         System.out.println(the_one);
 
-        pv.close();
+        PVPool.releasePV(pv);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class ReactivePVTest
         count.await();
         dis.dispose();
 
-        pv.close();
+        PVPool.releasePV(pv);
     }
 
     @Test
@@ -126,7 +126,7 @@ public class ReactivePVTest
         count.await();
         dis.dispose();
 
-        pv.close();
+        PVPool.releasePV(pv);
     }
 
     @Test
@@ -149,7 +149,7 @@ public class ReactivePVTest
         count.await();
         dis.dispose();
 
-        pv.close();
+        PVPool.releasePV(pv);
     }
 
     @Test
@@ -181,6 +181,33 @@ public class ReactivePVTest
         count.await();
         dis.dispose();
 
-        pv.close();
+        PVPool.releasePV(pv);
     }
+
+    @Test
+    public void testReadOnlyAccess() throws Exception
+    {
+        final PV pv = PVPool.getPV("sim://ramp(1, 1000, 0.1)");
+        final Boolean can_write = pv
+            .onAccessRightsEvent()
+            .firstElement()
+            .blockingGet();
+        assertThat(can_write, equalTo(false));
+
+        PVPool.releasePV(pv);
+    }
+
+    @Test
+    public void testWriteAccess() throws Exception
+    {
+        final PV pv = PVPool.getPV("loc://x(50)");
+        final Boolean can_write = pv
+            .onAccessRightsEvent()
+            .firstElement()
+            .blockingGet();
+        assertThat(can_write, equalTo(true));
+
+        PVPool.releasePV(pv);
+    }
+
 }

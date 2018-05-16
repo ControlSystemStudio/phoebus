@@ -90,12 +90,24 @@ abstract public class PV
     }
 
     /** @return {@link Flowable} that receives {@link VType} for each updated value of the PV */
+    public Flowable<VType> onValueEvent()
+    {
+        return onValueEvent(BackpressureStrategy.LATEST);
+    }
+
+    /** @param mode {@link BackpressureStrategy}
+     *  @return {@link Flowable} that receives {@link VType} for each updated value of the PV
+     */
     public Flowable<VType> onValueEvent(final BackpressureStrategy mode)
     {
         return Flowable.create(new ValueEventOnSubscribe(this), mode);
     }
 
-    // TODO public Flowable<Boolean> onConnectionEvent(final BackpressureStrategy mode)
+    /** @return {@link Flowable} that receives <code>true</code>/<code>false</code> to indicate write access */
+    public Flowable<Boolean> onAccessRightsEvent()
+    {
+        return Flowable.create(new AccessRightsEventOnSubscribe(this), BackpressureStrategy.LATEST);
+    }
 
     /** Read current value
      *
