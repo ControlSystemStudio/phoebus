@@ -17,6 +17,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 
 import org.csstudio.display.builder.model.properties.FormatOption;
+import org.junit.Before;
 import org.junit.Test;
 import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.array.ArrayInt;
@@ -32,8 +33,17 @@ import org.phoebus.vtype.ValueFactory;
 @SuppressWarnings("nls")
 public class FormatOptionHandlerTest
 {
-    final NumberFormat fmt = DecimalFormat.getNumberInstance();
+    final NumberFormat fmt = DecimalFormat.getNumberInstance(FormatOptionHandler.LOCALE);
     final Display display = ValueFactory.newDisplay(-10.0, -9.0, -8.0, "V", fmt, 8.0, 9.0, 10.0, -10.0, 10.0);
+
+    @Before
+    public void setup()
+    {
+        // To run test in a specific locale, set via
+        //   java -Duser.country=SE -Duser.language=en
+        // or in code:
+        //   Locale.setDefault(new Locale("en", "SE"));
+    }
 
     @Test
     public void testNaNInf() throws Exception

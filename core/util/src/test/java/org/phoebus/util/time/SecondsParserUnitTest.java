@@ -7,16 +7,27 @@
  ******************************************************************************/
 package org.phoebus.util.time;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import junit.framework.TestCase;
+import java.util.Locale;
+
+import org.junit.Before;
+import org.junit.Test;
 
 /** JUnit test of the SecondsParser
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class SecondsParserUnitTest  extends TestCase
+public class SecondsParserUnitTest
 {
+    @Before
+    public void setup()
+    {
+        // Check if test runs OK outside of US where it was originally written
+        Locale.setDefault(Locale.FRENCH);
+    }
+
     @Test
     public void testParseSeconds() throws Exception
     {

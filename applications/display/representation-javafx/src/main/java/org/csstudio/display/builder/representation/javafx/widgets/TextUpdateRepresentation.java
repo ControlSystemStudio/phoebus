@@ -132,7 +132,11 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
 
     private void contentChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
-        value_text = computeText(model_widget.runtimePropValue().getValue());
+        final String new_text = computeText(model_widget.runtimePropValue().getValue());
+        // Skip update if it's the same text
+        if (value_text.equals(new_text))
+            return;
+        value_text = new_text;
         dirty_content.mark();
         toolkit.scheduleUpdate(this);
     }

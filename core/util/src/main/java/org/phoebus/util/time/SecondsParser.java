@@ -7,11 +7,16 @@
  ******************************************************************************/
 package org.phoebus.util.time;
 
+import java.util.Locale;
+
 /** Parse seconds from 'HH:MM:SS' text and vice versa.
  *  @author Kay Kasemir
  */
 public class SecondsParser
 {
+    /** Neutral locale */
+    private final static Locale LOCALE = Locale.ROOT;
+
     /** Seconds in a minute */
     final static int SECS_PER_MINUTE=60;
 
@@ -81,7 +86,7 @@ public class SecondsParser
             seconds = -seconds;
         final String result;
         if (seconds < 1.0)
-            result = String.format("00:00:0%.3f", seconds); //$NON-NLS-1$
+            result = String.format(LOCALE, "00:00:0%.3f", seconds); //$NON-NLS-1$
         else
         {
             // Convert to hours, minutes, seconds
