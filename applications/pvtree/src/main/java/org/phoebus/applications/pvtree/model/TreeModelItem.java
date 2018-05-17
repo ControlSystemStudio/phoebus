@@ -12,6 +12,7 @@ import static org.phoebus.applications.pvtree.PVTreeApplication.logger;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -193,8 +194,13 @@ public class TreeModelItem
             }
             else
             {
+                // Throttle data. UI updates are then throttled once more
+                final long ms = Math.round(Settings.max_update_period * 1000);
                 final PV pv = PVPool.getPV(pv_name);
-                value_flow = pv.onValueEvent().subscribe(value ->
+                value_flow = pv
+                    .onValueEvent()
+                    .throttleLast(ms, TimeUnit.MILLISECONDS)
+                    .subscribe(value ->
                 {
                     current_value = VTypeHelper.format(value);
                     current_severity = VTypeHelper.getSeverity(value);
