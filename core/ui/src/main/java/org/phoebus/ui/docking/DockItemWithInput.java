@@ -284,56 +284,37 @@ public class DockItemWithInput extends DockItem
             File file = ResourceParser.getFile(getInput());
 
             // TODO Enforce one of the file extensions, but ignore "*.*"
-            final String fileName = file.getName();
 
-            final int index = fileName.lastIndexOf(".");
-
-            String fileExtension = "";
-            String fileExtensionSearch = "";
-
-            if (index > 0)
+            // Check extension specifications.
+            if (file_extensions.length > 0 && ! acceptAnyFile())
             {
-            	fileExtension = fileName.substring(index);
-            	// The filters contain extensions like '*.plt', so add the star
-            	// like its a regex.
-            	fileExtensionSearch = "*" + fileExtension;
-            }
-            else
-            {
-            	// What do we do if there is no extension?
-            }
+	            String fileExtension = getFileExtension(file);
 
-            // Flag to see if the extension is supported.
-            boolean flag = false;
-            // Search to see if the current extension is in the file extensions filters.
-            for (final ExtensionFilter ef : file_extensions)
-            {
-            	final List<String> extensions = ef.getExtensions();
+	            // If there is no extension, leave the file as is.
+	            if (0 != fileExtension.compareTo(""))
+	            {
+	            	// If the extension is not valid, replace it with the first valid extension.
+		            if (! validExtension(fileExtension))
+		            {
+		            	// Grab the first correct extension and use that.
+		            	// Extensions like *.plt begin with a * so request the substring following the *.
+		            	final String correctExtension = file_extensions[0].getExtensions().get(0).substring(1);
 
-            	if (extensions.contains(fileExtensionSearch))
-            	{
-            		flag = true;
-            	}
-            }
+		            	// Create a name with the new file extension.
+		            	fileExtension = fileExtension.substring(1);
+		            	final String fileName = file.getName();
+		            	final String newFileName = fileName.replaceAll(fileExtension, correctExtension);
 
-            if (false == flag)
-            {
-            	// Grab the first correct extension and use that.
-            	// Extensions like *.plt begin with a * so request the substring following the *.
-            	final String correctExtension = file_extensions[0].getExtensions().get(0).substring(1);
-
-            	// Create a name with the new file extension.
-            	final String newFileName = fileName.replaceAll(fileExtension, correctExtension);
-
-            	// Create the file with the new file name.
-            	file = new File(file.getParentFile(), newFileName);
+		            	// Create the file with the new file name.
+		            	file = new File(file.getParentFile(), newFileName);
+		            }
+	            }
             }
 
             file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
                                                     Messages.SaveAs, file, file_extensions);
             if (file == null)
                 return false;
-
 
             // Update input
             setInput(ResourceParser.getURI(file));
@@ -350,7 +331,55 @@ public class DockItemWithInput extends DockItem
         return false;
     }
 
-    @Override
+    // Return true if "*.*" is in the file extension filter list.
+    private boolean acceptAnyFile()
+    {
+    	for (final ExtensionFilter ef : file_extensions)
+        {
+        	final List<String> extensions = ef.getExtensions();
+
+        	if (extensions.contains("*.*"))
+        		return true;
+        }
+        return false;
+    }
+
+    // Retrieve the file extension from a File object.
+    // Return it in regex format, i.e. "*.ext" instead of ".ext"
+    private String getFileExtension(File file)
+    {
+    	final String fileName = file.getName();
+
+        final int index = fileName.lastIndexOf(".");
+
+        String fileExtension = "";
+
+        if (index >= 0)
+        {
+        	fileExtension = fileName.substring(index);
+        	fileExtension = "*" + fileExtension;
+        }
+
+        // If there is no extension, return an empty string.
+        return fileExtension;
+    }
+
+    private boolean validExtension(String fileExtensionSearch)
+	{
+    	if (file_extensions.length <= 0)
+    		return true;
+        // Search to see if the current extension is in the file extensions filters.
+        for (final ExtensionFilter ef : file_extensions)
+        {
+        	final List<String> extensions = ef.getExtensions();
+
+        	if (extensions.contains(fileExtensionSearch))
+        		return true;
+        }
+        return false;
+	}
+
+	@Override
     public String toString()
     {
         return "DockItemWithInput(\"" + getLabel() + "\", " + getInput() + ")";
