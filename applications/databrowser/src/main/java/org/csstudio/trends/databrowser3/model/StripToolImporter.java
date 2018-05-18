@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -142,7 +141,7 @@ public class StripToolImporter
 						final long timespan = Integer.parseInt(tokens[1].trim());
 
 						// Save the timespan as a relative start in a relative interval.
-						final TimeRelativeInterval timerange = TimeRelativeInterval.of(Duration.ofSeconds(timespan), Instant.now());
+						final TimeRelativeInterval timerange = TimeRelativeInterval.of(Duration.ofSeconds(timespan), Duration.ZERO);
 						model.setTimerange(timerange);
 					}
 				}

@@ -12,6 +12,7 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -58,7 +59,7 @@ public class DockItemWithInput extends DockItem
 {
     private static final String DIRTY = "* ";
 
-    private AtomicBoolean is_dirty = new AtomicBoolean(false);
+    private final AtomicBoolean is_dirty = new AtomicBoolean(false);
 
     /** The one item that should always be included in 'file_extensions' */
     public static final ExtensionFilter ALL_FILES = new ExtensionFilter("All", "*.*");
@@ -216,7 +217,7 @@ public class DockItemWithInput extends DockItem
         try
         {   // If there is no file (input is null or for example http:),
             // call save_as to prompt for file
-            File file = ResourceParser.getFile(getInput());
+            final File file = ResourceParser.getFile(getInput());
             if (file == null)
                 return save_as(monitor);
 
@@ -248,7 +249,7 @@ public class DockItemWithInput extends DockItem
                 throw new Exception("No save_handler provided for 'dirty' " + toString());
             save_handler.run(monitor);
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Save error", ex);
             Platform.runLater(() ->
@@ -281,19 +282,65 @@ public class DockItemWithInput extends DockItem
         {
             // Prompt for file
             File file = ResourceParser.getFile(getInput());
+
+            // TODO Enforce one of the file extensions, but ignore "*.*"
+            final String fileName = file.getName();
+
+            final int index = fileName.lastIndexOf(".");
+
+            String fileExtension = "";
+            String fileExtensionSearch = "";
+
+            if (index > 0)
+            {
+            	fileExtension = fileName.substring(index);
+            	// The filters contain extensions like '*.plt', so add the star
+            	// like its a regex.
+            	fileExtensionSearch = "*" + fileExtension;
+            }
+            else
+            {
+            	// What do we do if there is no extension?
+            }
+
+            // Flag to see if the extension is supported.
+            boolean flag = false;
+            // Search to see if the current extension is in the file extensions filters.
+            for (final ExtensionFilter ef : file_extensions)
+            {
+            	final List<String> extensions = ef.getExtensions();
+
+            	if (extensions.contains(fileExtensionSearch))
+            	{
+            		flag = true;
+            	}
+            }
+
+            if (false == flag)
+            {
+            	// Grab the first correct extension and use that.
+            	// Extensions like *.plt begin with a * so request the substring following the *.
+            	final String correctExtension = file_extensions[0].getExtensions().get(0).substring(1);
+
+            	// Create a name with the new file extension.
+            	final String newFileName = fileName.replaceAll(fileExtension, correctExtension);
+
+            	// Create the file with the new file name.
+            	file = new File(file.getParentFile(), newFileName);
+            }
+
             file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
                                                     Messages.SaveAs, file, file_extensions);
             if (file == null)
                 return false;
 
-            // TODO Enforce one of the file extensions, but ignore "*.*"
 
             // Update input
             setInput(ResourceParser.getURI(file));
             // Save in that file
             return save(monitor);
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Save-As error", ex);
             Platform.runLater(() ->
