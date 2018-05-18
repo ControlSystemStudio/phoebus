@@ -53,6 +53,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
  *  invokes 'Save As' to prompt for a file name.
  *
  *  @author Kay Kasemir
+ *  @author Evan Smith Check save_as file extension
  */
 @SuppressWarnings("nls")
 public class DockItemWithInput extends DockItem
@@ -283,31 +284,27 @@ public class DockItemWithInput extends DockItem
             // Prompt for file
             File file = ResourceParser.getFile(getInput());
 
-            // TODO Enforce one of the file extensions, but ignore "*.*"
-
-            // Check extension specifications.
+             // Check extension specifications.
             if (file_extensions.length > 0 && ! acceptAnyFile())
             {
 	            String fileExtension = getFileExtension(file);
 
-	            // If there is no extension, leave the file as is.
-	            if (0 != fileExtension.compareTo(""))
+	            // If there is an extension,
+	            // and it's not valid, replace it with the first valid extension.
+	            if (! fileExtension.isEmpty()  &&
+	                ! validExtension(fileExtension))
 	            {
-	            	// If the extension is not valid, replace it with the first valid extension.
-		            if (! validExtension(fileExtension))
-		            {
-		            	// Grab the first correct extension and use that.
-		            	// Extensions like *.plt begin with a * so request the substring following the *.
-		            	final String correctExtension = file_extensions[0].getExtensions().get(0).substring(1);
+	            	// Grab the first correct extension and use that.
+	            	// Extensions like *.plt begin with a * so request the substring following the *.
+	            	final String correctExtension = file_extensions[0].getExtensions().get(0).substring(1);
 
-		            	// Create a name with the new file extension.
-		            	fileExtension = fileExtension.substring(1);
-		            	final String fileName = file.getName();
-		            	final String newFileName = fileName.replaceAll(fileExtension, correctExtension);
+	            	// Create a name with the new file extension.
+	            	fileExtension = fileExtension.substring(1);
+	            	final String fileName = file.getName();
+	            	final String newFileName = fileName.replaceAll(fileExtension, correctExtension);
 
-		            	// Create the file with the new file name.
-		            	file = new File(file.getParentFile(), newFileName);
-		            }
+	            	// Create the file with the new file name.
+	            	file = new File(file.getParentFile(), newFileName);
 	            }
             }
 

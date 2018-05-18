@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
 import static org.junit.Assert.assertEquals;
@@ -7,14 +14,17 @@ import java.time.Duration;
 import org.junit.Test;
 import org.phoebus.util.time.TimeInterval;
 
+/** @author Evan Smith
+ */
+@SuppressWarnings("nls")
 public class StripToolImportTest
 {
-	@Test
+    @Test
 	public void testStripToolImport() throws Exception
 	{
 		final Model model = new Model();
 		// Load the stp file into the model using the StripToolImporter
-		StripToolImporter.load(model, StripToolImportTest.class.getResourceAsStream("demo.stp"));
+		StripToolImporter.load(model, StripToolImportTest.class.getResourceAsStream("/demo.stp"));
 
 		final TimeInterval timeInterval = model.getTimerange().toAbsoluteInterval();
 		final long span = Duration.between(timeInterval.getStart(), timeInterval.getEnd()).getSeconds();
@@ -50,7 +60,7 @@ public class StripToolImportTest
 
 
 		// Check the name of the PV.
-		assertEquals("sim://cosine", model.getItems().get(1).getName());
+		assertEquals("sim://ramp", model.getItems().get(1).getName());
 
 		// Check the range of the PV.
 		assertEquals(-20.5, model.getItems().get(1).getAxis().getMin(), 0);
