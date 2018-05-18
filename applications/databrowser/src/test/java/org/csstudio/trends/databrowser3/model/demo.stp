@@ -1,0 +1,20 @@
+Strip.Time.Timespan 						333
+Strip.Color.Grid              49087     49087     49087
+Strip.Color.Color1            65535    		 0         0			
+
+Wrong.Wrong.Wrong	Above is an empty line. It should be ignored along with the current line.
+Strip.Color.Color2 0      	65535	  0
+Strip.Color.Color3            42405     10794     10794
+Strip.Color.Color4            24415     40606     41120
+Strip.Color.Color5            65535     42405     0
+Strip.Color.Color6            41120     8224      61680
+Strip.Color.Color7            65535     0         0
+Strip.Color.Color8            65535     55255     0
+Strip.Color.Color9            48316     36751     36751
+Strip.Color.Color10           39578     52685     12850
+Strip.Curve.0.Name sim://sine
+Strip.Curve.1.Name sim://ramp
+Strip.Curve.0.Max 10.33
+Strip.Curve.0.Min -10.69
+Strip.Curve.1.Min -20.5
+Strip.Curve.1.Max 15

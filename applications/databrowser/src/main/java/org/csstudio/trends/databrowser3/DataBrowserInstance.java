@@ -22,6 +22,7 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.model.StripToolImporter;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.Perspective;
 import org.phoebus.framework.jobs.JobManager;
@@ -165,7 +166,17 @@ public class DataBrowserInstance implements AppInstance
             try
             {
                 // Load model from file in background
-                XMLPersistence.load(new_model, ResourceParser.getContent(input));
+
+                if(input.toString().matches("(.)*.stp"))
+            	{
+            		StripToolImporter.load(new_model, ResourceParser.getContent(input));
+            		new_model.setSaveChanges(false);
+            	}
+            	else
+            	{
+            		XMLPersistence.load(new_model, ResourceParser.getContent(input));
+                }
+
                 Platform.runLater(() ->
                 {
                     try
@@ -176,7 +187,7 @@ public class DataBrowserInstance implements AppInstance
                         // since it matches the file
                         setDirty(false);
                     }
-                    catch (Exception ex)
+                    catch (final Exception ex)
                     {
                         ExceptionDetailsErrorDialog.openError(Messages.Error,
                             "Cannot load " + input,
@@ -184,7 +195,7 @@ public class DataBrowserInstance implements AppInstance
                     }
                 });
             }
-            catch (Exception ex)
+            catch (final Exception ex)
             {
                 final String message = "Cannot open Data Browser file\n" + input;
                 logger.log(Level.WARNING, message, ex);
