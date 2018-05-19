@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,15 @@ import javafx.stage.Window;
  *  <p>This is thus not a class that extends Stage, but a helper
  *  meant to be called to configure and later interface with
  *  each Stage.
+ *
+ *  <p>To support docking, the stage maintained by this class has the following scene graph:
+ *
+ *  <ul>
+ *  <li>The top-level node is a {@link BorderPane}.
+ *  <li>The 'center' of that layout is either a {@link DockPane}, or a {@link SplitDock}.
+ *  <li>{@link DockPane}s hold {@link DockItem}s or {@link DockItemWithInput}s.
+ *  <li>{@link SplitDock} holds further {@link SplitDock}s or {@link DockPane}s
+ *  </ul>
  *
  *  @author Kay Kasemir
  */
@@ -69,6 +78,7 @@ public class DockStage
         final DockPane tab_pane = new DockPane(tabs);
 
         final BorderPane layout = new BorderPane(tab_pane);
+        tab_pane.setDockParent(layout);
 
         final Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
@@ -168,6 +178,7 @@ public class DockStage
      */
     public static DockPane getDockPane(final Stage stage)
     {
+        // TODO Return DockPane or SplitDoc
         final Node dock_pane = getLayout(stage).getCenter();
         if (dock_pane instanceof DockPane)
             return (DockPane) dock_pane;
