@@ -257,7 +257,7 @@ public class PhoebusApplication extends Application {
         });
 
         DockPane.addListener(dock_pane_listener);
-        DockPane.setActiveDockPane(DockStage.getDockPane(main_stage));
+        DockPane.setActiveDockPane(DockStage.getDockPanes(main_stage).get(0));
         monitor.done();
 
         // Now that UI has loaded,

@@ -73,16 +73,17 @@ public class DockPane extends TabPane
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
-        if (! active.getScene().getWindow().isShowing())
-        {
-            // The Window for the previously active dock pane was closed
-            // Use the first one that's still open
-            for (Stage stage : DockStage.getDockStages())
-            {
-                active = DockStage.getDockPane(stage);
-                break;
-            }
-        }
+        // TODO: On startup, when memento is restored, getScene() returns null, so cannot check
+//        if (active.getScene().getWindow().isShowing())
+//        {
+//            // The Window for the previously active dock pane was closed
+//            // Use the first one that's still open
+//            for (Stage stage : DockStage.getDockStages())
+//            {
+//                active = DockStage.getDockPanes(stage).get(0);
+//                break;
+//            }
+//        }
         return active;
     }
 
@@ -119,11 +120,11 @@ public class DockPane extends TabPane
             return;
         always_show_tabs = do_show_single_tabs;
         for (Stage stage : DockStage.getDockStages())
-        {
-            final DockPane pane = DockStage.getDockPane(stage);
-            pane.autoHideTabs();
-            pane.requestLayout();
-        }
+            for (DockPane pane : DockStage.getDockPanes(stage))
+            {
+                pane.autoHideTabs();
+                pane.requestLayout();
+            }
     }
 
     /** In principle, 'getParent()' provides the parent of a node,
@@ -340,9 +341,11 @@ public class DockPane extends TabPane
 
     /** Split this dock pane
      *  @param horizontally <code>true</code> for horizontal, else vertical split
+     *  @return SplitDock, which contains this dock pane as first (top, left) item, and a new DockPane as the second (bottom, left) item
      */
-    public void split(final boolean horizontally)
+    public SplitDock split(final boolean horizontally)
     {
+        final SplitDock split;
         if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
@@ -350,7 +353,7 @@ public class DockPane extends TabPane
             parent.setCenter(null);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            final SplitDock split = new SplitDock(horizontally, this, new_pane);
+            split = new SplitDock(horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
@@ -363,7 +366,7 @@ public class DockPane extends TabPane
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            final SplitDock split = new SplitDock(horizontally, this, new_pane);
+            split = new SplitDock(horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
@@ -371,6 +374,7 @@ public class DockPane extends TabPane
         }
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
+        return split;
     }
 
     @Override

@@ -42,6 +42,7 @@ import javafx.stage.Window;
  *  <li>{@link DockPane}s hold {@link DockItem}s or {@link DockItemWithInput}s.
  *  <li>{@link SplitDock} holds further {@link SplitDock}s or {@link DockPane}s
  *  </ul>
+ *  This means that each {@link DockStage} has at least one {@link DockPane}.
  *
  *  @author Kay Kasemir
  */
@@ -107,7 +108,7 @@ public class DockStage
                 event.consume();
         });
 
-        return getDockPane(stage);
+        return tab_pane;
     }
 
     /** @return Unique ID of this stage */
@@ -151,11 +152,11 @@ public class DockStage
      */
     public static boolean isStageOkToClose(final Stage stage)
     {
-        final DockPane tab_pane = getDockPane(stage);
-        for (DockItem item : tab_pane.getDockItems())
-            if (! item.close())
-                // Abort the close request
-                return false;
+        for (DockPane tab_pane : getDockPanes(stage))
+            for (DockItem item : tab_pane.getDockItems())
+                if (! item.close())
+                    // Abort the close request
+                    return false;
 
         // All tabs either saved or don't care to save,
         // so this stage will be closed
@@ -173,22 +174,43 @@ public class DockStage
         throw new IllegalStateException("Expect BorderPane, got " + layout);
     }
 
-    /** @param stage Stage that supports docking
-     *  @return {@link DockPane} of that stage
+    /** Get the top dock container
+     *  @param stage Stage that supports docking
+     *  @return {@link DockPane} or {@link SplitDock}
      */
-    public static DockPane getDockPane(final Stage stage)
+    public static Node getPaneOrSplit(final Stage stage)
     {
-        // TODO Return DockPane or SplitDoc
-        final Node dock_pane = getLayout(stage).getCenter();
-        if (dock_pane instanceof DockPane)
-            return (DockPane) dock_pane;
-        throw new IllegalStateException("Expect DockPane, got " + dock_pane);
+        final Node container = getLayout(stage).getCenter();
+        if (container instanceof DockPane  ||
+            container instanceof SplitDock)
+            return container;
+        throw new IllegalStateException("Expect DockPane or SplitDock, got " + container);
+    }
+
+    /** Get all dock panes
+     *  @param stage Stage that supports docking
+     *  @return All {@link DockPane}s, contains at least one item
+     */
+    public static List<DockPane> getDockPanes(final Stage stage)
+    {
+        final List<DockPane> panes = new ArrayList<>();
+        findDockPanes(panes, getPaneOrSplit(stage));
+        return panes;
+    }
+
+    private static void findDockPanes(final List<DockPane> panes, final Node pane_or_split)
+    {
+        if (pane_or_split instanceof DockPane)
+            panes.add((DockPane) pane_or_split);
+        else if (pane_or_split instanceof SplitDock)
+            for (Node sub : ((SplitDock) pane_or_split).getItems())
+                findDockPanes(panes, sub);
     }
 
     /** @param stage Stage that supports docking which should become the active stage */
     public static void setActiveDockPane(final Stage stage)
     {
-        final DockPane dock_pane = getDockPane(stage);
+        final DockPane dock_pane = getDockPanes(stage).get(0);
         DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));
     }
 
@@ -201,14 +223,15 @@ public class DockStage
     {
         Objects.requireNonNull(input);
         for (Stage stage : getDockStages())
-            for (DockItem tab : getDockPane(stage).getDockItems())
-                if (tab instanceof DockItemWithInput)
-                {
-                    final DockItemWithInput item = (DockItemWithInput) tab;
-                    if (input.equals(item.getInput()) &&
-                        item.getApplication().getAppDescriptor().getName().equals(application_name))
-                        return item;
-                }
+            for (DockPane pane : getDockPanes(stage))
+                for (DockItem tab : pane.getDockItems())
+                    if (tab instanceof DockItemWithInput)
+                    {
+                        final DockItemWithInput item = (DockItemWithInput) tab;
+                        if (input.equals(item.getInput()) &&
+                            item.getApplication().getAppDescriptor().getName().equals(application_name))
+                            return item;
+                    }
         return null;
     }
 }
