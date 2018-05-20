@@ -183,13 +183,17 @@ public class MementoHelper
         else if (content.getName().equals(SPLIT))
         {   // Split the original pane
             final SplitDock split = pane.split(content.getBoolean(HORIZONTAL).orElse(true));
-            content.getNumber(POS).ifPresent(num -> split.setDividerPosition(num.doubleValue()));
 
             // Fill split's items
             final List<Node> first_second_pane = split.getItems();
             final List<MementoTree> first_second_mememto = content.getChildren();
             any |= restorePaneOrSplit((DockPane) first_second_pane.get(0), first_second_mememto.get(0));
             any |= restorePaneOrSplit((DockPane) first_second_pane.get(1), first_second_mememto.get(1));
+
+            // The divider position needs to be set at the end, after the complete scene has been restored.
+            // Otherwise the SplitPane self-adjusts the position when the sub-elements are rendered,
+            // replacing a position set now.
+            content.getNumber(POS).ifPresent(num -> Platform.runLater(() -> split.setDividerPosition(num.doubleValue())));
         }
         else
             logger.log(Level.WARNING, "Expect <pane> or <split>, got " + content);
