@@ -24,6 +24,7 @@ import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.docking.SplitDock;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
@@ -172,7 +173,12 @@ public class MementoHelper
             for (MementoTree item_memento : content.getChildren())
                 any |= restoreDockItem(item_memento, pane);
             // Maybe select a specific tab
-            content.getNumber(SELECTED).ifPresent(index -> pane.getSelectionModel().select(index.intValue()));
+            // If the new tab is inside a SplitDock,
+            // it won't actually exist until the content of the SplitDock's SplitPane
+            // is rendered on the next UI tick, resulting in a NullPointerException
+            // deep inside JFX calling TabPane$TabPaneSelectionModel.select
+            // By deferring to a later UI tick, the tab selection succeeds
+            content.getNumber(SELECTED).ifPresent(index -> Platform.runLater(() -> pane.getSelectionModel().select(index.intValue())));
         }
         else if (content.getName().equals(SPLIT))
         {   // Split the original pane
@@ -215,6 +221,16 @@ public class MementoHelper
             return false;
         }
 
+        // If dock item was restored within a SplitDock,
+        // its Scene is only set on a later UI tick when the SplitPane is rendered.
+        // Defer restoring the application so that DockPane.autoHideTabs can locate the tab header
+        Platform.runLater(() -> restoreApplication(item_memento, pane, app));
+
+        return true;
+    }
+
+    private static void restoreApplication(final MementoTree item_memento, final DockPane pane, final AppDescriptor app)
+    {
         DockPane.setActiveDockPane(pane);
         final AppInstance instance;
         if (app instanceof AppResourceDescriptor)
@@ -229,7 +245,5 @@ public class MementoHelper
             instance = app.create();
 
         instance.restore(item_memento);
-
-        return true;
     }
 }
