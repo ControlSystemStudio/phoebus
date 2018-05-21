@@ -168,10 +168,15 @@ public class XMLMementoTree implements MementoTree
     {
         Element child = XMLUtil.getChildElement(element, key);
         if (child == null)
-        {
-            child = document.createElement(key);
-            element.appendChild(child);
-        }
+            return createChild(key);
+        return new XMLMementoTree(document, child);
+    }
+
+    @Override
+    public MementoTree createChild(final String key)
+    {
+        final Element child = document.createElement(key);
+        element.appendChild(child);
         return new XMLMementoTree(document, child);
     }
 
