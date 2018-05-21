@@ -158,7 +158,7 @@ public class DockItem extends Tab
     /** This tab should be in a DockPane, not a plain TabPane
      *  @return DockPane that holds this tab
      */
-    private DockPane getDockPane()
+    public DockPane getDockPane()
     {
         final TabPane tp = getTabPane();
         if (tp == null  ||  tp instanceof DockPane)

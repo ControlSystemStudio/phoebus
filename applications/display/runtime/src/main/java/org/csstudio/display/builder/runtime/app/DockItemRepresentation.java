@@ -9,6 +9,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
 import javafx.scene.Node;
@@ -60,6 +61,10 @@ public class DockItemRepresentation extends JFXRepresentation
     public ToolkitRepresentation<Parent, Node> openPanel(final DisplayModel model,
             final Consumer<DisplayModel> close_handler) throws Exception
     {
+        // Set active dock pane to the one used by this display
+        // System.out.println("Open panel in " + app_instance.dock_item.getDockPane());
+        DockPane.setActiveDockPane(app_instance.getDockItem().getDockPane());
+
         final URI resource = DisplayInfo.forModel(model).toURI();
         final DisplayRuntimeInstance instance = ApplicationService.createInstance(DisplayRuntimeApplication.NAME, resource);
         return instance.getRepresentation();
