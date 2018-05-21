@@ -4,224 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.junit.Test;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.TitleDetail;
-import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
-import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 public class AlarmModelWriterTest
 {
-	private XMLStreamWriter writer;
-
-	private void initWriter (final OutputStream stream) throws Exception
-	{
-		final XMLStreamWriter base =
-	            XMLOutputFactory.newInstance().createXMLStreamWriter(stream, XMLUtil.ENCODING);
-	        writer = new IndentingXMLStreamWriter(base);
-
-	        writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
-	        // TODO: Does anything else need to be done to initialize the XML writer?
-
-	}
-
-	public void getModelXML(final AlarmTreeItem<?> item) throws Exception
-	{
-
-        getModelXML(item, System.out);
-    }
-
-    public void getModelXML(final AlarmTreeItem<?> item, final OutputStream out) throws Exception
-    {
-    	initWriter(out);
-        getModelXML(item, out, 0);
-    }
-
-    private void getModelXML(final AlarmTreeItem<?> item, final OutputStream out, final int level) throws Exception
-    {
-
-    	if (level == 0)
-    	{
-    		writer.writeStartElement("config");
-        	writer.writeAttribute("name", item.getName());
-
-        	getItemXML(item);
-
-        	for (final AlarmTreeItem<?> child : item.getChildren())
-                getModelXML(child, out, level+1);
-
-        	writer.writeEndElement();
-    	}
-    	else if (item instanceof AlarmTreeLeaf)
-        {
-        	final AlarmTreeLeaf leaf = (AlarmTreeLeaf) item;
-
-        	writer.writeStartElement("pv");
-        	writer.writeAttribute("name", item.getName());
-
-        	getLeafXML(leaf);
-
-        	getItemXML(item);
-
-        	writer.writeEndElement();
-        }
-        else
-        {
-        	writer.writeStartElement("component");
-        	writer.writeAttribute("name", item.getName());
-
-        	getItemXML(item);
-
-        	for (final AlarmTreeItem<?> child : item.getChildren())
-                getModelXML(child, out, level+1);
-
-        	writer.writeEndElement();
-        }
-
-
-    }
-
-    private void getItemXML(final AlarmTreeItem<?> item) throws Exception
-    {
-
-    	// Write XML for Guidance
-    	final List<TitleDetail> guidance = item.getGuidance();
-
-    	if (!guidance.isEmpty())
-    	{
-    		getTitleDetailListXML(guidance, "guidance");
-    	}
-
-    	// Write XML for Displays
-    	final List<TitleDetail> displays = item.getDisplays();
-
-    	if (!displays.isEmpty())
-    	{
-    		getTitleDetailListXML(displays, "display");
-    	}
-
-    	// Write XML for Commands
-    	final List<TitleDetail> commands = item.getCommands();
-
-    	if (!commands.isEmpty())
-    	{
-    		getTitleDetailListXML(commands, "command");
-    	}
-    	/*
-    	 * TODO : Automated actions are not yet implemented.
-    	// Write XML for Actions
-    	final List<TitleDetail> actions = item.getActions();
-
-    	if (!actions.isEmpty())
-    	{
-    		getTitleDetailListXML(actions, "automated_action");
-    	}
-    	*/
-    }
-
-    // TODO: This will not work with automated_actions as the XML schema expects a third child "delay" to go along
-    // 	     with "title" and "details".
-    private void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
-    {
-    	for (final TitleDetail td : tdList)
-		{
-			// TODO: would a title element ever have empty or null title/detail?
-    		writer.writeStartElement(itemSubType);
-
-    		writer.writeStartElement("title");
-			writer.writeCharacters(td.title);
-			writer.writeEndElement();
-			writer.writeStartElement("details");
-			writer.writeCharacters(td.detail);
-			writer.writeEndElement();
-
-			writer.writeEndElement();
-		}
-    }
-
-    private void getLeafXML(final AlarmTreeLeaf leaf) throws Exception
-    {
-    	final String description = leaf.getDescription();
-    	if (description != null && !description.isEmpty())
-    	{
-    		writer.writeStartElement("description");
-    		writer.writeCharacters(description);
-    		writer.writeEndElement();
-    	}
-
-    	final String enabled = leaf.isEnabled() ? "true" : "false";
-
-		writer.writeStartElement("enabled");
-		writer.writeCharacters(enabled);
-		writer.writeEndElement();
-
-		final String latching = leaf.isLatching() ? "true" : "false";
-
-		writer.writeStartElement("latching");
-		writer.writeCharacters(latching);
-		writer.writeEndElement();
-
-		final String annunciating = leaf.isAnnunciating() ? "true" : "false";
-
-		writer.writeStartElement("annunciating");
-		writer.writeCharacters(annunciating);
-		writer.writeEndElement();
-
-		final int delay = leaf.getDelay();
-
-		// A delay less than zero doesn't make sense but is technically possible.
-		if (delay != 0)
-		{
-			writer.writeStartElement("delay");
-			writer.writeCharacters(Integer.toString(delay));
-			writer.writeEndElement();
-		}
-
-		final int count = leaf.getCount();
-
-		// Count is unsigned so can be assumed greater than 0.
-		if (count > 0)
-		{
-			writer.writeStartElement("count");
-			writer.writeCharacters(Integer.toString(count));
-			writer.writeEndElement();
-		}
-
-		final String filter = leaf.getFilter();
-    	if (filter != null && !filter.isEmpty())
-    	{
-    		writer.writeStartElement("filter");
-    		writer.writeCharacters(filter);
-    		writer.writeEndElement();
-    	}
-
-    }
-
-	public void close() throws IOException
-	{
-        try
-        {
-            // End and close document
-            writer.writeEndDocument();
-            writer.flush();
-            writer.close();
-        }
-        catch (final Exception ex)
-        {
-            throw new IOException("Failed to close XML", ex);
-        }
-    }
 
 	private void assertFrequency(final int expected, final String searchStr, final String xml)
 	{
@@ -229,7 +22,7 @@ public class AlarmModelWriterTest
         int index_start = 0;
         while (true)
         {
-        	final int tmp = xml.indexOf("<enabled>true</enabled>", index_start + 1);
+        	final int tmp = xml.indexOf(searchStr, index_start + 1);
         	if (tmp == -1)
         		break;
     		index_start = tmp;
@@ -239,7 +32,6 @@ public class AlarmModelWriterTest
         assertEquals(expected, found);
 	}
 
-	// TODO: Do we need to handle exception better than simply throwing?
 	@Test
 	public void testAlarmModelWriter() throws Exception
 	{
@@ -264,13 +56,11 @@ public class AlarmModelWriterTest
 		// Set area1 displays.
 		area1.setActions(area1Displays);
 
-		final List<TitleDetail> area1Commands = new ArrayList<>();
-
-		area1Commands.add(new TitleDetail("Area1 Command Title 1", "Area1 Command Detail 1"));
-		area1Commands.add(new TitleDetail("Area1 Command Title 2", "Area1 Command Detail 2"));
 
 		// Set area1 commands.
-		area1.setCommands(area1Commands);
+		area1.setCommands(List.of(
+				new TitleDetail("Area1 Command Title 1", "Area1 Command Detail 1"),
+				new TitleDetail("Area1 Command Title 2", "Area1 Command Detail 2")));
 
 		final List<TitleDetail> area1Actions = new ArrayList<>();
 
@@ -304,10 +94,13 @@ public class AlarmModelWriterTest
 		a3pv1.setDescription("a3pv1 description");
 
 		final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        getModelXML(root, buf);
-        close();
+
+		final XmlModelWriter xmlWriter = new XmlModelWriter();
+        xmlWriter.getModelXML(root, buf);
 
         final String xml = buf.toString();
+
+        System.out.println(xml);
 
         // TODO: For asserts that look for non unique substrings, implement a check that counts the frequency of the substring
         // 		 and tests against the susbtring's true total frequency.
@@ -347,6 +140,7 @@ public class AlarmModelWriterTest
         assertFrequency(4, "<enabled>true</enabled>", xml);
         assertFrequency(4, "<latching>true</latching>", xml);
         assertFrequency(4, "<annunciating>true</annunciating>", xml);
+
 
 	}
 }
