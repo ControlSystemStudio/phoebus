@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
@@ -49,7 +50,7 @@ public class DockPane extends TabPane
 
     private static CopyOnWriteArrayList<DockPaneListener> listeners = new CopyOnWriteArrayList<>();
 
-    private static DockPane active = null;
+    private static WeakReference<DockPane> active = new WeakReference<>(null);
 
     private static boolean always_show_tabs = true;
 
@@ -74,16 +75,20 @@ public class DockPane extends TabPane
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
-        if (active != null  &&
-            active.getScene() != null &&
-            ! active.getScene().getWindow().isShowing())
+        final DockPane pane = active.get();
+        if (pane != null  &&
+            (pane.getScene() == null || !pane.getScene().getWindow().isShowing()))
         {
             // The Window for the previously active dock pane was closed
             // Use the first one that's still open
             for (Stage stage : DockStage.getDockStages())
-                return active = DockStage.getDockPanes(stage).get(0);
+            {
+                final DockPane updated = DockStage.getDockPanes(stage).get(0);
+                setActiveDockPane(updated);
+                return updated;
+            }
         }
-        return active;
+        return pane;
     }
 
     /** Set the 'active' dock stage
@@ -99,14 +104,11 @@ public class DockPane extends TabPane
      */
     public static void setActiveDockPane(final DockPane pane)
     {
-        active = pane;
+        active = new WeakReference<>(pane);
 
         final DockItem item = (DockItem) pane.getSelectionModel().getSelectedItem();
         for (DockPaneListener listener : listeners)
             listener.activeDockItemChanged(item);
-
-        if (active != pane)
-            throw new IllegalStateException();
     }
 
     /** @return true if even single tab is shown */
@@ -245,9 +247,31 @@ public class DockPane extends TabPane
         return null;
     }
 
-
+    /** Hide or show tabs
+     * 
+     *  <p>When there's more than one tab, or always_show_tabs,
+     *  then show the tabs.
+     *  If there's just one tab, and ! always_show_tabs, hide that one tab
+     *  to get a more compact UI.
+     */
     void autoHideTabs()
     {
+        // Anything to update?
+        // This also handles the case where called on disposed DockPane:
+        // No scene (which would cause NPE), but then also no tabs.
+        if (getTabs().isEmpty())
+            return;
+
+        // TODO Is this still happening?
+        if (getScene() == null)
+        {
+            logger.log(Level.SEVERE, "No Scene for " + this, new Exception());
+            logger.log(Level.SEVERE, "Stages:");
+            for (Stage stage : DockStage.getDockStages())
+                logger.log(Level.SEVERE, DockStage.getDockPanes(stage).toString());
+            return;
+        }
+
         final boolean do_hide = getTabs().size() == 1  &&  !always_show_tabs;
 
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX :
@@ -343,7 +367,7 @@ public class DockPane extends TabPane
             old_parent.getTabs().remove(item);
             getTabs().add(item);
 
-            autoHideTabs();
+            Platform.runLater(this::autoHideTabs);
 
             // Select the new item
             getSelectionModel().select(item);
@@ -401,6 +425,6 @@ public class DockPane extends TabPane
     @Override
     public String toString()
     {
-        return "DockPane " + getTabs();
+        return "DockPane " + Integer.toHexString(System.identityHashCode(this)) + " " + getTabs();
     }
 }
