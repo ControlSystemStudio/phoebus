@@ -161,7 +161,7 @@ public class DockItem extends Tab
     private DockPane getDockPane()
     {
         final TabPane tp = getTabPane();
-        if (tp instanceof DockPane)
+        if (tp == null  ||  tp instanceof DockPane)
             return (DockPane) tp;
         throw new IllegalStateException("Expected DockPane for " + this + ", got " + tp);
     }

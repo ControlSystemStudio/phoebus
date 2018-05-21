@@ -17,6 +17,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.Styles;
 
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -73,17 +74,16 @@ public class DockPane extends TabPane
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
-        // TODO: On startup, when memento is restored, getScene() returns null, so cannot check
-//        if (active.getScene().getWindow().isShowing())
-//        {
-//            // The Window for the previously active dock pane was closed
-//            // Use the first one that's still open
-//            for (Stage stage : DockStage.getDockStages())
-//            {
-//                active = DockStage.getDockPanes(stage).get(0);
-//                break;
-//            }
-//        }
+        if (active.getScene().getWindow().isShowing())
+        {
+            // The Window for the previously active dock pane was closed
+            // Use the first one that's still open
+            for (Stage stage : DockStage.getDockStages())
+            {
+                active = DockStage.getDockPanes(stage).get(0);
+                break;
+            }
+        }
         return active;
     }
 
@@ -170,9 +170,8 @@ public class DockPane extends TabPane
         addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalKeys);
 
         // Show/hide tabs as tab count changes
-        getTabs().addListener((InvalidationListener) change -> autoHideTabs());
+        getTabs().addListener((InvalidationListener) change -> handleTabChanges());
     }
-
 
     /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */
     void setDockParent(final Parent dock_parent)
@@ -222,6 +221,17 @@ public class DockPane extends TabPane
         super.layoutChildren();
     }
 
+    /** Called when number of tabs changed */
+    private void handleTabChanges()
+    {
+        if (getTabs().isEmpty())
+            mergeEmptySplit();
+        else
+            // Update tabs on next UI tick so that findTabHeader() can succeed
+            // in case this is in a newly created SplitDock
+            Platform.runLater(this::autoHideTabs);
+    }
+
     private StackPane findTabHeader()
     {
         // Need to locate the header for _this_ pane.
@@ -231,7 +241,8 @@ public class DockPane extends TabPane
             if (header instanceof StackPane  &&  header.getParent() == this)
                 return (StackPane) header;
         return null;
-   }
+    }
+
 
     void autoHideTabs()
     {
@@ -353,7 +364,7 @@ public class DockPane extends TabPane
             parent.setCenter(null);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            split = new SplitDock(horizontally, this, new_pane);
+            split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
@@ -366,7 +377,7 @@ public class DockPane extends TabPane
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            split = new SplitDock(horizontally, this, new_pane);
+            split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
@@ -375,6 +386,14 @@ public class DockPane extends TabPane
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
         return split;
+    }
+
+    /** If this pane is within a SplitDock and empty, merge */
+    void mergeEmptySplit()
+    {
+        if (! (dock_parent instanceof SplitDock))
+            return;
+        ((SplitDock) dock_parent).merge();
     }
 
     @Override
