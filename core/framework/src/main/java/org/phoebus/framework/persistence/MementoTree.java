@@ -24,6 +24,11 @@ public interface MementoTree extends Memento
      */
     public MementoTree getChild(String key);
 
+    /** @param key Key that identifies a new child memento
+     *  @return Child memento.
+     */
+    public MementoTree createChild(String key);
+
     /** @return Child mementos. May be empty array */
     public List<MementoTree> getChildren();
 }

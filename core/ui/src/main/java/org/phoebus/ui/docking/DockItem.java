@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
+import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -82,6 +83,8 @@ public class DockItem extends Tab
 
     private final static Image info_icon = ImageCache.getImage(DockItem.class, "/icons/info.png"),
                                detach_icon = ImageCache.getImage(DockItem.class, "/icons/detach.png"),
+                               split_horiz_icon = ImageCache.getImage(DockItem.class, "/icons/split_horiz.png"),
+                               split_vert_icon = ImageCache.getImage(DockItem.class, "/icons/split_vert.png"),
                                close_icon = ImageCache.getImage(DockItem.class, "/icons/remove.png"),
                                close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
 
@@ -152,6 +155,17 @@ public class DockItem extends Tab
         createContextMenu();
     }
 
+    /** This tab should be in a DockPane, not a plain TabPane
+     *  @return DockPane that holds this tab
+     */
+    private DockPane getDockPane()
+    {
+        final TabPane tp = getTabPane();
+        if (tp instanceof DockPane)
+            return (DockPane) tp;
+        throw new IllegalStateException("Expected DockPane for " + this + ", got " + tp);
+    }
+
     private void createContextMenu()
     {
         final MenuItem info = new MenuItem("Info", new ImageView(info_icon));
@@ -160,13 +174,19 @@ public class DockItem extends Tab
         final MenuItem detach = new MenuItem("Detach", new ImageView(detach_icon));
         detach.setOnAction(event -> detach());
 
+        final MenuItem split_horiz = new MenuItem("Split Horizontally", new ImageView(split_horiz_icon));
+        split_horiz.setOnAction(event -> split(true));
+
+        final MenuItem split_vert = new MenuItem("Split Vertically", new ImageView(split_vert_icon));
+        split_vert.setOnAction(event -> split(false));
+
         final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
         close.setOnAction(event -> close());
 
         final MenuItem close_other = new MenuItem("Close Others", new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
-            for (Tab tab : new ArrayList<>(getTabPane().getTabs()))
+            for (Tab tab : new ArrayList<>(getDockPane().getTabs()))
                 if ((tab instanceof DockItem)  &&  tab != DockItem.this)
                     ((DockItem)tab).close();
         });
@@ -174,7 +194,7 @@ public class DockItem extends Tab
         final MenuItem close_all = new MenuItem("Close All", new ImageView(close_many_icon));
         close_all.setOnAction(event ->
         {
-            for (Tab tab : new ArrayList<>(getTabPane().getTabs()))
+            for (Tab tab : new ArrayList<>(getDockPane().getTabs()))
                 if ((tab instanceof DockItem))
                     ((DockItem)tab).close();
         });
@@ -183,6 +203,8 @@ public class DockItem extends Tab
         final ContextMenu menu = new ContextMenu(info,
                                                  new SeparatorMenuItem(),
                                                  detach,
+                                                 split_horiz,
+                                                 split_vert,
                                                  new SeparatorMenuItem(),
                                                  close,
                                                  close_other,
@@ -248,7 +270,11 @@ public class DockItem extends Tab
     /** @param info Multi-line information for 'Info' dialog */
     protected void fillInformation(final StringBuilder info)
     {
-        info.append("Application Name: ").append(getApplication().getAppDescriptor().getName());
+        if (getApplication() == null)
+            info.append("NO APPLICATION");
+        else
+            info.append("Application Name: ")
+                .append(getApplication().getAppDescriptor().getName());
     }
 
     /** Allow dragging this item */
@@ -307,15 +333,8 @@ public class DockItem extends Tab
         else
         {
             // System.out.println("Somebody dropped " + item + " onto " + this);
-            final TabPane old_parent = item.getTabPane();
-            final TabPane new_parent = getTabPane();
-
-            // Unexpected, but would still "work" at this time
-            if (! (old_parent instanceof DockPane))
-                throw new IllegalStateException("Expected DockPane for " + item + ", got " + old_parent);
-            if (! (new_parent instanceof DockPane))
-                throw new IllegalStateException("Expected DockPane for " + item + ", got " + new_parent);
-
+            final DockPane old_parent = item.getDockPane();
+            final DockPane new_parent = getDockPane();
             if (new_parent != old_parent)
             {
                 old_parent.getTabs().remove(item);
@@ -363,12 +382,7 @@ public class DockItem extends Tab
     {
         final Stage other = new Stage();
 
-        final TabPane old_parent = getTabPane();
-
-        // Unexpected, but would still "work" at this time
-        if (! (old_parent instanceof DockPane))
-            throw new IllegalStateException("Expected DockPane for " + this + ", got " + old_parent);
-
+        final DockPane old_parent = getDockPane();
         old_parent.getTabs().remove(this);
         DockStage.configureStage(other, this);
 
@@ -389,10 +403,23 @@ public class DockItem extends Tab
         return other;
     }
 
+    /** Request DockPane to split
+     *  @param horizontally Horizontally or vertically?
+     */
+    private void split(final boolean horizontally)
+    {
+        final DockPane pane = getDockPane();
+        // Perform on next tick, outside of menu action handler.
+        // This allows debugging on Linux,
+        // where UI would otherwise be stuck in context menu and not
+        // allow using the mouse etc.
+        Platform.runLater(() -> pane.split(horizontally));
+    }
+
     /** Select this tab, i.e. raise it in case another tab is currently visible */
     public void select()
     {
-        final TabPane pane = getTabPane();
+        final DockPane pane = getDockPane();
         final Window window = pane.getScene().getWindow();
         if (window instanceof Stage)
         {
@@ -468,7 +495,7 @@ public class DockItem extends Tab
         if (null != handler)
             handler.handle(null);
 
-        getTabPane().getTabs().remove(this);
+        getDockPane().getTabs().remove(this);
 
         return true;
     }

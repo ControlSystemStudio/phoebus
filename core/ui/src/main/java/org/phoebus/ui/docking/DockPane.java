@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import org.phoebus.ui.javafx.Styles;
 
 import javafx.beans.InvalidationListener;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -27,6 +28,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -71,16 +73,17 @@ public class DockPane extends TabPane
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
-        if (! active.getScene().getWindow().isShowing())
-        {
-            // The Window for the previously active dock pane was closed
-            // Use the first one that's still open
-            for (Stage stage : DockStage.getDockStages())
-            {
-                active = DockStage.getDockPane(stage);
-                break;
-            }
-        }
+        // TODO: On startup, when memento is restored, getScene() returns null, so cannot check
+//        if (active.getScene().getWindow().isShowing())
+//        {
+//            // The Window for the previously active dock pane was closed
+//            // Use the first one that's still open
+//            for (Stage stage : DockStage.getDockStages())
+//            {
+//                active = DockStage.getDockPanes(stage).get(0);
+//                break;
+//            }
+//        }
         return active;
     }
 
@@ -117,13 +120,28 @@ public class DockPane extends TabPane
             return;
         always_show_tabs = do_show_single_tabs;
         for (Stage stage : DockStage.getDockStages())
-        {
-            final DockPane pane = DockStage.getDockPane(stage);
-            pane.autoHideTabs();
-            pane.requestLayout();
-        }
+            for (DockPane pane : DockStage.getDockPanes(stage))
+            {
+                pane.autoHideTabs();
+                pane.requestLayout();
+            }
     }
 
+    /** In principle, 'getParent()' provides the parent of a node,
+     *  which should either be a {@link BorderPane} or a {@link SplitDock}.
+     *  JFX, however, will only update the parent when the node is rendered.
+     *  While assembling or updating the scene, getParent() can return null.
+     *  Further, a node added to a SplitDock (SplitPane) will actually have
+     *  a SplitPaneSkin$Content as a parent and not a SplitPane let alone SplitDock.
+     *
+     *  We therefore track the parent that matters for our needs
+     *  in the user data under this key.
+     */
+    private Parent dock_parent = null;
+
+    /** Create DockPane
+     *  @param tabs
+     */
     // Only accessible within this package (DockStage)
     DockPane(final DockItem... tabs)
     {
@@ -153,6 +171,18 @@ public class DockPane extends TabPane
 
         // Show/hide tabs as tab count changes
         getTabs().addListener((InvalidationListener) change -> autoHideTabs());
+    }
+
+
+    /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */
+    void setDockParent(final Parent dock_parent)
+    {
+        if (dock_parent == null ||
+            dock_parent instanceof BorderPane  ||
+            dock_parent instanceof SplitDock)
+            this.dock_parent = dock_parent;
+        else
+            throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
     }
 
     /** Handle key presses of global significance like Ctrl-S to save */
@@ -307,6 +337,44 @@ public class DockPane extends TabPane
         }
         event.setDropCompleted(true);
         event.consume();
+    }
+
+    /** Split this dock pane
+     *  @param horizontally <code>true</code> for horizontal, else vertical split
+     *  @return SplitDock, which contains this dock pane as first (top, left) item, and a new DockPane as the second (bottom, left) item
+     */
+    public SplitDock split(final boolean horizontally)
+    {
+        final SplitDock split;
+        if (dock_parent instanceof BorderPane)
+        {
+            final BorderPane parent = (BorderPane) dock_parent;
+            // Remove this dock pane from BorderPane
+            parent.setCenter(null);
+            // Place in split alongside a new dock pane
+            final DockPane new_pane = new DockPane();
+            split = new SplitDock(horizontally, this, new_pane);
+            setDockParent(split);
+            new_pane.setDockParent(split);
+            // Place that new split in the border pane
+            parent.setCenter(split);
+        }
+        else if (dock_parent instanceof SplitDock)
+        {
+            final SplitDock parent = (SplitDock) dock_parent;
+            // Remove this dock pane from BorderPane
+            final boolean first = parent.removeItem(this);
+            // Place in split alongside a new dock pane
+            final DockPane new_pane = new DockPane();
+            split = new SplitDock(horizontally, this, new_pane);
+            setDockParent(split);
+            new_pane.setDockParent(split);
+            // Place that new split in the border pane
+            parent.addItem(first, split);
+        }
+        else
+            throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
+        return split;
     }
 
     @Override
