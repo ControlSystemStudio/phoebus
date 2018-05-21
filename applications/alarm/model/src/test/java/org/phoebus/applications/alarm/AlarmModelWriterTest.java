@@ -3,12 +3,14 @@ package org.phoebus.applications.alarm;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.junit.Test;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
@@ -222,10 +224,68 @@ public class AlarmModelWriterTest
 	@Test
 	public void testAlarmModelWriter() throws Exception
 	{
-		final AlarmClientNode  node = new AlarmClientNode(null, "Test");
+		final AlarmClientNode  root = new AlarmClientNode(null, "Test");
 
-        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        getModelXML(node, buf);
+		// Create an area with 2 PV's.
+		final AlarmClientNode area1 = new AlarmClientNode(root, "Area1");
+
+		final List<TitleDetail> area1Guidance = new ArrayList<>();
+
+		area1Guidance.add(new TitleDetail("Area1 Guidance Title 1", "Area1 Guidance Detail 1"));
+		area1Guidance.add(new TitleDetail("Area1 Guidance Title 2", "Area1 Guidance Detail 2"));
+
+		// Set area1 commands.
+		area1.setCommands(area1Guidance);
+
+		final List<TitleDetail> area1Displays = new ArrayList<>();
+
+		area1Displays.add(new TitleDetail("Area1 Display Title 1", "Area1 Display Detail 1"));
+		area1Displays.add(new TitleDetail("Area1 Display Title 2", "Area1 Display Detail 2"));
+
+		// Set area1 displays.
+		area1.setActions(area1Displays);
+
+		final List<TitleDetail> area1Commands = new ArrayList<>();
+
+		area1Commands.add(new TitleDetail("Area1 Command Title 1", "Area1 Command Detail 1"));
+		area1Commands.add(new TitleDetail("Area1 Command Title 2", "Area1 Command Detail 2"));
+
+		// Set area1 commands.
+		area1.setCommands(area1Commands);
+
+		final List<TitleDetail> area1Actions = new ArrayList<>();
+
+		area1Actions.add(new TitleDetail("Area1 Action Title 1", "Area1 Action Detail 1"));
+		area1Actions.add(new TitleDetail("Area1 Action Title 2", "Area1 Action Detail 2"));
+
+		// Set area1 commands.
+		area1.setActions(area1Actions);
+
+		final AlarmClientLeaf a1pv1 = new AlarmClientLeaf(area1, "a1pv1");
+
+		a1pv1.setAnnunciating(true);
+		a1pv1.setCount(5);
+		a1pv1.setDelay(4);
+		a1pv1.setDescription("a1pv1 description");
+		a1pv1.setEnabled(true);
+		a1pv1.setFilter("a1pv1 filter");
+		a1pv1.setLatching(true);
+
+		final AlarmClientLeaf a1pv2 = new AlarmClientLeaf(area1, "a1pv2");
+		a1pv2.setDescription("a1pv2 description");
+
+		final AlarmClientNode area2 = new AlarmClientNode(root, "Area2");
+
+		final AlarmClientLeaf a2pv1 = new AlarmClientLeaf(area2, "a2pv1");
+		a2pv1.setDescription("a2pv1 description");
+
+		final AlarmClientNode area3 = new AlarmClientNode(area2, "Area3");
+
+		final AlarmClientLeaf a3pv1 = new AlarmClientLeaf(area3, "a3pv1");
+		a3pv1.setDescription("a3pv1 description");
+
+		final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        getModelXML(root, buf);
         close();
 
         final String xml = buf.toString();
