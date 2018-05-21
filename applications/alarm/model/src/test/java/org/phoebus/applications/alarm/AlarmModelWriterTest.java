@@ -97,9 +97,7 @@ public class AlarmModelWriterTest
 
     	if (!guidance.isEmpty())
     	{
-    		writer.writeStartElement("guidance");
-    		getTitleDetailListXML(guidance);
-    		writer.writeEndElement();
+    		getTitleDetailListXML(guidance, "guidance");
     	}
 
     	// Write XML for Displays
@@ -107,9 +105,7 @@ public class AlarmModelWriterTest
 
     	if (!displays.isEmpty())
     	{
-    		writer.writeStartElement("display");
-    		getTitleDetailListXML(displays);
-    		writer.writeEndElement();
+    		getTitleDetailListXML(displays, "display");
     	}
 
     	// Write XML for Commands
@@ -117,32 +113,36 @@ public class AlarmModelWriterTest
 
     	if (!commands.isEmpty())
     	{
-    		writer.writeStartElement("command");
-    		getTitleDetailListXML(commands);
-    		writer.writeEndElement();
+    		getTitleDetailListXML(commands, "command");
     	}
-
+    	/*
+    	 * TODO : Automated actions are not yet implemented.
     	// Write XML for Actions
     	final List<TitleDetail> actions = item.getActions();
 
     	if (!actions.isEmpty())
     	{
-    		writer.writeStartElement("action");
-    		getTitleDetailListXML(actions);
-    		writer.writeEndElement();
+    		getTitleDetailListXML(actions, "automated_action");
     	}
+    	*/
     }
 
-    private static void getTitleDetailListXML(final List<TitleDetail> tdList) throws Exception
+    // TODO: This will not work with automated_actions as the XML schema expects a third child "delay" to go along
+    // 	     with "title" and "details".
+    private static void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
     {
     	for (final TitleDetail td : tdList)
 		{
 			// TODO: would a title element ever have empty or null title/detail?
-			writer.writeStartElement("title");
+    		writer.writeStartElement(itemSubType);
+
+    		writer.writeStartElement("title");
 			writer.writeCharacters(td.title);
 			writer.writeEndElement();
-			writer.writeStartElement("detail");
+			writer.writeStartElement("details");
 			writer.writeCharacters(td.detail);
+			writer.writeEndElement();
+
 			writer.writeEndElement();
 		}
     }
@@ -289,7 +289,13 @@ public class AlarmModelWriterTest
         close();
 
         final String xml = buf.toString();
-        System.out.println(xml);
+        final String[] lines = xml.split("/n");
+        for (final String line : lines)
+        {
+        	System.out.println(line);
+        }
+
+        //System.out.println(xml);
 	}
 
 }
