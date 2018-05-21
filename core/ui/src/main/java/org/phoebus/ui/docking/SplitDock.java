@@ -102,6 +102,9 @@ public class SplitDock extends SplitPane
             getItems().add(item);
     }
 
+    /** If this split holds only one item,
+     *  replace ourself in the parent with that single item.
+     */
     void merge()
     {
         final DockPane empty_dock = findEmptyDock();
@@ -149,6 +152,7 @@ public class SplitDock extends SplitPane
             ((SplitDock)child).dock_parent = dock_parent;
     }
 
+    /** @return First DockPane child that's empty, or <code>null</code> */
     private DockPane findEmptyDock()
     {
         for (Node item : getItems())
@@ -157,6 +161,9 @@ public class SplitDock extends SplitPane
         return null;
     }
 
+    /** @param item Potential {@link DockPane}
+     *  @return Is 'item' an empty {@link DockPane}?
+     */
     private boolean isEmptyDock(final Node item)
     {
         if (item instanceof DockPane)
