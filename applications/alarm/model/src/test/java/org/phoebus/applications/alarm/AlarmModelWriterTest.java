@@ -22,9 +22,9 @@ import org.phoebus.framework.persistence.XMLUtil;
 
 public class AlarmModelWriterTest
 {
-	private static XMLStreamWriter writer;
+	private XMLStreamWriter writer;
 
-	private static void initWriter (final OutputStream stream) throws Exception
+	private void initWriter (final OutputStream stream) throws Exception
 	{
 		final XMLStreamWriter base =
 	            XMLOutputFactory.newInstance().createXMLStreamWriter(stream, XMLUtil.ENCODING);
@@ -35,19 +35,19 @@ public class AlarmModelWriterTest
 
 	}
 
-	public static void getModelXML(final AlarmTreeItem<?> item) throws Exception
+	public void getModelXML(final AlarmTreeItem<?> item) throws Exception
 	{
 
         getModelXML(item, System.out);
     }
 
-    public static void getModelXML(final AlarmTreeItem<?> item, final OutputStream out) throws Exception
+    public void getModelXML(final AlarmTreeItem<?> item, final OutputStream out) throws Exception
     {
     	initWriter(out);
         getModelXML(item, out, 0);
     }
 
-    private static void getModelXML(final AlarmTreeItem<?> item, final OutputStream out, final int level) throws Exception
+    private void getModelXML(final AlarmTreeItem<?> item, final OutputStream out, final int level) throws Exception
     {
 
     	if (level == 0)
@@ -91,7 +91,7 @@ public class AlarmModelWriterTest
 
     }
 
-    private static void getItemXML(final AlarmTreeItem<?> item) throws Exception
+    private void getItemXML(final AlarmTreeItem<?> item) throws Exception
     {
 
     	// Write XML for Guidance
@@ -131,7 +131,7 @@ public class AlarmModelWriterTest
 
     // TODO: This will not work with automated_actions as the XML schema expects a third child "delay" to go along
     // 	     with "title" and "details".
-    private static void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
+    private void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
     {
     	for (final TitleDetail td : tdList)
 		{
@@ -149,7 +149,7 @@ public class AlarmModelWriterTest
 		}
     }
 
-    private static void getLeafXML(final AlarmTreeLeaf leaf) throws Exception
+    private void getLeafXML(final AlarmTreeLeaf leaf) throws Exception
     {
     	final String description = leaf.getDescription();
     	if (description != null && !description.isEmpty())
@@ -207,7 +207,7 @@ public class AlarmModelWriterTest
 
     }
 
-	public static void close() throws IOException
+	public void close() throws IOException
 	{
         try
         {
@@ -336,5 +336,4 @@ public class AlarmModelWriterTest
         assertTrue(xml.contains("<latching>true</latching>"));
         assertTrue(xml.contains("<annunciating>true</annunciating>"));
 	}
-
 }
