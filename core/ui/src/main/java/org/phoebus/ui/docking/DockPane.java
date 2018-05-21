@@ -74,15 +74,14 @@ public class DockPane extends TabPane
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
-        if (active.getScene().getWindow().isShowing())
+        if (active != null  &&
+            active.getScene() != null &&
+            ! active.getScene().getWindow().isShowing())
         {
             // The Window for the previously active dock pane was closed
             // Use the first one that's still open
             for (Stage stage : DockStage.getDockStages())
-            {
-                active = DockStage.getDockPanes(stage).get(0);
-                break;
-            }
+                return active = DockStage.getDockPanes(stage).get(0);
         }
         return active;
     }
@@ -105,6 +104,9 @@ public class DockPane extends TabPane
         final DockItem item = (DockItem) pane.getSelectionModel().getSelectedItem();
         for (DockPaneListener listener : listeners)
             listener.activeDockItemChanged(item);
+
+        if (active != pane)
+            throw new IllegalStateException();
     }
 
     /** @return true if even single tab is shown */
