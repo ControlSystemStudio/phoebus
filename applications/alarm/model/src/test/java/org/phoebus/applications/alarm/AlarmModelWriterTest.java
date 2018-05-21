@@ -321,6 +321,20 @@ public class AlarmModelWriterTest
         assertTrue(xml.contains("<description>a1pv2 description</description>"));
         assertTrue(xml.contains("<enabled>true</enabled>"));
         assertTrue(xml.contains("<latching>true</latching>"));
+
+        //Check for Area2 and its contents.
+        assertTrue(xml.contains("<component name=\"Area2\">"));
+        assertTrue(xml.contains("<pv name=\"a2pv1\">"));
+        assertTrue(xml.contains("<enabled>true</enabled>"));
+        assertTrue(xml.contains("<latching>true</latching>"));
+        assertTrue(xml.contains("<annunciating>true</annunciating>"));
+
+        //Check for Area3 and its contents.
+        assertTrue(xml.contains("<component name=\"Area3\">"));
+        assertTrue(xml.contains("<pv name=\"a3pv1\">"));
+        assertTrue(xml.contains("<enabled>true</enabled>"));
+        assertTrue(xml.contains("<latching>true</latching>"));
+        assertTrue(xml.contains("<annunciating>true</annunciating>"));
 	}
 
 }
