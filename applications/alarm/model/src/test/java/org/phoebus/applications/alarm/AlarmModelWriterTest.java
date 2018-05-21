@@ -1,5 +1,7 @@
 package org.phoebus.applications.alarm;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -289,13 +291,36 @@ public class AlarmModelWriterTest
         close();
 
         final String xml = buf.toString();
-        final String[] lines = xml.split("/n");
-        for (final String line : lines)
-        {
-        	System.out.println(line);
-        }
 
-        //System.out.println(xml);
+        // TODO: For asserts that look for non unique substrings, implement a check that counts the frequency of the substring
+        // 		 and tests against the susbtring's true total frequency.
+
+        // Check for config
+        assertTrue(xml.contains("<config name=\"Test\">"));
+        assertTrue(xml.contains("</config>"));
+
+        // Check for Area1 and its contents.
+        assertTrue(xml.contains("<component name=\"Area1\">"));
+        assertTrue(xml.contains("<title>Area1 Command Title 1</title>"));
+        assertTrue(xml.contains("<details>Area1 Command Detail 1</details>"));
+        assertTrue(xml.contains("<title>Area1 Command Title 2</title>"));
+        assertTrue(xml.contains("<details>Area1 Command Detail 2</details>"));
+
+        // Area1 PV1
+        assertTrue(xml.contains("<pv name=\"a1pv1\">"));
+        assertTrue(xml.contains("<description>a1pv1 description</description>"));
+        assertTrue(xml.contains("<enabled>true</enabled>"));
+        assertTrue(xml.contains("<latching>true</latching>"));
+        assertTrue(xml.contains("<annunciating>true</annunciating>"));
+        assertTrue(xml.contains("<delay>4</delay>"));
+        assertTrue(xml.contains("<count>5</count>"));
+        assertTrue(xml.contains("<filter>a1pv1 filter</filter>"));
+
+        //Area1 PV2
+        assertTrue(xml.contains("<pv name=\"a1pv2\">"));
+        assertTrue(xml.contains("<description>a1pv2 description</description>"));
+        assertTrue(xml.contains("<enabled>true</enabled>"));
+        assertTrue(xml.contains("<latching>true</latching>"));
 	}
 
 }
