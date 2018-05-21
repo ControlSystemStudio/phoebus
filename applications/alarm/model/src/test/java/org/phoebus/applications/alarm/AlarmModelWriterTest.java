@@ -1,5 +1,6 @@
 package org.phoebus.applications.alarm;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -222,6 +223,22 @@ public class AlarmModelWriterTest
         }
     }
 
+	private void assertFrequency(final int expected, final String searchStr, final String xml)
+	{
+		int found = 0;
+        int index_start = 0;
+        while (true)
+        {
+        	final int tmp = xml.indexOf("<enabled>true</enabled>", index_start + 1);
+        	if (tmp == -1)
+        		break;
+    		index_start = tmp;
+    		found++;
+        }
+
+        assertEquals(expected, found);
+	}
+
 	// TODO: Do we need to handle exception better than simply throwing?
 	@Test
 	public void testAlarmModelWriter() throws Exception
@@ -309,9 +326,7 @@ public class AlarmModelWriterTest
         // Area1 PV1
         assertTrue(xml.contains("<pv name=\"a1pv1\">"));
         assertTrue(xml.contains("<description>a1pv1 description</description>"));
-        assertTrue(xml.contains("<enabled>true</enabled>"));
-        assertTrue(xml.contains("<latching>true</latching>"));
-        assertTrue(xml.contains("<annunciating>true</annunciating>"));
+
         assertTrue(xml.contains("<delay>4</delay>"));
         assertTrue(xml.contains("<count>5</count>"));
         assertTrue(xml.contains("<filter>a1pv1 filter</filter>"));
@@ -319,21 +334,19 @@ public class AlarmModelWriterTest
         //Area1 PV2
         assertTrue(xml.contains("<pv name=\"a1pv2\">"));
         assertTrue(xml.contains("<description>a1pv2 description</description>"));
-        assertTrue(xml.contains("<enabled>true</enabled>"));
-        assertTrue(xml.contains("<latching>true</latching>"));
 
         //Check for Area2 and its contents.
         assertTrue(xml.contains("<component name=\"Area2\">"));
         assertTrue(xml.contains("<pv name=\"a2pv1\">"));
-        assertTrue(xml.contains("<enabled>true</enabled>"));
-        assertTrue(xml.contains("<latching>true</latching>"));
-        assertTrue(xml.contains("<annunciating>true</annunciating>"));
 
         //Check for Area3 and its contents.
         assertTrue(xml.contains("<component name=\"Area3\">"));
         assertTrue(xml.contains("<pv name=\"a3pv1\">"));
-        assertTrue(xml.contains("<enabled>true</enabled>"));
-        assertTrue(xml.contains("<latching>true</latching>"));
-        assertTrue(xml.contains("<annunciating>true</annunciating>"));
+
+        // Check for total frequencies of non unique strings.
+        assertFrequency(4, "<enabled>true</enabled>", xml);
+        assertFrequency(4, "<latching>true</latching>", xml);
+        assertFrequency(4, "<annunciating>true</annunciating>", xml);
+
 	}
 }
