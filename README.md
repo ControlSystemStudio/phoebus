@@ -9,7 +9,7 @@ http://phoebus-doc.readthedocs.io
 
 
 ## Requirements
- - [JDK9](http://jdk.java.net/9/)
+ - [At least JDK9](http://jdk.java.net/9/)
  - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -61,7 +61,7 @@ Start Eclipse like this:
 Check Eclipse Preferences:
 
  * Java, Installed JREs: JDK 9 should be the default
- * Java, Compiler: JDK Compliance should be "9"
+ * Java, Compiler: JDK Compliance should be at least "9"
 
 
 ### Use plain Java configuration
@@ -86,6 +86,7 @@ Restart Eclipse IDE.
 
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
+For full functionality add the java.corba modules to the launch configuration.
 
 ## Complete Distribution, including manual
 

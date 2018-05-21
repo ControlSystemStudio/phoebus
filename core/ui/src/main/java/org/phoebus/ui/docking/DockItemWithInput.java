@@ -12,6 +12,7 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -52,13 +53,14 @@ import javafx.stage.FileChooser.ExtensionFilter;
  *  invokes 'Save As' to prompt for a file name.
  *
  *  @author Kay Kasemir
+ *  @author Evan Smith Check save_as file extension
  */
 @SuppressWarnings("nls")
 public class DockItemWithInput extends DockItem
 {
     private static final String DIRTY = "* ";
 
-    private AtomicBoolean is_dirty = new AtomicBoolean(false);
+    private final AtomicBoolean is_dirty = new AtomicBoolean(false);
 
     /** The one item that should always be included in 'file_extensions' */
     public static final ExtensionFilter ALL_FILES = new ExtensionFilter("All", "*.*");
@@ -216,7 +218,7 @@ public class DockItemWithInput extends DockItem
         try
         {   // If there is no file (input is null or for example http:),
             // call save_as to prompt for file
-            File file = ResourceParser.getFile(getInput());
+            final File file = ResourceParser.getFile(getInput());
             if (file == null)
                 return save_as(monitor);
 
@@ -248,7 +250,7 @@ public class DockItemWithInput extends DockItem
                 throw new Exception("No save_handler provided for 'dirty' " + toString());
             save_handler.run(monitor);
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Save error", ex);
             Platform.runLater(() ->
@@ -281,19 +283,42 @@ public class DockItemWithInput extends DockItem
         {
             // Prompt for file
             File file = ResourceParser.getFile(getInput());
+
+             // Check extension specifications.
+            if (file_extensions.length > 0 && ! acceptAnyFile())
+            {
+	            String fileExtension = getFileExtension(file);
+
+	            // If there is an extension,
+	            // and it's not valid, replace it with the first valid extension.
+	            if (! fileExtension.isEmpty()  &&
+	                ! validExtension(fileExtension))
+	            {
+	            	// Grab the first correct extension and use that.
+	            	// Extensions like *.plt begin with a * so request the substring following the *.
+	            	final String correctExtension = file_extensions[0].getExtensions().get(0).substring(1);
+
+	            	// Create a name with the new file extension.
+	            	fileExtension = fileExtension.substring(1);
+	            	final String fileName = file.getName();
+	            	final String newFileName = fileName.replaceAll(fileExtension, correctExtension);
+
+	            	// Create the file with the new file name.
+	            	file = new File(file.getParentFile(), newFileName);
+	            }
+            }
+
             file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
                                                     Messages.SaveAs, file, file_extensions);
             if (file == null)
                 return false;
-
-            // TODO Enforce one of the file extensions, but ignore "*.*"
 
             // Update input
             setInput(ResourceParser.getURI(file));
             // Save in that file
             return save(monitor);
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Save-As error", ex);
             Platform.runLater(() ->
@@ -303,7 +328,55 @@ public class DockItemWithInput extends DockItem
         return false;
     }
 
-    @Override
+    // Return true if "*.*" is in the file extension filter list.
+    private boolean acceptAnyFile()
+    {
+    	for (final ExtensionFilter ef : file_extensions)
+        {
+        	final List<String> extensions = ef.getExtensions();
+
+        	if (extensions.contains("*.*"))
+        		return true;
+        }
+        return false;
+    }
+
+    // Retrieve the file extension from a File object.
+    // Return it in regex format, i.e. "*.ext" instead of ".ext"
+    private String getFileExtension(File file)
+    {
+    	final String fileName = file.getName();
+
+        final int index = fileName.lastIndexOf(".");
+
+        String fileExtension = "";
+
+        if (index >= 0)
+        {
+        	fileExtension = fileName.substring(index);
+        	fileExtension = "*" + fileExtension;
+        }
+
+        // If there is no extension, return an empty string.
+        return fileExtension;
+    }
+
+    private boolean validExtension(String fileExtensionSearch)
+	{
+    	if (file_extensions.length <= 0)
+    		return true;
+        // Search to see if the current extension is in the file extensions filters.
+        for (final ExtensionFilter ef : file_extensions)
+        {
+        	final List<String> extensions = ef.getExtensions();
+
+        	if (extensions.contains(fileExtensionSearch))
+        		return true;
+        }
+        return false;
+	}
+
+	@Override
     public String toString()
     {
         return "DockItemWithInput(\"" + getLabel() + "\", " + getInput() + ")";
