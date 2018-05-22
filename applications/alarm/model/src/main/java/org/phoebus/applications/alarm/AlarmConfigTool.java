@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 public class AlarmConfigTool
 {
@@ -31,10 +32,13 @@ public class AlarmConfigTool
 		// TODO: Code to import a model from an xml file.
 	}
 
+	// Handles primary thread waiting.
 	private final Object lock = new Object();
 
-	private final long timeout = 20 * 1000;
+	// Time the model must be stable for.
+	private final long timeout = 4 * 1000;
 
+	// Guard and update variable. Will be updated by multiple threads, must be guarded.
 	private final Object update_guard = new Object();
 	private boolean updated = false;
 
@@ -62,6 +66,7 @@ public class AlarmConfigTool
             	{
             		updated = true;
             	}
+            	// Notify the waiting thread an update has occurred.
             	synchronized (lock)
             	{
             		lock.notifyAll();
@@ -76,6 +81,7 @@ public class AlarmConfigTool
             	{
             		updated = true;
             	}
+            	// Notify the waiting thread an update has occurred.
             	synchronized (lock)
             	{
             		lock.notifyAll();
@@ -91,6 +97,7 @@ public class AlarmConfigTool
             	{
             		updated = true;
             	}
+            	// Notify the waiting thread an update has occurred.
             	synchronized (lock)
             	{
             		lock.notifyAll();
@@ -100,10 +107,13 @@ public class AlarmConfigTool
 
         while (true)
         {
+        	// Wait for the model to be stable.
         	synchronized(lock)
         	{
         		lock.wait(timeout);
         	}
+        	// If when the thread wakes the model has been updated, reset the variable.
+        	// On next iteration wait again.
         	if (true == updated)
         	{
         		synchronized (update_guard)
@@ -111,21 +121,26 @@ public class AlarmConfigTool
         			updated = false;
         		}
         	}
+        	// If the model has not been updated break out of the loop.
         	else
         	{
         		break;
         	}
-
         }
 
+        // Shutdown the client to stop the model from being changed again.
         client.shutdown();
+        //Write the model.
+        // TODO: Use filename argument.
+        final XmlModelWriter xmlWriter = new XmlModelWriter(System.out);
+        xmlWriter.getModelXML(client.getRoot());
 	}
 
 	// Constructor. Handles parsing of command lines and execution of command line options.
 	private AlarmConfigTool(String[] args)
 	{
 		// TODO: Parse command line arguments
-
+		// TODO: Add command line argument for timeout
 		final List<String> argList = Arrays.asList(args);
 		int index = -1;
 		if (argList.contains(new String("--help")))
