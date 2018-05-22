@@ -95,8 +95,9 @@ public class AlarmModelWriterTest
 
 		final ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
-		final XmlModelWriter xmlWriter = new XmlModelWriter();
-        xmlWriter.getModelXML(root, buf);
+		final XmlModelWriter xmlWriter = new XmlModelWriter(buf);
+
+		xmlWriter.getModelXML(root);
 
         final String xml = buf.toString();
 

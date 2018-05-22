@@ -18,30 +18,33 @@ public class XmlModelWriter
 
 	private XMLStreamWriter writer;
 
-	private void initWriter (final OutputStream stream) throws Exception
+
+	public XmlModelWriter() throws Exception
+	{
+		initWriter(System.out);
+	}
+
+	public XmlModelWriter(final OutputStream stream) throws Exception
+	{
+		initWriter(stream);
+	}
+
+	private void initWriter(final OutputStream stream) throws Exception
 	{
 		final XMLStreamWriter base =
 	            XMLOutputFactory.newInstance().createXMLStreamWriter(stream, XMLUtil.ENCODING);
 	        writer = new IndentingXMLStreamWriter(base);
 
 	        writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
-	        // TODO: Does anything else need to be done to initialize the XML writer?
-
 	}
 
-	public void getModelXML(final AlarmTreeItem<?> item) throws Exception
-	{
 
-        getModelXML(item, System.out);
-    }
-
-    public void getModelXML(final AlarmTreeItem<?> item, final OutputStream out) throws Exception
+    public void getModelXML(final AlarmTreeItem<?> item) throws Exception
     {
-    	initWriter(out);
-        getModelXML(item, out, 0);
+        getModelXML(item, 0);
     }
 
-    private void getModelXML(final AlarmTreeItem<?> item, final OutputStream out, final int level) throws Exception
+    private void getModelXML(final AlarmTreeItem<?> item, final int level) throws Exception
     {
 
     	if (level == 0)
@@ -52,7 +55,7 @@ public class XmlModelWriter
         	getItemXML(item);
 
         	for (final AlarmTreeItem<?> child : item.getChildren())
-                getModelXML(child, out, level+1);
+                getModelXML(child, level+1);
 
         	writer.writeEndElement();
         	close();
@@ -78,7 +81,7 @@ public class XmlModelWriter
         	getItemXML(item);
 
         	for (final AlarmTreeItem<?> child : item.getChildren())
-                getModelXML(child, out, level+1);
+                getModelXML(child, level+1);
 
         	writer.writeEndElement();
         }
