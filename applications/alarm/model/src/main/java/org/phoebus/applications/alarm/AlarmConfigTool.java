@@ -2,8 +2,8 @@ package org.phoebus.applications.alarm;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -13,6 +13,16 @@ import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 public class AlarmConfigTool
 {
+	// Handles primary thread waiting.
+	private final Object lock = new Object();
+
+	// Time the model must be stable for.
+	private long timeout = 4 * 1000;
+
+	// Guard and update variable. Will be updated by multiple threads, must be guarded.
+	private final Object update_guard = new Object();
+	private boolean updated = false;
+
 	// Prints help info about the program and then exits.
 	private void help()
 	{
@@ -29,34 +39,26 @@ public class AlarmConfigTool
 		System.exit(0);
 	}
 
-	// Import an alarm system model from an xml file.
-	@SuppressWarnings("unused")
-	private void importModel(/* xml file? */)
+	private void argError()
 	{
-		// TODO: Code to import a model from an xml file.
+		System.out.println("Argument order error. Use --help for program usage info.");
+		System.exit(1);
 	}
 
-	// Handles primary thread waiting.
-	private final Object lock = new Object();
-
-	// Time the model must be stable for.
-	private final long timeout = 4 * 1000;
-
-	// Guard and update variable. Will be updated by multiple threads, must be guarded.
-	private final Object update_guard = new Object();
-	private boolean updated = false;
+	private void setTimeout(final long time)
+	{
+		timeout = time * 1000;
+	}
 
 	// Export an alarm system model to an xml file.
 	private void exportModel(String filename) throws Exception
 	{
-		// TODO: Decide on timing scheme for when to write snapshot of model to xml.
-		// TODO: Create listener only for items added and removed. Not updated?
+
 		final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
         client.start();
         TimeUnit.SECONDS.sleep(4);
 
-        System.out.println("Snapshot after 4 seconds:");
-        //ModelPrinter.print(client.getRoot());
+        System.out.printf("Writing file after model is stable for %d seconds:\n", timeout/1000);
 
         System.out.println("Monitoring changes...");
 
@@ -157,12 +159,19 @@ public class AlarmConfigTool
         System.out.println("\nModel written to file: " + filename);
 	}
 
+	// Import an alarm system model from an xml file.
+	@SuppressWarnings("unused")
+	private void importModel(/* xml file? */)
+	{
+		// TODO: Code to import a model from an xml file.
+	}
+
 	// Constructor. Handles parsing of command lines and execution of command line options.
 	private AlarmConfigTool(String[] args)
 	{
 		// TODO: Parse command line arguments
 		// TODO: Add command line argument for timeout
-		final List<String> argList = Arrays.asList(args);
+		final ArrayList<String> argList = new ArrayList<>(Arrays.asList(args));
 		int index = -1;
 		if (argList.contains(new String("--help")))
 		{
@@ -172,14 +181,31 @@ public class AlarmConfigTool
 		{
 
 			// TODO: Handle the exception with appropriate error messages.
-				try
-				{
-					exportModel(argList.get(index+1));
-				}
-				catch (final Exception e)
-				{
-					e.printStackTrace();
-				}
+			long wait_time = 0;
+			try
+			{
+				wait_time = Integer.parseInt(argList.get(index+2));
+			}
+			catch (final IndexOutOfBoundsException e)
+			{
+
+				argError();
+			}
+
+			setTimeout(wait_time);
+
+			try
+			{
+				exportModel(argList.get(index+1));
+			}
+			catch (final IndexOutOfBoundsException e)
+			{
+				argError();
+			}
+			catch (final Exception e)
+			{
+				e.printStackTrace();
+			}
 
 		}
 
