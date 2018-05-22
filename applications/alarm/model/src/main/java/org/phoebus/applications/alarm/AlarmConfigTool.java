@@ -18,6 +18,7 @@ public class AlarmConfigTool
 
 	// Guard and update variable. Will be updated by multiple threads, must be guarded.
 	private final Object update_guard = new Object();
+	// Fetched from multiple threads. Fetch from memory only.
 	private volatile boolean updated = false;
 
 	// Prints help info about the program and then exits.
@@ -106,8 +107,6 @@ public class AlarmConfigTool
         	// On next iteration wait again.
         	if (true == updated)
         	{
-        		// TODO: This can happen quite often, should this print statement be removed as to not spam the console?
-        		System.out.println("Model has been updated. Restarting wait for stability.");
         		synchronized (update_guard)
         		{
         			updated = false;
