@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.print.ModelPrinter;
 
 public class AlarmConfigTool
 {
@@ -32,6 +31,13 @@ public class AlarmConfigTool
 		// TODO: Code to import a model from an xml file.
 	}
 
+	private final Object lock = new Object();
+
+	private final long timeout = 20 * 1000;
+
+	private final Object update_guard = new Object();
+	private boolean updated = false;
+
 	// Export an alarm system model to an xml file.
 	private void exportModel(String filename) throws Exception
 	{
@@ -42,7 +48,7 @@ public class AlarmConfigTool
         TimeUnit.SECONDS.sleep(4);
 
         System.out.println("Snapshot after 4 seconds:");
-        ModelPrinter.print(client.getRoot());
+        //ModelPrinter.print(client.getRoot());
 
         System.out.println("Monitoring changes...");
 
@@ -51,22 +57,66 @@ public class AlarmConfigTool
             @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {
-                // Reset timer.
-
+            	// Mark as updated.
+            	synchronized(update_guard)
+            	{
+            		updated = true;
+            	}
+            	synchronized (lock)
+            	{
+            		lock.notifyAll();
+            	}
             }
 
             @Override
             public void itemRemoved(final AlarmTreeItem<?> item)
             {
-            	// Reset timer.
+            	// Mark as updated.
+            	synchronized(update_guard)
+            	{
+            		updated = true;
+            	}
+            	synchronized (lock)
+            	{
+            		lock.notifyAll();
+
+            	}
             }
 
             @Override
             public void itemUpdated(final AlarmTreeItem<?> item)
             {
-            	// Reset timer.
+            	// Mark as updated.
+            	synchronized(update_guard)
+            	{
+            		updated = true;
+            	}
+            	synchronized (lock)
+            	{
+            		lock.notifyAll();
+            	}
             }
         });
+
+        while (true)
+        {
+        	synchronized(lock)
+        	{
+        		lock.wait(timeout);
+        	}
+        	if (true == updated)
+        	{
+        		synchronized (update_guard)
+        		{
+        			updated = false;
+        		}
+        	}
+        	else
+        	{
+        		break;
+        	}
+
+        }
 
         client.shutdown();
 	}
