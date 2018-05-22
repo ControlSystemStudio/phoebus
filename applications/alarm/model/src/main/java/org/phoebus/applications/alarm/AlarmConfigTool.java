@@ -1,5 +1,7 @@
 package org.phoebus.applications.alarm;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +19,9 @@ public class AlarmConfigTool
 		// TODO: Create help menu.
 		System.out.println("AlarmToolConfig help menu. Usage defined below.\n");
 		System.out.println("\tTo print this menu: java AlarmToolConfig --help");
-		System.out.print("\tTo export model to a file: java AlarmToolConfig --export [output filename]");
+		System.out.println("\n\tWhen using --export the 'wait time' argument refers to the amount of time the model must have been stable before it will be written to file.\n");
+		System.out.println("\tTo export model to a file: java AlarmToolConfig --export [output filename] [wait time]");
+		System.out.println("\tTo export model to output: java AlarmToolConfig --export stdout [wait time]");
 
 		// TODO: Uncomment when import is implemented.
 		//System.out.print("\tTo import model from a file: java AlarmToolConfig --import [import filename]");
@@ -116,6 +120,7 @@ public class AlarmConfigTool
         	// On next iteration wait again.
         	if (true == updated)
         	{
+        		System.out.println("Model has been updated. Restarting wait for stability.");
         		synchronized (update_guard)
         		{
         			updated = false;
@@ -130,10 +135,26 @@ public class AlarmConfigTool
 
         // Shutdown the client to stop the model from being changed again.
         client.shutdown();
+
         //Write the model.
-        // TODO: Use filename argument.
-        final XmlModelWriter xmlWriter = new XmlModelWriter(System.out);
+
+        final File modelFile = new File(filename);
+        final FileOutputStream fos = new FileOutputStream(modelFile);
+
+        XmlModelWriter xmlWriter = null;
+
+        if (0 == filename.compareTo("stdout"))
+        {
+        	xmlWriter = new XmlModelWriter(System.out);
+        }
+        else
+        {
+        	xmlWriter = new XmlModelWriter(fos);
+        }
+
         xmlWriter.getModelXML(client.getRoot());
+
+        System.out.println("\nModel written to file: " + filename);
 	}
 
 	// Constructor. Handles parsing of command lines and execution of command line options.
