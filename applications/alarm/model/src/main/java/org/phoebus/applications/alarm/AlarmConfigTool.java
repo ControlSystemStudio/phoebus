@@ -13,7 +13,7 @@ public class AlarmConfigTool
 	// Handles primary thread waiting.
 	private final Object lock = new Object();
 
-	// Time the model must be stable for.
+	// Time the model must be stable for. Unit is milliseconds. Default is 4 seconds.
 	private long timeout = 4 * 1000;
 
 	// Guard and update variable. Will be updated by multiple threads, must be guarded.
@@ -23,7 +23,6 @@ public class AlarmConfigTool
 	// Prints help info about the program and then exits.
 	private void help()
 	{
-		// TODO: Create help menu.
 		System.out.println("AlarmToolConfig help menu. Usage defined below.\n");
 		System.out.println("\n\tThis program facilitates the importation and exportation of the Alarm System's model.\n");
 		System.out.println("\tTo print this menu: java AlarmToolConfig --help\n");
@@ -34,11 +33,12 @@ public class AlarmConfigTool
 		System.out.println("\tUsing '--import' the program will read a user supplied XML file and import the model contained therein to the Alarm System.");
 
 		// TODO: Uncomment when import is implemented.
-		//System.out.print("\tTo import model from a file: java AlarmToolConfig --import [import filename]");
+		//System.out.print("\tTo import model from a file: java AlarmToolConfig --import input_filename");
 
 		System.exit(0);
 	}
 
+	// Sets the timeout member variable.
 	private void setTimeout(final long time)
 	{
 		timeout = time * 1000;
@@ -111,10 +111,11 @@ public class AlarmConfigTool
         	{
         		lock.wait(timeout);
         	}
-        	// If when the thread wakes the model has been updated, reset the variable.
+        	// If the model has been updated when the thread wakes reset the variable.
         	// On next iteration wait again.
         	if (true == updated)
         	{
+        		// TODO: This can happen quite often, should this print statement be removed as to not spam the console?
         		System.out.println("Model has been updated. Restarting wait for stability.");
         		synchronized (update_guard)
         		{
@@ -138,6 +139,7 @@ public class AlarmConfigTool
 
         XmlModelWriter xmlWriter = null;
 
+        // Write to stdout or to file.
         if (0 == filename.compareTo("stdout"))
         {
         	xmlWriter = new XmlModelWriter(System.out);
@@ -210,7 +212,8 @@ public class AlarmConfigTool
 			}
 			else if (0 == args[i].compareTo("--import"))
 			{
-				System.out.println("import not yet implemented.");
+				System.out.println("--import not yet implemented.");
+				System.exit(1);
 			}
 			else
 			{
