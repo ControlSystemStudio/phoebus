@@ -18,7 +18,7 @@ public class AlarmConfigTool
 
 	// Guard and update variable. Will be updated by multiple threads, must be guarded.
 	private final Object update_guard = new Object();
-	private boolean updated = false;
+	private volatile boolean updated = false;
 
 	// Prints help info about the program and then exits.
 	private void help()
@@ -91,16 +91,7 @@ public class AlarmConfigTool
             @Override
             public void itemUpdated(final AlarmTreeItem<?> item)
             {
-            	// Mark as updated.
-            	synchronized(update_guard)
-            	{
-            		updated = true;
-            	}
-            	// Notify the waiting thread an update has occurred.
-            	synchronized (lock)
-            	{
-            		lock.notifyAll();
-            	}
+            	//NOP
             }
         });
 
