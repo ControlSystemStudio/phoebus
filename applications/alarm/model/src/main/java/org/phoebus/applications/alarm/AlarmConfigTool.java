@@ -2,24 +2,36 @@ package org.phoebus.applications.alarm;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 
 public class AlarmConfigTool
 {
-	// Handles primary thread waiting.
-	private final Object lock = new Object();
+	// Time the model must be stable for. Unit is seconds. Default is 4 seconds.
+	private long time = 4;
 
-	// Time the model must be stable for. Unit is milliseconds. Default is 4 seconds.
-	private long timeout = 4 * 1000;
+	private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
+    private final CountDownLatch no_more_messages = new CountDownLatch(1);
+    private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
+    private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
 
-	// Guard and update variable. Will be updated by multiple threads, must be guarded.
-	private final Object update_guard = new Object();
-	// Fetched from multiple threads. Fetch from memory only.
-	private volatile boolean updated = false;
+    void resetTimer()
+    {
+        final ScheduledFuture<?> previous = timeout.getAndSet(timer.schedule(signal_no_more_messages, time, TimeUnit.SECONDS));
+        if (previous != null)
+            previous.cancel(false);
+    }
 
 	// Prints help info about the program and then exits.
 	private void help()
@@ -40,9 +52,9 @@ public class AlarmConfigTool
 	}
 
 	// Sets the timeout member variable.
-	private void setTimeout(final long time)
+	private void setTimeout(final long new_time)
 	{
-		timeout = time * 1000;
+		time = new_time;
 	}
 
 	// Export an alarm system model to an xml file.
@@ -52,41 +64,24 @@ public class AlarmConfigTool
 		final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
         client.start();
 
-        System.out.printf("Writing file after model is stable for %d seconds:\n", timeout/1000);
+        System.out.printf("Writing file after model is stable for %d seconds:\n", time);
 
         System.out.println("Monitoring changes...");
 
-        client.addListener(new AlarmClientListener()
+        AlarmClientListener updateListener = new AlarmClientListener()
         {
             @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {
-            	// Mark as updated.
-            	synchronized(update_guard)
-            	{
-            		updated = true;
-            	}
-            	// Notify the waiting thread an update has occurred.
-            	synchronized (lock)
-            	{
-            		lock.notifyAll();
-            	}
+            	// Reset the timer when receiving update
+                resetTimer();
             }
 
             @Override
             public void itemRemoved(final AlarmTreeItem<?> item)
             {
-            	// Mark as updated.
-            	synchronized(update_guard)
-            	{
-            		updated = true;
-            	}
-            	// Notify the waiting thread an update has occurred.
-            	synchronized (lock)
-            	{
-            		lock.notifyAll();
-
-            	}
+            	// Reset the timer when receiving update
+                resetTimer();
             }
 
             @Override
@@ -94,33 +89,41 @@ public class AlarmConfigTool
             {
             	//NOP
             }
-        });
+        };
 
-        while (true)
-        {
-        	// Wait for the model to be stable.
-        	synchronized(lock)
-        	{
-        		lock.wait(timeout);
-        	}
-        	// If the model has been updated when the thread wakes reset the variable.
-        	// On next iteration wait again.
-        	if (true == updated)
-        	{
-        		synchronized (update_guard)
-        		{
-        			updated = false;
-        		}
-        	}
-        	// If the model has not been updated break out of the loop.
-        	else
-        	{
-        		break;
-        	}
-        }
+        client.addListener(updateListener);
+
+        if (! no_more_messages.await(30, TimeUnit.SECONDS))
+            throw new Exception("I give up waiting for updates to subside");
+
+        System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", time);
 
         // Shutdown the client to stop the model from being changed again.
-        client.shutdown();
+        client.removeListener(updateListener);
+
+        final AtomicInteger updates = new AtomicInteger();
+
+        updateListener = new AlarmClientListener()
+        {
+        	@Override
+            public void itemAdded(final AlarmTreeItem<?> item)
+            {
+        		updates.incrementAndGet();
+            }
+
+            @Override
+            public void itemRemoved(final AlarmTreeItem<?> item)
+            {
+        		updates.incrementAndGet();
+            }
+
+            @Override
+            public void itemUpdated(final AlarmTreeItem<?> item)
+            {
+            	//NOP
+            }
+        };
+        client.addListener(updateListener);
 
         //Write the model.
 
@@ -142,6 +145,9 @@ public class AlarmConfigTool
         xmlWriter.getModelXML(client.getRoot());
 
         System.out.println("\nModel written to file: " + filename);
+        System.out.printf("%d updates were recieved while writing model to file.\n", updates.get());
+
+        client.shutdown();
 	}
 
 	// Import an alarm system model from an xml file.
