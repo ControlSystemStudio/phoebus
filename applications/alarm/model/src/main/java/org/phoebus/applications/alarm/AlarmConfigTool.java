@@ -177,32 +177,40 @@ public class AlarmConfigTool
 		{
 			help();
 		}
+
 		if (-1 != (index = argList.lastIndexOf(new String("--export"))))
 		{
-
-			// TODO: Handle the exception with appropriate error messages.
-			long wait_time = 0;
+			argList.remove(index);
+			String filename = "";
 			try
 			{
-				wait_time = Integer.parseInt(argList.get(index+2));
+				filename = argList.get(index);
 			}
 			catch (final IndexOutOfBoundsException e)
 			{
+				argError();
+			}
 
+			argList.remove(index);
+
+			long wait_time = 0;
+			try
+			{
+				wait_time = Integer.parseInt(argList.get(index));
+			}
+			catch (final IndexOutOfBoundsException e)
+			{
 				argError();
 			}
 
 			setTimeout(wait_time);
 
+			argList.remove(index);
+
 			try
 			{
-				exportModel(argList.get(index+1));
-			}
-			catch (final IndexOutOfBoundsException e)
-			{
-				argError();
-			}
-			catch (final Exception e)
+				exportModel(filename);
+			} catch (final Exception e)
 			{
 				e.printStackTrace();
 			}
