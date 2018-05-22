@@ -25,10 +25,13 @@ public class AlarmConfigTool
 	{
 		// TODO: Create help menu.
 		System.out.println("AlarmToolConfig help menu. Usage defined below.\n");
-		System.out.println("\tTo print this menu: java AlarmToolConfig --help");
-		System.out.println("\n\tWhen using --export the 'wait time' argument refers to the amount of time the model must have been stable before it will be written to file.\n");
-		System.out.println("\tTo export model to a file: java AlarmToolConfig --export output_filename wait_time");
-		System.out.println("\tTo export model to output: java AlarmToolConfig --export stdout wait_time");
+		System.out.println("\n\tThis program facilitates the importation and exportation of the Alarm System's model.\n");
+		System.out.println("\tTo print this menu: java AlarmToolConfig --help\n");
+		System.out.println("\tUsing '--export' the program will write the Alarm System's current model to an XML file.");
+		System.out.println("\n\tThe 'wait_time' argument refers to the amount of time the model must have been stable before it will be written to file.\n");
+		System.out.println("\tTo export model to a file:  java AlarmToolConfig --export output_filename wait_time");
+		System.out.println("\tTo export model to console: java AlarmToolConfig --export stdout wait_time\n");
+		System.out.println("\tUsing '--import' the program will read a user supplied XML file and import the model contained therein to the Alarm System.");
 
 		// TODO: Uncomment when import is implemented.
 		//System.out.print("\tTo import model from a file: java AlarmToolConfig --import [import filename]");
@@ -211,7 +214,7 @@ public class AlarmConfigTool
 			}
 			else
 			{
-				System.out.printf("Unrecognized command line option: %s\n", args[i]);
+				System.out.printf("Unrecognized command line option: %s\nUse --help for program usage info.", args[i]);
 				System.exit(1);
 			}
 		}
