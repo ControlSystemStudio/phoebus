@@ -77,18 +77,22 @@ public class AlarmModelReaderTest
 
 		final AlarmClientNode root = reader.getRoot();
 
-		final List<AlarmTreeItem<?>> children = root.getChildren();
+		assertEquals(2, root.getChildren().size());
 
-		final AlarmTreeItem<?> area1 = children.get(0);
-		final AlarmTreeItem<?> area2 = children.get(1);
+		final AlarmTreeItem<?> area1 = root.getChild("Area1");
+		final AlarmTreeItem<?> area2 = root.getChild("Area2");
 
 		assertEquals("Area1", area1.getName());
 
 		final List<TitleDetail> a1_commands = area1.getCommands();
+
+		assertEquals(2, a1_commands.size());
+
 		final TitleDetail a1_command1 = a1_commands.get(0);
 
 		assertEquals("Area1 Command Title 1", a1_command1.title);
 		assertEquals("Area1 Command Detail 1", a1_command1.detail);
+
 		final TitleDetail a1_command2 = a1_commands.get(1);
 
 		assertEquals("Area1 Command Title 2", a1_command2.title);
@@ -106,6 +110,8 @@ public class AlarmModelReaderTest
 		assertEquals("a1pv1 filter", a1pv1.getFilter());
 
 		final List<TitleDetail> a1pv1_commands = ((AlarmTreeItem<?>)a1pv1).getCommands();
+
+		assertEquals(1, a1pv1_commands.size());
 
 		assertEquals("a1pv1 Command Title 1", a1pv1_commands.get(0).title);
 		assertEquals("a1pv1 Command Detail 1", a1pv1_commands.get(0).detail);
