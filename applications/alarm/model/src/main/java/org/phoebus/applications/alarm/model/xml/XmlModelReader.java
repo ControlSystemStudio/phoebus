@@ -35,6 +35,9 @@ public class XmlModelReader
 	public static final String TAG_COMPONENT = "component";
 	public static final String TAG_PV = "pv";
 
+	// Misc.
+	public static final String TAG_NAME = "name";
+
 	// PV Specific
 	public static final String TAG_DESCRIPTION = "description";
 	public static final String TAG_ENABLED = "enabled";
@@ -108,7 +111,7 @@ public class XmlModelReader
                 final Node attr = attrs.item(idx);
                 final String attr_name = attr.getNodeName();
 
-                if (attr_name.equals("name"))
+                if (attr_name.equals(TAG_NAME))
                 {
                 	comp_node_name = attr.getNodeValue();
                 }
