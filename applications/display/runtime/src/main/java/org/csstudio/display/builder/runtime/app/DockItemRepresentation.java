@@ -15,6 +15,7 @@ import org.phoebus.ui.docking.DockStage;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /** JFXRepresentation inside a DockItemWithInput
  *  @author Kay Kasemir
@@ -42,8 +43,24 @@ public class DockItemRepresentation extends JFXRepresentation
         DockStage.configureStage(new_stage);
 
         // Use location and size from model for the window
-        new_stage.setX(model.propX().getValue());
-        new_stage.setY(model.propY().getValue());
+        double x = model.propX().getValue();
+        double y = model.propY().getValue();
+        if (x <= 0.0  &&  y <= 0.0)
+        {   // .. unless that's (0, 0), i.e. very likely nobody bothered to set it.
+            // In that case, open new window close to the current window
+            final DockPane parent = app_instance.getDockItem().getDockPane();
+            if (parent != null             &&
+                parent.getScene() != null  &&
+                parent.getScene().getWindow() != null)
+            {
+                Window window = parent.getScene().getWindow();
+                x = window.getX();
+                y = window.getY();
+            }
+        }
+        new_stage.setX(x);
+        new_stage.setY(y);
+
         // Size needs to account for the border and toolbar.
         // Using fixed numbers, exact size of border and toolbar unknown
         // at this time in the code
@@ -54,7 +71,7 @@ public class DockItemRepresentation extends JFXRepresentation
 
         // New DockPane is now the 'active' one,
         // model will be opened in it.
-        return openPanel(model, close_handler);
+        return representModelInNewDockItem(model);
     }
 
     @Override
@@ -64,7 +81,11 @@ public class DockItemRepresentation extends JFXRepresentation
         // Set active dock pane to the one used by this display
         // System.out.println("Open panel in " + app_instance.dock_item.getDockPane());
         DockPane.setActiveDockPane(app_instance.getDockItem().getDockPane());
+        return representModelInNewDockItem(model);
+    }
 
+    private ToolkitRepresentation<Parent, Node> representModelInNewDockItem(final DisplayModel model)
+    {
         final URI resource = DisplayInfo.forModel(model).toURI();
         final DisplayRuntimeInstance instance = ApplicationService.createInstance(DisplayRuntimeApplication.NAME, resource);
         return instance.getRepresentation();
