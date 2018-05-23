@@ -1,9 +1,17 @@
 package org.phoebus.applications.alarm;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 
 import org.junit.Test;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 
 public class AlarmModelReaderTest
@@ -28,6 +36,10 @@ public class AlarmModelReaderTest
 	+ "       <delay>4</delay>\n"
 	+ "       <count>5</count>\n"
 	+ "       <filter>a1pv1 filter</filter>\n"
+	+ "       <command>\n"
+	+ "         <title>a1pv1 Command Title 1</title>\n"
+	+ "         <details>a1pv1 Command Detail 1</details>\n"
+	+ "       </command>\n"
 	+ "    </pv>"
 	+ "    <pv name=\"a1pv2\">\n"
 	+ "      <description>a1pv2 description</description>\n"
@@ -54,11 +66,58 @@ public class AlarmModelReaderTest
 	+ "  </component>\n"
 	+ "</config>\n";
 
+
 	@Test
 	public void testAlarmModelReader() throws Exception
 	{
 		final XmlModelReader reader = new XmlModelReader();
 		final InputStream input = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+
 		reader.load(input);
+
+		final AlarmClientNode root = reader.getRoot();
+
+		final List<AlarmTreeItem<?>> children = root.getChildren();
+
+		final AlarmTreeItem<?> area1 = children.get(0);
+		final AlarmTreeItem<?> area2 = children.get(1);
+
+		assertEquals("Area1", area1.getName());
+
+		final List<TitleDetail> a1_commands = area1.getCommands();
+		final TitleDetail a1_command1 = a1_commands.get(0);
+
+		assertEquals("Area1 Command Title 1", a1_command1.title);
+		assertEquals("Area1 Command Detail 1", a1_command1.detail);
+		final TitleDetail a1_command2 = a1_commands.get(1);
+
+		assertEquals("Area1 Command Title 2", a1_command2.title);
+		assertEquals("Area1 Command Detail 2", a1_command2.detail);
+
+		final AlarmTreeLeaf a1pv1 = (AlarmTreeLeaf) area1.getChild("a1pv1");
+
+		assertEquals("a1pv1", area1.getChild("a1pv1").getName());
+		assertEquals("a1pv1 description", a1pv1.getDescription());
+		assertTrue(a1pv1.isEnabled());
+		assertTrue(a1pv1.isLatching());
+		assertTrue(a1pv1.isAnnunciating());
+		assertEquals(5, a1pv1.getCount());
+		assertEquals(4, a1pv1.getDelay());
+		assertEquals("a1pv1 filter", a1pv1.getFilter());
+
+		final List<TitleDetail> a1pv1_commands = ((AlarmTreeItem<?>)a1pv1).getCommands();
+
+		assertEquals("a1pv1 Command Title 1", a1pv1_commands.get(0).title);
+		assertEquals("a1pv1 Command Detail 1", a1pv1_commands.get(0).detail);
+
+		final AlarmTreeLeaf a1pv2 = (AlarmTreeLeaf) area1.getChild("a1pv2");
+
+		assertEquals("a1pv2", area1.getChild("a1pv2").getName());
+		assertEquals("a1pv2 description", a1pv2.getDescription());
+		assertTrue(a1pv2.isEnabled());
+		assertTrue(a1pv2.isLatching());
+		assertTrue(a1pv2.isAnnunciating());
+
+		assertEquals("Area2", area2.getName());
 	}
 }

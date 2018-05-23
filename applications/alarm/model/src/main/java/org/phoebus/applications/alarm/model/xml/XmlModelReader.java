@@ -1,12 +1,15 @@
 package org.phoebus.applications.alarm.model.xml;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.model.TitleDetail;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -15,7 +18,36 @@ import org.w3c.dom.NodeList;
 
 public class XmlModelReader
 {
+	// Node Types
 	public static final String TAG_CONFIG = "config";
+	public static final String TAG_COMPONENT = "component";
+	public static final String TAG_PV = "pv";
+
+	// PV Specific
+	public static final String TAG_DESCRIPTION = "description";
+	public static final String TAG_ENABLED = "enabled";
+	public static final String TAG_LATCHING = "latching";
+	public static final String TAG_ANNUNCIATING = "annunciating";
+	public static final String TAG_DELAY = "delay";
+	public static final String TAG_COUNT = "count";
+	public static final String TAG_FILTER = "filter";
+
+	// PV and Component
+	public static final String TAG_GUIDANCE = "guidance";
+	public static final String TAG_DISPLAY = "display";
+	public static final String TAG_COMMAND = "command";
+	public static final String TAG_ACTIONS = "automated_action";
+
+	// TitleDetail specific tags.
+	public static final String TAG_TITLE = "title";
+	public static final String TAG_DETAILS = "details";
+
+	private AlarmClientNode root = null;
+
+	public AlarmClientNode getRoot()
+	{
+		return root;
+	}
 
 	// Parse the xml stream and load the stream into a document.
 	public void load(InputStream stream) throws Exception
@@ -44,7 +76,7 @@ public class XmlModelReader
         	children = root_node.getChildNodes();
 
         // Create the root of the model. Parent is null and name must be config.
-        final AlarmClientNode root = new AlarmClientNode(null, root_node.getNodeName());
+        root = new AlarmClientNode(null, root_node.getNodeName());
 
         if (children != null)
         {
@@ -56,6 +88,7 @@ public class XmlModelReader
         	}
 
         }
+
 	}
 
 	private void processNode(AlarmClientNode parent, final Node nd)
@@ -64,10 +97,10 @@ public class XmlModelReader
 
 		switch (name)
 		{
-		case "component":
+		case TAG_COMPONENT:
 			processComponent(parent, nd);
 			break;
-		case "pv":
+		case TAG_PV:
 			processPV(parent, nd);
 			break;
 		default:
@@ -104,22 +137,20 @@ public class XmlModelReader
 		// New component node.
 		final AlarmClientNode comp_node = new AlarmClientNode(parent, comp_node_name);
 
-		System.out.println("created component " + comp_node_name + " parent=" + parent.getName());
-
 		final NodeList child_ndls = nd.getChildNodes();
 
 		for (int idx = 0; idx < child_ndls.getLength(); idx++)
         {
 				final Node child = child_ndls.item(idx);
 				final String name = child.getNodeName();
-            	if (name.equals("component") || name.equals("pv"))
+            	if (name.equals(TAG_COMPONENT) || name.equals(TAG_PV))
             	{
             		processNode(comp_node, child);
             	}
             	else
             	{
             		// This does not refer to XML attributes but instead to the attributes of a model component node.
-            		//processCompAttr(comp_node, child);
+            		processCompAttr(comp_node, child);
             	}
         }
 
@@ -127,8 +158,100 @@ public class XmlModelReader
 
 	private void processCompAttr(AlarmClientNode comp_node, Node child)
 	{
-		final String attrName = child.getNodeName();
+		final String name = child.getNodeName();
+		if (name.equals(TAG_COMMAND))
+		{
+			// Get a copy of any previous guidance entries.
+			final List<TitleDetail> c = comp_node.getCommands();
+			final ArrayList<TitleDetail> commands = new ArrayList<>(c);
+			// Add the new guidance entry.
+			String title = "";
+			String details = "";
 
+			final NodeList children = child.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++)
+			{
+				final Node grandchild = children.item(i);
+				if (grandchild.getNodeName().equals(TAG_TITLE))
+					title = grandchild.getTextContent();
+				else if (grandchild.getNodeName().equals(TAG_DETAILS))
+					details = grandchild.getTextContent();
+			}
+
+			commands.add(new TitleDetail(title, details));
+
+			comp_node.setCommands(commands);
+		}
+		else if (name.equals(TAG_GUIDANCE))
+		{
+			// Get a copy of any previous guidance entries.
+			final List<TitleDetail> g = comp_node.getGuidance();
+			final ArrayList<TitleDetail> guidance = new ArrayList<>(g);
+			// Add the new guidance entry.
+			String title = "";
+			String details = "";
+
+			final NodeList children = child.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++)
+			{
+				final Node grandchild = children.item(i);
+				if (grandchild.getNodeName().equals(TAG_TITLE))
+					title = grandchild.getTextContent();
+				else if (grandchild.getNodeName().equals(TAG_DETAILS))
+					details = grandchild.getTextContent();
+			}
+
+			guidance.add(new TitleDetail(title, details));
+
+			comp_node.setGuidance(guidance);
+		}
+		else if (name.equals(TAG_DISPLAY))
+		{
+			// Get a copy of any previous guidance entries.
+			final List<TitleDetail> d = comp_node.getDisplays();
+			final ArrayList<TitleDetail> displays = new ArrayList<>(d);
+			// Add the new display entry.
+			String title = "";
+			String details = "";
+
+			final NodeList children = child.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++)
+			{
+				final Node grandchild = children.item(i);
+				if (grandchild.getNodeName().equals(TAG_TITLE))
+					title = grandchild.getTextContent();
+				else if (grandchild.getNodeName().equals(TAG_DETAILS))
+					details = grandchild.getTextContent();
+			}
+
+			displays.add(new TitleDetail(title, details));
+
+			comp_node.setGuidance(displays);
+		}
+		else if (name.equals(TAG_ACTIONS))
+		{
+			// Get a copy of any previous guidance entries.
+			final List<TitleDetail> a = comp_node.getActions();
+			final ArrayList<TitleDetail> actions = new ArrayList<>(a);
+
+			// Add the new actions entry.
+			String title = "";
+			String details = "";
+
+			final NodeList children = child.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++)
+			{
+				final Node grandchild = children.item(i);
+				if (grandchild.getNodeName().equals(TAG_TITLE))
+					title = grandchild.getTextContent();
+				else if (grandchild.getNodeName().equals(TAG_DETAILS))
+					details = grandchild.getTextContent();
+			}
+
+			actions.add(new TitleDetail(title, details));
+
+			comp_node.setActions(actions);
+		}
 
 	}
 
@@ -153,7 +276,6 @@ public class XmlModelReader
                 }
             }
         }
-		System.out.println("created pv " + pv_node_name + " parent=" + parent.getName());
 
 		final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
 
@@ -164,47 +286,133 @@ public class XmlModelReader
 				final Node child = child_ndls.item(idx);
 				final String name = child.getNodeName();
 
-				if (name.equals("latching"))
+				if (name.equals(TAG_LATCHING))
 				{
 					final boolean value = child.getTextContent().equals("true") ? true : false;
 					pv.setLatching(value);
-					System.out.println("\tpv " + pv_node_name + " latching: " + child.getTextContent());
 				}
-				else if (name.equals("enabled"))
+				else if (name.equals(TAG_ENABLED))
 				{
 					final boolean value = child.getTextContent().equals("true") ? true : false;
 					pv.setEnabled(value);
-					System.out.println("\tpv " + pv_node_name + " enabled: " + child.getTextContent());
 				}
-				else if (name.equals("annunciating"))
+				else if (name.equals(TAG_ANNUNCIATING))
 				{
 					final boolean value = child.getTextContent().equals("true") ? true : false;
 					pv.setAnnunciating(value);
-					System.out.println("\tpv " + pv_node_name + " annunciating: " + child.getTextContent());
 				}
-				else if (name.equals("description"))
+				else if (name.equals(TAG_DESCRIPTION))
 				{
 					final String value = child.getTextContent();
 					pv.setDescription(value);
-					System.out.println("\tpv " + pv_node_name + " description: " + value);
 				}
-				else if (name.equals("delay"))
+				else if (name.equals(TAG_DELAY))
 				{
 					final int delay = Integer.parseInt(child.getTextContent());
 					pv.setDelay(delay);
-					System.out.println("\tpv " + pv_node_name + " delay: " + child.getTextContent());
 				}
-				else if (name.equals("count"))
+				else if (name.equals(TAG_COUNT))
 				{
 					final int count = Integer.parseInt(child.getTextContent());
 					pv.setCount(count);
-					System.out.println("\tpv " + pv_node_name + " count: " + child.getTextContent());
 				}
-				else if (name.equals("filter"))
+				else if (name.equals(TAG_FILTER))
 				{
 					final String value = child.getTextContent();
 					pv.setFilter(value);
-					System.out.println("\tpv " + pv_node_name + " filter: " + value);
+				}
+				else if (name.equals(TAG_COMMAND))
+				{
+					// Get a copy of any previous guidance entries.
+					final List<TitleDetail> c = pv.getCommands();
+					final ArrayList<TitleDetail> commands = new ArrayList<>(c);
+					// Add the new guidance entry.
+					String title = "";
+					String details = "";
+
+					final NodeList children = child.getChildNodes();
+					for (int i = 0; i < children.getLength(); i++)
+					{
+						final Node grandchild = children.item(i);
+						if (grandchild.getNodeName().equals(TAG_TITLE))
+							title = grandchild.getTextContent();
+						else if (grandchild.getNodeName().equals(TAG_DETAILS))
+							details = grandchild.getTextContent();
+					}
+
+					commands.add(new TitleDetail(title, details));
+
+					pv.setCommands(commands);
+				}
+				else if (name.equals(TAG_GUIDANCE))
+				{
+					// Get a copy of any previous guidance entries.
+					final List<TitleDetail> g = pv.getGuidance();
+					final ArrayList<TitleDetail> guidance = new ArrayList<>(g);
+					// Add the new guidance entry.
+					String title = "";
+					String details = "";
+
+					final NodeList children = child.getChildNodes();
+					for (int i = 0; i < children.getLength(); i++)
+					{
+						final Node grandchild = children.item(i);
+						if (grandchild.getNodeName().equals(TAG_TITLE))
+							title = grandchild.getTextContent();
+						else if (grandchild.getNodeName().equals(TAG_DETAILS))
+							details = grandchild.getTextContent();
+					}
+
+					guidance.add(new TitleDetail(title, details));
+
+					pv.setGuidance(guidance);
+				}
+				else if (name.equals(TAG_DISPLAY))
+				{
+					// Get a copy of any previous guidance entries.
+					final List<TitleDetail> d = pv.getDisplays();
+					final ArrayList<TitleDetail> displays = new ArrayList<>(d);
+					// Add the new display entry.
+					String title = "";
+					String details = "";
+
+					final NodeList children = child.getChildNodes();
+					for (int i = 0; i < children.getLength(); i++)
+					{
+						final Node grandchild = children.item(i);
+						if (grandchild.getNodeName().equals(TAG_TITLE))
+							title = grandchild.getTextContent();
+						else if (grandchild.getNodeName().equals(TAG_DETAILS))
+							details = grandchild.getTextContent();
+					}
+
+					displays.add(new TitleDetail(title, details));
+
+					pv.setGuidance(displays);
+				}
+				else if (name.equals(TAG_ACTIONS))
+				{
+					// Get a copy of any previous guidance entries.
+					final List<TitleDetail> a = pv.getActions();
+					final ArrayList<TitleDetail> actions = new ArrayList<>(a);
+
+					// Add the new actions entry.
+					String title = "";
+					String details = "";
+
+					final NodeList children = child.getChildNodes();
+					for (int i = 0; i < children.getLength(); i++)
+					{
+						final Node grandchild = children.item(i);
+						if (grandchild.getNodeName().equals(TAG_TITLE))
+							title = grandchild.getTextContent();
+						else if (grandchild.getNodeName().equals(TAG_DETAILS))
+							details = grandchild.getTextContent();
+					}
+
+					actions.add(new TitleDetail(title, details));
+
+					pv.setActions(actions);
 				}
         }
 	}
