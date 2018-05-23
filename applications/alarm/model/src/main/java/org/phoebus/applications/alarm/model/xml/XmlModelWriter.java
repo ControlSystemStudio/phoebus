@@ -21,7 +21,7 @@ import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
 
 /**
- *
+ * Writes Alarm System model to XML.
  * @author Evan Smith
  *
  */
