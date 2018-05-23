@@ -159,99 +159,71 @@ public class XmlModelReader
 	private void processCompAttr(AlarmClientNode comp_node, Node child)
 	{
 		final String name = child.getNodeName();
-		if (name.equals(TAG_COMMAND))
+
+		List<String> td = null;
+		List<TitleDetail> tdl = null;
+		ArrayList<TitleDetail> tdal = null;
+		String title = new String();
+		String detail = new String();
+
+		switch (name)
 		{
-			// Get a copy of any previous guidance entries.
-			final List<TitleDetail> c = comp_node.getCommands();
-			final ArrayList<TitleDetail> commands = new ArrayList<>(c);
-			// Add the new guidance entry.
-			String title = "";
-			String details = "";
+			case TAG_COMMAND:
+				// Get a copy of any previous guidance entries.
+				tdl = comp_node.getCommands();
+				tdal = new ArrayList<>(tdl);
 
-			final NodeList children = child.getChildNodes();
-			for (int i = 0; i < children.getLength(); i++)
-			{
-				final Node grandchild = children.item(i);
-				if (grandchild.getNodeName().equals(TAG_TITLE))
-					title = grandchild.getTextContent();
-				else if (grandchild.getNodeName().equals(TAG_DETAILS))
-					details = grandchild.getTextContent();
-			}
+				// Add the new guidance entry.
+				td = getTD(child);
+				title = td.get(0);
+				detail = td.get(1);
+				tdal.add(new TitleDetail(title, detail));
 
-			commands.add(new TitleDetail(title, details));
+				comp_node.setCommands(tdal);
+				break;
+			case TAG_GUIDANCE:
+				// Get a copy of any previous guidance entries.
+				tdl = comp_node.getGuidance();
+				tdal = new ArrayList<>(tdl);
 
-			comp_node.setCommands(commands);
-		}
-		else if (name.equals(TAG_GUIDANCE))
-		{
-			// Get a copy of any previous guidance entries.
-			final List<TitleDetail> g = comp_node.getGuidance();
-			final ArrayList<TitleDetail> guidance = new ArrayList<>(g);
-			// Add the new guidance entry.
-			String title = "";
-			String details = "";
+				// Add the new guidance entry.
+				td = getTD(child);
+				title = td.get(0);
+				detail = td.get(1);
+				tdal.add(new TitleDetail(title, detail));
 
-			final NodeList children = child.getChildNodes();
-			for (int i = 0; i < children.getLength(); i++)
-			{
-				final Node grandchild = children.item(i);
-				if (grandchild.getNodeName().equals(TAG_TITLE))
-					title = grandchild.getTextContent();
-				else if (grandchild.getNodeName().equals(TAG_DETAILS))
-					details = grandchild.getTextContent();
-			}
+				comp_node.setGuidance(tdal);
+				break;
+			case TAG_DISPLAY:
+				// Get a copy of any previous guidance entries.
+				tdl = comp_node.getDisplays();
+				tdal = new ArrayList<>(tdl);
 
-			guidance.add(new TitleDetail(title, details));
+				// Add the new display entry.
+				td = getTD(child);
+				title = td.get(0);
+				detail = td.get(1);
+				tdal.add(new TitleDetail(title, detail));
 
-			comp_node.setGuidance(guidance);
-		}
-		else if (name.equals(TAG_DISPLAY))
-		{
-			// Get a copy of any previous guidance entries.
-			final List<TitleDetail> d = comp_node.getDisplays();
-			final ArrayList<TitleDetail> displays = new ArrayList<>(d);
-			// Add the new display entry.
-			String title = "";
-			String details = "";
+				comp_node.setGuidance(tdal);
+				break;
+			case TAG_ACTIONS:
+				// Get a copy of any previous guidance entries.
+				tdl = comp_node.getActions();
+				tdal = new ArrayList<>(tdl);
 
-			final NodeList children = child.getChildNodes();
-			for (int i = 0; i < children.getLength(); i++)
-			{
-				final Node grandchild = children.item(i);
-				if (grandchild.getNodeName().equals(TAG_TITLE))
-					title = grandchild.getTextContent();
-				else if (grandchild.getNodeName().equals(TAG_DETAILS))
-					details = grandchild.getTextContent();
-			}
+				// Add the new actions entry.
+				td = getTD(child);
+				title = td.get(0);
+				detail = td.get(1);
+				tdal.add(new TitleDetail(title, detail));
 
-			displays.add(new TitleDetail(title, details));
-
-			comp_node.setGuidance(displays);
-		}
-		else if (name.equals(TAG_ACTIONS))
-		{
-			// Get a copy of any previous guidance entries.
-			final List<TitleDetail> a = comp_node.getActions();
-			final ArrayList<TitleDetail> actions = new ArrayList<>(a);
-
-			// Add the new actions entry.
-			String title = "";
-			String details = "";
-
-			final NodeList children = child.getChildNodes();
-			for (int i = 0; i < children.getLength(); i++)
-			{
-				final Node grandchild = children.item(i);
-				if (grandchild.getNodeName().equals(TAG_TITLE))
-					title = grandchild.getTextContent();
-				else if (grandchild.getNodeName().equals(TAG_DETAILS))
-					details = grandchild.getTextContent();
-			}
-
-			actions.add(new TitleDetail(title, details));
-
-			comp_node.setActions(actions);
-		}
+				comp_node.setActions(tdal);
+				break;
+			default:
+				break;
+				// ?
+			} /* end of switch */
 
 	}
 
@@ -286,134 +258,117 @@ public class XmlModelReader
 				final Node child = child_ndls.item(idx);
 				final String name = child.getNodeName();
 
-				if (name.equals(TAG_LATCHING))
+				boolean value = false;
+				String str = new String();
+				String title = new String();
+				String detail = new String();
+				List<TitleDetail> tdl = null;
+				ArrayList<TitleDetail> tdal = null;
+				List<String> td = null;
+
+				switch(name)
 				{
-					final boolean value = child.getTextContent().equals("true") ? true : false;
-					pv.setLatching(value);
-				}
-				else if (name.equals(TAG_ENABLED))
-				{
-					final boolean value = child.getTextContent().equals("true") ? true : false;
-					pv.setEnabled(value);
-				}
-				else if (name.equals(TAG_ANNUNCIATING))
-				{
-					final boolean value = child.getTextContent().equals("true") ? true : false;
-					pv.setAnnunciating(value);
-				}
-				else if (name.equals(TAG_DESCRIPTION))
-				{
-					final String value = child.getTextContent();
-					pv.setDescription(value);
-				}
-				else if (name.equals(TAG_DELAY))
-				{
-					final int delay = Integer.parseInt(child.getTextContent());
-					pv.setDelay(delay);
-				}
-				else if (name.equals(TAG_COUNT))
-				{
-					final int count = Integer.parseInt(child.getTextContent());
-					pv.setCount(count);
-				}
-				else if (name.equals(TAG_FILTER))
-				{
-					final String value = child.getTextContent();
-					pv.setFilter(value);
-				}
-				else if (name.equals(TAG_COMMAND))
-				{
-					// Get a copy of any previous guidance entries.
-					final List<TitleDetail> c = pv.getCommands();
-					final ArrayList<TitleDetail> commands = new ArrayList<>(c);
-					// Add the new guidance entry.
-					String title = "";
-					String details = "";
+					case TAG_LATCHING:
+						value = child.getTextContent().equals("true") ? true : false;
+						pv.setLatching(value);
+						break;
+					case TAG_ENABLED:
+						value = child.getTextContent().equals("true") ? true : false;
+						pv.setEnabled(value);
+						break;
+					case TAG_ANNUNCIATING:
+						value = child.getTextContent().equals("true") ? true : false;
+						pv.setAnnunciating(value);
+						break;
+					case TAG_DESCRIPTION:
+						str = child.getTextContent();
+						pv.setDescription(str);
+						break;
+					case TAG_DELAY:
+						final int delay = Integer.parseInt(child.getTextContent());
+						pv.setDelay(delay);
+						break;
+					case TAG_COUNT:
+						final int count = Integer.parseInt(child.getTextContent());
+						pv.setCount(count);
+						break;
+					case TAG_FILTER:
+						str = child.getTextContent();
+						pv.setFilter(str);
+						break;
+					case TAG_COMMAND:
+						// Get a copy of any previous guidance entries.
+						tdl = pv.getCommands();
+						tdal = new ArrayList<>(tdl);
 
-					final NodeList children = child.getChildNodes();
-					for (int i = 0; i < children.getLength(); i++)
-					{
-						final Node grandchild = children.item(i);
-						if (grandchild.getNodeName().equals(TAG_TITLE))
-							title = grandchild.getTextContent();
-						else if (grandchild.getNodeName().equals(TAG_DETAILS))
-							details = grandchild.getTextContent();
-					}
+						// Add the new guidance entry.
+						td = getTD(child);
+						title = td.get(0);
+						detail = td.get(1);
+						tdal.add(new TitleDetail(title, detail));
 
-					commands.add(new TitleDetail(title, details));
+						pv.setCommands(tdal);
+						break;
+					case TAG_GUIDANCE:
+						// Get a copy of any previous guidance entries.
+						tdl = pv.getGuidance();
+						tdal = new ArrayList<>(tdl);
 
-					pv.setCommands(commands);
-				}
-				else if (name.equals(TAG_GUIDANCE))
-				{
-					// Get a copy of any previous guidance entries.
-					final List<TitleDetail> g = pv.getGuidance();
-					final ArrayList<TitleDetail> guidance = new ArrayList<>(g);
-					// Add the new guidance entry.
-					String title = "";
-					String details = "";
+						// Add the new guidance entry.
+						td = getTD(child);
+						title = td.get(0);
+						detail = td.get(1);
+						tdal.add(new TitleDetail(title, detail));
 
-					final NodeList children = child.getChildNodes();
-					for (int i = 0; i < children.getLength(); i++)
-					{
-						final Node grandchild = children.item(i);
-						if (grandchild.getNodeName().equals(TAG_TITLE))
-							title = grandchild.getTextContent();
-						else if (grandchild.getNodeName().equals(TAG_DETAILS))
-							details = grandchild.getTextContent();
-					}
+						pv.setGuidance(tdal);
+						break;
+					case TAG_DISPLAY:
+						// Get a copy of any previous guidance entries.
+						tdl = pv.getDisplays();
+						tdal = new ArrayList<>(tdl);
 
-					guidance.add(new TitleDetail(title, details));
+						// Add the new display entry.
+						td = getTD(child);
+						title = td.get(0);
+						detail = td.get(1);
+						tdal.add(new TitleDetail(title, detail));
 
-					pv.setGuidance(guidance);
-				}
-				else if (name.equals(TAG_DISPLAY))
-				{
-					// Get a copy of any previous guidance entries.
-					final List<TitleDetail> d = pv.getDisplays();
-					final ArrayList<TitleDetail> displays = new ArrayList<>(d);
-					// Add the new display entry.
-					String title = "";
-					String details = "";
+						pv.setGuidance(tdal);
+						break;
+					case TAG_ACTIONS:
+						// Get a copy of any previous guidance entries.
+						tdl = pv.getActions();
+						tdal = new ArrayList<>(tdl);
 
-					final NodeList children = child.getChildNodes();
-					for (int i = 0; i < children.getLength(); i++)
-					{
-						final Node grandchild = children.item(i);
-						if (grandchild.getNodeName().equals(TAG_TITLE))
-							title = grandchild.getTextContent();
-						else if (grandchild.getNodeName().equals(TAG_DETAILS))
-							details = grandchild.getTextContent();
-					}
+						// Add the new actions entry.
+						td = getTD(child);
+						title = td.get(0);
+						detail = td.get(1);
+						tdal.add(new TitleDetail(title, detail));
 
-					displays.add(new TitleDetail(title, details));
-
-					pv.setGuidance(displays);
-				}
-				else if (name.equals(TAG_ACTIONS))
-				{
-					// Get a copy of any previous guidance entries.
-					final List<TitleDetail> a = pv.getActions();
-					final ArrayList<TitleDetail> actions = new ArrayList<>(a);
-
-					// Add the new actions entry.
-					String title = "";
-					String details = "";
-
-					final NodeList children = child.getChildNodes();
-					for (int i = 0; i < children.getLength(); i++)
-					{
-						final Node grandchild = children.item(i);
-						if (grandchild.getNodeName().equals(TAG_TITLE))
-							title = grandchild.getTextContent();
-						else if (grandchild.getNodeName().equals(TAG_DETAILS))
-							details = grandchild.getTextContent();
-					}
-
-					actions.add(new TitleDetail(title, details));
-
-					pv.setActions(actions);
-				}
+						pv.setActions(tdal);
+						break;
+					default:
+						break;
+						// ?
+				} /* end of switch */
         }
+	}
+
+	private List<String> getTD(Node nd)
+	{
+		String title = new String();
+		String detail = new String();
+		final NodeList children = nd.getChildNodes();
+		for (int i = 0; i < children.getLength(); i++)
+		{
+			final Node grandchild = children.item(i);
+			if (grandchild.getNodeName().equals(TAG_TITLE))
+				title = grandchild.getTextContent();
+			else if (grandchild.getNodeName().equals(TAG_DETAILS))
+				detail = grandchild.getTextContent();
+		}
+
+		return List.of(title, detail);
 	}
 }
