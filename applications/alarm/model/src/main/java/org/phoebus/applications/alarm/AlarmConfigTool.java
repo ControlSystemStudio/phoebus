@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 import org.phoebus.framework.jobs.NamedThreadFactory;
@@ -155,6 +156,14 @@ public class AlarmConfigTool
 	private void importModel(/* xml file? */)
 	{
 		// TODO: Code to import a model from an xml file.
+
+		// Connect to the server.
+		final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+        client.start();
+
+        // Delete the old model.
+        final AlarmClientNode root = client.getRoot();
+        client.removeComponent(root);
 	}
 
 	// Constructor. Handles parsing of command lines and execution of command line options.
