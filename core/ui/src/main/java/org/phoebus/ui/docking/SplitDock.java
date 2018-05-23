@@ -102,8 +102,9 @@ public class SplitDock extends SplitPane
             getItems().add(item);
     }
 
-    /** If this split holds only one item,
-     *  replace ourself in the parent with that single item.
+    /** If this split holds only one useful item, the other one
+     *  being an empty DockPane,
+     *  replace ourself in the parent with that one non-empty item.
      */
     void merge()
     {
@@ -152,13 +153,40 @@ public class SplitDock extends SplitPane
             ((SplitDock)child).dock_parent = dock_parent;
     }
 
-    /** @return First DockPane child that's empty, or <code>null</code> */
+    /** Find an empty DockPane that should trigger a 'merge'
+     *
+     *  <p>Will not return anything when one of the panes is 'fixed',
+     *  so the other one needs to remain even when empty.
+     *
+     *  @return First DockPane child that's empty, or <code>null</code>
+     */
     private DockPane findEmptyDock()
     {
-        for (Node item : getItems())
-          if (isEmptyDock(item))
-              return (DockPane) item;
+        if (getItems().size() != 2)
+        {
+            logger.log(Level.WARNING, "Expected left and right sections, got " + getItems());
+            return null;
+        }
+        final Node first = getItems().get(0);
+        final Node second = getItems().get(0);
+        // If one of them is 'fixed', don't bother checking the other:
+        // Need to keep this SplitDock
+        if (isFixedDock(first) ||  isFixedDock(second))
+            return null;
+        if (isEmptyDock(first))
+              return (DockPane) first;
+        if (isEmptyDock(second))
+            return (DockPane) second;
         return null;
+    }
+
+    /** @param item Potential {@link DockPane}
+     *  @return Is 'item' a 'fixed' {@link DockPane}?
+     */
+    private boolean isFixedDock(final Node item)
+    {
+        return item instanceof DockPane  &&
+               ((DockPane)item).isFixed();
     }
 
     /** @param item Potential {@link DockPane}
