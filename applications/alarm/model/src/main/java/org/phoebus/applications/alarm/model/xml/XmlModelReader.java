@@ -187,7 +187,7 @@ public class XmlModelReader
                 final Node attr = attrs.item(idx);
                 final String attr_name = attr.getNodeName();
 
-                if (attr_name.equals("name"))
+                if (attr_name.equals(TAG_NAME))
                 {
                 	pv_node_name = attr.getNodeValue();
                 }
