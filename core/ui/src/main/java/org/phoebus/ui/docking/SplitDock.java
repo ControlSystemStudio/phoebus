@@ -171,7 +171,7 @@ public class SplitDock extends SplitPane
         final Node second = getItems().get(1);
         // If one of them is 'fixed', don't bother checking the other:
         // Need to keep this SplitDock
-        if (isFixedDock(first) ||  isFixedDock(second))
+        if (isFixed(first) ||  isFixed(second))
             return null;
         if (isEmptyDock(first))
               return (DockPane) first;
@@ -183,11 +183,34 @@ public class SplitDock extends SplitPane
     /** @param item Potential {@link DockPane}
      *  @return Is 'item' a 'fixed' {@link DockPane}?
      */
+    private boolean isFixed(final Node item)
+    {
+        return isFixedDock(item)  ||  isFixedSplit(item);
+    }
+
+    /** @param item Potential {@link DockPane}
+     *  @return Is 'item' a 'fixed' {@link DockPane}?
+     */
     private boolean isFixedDock(final Node item)
     {
         return item instanceof DockPane  &&
                ((DockPane)item).isFixed();
     }
+
+    /** @param item Potential {@link SplitDock}
+     *  @return Are both sides of the split fixed?
+     */
+    private boolean isFixedSplit(final Node item)
+    {
+        if (! (item instanceof SplitDock))
+            return false;
+        final SplitDock split = (SplitDock) item;
+        for (Node sub : split.getItems())
+            if (! isFixed(sub))
+                return false;
+        return true;
+    }
+
 
     /** @param item Potential {@link DockPane}
      *  @return Is 'item' an empty {@link DockPane}?
