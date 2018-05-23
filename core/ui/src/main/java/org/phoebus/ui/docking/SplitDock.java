@@ -111,7 +111,7 @@ public class SplitDock extends SplitPane
         final DockPane empty_dock = findEmptyDock();
         if (empty_dock == null)
         {
-            logger.log(Level.WARNING, "Missing empty DockPane to merge " + this);
+            logger.log(Level.INFO, "No mergable, empty DockPane in " + this);
             return;
         }
 
@@ -168,7 +168,7 @@ public class SplitDock extends SplitPane
             return null;
         }
         final Node first = getItems().get(0);
-        final Node second = getItems().get(0);
+        final Node second = getItems().get(1);
         // If one of them is 'fixed', don't bother checking the other:
         // Need to keep this SplitDock
         if (isFixedDock(first) ||  isFixedDock(second))
