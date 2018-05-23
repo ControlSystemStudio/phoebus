@@ -158,10 +158,10 @@ public class DockItem extends Tab
     /** This tab should be in a DockPane, not a plain TabPane
      *  @return DockPane that holds this tab
      */
-    private DockPane getDockPane()
+    public DockPane getDockPane()
     {
         final TabPane tp = getTabPane();
-        if (tp instanceof DockPane)
+        if (tp == null  ||  tp instanceof DockPane)
             return (DockPane) tp;
         throw new IllegalStateException("Expected DockPane for " + this + ", got " + tp);
     }
@@ -380,17 +380,21 @@ public class DockItem extends Tab
 
     private Stage detach()
     {
-        final Stage other = new Stage();
-
-        final DockPane old_parent = getDockPane();
-        old_parent.getTabs().remove(this);
-        DockStage.configureStage(other, this);
-
         // For size of new stage, use the old one.
         // (Initially used size of old _Window_,
         //  but that resulted in a new Stage that's
         //  too high, about one title bar height taller).
+        final DockPane old_parent = getDockPane();
         final Scene old_scene = old_parent.getScene();
+
+        // If this tab was the last tab in the DockPane,
+        // and that's in a SplitDock, the following call will
+        // remove the old_parent from the scene.
+        // That's why we fetched the scene info ahead of time.
+        old_parent.getTabs().remove(this);
+
+        final Stage other = new Stage();
+        DockStage.configureStage(other, this);
         other.setWidth(old_scene.getWidth());
         other.setHeight(old_scene.getHeight());
 
