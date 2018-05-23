@@ -2,7 +2,6 @@ package org.phoebus.applications.alarm.model.xml;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -10,11 +9,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class XmlModelReader
 {
@@ -66,52 +65,21 @@ public class XmlModelReader
         doc.getDocumentElement().normalize();
         final Element root_node = doc.getDocumentElement();
 
-
-        NodeList children = null;
-
         // Check if it's a <config/>. If it is collect the child nodes.
         if (!root_node.getNodeName().equals(TAG_CONFIG))
             throw new Exception("Expected " + TAG_CONFIG + " but got " + root_node.getNodeName());
-        else
-        	children = root_node.getChildNodes();
 
         // Create the root of the model. Parent is null and name must be config.
         root = new AlarmClientNode(null, root_node.getNodeName());
 
-        if (children != null)
-        {
-        	// Process every child node.
-        	for (int i = 0; i < children.getLength(); i++)
-        	{
-        		final Node child = children.item(i);
-        		processNode(root /* parent */, child);
-        	}
+        for (final Node child : XMLUtil.getChildElements(root_node, TAG_COMPONENT))
+        	processComponent(root /* parent */, child);
 
-        }
-
+        for (final Element child : XMLUtil.getChildElements(root_node, TAG_PV))
+        	processPV(root /* parent */, child);
 	}
 
-	private void processNode(AlarmClientNode parent, final Node nd)
-	{
-		final String name = nd.getNodeName();
-
-		switch (name)
-		{
-		case TAG_COMPONENT:
-			processComponent(parent, nd);
-			break;
-		case TAG_PV:
-			processPV(parent, nd);
-			break;
-		default:
-			// Unknown label. Ignore or throw?
-			break;
-		}
-
-	}
-
-
-	private void processComponent(AlarmClientNode parent, Node nd)
+	private void processComponent(AlarmClientNode parent, Node nd) throws Exception
 	{
 		// Name of the new component node.
 		String comp_node_name = null;
@@ -137,97 +105,58 @@ public class XmlModelReader
 		// New component node.
 		final AlarmClientNode comp_node = new AlarmClientNode(parent, comp_node_name);
 
-		final NodeList child_ndls = nd.getChildNodes();
+		// This does not refer to XML attributes but instead to the attributes of a model component node.
+		processCompAttr(comp_node, nd);
 
-		for (int idx = 0; idx < child_ndls.getLength(); idx++)
-        {
-				final Node child = child_ndls.item(idx);
-				final String name = child.getNodeName();
-            	if (name.equals(TAG_COMPONENT) || name.equals(TAG_PV))
-            	{
-            		processNode(comp_node, child);
-            	}
-            	else
-            	{
-            		// This does not refer to XML attributes but instead to the attributes of a model component node.
-            		processCompAttr(comp_node, child);
-            	}
-        }
+        for (final Element child : XMLUtil.getChildElements(nd, TAG_COMPONENT))
+        	processComponent(comp_node /* parent */, child);
+
+        for (final Element child : XMLUtil.getChildElements(nd, TAG_PV))
+        	processPV(comp_node/* parent */, child);
 
 	}
 
-	private void processCompAttr(AlarmClientNode comp_node, Node child)
+	private void processCompAttr(AlarmClientNode comp_node, Node node)
 	{
-		final String name = child.getNodeName();
+		ArrayList<TitleDetail> td = new ArrayList<>();
 
-		List<String> td = null;
-		List<TitleDetail> tdl = null;
-		ArrayList<TitleDetail> tdal = null;
-		String title = new String();
-		String detail = new String();
+		for (final Element child : XMLUtil.getChildElements(node, TAG_GUIDANCE))
+			td.add(getTD(child));
 
-		switch (name)
+		if (td.size() > 0)
 		{
-			case TAG_COMMAND:
-				// Get a copy of any previous guidance entries.
-				tdl = comp_node.getCommands();
-				tdal = new ArrayList<>(tdl);
+			comp_node.setGuidance(td);
+			td = new ArrayList<>();
+		}
+		for (final Element child : XMLUtil.getChildElements(node, TAG_DISPLAY))
+			td.add(getTD(child));
 
-				// Add the new guidance entry.
-				td = getTD(child);
-				title = td.get(0);
-				detail = td.get(1);
-				tdal.add(new TitleDetail(title, detail));
+		if (td.size() > 0)
+		{
+			comp_node.setDisplays(td);
+			td = new ArrayList<>();
+		}
 
-				comp_node.setCommands(tdal);
-				break;
-			case TAG_GUIDANCE:
-				// Get a copy of any previous guidance entries.
-				tdl = comp_node.getGuidance();
-				tdal = new ArrayList<>(tdl);
+		for (final Element child : XMLUtil.getChildElements(node, TAG_COMMAND))
+			td.add(getTD(child));
 
-				// Add the new guidance entry.
-				td = getTD(child);
-				title = td.get(0);
-				detail = td.get(1);
-				tdal.add(new TitleDetail(title, detail));
+		if (td.size() > 0)
+		{
+			comp_node.setCommands(td);
+			td = new ArrayList<>();
+		}
 
-				comp_node.setGuidance(tdal);
-				break;
-			case TAG_DISPLAY:
-				// Get a copy of any previous guidance entries.
-				tdl = comp_node.getDisplays();
-				tdal = new ArrayList<>(tdl);
+		for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
+			td.add(getTD(child));
 
-				// Add the new display entry.
-				td = getTD(child);
-				title = td.get(0);
-				detail = td.get(1);
-				tdal.add(new TitleDetail(title, detail));
-
-				comp_node.setGuidance(tdal);
-				break;
-			case TAG_ACTIONS:
-				// Get a copy of any previous guidance entries.
-				tdl = comp_node.getActions();
-				tdal = new ArrayList<>(tdl);
-
-				// Add the new actions entry.
-				td = getTD(child);
-				title = td.get(0);
-				detail = td.get(1);
-				tdal.add(new TitleDetail(title, detail));
-
-				comp_node.setActions(tdal);
-				break;
-			default:
-				break;
-				// ?
-			} /* end of switch */
-
+		if (td.size() > 0)
+		{
+			comp_node.setActions(td);
+			td = new ArrayList<>();
+		}
 	}
 
-	private void processPV(AlarmClientNode parent, final Node nd)
+	private void processPV(AlarmClientNode parent, final Element nd) throws Exception
 	{
 		String pv_node_name = null;
 		final NamedNodeMap attrs = nd.getAttributes();
@@ -251,124 +180,58 @@ public class XmlModelReader
 
 		final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
 
-		final NodeList child_ndls = nd.getChildNodes();
+		XMLUtil.getChildBoolean(nd, TAG_ENABLED).ifPresent(pv::setEnabled);
+		XMLUtil.getChildBoolean(nd, TAG_LATCHING).ifPresent(pv::setLatching);
+		XMLUtil.getChildBoolean(nd, TAG_ANNUNCIATING).ifPresent(pv::setAnnunciating);
+		XMLUtil.getChildString(nd, TAG_DESCRIPTION).ifPresent(pv::setDescription);
+		XMLUtil.getChildInteger(nd, TAG_DELAY).ifPresent(pv::setDelay);
+		XMLUtil.getChildInteger(nd, TAG_COUNT).ifPresent(pv::setCount);
+		XMLUtil.getChildString(nd, TAG_FILTER).ifPresent(pv::setFilter);
 
-		for (int idx = 0; idx < child_ndls.getLength(); idx++)
-        {
-				final Node child = child_ndls.item(idx);
-				final String name = child.getNodeName();
+		ArrayList<TitleDetail> td = new ArrayList<>();
 
-				boolean value = false;
-				String str = new String();
-				String title = new String();
-				String detail = new String();
-				List<TitleDetail> tdl = null;
-				ArrayList<TitleDetail> tdal = null;
-				List<String> td = null;
+		for (final Element child : XMLUtil.getChildElements(nd, TAG_GUIDANCE))
+			td.add(getTD(child));
 
-				switch(name)
-				{
-					case TAG_LATCHING:
-						value = child.getTextContent().equals("true") ? true : false;
-						pv.setLatching(value);
-						break;
-					case TAG_ENABLED:
-						value = child.getTextContent().equals("true") ? true : false;
-						pv.setEnabled(value);
-						break;
-					case TAG_ANNUNCIATING:
-						value = child.getTextContent().equals("true") ? true : false;
-						pv.setAnnunciating(value);
-						break;
-					case TAG_DESCRIPTION:
-						str = child.getTextContent();
-						pv.setDescription(str);
-						break;
-					case TAG_DELAY:
-						final int delay = Integer.parseInt(child.getTextContent());
-						pv.setDelay(delay);
-						break;
-					case TAG_COUNT:
-						final int count = Integer.parseInt(child.getTextContent());
-						pv.setCount(count);
-						break;
-					case TAG_FILTER:
-						str = child.getTextContent();
-						pv.setFilter(str);
-						break;
-					case TAG_COMMAND:
-						// Get a copy of any previous guidance entries.
-						tdl = pv.getCommands();
-						tdal = new ArrayList<>(tdl);
-
-						// Add the new guidance entry.
-						td = getTD(child);
-						title = td.get(0);
-						detail = td.get(1);
-						tdal.add(new TitleDetail(title, detail));
-
-						pv.setCommands(tdal);
-						break;
-					case TAG_GUIDANCE:
-						// Get a copy of any previous guidance entries.
-						tdl = pv.getGuidance();
-						tdal = new ArrayList<>(tdl);
-
-						// Add the new guidance entry.
-						td = getTD(child);
-						title = td.get(0);
-						detail = td.get(1);
-						tdal.add(new TitleDetail(title, detail));
-
-						pv.setGuidance(tdal);
-						break;
-					case TAG_DISPLAY:
-						// Get a copy of any previous guidance entries.
-						tdl = pv.getDisplays();
-						tdal = new ArrayList<>(tdl);
-
-						// Add the new display entry.
-						td = getTD(child);
-						title = td.get(0);
-						detail = td.get(1);
-						tdal.add(new TitleDetail(title, detail));
-
-						pv.setGuidance(tdal);
-						break;
-					case TAG_ACTIONS:
-						// Get a copy of any previous guidance entries.
-						tdl = pv.getActions();
-						tdal = new ArrayList<>(tdl);
-
-						// Add the new actions entry.
-						td = getTD(child);
-						title = td.get(0);
-						detail = td.get(1);
-						tdal.add(new TitleDetail(title, detail));
-
-						pv.setActions(tdal);
-						break;
-					default:
-						break;
-						// ?
-				} /* end of switch */
-        }
-	}
-
-	private List<String> getTD(Node nd)
-	{
-		String title = new String();
-		String detail = new String();
-		final NodeList children = nd.getChildNodes();
-		for (int i = 0; i < children.getLength(); i++)
+		if (td.size() > 0)
 		{
-			final Node grandchild = children.item(i);
-			if (grandchild.getNodeName().equals(TAG_TITLE))
-				title = grandchild.getTextContent();
-			else if (grandchild.getNodeName().equals(TAG_DETAILS))
-				detail = grandchild.getTextContent();
+			pv.setGuidance(td);
+			td = new ArrayList<>();
 		}
 
-		return List.of(title, detail);
+		for (final Element child : XMLUtil.getChildElements(nd, TAG_DISPLAY))
+			td.add(getTD(child));
+
+		if (td.size() > 0)
+		{
+			pv.setDisplays(td);
+			td = new ArrayList<>();
+		}
+
+		for (final Element child : XMLUtil.getChildElements(nd, TAG_COMMAND))
+			td.add(getTD(child));
+
+		if (td.size() > 0)
+		{
+			pv.setCommands(td);
+			td = new ArrayList<>();
+		}
+
+		for (final Element child : XMLUtil.getChildElements(nd, TAG_ACTIONS))
+			td.add(getTD(child));
+
+		if (td.size() > 0)
+		{
+			pv.setActions(td);
+			td = new ArrayList<>();
+		}
+
+	}
+
+	private TitleDetail getTD(Element node)
+	{
+		final String title = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
+		final String detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
+		return new TitleDetail(title, detail);
 	}
 }
