@@ -72,26 +72,49 @@ public class DockPane extends TabPane
             throw new IllegalStateException("Unknown listener");
     }
 
+    /** @param pane {@link DockPane}
+     *  @return <code>false</code> if pane is fixed or not visible on screen
+     */
+    private static boolean isDockPaneUsable(final DockPane pane)
+    {
+        if (pane.isFixed())
+        {
+            System.out.println("Fixed: " + pane);
+            return false;
+        }
+        if (pane.getScene() == null)
+        {
+            System.out.println("No scene: " + pane);
+            return false;
+        }
+        if (! pane.getScene().getWindow().isShowing())
+        {
+            System.out.println("Window closed: " + pane);
+            return false;
+        }
+        return true;
+    }
+
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
         final DockPane pane = active.get();
-        if (pane != null  &&
-            (pane.getScene() == null || !pane.getScene().getWindow().isShowing()))
+        if (pane != null  &&  !isDockPaneUsable(pane))
         {
             // The Window for the previously active dock pane was closed
             // Use the first one that's still open
             for (Stage stage : DockStage.getDockStages())
-            {
-                final DockPane updated = DockStage.getDockPanes(stage).get(0);
-                setActiveDockPane(updated);
-                return updated;
-            }
+                for (DockPane check : DockStage.getDockPanes(stage))
+                    if (isDockPaneUsable(check))
+                    {
+                        setActiveDockPane(check);
+                        return check;
+                    }
         }
         return pane;
     }
 
-    /** Set the 'active' dock stage
+    /** Set the 'active' dock pane
      *
      *  <p>Called within the phoebus framework,
      *  for example by DockStage or when restoring
@@ -143,6 +166,9 @@ public class DockPane extends TabPane
      */
     private Parent dock_parent = null;
 
+    /** Is this dock pane 'fixed' ? */
+    private boolean fixed;
+
     /** Create DockPane
      *  @param tabs
      */
@@ -186,6 +212,18 @@ public class DockPane extends TabPane
             this.dock_parent = dock_parent;
         else
             throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
+    }
+
+    /** @param fixed Mark as 'fixed', i.e. tabs cannot be added/removed/closed? */
+    public void setFixed(final boolean fixed)
+    {
+        this.fixed = true;
+    }
+
+    /** @return Is this pane 'fixed', i.e. tabs cannot be added/removed/closed? */
+    public boolean isFixed()
+    {
+        return fixed;
     }
 
     /** Handle key presses of global significance like Ctrl-S to save */
@@ -248,7 +286,7 @@ public class DockPane extends TabPane
     }
 
     /** Hide or show tabs
-     * 
+     *
      *  <p>When there's more than one tab, or always_show_tabs,
      *  then show the tabs.
      *  If there's just one tab, and ! always_show_tabs, hide that one tab
@@ -305,6 +343,11 @@ public class DockPane extends TabPane
     /** @param tabs One or more tabs to add */
     public void addTab(final DockItem... tabs)
     {
+        // Prevent closing items in 'fixed' pane
+        if (isFixed())
+            for (DockItem tab : tabs)
+                tab.setClosable(false);
+
         getTabs().addAll(tabs);
         // Select the newly added tab
         getSelectionModel().select(getTabs().size()-1);
@@ -321,7 +364,8 @@ public class DockPane extends TabPane
     /** Accept dock items */
     private void handleDragOver(final DragEvent event)
     {
-        if (DockItem.dragged_item.get() != null)
+        if (!isFixed()  &&
+            DockItem.dragged_item.get() != null)
             event.acceptTransferModes(TransferMode.MOVE);
         event.consume();
     }
@@ -329,7 +373,8 @@ public class DockPane extends TabPane
     /** Highlight while 'drop' is possible */
     private void handleDragEntered(final DragEvent event)
     {
-        if (DockItem.dragged_item.get() != null)
+        if (!isFixed()  &&
+            DockItem.dragged_item.get() != null)
             setBorder(DockItem.DROP_ZONE_BORDER);
         event.consume();
     }
