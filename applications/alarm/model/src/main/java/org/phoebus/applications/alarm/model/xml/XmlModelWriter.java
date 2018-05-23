@@ -61,8 +61,8 @@ public class XmlModelWriter
 
     	if (level == 0)
     	{
-    		writer.writeStartElement("config");
-        	writer.writeAttribute("name", item.getName());
+    		writer.writeStartElement(XmlModelReader.TAG_CONFIG);
+        	writer.writeAttribute(XmlModelReader.TAG_NAME, item.getName());
 
         	getItemXML(item);
 
@@ -76,8 +76,8 @@ public class XmlModelWriter
         {
         	final AlarmTreeLeaf leaf = (AlarmTreeLeaf) item;
 
-        	writer.writeStartElement("pv");
-        	writer.writeAttribute("name", item.getName());
+        	writer.writeStartElement(XmlModelReader.TAG_PV);
+        	writer.writeAttribute(XmlModelReader.TAG_NAME, item.getName());
 
         	getLeafXML(leaf);
 
@@ -87,8 +87,8 @@ public class XmlModelWriter
         }
         else
         {
-        	writer.writeStartElement("component");
-        	writer.writeAttribute("name", item.getName());
+        	writer.writeStartElement(XmlModelReader.TAG_COMPONENT);
+        	writer.writeAttribute(XmlModelReader.TAG_NAME, item.getName());
 
         	getItemXML(item);
 
@@ -109,7 +109,7 @@ public class XmlModelWriter
 
     	if (!guidance.isEmpty())
     	{
-    		getTitleDetailListXML(guidance, "guidance");
+    		getTitleDetailListXML(guidance, XmlModelReader.TAG_GUIDANCE);
     	}
 
     	// Write XML for Displays
@@ -117,7 +117,7 @@ public class XmlModelWriter
 
     	if (!displays.isEmpty())
     	{
-    		getTitleDetailListXML(displays, "display");
+    		getTitleDetailListXML(displays, XmlModelReader.TAG_DISPLAY);
     	}
 
     	// Write XML for Commands
@@ -125,7 +125,7 @@ public class XmlModelWriter
 
     	if (!commands.isEmpty())
     	{
-    		getTitleDetailListXML(commands, "command");
+    		getTitleDetailListXML(commands, XmlModelReader.TAG_COMMAND);
     	}
     	/*
     	 * TODO : Automated actions are not yet implemented.
@@ -134,7 +134,7 @@ public class XmlModelWriter
 
     	if (!actions.isEmpty())
     	{
-    		getTitleDetailListXML(actions, "automated_action");
+    		getTitleDetailListXML(actions, XmlModelReader.TAG_ACTIONS);
     	}
     	*/
     }
@@ -148,10 +148,10 @@ public class XmlModelWriter
 			// TODO: would a title element ever have empty or null title/detail?
     		writer.writeStartElement(itemSubType);
 
-    		writer.writeStartElement("title");
+    		writer.writeStartElement(XmlModelReader.TAG_TITLE);
 			writer.writeCharacters(td.title);
 			writer.writeEndElement();
-			writer.writeStartElement("details");
+			writer.writeStartElement(XmlModelReader.TAG_DETAILS);
 			writer.writeCharacters(td.detail);
 			writer.writeEndElement();
 
@@ -164,26 +164,26 @@ public class XmlModelWriter
     	final String description = leaf.getDescription();
     	if (description != null && !description.isEmpty())
     	{
-    		writer.writeStartElement("description");
+    		writer.writeStartElement(XmlModelReader.TAG_DESCRIPTION);
     		writer.writeCharacters(description);
     		writer.writeEndElement();
     	}
 
     	final String enabled = leaf.isEnabled() ? "true" : "false";
 
-		writer.writeStartElement("enabled");
+		writer.writeStartElement(XmlModelReader.TAG_ENABLED);
 		writer.writeCharacters(enabled);
 		writer.writeEndElement();
 
 		final String latching = leaf.isLatching() ? "true" : "false";
 
-		writer.writeStartElement("latching");
+		writer.writeStartElement(XmlModelReader.TAG_LATCHING);
 		writer.writeCharacters(latching);
 		writer.writeEndElement();
 
 		final String annunciating = leaf.isAnnunciating() ? "true" : "false";
 
-		writer.writeStartElement("annunciating");
+		writer.writeStartElement(XmlModelReader.TAG_ANNUNCIATING);
 		writer.writeCharacters(annunciating);
 		writer.writeEndElement();
 
@@ -192,7 +192,7 @@ public class XmlModelWriter
 		// A delay less than zero doesn't make sense but is technically possible.
 		if (delay != 0)
 		{
-			writer.writeStartElement("delay");
+			writer.writeStartElement(XmlModelReader.TAG_DELAY);
 			writer.writeCharacters(Integer.toString(delay));
 			writer.writeEndElement();
 		}
@@ -202,7 +202,7 @@ public class XmlModelWriter
 		// Count is unsigned so can be assumed greater than 0.
 		if (count > 0)
 		{
-			writer.writeStartElement("count");
+			writer.writeStartElement(XmlModelReader.TAG_COUNT);
 			writer.writeCharacters(Integer.toString(count));
 			writer.writeEndElement();
 		}
@@ -210,7 +210,7 @@ public class XmlModelWriter
 		final String filter = leaf.getFilter();
     	if (filter != null && !filter.isEmpty())
     	{
-    		writer.writeStartElement("filter");
+    		writer.writeStartElement(XmlModelReader.TAG_FILTER);
     		writer.writeCharacters(filter);
     		writer.writeEndElement();
     	}
