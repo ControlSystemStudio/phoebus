@@ -119,5 +119,25 @@ public class AlarmModelReaderTest
 		assertTrue(a1pv2.isAnnunciating());
 
 		assertEquals("Area2", area2.getName());
+
+		final AlarmTreeItem<?> area3 = area2.getChild("Area3");
+
+		assertEquals("Area3", area3.getName());
+
+		final AlarmTreeLeaf a3pv1 = (AlarmTreeLeaf) area3.getChild("a3pv1");
+
+		assertEquals("a3pv1", ((AlarmTreeItem<?>) a3pv1).getName());
+		assertEquals("a3pv1 description", a3pv1.getDescription());
+		assertTrue(a3pv1.isEnabled());
+		assertTrue(a3pv1.isLatching());
+		assertTrue(a3pv1.isAnnunciating());
+
+		final AlarmTreeLeaf a2pv1 = (AlarmTreeLeaf) area2.getChild("a2pv1");
+
+		assertEquals("a2pv1", ((AlarmTreeItem<?>) a2pv1).getName());
+		assertEquals("a2pv1 description", a2pv1.getDescription());
+		assertTrue(a2pv1.isEnabled());
+		assertTrue(a2pv1.isLatching());
+		assertTrue(a2pv1.isAnnunciating());
 	}
 }
