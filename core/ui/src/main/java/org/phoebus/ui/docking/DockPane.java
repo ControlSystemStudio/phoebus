@@ -217,7 +217,10 @@ public class DockPane extends TabPane
     /** @param fixed Mark as 'fixed', i.e. tabs cannot be added/removed/closed? */
     public void setFixed(final boolean fixed)
     {
-        this.fixed = true;
+        this.fixed = fixed;
+        // Prevent closing items in 'fixed' pane
+        for (DockItem tab : getDockItems())
+            tab.setClosable(! fixed);
     }
 
     /** @return Is this pane 'fixed', i.e. tabs cannot be added/removed/closed? */
@@ -246,9 +249,14 @@ public class DockPane extends TabPane
                 if (active_item_with_input.isDirty())
                     JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor));
             }
+            event.consume();
         }
         else if (key == KeyCode.W)
-            item.close();
+        {
+            if (!isFixed())
+                item.close();
+            event.consume();
+        }
     }
 
     // lookup() in findTabHeader/autoHideTabs only works when the scene has been rendered.
@@ -343,11 +351,6 @@ public class DockPane extends TabPane
     /** @param tabs One or more tabs to add */
     public void addTab(final DockItem... tabs)
     {
-        // Prevent closing items in 'fixed' pane
-        if (isFixed())
-            for (DockItem tab : tabs)
-                tab.setClosable(false);
-
         getTabs().addAll(tabs);
         // Select the newly added tab
         getSelectionModel().select(getTabs().size()-1);
