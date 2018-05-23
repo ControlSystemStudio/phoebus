@@ -7,8 +7,11 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
+import java.text.MessageFormat;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
@@ -42,21 +45,46 @@ public class JFXStageRepresentation extends JFXRepresentation
      */
     public Parent configureStage(final DisplayModel model, final Consumer<DisplayModel> close_request_handler)
     {
-        stage.setTitle(model.getDisplayName());
-        stage.setX(model.propX().getValue());
-        stage.setY(model.propY().getValue());
+        final String name = model.getDisplayName();
+        stage.setTitle(name);
+
+        //  The following trick is necessary because keys cannot be longer than 80 characters.
+        final String hexName = Integer.toHexString(name.hashCode()).toLowerCase();
+        final String xPrefName = MessageFormat.format("stage.window.{0}.x", hexName);
+        final String yPrefName = MessageFormat.format("stage.window.{0}.y", hexName);
+        final Preferences pref = Preferences.userNodeForPackage(JFXStageRepresentation.class);
+
+        stage.setX(pref.getDouble(xPrefName, model.propX().getValue()));
+        stage.setY(pref.getDouble(yPrefName, model.propY().getValue()));
+        stage.setOnHidden(event ->
+        {
+            pref.putDouble(xPrefName, stage.getX());
+            pref.putDouble(yPrefName, stage.getY());
+            try
+            {
+                pref.flush();
+            }
+            catch (BackingStoreException ex)
+            {
+                logger.log(Level.WARNING, "Unable to flush preferences", ex);
+            }
+        });
 
         final ScrollPane modelRoot = createModelRoot();
-        modelRoot.setPrefSize(1.2 + model.propWidth().getValue(), 1.2 + model.propHeight().getValue());
+        final double width = Math.max(80, 1.2 + model.propWidth().getValue());
+        final double height = Math.max(60, 1.2 + model.propHeight().getValue());
+        modelRoot.setPrefSize(width, height);
 
         final Scene scene = new Scene(modelRoot);
         setSceneStyle(scene);
         stage.setScene(scene);
         stage.setOnCloseRequest((WindowEvent event) -> handleCloseRequest(scene, close_request_handler));
+        // RCP-embedded version set on-top, not needed when all in JFX
+        // stage.setAlwaysOnTop(true);
         stage.show();
 
         // If ScenicView.jar is added to classpath, open it here
-        //ScenicView.show(scene);
+        // ScenicView.show(scene);
 
         return getModelParent();
     }
