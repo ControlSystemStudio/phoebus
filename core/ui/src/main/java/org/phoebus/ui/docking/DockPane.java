@@ -46,7 +46,7 @@ import javafx.stage.Stage;
 public class DockPane extends TabPane
 {
     /** Logger for all docking related messages */
-    public static final Logger logger = Logger.getLogger(DockPane.class.getName());
+    public static final Logger logger = Logger.getLogger(DockPane.class.getPackageName());
 
     private static CopyOnWriteArrayList<DockPaneListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -78,20 +78,11 @@ public class DockPane extends TabPane
     private static boolean isDockPaneUsable(final DockPane pane)
     {
         if (pane.isFixed())
-        {
-            System.out.println("Fixed: " + pane);
             return false;
-        }
         if (pane.getScene() == null)
-        {
-            System.out.println("No scene: " + pane);
             return false;
-        }
         if (! pane.getScene().getWindow().isShowing())
-        {
-            System.out.println("Window closed: " + pane);
             return false;
-        }
         return true;
     }
 
@@ -413,12 +404,15 @@ public class DockPane extends TabPane
 
             // Move item to new tab
             old_parent.getTabs().remove(item);
-            getTabs().add(item);
 
-            Platform.runLater(this::autoHideTabs);
-
-            // Select the new item
-            getSelectionModel().select(item);
+            // When adding the tab to its new parent (this dock) right away,
+            // the tab would sometimes not properly render until the pane is resized.
+            // Moving to the next UI tick helps
+            Platform.runLater(() ->
+            {
+                addTab(item);
+                Platform.runLater(this::autoHideTabs);
+            });
         }
         event.setDropCompleted(true);
         event.consume();
