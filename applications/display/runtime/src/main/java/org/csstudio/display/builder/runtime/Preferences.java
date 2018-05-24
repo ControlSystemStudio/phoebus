@@ -25,9 +25,11 @@ public class Preferences
 {
     public static final String PYTHON_PATH = "python_path";
     public static final String PV_NAME_PATCHES = "pv_name_patches";
+    public static final String UPDATE_THROTTLE = "update_throttle";
 
     public static String python_path;
     public static List<TextPatch> pv_name_patches;
+    public static int update_throttle_ms;
 
     static
     {
@@ -62,5 +64,7 @@ public class Preferences
                 logger.log(Level.SEVERE, "Invalid setting for " + PV_NAME_PATCHES +
                                          ", need even number of items (pairs of pattern@replacement)");
         }
+
+        update_throttle_ms = prefs.getInt(UPDATE_THROTTLE);
     }
 }
