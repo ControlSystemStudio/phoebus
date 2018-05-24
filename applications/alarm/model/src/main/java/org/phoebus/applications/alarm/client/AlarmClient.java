@@ -394,6 +394,7 @@ public class AlarmClient
      */
     public void removeComponent(final AlarmTreeItem<?> item)
     {
+
     	// Depth first deletion of all child nodes.
     	final List<AlarmTreeItem<?>> children = item.getChildren();
     	for (final AlarmTreeItem<?> child : children)

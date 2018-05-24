@@ -24,22 +24,74 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 
 public class AlarmConfigTool
 {
-	// Time the model must be stable for. Unit is seconds. Default is 4 seconds.
-	private long time = 4;
+	private class UpdateMonitor
+	{
+		// Time the model must be stable for. Unit is seconds. Default is 4 seconds.
+		private long time = 4;
 
-	private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
-    private final CountDownLatch no_more_messages = new CountDownLatch(1);
-    private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
-    private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
+		private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
+	    private final CountDownLatch no_more_messages = new CountDownLatch(1);
+	    private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
+	    private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
+        private final AtomicInteger updates = new AtomicInteger();
+
+	    // Sets the timeout member variable.
+		private UpdateMonitor(final long new_time)
+		{
+			time = new_time;
+		}
+
+	    void resetTimer()
+	    {
+	        final ScheduledFuture<?> previous = timeout.getAndSet(timer.schedule(signal_no_more_messages, time, TimeUnit.SECONDS));
+	        if (previous != null)
+	            previous.cancel(false);
+	    }
+
+	    private final AlarmClientListener updateListener = new AlarmClientListener()
+        {
+            @Override
+            public void itemAdded(final AlarmTreeItem<?> item)
+            {
+            	// Reset the timer when receiving update
+                resetTimer();
+        		updates.incrementAndGet();
+
+            }
+
+            @Override
+            public void itemRemoved(final AlarmTreeItem<?> item)
+            {
+            	// Reset the timer when receiving update
+                resetTimer();
+        		updates.incrementAndGet();
+
+            }
+
+            @Override
+            public void itemUpdated(final AlarmTreeItem<?> item)
+            {
+            	//NOP
+            }
+        };
+
+        public void listen(AlarmClient client) throws InterruptedException, Exception
+        {
+        	client.addListener(updateListener);
+        	 if (! no_more_messages.await(30, TimeUnit.SECONDS))
+                 throw new Exception("30 seconds have passed, I give up waiting for updates to subside");
+        	// Reset the counter to count any updates received after we decide to continue.
+        	updates.set(0);
+        }
+
+        public Integer getCount()
+        {
+        	return updates.get();
+        }
+	}
 
     private AlarmClient client = null;
-
-    void resetTimer()
-    {
-        final ScheduledFuture<?> previous = timeout.getAndSet(timer.schedule(signal_no_more_messages, time, TimeUnit.SECONDS));
-        if (previous != null)
-            previous.cancel(false);
-    }
+    private UpdateMonitor updateMonitor = null;
 
 	// Prints help info about the program and then exits.
 	private void help()
@@ -57,12 +109,11 @@ public class AlarmConfigTool
 		System.exit(0);
 	}
 
-	// Sets the timeout member variable.
-	private void setTimeout(final long new_time)
+	private long time = 4;
+	private void setTimeout(long new_time)
 	{
 		time = new_time;
 	}
-
 	// Export an alarm system model to an xml file.
 	private void exportModel(String filename) throws Exception
 	{
@@ -74,62 +125,11 @@ public class AlarmConfigTool
 
         System.out.println("Monitoring changes...");
 
-        AlarmClientListener updateListener = new AlarmClientListener()
-        {
-            @Override
-            public void itemAdded(final AlarmTreeItem<?> item)
-            {
-            	// Reset the timer when receiving update
-                resetTimer();
-            }
+        updateMonitor = new UpdateMonitor(time);
 
-            @Override
-            public void itemRemoved(final AlarmTreeItem<?> item)
-            {
-            	// Reset the timer when receiving update
-                resetTimer();
-            }
-
-            @Override
-            public void itemUpdated(final AlarmTreeItem<?> item)
-            {
-            	//NOP
-            }
-        };
-
-        client.addListener(updateListener);
-
-        if (! no_more_messages.await(30, TimeUnit.SECONDS))
-            throw new Exception("I give up waiting for updates to subside");
+        updateMonitor.listen(client);
 
         System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", time);
-
-        // Shutdown the client to stop the model from being changed again.
-        client.removeListener(updateListener);
-
-        final AtomicInteger updates = new AtomicInteger();
-
-        updateListener = new AlarmClientListener()
-        {
-        	@Override
-            public void itemAdded(final AlarmTreeItem<?> item)
-            {
-        		updates.incrementAndGet();
-            }
-
-            @Override
-            public void itemRemoved(final AlarmTreeItem<?> item)
-            {
-        		updates.incrementAndGet();
-            }
-
-            @Override
-            public void itemUpdated(final AlarmTreeItem<?> item)
-            {
-            	//NOP
-            }
-        };
-        client.addListener(updateListener);
 
         //Write the model.
 
@@ -151,13 +151,13 @@ public class AlarmConfigTool
         xmlWriter.getModelXML(client.getRoot());
 
         System.out.println("\nModel written to file: " + filename);
-        System.out.printf("%d updates were recieved while writing model to file.\n", updates.get());
+        System.out.printf("%d updates were recieved while writing model to file.\n", updateMonitor.getCount());
 
         client.shutdown();
 	}
 
 	// Import an alarm system model from an xml file.
-	private void importModel(final String filename, final String hostname, final String config) throws FileNotFoundException
+	private void importModel(final String filename, final String hostname, final String config) throws InterruptedException, Exception
 	{
 		final File file = new File(filename);
 		final FileInputStream fileInputStream = new FileInputStream(file);
@@ -177,7 +177,12 @@ public class AlarmConfigTool
 		client = new AlarmClient(hostname, config);
         client.start();
 
-        // We don't want a new root. Only all the children of the new root.
+        updateMonitor = new UpdateMonitor(time);
+
+        System.out.print("Fetching server model. This could take some time ...");
+
+        updateMonitor.listen(client);
+
         final AlarmClientNode new_root = xmlModelReader.getRoot();
 
         // Get the server's root node for this config.
@@ -195,17 +200,6 @@ public class AlarmConfigTool
         final List<AlarmTreeItem<?>> root_children = root.getChildren();
         for (final AlarmTreeItem<?> child : root_children)
         	client.removeComponent(child);
-
-
-
-        try
-		{
-			client.sendItemConfigurationUpdate(root.getPathName(), new_root);
-		} catch (final Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
         // For every child of the new root, add them and their descendants to the old root.
         final List<AlarmTreeItem<?>> new_root_children = new_root.getChildren();
@@ -268,7 +262,7 @@ public class AlarmConfigTool
 				i++;
 				if (i >= args.length)
 				{
-					System.out.println("'ERROR: --export' must be accompanied by an output file name and a wait time. Use --help for program usage info.");
+					System.out.println("ERROR: --export' must be accompanied by an output file name and a wait time. Use --help for program usage info.");
 					System.exit(1);
 				}
 
@@ -311,7 +305,7 @@ public class AlarmConfigTool
 					System.exit(1);
 				}
 
-				// Check that a hostname was provided and didnt proceed to --config.
+				// Check that a host name was provided and didn't proceed to --config.
 				i++;
 				if (i >= args.length || 0 == args[i].compareTo("--config"))
 				{
@@ -337,6 +331,14 @@ public class AlarmConfigTool
 				{
 					System.out.println("Input file: \"" + filename + "\" not found.");
 					System.exit(1);
+				} catch (final InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (final Exception e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 			else
