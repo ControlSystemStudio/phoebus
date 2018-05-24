@@ -210,6 +210,13 @@ public class DockItem extends Tab
                                                  close_other,
                                                  new SeparatorMenuItem(),
                                                  close_all);
+        // For items in 'fixed' pane, remove all but the 'info' entry
+        menu.setOnShowing(event ->
+        {
+            if (getDockPane().isFixed())
+                menu.getItems().setAll(info);
+        });
+
         name_tab.setContextMenu(menu);
     }
 
@@ -280,6 +287,10 @@ public class DockItem extends Tab
     /** Allow dragging this item */
     private void handleDragDetected(final MouseEvent event)
     {
+        // Disable dragging from a 'fixed' pane
+        if (getDockPane().isFixed())
+            return;
+
         final Dragboard db = name_tab.startDragAndDrop(TransferMode.MOVE);
 
         final ClipboardContent content = new ClipboardContent();
@@ -288,9 +299,7 @@ public class DockItem extends Tab
 
         final DockItem previous = dragged_item.getAndSet(this);
         if (previous != null)
-        {
-            System.err.println("Already dragging " + previous);
-        }
+            logger.log(Level.WARNING, "Already dragging " + previous);
 
         event.consume();
     }
@@ -298,6 +307,10 @@ public class DockItem extends Tab
     /** Accept other items that are dropped onto this one */
     private void handleDragOver(final DragEvent event)
     {
+        // Don't suggest dropping into a 'fixed' pane
+        if (getDockPane().isFixed())
+            return;
+
         final DockItem item = dragged_item.get();
         if (item != null  &&  item != this)
             event.acceptTransferModes(TransferMode.MOVE);
@@ -307,6 +320,10 @@ public class DockItem extends Tab
     /** Highlight while 'drop' is possible */
     private void handleDragEntered(final DragEvent event)
     {
+        // Drop not possible into a 'fixed' pane
+        if (getDockPane().isFixed())
+            return;
+
         final DockItem item = dragged_item.get();
         if (item != null  &&  item != this)
         {
@@ -327,6 +344,9 @@ public class DockItem extends Tab
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
+        if (getDockPane().isFixed())
+            return;
+
         final DockItem item = dragged_item.getAndSet(null);
         if (item == null)
             logger.log(Level.SEVERE, "Empty drop, " + event);

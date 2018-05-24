@@ -25,12 +25,17 @@ import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.phoebus.ui.dialog.PopOver;
+import org.phoebus.ui.javafx.ClearingTextField;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -48,6 +53,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -89,6 +95,8 @@ public class WidgetColorPopOverController implements Initializable {
     @FXML private Button cancelButton;
     @FXML private Button okButton;
 
+    @FXML private ClearingTextField searchField;
+
     private Consumer<WidgetColor>              colorChangeConsumer;
     private PopOver                            popOver;
     private final AtomicBoolean                namesLoaded   = new AtomicBoolean(false);
@@ -100,7 +108,7 @@ public class WidgetColorPopOverController implements Initializable {
     /*
      * ---- color property -----------------------------------------------------
      */
-    private final ObjectProperty<WidgetColor> color = new SimpleObjectProperty<WidgetColor>(this, "color", WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)) {
+    private final ObjectProperty<WidgetColor> color = new SimpleObjectProperty<>(this, "color", WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)) {
         @Override
         protected void invalidated() {
 
@@ -230,6 +238,8 @@ public class WidgetColorPopOverController implements Initializable {
 
         });
 
+        colorNames.setPlaceholder(new Label(Messages.WidgetColorPopOver_PredefinedColors));
+        colorNames.setItems(filteredColorsList);
         colorNames.setCellFactory(view -> new NamedWidgetColorCell());
         colorNames.getSelectionModel().selectedItemProperty().addListener(( observable, oldValue, newValue ) -> {
             if ( newValue != null ) {
@@ -246,9 +256,7 @@ public class WidgetColorPopOverController implements Initializable {
             values.parallelStream().forEach(nc -> namedColors.put(JFXUtil.convert(nc), nc));
 
             Platform.runLater(() -> {
-                values.stream().forEach(nc -> {
-                    colorNames.getItems().addAll(nc);
-                });
+                namedColorsList.addAll(values);
                 namesLoaded.set(true);
             });
 
@@ -282,7 +290,34 @@ public class WidgetColorPopOverController implements Initializable {
         picker.getCustomColors().add(Color.rgb(115, 115, 115));
         picker.getCustomColors().add(Color.rgb(204, 204, 204));
 
+        //  Search field
+        searchField.setPromptText(Messages.WidgetColorPopOver_SearchField);
+        searchField.setTooltip(new Tooltip(Messages.WidgetColorPopOver_SearchFieldTT));
+        searchField.setPrefColumnCount(9);
+        searchField.textProperty().addListener(o -> {
+
+            String filter = searchField.getText();
+
+            if ( filter == null || filter.isEmpty() ) {
+                filteredColorsList.setPredicate(null);
+            } else {
+
+                String lcFilter = filter.toLowerCase();
+
+                filteredColorsList.setPredicate(s -> s.getName().toLowerCase().contains(lcFilter));
+                Platform.runLater(() -> colorNames.refresh());
+
+            }
+
+        });
+
     }
+
+    private ObservableList<NamedWidgetColor> namedColorsList = FXCollections.observableArrayList();
+    private FilteredList<NamedWidgetColor> filteredColorsList = new FilteredList<>(new SortedList<>(
+        namedColorsList,
+        (nc1, nc2) -> String.CASE_INSENSITIVE_ORDER.compare(nc1.getName(), nc2.getName())
+    ));
 
     @FXML
     void cancelPressed ( ActionEvent event ) {
@@ -433,17 +468,20 @@ public class WidgetColorPopOverController implements Initializable {
 
             super.updateItem(color, empty);
 
-            if ( color == null ) {
-                // Content won't change from non-null to null, so no need to clear.
-                return;
+            if ( color == null || empty ) {
+                setText(null);
+                setGraphic(null);
+            } else {
+
+                setText(color.getName());
+                setGraphic(blob);
+
+                final GraphicsContext gc = blob.getGraphicsContext2D();
+
+                gc.setFill(JFXUtil.convert(color));
+                gc.fillRect(0, 0, SIZE, SIZE);
+
             }
-
-            setText(color.getName());
-
-            final GraphicsContext gc = blob.getGraphicsContext2D();
-
-            gc.setFill(JFXUtil.convert(color));
-            gc.fillRect(0, 0, SIZE, SIZE);
 
         }
     };
