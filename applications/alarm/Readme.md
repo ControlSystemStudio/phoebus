@@ -45,7 +45,8 @@ For tests, you can use localhost:
 
 
 Start local instance:
-    
+    # Zookeeper must be started first. If kafka is started first it will fail to start and close with a null pointer exception. 
+    # Simply start kafka after zookeeper is running to recover.
     cd kafka
     bin/zookeeper-server-start.sh config/zookeeper.properties
     # Other terminal
