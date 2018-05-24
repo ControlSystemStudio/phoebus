@@ -290,7 +290,7 @@ public class StringTable extends BorderPane
             createToolbarButton("remove_col", Messages.RemoveColumn, event -> deleteColumn()),
             createToolbarButton("col_left", Messages.MoveColumnLeft, event -> moveColumnLeft()),
             createToolbarButton("col_right", Messages.MoveColumnRight, event -> moveColumnRight()));
-        toolbar.layout();
+        Platform.runLater(toolbar::layout);
     }
 
     private Button createToolbarButton(final String id, final String tool_tip, final EventHandler<ActionEvent> handler)
@@ -298,7 +298,7 @@ public class StringTable extends BorderPane
         final Button button = new Button();
         try
         {
-            // TODO Icons are not centered inside the button until the
+            // Icons are not centered inside the button until the
             // button is once pressed, or at least focused via "tab"
             button.setGraphic(ImageCache.getImageView(getClass(), "/icons/" + id + ".png"));
 
@@ -309,16 +309,20 @@ public class StringTable extends BorderPane
             //                      BackgroundPosition.CENTER,
             //                      new BackgroundSize(16, 16, false, false, false, false))));
             button.setTooltip(new Tooltip(tool_tip));
-            // Without defining the button size, the buttons may start out zero-sized
-            // until they're first pressed/tabbed
-            button.setMinSize(35, 25);
         }
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot load icon for " + id, ex);
             button.setText(tool_tip);
         }
+        // Without defining the button size, the buttons may start out zero-sized
+        // until they're first pressed/tabbed
+        button.setMinSize(35, 25);
         button.setOnAction(handler);
+
+        // Forcing a layout of the button on later UI ticks
+        // tends to center the image
+        Platform.runLater(() -> Platform.runLater(button::requestLayout));
 
         return button;
     }
