@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,6 +17,7 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 import org.phoebus.framework.jobs.NamedThreadFactory;
@@ -29,6 +31,8 @@ public class AlarmConfigTool
     private final CountDownLatch no_more_messages = new CountDownLatch(1);
     private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
     private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
+
+    private AlarmClient client = null;
 
     void resetTimer()
     {
@@ -48,7 +52,7 @@ public class AlarmConfigTool
 		System.out.println("\tTo export model to a file:  java AlarmToolConfig --export output_filename wait_time");
 		System.out.println("\tTo export model to console: java AlarmToolConfig --export stdout wait_time\n");
 		System.out.println("\tUsing '--import' the program will read a user supplied XML file and import the model contained therein to the Alarm System server.");
-		System.out.println("\n\tTo import model from a file: java AlarmToolConfig --import input_filename");
+		System.out.println("\n\tTo import model from a file: java AlarmToolConfig --import input_filename --server host_name --config config_name");
 
 		System.exit(0);
 	}
@@ -63,7 +67,7 @@ public class AlarmConfigTool
 	private void exportModel(String filename) throws Exception
 	{
 
-		final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+		client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
         client.start();
 
         System.out.printf("Writing file after model is stable for %d seconds:\n", time);
@@ -153,13 +157,12 @@ public class AlarmConfigTool
 	}
 
 	// Import an alarm system model from an xml file.
-	private void importModel(final String filename) throws FileNotFoundException
+	private void importModel(final String filename, final String hostname, final String config) throws FileNotFoundException
 	{
 		final File file = new File(filename);
 		final FileInputStream fileInputStream = new FileInputStream(file);
 
 		final XmlModelReader xmlModelReader = new XmlModelReader();
-
 
 		try
 		{
@@ -171,12 +174,74 @@ public class AlarmConfigTool
 
 
 		// Connect to the server.
-		final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+		client = new AlarmClient(hostname, config);
         client.start();
 
-        // Delete the old model.
+        // We don't want a new root. Only all the children of the new root.
+        final AlarmClientNode new_root = xmlModelReader.getRoot();
+
+        // Get the server's root node for this config.
         final AlarmClientNode root = client.getRoot();
-        client.removeComponent(root);
+
+        // Check that the configs match.
+        if (!config.equals(new_root.getName()))
+        {
+        	System.out.printf("The provided config \"%s\" does not match the config loaded from file \"%s\".\n", config, new_root.getName());
+        	client.shutdown();
+        	System.exit(1);
+        }
+
+        // Delete the old model. Leave the root node.
+        final List<AlarmTreeItem<?>> root_children = root.getChildren();
+        for (final AlarmTreeItem<?> child : root_children)
+        	client.removeComponent(child);
+
+
+
+        try
+		{
+			client.sendItemConfigurationUpdate(root.getPathName(), new_root);
+		} catch (final Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        // For every child of the new root, add them and their descendants to the old root.
+        final List<AlarmTreeItem<?>> new_root_children = new_root.getChildren();
+        for (final AlarmTreeItem<?> child : new_root_children)
+        {
+	        try
+			{
+				addNodes(root, child);
+			} catch (final Exception e1)
+			{
+				e1.printStackTrace();
+			}
+        }
+	}
+
+	private void addNodes(AlarmTreeItem<?> parent, AlarmTreeItem<?> tree_item) throws Exception
+	{
+		// Determine if the item is a node or a leaf and add to the model appropriately.
+		if (tree_item instanceof AlarmTreeLeaf)
+		{
+			client.addPV(parent, tree_item.getName());
+		}
+		else if (tree_item instanceof AlarmTreeItem)
+		{
+			client.addComponent(parent, tree_item.getName());
+		}
+
+		// Send the configuration for the newly created node.
+		client.sendItemConfigurationUpdate(tree_item.getPathName(), tree_item);
+
+		// Recurse over children.
+		final List<AlarmTreeItem<?>> children = tree_item.getChildren();
+		for (final AlarmTreeItem<?> child : children)
+		{
+			addNodes(tree_item, child);
+		}
 	}
 
 	// Constructor. Handles parsing of command lines and execution of command line options.
@@ -239,9 +304,35 @@ public class AlarmConfigTool
 
 				final String filename = args[i];
 
+				i++;
+				if (i >= args.length || 0 != args[i].compareTo("--server"))
+				{
+					System.out.println("ERROR: '--import' must be followed by '--server'. Use --help for program usage info.");
+					System.exit(1);
+				}
+
+				// Check that a hostname was provided and didnt proceed to --config.
+				i++;
+				if (i >= args.length || 0 == args[i].compareTo("--config"))
+				{
+					System.out.println("ERROR: '--server' must be followed by a hostname. Use --help for program usage info.");
+					System.exit(1);
+				}
+
+				final String hostname = args[i];
+
+				i++;
+				if (i >= args.length || 0 != args[i].compareTo("--config"))
+				{
+					System.out.println("ERROR: '--import' must be followed by '--config'. Use --help for program usage info.");
+					System.exit(1);
+				}
+				i++;
+				final String configname = args[i];
+
 				try
 				{
-					importModel(filename);
+					importModel(filename, hostname, configname);
 				} catch (final FileNotFoundException e)
 				{
 					System.out.println("Input file: \"" + filename + "\" not found.");
