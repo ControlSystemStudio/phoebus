@@ -121,9 +121,17 @@ abstract class PlotCanvasBase extends ImageView
     /** (Double) buffer used to combined the plot with mouse feedback overlays */
     private final DoubleBuffer buffers = new DoubleBuffer();
 
+    /** Has a call to redraw_runnable already been queued?
+     *  Cleared when redraw_runnable is executed
+     */
+    private final AtomicBoolean pending_redraw = new AtomicBoolean();
+
     /** Redraw the plot on UI thread by painting the 'plot_image' */
     private final Runnable redraw_runnable = () ->
     {
+        // Indicate that a redraw has occurred
+        pending_redraw.set(false);
+
         final BufferedImage copy = plot_image;
         if (copy != null)
         {
@@ -161,8 +169,8 @@ abstract class PlotCanvasBase extends ImageView
      */
     protected PlotCanvasBase(final boolean active)
     {
-        // 50ms = 20Hz default throttle
-        update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
+        // 200ms = 5Hz default throttle
+        update_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, () ->
         {
             if (need_update.getAndSet(false))
             {
@@ -175,7 +183,8 @@ abstract class PlotCanvasBase extends ImageView
                 else
                     plot_image = latest;
             }
-            Platform.runLater(redraw_runnable);
+            if (!pending_redraw.getAndSet(true))
+                Platform.runLater(redraw_runnable);
         });
 
         if (active)

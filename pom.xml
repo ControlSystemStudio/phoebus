@@ -5,6 +5,7 @@
   <artifactId>parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
+  <name>phoebus</name>
 
   <properties>
     <maven.repo.local>${project.build.directory}/.m2</maven.repo.local>

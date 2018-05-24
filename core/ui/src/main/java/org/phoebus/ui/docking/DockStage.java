@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +34,16 @@ import javafx.stage.Window;
  *  meant to be called to configure and later interface with
  *  each Stage.
  *
+ *  <p>To support docking, the stage maintained by this class has the following scene graph:
+ *
+ *  <ul>
+ *  <li>The top-level node is a {@link BorderPane}.
+ *  <li>The 'center' of that layout is either a {@link DockPane}, or a {@link SplitDock}.
+ *  <li>{@link DockPane}s hold {@link DockItem}s or {@link DockItemWithInput}s.
+ *  <li>{@link SplitDock} holds further {@link SplitDock}s or {@link DockPane}s
+ *  </ul>
+ *  This means that each {@link DockStage} has at least one {@link DockPane}.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -66,9 +76,10 @@ public class DockStage
     {
         stage.getProperties().put(KEY_ID, createID("DockStage"));
 
-        final DockPane tab_pane = new DockPane(tabs);
+        final DockPane pane = new DockPane(tabs);
 
-        final BorderPane layout = new BorderPane(tab_pane);
+        final BorderPane layout = new BorderPane(pane);
+        pane.setDockParent(layout);
 
         final Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
@@ -88,7 +99,7 @@ public class DockStage
             // Note: Is called twice when window gains focus (true).
             //       Unclear why, but doesn't cause harm, either.
             if (focus)
-                DockPane.setActiveDockPane(tab_pane);
+                setActiveDockStage(stage);
         });
 
         stage.setOnCloseRequest(event ->
@@ -97,7 +108,9 @@ public class DockStage
                 event.consume();
         });
 
-        return getDockPane(stage);
+        DockPane.setActiveDockPane(pane);
+
+        return pane;
     }
 
     /** @return Unique ID of this stage */
@@ -141,11 +154,11 @@ public class DockStage
      */
     public static boolean isStageOkToClose(final Stage stage)
     {
-        final DockPane tab_pane = getDockPane(stage);
-        for (DockItem item : tab_pane.getDockItems())
-            if (! item.close())
-                // Abort the close request
-                return false;
+        for (DockPane tab_pane : getDockPanes(stage))
+            for (DockItem item : tab_pane.getDockItems())
+                if (! item.close())
+                    // Abort the close request
+                    return false;
 
         // All tabs either saved or don't care to save,
         // so this stage will be closed
@@ -163,21 +176,43 @@ public class DockStage
         throw new IllegalStateException("Expect BorderPane, got " + layout);
     }
 
-    /** @param stage Stage that supports docking
-     *  @return {@link DockPane} of that stage
+    /** Get the top dock container
+     *  @param stage Stage that supports docking
+     *  @return {@link DockPane} or {@link SplitDock}
      */
-    public static DockPane getDockPane(final Stage stage)
+    public static Node getPaneOrSplit(final Stage stage)
     {
-        final Node dock_pane = getLayout(stage).getCenter();
-        if (dock_pane instanceof DockPane)
-            return (DockPane) dock_pane;
-        throw new IllegalStateException("Expect DockPane, got " + dock_pane);
+        final Node container = getLayout(stage).getCenter();
+        if (container instanceof DockPane  ||
+            container instanceof SplitDock)
+            return container;
+        throw new IllegalStateException("Expect DockPane or SplitDock, got " + container);
+    }
+
+    /** Get all dock panes
+     *  @param stage Stage that supports docking
+     *  @return All {@link DockPane}s, contains at least one item
+     */
+    public static List<DockPane> getDockPanes(final Stage stage)
+    {
+        final List<DockPane> panes = new ArrayList<>();
+        findDockPanes(panes, getPaneOrSplit(stage));
+        return panes;
+    }
+
+    private static void findDockPanes(final List<DockPane> panes, final Node pane_or_split)
+    {
+        if (pane_or_split instanceof DockPane)
+            panes.add((DockPane) pane_or_split);
+        else if (pane_or_split instanceof SplitDock)
+            for (Node sub : ((SplitDock) pane_or_split).getItems())
+                findDockPanes(panes, sub);
     }
 
     /** @param stage Stage that supports docking which should become the active stage */
-    public static void setActiveDockPane(final Stage stage)
+    public static void setActiveDockStage(final Stage stage)
     {
-        final DockPane dock_pane = getDockPane(stage);
+        final DockPane dock_pane = getDockPanes(stage).get(0);
         DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));
     }
 
@@ -190,14 +225,15 @@ public class DockStage
     {
         Objects.requireNonNull(input);
         for (Stage stage : getDockStages())
-            for (DockItem tab : getDockPane(stage).getDockItems())
-                if (tab instanceof DockItemWithInput)
-                {
-                    final DockItemWithInput item = (DockItemWithInput) tab;
-                    if (input.equals(item.getInput()) &&
-                        item.getApplication().getAppDescriptor().getName().equals(application_name))
-                        return item;
-                }
+            for (DockPane pane : getDockPanes(stage))
+                for (DockItem tab : pane.getDockItems())
+                    if (tab instanceof DockItemWithInput)
+                    {
+                        final DockItemWithInput item = (DockItemWithInput) tab;
+                        if (input.equals(item.getInput()) &&
+                            item.getApplication().getAppDescriptor().getName().equals(application_name))
+                            return item;
+                    }
         return null;
     }
 }

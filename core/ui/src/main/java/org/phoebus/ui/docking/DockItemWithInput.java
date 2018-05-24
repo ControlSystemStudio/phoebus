@@ -122,10 +122,14 @@ public class DockItemWithInput extends DockItem
     public void setInput(final URI input)
     {
         this.input = input;
-        if (input == null)
-            name_tab.setTooltip(new Tooltip("<Not saved to file>"));
-        else
-            name_tab.setTooltip(new Tooltip(input.toString()));
+        // Tooltip update must be on UI thread
+        Platform.runLater(() ->
+        {
+            if (input == null)
+                name_tab.setTooltip(new Tooltip("<Not saved to file>"));
+            else
+                name_tab.setTooltip(new Tooltip(input.toString()));
+        });
     }
 
     /** @return Input, which may be <code>null</code> (OK to call from any thread) */

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import org.phoebus.framework.spi.MenuEntry;
 
 /**
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -32,7 +32,7 @@ public class MenuEntryService {
     }
 
     /**
-     * 
+     *
      * @param root
      * @param menuEntries
      */
@@ -53,7 +53,7 @@ public class MenuEntryService {
             parent.addMenuEntries(menuEntry);
         }
     }
-    
+
     public static synchronized MenuEntryService getInstance() {
         if (menuEntryService == null) {
             menuEntryService = new MenuEntryService();
@@ -63,16 +63,16 @@ public class MenuEntryService {
 
     /**
      * Get the list of registered menu entries
-     * 
+     *
      * @return List of registered {@link MenuEntry}
      */
     public List<MenuEntry> listMenuEntries() {
         return menuEntries;
     }
-    
+
     /**
      * Get Menu Entry tree
-     * 
+     *
      * @return {@link MenuTreeNode} a tree representation of the menu entries
      */
     public MenuTreeNode getMenuEntriesTree() {
@@ -85,9 +85,9 @@ public class MenuEntryService {
         private List<MenuEntry> menuItems;
 
         public MenuTreeNode(String name) {
-            this.name = name;
-            this.children = new ArrayList<MenuTreeNode>();
-            this.menuItems = new ArrayList<MenuEntry>();
+        	this.name = name;
+            this.children = new ArrayList<>();
+            this.menuItems = new ArrayList<>();
         }
 
         public void addChildren(MenuTreeNode... children) {
@@ -105,11 +105,15 @@ public class MenuEntryService {
         }
 
         public List<MenuTreeNode> getChildren() {
-            return children;
+        	Collections.sort(this.children,
+        	                 (x, y) -> x.getName().compareTo(y.getName()));
+        	return children;
         }
 
         public List<MenuEntry> getMenuItems() {
-            return menuItems;
+        	Collections.sort(this.menuItems,
+        	                 (x, y) -> x.getName().compareTo(y.getName()));
+        	return menuItems;
         }
 
         public String getName() {

@@ -50,7 +50,7 @@ public class ContextMenuHelper
         // Assert that this window's dock pane is the active one.
         // (on Mac and Linux, invoking the context menu will not
         //  always activate the stage)
-        DockStage.setActiveDockPane(stage);
+        DockStage.setActiveDockStage(stage);
 
         for (ContextMenuEntry<?> entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
         {

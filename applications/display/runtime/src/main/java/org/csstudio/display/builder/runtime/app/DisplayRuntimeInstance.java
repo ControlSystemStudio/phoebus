@@ -26,6 +26,7 @@ import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -111,6 +112,12 @@ public class DisplayRuntimeInstance implements AppInstance
     JFXRepresentation getRepresentation()
     {
         return representation;
+    }
+
+    /** @return DockItem in which this display is contained */
+    DockItem getDockItem()
+    {
+        return dock_item;
     }
 
     private Node createToolbar()
