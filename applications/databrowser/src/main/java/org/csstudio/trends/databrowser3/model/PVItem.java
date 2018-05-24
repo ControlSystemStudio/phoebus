@@ -29,11 +29,13 @@ import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.Display;
 import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.disposables.Disposable;
 
 /** Data Browser Model Item for 'live' PV.
  *  <p>
@@ -56,46 +58,12 @@ public class PVItem extends ModelItem
     private PVSamples samples = new PVSamples(waveform_index);
 
     /** Where to get archived data for this item. */
-    private ArrayList<ArchiveDataSource> archives
-    = new ArrayList<ArchiveDataSource>();
+    private List<ArchiveDataSource> archives = new ArrayList<>();
 
     /** Control system PV, set when running */
     private PV pv = null;
 
-    private final PVListener listener = new PVListener()
-    {
-        @Override
-        public void valueChanged(final VType value)
-        {
-            boolean added = false;
-            // Cache most recent for 'scanned' operation
-            current_value = value;
-            // In 'monitor' mode, add to live sample buffer
-            if (period <= 0)
-            {
-                logger.log(Level.FINE, "PV {0} received {1}", new Object[] { getName(), value });
-                samples.addLiveSample(value);
-                added = true;
-            }
-            // Set units unless already defined
-            if (getUnits() == null)
-                updateUnits(value);
-            if (automaticRefresh && added &&
-                model.isPresent() &&
-                samples.isHistoryRefreshNeeded(model.get().getTimerange()))
-                model.get().fireItemRefreshRequested(PVItem.this);
-        }
-
-        @Override
-        public void disconnected()
-        {
-            // No current value
-            current_value = null;
-            // In 'monitor' mode, mark in live sample buffer
-            if (period <= 0)
-                logDisconnected();
-        }
-    };
+    private Disposable pv_flow;
 
     /** Most recently received value */
     private volatile VType current_value;
@@ -343,7 +311,8 @@ public class PVItem extends ModelItem
         if (pv != null)
             throw new RuntimeException("Already started " + getName());
         pv = PVPool.getPV(getResolvedName());
-        pv.addListener(listener);
+        pv_flow = pv.onValueEvent(BackpressureStrategy.BUFFER)
+                    .subscribe(this::valueChanged);
         // Log every received value?
         if (period <= 0.0)
             return;
@@ -357,7 +326,7 @@ public class PVItem extends ModelItem
     {
         if (pv == null)
             throw new RuntimeException("Not running " + getName());
-        pv.removeListener(listener);
+        pv_flow.dispose();
         if (scanner != null)
         {
             scanner.cancel(true);
@@ -365,6 +334,33 @@ public class PVItem extends ModelItem
         }
         PVPool.releasePV(pv);
         pv = null;
+    }
+
+    /** Called by PV's onValueEvent */
+    private void valueChanged(final VType value)
+    {
+        boolean added = false;
+        // Cache most recent for 'scanned' operation
+        current_value = value;
+        // In 'monitor' mode, add to live sample buffer
+        if (period <= 0)
+        {
+            logger.log(Level.FINE, "PV {0} received {1}", new Object[] { getName(), value });
+            if (value == null)
+            {
+                logDisconnected();
+                return;
+            }
+            samples.addLiveSample(value);
+            added = true;
+        }
+        // Set units unless already defined
+        if (getUnits() == null)
+            updateUnits(value);
+        if (automaticRefresh && added &&
+            model.isPresent() &&
+            samples.isHistoryRefreshNeeded(model.get().getTimerange()))
+            model.get().fireItemRefreshRequested(PVItem.this);
     }
 
     /** {@inheritDoc} */
