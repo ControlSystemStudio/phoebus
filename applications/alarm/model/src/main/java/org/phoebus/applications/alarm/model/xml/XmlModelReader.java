@@ -95,11 +95,11 @@ public class XmlModelReader
         	processPV(root /* parent */, child);
 	}
 
-	private void processComponent(AlarmClientNode parent, Node nd) throws Exception
+	private void processComponent(AlarmClientNode parent, Node node) throws Exception
 	{
 		// Name of the new component node.
 		String comp_node_name = null;
-		final NamedNodeMap attrs = nd.getAttributes();
+		final NamedNodeMap attrs = node.getAttributes();
 
 		if (attrs != null)
         {
@@ -119,19 +119,19 @@ public class XmlModelReader
         }
 
 		// New component node.
-		final AlarmClientNode comp_node = new AlarmClientNode(parent, comp_node_name);
+		final AlarmClientNode component = new AlarmClientNode(parent, comp_node_name);
 
 		// This does not refer to XML attributes but instead to the attributes of a model component node.
-		processCompAttr(comp_node, nd);
+		processCompAttr(component, node);
 
-        for (final Element child : XMLUtil.getChildElements(nd, TAG_COMPONENT))
-        	processComponent(comp_node /* parent */, child);
+        for (final Element child : XMLUtil.getChildElements(node, TAG_COMPONENT))
+        	processComponent(component /* parent */, child);
 
-        for (final Element child : XMLUtil.getChildElements(nd, TAG_PV))
-        	processPV(comp_node/* parent */, child);
+        for (final Element child : XMLUtil.getChildElements(node, TAG_PV))
+        	processPV(component/* parent */, child);
 	}
 
-	private void processCompAttr(AlarmClientNode comp_node, Node node)
+	private void processCompAttr(AlarmClientNode component, Node node)
 	{
 		ArrayList<TitleDetail> td = new ArrayList<>();
 
@@ -140,7 +140,7 @@ public class XmlModelReader
 
 		if (td.size() > 0)
 		{
-			comp_node.setGuidance(td);
+			component.setGuidance(td);
 			td = new ArrayList<>();
 		}
 		for (final Element child : XMLUtil.getChildElements(node, TAG_DISPLAY))
@@ -148,7 +148,7 @@ public class XmlModelReader
 
 		if (td.size() > 0)
 		{
-			comp_node.setDisplays(td);
+			component.setDisplays(td);
 			td = new ArrayList<>();
 		}
 
@@ -157,7 +157,7 @@ public class XmlModelReader
 
 		if (td.size() > 0)
 		{
-			comp_node.setCommands(td);
+			component.setCommands(td);
 			td = new ArrayList<>();
 		}
 
@@ -166,15 +166,15 @@ public class XmlModelReader
 
 		if (td.size() > 0)
 		{
-			comp_node.setActions(td);
+			component.setActions(td);
 			td = new ArrayList<>();
 		}
 	}
 
-	private void processPV(AlarmClientNode parent, final Element nd) throws Exception
+	private void processPV(AlarmClientNode parent, final Element node) throws Exception
 	{
 		String pv_node_name = null;
-		final NamedNodeMap attrs = nd.getAttributes();
+		final NamedNodeMap attrs = node.getAttributes();
 
 		if (attrs != null)
         {
@@ -195,12 +195,12 @@ public class XmlModelReader
 
 		final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
 
-		XMLUtil.getChildBoolean(nd, TAG_ENABLED).ifPresent(pv::setEnabled);
-		XMLUtil.getChildBoolean(nd, TAG_LATCHING).ifPresent(pv::setLatching);
-		XMLUtil.getChildBoolean(nd, TAG_ANNUNCIATING).ifPresent(pv::setAnnunciating);
-		XMLUtil.getChildString(nd, TAG_DESCRIPTION).ifPresent(pv::setDescription);
+		XMLUtil.getChildBoolean(node, TAG_ENABLED).ifPresent(pv::setEnabled);
+		XMLUtil.getChildBoolean(node, TAG_LATCHING).ifPresent(pv::setLatching);
+		XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).ifPresent(pv::setAnnunciating);
+		XMLUtil.getChildString(node, TAG_DESCRIPTION).ifPresent(pv::setDescription);
 
-		final String delayStr = XMLUtil.getChildString(nd, TAG_DELAY).orElse("");
+		final String delayStr = XMLUtil.getChildString(node, TAG_DELAY).orElse("");
 
 		if (delayStr.equals(""))
 			pv.setDelay(0);
@@ -218,12 +218,12 @@ public class XmlModelReader
 			}
 		}
 
-		XMLUtil.getChildInteger(nd, TAG_COUNT).ifPresent(pv::setCount);
-		XMLUtil.getChildString(nd, TAG_FILTER).ifPresent(pv::setFilter);
+		XMLUtil.getChildInteger(node, TAG_COUNT).ifPresent(pv::setCount);
+		XMLUtil.getChildString(node, TAG_FILTER).ifPresent(pv::setFilter);
 
 		ArrayList<TitleDetail> td = new ArrayList<>();
 
-		for (final Element child : XMLUtil.getChildElements(nd, TAG_GUIDANCE))
+		for (final Element child : XMLUtil.getChildElements(node, TAG_GUIDANCE))
 			td.add(getTD(child));
 
 		if (td.size() > 0)
@@ -232,7 +232,7 @@ public class XmlModelReader
 			td = new ArrayList<>();
 		}
 
-		for (final Element child : XMLUtil.getChildElements(nd, TAG_DISPLAY))
+		for (final Element child : XMLUtil.getChildElements(node, TAG_DISPLAY))
 			td.add(getTD(child));
 
 		if (td.size() > 0)
@@ -241,7 +241,7 @@ public class XmlModelReader
 			td = new ArrayList<>();
 		}
 
-		for (final Element child : XMLUtil.getChildElements(nd, TAG_COMMAND))
+		for (final Element child : XMLUtil.getChildElements(node, TAG_COMMAND))
 			td.add(getTD(child));
 
 		if (td.size() > 0)
@@ -250,7 +250,7 @@ public class XmlModelReader
 			td = new ArrayList<>();
 		}
 
-		for (final Element child : XMLUtil.getChildElements(nd, TAG_ACTIONS))
+		for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
 			td.add(getTD(child));
 
 		if (td.size() > 0)
@@ -258,7 +258,6 @@ public class XmlModelReader
 			pv.setActions(td);
 			td = new ArrayList<>();
 		}
-
 	}
 
 	private TitleDetail getTD(Element node)
