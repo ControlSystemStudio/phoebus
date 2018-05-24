@@ -171,7 +171,7 @@ public class AlarmClient
             while (running.get())
                 checkUpdates();
         }
-        catch (Throwable ex)
+        catch (final Throwable ex)
         {
             if (running.get())
                 logger.log(Level.SEVERE, "Alarm client model error", ex);
@@ -187,7 +187,7 @@ public class AlarmClient
     private void checkUpdates()
     {
         final ConsumerRecords<String, String> records = consumer.poll(100);
-        for (ConsumerRecord<String, String> record : records)
+        for (final ConsumerRecord<String, String> record : records)
         {
             final String path = record.key();
             final String node_config = record.value();
@@ -203,7 +203,7 @@ public class AlarmClient
                     final AlarmTreeItem<?> node = deleteNode(path);
                     // If this was a known node, notify listeners
                     if (node != null)
-                        for (AlarmClientListener listener : listeners)
+                        for (final AlarmClientListener listener : listeners)
                             listener.itemRemoved(node);
                 }
                 else
@@ -214,15 +214,15 @@ public class AlarmClient
                     // Only update listeners if this is a new node or the config changed
                     if (node == null)
                         node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
-                    boolean need_update = JsonModelReader.updateAlarmItemConfig(node, json)  ||
+                    final boolean need_update = JsonModelReader.updateAlarmItemConfig(node, json)  ||
                                           JsonModelReader.updateAlarmState(node, json);
                     // If there were changes, notify listeners
                     if (need_update)
-                        for (AlarmClientListener listener : listeners)
+                        for (final AlarmClientListener listener : listeners)
                             listener.itemUpdated(node);
                 }
             }
-            catch (Exception ex)
+            catch (final Exception ex)
             {
                 logger.log(Level.WARNING,
                            "Alarm config update error for path " + path +
@@ -312,14 +312,14 @@ public class AlarmClient
                 if (last &&  is_leaf)
                 {
                     node = new AlarmClientLeaf(parent, name);
-                    for (AlarmClientListener listener : listeners)
+                    for (final AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
                     return node;
                 }
                 else
                 {
                     node = new AlarmClientNode(parent, name);
-                    for (AlarmClientListener listener : listeners)
+                    for (final AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
                 }
             }
@@ -344,7 +344,7 @@ public class AlarmClient
         {
             sendNewItemInfo(parent, new_name, new AlarmClientNode(null, new_name));
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Cannot add component " + new_name + " to " + parent.getPathName(), ex);
         }
@@ -360,7 +360,7 @@ public class AlarmClient
         {
             sendNewItemInfo(parent, new_name, new AlarmClientLeaf(null, new_name));
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Cannot add pv " + new_name + " to " + parent.getPathName(), ex);
         }
@@ -394,6 +394,11 @@ public class AlarmClient
      */
     public void removeComponent(final AlarmTreeItem<?> item)
     {
+    	// Depth first deletion of all child nodes.
+    	final List<AlarmTreeItem<?>> children = item.getChildren();
+    	for (final AlarmTreeItem<?> child : children)
+    		removeComponent(child);
+
         // Send message about item to remove
         // All clients, including this one, will receive and then remove the item.
         try
@@ -402,7 +407,7 @@ public class AlarmClient
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
             producer.send(record);
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Cannot remove component " + item, ex);
         }
@@ -419,7 +424,7 @@ public class AlarmClient
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, cmd, item.getPathName());
             producer.send(record);
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Cannot acknowledge component " + item, ex);
         }
@@ -434,7 +439,7 @@ public class AlarmClient
         {
             thread.join(2000);
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             logger.log(Level.WARNING, "Alarm client thread doesn't shut down", ex);
         }
