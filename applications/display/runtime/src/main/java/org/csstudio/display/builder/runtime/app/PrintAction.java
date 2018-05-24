@@ -49,7 +49,8 @@ public class PrintAction extends MenuItem
 
         // Scale image to full page
         final Printer printer = job.getPrinter();
-        final PageLayout pageLayout = printer.createPageLayout(Paper.NA_LETTER,
+        final Paper paper = job.getJobSettings().getPageLayout().getPaper();
+        final PageLayout pageLayout = printer.createPageLayout(paper,
                                                                PageOrientation.LANDSCAPE,
                                                                Printer.MarginType.DEFAULT);
         final double scaleX = pageLayout.getPrintableWidth() / screenshot.getWidth();
@@ -59,7 +60,7 @@ public class PrintAction extends MenuItem
         print_node.getTransforms().add(new Scale(scale, scale));
 
         // Print off the UI thread
-        JobManager.schedule(Messages.SaveSnapshot, monitor ->
+        JobManager.schedule(Messages.Print, monitor ->
         {
             if (job.printPage(print_node))
                 job.endJob();
