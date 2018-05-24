@@ -11,12 +11,12 @@ import static org.phoebus.applications.pvtable.PVTableApplication.logger;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VByteArray;
@@ -27,6 +27,8 @@ import org.phoebus.vtype.VNumberArray;
 import org.phoebus.vtype.VString;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFactory;
+
+import io.reactivex.disposables.Disposable;
 
 /** One item (row) in the PV table.
  *
@@ -63,59 +65,15 @@ public class PVTableItem
     private volatile boolean use_completion = true;
 
     /** Primary PV */
-    final private AtomicReference<PV> pv = new AtomicReference<PV>(null);
+    final private AtomicReference<PV> pv = new AtomicReference<>(null);
+    /** Listener to primary PV */
+    private volatile Disposable value_flow, permission_flow;
 
     /** Description PV */
-    final private AtomicReference<PV> desc_pv = new AtomicReference<PV>(null);
-
-    /** Listener to primary PV */
-    final private PVListener pv_listener = new PVListener()
-    {
-        @Override
-        public void permissionsChanged(final boolean readonly)
-        {
-            listener.tableItemChanged(PVTableItem.this);
-        }
-
-        @Override
-        public void valueChanged(final VType value)
-        {
-            updateValue(value);
-        }
-
-        @Override
-        public void disconnected()
-        {
-            updateValue(ValueFactory.newVString(
-                    "Disconnected", ValueFactory
-                            .newAlarm(AlarmSeverity.UNDEFINED, "Disconnected"),
-                    ValueFactory.timeNow()));
-        }
-    };
+    final private AtomicReference<PV> desc_pv = new AtomicReference<>(null);
 
     /** Listener to description PV */
-    final private PVListener desc_pv_listener = new PVListener()
-    {
-        @Override
-        public void valueChanged(final VType value)
-        {
-            if (value instanceof VString)
-            {
-                desc_value = ((VString) value).getValue();
-            }
-            else
-            {
-                desc_value = "";
-            }
-            listener.tableItemChanged(PVTableItem.this);
-        }
-
-        @Override
-        public void disconnected()
-        {
-            desc_value = "";
-        }
-    };
+    private volatile Disposable desc_flow;
 
     /** Initialize
      *
@@ -168,7 +126,11 @@ public class PVTableItem
                         ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "Not connected"),
                         ValueFactory.timeNow()));
             final PV new_pv = PVPool.getPV(name);
-            new_pv.addListener(pv_listener);
+            value_flow = new_pv.onValueEvent()
+                               .throttleLast(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
+                               .subscribe(this::updateValue);
+            permission_flow = new_pv.onAccessRightsEvent()
+                                    .subscribe(writable -> listener.tableItemChanged(PVTableItem.this));
             pv.set(new_pv);
         }
         catch (Exception ex)
@@ -179,7 +141,11 @@ public class PVTableItem
                         ValueFactory.timeNow()));
         }
 
-        if (Settings.show_description)
+        // For CA PVs, check the .DESC field
+        // Hardcoded knowledge to avoid non-record PVs.
+        if (Settings.show_description &&
+            ! (name.startsWith("sim:") ||
+               name.startsWith("loc:")))
         {
             // Determine DESC field.
             // If name already includes a field,
@@ -191,7 +157,16 @@ public class PVTableItem
             try
             {
                 final PV new_desc_pv = PVPool.getPV(desc_name);
-                new_desc_pv.addListener(desc_pv_listener);
+                desc_flow = new_desc_pv.onValueEvent()
+                                       .throttleLast(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
+                                       .subscribe(value ->
+                {
+                    if (value instanceof VString)
+                        desc_value = ((VString) value).getValue();
+                    else
+                        desc_value = "";
+                    listener.tableItemChanged(PVTableItem.this);
+                });
                 desc_pv.set(new_desc_pv);
             }
             catch (Exception ex)
@@ -485,14 +460,15 @@ public class PVTableItem
         PV the_pv = pv.getAndSet(null);
         if (the_pv != null)
         {
-            the_pv.removeListener(pv_listener);
+            permission_flow.dispose();
+            value_flow.dispose();
             PVPool.releasePV(the_pv);
         }
 
         the_pv = desc_pv.getAndSet(null);
         if (the_pv != null)
         {
-            the_pv.removeListener(pv_listener);
+            desc_flow.dispose();
             PVPool.releasePV(the_pv);
         }
     }
