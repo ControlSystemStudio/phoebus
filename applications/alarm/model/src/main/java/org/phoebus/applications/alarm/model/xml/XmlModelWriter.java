@@ -30,7 +30,6 @@ public class XmlModelWriter
 
 	private XMLStreamWriter writer;
 
-
 	public XmlModelWriter() throws Exception
 	{
 		initWriter(System.out);
@@ -50,7 +49,6 @@ public class XmlModelWriter
 	        writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
 	}
 
-
     public void getModelXML(final AlarmTreeItem<?> item) throws Exception
     {
         getModelXML(item, 0);
@@ -58,8 +56,7 @@ public class XmlModelWriter
 
     private void getModelXML(final AlarmTreeItem<?> item, final int level) throws Exception
     {
-
-    	if (level == 0)
+    	if (level == 0) /* Root */
     	{
     		writer.writeStartElement(XmlModelReader.TAG_CONFIG);
         	writer.writeAttribute(XmlModelReader.TAG_NAME, item.getName());
@@ -72,7 +69,7 @@ public class XmlModelWriter
         	writer.writeEndElement();
         	close();
     	}
-    	else if (item instanceof AlarmTreeLeaf)
+    	else if (item instanceof AlarmTreeLeaf) /* Leaf */
         {
         	final AlarmTreeLeaf leaf = (AlarmTreeLeaf) item;
 
@@ -85,7 +82,7 @@ public class XmlModelWriter
 
         	writer.writeEndElement();
         }
-        else
+        else /* Component */
         {
         	writer.writeStartElement(XmlModelReader.TAG_COMPONENT);
         	writer.writeAttribute(XmlModelReader.TAG_NAME, item.getName());
@@ -97,13 +94,10 @@ public class XmlModelWriter
 
         	writer.writeEndElement();
         }
-
-
     }
 
     private void getItemXML(final AlarmTreeItem<?> item) throws Exception
     {
-
     	// Write XML for Guidance
     	final List<TitleDetail> guidance = item.getGuidance();
 
@@ -214,7 +208,6 @@ public class XmlModelWriter
     		writer.writeCharacters(filter);
     		writer.writeEndElement();
     	}
-
     }
 
 	public void close() throws IOException
@@ -231,6 +224,4 @@ public class XmlModelWriter
             throw new IOException("Failed to close XML", ex);
         }
     }
-
-
 }

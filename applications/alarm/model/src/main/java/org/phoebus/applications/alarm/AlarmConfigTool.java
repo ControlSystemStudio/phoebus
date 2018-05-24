@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm;
 
 import java.io.File;
@@ -21,6 +28,12 @@ import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 import org.phoebus.framework.jobs.NamedThreadFactory;
+
+/**
+ * Writes Alarm System model to XML.
+ * @author Evan Smith
+ *
+ */
 
 public class AlarmConfigTool
 {
