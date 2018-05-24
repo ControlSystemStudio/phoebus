@@ -8,9 +8,7 @@ import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionChangeListener;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
-import org.phoebus.ui.javafx.UpdateThrottle;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
@@ -20,6 +18,7 @@ import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFormat;
 import org.phoebus.vtype.ValueUtil;
 
+import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -73,21 +72,10 @@ public class ProbeController {
     }
 
     private PV pv;
+    private Disposable pv_flow;
 
-    private final UpdateThrottle throttle = new UpdateThrottle(100, TimeUnit.MILLISECONDS, this::update);
-
-    private final PVListener pv_listener = new PVListener()
+    private void update(final VType value)
     {
-        @Override
-        public void valueChanged(final VType value)
-        {
-            throttle.trigger();
-        }
-    };
-
-    private void update()
-    {
-        final VType value = pv.read();
         Platform.runLater(() ->
         {
             setValue(value);
@@ -99,7 +87,7 @@ public class ProbeController {
     private void search() {
         // The PV is different, so disconnect and reset the visuals
         if (pv != null) {
-            pv.removeListener(pv_listener);
+            pv_flow.dispose();
             PVPool.releasePV(pv);
             pv = null;
         }
@@ -110,12 +98,14 @@ public class ProbeController {
         try
         {
             pv = PVPool.getPV(txtPVName.getText());
+            pv_flow = pv.onValueEvent()
+                        .throttleLast(10, TimeUnit.MILLISECONDS)
+                        .subscribe(this::update);
         }
         catch (Exception ex)
         {
             ex.printStackTrace();
         }
-        pv.addListener(pv_listener);
     }
 
     private void setTime(Time time) {
