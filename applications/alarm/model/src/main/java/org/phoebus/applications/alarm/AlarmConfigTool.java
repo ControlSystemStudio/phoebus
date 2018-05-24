@@ -1,6 +1,8 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -14,6 +16,7 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
@@ -37,17 +40,15 @@ public class AlarmConfigTool
 	// Prints help info about the program and then exits.
 	private void help()
 	{
-		System.out.println("AlarmToolConfig help menu. Usage defined below.\n");
-		System.out.println("\n\tThis program facilitates the importation and exportation of the Alarm System's model.\n");
+		System.out.println("AlarmToolConfig help menu. Usage defined below.");
+		System.out.println("\n\tThis program facilitates the importation and exportation of the Alarm System's model via XML files.\n");
 		System.out.println("\tTo print this menu: java AlarmToolConfig --help\n");
 		System.out.println("\tUsing '--export' the program will write the Alarm System's current model to an XML file.");
 		System.out.println("\n\tThe 'wait_time' argument refers to the amount of time the model must have been stable before it will be written to file.\n");
 		System.out.println("\tTo export model to a file:  java AlarmToolConfig --export output_filename wait_time");
 		System.out.println("\tTo export model to console: java AlarmToolConfig --export stdout wait_time\n");
-		System.out.println("\tUsing '--import' the program will read a user supplied XML file and import the model contained therein to the Alarm System.");
-
-		// TODO: Uncomment when import is implemented.
-		//System.out.print("\tTo import model from a file: java AlarmToolConfig --import input_filename");
+		System.out.println("\tUsing '--import' the program will read a user supplied XML file and import the model contained therein to the Alarm System server.");
+		System.out.println("\n\tTo import model from a file: java AlarmToolConfig --import input_filename");
 
 		System.exit(0);
 	}
@@ -152,10 +153,22 @@ public class AlarmConfigTool
 	}
 
 	// Import an alarm system model from an xml file.
-	@SuppressWarnings("unused")
-	private void importModel(/* xml file? */)
+	private void importModel(final String filename) throws FileNotFoundException
 	{
-		// TODO: Code to import a model from an xml file.
+		final File file = new File(filename);
+		final FileInputStream fileInputStream = new FileInputStream(file);
+
+		final XmlModelReader xmlModelReader = new XmlModelReader();
+
+
+		try
+		{
+			xmlModelReader.load(fileInputStream);
+		} catch (final Exception e)
+		{
+			e.printStackTrace();
+		}
+
 
 		// Connect to the server.
 		final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
@@ -217,12 +230,27 @@ public class AlarmConfigTool
 			}
 			else if (0 == args[i].compareTo("--import"))
 			{
-				System.out.println("--import not yet implemented.");
-				System.exit(1);
+				i++;
+				if (i >= args.length)
+				{
+					System.out.println("ERROR: '--import' must be accompanied by an input file name. Use --help for program usage info.");
+					System.exit(1);
+				}
+
+				final String filename = args[i];
+
+				try
+				{
+					importModel(filename);
+				} catch (final FileNotFoundException e)
+				{
+					System.out.println("Input file: \"" + filename + "\" not found.");
+					System.exit(1);
+				}
 			}
 			else
 			{
-				System.out.printf("Unrecognized command line option: %s\nUse --help for program usage info.", args[i]);
+				System.out.printf("ERROR: Unrecognized command line option: \"%s\". Use --help for program usage info.", args[i]);
 				System.exit(1);
 			}
 		}
