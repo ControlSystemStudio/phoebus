@@ -86,7 +86,7 @@ public class XmlModelReader
             throw new Exception("Expected " + TAG_CONFIG + " but got " + root_node.getNodeName());
 
         // Create the root of the model. Parent is null and name must be config.
-        root = new AlarmClientNode(null, root_node.getNodeName());
+        root = new AlarmClientNode(null, root_node.getAttribute(TAG_NAME));
 
         for (final Node child : XMLUtil.getChildElements(root_node, TAG_COMPONENT))
         	processComponent(root /* parent */, child);
@@ -129,7 +129,6 @@ public class XmlModelReader
 
         for (final Element child : XMLUtil.getChildElements(nd, TAG_PV))
         	processPV(comp_node/* parent */, child);
-
 	}
 
 	private void processCompAttr(AlarmClientNode comp_node, Node node)
@@ -200,7 +199,25 @@ public class XmlModelReader
 		XMLUtil.getChildBoolean(nd, TAG_LATCHING).ifPresent(pv::setLatching);
 		XMLUtil.getChildBoolean(nd, TAG_ANNUNCIATING).ifPresent(pv::setAnnunciating);
 		XMLUtil.getChildString(nd, TAG_DESCRIPTION).ifPresent(pv::setDescription);
-		XMLUtil.getChildInteger(nd, TAG_DELAY).ifPresent(pv::setDelay);
+
+		final String delayStr = XMLUtil.getChildString(nd, TAG_DELAY).orElse("");
+
+		if (delayStr.equals(""))
+			pv.setDelay(0);
+		else
+		{
+			try
+			{
+				final Double tmp = Double.parseDouble(delayStr);
+				final Integer delay = tmp.intValue();
+				pv.setDelay(delay);
+			}
+			catch (final NumberFormatException e)
+			{
+				pv.setDelay(0);
+			}
+		}
+
 		XMLUtil.getChildInteger(nd, TAG_COUNT).ifPresent(pv::setCount);
 		XMLUtil.getChildString(nd, TAG_FILTER).ifPresent(pv::setFilter);
 
