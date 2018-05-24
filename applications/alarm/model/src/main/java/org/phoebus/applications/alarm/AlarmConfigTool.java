@@ -115,10 +115,10 @@ public class AlarmConfigTool
 		time = new_time;
 	}
 	// Export an alarm system model to an xml file.
-	private void exportModel(String filename) throws Exception
+	private void exportModel(String filename, String server, String config) throws Exception
 	{
 
-		client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+		client = new AlarmClient(server, config);
         client.start();
 
         System.out.printf("Writing file after model is stable for %d seconds:\n", time);
@@ -254,7 +254,7 @@ public class AlarmConfigTool
 				i++;
 				if (i >= args.length)
 				{
-					System.out.println("ERROR: '--export' must be accompanied by an output file name and a wait time. Use --help for program usage info.");
+					System.out.println("ERROR: '--export' must be followed by an output file name and a wait time. Use --help for program usage info.");
 					System.exit(1);
 				}
 
@@ -278,9 +278,42 @@ public class AlarmConfigTool
 
 				setTimeout(wait_time);
 
+				i++;
+				if (i >= args.length || 0 != args[i].compareTo("--server"))
+				{
+					System.out.println("ERROR: '--import' must be followed by '--server'. Use --help for program usage info.");
+					System.exit(1);
+				}
+
+				// Check that a host name was provided and didn't proceed to --config.
+				i++;
+				if (i >= args.length || 0 == args[i].compareTo("--config"))
+				{
+					System.out.println("ERROR: '--server' must be followed by a hostname. Use --help for program usage info.");
+					System.exit(1);
+				}
+
+				final String server = args[i];
+
+				i++;
+				if (i >= args.length || 0 != args[i].compareTo("--config"))
+				{
+					System.out.println("ERROR: '--export' must be followed by '--config'. Use --help for program usage info.");
+					System.exit(1);
+				}
+				i++;
+
+				if (i >= args.length)
+				{
+					System.out.println("ERROR: '--config' must be followed by a config name. Use --hlp for program usage info.");
+					System.exit(1);
+				}
+
+				final String config = args[i];
+
 				try
 				{
-					exportModel(filename);
+					exportModel(filename, server, config);
 				}
 				catch (final Exception e)
 				{
@@ -322,6 +355,11 @@ public class AlarmConfigTool
 					System.exit(1);
 				}
 				i++;
+				if (i >= args.length)
+				{
+					System.out.println("ERROR: '--config' must be followed by a config name. Use --hlp for program usage info.");
+					System.exit(1);
+				}
 				final String configname = args[i];
 
 				try
