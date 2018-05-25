@@ -6,8 +6,10 @@ public class AreaFilter
 {
 	private int level = 2;
 
+
 	public AreaFilter(int level)
 	{
+		// Set level to filter.
 		this.level = level;
 	}
 
