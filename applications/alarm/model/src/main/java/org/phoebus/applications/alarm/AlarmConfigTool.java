@@ -9,7 +9,6 @@ package org.phoebus.applications.alarm;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -52,6 +51,7 @@ public class AlarmConfigTool
 		private UpdateMonitor(final long new_time)
 		{
 			time = new_time;
+			resetTimer();
 		}
 
 	    void resetTimer()
@@ -69,7 +69,6 @@ public class AlarmConfigTool
             	// Reset the timer when receiving update
                 resetTimer();
         		updates.incrementAndGet();
-
             }
 
             @Override
@@ -78,7 +77,6 @@ public class AlarmConfigTool
             	// Reset the timer when receiving update
                 resetTimer();
         		updates.incrementAndGet();
-
             }
 
             @Override
@@ -92,7 +90,7 @@ public class AlarmConfigTool
         {
         	client.addListener(updateListener);
         	 if (! no_more_messages.await(30, TimeUnit.SECONDS))
-                 throw new Exception("30 seconds have passed, I give up waiting for updates to subside");
+                 throw new Exception("30 seconds have passed, I give up waiting for updates to subside.");
         	// Reset the counter to count any updates received after we decide to continue.
         	updates.set(0);
         }
@@ -106,29 +104,10 @@ public class AlarmConfigTool
     private AlarmClient client = null;
     private UpdateMonitor updateMonitor = null;
 
-	// Prints help info about the program and then exits.
-	private void help()
-	{
-		System.out.println("AlarmToolConfig help menu. Usage defined below.");
-		System.out.println("\n\tThis program facilitates the importation and exportation of the Alarm System's model via XML files.\n");
-		System.out.println("\tTo print this menu: java AlarmToolConfig --help\n");
-		System.out.println("\tUsing '--export' the program will write the Alarm System's current model to an XML file.");
-		System.out.println("\n\tThe 'wait_time' argument refers to the amount of time the model must have been stable before it will be written to file.\n");
-		System.out.println("\tTo export model to a file:  java AlarmToolConfig --export output_filename wait_time");
-		System.out.println("\tTo export model to console: java AlarmToolConfig --export stdout wait_time\n");
-		System.out.println("\tUsing '--import' the program will read a user supplied XML file and import the model contained therein to the Alarm System server.");
-		System.out.println("\n\tTo import model from a file: java AlarmToolConfig --import input_filename --server host_name --config config_name");
+	private final long time = 4;
 
-		System.exit(0);
-	}
-
-	private long time = 4;
-	private void setTimeout(long new_time)
-	{
-		time = new_time;
-	}
 	// Export an alarm system model to an xml file.
-	private void exportModel(String filename, String server, String config) throws Exception
+	public void exportModel(String filename, String server, String config) throws Exception
 	{
 
 		client = new AlarmClient(server, config);
@@ -170,7 +149,7 @@ public class AlarmConfigTool
 	}
 
 	// Import an alarm system model from an xml file.
-	private void importModel(final String filename, final String hostname, final String config) throws InterruptedException, Exception
+	public void importModel(final String filename, final String server, final String config) throws InterruptedException, Exception
 	{
 		final File file = new File(filename);
 		final FileInputStream fileInputStream = new FileInputStream(file);
@@ -185,9 +164,8 @@ public class AlarmConfigTool
 			e.printStackTrace();
 		}
 
-
 		// Connect to the server.
-		client = new AlarmClient(hostname, config);
+		client = new AlarmClient(server, config);
         client.start();
 
         updateMonitor = new UpdateMonitor(time);
@@ -221,7 +199,8 @@ public class AlarmConfigTool
 	        try
 			{
 				addNodes(root, child);
-			} catch (final Exception e1)
+			}
+	        catch (final Exception e1)
 			{
 				e1.printStackTrace();
 			}
@@ -232,13 +211,9 @@ public class AlarmConfigTool
 	{
 		// Determine if the item is a node or a leaf and add to the model appropriately.
 		if (tree_item instanceof AlarmTreeLeaf)
-		{
 			client.addPV(parent, tree_item.getName());
-		}
 		else if (tree_item instanceof AlarmTreeItem)
-		{
 			client.addComponent(parent, tree_item.getName());
-		}
 
 		// Send the configuration for the newly created node.
 		client.sendItemConfigurationUpdate(tree_item.getPathName(), tree_item);
@@ -246,164 +221,6 @@ public class AlarmConfigTool
 		// Recurse over children.
 		final List<AlarmTreeItem<?>> children = tree_item.getChildren();
 		for (final AlarmTreeItem<?> child : children)
-		{
 			addNodes(tree_item, child);
-		}
 	}
-
-	// Constructor. Handles parsing of command lines and execution of command line options.
-	private AlarmConfigTool(String[] args)
-	{
-
-		int wait_time = 0;
-		for (int i = 0; i < args.length; i++)
-		{
-			if (0 == args[i].compareTo("--help"))
-			{
-				help();
-			}
-			if (0 == args[i].compareTo("--export"))
-			{
-				i++;
-				if (i >= args.length)
-				{
-					System.out.println("ERROR: '--export' must be followed by an output file name and a wait time. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				final String filename = args[i];
-				i++;
-				if (i >= args.length)
-				{
-					System.out.println("ERROR: --export' must be accompanied by an output file name and a wait time. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				try
-				{
-					wait_time = Integer.parseInt(args[i]);
-				}
-				catch (final NumberFormatException e)
-				{
-					System.out.println("ERROR: Wait time must be an integer value. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				setTimeout(wait_time);
-
-				i++;
-				if (i >= args.length || 0 != args[i].compareTo("--server"))
-				{
-					System.out.println("ERROR: '--import' must be followed by '--server'. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				// Check that a host name was provided and didn't proceed to --config.
-				i++;
-				if (i >= args.length || 0 == args[i].compareTo("--config"))
-				{
-					System.out.println("ERROR: '--server' must be followed by a hostname. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				final String server = args[i];
-
-				i++;
-				if (i >= args.length || 0 != args[i].compareTo("--config"))
-				{
-					System.out.println("ERROR: '--export' must be followed by '--config'. Use --help for program usage info.");
-					System.exit(1);
-				}
-				i++;
-
-				if (i >= args.length)
-				{
-					System.out.println("ERROR: '--config' must be followed by a config name. Use --hlp for program usage info.");
-					System.exit(1);
-				}
-
-				final String config = args[i];
-
-				try
-				{
-					exportModel(filename, server, config);
-				}
-				catch (final Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
-			else if (0 == args[i].compareTo("--import"))
-			{
-				i++;
-				if (i >= args.length)
-				{
-					System.out.println("ERROR: '--import' must be accompanied by an input file name. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				final String filename = args[i];
-
-				i++;
-				if (i >= args.length || 0 != args[i].compareTo("--server"))
-				{
-					System.out.println("ERROR: '--import' must be followed by '--server'. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				// Check that a host name was provided and didn't proceed to --config.
-				i++;
-				if (i >= args.length || 0 == args[i].compareTo("--config"))
-				{
-					System.out.println("ERROR: '--server' must be followed by a hostname. Use --help for program usage info.");
-					System.exit(1);
-				}
-
-				final String hostname = args[i];
-
-				i++;
-				if (i >= args.length || 0 != args[i].compareTo("--config"))
-				{
-					System.out.println("ERROR: '--import' must be followed by '--config'. Use --help for program usage info.");
-					System.exit(1);
-				}
-				i++;
-				if (i >= args.length)
-				{
-					System.out.println("ERROR: '--config' must be followed by a config name. Use --hlp for program usage info.");
-					System.exit(1);
-				}
-				final String configname = args[i];
-
-				try
-				{
-					importModel(filename, hostname, configname);
-				} catch (final FileNotFoundException e)
-				{
-					System.out.println("Input file: \"" + filename + "\" not found.");
-					System.exit(1);
-				} catch (final InterruptedException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (final Exception e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			else
-			{
-				System.out.printf("ERROR: Unrecognized command line option: \"%s\". Use --help for program usage info.", args[i]);
-				System.exit(1);
-			}
-		}
-	}
-
-	public static void main(String[] args)
-	{
-		@SuppressWarnings("unused")
-		final AlarmConfigTool act = new AlarmConfigTool(args);
-	}
-
 }
