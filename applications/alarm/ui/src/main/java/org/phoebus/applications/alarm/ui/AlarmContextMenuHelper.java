@@ -15,13 +15,18 @@ import java.util.Set;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 
 /** Helper for adding guidance, displays, commands to context menu
  *  @author Kay Kasemir
@@ -46,16 +51,18 @@ public class AlarmContextMenuHelper
     /** Add guidance etc. based on selected items
      *  @param node Node for positioning dialog
      *  @param model {@link AlarmClient}
-     *  @param menu_items Menu items to extend
+     *  @param menu Menu to extend
      *  @param selection Selected alarm tree items
      */
     public void addSupportedEntries(final Node node,
                                     final AlarmClient model,
-                                    final ObservableList<MenuItem> menu_items,
+                                    final ContextMenu menu,
                                     final List<AlarmTreeItem<?>> selection)
     {
+        final List<MenuItem> menu_items = menu.getItems();
         final List<AlarmTreeItem<?>> active = new ArrayList<>();
         final List<AlarmTreeItem<?>> acked = new ArrayList<>();
+        final List<ProcessVariable> pvnames = new ArrayList<>();
         for (AlarmTreeItem<?> item : selection)
         {
             final SeverityLevel sev = item.getState().severity;
@@ -66,6 +73,8 @@ public class AlarmContextMenuHelper
                 else
                     acked.add(item);
             }
+            if (item instanceof AlarmTreeLeaf)
+                pvnames.add(new ProcessVariable(item.getName()));
         }
 
         // TODO Initial context menu item for alarm info, if in alarm
@@ -93,10 +102,18 @@ public class AlarmContextMenuHelper
             if (acked.size() > 0)
                 menu_items.add(new UnAcknowledgeAction(model, acked));
         }
+
+        // Add context menu actions for PVs
+        if (pvnames.size() > 0)
+        {
+            menu_items.add(new SeparatorMenuItem());
+            SelectionService.getInstance().setSelection("AlarmUI", pvnames);
+            ContextMenuHelper.addSupportedEntries(node, menu);
+        }
     }
 
     private void addGuidance(final Node node,
-                             final ObservableList<MenuItem> menu_items,
+                             final List<MenuItem> menu_items,
                              final AlarmTreeItem<?> item)
     {
         for (TitleDetail guidance : item.getGuidance())
@@ -108,7 +125,7 @@ public class AlarmContextMenuHelper
     }
 
     private void addDisplays(final Node node,
-                             final ObservableList<MenuItem> menu_items,
+                             final List<MenuItem> menu_items,
                              final AlarmTreeItem<?> item)
     {
         // TODO Create a new OpenRelatedDisplayAction(..) which opens the resource
@@ -121,7 +138,7 @@ public class AlarmContextMenuHelper
     }
 
     private void addCommands(final Node node,
-                             final ObservableList<MenuItem> menu_items,
+                             final List<MenuItem> menu_items,
                              final AlarmTreeItem<?> item)
     {
         // TODO Create a new ExecuteCommandAction(..) which executes the command
