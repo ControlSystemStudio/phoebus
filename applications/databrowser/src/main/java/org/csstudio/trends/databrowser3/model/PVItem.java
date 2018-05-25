@@ -346,7 +346,7 @@ public class PVItem extends ModelItem
         if (period <= 0)
         {
             logger.log(Level.FINE, "PV {0} received {1}", new Object[] { getName(), value });
-            if (value == null)
+            if (PV.isDisconnected(value))
             {
                 logDisconnected();
                 return;

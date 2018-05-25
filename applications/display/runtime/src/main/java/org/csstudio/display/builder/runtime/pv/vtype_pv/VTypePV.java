@@ -94,7 +94,7 @@ public class VTypePV implements RuntimePV
 
     public void valueChanged(final VType value)
     {
-        if (value == null)
+        if (PV.isDisconnected(value))
             for (RuntimePVListener listener : listeners)
                 listener.disconnected(this);
         else
