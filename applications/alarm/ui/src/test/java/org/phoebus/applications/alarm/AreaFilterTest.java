@@ -9,7 +9,6 @@ import org.phoebus.applications.alarm.ui.area.AreaFilter;
 
 public class AreaFilterTest
 {
-	@SuppressWarnings("unused")
 	@Test
 	public void testAreaFilter()
 	{
@@ -22,11 +21,18 @@ public class AreaFilterTest
 
 		final AlarmClientNode a1l3 = new AlarmClientNode(a3l2, "Area 1 Level 3");
 
-		final AreaFilter areaFilter = new AreaFilter(level);
+		AreaFilter areaFilter = new AreaFilter(level);
 
 		assertTrue(areaFilter.filter(a1l2.getPathName()));
 		assertTrue(areaFilter.filter(a2l2.getPathName()));
 		assertTrue(areaFilter.filter(a3l2.getPathName()));
 		assertFalse(areaFilter.filter(a1l3.getPathName()));
+
+		areaFilter = new AreaFilter(level + 1);
+
+		assertFalse(areaFilter.filter(a1l2.getPathName()));
+		assertFalse(areaFilter.filter(a2l2.getPathName()));
+		assertFalse(areaFilter.filter(a3l2.getPathName()));
+		assertTrue(areaFilter.filter(a1l3.getPathName()));
 	}
 }
