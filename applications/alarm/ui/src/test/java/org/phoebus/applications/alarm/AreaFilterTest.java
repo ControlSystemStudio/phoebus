@@ -5,7 +5,7 @@ import org.junit.Test;
 public class AreaFilterTest
 {
 	@Test
-	public void testAreaMonitor()
+	public void testAreaFilter()
 	{
 
 	}
