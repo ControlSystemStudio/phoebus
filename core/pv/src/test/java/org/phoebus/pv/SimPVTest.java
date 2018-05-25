@@ -10,7 +10,8 @@ package org.phoebus.pv;
 import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
-import org.phoebus.vtype.VType;
+
+import io.reactivex.disposables.Disposable;
 
 /** @author Kay Kasemir */
 @SuppressWarnings("nls")
@@ -21,21 +22,16 @@ public class SimPVTest
     {
         final CountDownLatch done = new CountDownLatch(3);
 
-        final PVListener listener = new PVListener()
-        {
-            @Override
-            public void valueChanged(final VType value)
-            {
-                System.out.println("Received update " + value);
-                done.countDown();
-            }
-        };
-
         System.out.println("Awaiting " + done.getCount() + " updates...");
         final PV pv = PVPool.getPV("sim://sine");
-        pv.addListener(listener);
+        final Disposable flow = pv.onValueEvent()
+                                  .subscribe(value ->
+        {
+            System.out.println("Received update " + value);
+            done.countDown();
+        });
         done.await();
-        pv.removeListener(listener);
+        flow.dispose();
         PVPool.releasePV(pv);
     }
 }
