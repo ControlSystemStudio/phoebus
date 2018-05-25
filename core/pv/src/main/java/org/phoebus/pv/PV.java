@@ -14,6 +14,8 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.vtype.Alarm;
+import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VType;
 
 import io.reactivex.BackpressureStrategy;
@@ -89,7 +91,16 @@ abstract public class PV
         listeners.remove(listener);
     }
 
-    /** @return {@link Flowable} that receives {@link VType} for each updated value of the PV */
+    /** Obtain {@link Flowable} for PV's values.
+     *
+     *  <p>The {@link Flowable} will receive {@link VType} updates
+     *  whenever the PV sends a new value.
+     *  When the PV disconnects,
+     *  the {@link Flowable} will be of {@link AlarmSeverity#UNDEFINED}
+     *  with the alarm message set to {@link PV#DISCONNECTED}.
+     *
+     *  @return {@link Flowable} that receives {@link VType} for each updated value of the PV
+     */
     public Flowable<VType> onValueEvent()
     {
         return onValueEvent(BackpressureStrategy.LATEST);
@@ -103,10 +114,33 @@ abstract public class PV
         return Flowable.create(new ValueEventOnSubscribe(this), mode);
     }
 
-    /** @return {@link Flowable} that receives <code>true</code>/<code>false</code> to indicate write access */
+    /** Obtain {@link Flowable} for PV's write access.
+     *
+     *  <p>The {@link Flowable} will receive <code>true</code> when the PV permits write access.
+     *  When the PV does not allow write access, or the PV becomes disconnected,
+     *  <code>false</code> is emitted.
+     *
+     *  @return {@link Flowable} that receives <code>true</code>/<code>false</code> to indicate write access
+     */
     public Flowable<Boolean> onAccessRightsEvent()
     {
         return Flowable.create(new AccessRightsEventOnSubscribe(this), BackpressureStrategy.LATEST);
+    }
+
+    /** Check if value indicates a disconnected PV
+     *
+     *  @param value Value received from PV
+     *  @return <code>true</code> if PV is disconnected
+     */
+    public static boolean isDisconnected(final VType value)
+    {
+        if (value == null)
+            return true;
+        if (! (value instanceof Alarm))
+            return true;
+        final Alarm alarm = (Alarm) value;
+        return alarm.getAlarmSeverity() == AlarmSeverity.UNDEFINED  &&
+               DISCONNECTED.equals(alarm.getAlarmName());
     }
 
     /** Read current value

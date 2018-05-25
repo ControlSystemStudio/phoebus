@@ -9,15 +9,17 @@ package org.phoebus.applications.alarm.server;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.VType;
+
+import io.reactivex.disposables.Disposable;
 
 /** Filter that computes alarm enablement from expression.
  *  <p>
@@ -52,33 +54,33 @@ public class Filter
      */
     final private PV pvs[];
 
-    private final PVListener[] listeners;
+    private final Disposable[] flows;
 
     private double previous_value = Double.NaN;
 
-    private class FilterPVListener implements PVListener
+    private class FilterPVhandler implements io.reactivex.functions.Consumer<VType>
     {
         private final int index;
 
-        FilterPVListener(final int index)
+        FilterPVhandler(final int index)
         {
             this.index = index;
         }
 
         @Override
-        public void valueChanged(final VType value)
+        public void accept(final VType value)
         {
-            final double number = VTypeHelper.toDouble(value);
-            logger.log(Level.FINER, () -> { return "Filter " + formula.getFormula() + ": " + pvs[index].getName() + " = " + number; });
-            variables[index].setValue(number);
-            evaluate();
-        }
-
-        @Override
-        public void disconnected()
-        {
-            logger.log(Level.WARNING, "PV " + pvs[index].getName() + " (var. " + variables[index].getName() + ") disconnected");
-            variables[index].setValue(Double.NaN);
+            if (PV.isDisconnected(value))
+            {
+                logger.log(Level.WARNING, "PV " + pvs[index].getName() + " (var. " + variables[index].getName() + ") disconnected");
+                variables[index].setValue(Double.NaN);
+            }
+            else
+            {
+                final double number = VTypeHelper.toDouble(value);
+                logger.log(Level.FINER, () -> { return "Filter " + formula.getFormula() + ": " + pvs[index].getName() + " = " + number; });
+                variables[index].setValue(number);
+            }
             evaluate();
         }
     }
@@ -99,7 +101,7 @@ public class Filter
             variables = vars;
 
         pvs = new PV[variables.length];
-        listeners = new PVListener[variables.length];
+        flows = new Disposable[variables.length];
     }
 
     public String getExpression()
@@ -113,8 +115,9 @@ public class Filter
         for (int i=0; i<pvs.length; ++i)
         {
             pvs[i] = PVPool.getPV(variables[i].getName());
-            listeners[i] = new FilterPVListener(i);
-            pvs[i].addListener(listeners[i]);
+            flows[i] = pvs[i].onValueEvent()
+                             .throttleLast(500, TimeUnit.MILLISECONDS)
+                             .subscribe(new FilterPVhandler(i));
         }
     }
 
@@ -123,7 +126,7 @@ public class Filter
     {
         for (int i=0; i<pvs.length; ++i)
         {
-            pvs[i].removeListener(listeners[i]);
+            flows[i].dispose();
             PVPool.releasePV(pvs[i]);
             pvs[i] = null;
         }
