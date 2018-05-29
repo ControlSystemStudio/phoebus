@@ -29,7 +29,7 @@ public class VTypePV implements RuntimePV
     private final Disposable value_flow, writable_flow;
     private final List<RuntimePVListener> listeners = new CopyOnWriteArrayList<>();
 
-    VTypePV(final PV pv)
+    public VTypePV(final PV pv)
     {
         this.pv = pv;
         value_flow = pv.onValueEvent()
@@ -102,7 +102,7 @@ public class VTypePV implements RuntimePV
                 listener.valueChanged(this, value);
     }
 
-    PV getPV()
+    public PV getPV()
     {
         return pv;
     }

@@ -26,7 +26,7 @@ import org.phoebus.vtype.VType;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public interface RuntimePV
+public interface RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue for script compatibility?
 {
     /** @return PV name */
     public String getName();

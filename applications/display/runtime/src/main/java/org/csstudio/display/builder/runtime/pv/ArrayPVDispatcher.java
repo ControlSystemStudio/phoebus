@@ -13,13 +13,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.util.VTypeUtil;
+import org.csstudio.display.builder.runtime.pv.vtype_pv.VTypePV;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.array.ArrayInt;
 import org.phoebus.util.array.ListNumber;
+import org.phoebus.vtype.Time;
 import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VEnumArray;
 import org.phoebus.vtype.VNumber;
@@ -27,6 +32,9 @@ import org.phoebus.vtype.VNumberArray;
 import org.phoebus.vtype.VString;
 import org.phoebus.vtype.VStringArray;
 import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
+
+import io.reactivex.disposables.Disposable;
 
 /** Dispatches elements of an array PV to per-element local PVs
  *
@@ -59,60 +67,25 @@ public class ArrayPVDispatcher implements AutoCloseable
     }
 
     private final RuntimePV array_pv;
+    private final Disposable array_flow;
 
     private final String basename;
 
     private final Listener listener;
 
-    private final RuntimePVListener array_listener = new RuntimePVListener()
-    {
-        @Override
-        public void valueChanged(final RuntimePV pv, final VType value)
-        {
-            try
-            {
-                dispatchArrayUpdate(value);
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot handle array update from " + pv.getName(), ex);
-            }
-        }
-
-        @Override
-        public void disconnected(final RuntimePV pv)
-        {
-            notifyOfDisconnect();
-        }
-    };
-
     /** Per-element PVs are local PVs which sent notification "right away".
      *  This flag is used to ignore such updates whenever the dispatcher
-     *  itself is writing to the per-element PVs.
+     *  itself is writing to the per-element PVs,
+     *  or when the per-element PVs update the array.
      */
-    private volatile boolean ignore_element_updates = false;
-
-    private final RuntimePVListener element_listener = new RuntimePVListener()
-    {
-        @Override
-        public void valueChanged(final RuntimePV pv, final VType value)
-        {
-            if (ignore_element_updates)
-                return;
-            try
-            {
-                updateArrayFromElements();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot update array from elements, triggered by " + pv.getName(), ex);
-            }
-        }
-    };
+    private volatile boolean ignore_updates = false;
 
     private volatile boolean is_string = false;
 
-    private final AtomicReference<List<RuntimePV>> element_pvs = new AtomicReference<>(Collections.emptyList());
+    private final AtomicReference<List<PV>> element_pvs = new AtomicReference<>(Collections.emptyList());
+    private final CopyOnWriteArrayList<Disposable> element_flow = new CopyOnWriteArrayList<>();
+
+    // TODO Update to directly use VType.PV, remove RuntimePV
 
     /** Construct dispatcher
      *
@@ -127,13 +100,20 @@ public class ArrayPVDispatcher implements AutoCloseable
         this.basename = basename;
         this.listener = listener;
 
-        array_pv.addListener(array_listener);
+        if (! (array_pv instanceof VTypePV))
+            throw new IllegalStateException("Only works with VType PV");
+
+        final VTypePV actual = (VTypePV) array_pv;
+        array_flow = actual.getPV().onValueEvent().subscribe(this::dispatchArrayUpdate);
     }
 
     /** @param value Value update from array */
     private void dispatchArrayUpdate(final VType value) throws Exception
     {
-        if (value == null)
+        if (ignore_updates)
+            return;
+
+        if (PV.isDisconnected(value))
             notifyOfDisconnect();
         else
         {
@@ -157,10 +137,10 @@ public class ArrayPVDispatcher implements AutoCloseable
 
     private void notifyOfDisconnect()
     {
-        ignore_element_updates = true;
+        ignore_updates = true;
         try
         {
-            for (RuntimePV pv : element_pvs.get())
+            for (PV pv : element_pvs.get())
             {
                 try
                 {
@@ -174,17 +154,17 @@ public class ArrayPVDispatcher implements AutoCloseable
         }
         finally
         {
-            ignore_element_updates = false;
+            ignore_updates = false;
         }
     }
 
     /** @param value Value update from array of numbers or enum indices */
     private void dispatchArrayUpdate(final ListNumber value) throws Exception
     {
-        ignore_element_updates = true;
+        ignore_updates = true;
         try
         {
-            List<RuntimePV> pvs = element_pvs.get();
+            List<PV> pvs = element_pvs.get();
             final int N = value.size();
             if (pvs.size() != N)
             {   // Create new element PVs
@@ -193,7 +173,7 @@ public class ArrayPVDispatcher implements AutoCloseable
                 {
                     final double val = value.getDouble(i);
                     final String name = "loc://" + basename + i;
-                    final RuntimePV pv = PVFactory.getPV(name);
+                    final PV pv = PVPool.getPV(name);
                     pv.write(val);
                     pvs.add(pv);
                 }
@@ -201,23 +181,24 @@ public class ArrayPVDispatcher implements AutoCloseable
             }
             else
             {   // Update existing element PVs
+                final Time now = ValueFactory.timeNow();
                 for (int i=0; i<N; ++i)
-                    pvs.get(i).write(value.getDouble(i));
+                    pvs.get(i).write(ValueFactory.newVDouble(value.getDouble(i), now));
             }
         }
         finally
         {
-            ignore_element_updates = false;
+            ignore_updates = false;
         }
     }
 
     /** @param value Value update from array of strings */
     private void dispatchArrayUpdate(final List<String> value) throws Exception
     {
-        ignore_element_updates = true;
+        ignore_updates = true;
         try
         {
-            List<RuntimePV> pvs = element_pvs.get();
+            List<PV> pvs = element_pvs.get();
             final int N = value.size();
             if (pvs.size() != N)
             {   // Create new element PVs
@@ -225,7 +206,7 @@ public class ArrayPVDispatcher implements AutoCloseable
                 for (int i=0; i<N; ++i)
                 {
                     final String name = "loc://" + basename + i + "(\"\")";
-                    final RuntimePV pv = PVFactory.getPV(name);
+                    final PV pv = PVPool.getPV(name);
                     pv.write(value.get(i));
                     pvs.add(pv);
                 }
@@ -233,46 +214,64 @@ public class ArrayPVDispatcher implements AutoCloseable
             }
             else
             {   // Update existing element PVs
+                final Time now = ValueFactory.timeNow();
                 for (int i=0; i<N; ++i)
-                    pvs.get(i).write(value.get(i));
+                    pvs.get(i).write(ValueFactory.newVString(value.get(i), ValueFactory.alarmNone(), now));
             }
         }
         finally
         {
-            ignore_element_updates = false;
+            ignore_updates = false;
         }
     }
 
-    /** Update the array PV with the current value of all element PVs */
-    private void updateArrayFromElements() throws Exception
+    /** Update the array PV with the current value of all element PVs
+     *  @param trigger Value of element PV that triggered the update
+     */
+    private void updateArrayFromElements(final VType trigger) throws Exception
     {
-        final List<RuntimePV> pvs = element_pvs.get();
-        final int N = pvs.size();
+        if (ignore_updates)
+            return;
 
-        if (N == 1)
-        {   // Is 'array' really a scalar?
-            final VType array = array_pv.read();
-            if (array instanceof VNumber ||
-                array instanceof VString)
+        ignore_updates = true;
+        try
+        {
+            final List<PV> pvs = element_pvs.get();
+            final int N = pvs.size();
+
+            if (N == 1)
+            {   // Is 'array' really a scalar?
+                final VType array = array_pv.read();
+                if (array instanceof VNumber ||
+                    array instanceof VString)
+                {
+                    array_pv.write(pvs.get(0).read());
+                    return;
+                }
+            }
+
+            if (is_string)
             {
-                array_pv.write(pvs.get(0).read());
-                return;
+                final String[] value = new String[N];
+                for (int i=0; i<N; ++i)
+                    value[i] = VTypeUtil.getValueString(pvs.get(i).read(), false);
+                array_pv.write(value);
+            }
+            else
+            {
+                final double[] value = new double[N];
+                for (int i=0; i<N; ++i)
+                    value[i] = VTypeUtil.getValueNumber(pvs.get(i).read()).doubleValue();
+                array_pv.write(value);
             }
         }
-
-        if (is_string)
+        catch (Exception ex)
         {
-            final String[] value = new String[N];
-            for (int i=0; i<N; ++i)
-                value[i] = VTypeUtil.getValueString(pvs.get(i).read(), false);
-            array_pv.write(value);
+            logger.log(Level.WARNING, "Cannot update array from elements, triggered by " + trigger, ex);
         }
-        else
+        finally
         {
-            final double[] value = new double[N];
-            for (int i=0; i<N; ++i)
-                value[i] = VTypeUtil.getValueNumber(pvs.get(i).read()).doubleValue();
-            array_pv.write(value);
+            ignore_updates = false;
         }
     }
 
@@ -285,20 +284,25 @@ public class ArrayPVDispatcher implements AutoCloseable
      *
      *  @param new_pvs New per-element PVs
      */
-    private void updateElementPVs(final boolean is_string, final List<RuntimePV> new_pvs)
+    private void updateElementPVs(final boolean is_string, final List<PV> new_pvs)
     {
         this.is_string = is_string;
-        final List<RuntimePV> old = element_pvs.getAndSet(new_pvs);
-        for (RuntimePV pv : old)
-        {
-            pv.removeListener(element_listener);
-            PVFactory.releasePV(pv);
-        }
+        final List<PV> old = element_pvs.getAndSet(new_pvs);
+        for (Disposable flow : element_flow)
+            flow.dispose();
+        element_flow.clear();
+        for (PV pv : old)
+            PVPool.releasePV(pv);
         if (new_pvs != null)
         {
-            for (RuntimePV pv : new_pvs)
-                pv.addListener(element_listener);
-            listener.arrayChanged(new_pvs);
+            // TODO For now each element PV needs to be wrapped as RuntimePV. Remove that
+            final List<RuntimePV> rt_pvs = new ArrayList<>(new_pvs.size());
+            for (PV pv : new_pvs)
+            {
+                element_flow.add(pv.onValueEvent().subscribe(this::updateArrayFromElements));
+                rt_pvs.add(new VTypePV(pv));
+            }
+            listener.arrayChanged(rt_pvs);
         }
     }
 
@@ -309,7 +313,7 @@ public class ArrayPVDispatcher implements AutoCloseable
     @Override
     public void close()
     {
-        array_pv.removeListener(array_listener);
+        array_flow.dispose();
         updateElementPVs(false, null);
     }
 }
