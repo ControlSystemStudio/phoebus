@@ -30,53 +30,53 @@ import org.w3c.dom.Node;
 @SuppressWarnings("nls")
 public class XmlModelReader
 {
-	// Node Types
+    // Node Types
     public static final String TAG_CONFIG = "config";
-	public static final String TAG_COMPONENT = "component";
-	public static final String TAG_PV = "pv";
+    public static final String TAG_COMPONENT = "component";
+    public static final String TAG_PV = "pv";
 
-	// Misc.
-	public static final String TAG_NAME = "name";
+    // Misc.
+    public static final String TAG_NAME = "name";
 
-	// PV Specific
-	public static final String TAG_DESCRIPTION = "description";
-	public static final String TAG_ENABLED = "enabled";
-	public static final String TAG_LATCHING = "latching";
-	public static final String TAG_ANNUNCIATING = "annunciating";
-	public static final String TAG_DELAY = "delay";
-	public static final String TAG_COUNT = "count";
-	public static final String TAG_FILTER = "filter";
+    // PV Specific
+    public static final String TAG_DESCRIPTION = "description";
+    public static final String TAG_ENABLED = "enabled";
+    public static final String TAG_LATCHING = "latching";
+    public static final String TAG_ANNUNCIATING = "annunciating";
+    public static final String TAG_DELAY = "delay";
+    public static final String TAG_COUNT = "count";
+    public static final String TAG_FILTER = "filter";
 
-	// PV and Component
-	public static final String TAG_GUIDANCE = "guidance";
-	public static final String TAG_DISPLAY = "display";
-	public static final String TAG_COMMAND = "command";
-	public static final String TAG_ACTIONS = "automated_action";
+    // PV and Component
+    public static final String TAG_GUIDANCE = "guidance";
+    public static final String TAG_DISPLAY = "display";
+    public static final String TAG_COMMAND = "command";
+    public static final String TAG_ACTIONS = "automated_action";
 
-	// TitleDetail specific tags.
-	public static final String TAG_TITLE = "title";
-	public static final String TAG_DETAILS = "details";
+    // TitleDetail specific tags.
+    public static final String TAG_TITLE = "title";
+    public static final String TAG_DETAILS = "details";
 
-	private AlarmClientNode root = null;
+    private AlarmClientNode root = null;
 
-	public AlarmClientNode getRoot()
-	{
-		return root;
-	}
+    public AlarmClientNode getRoot()
+    {
+        return root;
+    }
 
-	// Parse the xml stream and load the stream into a document.
-	public void load(InputStream stream) throws Exception
-	{
+    // Parse the xml stream and load the stream into a document.
+    public void load(InputStream stream) throws Exception
+    {
         final DocumentBuilder docBuilder =
                 DocumentBuilderFactory.newInstance().newDocumentBuilder();
         final Document doc = docBuilder.parse(stream);
 
         buildModel(doc);
-	}
+    }
 
-	private void buildModel(final Document doc) throws Exception
-	{
-		// Handle root node.
+    private void buildModel(final Document doc) throws Exception
+    {
+        // Handle root node.
 
         doc.getDocumentElement().normalize();
         final Element root_node = doc.getDocumentElement();
@@ -89,23 +89,23 @@ public class XmlModelReader
         root = new AlarmClientNode(null, root_node.getAttribute(TAG_NAME));
 
         for (final Node child : XMLUtil.getChildElements(root_node, TAG_COMPONENT))
-        	processComponent(root /* parent */, child);
+            processComponent(root /* parent */, child);
 
         for (final Element child : XMLUtil.getChildElements(root_node, TAG_PV))
-        	processPV(root /* parent */, child);
-	}
+            processPV(root /* parent */, child);
+    }
 
-	private void processComponent(AlarmClientNode parent, Node node) throws Exception
-	{
-		// Name of the new component node.
-		String comp_node_name = null;
-		final NamedNodeMap attrs = node.getAttributes();
+    private void processComponent(AlarmClientNode parent, Node node) throws Exception
+    {
+        // Name of the new component node.
+        String comp_node_name = null;
+        final NamedNodeMap attrs = node.getAttributes();
 
-		if (attrs != null)
+        if (attrs != null)
         {
-			// Go through the attributes and find the component name.
-			// This list should only ever hold the name attribute or else it will fail the schema.
-			// Still best to treat it as if it could have multiple attributes.
+            // Go through the attributes and find the component name.
+            // This list should only ever hold the name attribute or else it will fail the schema.
+            // Still best to treat it as if it could have multiple attributes.
             for (int idx = 0; idx < attrs.getLength(); idx++)
             {
                 final Node attr = attrs.item(idx);
@@ -113,74 +113,74 @@ public class XmlModelReader
 
                 if (attr_name.equals(TAG_NAME))
                 {
-                	comp_node_name = attr.getNodeValue();
+                    comp_node_name = attr.getNodeValue();
                 }
             }
         }
 
-		// New component node.
-		final AlarmClientNode component = new AlarmClientNode(parent, comp_node_name);
+        // New component node.
+        final AlarmClientNode component = new AlarmClientNode(parent, comp_node_name);
 
-		// This does not refer to XML attributes but instead to the attributes of a model component node.
-		processCompAttr(component, node);
+        // This does not refer to XML attributes but instead to the attributes of a model component node.
+        processCompAttr(component, node);
 
         for (final Element child : XMLUtil.getChildElements(node, TAG_COMPONENT))
-        	processComponent(component /* parent */, child);
+            processComponent(component /* parent */, child);
 
         for (final Element child : XMLUtil.getChildElements(node, TAG_PV))
-        	processPV(component/* parent */, child);
-	}
+            processPV(component/* parent */, child);
+    }
 
-	private void processCompAttr(AlarmClientNode component, Node node)
-	{
-		ArrayList<TitleDetail> td = new ArrayList<>();
+    private void processCompAttr(AlarmClientNode component, Node node)
+    {
+        ArrayList<TitleDetail> td = new ArrayList<>();
 
-		for (final Element child : XMLUtil.getChildElements(node, TAG_GUIDANCE))
-			td.add(getTD(child));
+        for (final Element child : XMLUtil.getChildElements(node, TAG_GUIDANCE))
+            td.add(getTD(child));
 
-		if (td.size() > 0)
-		{
-			component.setGuidance(td);
-			td = new ArrayList<>();
-		}
-		for (final Element child : XMLUtil.getChildElements(node, TAG_DISPLAY))
-			td.add(getTD(child));
-
-		if (td.size() > 0)
-		{
-			component.setDisplays(td);
-			td = new ArrayList<>();
-		}
-
-		for (final Element child : XMLUtil.getChildElements(node, TAG_COMMAND))
-			td.add(getTD(child));
-
-		if (td.size() > 0)
-		{
-			component.setCommands(td);
-			td = new ArrayList<>();
-		}
-
-		for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
-			td.add(getTD(child));
-
-		if (td.size() > 0)
-		{
-			component.setActions(td);
-			td = new ArrayList<>();
-		}
-	}
-
-	private void processPV(AlarmClientNode parent, final Element node) throws Exception
-	{
-		String pv_node_name = null;
-		final NamedNodeMap attrs = node.getAttributes();
-
-		if (attrs != null)
+        if (td.size() > 0)
         {
-			// Go through the attributes and find the component name.
-			// This list should only ever hold the name attribute or else it will fail the schema.
-			// Still best to treat it as if it could have multiple attributes.
+            component.setGuidance(td);
+            td = new ArrayList<>();
+        }
+        for (final Element child : XMLUtil.getChildElements(node, TAG_DISPLAY))
+            td.add(getTD(child));
+
+        if (td.size() > 0)
+        {
+            component.setDisplays(td);
+            td = new ArrayList<>();
+        }
+
+        for (final Element child : XMLUtil.getChildElements(node, TAG_COMMAND))
+            td.add(getTD(child));
+
+        if (td.size() > 0)
+        {
+            component.setCommands(td);
+            td = new ArrayList<>();
+        }
+
+        for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
+            td.add(getTD(child));
+
+        if (td.size() > 0)
+        {
+            component.setActions(td);
+            td = new ArrayList<>();
+        }
+    }
+
+    private void processPV(AlarmClientNode parent, final Element node) throws Exception
+    {
+        String pv_node_name = null;
+        final NamedNodeMap attrs = node.getAttributes();
+
+        if (attrs != null)
+        {
+            // Go through the attributes and find the component name.
+            // This list should only ever hold the name attribute or else it will fail the schema.
+            // Still best to treat it as if it could have multiple attributes.
             for (int idx = 0; idx < attrs.getLength(); idx++)
             {
                 final Node attr = attrs.item(idx);
@@ -188,82 +188,82 @@ public class XmlModelReader
 
                 if (attr_name.equals(TAG_NAME))
                 {
-                	pv_node_name = attr.getNodeValue();
+                    pv_node_name = attr.getNodeValue();
                 }
             }
         }
 
-		final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
+        final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
 
-		XMLUtil.getChildBoolean(node, TAG_ENABLED).ifPresent(pv::setEnabled);
-		XMLUtil.getChildBoolean(node, TAG_LATCHING).ifPresent(pv::setLatching);
-		XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).ifPresent(pv::setAnnunciating);
-		XMLUtil.getChildString(node, TAG_DESCRIPTION).ifPresent(pv::setDescription);
+        XMLUtil.getChildBoolean(node, TAG_ENABLED).ifPresent(pv::setEnabled);
+        XMLUtil.getChildBoolean(node, TAG_LATCHING).ifPresent(pv::setLatching);
+        XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).ifPresent(pv::setAnnunciating);
+        XMLUtil.getChildString(node, TAG_DESCRIPTION).ifPresent(pv::setDescription);
 
-		final String delayStr = XMLUtil.getChildString(node, TAG_DELAY).orElse("");
+        final String delayStr = XMLUtil.getChildString(node, TAG_DELAY).orElse("");
 
-		if (delayStr.equals(""))
-			pv.setDelay(0);
-		else
-		{
-			try
-			{
-				final Double tmp = Double.parseDouble(delayStr);
-				final Integer delay = tmp.intValue();
-				pv.setDelay(delay);
-			}
-			catch (final NumberFormatException e)
-			{
-				pv.setDelay(0);
-			}
-		}
+        if (delayStr.equals(""))
+            pv.setDelay(0);
+        else
+        {
+            try
+            {
+                final Double tmp = Double.parseDouble(delayStr);
+                final Integer delay = tmp.intValue();
+                pv.setDelay(delay);
+            }
+            catch (final NumberFormatException e)
+            {
+                pv.setDelay(0);
+            }
+        }
 
-		XMLUtil.getChildInteger(node, TAG_COUNT).ifPresent(pv::setCount);
-		XMLUtil.getChildString(node, TAG_FILTER).ifPresent(pv::setFilter);
+        XMLUtil.getChildInteger(node, TAG_COUNT).ifPresent(pv::setCount);
+        XMLUtil.getChildString(node, TAG_FILTER).ifPresent(pv::setFilter);
 
-		ArrayList<TitleDetail> td = new ArrayList<>();
+        ArrayList<TitleDetail> td = new ArrayList<>();
 
-		for (final Element child : XMLUtil.getChildElements(node, TAG_GUIDANCE))
-			td.add(getTD(child));
+        for (final Element child : XMLUtil.getChildElements(node, TAG_GUIDANCE))
+            td.add(getTD(child));
 
-		if (td.size() > 0)
-		{
-			pv.setGuidance(td);
-			td = new ArrayList<>();
-		}
+        if (td.size() > 0)
+        {
+            pv.setGuidance(td);
+            td = new ArrayList<>();
+        }
 
-		for (final Element child : XMLUtil.getChildElements(node, TAG_DISPLAY))
-			td.add(getTD(child));
+        for (final Element child : XMLUtil.getChildElements(node, TAG_DISPLAY))
+            td.add(getTD(child));
 
-		if (td.size() > 0)
-		{
-			pv.setDisplays(td);
-			td = new ArrayList<>();
-		}
+        if (td.size() > 0)
+        {
+            pv.setDisplays(td);
+            td = new ArrayList<>();
+        }
 
-		for (final Element child : XMLUtil.getChildElements(node, TAG_COMMAND))
-			td.add(getTD(child));
+        for (final Element child : XMLUtil.getChildElements(node, TAG_COMMAND))
+            td.add(getTD(child));
 
-		if (td.size() > 0)
-		{
-			pv.setCommands(td);
-			td = new ArrayList<>();
-		}
+        if (td.size() > 0)
+        {
+            pv.setCommands(td);
+            td = new ArrayList<>();
+        }
 
-		for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
-			td.add(getTD(child));
+        for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
+            td.add(getTD(child));
 
-		if (td.size() > 0)
-		{
-			pv.setActions(td);
-			td = new ArrayList<>();
-		}
-	}
+        if (td.size() > 0)
+        {
+            pv.setActions(td);
+            td = new ArrayList<>();
+        }
+    }
 
-	private TitleDetail getTD(Element node)
-	{
-		final String title = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
-		final String detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
-		return new TitleDetail(title, detail);
-	}
+    private TitleDetail getTD(Element node)
+    {
+        final String title = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
+        final String detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
+        return new TitleDetail(title, detail);
+    }
 }
