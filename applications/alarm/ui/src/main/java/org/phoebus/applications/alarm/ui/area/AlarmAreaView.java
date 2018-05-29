@@ -78,10 +78,11 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             items = items_to_add.toArray(new String[items_to_add.size()]);
             items_to_add.clear();
         }
-        for (final String item_name : items)
+        Platform.runLater(() ->
         {
-            Platform.runLater(() -> { addItem(item_name); } );
-        }
+        	for (final String item_name : items)
+        		addItem(item_name);
+        });
 	}
 
 	// Add the label to the grid pane and map the label to its name.
@@ -116,10 +117,12 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             items = items_to_remove.toArray(new String[items_to_remove.size()]);
             items_to_remove.clear();
         }
-        for (final String item_name : items)
+        Platform.runLater(() ->
         {
-            Platform.runLater(() -> { removeItem(item_name); } );
-        }
+	        for (final String item_name : items)
+	            removeItem(item_name);
+	    });
+
 	}
 
 	private void removeItem(String item_name)
@@ -154,10 +157,11 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             items = items_to_update.toArray(new String[items_to_update.size()]);
             items_to_update.clear();
         }
-        for (final String item_name : items)
+        Platform.runLater(() ->
         {
-            Platform.runLater(() -> { updateItem(item_name); } );
-        }
+	        for (final String item_name : items)
+	        	updateItem(item_name);
+        });
 	}
 
 	// Update the items severity.

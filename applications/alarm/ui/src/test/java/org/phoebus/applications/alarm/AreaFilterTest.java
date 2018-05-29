@@ -1,6 +1,9 @@
 package org.phoebus.applications.alarm;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -29,7 +32,8 @@ public class AreaFilterTest
 
 		String name = areaFilter.filter(a1l2);
 
-		assertEquals("Area 1 Level 2", name);
+		assertThat(name, equalTo("Area 1 Level 2"));
+
 		name = areaFilter.filter(a2l2);
 		assertEquals("Area 2 Level 2", name);
 		name = areaFilter.filter(a3l2);
@@ -42,6 +46,8 @@ public class AreaFilterTest
 		final List<String> expected = Arrays.asList("Area 1 Level 2", "Area 2 Level 2", "Area 3 Level 2");
 		final List<String> actual = areaFilter.getItems();
 
+		assertThat(actual.size(), equalTo(3));
+		assertThat(actual, hasItems("Area 1 Level 2", "Area 2 Level 2", "Area 3 Level 2"));
 		assertListsEquivalent(expected, actual);
 
 	}
