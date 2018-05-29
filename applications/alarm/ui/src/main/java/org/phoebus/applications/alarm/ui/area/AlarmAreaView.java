@@ -1,22 +1,17 @@
 package org.phoebus.applications.alarm.ui.area;
 
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
-import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
@@ -36,15 +31,18 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 	private final int level = 2;
 	private final int col_num = 2;
 
-	private final ConcurrentHashMap<AlarmTreeItem<?>, /* View Item */Label> itemViewMap = new ConcurrentHashMap<>();
-	/** Items to update, ordered by time of original update request
-    *
-    *  SYNC on access
-    */
-    private final Set<AlarmTreeItem<?>> items_to_update = new LinkedHashSet<>();
+	private final ConcurrentHashMap<String, /* View Item */Label> itemViewMap = new ConcurrentHashMap<>();
 
+    private final Set<String> items_to_add = new LinkedHashSet<>();
+    private final Set<String> items_to_remove = new LinkedHashSet<>();
+    private final Set<String> items_to_update = new LinkedHashSet<>();
+
+    /** Throttle [5Hz] used for adding items */
+    private final UpdateThrottle add_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::addItems);
+    /** Throttle [5Hz] used for removal of existing items */
+    private final UpdateThrottle remove_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::removeItems);
     /** Throttle [5Hz] used for updates of existing items */
-    private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::performUpdates);
+    private final UpdateThrottle update_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::updateItems);
 
 	public AlarmAreaView(AlarmClient model)
 	{
@@ -56,59 +54,111 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         model.addListener(this);
 	}
 
+	// From AlarmClientListener
 	@Override
 	public void itemAdded(AlarmTreeItem<?> item)
 	{
-		if (! areaFilter.filter(item))
+		final String item_name = areaFilter.filter(item);
+		if (null == item_name)
 			return;
-
-		final CountDownLatch done = new CountDownLatch(1);
-
-		Platform.runLater(() ->
-        {
-        	final Label label = new Label(item.getName());
-        	itemViewMap.put(item, label);
-	        getChildren().add(label);
-	        resetGridConstraints();
-            done.countDown();
-        });
-
-        try
-        {
-            done.await();
-        }
-        catch (final InterruptedException ex)
-        {
-            logger.log(Level.WARNING, "Alarm area update error for added item " + item.getPathName(), ex);
-        }
+		synchronized(items_to_add)
+		{
+			items_to_add.add(item_name);
+		}
+		add_throttle.trigger();
 	}
 
+	// Called by add_throttle when it triggers.
+	private void addItems()
+	{
+		final String[] items;
+        synchronized (items_to_add)
+        {
+            items = items_to_add.toArray(new String[items_to_add.size()]);
+            items_to_add.clear();
+        }
+
+        for (final String item : items)
+           addItem(item);
+	}
+
+	// Add the label to the grid pane and map the label to its name.
+	private void addItem(String item_name)
+	{
+		final Label label = new Label(item_name);
+    	itemViewMap.put(item_name, label);
+        getChildren().add(label);
+        resetGridConstraints();
+	}
+
+	// From AlarmClientListener
 	@Override
 	public void itemRemoved(AlarmTreeItem<?> item)
 	{
-		if (! areaFilter.filter(item))
+		final String item_name = areaFilter.filter(item);
+		if (null == item_name)
 			return;
+		synchronized(items_to_remove)
+		{
+			items_to_remove.add(item_name);
+		}
+		remove_throttle.trigger();
+	}
 
-		final CountDownLatch done = new CountDownLatch(1);
-
-		Platform.runLater(() ->
+	public void removeItems()
+	{
+		final String[] items;
+        synchronized (items_to_remove)
         {
-        	final Label label = itemViewMap.get(item);
-        	getChildren().remove(label);
-        	itemViewMap.remove(item);
-        	resetGridConstraints();
-        	done.countDown();
-	    });
-
-		try
-        {
-            done.await();
+            items = items_to_remove.toArray(new String[items_to_remove.size()]);
+            items_to_remove.clear();
         }
-        catch (final InterruptedException ex)
+        for (final String item : items)
+           removeItem(item);
+	}
+
+	private void removeItem(String item_name)
+	{
+		final Label label = itemViewMap.get(item_name);
+    	getChildren().remove(label);
+    	itemViewMap.remove(item_name);
+    	resetGridConstraints();
+	}
+
+	// From AlarmClientListener
+	@Override
+	public void itemUpdated(AlarmTreeItem<?> item)
+	{
+		final String item_name = areaFilter.filter(item);
+		if (null == item_name)
+			return;
+		//System.out.println(item.getName() + " updated.");
+		synchronized (items_to_update)
         {
-            logger.log(Level.WARNING, "Alarm area update error for removed item " + item.getPathName(), ex);
+            items_to_update.add(item_name);
+        }
+        update_throttle.trigger();
+	}
+
+	private void updateItems()
+	{
+		final String[] items;
+        synchronized (items_to_update)
+        {
+            items = items_to_update.toArray(new String[items_to_update.size()]);
+            items_to_update.clear();
         }
 
+        for (final String item_name : items)
+            updateItem(item_name);
+	}
+
+	private void updateItem(String item_name)
+	{
+		final SeverityLevel severity = areaFilter.getSeverity(item_name);
+		final Paint color = AlarmUI.getColor(severity);
+		final Label label = itemViewMap.get(item_name);
+		label.setTextFill(color);
 	}
 
 	private void resetGridConstraints()
@@ -123,32 +173,4 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 			index++;
 		}
 	}
-
-	@Override
-	public void itemUpdated(AlarmTreeItem<?> item)
-	{
-		// TODO Auto-generated method stub
-	}
-
-	private void performUpdates()
-	{
-		 final AlarmTreeItem<?>[] items;
-        synchronized (items_to_update)
-        {
-
-            items = items_to_update.toArray(new AlarmTreeItem<?>[items_to_update.size()]);
-            items_to_update.clear();
-        }
-
-        for (final AlarmTreeItem<?> item : items)
-            updateLabel(item, itemViewMap.get(item));
-	}
-
-	private void updateLabel(AlarmTreeItem<?> item, Label label)
-	{
-		final BasicState state = item.getState();
-		final Paint color = AlarmUI.getColor(state.getSeverity());
-		label.setTextFill(color);
-	}
-
 }

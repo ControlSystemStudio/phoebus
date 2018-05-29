@@ -1,11 +1,18 @@
 package org.phoebus.applications.alarm.ui.area;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 public class AreaFilter
 {
-	private int level = 2;
+	private final int level;
+
+	private final ConcurrentHashMap<String, SeverityLevel> itemSeverity = new ConcurrentHashMap<>();
 
 	public AreaFilter(int level)
 	{
@@ -20,10 +27,21 @@ public class AreaFilter
 	}
 
 	// Filter out messages not pertaining to the set level.
-	public boolean filter(AlarmTreeItem<?> message)
+	public String filter(AlarmTreeItem<?> message)
 	{
 		if (! levelCheck(message.getPathName()))
-			return false;
-		return true;
+			return null;
+		itemSeverity.put(message.getName(), message.getState().getSeverity());
+		return message.getName();
+	}
+
+	public List<String> getItems()
+	{
+		return Collections.list(itemSeverity.keys());
+	}
+
+	public SeverityLevel getSeverity(String item_name)
+	{
+		return itemSeverity.get(item_name);
 	}
 }
