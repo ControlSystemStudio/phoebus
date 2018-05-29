@@ -172,7 +172,7 @@ public class ArrayPVDispatcher implements AutoCloseable
                 for (int i=0; i<N; ++i)
                 {
                     final double val = value.getDouble(i);
-                    final String name = "loc://" + basename + i;
+                    final String name = "loc://" + basename + "_" + i;
                     final PV pv = PVPool.getPV(name);
                     pv.write(val);
                     pvs.add(pv);
