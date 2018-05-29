@@ -76,10 +76,10 @@ public class DockStage
     {
         stage.getProperties().put(KEY_ID, createID("DockStage"));
 
-        final DockPane tab_pane = new DockPane(tabs);
+        final DockPane pane = new DockPane(tabs);
 
-        final BorderPane layout = new BorderPane(tab_pane);
-        tab_pane.setDockParent(layout);
+        final BorderPane layout = new BorderPane(pane);
+        pane.setDockParent(layout);
 
         final Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
@@ -99,7 +99,7 @@ public class DockStage
             // Note: Is called twice when window gains focus (true).
             //       Unclear why, but doesn't cause harm, either.
             if (focus)
-                DockPane.setActiveDockPane(tab_pane);
+                setActiveDockStage(stage);
         });
 
         stage.setOnCloseRequest(event ->
@@ -108,7 +108,9 @@ public class DockStage
                 event.consume();
         });
 
-        return tab_pane;
+        DockPane.setActiveDockPane(pane);
+
+        return pane;
     }
 
     /** @return Unique ID of this stage */
@@ -208,7 +210,7 @@ public class DockStage
     }
 
     /** @param stage Stage that supports docking which should become the active stage */
-    public static void setActiveDockPane(final Stage stage)
+    public static void setActiveDockStage(final Stage stage)
     {
         final DockPane dock_pane = getDockPanes(stage).get(0);
         DockPane.setActiveDockPane(Objects.requireNonNull(dock_pane));

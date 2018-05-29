@@ -34,6 +34,7 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class MementoHelper
 {
+    private static final String FIXED = "fixed";
     private static final String FULLSCREEN = "fullscreen";
     private static final String HEIGHT = "height";
     private static final String HORIZONTAL = "horizontal";
@@ -79,6 +80,8 @@ public class MementoHelper
         {
             final DockPane pane = (DockPane) node;
             final MementoTree pane_memento = memento.createChild(PANE);
+            if (pane.isFixed())
+                pane_memento.setBoolean(FIXED, true);
             pane_memento.setNumber(SELECTED, pane.getSelectionModel().getSelectedIndex());
             for (DockItem item : pane.getDockItems())
                 saveDockItem(pane_memento, item);
@@ -179,6 +182,10 @@ public class MementoHelper
             // deep inside JFX calling TabPane$TabPaneSelectionModel.select
             // By deferring to a later UI tick, the tab selection succeeds
             content.getNumber(SELECTED).ifPresent(index -> Platform.runLater(() -> pane.getSelectionModel().select(index.intValue())));
+
+            // If pane is 'fixed', mark as such _after_ all items have been restored
+            // to prevent changes from now on
+            content.getBoolean(FIXED).ifPresent(fixed -> Platform.runLater(() -> pane.setFixed(fixed)));
         }
         else if (content.getName().equals(SPLIT))
         {   // Split the original pane

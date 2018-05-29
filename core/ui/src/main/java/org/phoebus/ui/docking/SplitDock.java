@@ -7,10 +7,17 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import static org.phoebus.ui.docking.DockPane.logger;
+
+import java.util.logging.Level;
+
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.BorderPane;
 
 /** Pane that holds two sub-nodes, each either a {@link DockPane} or a {@link SplitDock}
  *  @author Kay Kasemir
@@ -18,13 +25,27 @@ import javafx.scene.control.SplitPane;
 @SuppressWarnings("nls")
 public class SplitDock extends SplitPane
 {
+    /** In principle, 'getParent()' provides the parent of a node,
+     *  which should either be a {@link BorderPane} or a {@link SplitDock}.
+     *  JFX, however, will only update the parent when the node is rendered.
+     *  While assembling or updating the scene, getParent() can return null.
+     *  Further, a node added to a SplitDock (SplitPane) will actually have
+     *  a SplitPaneSkin$Content as a parent and not a SplitPane let alone SplitDock.
+     *
+     *  We therefore track the parent that matters for our needs
+     *  in the user data under this key.
+     */
+    private Parent dock_parent;
+
     /** Create a split section
+     *  @param dock_parent {@link BorderPane} of {@link SplitDock}
      *  @param horizontally Horizontal?
      *  @param first Top or left item
      *  @param second Bottom or right item
      */
-    public SplitDock(final boolean horizontally, final Control first, final Control second)
+    public SplitDock(final Parent dock_parent, final boolean horizontally, final Control first, final Control second)
     {
+        this.dock_parent = dock_parent;
         if (! horizontally)
             setOrientation(Orientation.VERTICAL);
 
@@ -57,11 +78,11 @@ public class SplitDock extends SplitPane
         setDividerPosition(0, position);
     }
 
-    /** @param item Item to remove
+    /** @param item DockPane of SplitDock to remove
      *  @return <code>true</code> if that was the first (left, top) item.
      *          Otherwise it was the second (right, bottom).
      */
-    boolean removeItem(final DockPane item)
+    boolean removeItem(final Control item)
     {
         final boolean first = getItems().indexOf(item) == 0;
         getItems().remove(item);
@@ -71,7 +92,7 @@ public class SplitDock extends SplitPane
     /** @param first Add as first (left, top) item?
      *  @param item Item to add
      */
-    void addItem(final boolean first, final Control item)
+    void addItem(final boolean first, final Node item)
     {
         if (! ((item instanceof SplitDock) || (item instanceof DockPane)))
             throw new IllegalArgumentException("Expect DockPane or another nested SplitDock, got " + item.getClass().getName());
@@ -79,6 +100,132 @@ public class SplitDock extends SplitPane
             getItems().add(0, item);
         else
             getItems().add(item);
+    }
+
+    /** If this split holds only one useful item, the other one
+     *  being an empty DockPane,
+     *  replace ourself in the parent with that one non-empty item.
+     */
+    void merge()
+    {
+        final DockPane empty_dock = findEmptyDock();
+        if (empty_dock == null)
+        {
+            logger.log(Level.INFO, "No mergable, empty DockPane in " + this);
+            return;
+        }
+
+        // Remove the empty dock from this split
+        getItems().remove(empty_dock);
+
+        // Should be left with just one child (dock or nested split)
+        if (getItems().isEmpty())
+        {
+            logger.log(Level.WARNING, "Cannot merge completely empty SplitPane " + this);
+            return;
+        }
+
+        // Remove this split, move remaining child up to parent
+        final Node child = getItems().get(0);
+        if (dock_parent instanceof BorderPane)
+        {
+            final BorderPane parent = (BorderPane) dock_parent;
+            // parent.getCenter() == this.
+            // No need to remove 'this' from parent, just update center to child
+            parent.setCenter(child);
+        }
+        else if (dock_parent instanceof SplitDock)
+        {
+            final SplitDock parent = (SplitDock) dock_parent;
+            final boolean was_first = parent.removeItem(this);
+            parent.addItem(was_first, child);
+        }
+        else
+        {
+            logger.log(Level.WARNING, "Cannot merge " + this + ", parent is " + dock_parent);
+            return;
+        }
+
+        // Tell child about its new dock_parent
+        if (child instanceof DockPane)
+            ((DockPane)child).setDockParent(dock_parent);
+        else if (child instanceof SplitDock)
+            ((SplitDock)child).dock_parent = dock_parent;
+    }
+
+    /** Find an empty DockPane that should trigger a 'merge'
+     *
+     *  <p>Will not return anything when one of the panes is 'fixed',
+     *  so the other one needs to remain even when empty.
+     *
+     *  @return First DockPane child that's empty, or <code>null</code>
+     */
+    private DockPane findEmptyDock()
+    {
+        if (getItems().size() != 2)
+        {
+            logger.log(Level.WARNING, "Expected left and right sections, got " + getItems());
+            return null;
+        }
+        final Node first = getItems().get(0);
+        final Node second = getItems().get(1);
+        // If one of them is 'fixed', don't bother checking the other:
+        // Need to keep this SplitDock
+        if (isFixed(first) ||  isFixed(second))
+            return null;
+        if (isEmptyDock(first))
+              return (DockPane) first;
+        if (isEmptyDock(second))
+            return (DockPane) second;
+        return null;
+    }
+
+    /** @param item Potential {@link DockPane}
+     *  @return Is 'item' a 'fixed' {@link DockPane}?
+     */
+    private boolean isFixed(final Node item)
+    {
+        return isFixedDock(item)  ||  isFixedSplit(item);
+    }
+
+    /** @param item Potential {@link DockPane}
+     *  @return Is 'item' a 'fixed' {@link DockPane}?
+     */
+    private boolean isFixedDock(final Node item)
+    {
+        return item instanceof DockPane  &&
+               ((DockPane)item).isFixed();
+    }
+
+    /** @param item Potential {@link SplitDock}
+     *  @return Are both sides of the split fixed?
+     */
+    private boolean isFixedSplit(final Node item)
+    {
+        if (! (item instanceof SplitDock))
+            return false;
+        final SplitDock split = (SplitDock) item;
+        for (Node sub : split.getItems())
+            if (! isFixed(sub))
+                return false;
+        return true;
+    }
+
+
+    /** @param item Potential {@link DockPane}
+     *  @return Is 'item' an empty {@link DockPane}?
+     */
+    private boolean isEmptyDock(final Node item)
+    {
+        if (item instanceof DockPane)
+        {
+            final DockPane dock = (DockPane) item;
+            // Calling getTabs() instead of getDockItems()
+            // to safe a little time, not creating casted list
+            if (dock.getTabs().isEmpty())
+                return true;
+        }
+        return false;
     }
 
     @Override

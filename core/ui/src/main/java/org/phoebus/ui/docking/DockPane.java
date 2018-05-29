@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
@@ -17,6 +18,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.Styles;
 
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -44,11 +46,11 @@ import javafx.stage.Stage;
 public class DockPane extends TabPane
 {
     /** Logger for all docking related messages */
-    public static final Logger logger = Logger.getLogger(DockPane.class.getName());
+    public static final Logger logger = Logger.getLogger(DockPane.class.getPackageName());
 
     private static CopyOnWriteArrayList<DockPaneListener> listeners = new CopyOnWriteArrayList<>();
 
-    private static DockPane active = null;
+    private static WeakReference<DockPane> active = new WeakReference<>(null);
 
     private static boolean always_show_tabs = true;
 
@@ -70,24 +72,40 @@ public class DockPane extends TabPane
             throw new IllegalStateException("Unknown listener");
     }
 
+    /** @param pane {@link DockPane}
+     *  @return <code>false</code> if pane is fixed or not visible on screen
+     */
+    private static boolean isDockPaneUsable(final DockPane pane)
+    {
+        if (pane.isFixed())
+            return false;
+        if (pane.getScene() == null)
+            return false;
+        if (! pane.getScene().getWindow().isShowing())
+            return false;
+        return true;
+    }
+
     /** @return The last known active dock pane */
     public static DockPane getActiveDockPane()
     {
-        // TODO: On startup, when memento is restored, getScene() returns null, so cannot check
-//        if (active.getScene().getWindow().isShowing())
-//        {
-//            // The Window for the previously active dock pane was closed
-//            // Use the first one that's still open
-//            for (Stage stage : DockStage.getDockStages())
-//            {
-//                active = DockStage.getDockPanes(stage).get(0);
-//                break;
-//            }
-//        }
-        return active;
+        final DockPane pane = active.get();
+        if (pane != null  &&  !isDockPaneUsable(pane))
+        {
+            // The Window for the previously active dock pane was closed
+            // Use the first one that's still open
+            for (Stage stage : DockStage.getDockStages())
+                for (DockPane check : DockStage.getDockPanes(stage))
+                    if (isDockPaneUsable(check))
+                    {
+                        setActiveDockPane(check);
+                        return check;
+                    }
+        }
+        return pane;
     }
 
-    /** Set the 'active' dock stage
+    /** Set the 'active' dock pane
      *
      *  <p>Called within the phoebus framework,
      *  for example by DockStage or when restoring
@@ -100,7 +118,7 @@ public class DockPane extends TabPane
      */
     public static void setActiveDockPane(final DockPane pane)
     {
-        active = pane;
+        active = new WeakReference<>(pane);
 
         final DockItem item = (DockItem) pane.getSelectionModel().getSelectedItem();
         for (DockPaneListener listener : listeners)
@@ -139,6 +157,9 @@ public class DockPane extends TabPane
      */
     private Parent dock_parent = null;
 
+    /** Is this dock pane 'fixed' ? */
+    private boolean fixed;
+
     /** Create DockPane
      *  @param tabs
      */
@@ -170,9 +191,8 @@ public class DockPane extends TabPane
         addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalKeys);
 
         // Show/hide tabs as tab count changes
-        getTabs().addListener((InvalidationListener) change -> autoHideTabs());
+        getTabs().addListener((InvalidationListener) change -> handleTabChanges());
     }
-
 
     /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */
     void setDockParent(final Parent dock_parent)
@@ -183,6 +203,21 @@ public class DockPane extends TabPane
             this.dock_parent = dock_parent;
         else
             throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
+    }
+
+    /** @param fixed Mark as 'fixed', i.e. tabs cannot be added/removed/closed? */
+    public void setFixed(final boolean fixed)
+    {
+        this.fixed = fixed;
+        // Prevent closing items in 'fixed' pane
+        for (DockItem tab : getDockItems())
+            tab.setClosable(! fixed);
+    }
+
+    /** @return Is this pane 'fixed', i.e. tabs cannot be added/removed/closed? */
+    public boolean isFixed()
+    {
+        return fixed;
     }
 
     /** Handle key presses of global significance like Ctrl-S to save */
@@ -205,9 +240,14 @@ public class DockPane extends TabPane
                 if (active_item_with_input.isDirty())
                     JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor));
             }
+            event.consume();
         }
         else if (key == KeyCode.W)
-            item.close();
+        {
+            if (!isFixed())
+                item.close();
+            event.consume();
+        }
     }
 
     // lookup() in findTabHeader/autoHideTabs only works when the scene has been rendered.
@@ -222,6 +262,17 @@ public class DockPane extends TabPane
         super.layoutChildren();
     }
 
+    /** Called when number of tabs changed */
+    private void handleTabChanges()
+    {
+        if (getTabs().isEmpty())
+            mergeEmptySplit();
+        else
+            // Update tabs on next UI tick so that findTabHeader() can succeed
+            // in case this is in a newly created SplitDock
+            Platform.runLater(this::autoHideTabs);
+    }
+
     private StackPane findTabHeader()
     {
         // Need to locate the header for _this_ pane.
@@ -231,10 +282,33 @@ public class DockPane extends TabPane
             if (header instanceof StackPane  &&  header.getParent() == this)
                 return (StackPane) header;
         return null;
-   }
+    }
 
+    /** Hide or show tabs
+     *
+     *  <p>When there's more than one tab, or always_show_tabs,
+     *  then show the tabs.
+     *  If there's just one tab, and ! always_show_tabs, hide that one tab
+     *  to get a more compact UI.
+     */
     void autoHideTabs()
     {
+        // Anything to update?
+        // This also handles the case where called on disposed DockPane:
+        // No scene (which would cause NPE), but then also no tabs.
+        if (getTabs().isEmpty())
+            return;
+
+        // TODO Is this still happening?
+        if (getScene() == null)
+        {
+            logger.log(Level.SEVERE, "No Scene for " + this, new Exception());
+            logger.log(Level.SEVERE, "Stages:");
+            for (Stage stage : DockStage.getDockStages())
+                logger.log(Level.SEVERE, DockStage.getDockPanes(stage).toString());
+            return;
+        }
+
         final boolean do_hide = getTabs().size() == 1  &&  !always_show_tabs;
 
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX :
@@ -284,7 +358,8 @@ public class DockPane extends TabPane
     /** Accept dock items */
     private void handleDragOver(final DragEvent event)
     {
-        if (DockItem.dragged_item.get() != null)
+        if (!isFixed()  &&
+            DockItem.dragged_item.get() != null)
             event.acceptTransferModes(TransferMode.MOVE);
         event.consume();
     }
@@ -292,7 +367,8 @@ public class DockPane extends TabPane
     /** Highlight while 'drop' is possible */
     private void handleDragEntered(final DragEvent event)
     {
-        if (DockItem.dragged_item.get() != null)
+        if (!isFixed()  &&
+            DockItem.dragged_item.get() != null)
             setBorder(DockItem.DROP_ZONE_BORDER);
         event.consume();
     }
@@ -328,12 +404,15 @@ public class DockPane extends TabPane
 
             // Move item to new tab
             old_parent.getTabs().remove(item);
-            getTabs().add(item);
 
-            autoHideTabs();
-
-            // Select the new item
-            getSelectionModel().select(item);
+            // When adding the tab to its new parent (this dock) right away,
+            // the tab would sometimes not properly render until the pane is resized.
+            // Moving to the next UI tick helps
+            Platform.runLater(() ->
+            {
+                addTab(item);
+                Platform.runLater(this::autoHideTabs);
+            });
         }
         event.setDropCompleted(true);
         event.consume();
@@ -353,7 +432,7 @@ public class DockPane extends TabPane
             parent.setCenter(null);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            split = new SplitDock(horizontally, this, new_pane);
+            split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
@@ -366,7 +445,7 @@ public class DockPane extends TabPane
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            split = new SplitDock(horizontally, this, new_pane);
+            split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
@@ -377,9 +456,18 @@ public class DockPane extends TabPane
         return split;
     }
 
+    /** If this pane is within a SplitDock and empty, merge */
+    void mergeEmptySplit()
+    {
+        if (! (dock_parent instanceof SplitDock))
+            return;
+        ((SplitDock) dock_parent).merge();
+    }
+
     @Override
     public String toString()
     {
-        return "DockPane " + getTabs();
+        return (isFixed() ? "FIXED DockPane " : "DockPane ") +
+               Integer.toHexString(System.identityHashCode(this)) + " " + getTabs();
     }
 }

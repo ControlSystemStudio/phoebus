@@ -18,8 +18,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
+<?import org.phoebus.ui.javafx.ClearingTextField?>
 
-<GridPane fx:id="root" hgap="12.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="455.0" prefWidth="637.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.WidgetColorPopOverController">
+<GridPane fx:id="root" hgap="12.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="455.0" prefWidth="637.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.WidgetColorPopOverController">
   <columnConstraints>
     <ColumnConstraints hgrow="NEVER" percentWidth="50.0" />
     <ColumnConstraints hgrow="NEVER" percentWidth="50.0" />
@@ -39,6 +40,11 @@
             <VBox>
                <children>
                   <ListView fx:id="colorNames" />
+                  <ClearingTextField fx:id="searchField" prefHeight="-1.0" >
+                     <VBox.margin>
+                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
+                     </VBox.margin>
+                  </ClearingTextField>
                </children>
                <padding>
                   <Insets bottom="-1.0" left="-1.0" right="-1.0" top="-1.0" />
@@ -95,7 +101,7 @@
       </Label>
       <BorderPane GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
          <bottom>
-            <ButtonBar fx:id="buttonBar" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">   
+            <ButtonBar fx:id="buttonBar" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
                <BorderPane.margin>
                   <Insets top="6.0" />
                </BorderPane.margin>
