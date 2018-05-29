@@ -25,6 +25,7 @@ import org.phoebus.framework.persistence.XMLUtil;
  * @author Evan Smith
  *
  */
+@SuppressWarnings("nls")
 public class XmlModelWriter
 {
 
@@ -40,7 +41,7 @@ public class XmlModelWriter
 		initWriter(stream);
 	}
 
-	private void initWriter(final OutputStream stream) throws Exception
+    private void initWriter(final OutputStream stream) throws Exception
 	{
 		final XMLStreamWriter base =
 	            XMLOutputFactory.newInstance().createXMLStreamWriter(stream, XMLUtil.ENCODING);

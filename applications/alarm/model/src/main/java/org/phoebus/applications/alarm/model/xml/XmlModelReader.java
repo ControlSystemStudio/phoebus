@@ -27,11 +27,11 @@ import org.w3c.dom.Node;
 * @author Evan Smith
 *
 */
-
+@SuppressWarnings("nls")
 public class XmlModelReader
 {
 	// Node Types
-	public static final String TAG_CONFIG = "config";
+    public static final String TAG_CONFIG = "config";
 	public static final String TAG_COMPONENT = "component";
 	public static final String TAG_PV = "pv";
 
