@@ -33,7 +33,7 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
  * @author Evan Smith
  *
  */
-
+@SuppressWarnings("nls")
 public class AlarmConfigTool
 {
 	private class UpdateMonitor
@@ -107,8 +107,26 @@ public class AlarmConfigTool
 	private final long time = 4;
 
 	// Export an alarm system model to an xml file.
-	public void exportModel(String filename, String server, String config) throws Exception
+    public void exportModel(String filename, String server, String config) throws Exception
 	{
+        final XmlModelWriter xmlWriter;
+
+        // Write to stdout or to file.
+        if (filename.equals("stdout"))
+        {
+            xmlWriter = new XmlModelWriter(System.out);
+        }
+        else
+        {
+            final File modelFile = new File(filename);
+            if (modelFile.exists())
+            {
+                System.out.println("The file '" + filename + "' already exists. Remove it, then try again.");
+                return;
+            }
+            final FileOutputStream fos = new FileOutputStream(modelFile);
+            xmlWriter = new XmlModelWriter(fos);
+        }
 
 		client = new AlarmClient(server, config);
         client.start();
@@ -125,25 +143,11 @@ public class AlarmConfigTool
 
         //Write the model.
 
-        final File modelFile = new File(filename);
-        final FileOutputStream fos = new FileOutputStream(modelFile);
-
-        XmlModelWriter xmlWriter = null;
-
-        // Write to stdout or to file.
-        if (0 == filename.compareTo("stdout"))
-        {
-        	xmlWriter = new XmlModelWriter(System.out);
-        }
-        else
-        {
-        	xmlWriter = new XmlModelWriter(fos);
-        }
 
         xmlWriter.getModelXML(client.getRoot());
 
         System.out.println("\nModel written to file: " + filename);
-        System.out.printf("%d updates were recieved while writing model to file.\n", updateMonitor.getCount());
+        System.out.printf("%d updates were received while writing model to file.\n", updateMonitor.getCount());
 
         client.shutdown();
 	}
@@ -155,55 +159,46 @@ public class AlarmConfigTool
 		final FileInputStream fileInputStream = new FileInputStream(file);
 
 		final XmlModelReader xmlModelReader = new XmlModelReader();
-
-		try
-		{
-			xmlModelReader.load(fileInputStream);
-		} catch (final Exception e)
-		{
-			e.printStackTrace();
-		}
+		xmlModelReader.load(fileInputStream);
 
 		// Connect to the server.
 		client = new AlarmClient(server, config);
         client.start();
-
-        updateMonitor = new UpdateMonitor(time);
-
-        System.out.print("Fetching server model. This could take some time ...");
-
-        updateMonitor.listen(client);
-
-        final AlarmClientNode new_root = xmlModelReader.getRoot();
-
-        // Get the server's root node for this config.
-        final AlarmClientNode root = client.getRoot();
-
-        // Check that the configs match.
-        if (!config.equals(new_root.getName()))
+        try
         {
-        	System.out.printf("The provided config \"%s\" does not match the config loaded from file \"%s\".\n", config, new_root.getName());
-        	client.shutdown();
-        	System.exit(1);
-        }
+            updateMonitor = new UpdateMonitor(time);
 
-        // Delete the old model. Leave the root node.
-        final List<AlarmTreeItem<?>> root_children = root.getChildren();
-        for (final AlarmTreeItem<?> child : root_children)
-        	client.removeComponent(child);
+            System.out.println("Fetching server model. This could take some time ...");
 
-        // For every child of the new root, add them and their descendants to the old root.
-        final List<AlarmTreeItem<?>> new_root_children = new_root.getChildren();
-        for (final AlarmTreeItem<?> child : new_root_children)
-        {
-	        try
-			{
+            updateMonitor.listen(client);
+
+            final AlarmClientNode new_root = xmlModelReader.getRoot();
+            System.out.println("Importing " + new_root.getName() + " ...");
+
+            // Get the server's root node for this config.
+            final AlarmClientNode root = client.getRoot();
+
+            // Check that the configs match.
+            if (!config.equals(new_root.getName()))
+            {
+            	System.out.printf("The provided config \"%s\" does not match the config loaded from file \"%s\".\n", config, new_root.getName());
+            	return;
+            }
+
+            // Delete the old model. Leave the root node.
+            final List<AlarmTreeItem<?>> root_children = root.getChildren();
+            for (final AlarmTreeItem<?> child : root_children)
+            	client.removeComponent(child);
+
+            // For every child of the new root, add them and their descendants to the old root.
+            final List<AlarmTreeItem<?>> new_root_children = new_root.getChildren();
+            for (final AlarmTreeItem<?> child : new_root_children)
 				addNodes(root, child);
-			}
-	        catch (final Exception e1)
-			{
-				e1.printStackTrace();
-			}
+            System.out.println("Done.");
+        }
+        finally
+        {
+            client.shutdown();
         }
 	}
 
