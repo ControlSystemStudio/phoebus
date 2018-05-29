@@ -44,7 +44,6 @@ class AccessRightsEventOnSubscribe implements FlowableOnSubscribe<Boolean>
             if (first)
             {
                 first = false;
-                System.out.println(pv + " is readonly: " + pv.isReadonly());
                 permissionsChanged(pv.isReadonly());
             }
         }
