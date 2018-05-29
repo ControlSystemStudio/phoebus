@@ -12,6 +12,7 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
+import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
@@ -31,7 +32,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 	private final int level = 2;
 	private final int col_num = 2;
 
-	private final ConcurrentHashMap<String, /* View Item */Label> itemViewMap = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap</* Item name */String, /* View Item */Label> itemViewMap = new ConcurrentHashMap<>();
 
     private final Set<String> items_to_add = new LinkedHashSet<>();
     private final Set<String> items_to_remove = new LinkedHashSet<>();
@@ -77,9 +78,10 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             items = items_to_add.toArray(new String[items_to_add.size()]);
             items_to_add.clear();
         }
-
-        for (final String item : items)
-           addItem(item);
+        for (final String item_name : items)
+        {
+            Platform.runLater(() -> { addItem(item_name); } );
+        }
 	}
 
 	// Add the label to the grid pane and map the label to its name.
@@ -105,6 +107,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 		remove_throttle.trigger();
 	}
 
+	// Called by remove_throttle when it triggers.
 	public void removeItems()
 	{
 		final String[] items;
@@ -113,8 +116,10 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             items = items_to_remove.toArray(new String[items_to_remove.size()]);
             items_to_remove.clear();
         }
-        for (final String item : items)
-           removeItem(item);
+        for (final String item_name : items)
+        {
+            Platform.runLater(() -> { removeItem(item_name); } );
+        }
 	}
 
 	private void removeItem(String item_name)
@@ -132,7 +137,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 		final String item_name = areaFilter.filter(item);
 		if (null == item_name)
 			return;
-		//System.out.println(item.getName() + " updated.");
+
 		synchronized (items_to_update)
         {
             items_to_update.add(item_name);
@@ -140,6 +145,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         update_throttle.trigger();
 	}
 
+	// Called  by update_throttle when it triggers.
 	private void updateItems()
 	{
 		final String[] items;
@@ -148,11 +154,13 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             items = items_to_update.toArray(new String[items_to_update.size()]);
             items_to_update.clear();
         }
-
         for (final String item_name : items)
-            updateItem(item_name);
+        {
+            Platform.runLater(() -> { updateItem(item_name); } );
+        }
 	}
 
+	// Update the items severity.
 	private void updateItem(String item_name)
 	{
 		final SeverityLevel severity = areaFilter.getSeverity(item_name);
