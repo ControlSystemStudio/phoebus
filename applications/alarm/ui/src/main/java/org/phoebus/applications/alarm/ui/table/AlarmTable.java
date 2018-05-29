@@ -34,6 +34,12 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTable extends BorderPane
 {
+    // TODO Application, Instance
+    // TODO Save column sizes in memento
+    // TODO Toolbar? to acknowledge/ un-ack, select by name
+    // TODO Context menu for alarm guidance, PV actions
+    // TODO Maintenance mode?
+
     private final TableView<AlarmInfoRow> active = createTable(true);
     private final TableView<AlarmInfoRow> acknowledged = createTable(false);
 
