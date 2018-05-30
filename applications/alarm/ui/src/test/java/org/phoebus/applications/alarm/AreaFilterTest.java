@@ -4,9 +4,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -43,22 +41,15 @@ public class AreaFilterTest
 		name = areaFilter.filter(a1l3);
 		assertEquals(null, name);
 
-		final List<String> expected = Arrays.asList("Area 1 Level 2", "Area 2 Level 2", "Area 3 Level 2");
-		final List<String> actual = areaFilter.getItems();
+		List<String> actual = areaFilter.getItems();
 
 		assertThat(actual.size(), equalTo(3));
 		assertThat(actual, hasItems("Area 1 Level 2", "Area 2 Level 2", "Area 3 Level 2"));
-		assertListsEquivalent(expected, actual);
 
-	}
-
-	// Returns if all strings in list "actual" are also contained in list "expected".
-	private void assertListsEquivalent(List<String> expected, List<String> actual)
-	{
-		assertEquals(expected.size(), actual.size());
-		for (final String str : actual)
-		{
-			assertTrue(actual.contains(str));
-		}
+		// If Area 1 Level 2 is deleted from model, filter should reflect that.
+		areaFilter.removeItem("Area 1 Level 2");
+		actual = areaFilter.getItems();
+		assertThat(actual.size(), equalTo(2));
+		assertThat(actual, hasItems("Area 2 Level 2", "Area 3 Level 2"));
 	}
 }

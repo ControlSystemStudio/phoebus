@@ -38,10 +38,6 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     private final Set<String> items_to_remove = new LinkedHashSet<>();
     private final Set<String> items_to_update = new LinkedHashSet<>();
 
-    /** Throttle [5Hz] used for adding items */
-    private final UpdateThrottle add_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::addItems);
-    /** Throttle [5Hz] used for removal of existing items */
-    private final UpdateThrottle remove_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::removeItems);
     /** Throttle [5Hz] used for updates of existing items */
     private final UpdateThrottle update_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::updateItems);
 
@@ -66,32 +62,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 		{
 			items_to_add.add(item_name);
 		}
-		add_throttle.trigger();
-	}
-
-	// Called by add_throttle when it triggers.
-	private void addItems()
-	{
-		final String[] items;
-        synchronized (items_to_add)
-        {
-            items = items_to_add.toArray(new String[items_to_add.size()]);
-            items_to_add.clear();
-        }
-        Platform.runLater(() ->
-        {
-        	for (final String item_name : items)
-        		addItem(item_name);
-        });
-	}
-
-	// Add the label to the grid pane and map the label to its name.
-	private void addItem(String item_name)
-	{
-		final Label label = new Label(item_name);
-    	itemViewMap.put(item_name, label);
-        getChildren().add(label);
-        resetGridConstraints();
+		update_throttle.trigger();
 	}
 
 	// From AlarmClientListener
@@ -105,32 +76,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 		{
 			items_to_remove.add(item_name);
 		}
-		remove_throttle.trigger();
-	}
-
-	// Called by remove_throttle when it triggers.
-	public void removeItems()
-	{
-		final String[] items;
-        synchronized (items_to_remove)
-        {
-            items = items_to_remove.toArray(new String[items_to_remove.size()]);
-            items_to_remove.clear();
-        }
-        Platform.runLater(() ->
-        {
-	        for (final String item_name : items)
-	            removeItem(item_name);
-	    });
-
-	}
-
-	private void removeItem(String item_name)
-	{
-		final Label label = itemViewMap.get(item_name);
-    	getChildren().remove(label);
-    	itemViewMap.remove(item_name);
-    	resetGridConstraints();
+		update_throttle.trigger();
 	}
 
 	// From AlarmClientListener
@@ -151,17 +97,51 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 	// Called  by update_throttle when it triggers.
 	private void updateItems()
 	{
-		final String[] items;
+		final String[] add_array;
+		final String[] remove_array;
+		final String[] update_array;
+		synchronized (items_to_add)
+        {
+            add_array = items_to_add.toArray(new String[items_to_add.size()]);
+            items_to_add.clear();
+        }
+		synchronized (items_to_remove)
+        {
+            remove_array = items_to_remove.toArray(new String[items_to_remove.size()]);
+            items_to_remove.clear();
+        }
         synchronized (items_to_update)
         {
-            items = items_to_update.toArray(new String[items_to_update.size()]);
+            update_array = items_to_update.toArray(new String[items_to_update.size()]);
             items_to_update.clear();
         }
         Platform.runLater(() ->
         {
-	        for (final String item_name : items)
+        	for (final String item_name : add_array)
+        		addItem(item_name);
+        	for (final String item_name : remove_array)
+        		removeItem(item_name);
+	        for (final String item_name : update_array)
 	        	updateItem(item_name);
         });
+	}
+
+	// Add the label to the grid pane and map the label to its name.
+	private void addItem(String item_name)
+	{
+		final Label label = new Label(item_name);
+    	itemViewMap.put(item_name, label);
+        getChildren().add(label);
+        resetGridConstraints();
+	}
+
+	private void removeItem(String item_name)
+	{
+		final Label label = itemViewMap.get(item_name);
+    	getChildren().remove(label);
+    	itemViewMap.remove(item_name);
+    	areaFilter.removeItem(item_name);
+    	resetGridConstraints();
 	}
 
 	// Update the items severity.
@@ -180,7 +160,6 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 		{
 			final int columnIndex = index%col_num;
 			final int rowIndex = index/col_num;
-
 			setConstraints(child, columnIndex, rowIndex, 1, 1, HPos.CENTER, VPos.CENTER, Priority.ALWAYS, Priority.ALWAYS, new Insets(10, 10, 10, 10));
 			index++;
 		}
