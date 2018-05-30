@@ -61,6 +61,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     /** Throttle [5Hz] used for updates of existing items */
     private final UpdateThrottle update_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::updateItems);
 
+    // For label formatting.
 	private final CornerRadii radii = new CornerRadii(10);
 	private final BorderStrokeStyle style = new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, 10, 0, null);
 	private final Font font = new Font(20);
