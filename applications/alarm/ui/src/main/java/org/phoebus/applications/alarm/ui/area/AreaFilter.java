@@ -37,16 +37,19 @@ public class AreaFilter
 		return name;
 	}
 
+	// Return a list of all the keys in the itemSeverity map.
 	public List<String> getItems()
 	{
 		return Collections.list(itemSeverity.keys());
 	}
 
+	// Return the severity of the item. Return null if the item is not in the map.
 	public SeverityLevel getSeverity(String item_name)
 	{
 		return itemSeverity.get(item_name);
 	}
 
+	// Remove the item. This is safe to call even if item is not in itemSeverity map.
 	public void removeItem(String item_name)
 	{
 		itemSeverity.remove(item_name);
