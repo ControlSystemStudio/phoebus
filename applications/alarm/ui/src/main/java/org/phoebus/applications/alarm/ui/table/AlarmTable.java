@@ -12,6 +12,9 @@ import java.util.List;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -40,11 +43,23 @@ public class AlarmTable extends BorderPane
     // TODO Context menu for alarm guidance, PV actions
     // TODO Maintenance mode?
 
-    // TODO Wrap data in SortedList,
-    //      https://stackoverflow.com/questions/34889111/how-to-sort-a-tableview-programmatically
+    // Sorting:
+    //
+    // TableView supports sorting as a default when user clicks on columns.
+    //
+    // LinkedColumnSorter updates the requested sort in the 'other' table.
+    // Wrapping the raw data into a SortedList persists the sort order
+    // when elements are added/removed in the original data.
+    // https://stackoverflow.com/questions/34889111/how-to-sort-a-tableview-programmatically
+    //
+    // Adding a callback to the observableArrayList instructs the list to also
+    // trigger a re-sort when properties of the existing rows change.
+    // https://rterp.wordpress.com/2015/05/08/automatically-sort-a-javafx-tableview/
+    private final ObservableList<AlarmInfoRow> active_rows = FXCollections.observableArrayList(AlarmInfoRow.CHANGING_PROPERTIES);
+    private final ObservableList<AlarmInfoRow> acknowledged_rows = FXCollections.observableArrayList(AlarmInfoRow.CHANGING_PROPERTIES);
 
-    private final TableView<AlarmInfoRow> active = createTable(true);
-    private final TableView<AlarmInfoRow> acknowledged = createTable(false);
+    private final TableView<AlarmInfoRow> active = createTable(active_rows, true);
+    private final TableView<AlarmInfoRow> acknowledged = createTable(acknowledged_rows, false);
 
     /** Table cell that shows a Severity */
     private class SeverityLevelCell extends TableCell<AlarmInfoRow, SeverityLevel>
@@ -86,9 +101,15 @@ public class AlarmTable extends BorderPane
         setCenter(tables);
     }
 
-    private TableView<AlarmInfoRow> createTable(final boolean active)
+    private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,
+                                                final boolean active)
     {
-        final TableView<AlarmInfoRow> table = new TableView<>();
+        final SortedList<AlarmInfoRow> sorted = new SortedList<>(rows);
+        final TableView<AlarmInfoRow> table = new TableView<>(sorted);
+
+        // Ensure that the sorted rows are always updated as the column sorting
+        // of the TableView is changed by the user clicking on table headers.
+        sorted.comparatorProperty().bind(table.comparatorProperty());
 
         TableColumn<AlarmInfoRow, String> col = new TableColumn<>("PV");
         col.setPrefWidth(240);
@@ -147,7 +168,7 @@ public class AlarmTable extends BorderPane
     public void setAlarms(final List<AlarmInfoRow> active,
                           final List<AlarmInfoRow> acknowledged)
     {
-        this.active.getItems().setAll(active);
-        this.acknowledged.getItems().setAll(acknowledged);
+        active_rows.setAll(active);
+        acknowledged_rows.setAll(acknowledged);
     }
 }

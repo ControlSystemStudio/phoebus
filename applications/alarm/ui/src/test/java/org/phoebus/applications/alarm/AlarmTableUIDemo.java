@@ -9,12 +9,18 @@ package org.phoebus.applications.alarm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.table.AlarmInfoRow;
 import org.phoebus.applications.alarm.ui.table.AlarmTable;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -40,6 +46,30 @@ public class AlarmTableUIDemo extends Application
             acknowledged.add(new AlarmInfoRow("ackpv " + i, SeverityLevel.values()[i % 9]));
 
         table.setAlarms(active, acknowledged);
+
+        final ScheduledExecutorService timer =
+                Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
+
+        final Runnable update = () ->
+        {
+            Platform.runLater(() ->
+            {
+                final ObjectProperty<SeverityLevel> severity = active.get(0).severity;
+                if (severity.get() == SeverityLevel.MAJOR)
+                    severity.set(SeverityLevel.OK);
+                else
+                    severity.set(SeverityLevel.MAJOR);
+            });
+        };
+        timer.scheduleAtFixedRate(update, 100, 500, TimeUnit.MILLISECONDS);
+
+//        final Runnable add_remove = () ->
+//        {
+//            Platform.runLater(() ->
+//            {
+//            });
+//        };
+//        timer.scheduleAtFixedRate(add_remove, 2000, 2500, TimeUnit.MILLISECONDS);
     }
 
     public static void main(final String[] args)
