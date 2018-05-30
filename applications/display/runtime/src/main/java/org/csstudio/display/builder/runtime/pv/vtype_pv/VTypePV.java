@@ -9,26 +9,34 @@ package org.csstudio.display.builder.runtime.pv.vtype_pv;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
+import org.csstudio.display.builder.runtime.Preferences;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.vtype.VType;
+
+import io.reactivex.disposables.Disposable;
 
 /** Implements {@link RuntimePV} for {@link PV}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class VTypePV implements RuntimePV, PVListener
+public class VTypePV implements RuntimePV
 {
     private final PV pv;
+    private final Disposable value_flow, writable_flow;
     private final List<RuntimePVListener> listeners = new CopyOnWriteArrayList<>();
 
-    VTypePV(final PV pv)
+    public VTypePV(final PV pv)
     {
         this.pv = pv;
-        pv.addListener(this);
+        value_flow = pv.onValueEvent()
+                       .throttleLast(Preferences.update_throttle_ms, TimeUnit.MILLISECONDS)
+                       .subscribe(this::valueChanged);
+        writable_flow = pv.onAccessRightsEvent()
+                          .subscribe(this::writableChanged);
     }
 
     @Override
@@ -78,35 +86,31 @@ public class VTypePV implements RuntimePV, PVListener
         }
     }
 
-    @Override
-    public void permissionsChanged(final PV pv, final boolean readonly)
+    public void writableChanged(final boolean writable)
     {
         for (RuntimePVListener listener : listeners)
-            listener.permissionsChanged(this, readonly);
+            listener.permissionsChanged(this, !writable);
     }
 
-    @Override
-    public void valueChanged(final PV pv, final VType value)
+    public void valueChanged(final VType value)
     {
-        for (RuntimePVListener listener : listeners)
-            listener.valueChanged(this, value);
+        if (PV.isDisconnected(value))
+            for (RuntimePVListener listener : listeners)
+                listener.disconnected(this);
+        else
+            for (RuntimePVListener listener : listeners)
+                listener.valueChanged(this, value);
     }
 
-    @Override
-    public void disconnected(final PV pv)
-    {
-        for (RuntimePVListener listener : listeners)
-            listener.disconnected(this);
-    }
-
-    PV getPV()
+    public PV getPV()
     {
         return pv;
     }
 
     void close()
     {
-        pv.removeListener(this);
+        writable_flow.dispose();
+        value_flow.dispose();
     }
 
     @Override

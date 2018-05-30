@@ -28,9 +28,11 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.VType;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.disposables.Disposable;
 
 /** Alarm tree leaf
  *
@@ -41,7 +43,7 @@ import org.phoebus.vtype.VType;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTreeLeaf, PVListener
+public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTreeLeaf
 {
     /** Timer used to check for the initial connection */
     private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(runnable ->
@@ -59,6 +61,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     private final AlarmLogic logic;
 
     private final AtomicReference<PV> pv = new AtomicReference<>();
+
+    private volatile Disposable pv_flow;
 
     /** Track connection state */
     private volatile boolean is_connected = false;
@@ -246,7 +250,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             final PV previous = pv.getAndSet(new_pv);
             if (previous != null)
                 throw new IllegalStateException("Alarm tree leaf " + getPathName() + " already started for " + previous);
-            new_pv.addListener(this);
+            pv_flow = new_pv.onValueEvent(BackpressureStrategy.BUFFER)
+                            .subscribe(this::handleValueUpdate);
         }
         catch (Throwable ex)
         {
@@ -273,7 +278,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if (! isConnected())
         {
             logger.log(Level.WARNING, () -> getPathName() + " connection timed out");
-            disconnected(null);
+            disconnected();
         }
     }
 
@@ -310,7 +315,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                 safe_copy.stop();
 
             // Dispose PV
-            the_pv.removeListener(this);
+            pv_flow.dispose();
             PVPool.releasePV(the_pv);
             logger.log(Level.FINE, "Stop " + the_pv.getName());
         }
@@ -327,10 +332,14 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return is_connected;
     }
 
-    // PVListener
-    @Override
-    public void valueChanged(final PV pv, final VType value)
+    /** @param value Value received from PV */
+    private void handleValueUpdate(final VType value)
     {
+        if (PV.isDisconnected(value))
+        {
+            disconnected();
+            return;
+        }
         // Inspect alarm state of received value
         is_connected = true;
         final SeverityLevel new_severity = VTypeHelper.decodeSeverity(value);
@@ -343,11 +352,11 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         logger.log(Level.FINER, () -> getPathName() + " received " + value + " -> " + logic);
     }
 
-    // PVListener
-    @Override
-    public void disconnected(final PV pv)
+    /** Handle fact that PV disconnected */
+    private void disconnected()
     {
         logger.log(Level.FINE, getPathName() + " disconnected");
+        is_connected = false;
         final AlarmState received = new AlarmState(SeverityLevel.UNDEFINED, Messages.Disconnected, "", Instant.now());
         logic.computeNewState(received);
     }

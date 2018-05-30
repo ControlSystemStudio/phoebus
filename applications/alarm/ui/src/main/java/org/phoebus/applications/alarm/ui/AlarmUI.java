@@ -41,12 +41,12 @@ public class AlarmUI
         null, // OK
         ImageCache.getImage(AlarmUI.class, "/icons/minor_ack.png"),
         ImageCache.getImage(AlarmUI.class, "/icons/major_ack.png"),
-        ImageCache.getImage(AlarmUI.class, "/icons/unknown_ack.png"),
-        ImageCache.getImage(AlarmUI.class, "/icons/unknown_ack.png"),
+        ImageCache.getImage(AlarmUI.class, "/icons/undefined_ack.png"),
+        ImageCache.getImage(AlarmUI.class, "/icons/undefined_ack.png"),
         ImageCache.getImage(AlarmUI.class, "/icons/minor.png"),
         ImageCache.getImage(AlarmUI.class, "/icons/major.png"),
-        ImageCache.getImage(AlarmUI.class, "/icons/unknown.png"),
-        ImageCache.getImage(AlarmUI.class, "/icons/unknown.png")
+        ImageCache.getImage(AlarmUI.class, "/icons/undefined.png"),
+        ImageCache.getImage(AlarmUI.class, "/icons/undefined.png")
     };
 
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");

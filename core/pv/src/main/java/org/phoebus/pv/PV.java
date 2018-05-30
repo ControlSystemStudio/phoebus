@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,16 +14,22 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.vtype.Alarm;
+import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VType;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
 
 /** Process Variable, API for accessing life control system data.
  *
  *  <p>PVs are to be fetched from the {@link PVPool}
- *  and release to it when no longer used.
+ *  and released to it when no longer used.
  *
  *  <p>The name of the PV is the name by which it was created.
  *  The underlying implementation might use a slightly different name.
  *
+ *  @author Eric Berryman
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -31,6 +37,9 @@ abstract public class PV
 {
     /** Suggested logger for all vtype.pv packages */
     public static final Logger logger = Logger.getLogger(PV.class.getName());
+
+    /** Alarm message used with UNDEFINED severity for disconnected state */
+    public static final String DISCONNECTED = "Disconnected";
 
     final private String name;
 
@@ -65,19 +74,73 @@ abstract public class PV
      *  @param listener Listener that will receive value updates
      *  @see #removeListener(PVListener)
      */
+    @Deprecated
     public void addListener(final PVListener listener)
     {
         // If there is a known value, perform initial update
         final VType value = last_value;
         if (value != null)
-            listener.valueChanged(this, value);
+            listener.valueChanged(value);
         listeners.add(listener);
     }
 
     /** @param listener Listener that will no longer receive value updates */
+    @Deprecated
     public void removeListener(final PVListener listener)
     {
         listeners.remove(listener);
+    }
+
+    /** Obtain {@link Flowable} for PV's values.
+     *
+     *  <p>The {@link Flowable} will receive {@link VType} updates
+     *  whenever the PV sends a new value.
+     *  When the PV disconnects,
+     *  the {@link Flowable} will be of {@link AlarmSeverity#UNDEFINED}
+     *  with the alarm message set to {@link PV#DISCONNECTED}.
+     *
+     *  @return {@link Flowable} that receives {@link VType} for each updated value of the PV
+     */
+    public Flowable<VType> onValueEvent()
+    {
+        return onValueEvent(BackpressureStrategy.LATEST);
+    }
+
+    /** @param mode {@link BackpressureStrategy}
+     *  @return {@link Flowable} that receives {@link VType} for each updated value of the PV
+     */
+    public Flowable<VType> onValueEvent(final BackpressureStrategy mode)
+    {
+        return Flowable.create(new ValueEventOnSubscribe(this), mode);
+    }
+
+    /** Obtain {@link Flowable} for PV's write access.
+     *
+     *  <p>The {@link Flowable} will receive <code>true</code> when the PV permits write access.
+     *  When the PV does not allow write access, or the PV becomes disconnected,
+     *  <code>false</code> is emitted.
+     *
+     *  @return {@link Flowable} that receives <code>true</code>/<code>false</code> to indicate write access
+     */
+    public Flowable<Boolean> onAccessRightsEvent()
+    {
+        return Flowable.create(new AccessRightsEventOnSubscribe(this), BackpressureStrategy.LATEST);
+    }
+
+    /** Check if value indicates a disconnected PV
+     *
+     *  @param value Value received from PV
+     *  @return <code>true</code> if PV is disconnected
+     */
+    public static boolean isDisconnected(final VType value)
+    {
+        if (value == null)
+            return true;
+        if (! (value instanceof Alarm))
+            return true;
+        final Alarm alarm = (Alarm) value;
+        return alarm.getAlarmSeverity() == AlarmSeverity.UNDEFINED  &&
+               DISCONNECTED.equals(alarm.getAlarmName());
     }
 
     /** Read current value
@@ -148,7 +211,7 @@ abstract public class PV
         {
             try
             {
-                listener.disconnected(this);
+                listener.disconnected();
             }
             catch (Throwable ex)
             {
@@ -165,7 +228,7 @@ abstract public class PV
         {
             try
             {
-                listener.permissionsChanged(this, readonly);
+                listener.permissionsChanged(readonly);
             }
             catch (Throwable ex)
             {
@@ -182,7 +245,7 @@ abstract public class PV
         {
             try
             {
-                listener.valueChanged(this, value);
+                listener.valueChanged(value);
             }
             catch (Throwable ex)
             {

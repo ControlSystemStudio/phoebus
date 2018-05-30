@@ -25,7 +25,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/mysql-connector-java-5.1.45.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/commonj.sdo-2.1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/eclipselink-2.7.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/guava-21.0.jar" sourcepath="/home/ky9/.m2/repository/com/google/guava/guava/21.0/guava-21.0-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/guava-21.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.activation-1.2.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.json-1.0.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.persistence-2.2.0.jar"/>
@@ -42,5 +42,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-databind-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-1.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/slf4j-api-1.7.25.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/reactive-streams-1.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/rxjava-2.1.13.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

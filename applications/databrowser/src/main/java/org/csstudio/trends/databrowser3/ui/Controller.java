@@ -570,7 +570,7 @@ public class Controller
         }
 
         final long update_delay = (long) (model.getUpdatePeriod() * 1000);
-        update_task = Activator.thread_pool.scheduleAtFixedRate(this::doUpdate, update_delay, update_delay, TimeUnit.MILLISECONDS);
+        update_task = Activator.timer.scheduleAtFixedRate(this::doUpdate, update_delay, update_delay, TimeUnit.MILLISECONDS);
     }
 
     private void doUpdate()

@@ -126,6 +126,13 @@ public class FXTree
         });
 
         // Provide context menu
+        createContextMenu();
+
+        model.addListener(model_listener);
+    }
+
+    private void createContextMenu()
+    {
         final ContextMenu menu = new ContextMenu();
         tree_view.setOnContextMenuRequested(event ->
         {
@@ -133,8 +140,6 @@ public class FXTree
             ContextMenuHelper.addSupportedEntries(tree_view, menu);
         });
         tree_view.setContextMenu(menu);
-
-        model.addListener(model_listener);
     }
 
     /** @return JFX node that makes up this UI */

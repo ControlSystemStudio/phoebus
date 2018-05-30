@@ -1,0 +1,147 @@
+# Simulated devices
+#
+#  softIoc -s -d simulation.db
+
+# Simulate beam on/off
+record(calc, "beam_sim")
+{
+    field(CALC, "RNDM > 0.2")
+    field(SCAN, "1 second")
+    field(FLNK, "beam_on")
+}
+
+record(bi, "beam_on")
+{
+    field(INP,  "beam_sim")
+    field(ZNAM, "Beam Off")
+    field(ONAM, "Beam On")
+}
+
+# Shutter, received neutrons
+record(bi, "shutter")
+{
+    field(ZNAM, "Closed")
+    field(ONAM, "Open")
+    field(INP,  "0")
+    field(PINI, "YES")
+}
+
+# Simulate accumulated proton charge of accelerator
+# About 3.5e12 / hour
+# 3.5e12/(60*60)/2 = 4.8611e8
+#
+# Granularity for double-precision numbers is around 1e15
+# -> When number reaches 1e(8+15) = 1e24, further additions
+#    won't "work".
+#    1e24 + 4.8e8 == 1e24  because of floating point
+#
+# To reach this takes about
+# 1e24/4.8611e8/2 / 60 / 60 / 24 / 365 = 1e7 years,
+# i.e. no worries
+record(calc, "pcharge")
+{
+    field(INPA, "beam_on")
+    field(INPB, "shutter")
+    field(INPC, "pcharge")
+    field(CALC, "(A&B)?C+4.8611e8:C")
+    field(SCAN, ".5 second")
+    field(EGU,  "pC")
+    field(FLNK, "charge_hist")
+}
+
+# 'History of charge', mostly to get a small demo waveform
+record(compress, "charge_hist")
+{
+    field(ALG,  "Circular Buffer")
+    field(NSAM, "10")
+    field(INP,  "pcharge")
+    field(EGU,  "pC")
+}
+
+# Simulate accumulated neutrons
+record(calc, "neutrons")
+{
+    field(INPA, "beam_on")
+    field(INPB, "shutter")
+    field(INPC, "neutrons")
+    field(CALC, "(A&B)?C+2*RNDM:C")
+    field(SCAN, ".1 second")
+}
+
+# X, Y motor
+record(ai, "motor_x")
+{
+    field(INP,  "0")
+    field(PINI, "YES")
+    field(TPRO, "1")
+}
+
+record(ai, "motor_y")
+{
+    field(INP,  "0")
+    field(PINI, "YES")
+    field(TPRO, "1")
+}
+
+# Other 'slow' device with readback
+record(ai, "setpoint")
+{
+    field(INP,  "0")
+    field(PINI, "YES")
+}
+
+record(calc, "readback")
+{
+    field(INPA, "readback")
+    field(INPB, "setpoint")
+    field(CALC, "(A>B)?(A-0.1):((A<B)?(A+0.1):B)")
+    field(SCAN, ".1 second")
+    field(PREC, "2")
+}
+
+# Simulated detector signal used for "alignment" demo
+#
+# Maximum for motor_x and motor_y == 3, noisy gaussian
+record(calc, "signal")
+{
+    field(INPA, "motor_x CP")
+    field(INPB, "motor_y CP")
+    field(CALC, "EXP(-((A-2.9-RNDM/5)^2)-((B-3)^2))")
+    field(PREC, "3")
+    field(HIHI, "0.9")
+    field(HHSV, "MAJOR")
+    field(HOPR, "1")
+}
+
+record(waveform, "text")
+{
+    field(DESC, "Text PV")
+    field(FTVL, "CHAR")
+    field(NELM, "100")
+}
+
+# record that takes ~4 seconds to process,
+# used for put-callback tests.
+# In addition, writing values > 5 will result in the
+# record having that same value.
+# For values < 5, the record will end with value 0.
+# This can be used to test logic that performs
+# a put-callback and later checks for the expected result.
+record(seq, "callback_test")
+{
+    field(TPRO, "1")
+    field(SELM, "All")
+    field(DO1, "1")
+    field(DO2, "1")
+    field(DLY1, "2.0")
+    field(DLY2, "2.0")
+    field(LNK1, "cb_reset PP")
+    field(LNK2, "motor_y PP")
+}
+
+record(calcout, "cb_reset")
+{
+    field(INPA, "callback_test")
+    field(CALC, "A>5?A:0")
+    field(OUT,  "callback_test.VAL")
+}

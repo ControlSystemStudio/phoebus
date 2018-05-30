@@ -275,7 +275,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             final List<AlarmTreeItem<?>> selection = tree_view.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
 
             // Add guidance etc.
-            new AlarmContextMenuHelper().addSupportedEntries(tree_view, model, menu_items, selection);
+            new AlarmContextMenuHelper().addSupportedEntries(tree_view, model, menu, selection);
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
@@ -310,7 +310,6 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
                     menu_items.add(new RemoveComponentAction(tree_view, model, selection));
                 }
             }
-            // TODO Add context menu actions for "PV"
 
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });

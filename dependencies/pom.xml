@@ -204,6 +204,13 @@
       <artifactId>kafka-clients</artifactId>
       <version>1.1.0</version>
     </dependency>
+
+    <!-- Reactive ('Flow') API used by PV -->
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>2.1.13</version>
+    </dependency>
     
   </dependencies>
 

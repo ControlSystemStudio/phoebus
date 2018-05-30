@@ -19,12 +19,14 @@ public class Settings
     private static final String SHOW_UNITS = "show_units";
     private static final String SHOW_DESCRIPTION = "show_description";
     private static final String TOLERANCE = "tolerance";
+    private static final String MAX_UPDATE_PERIOD = "max_update_period";
 
     public static boolean treat_byte_array_as_string;
     public static boolean show_units;
     public static boolean show_description;
     public static double tolerance;
     public static int update_item_threshold = 50;
+    public static long max_update_period_ms = 500;
 
     static
     {
@@ -33,5 +35,6 @@ public class Settings
         show_units = prefs.getBoolean(SHOW_UNITS);
         show_description = prefs.getBoolean(SHOW_DESCRIPTION);
         tolerance = prefs.getDouble(TOLERANCE);
+        max_update_period_ms = prefs.getInt(MAX_UPDATE_PERIOD);
     }
 }

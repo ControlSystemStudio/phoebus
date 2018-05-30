@@ -102,7 +102,6 @@ public class PVTree implements AppInstance
         return layout;
     }
 
-
     @Override
     public void restore(final Memento memento)
     {

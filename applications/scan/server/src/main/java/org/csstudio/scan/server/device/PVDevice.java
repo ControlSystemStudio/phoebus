@@ -18,15 +18,14 @@ package org.csstudio.scan.server.device;
 import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.scan.device.DeviceInfo;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.PVListener;
 import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimeDuration;
 import org.phoebus.vtype.Alarm;
@@ -34,7 +33,8 @@ import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VByteArray;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFactory;
-import org.phoebus.vtype.ValueUtil;
+
+import io.reactivex.disposables.Disposable;
 
 
 /** {@link Device} that is connected to a Process Variable,
@@ -46,48 +46,52 @@ import org.phoebus.vtype.ValueUtil;
 public class PVDevice extends Device
 {
     /** 'compile time' option to treat byte arrays as string */
-    final private static boolean TREAT_BYTES_AS_STRING = true; // XXX Make treat-byte-as-string configurable?
+    private static final boolean TREAT_BYTES_AS_STRING = true; // XXX Make treat-byte-as-string configurable?
 
     /** Alarm that is used to identify a disconnected PV */
-   final private static Alarm DISCONNECTED = ValueFactory.newAlarm(AlarmSeverity.INVALID, "Disconnected");
+    private static final Alarm DISCONNECTED = ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, PV.DISCONNECTED);
 
     /** Is the underlying PV type a BYTE[]?
      *  @see #TREAT_BYTES_AS_STRING
      */
-    private boolean is_byte_array = false;
+    private volatile boolean is_byte_array = false;
 
-    /** Most recent value of the PV
-     *  SYNC on this
+    /** Underlying control system PV */
+    private final AtomicReference<PV> pv = new AtomicReference<>();
+
+    private volatile Disposable pv_flow;
+
+    /** Most recent value of the PV, updated by subscription as well as read(timeout)  */
+    private final AtomicReference<VType> value = new AtomicReference<>(getDisconnectedValue());
+
+    /** Initialize
+     *  @param info {@link DeviceInfo}
+     *  @throws Exception on error during PV setup
      */
-    private VType value = getDisconnectedValue();
-
-    /** Underlying control system PV
-     *  SYNC on this
-     */
-    private PV pv;
-
-    final private PVListener pv_listener = new PVListener()
+    public PVDevice(final DeviceInfo info) throws Exception
     {
-        @Override
-        public void valueChanged(final PV pv, final VType new_value)
-        {
-            logger.log(Level.FINE,
-                "PV {0} received {1}", new Object[] { getName(), new_value });
-            synchronized (PVDevice.this)
-            {
-                value = wrapReceivedValue(new_value);
-            }
-            fireDeviceUpdate();
-        }
+        super(info);
+    }
 
-        @Override
-        public void disconnected(PV pv)
+    /** {@inheritDoc} */
+    @Override
+    public void start() throws Exception
+    {
+        final PV new_pv = PVPool.getPV(getName());
+        if (pv.getAndSet(new_pv) != null)
         {
-            value = getDisconnectedValue();
-            logger.log(Level.WARNING, "PV " + getName() + " disconnected");
-            fireDeviceUpdate();
+            PVPool.releasePV(new_pv);
+            throw new Exception(getName() + " already started");
         }
-    };
+        pv_flow = new_pv.onValueEvent().subscribe(this::handleValueUpdate);
+    }
+
+    private void handleValueUpdate(final VType new_value)
+    {
+        logger.log(Level.FINE, "PV {0} received {1}", new Object[] { getName(), new_value });
+        value.set(wrapReceivedValue(new_value));
+        fireDeviceUpdate();
+    }
 
     private VType wrapReceivedValue(VType new_value)
     {
@@ -108,79 +112,45 @@ public class PVDevice extends Device
 
     }
 
-    /** Initialize
-     *  @param info {@link DeviceInfo}
-     *  @throws Exception on error during PV setup
-     */
-    public PVDevice(final DeviceInfo info) throws Exception
-    {
-        super(info);
-    }
 
     /** {@inheritDoc} */
     @Override
-    public void start() throws Exception
+    public boolean isReady()
     {
-        synchronized (this)
-        {
-            pv = PVPool.getPV(getName());
-        }
-        pv.addListener(pv_listener);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public synchronized boolean isReady()
-    {
-        if (pv == null  ||  value == null)
-            return false;
-        // A value might _implement_ Alarm to represent DISCONNECTED,
-        // but be a different object,
-        // so there is no quick way to check alarm == DISCONNECTED.
-        final Alarm alarm = ValueUtil.alarmOf(value);
-        return alarm.getAlarmSeverity() != DISCONNECTED.getAlarmSeverity()  ||
-               ! alarm.getAlarmName().equals(DISCONNECTED.getAlarmName());
+        return ! PV.isDisconnected(value.get());
     }
 
     /** @return Human-readable device status */
     @Override
-    public synchronized String getStatus()
+    public String getStatus()
     {
-        if (pv == null)
+        if (pv.get() == null)
             return "no PV";
         else
-            return VTypeHelper.toString(value);
+            return VTypeHelper.toString(value.get());
     }
 
     /** {@inheritDoc} */
     @Override
     public void stop()
     {
-        final PV copy;
-        synchronized (this)
+        final PV copy  = pv.getAndSet(null);
+        if (copy == null)
+            logger.log(Level.SEVERE, getName() + " stopped but never started");
+        else
         {
-            copy = pv;
+            pv_flow.dispose();
+            PVPool.releasePV(copy);
         }
-        copy.removeListener(pv_listener);
-        PVPool.releasePV(copy);
-        synchronized (this)
-        {
-            pv = null;
-            value = getDisconnectedValue();
-        }
+        value.set(getDisconnectedValue());
     }
 
     /** {@inheritDoc} */
     @Override
     public VType read() throws Exception
     {
-        final VType current;
-        synchronized (this)
-        {
-            current = this.value;
-        }
-        logger.log(Level.FINER, "Reading: PV {0} = {1}",
-                new Object[] { getName(), current });
+        final VType current = value.get();
+        logger.log(Level.FINER, () -> "Reading: PV " + getName() + " = " + current);
         return current;
     }
 
@@ -199,16 +169,11 @@ public class PVDevice extends Device
     @Override
     public VType read(final Duration timeout) throws Exception
     {
-        final PV pv; // Copy to access PV outside of lock
-        final VType orig;
-        synchronized (this)
-        {
-            pv = this.pv;
-            orig = value;
-        }
+        final PV save_pv = pv.get(); // Copy to access PV outside of lock
+        final VType orig = value.get();
         try
         {
-            final Future<VType> read_result = pv.asyncRead();
+            final Future<VType> read_result = save_pv.asyncRead();
             final long millisec = getMillisecs(timeout);
             final VType received_value = (millisec > 0)
                 ? read_result.get(millisec, TimeUnit.MILLISECONDS)
@@ -216,18 +181,15 @@ public class PVDevice extends Device
             final VType got = wrapReceivedValue(received_value);
             synchronized (this)
             {
-                if (value == orig)
-                    value = got;
-                // else: Get-callback superseeded by monitor
-                return value;
+                // If value is still == orig, update to what we got from read.
+                // Else: Get-callback was superseded by monitor, so keep the last monitor.
+                value.compareAndSet(orig, got);
+                return value.get();
             }
         }
         catch (Exception ex)
         {
-            synchronized (this)
-            {
-                value = getDisconnectedValue();
-            }
+            value.set(getDisconnectedValue());
             // Report InterruptedException (from abort) as such
             if (ex instanceof InterruptedException)
                 throw new InterruptedException("Failed to read " + getName());
@@ -238,7 +200,7 @@ public class PVDevice extends Device
     /** @return 'Disconnected' Value with current time stamp */
     final private static VType getDisconnectedValue()
     {
-        return ValueFactory.newVString(DISCONNECTED.getAlarmName(), DISCONNECTED, ValueFactory.timeNow());
+        return ValueFactory.newVString(PV.DISCONNECTED, DISCONNECTED, ValueFactory.timeNow());
     }
 
     /** Handle write conversions
@@ -267,17 +229,11 @@ public class PVDevice extends Device
     public void write(Object value) throws Exception
     {
         logger.log(Level.FINER, "Writing: PV {0} = {1}",
-                new Object[] { getName(), value });
+                   new Object[] { getName(), value });
         try
         {
             value = wrapSentValue(value);
-
-            final PV pv; // Copy to access PV outside of lock
-            synchronized (this)
-            {
-                pv = Objects.requireNonNull(this.pv, "PV not ready");
-            }
-            pv.write(value);
+            pv.get().write(value);
         }
         catch (Exception ex)
         {
@@ -301,12 +257,7 @@ public class PVDevice extends Device
             logger.log(Level.FINE, () -> "Writing PV " + getName() + " = " + actual);
         try
         {
-            final PV pv; // Copy to access PV outside of lock
-            synchronized (this)
-            {
-                pv = this.pv;
-            }
-            final Future<?> write_result = pv.asyncWrite(actual);
+            final Future<?> write_result = pv.get().asyncWrite(actual);
             if (millisec > 0)
                 write_result.get(millisec, TimeUnit.MILLISECONDS);
             else

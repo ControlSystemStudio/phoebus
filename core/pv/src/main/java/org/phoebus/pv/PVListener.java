@@ -14,9 +14,9 @@ import org.phoebus.vtype.VType;
  */
 public interface PVListener
 {
-    public default void permissionsChanged(PV pv, boolean readonly) {};
+    public default void permissionsChanged(boolean readonly) {};
 
-    public void valueChanged(PV pv, VType value);
+    public void valueChanged(VType value);
 
-    public default void disconnected(PV pv) {};
+    public default void disconnected() {};
 }
