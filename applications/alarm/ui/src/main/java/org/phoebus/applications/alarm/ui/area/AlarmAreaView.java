@@ -28,7 +28,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Paint;
-
+/** View for an Alarm Area. Displays alarm status of all areas on a specified level.
+ *  @author Evan Smith
+ */
 public class AlarmAreaView extends GridPane implements AlarmClientListener
 {
 

@@ -19,7 +19,9 @@ import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.area.AreaFilter;
-
+/** Tests the AreaFilter class and its methods.
+ *  @author Evan Smith
+ */
 public class AreaFilterTest
 {
 	@Test

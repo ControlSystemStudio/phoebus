@@ -14,7 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-
+/** Filter for Alarm Areas. Filters out messages not pertaining to the specified level.
+ *  Maintains state information for the areas on the specified level.
+ *  @author Evan Smith
+ */
 public class AreaFilter
 {
 	private final int level;
