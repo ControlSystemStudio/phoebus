@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm.ui.area;
 
 import java.util.Collections;
@@ -21,7 +28,7 @@ public class AreaFilter
 		this.level = level;
 	}
 
-	// Check the level of the message by examining the number of levels in its path.
+	// Check the level of the message by examining the number of elements in its path.
 	private boolean levelCheck(final String path)
 	{
 		final String[] path_elements = AlarmTreePath.splitPath(path);
