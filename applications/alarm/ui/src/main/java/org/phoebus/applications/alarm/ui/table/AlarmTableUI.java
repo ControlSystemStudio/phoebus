@@ -35,13 +35,15 @@ import javafx.scene.paint.Color;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmTable extends BorderPane
+public class AlarmTableUI extends BorderPane
 {
-    // TODO Application, Instance
+    // TODO Share the AlarmClient for given configuration between table, tree, area
+    // TODO AlarmTableApplication, AlarmTableInstance
     // TODO Save column sizes in memento
     // TODO Toolbar? to acknowledge/ un-ack, select by name
     // TODO Context menu for alarm guidance, PV actions
     // TODO Maintenance mode?
+    // TODO Limit number of rows (was 2500)
 
     // Sorting:
     //
@@ -82,7 +84,7 @@ public class AlarmTable extends BorderPane
         }
     }
 
-    public AlarmTable()
+    public AlarmTableUI()
     {
         // When user resizes columns, update them in the 'other' table
         active.setColumnResizePolicy(new LinkedColumnResize(active, acknowledged));
@@ -161,14 +163,44 @@ public class AlarmTable extends BorderPane
         return table;
     }
 
-    /** Set alarm information to show
+    /** Update the alarm information to show
+     *
+     *  <p>The provided lists are not retained, but
+     *  some of the AlarmInfoRow items may be added
+     *  to the table's list of items.
+     *
      *  @param active Active alarms
      *  @param acknowledged Acknowledged alarms
      */
-    public void setAlarms(final List<AlarmInfoRow> active,
-                          final List<AlarmInfoRow> acknowledged)
+    public void update(final List<AlarmInfoRow> active,
+                       final List<AlarmInfoRow> acknowledged)
     {
-        active_rows.setAll(active);
-        acknowledged_rows.setAll(acknowledged);
+        update(active_rows, active);
+        update(acknowledged_rows, acknowledged);
+    }
+
+    /** Update existing list of items with new input
+     *  @param items List to update
+     *  @param input New input
+     */
+    private void update(final ObservableList<AlarmInfoRow> items, final List<AlarmInfoRow> input)
+    {
+        // Similar, but might trigger a full table redraw:
+        // items.setAll(input);
+
+        // Update content of common list entries
+        int N = Math.min(items.size(), input.size());
+        for (int i=0; i<N; ++i)
+            items.get(i).copy(input.get(i));
+
+        N = input.size();
+        if (N > items.size())
+        {
+            // Additional elements if input is larger that existing list
+            for (int i=items.size(); i<N; ++i)
+                items.add(input.get(i));
+        }
+        else // Trim items, input has fewer elements
+            items.remove(N, items.size());
     }
 }

@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
 
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
 import javafx.beans.Observable;
@@ -34,15 +35,23 @@ public class AlarmInfoRow
         row.severity
     };
 
-
-
-
     public final StringProperty pv = new SimpleStringProperty();
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
+
+    public static AlarmInfoRow of(final AlarmClientLeaf pv)
+    {
+        return new AlarmInfoRow(pv.getName(), pv.getState().severity);
+    }
 
     public AlarmInfoRow(final String pv, final SeverityLevel severity)
     {
         this.pv.set(pv);
         this.severity.set(severity);
+    }
+
+    public void copy(final AlarmInfoRow other)
+    {
+        pv.set(other.pv.get());
+        severity.set(other.severity.get());
     }
 }
