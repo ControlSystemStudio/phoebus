@@ -45,7 +45,6 @@ public class AreaFilter
 		return itemSeverity.get(item_name);
 	}
 
-
 	public void removeItem(String item_name)
 	{
 		itemSeverity.remove(item_name);
