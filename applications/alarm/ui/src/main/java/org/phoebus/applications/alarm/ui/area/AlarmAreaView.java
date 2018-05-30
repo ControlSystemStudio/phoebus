@@ -218,11 +218,10 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 	private void createContextMenu()
 	{
         final ContextMenu menu = new ContextMenu();
+        final ObservableList<MenuItem> menu_items = menu.getItems();
+        menu_items.add(new OpenTreeViewAction());
         this.setOnContextMenuRequested((event) ->
         {
-        	final ObservableList<MenuItem> menu_items = menu.getItems();
-            menu_items.clear();
-            menu_items.add(new OpenTreeViewAction());
             menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
 	}
