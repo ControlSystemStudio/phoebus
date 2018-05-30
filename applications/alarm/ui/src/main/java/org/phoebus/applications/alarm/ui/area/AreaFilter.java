@@ -32,10 +32,15 @@ public class AreaFilter
 	{
 		if (! levelCheck(message.getPathName()))
 			return null;
+
 		final String name = message.getName();
 		final SeverityLevel severity = message.getState().getSeverity();
-		if (null == itemSeverity.get(name) || severity != itemSeverity.get(name))
+		final SeverityLevel result = itemSeverity.get(name);
+
+		// If the item is not in the map or has an outdated severity, put the item.
+		if (null == result || ! severity.equals(result))
 			itemSeverity.put(name, severity);
+
 		return name;
 	}
 
