@@ -20,8 +20,7 @@ class LinkedColumnResize implements Callback<ResizeFeatures, Boolean>
 {
     private static boolean updating = false;
 
-    private final TableView<AlarmInfoRow> master;
-    private final TableView<AlarmInfoRow> other;
+    private final TableView<AlarmInfoRow> master, other;
 
     public LinkedColumnResize(final TableView<AlarmInfoRow> master, final TableView<AlarmInfoRow> other)
     {

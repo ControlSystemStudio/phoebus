@@ -40,6 +40,9 @@ public class AlarmTable extends BorderPane
     // TODO Context menu for alarm guidance, PV actions
     // TODO Maintenance mode?
 
+    // TODO Wrap data in SortedList,
+    //      https://stackoverflow.com/questions/34889111/how-to-sort-a-tableview-programmatically
+
     private final TableView<AlarmInfoRow> active = createTable(true);
     private final TableView<AlarmInfoRow> acknowledged = createTable(false);
 
@@ -69,6 +72,10 @@ public class AlarmTable extends BorderPane
         // When user resizes columns, update them in the 'other' table
         active.setColumnResizePolicy(new LinkedColumnResize(active, acknowledged));
         acknowledged.setColumnResizePolicy(new LinkedColumnResize(acknowledged, active));
+
+        // When user sorts column, apply the same to the 'other' table
+        active.getSortOrder().addListener(new LinkedColumnSorter(active, acknowledged));
+        acknowledged.getSortOrder().addListener(new LinkedColumnSorter(acknowledged, active));
 
         // Table automatically shows scroll bars,
         // except when it's empty and columns exceed visible width

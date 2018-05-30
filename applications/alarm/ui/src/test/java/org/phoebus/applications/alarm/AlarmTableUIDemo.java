@@ -32,8 +32,8 @@ public class AlarmTableUIDemo extends Application
         stage.setScene(scene);
         stage.show();
 
-        List<AlarmInfoRow> active = new ArrayList<>();
-        List<AlarmInfoRow> acknowledged = new ArrayList<>();
+        final List<AlarmInfoRow> active = new ArrayList<>();
+        final List<AlarmInfoRow> acknowledged = new ArrayList<>();
         for (int i=0; i<20; ++i)
             active.add(new AlarmInfoRow("pv " + i, SeverityLevel.values()[i % 9]));
         for (int i=0; i<20; ++i)
