@@ -34,7 +34,7 @@ public class AreaFilter
 		final String name = message.getName();
 		if (null == itemSeverity.get(name))
 			itemSeverity.put(name, message.getState().getSeverity());
-		return message.getName();
+		return name;
 	}
 
 	public List<String> getItems()
