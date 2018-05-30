@@ -17,6 +17,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
+import org.phoebus.applications.alarm.AlarmConfigTool;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
@@ -54,7 +55,7 @@ public class AlarmServerMain implements ServerModelListener
                 model.shutdown();
             }
         }
-        catch (Throwable ex)
+        catch (final Throwable ex)
         {
             logger.log(Level.SEVERE, "Alarm Server main loop error", ex);
         }
@@ -145,7 +146,7 @@ public class AlarmServerMain implements ServerModelListener
             else
                 throw new Exception("Unknown command");
         }
-        catch (Throwable ex)
+        catch (final Throwable ex)
         {
             logger.log(Level.WARNING, "Error for command: '" + command + "', detail '" + detail + "'", ex);
         }
@@ -159,7 +160,7 @@ public class AlarmServerMain implements ServerModelListener
             pv_node.acknowledge(acknowledge);
         }
         else
-            for (AlarmTreeItem<?> child : node.getChildren())
+            for (final AlarmTreeItem<?> child : node.getChildren())
                 acknowledge(child, acknowledge);
     }
 
@@ -173,7 +174,7 @@ public class AlarmServerMain implements ServerModelListener
             System.out.println(pv_node);
         }
         else
-            for (AlarmTreeItem<?> child : node.getChildren())
+            for (final AlarmTreeItem<?> child : node.getChildren())
                 listPVs(child, disconnected_only);
     }
 
@@ -195,6 +196,8 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println("-server   localhost:9092 - Kafka server");
         System.out.println("-config   Accelerator    - Alarm configuration");
         System.out.println("-settings settings.xml   - Import preferences (PV connectivity) from property format file");
+        System.out.println("-export   config.xml     - Export alarm configuration to file");
+        System.out.println("-import   config.xml     - Import alarm configruation from file");
         System.out.println();
     }
 
@@ -247,11 +250,33 @@ public class AlarmServerMain implements ServerModelListener
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-import"))
+                {
+                	if (! iter.hasNext())
+                		throw new Exception("Missing -import file name");
+                	iter.remove();
+                	final String filename = iter.next();
+                	iter.remove();
+                	logger.info("Import model from " + filename);
+                	new AlarmConfigTool().importModel(filename, server, config);
+                	return;
+                }
+                else if (cmd.equals("-export"))
+                {
+                	if (! iter.hasNext())
+                		throw new Exception("Missing -export file name");
+                	iter.remove();
+                	final String filename = iter.next();
+                	iter.remove();
+                	logger.info("Exporting model to " + filename);
+                	new AlarmConfigTool().exportModel(filename, server, config);
+                	return;
+                }
                 else
                     throw new Exception("Unknown option " + cmd);
             }
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             help();
             System.out.println();
