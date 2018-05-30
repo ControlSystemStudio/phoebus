@@ -46,7 +46,14 @@ class AlarmTreeInstance implements AppInstance
             return true;
         });
         tab.addClosedNotification(() -> INSTANCE = null);
-        DockPane.getActiveDockPane().addTab(tab);
+        final DockPane dockPane = DockPane.getActiveDockPane();
+        if (null != dockPane)
+        	dockPane.addTab(tab);
+        else
+        {
+        	dispose();
+        	INSTANCE = null;
+        }
     }
 
     @Override
@@ -69,7 +76,7 @@ class AlarmTreeInstance implements AppInstance
             client.start();
             return tree_view;
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Cannot create alarm tree", ex);
             return new Label("Cannot create alarm tree");
