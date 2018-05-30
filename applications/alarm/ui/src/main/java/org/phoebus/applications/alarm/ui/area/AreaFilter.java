@@ -12,6 +12,7 @@ public class AreaFilter
 {
 	private final int level;
 
+	// Associate item name with the item severity level.
 	private final ConcurrentHashMap<String, SeverityLevel> itemSeverity = new ConcurrentHashMap<>();
 
 	public AreaFilter(int level)
@@ -32,8 +33,9 @@ public class AreaFilter
 		if (! levelCheck(message.getPathName()))
 			return null;
 		final String name = message.getName();
-		if (null == itemSeverity.get(name))
-			itemSeverity.put(name, message.getState().getSeverity());
+		final SeverityLevel severity = message.getState().getSeverity();
+		if (null == itemSeverity.get(name) || severity != itemSeverity.get(name))
+			itemSeverity.put(name, severity);
 		return name;
 	}
 
