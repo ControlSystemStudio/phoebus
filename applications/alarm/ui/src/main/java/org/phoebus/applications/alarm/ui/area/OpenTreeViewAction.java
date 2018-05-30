@@ -7,8 +7,11 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.area;
 
+import java.util.logging.Level;
+
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.ApplicationLauncherService;
 
 import javafx.scene.control.MenuItem;
 /** Action to open a tree view from an area view.
@@ -24,8 +27,7 @@ public class OpenTreeViewAction extends MenuItem
 			final AppDescriptor app = ApplicationService.findApplication("alarm_tree");
 	        if (app == null)
 	        {
-	            ///????
-	        	System.out.println("\nunknown app\n");
+	        	ApplicationLauncherService.logger.log(Level.SEVERE, "Unknown application 'alarm_tree'");
 	        	return;
 	        }
 
