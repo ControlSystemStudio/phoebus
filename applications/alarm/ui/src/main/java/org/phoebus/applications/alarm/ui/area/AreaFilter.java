@@ -24,7 +24,8 @@ public class AreaFilter
 	// Check the level of the message by examining the number of levels in its path.
 	private boolean levelCheck(final String path)
 	{
-		return (AlarmTreePath.splitPath(path).length == level);
+		final String[] path_elements = AlarmTreePath.splitPath(path);
+		return (path_elements.length == level);
 	}
 
 	// Filter out messages not pertaining to the set level.
