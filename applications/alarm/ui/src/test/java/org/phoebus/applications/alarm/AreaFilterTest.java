@@ -64,12 +64,10 @@ public class AreaFilterTest
 		assertThat(actual, hasItems("Area 2 Level 2", "Area 3 Level 2"));
 
 		// Add it back.
-		areaFilter.filter(a1l2);
 		assertThat(areaFilter.filter(a1l2), equalTo("Area 1 Level 2"));
 		assertEquals(SeverityLevel.MAJOR, areaFilter.getSeverity("Area 1 Level 2"));
 		actual = areaFilter.getItems();
 		assertThat(actual.size(), equalTo(3));
 		assertThat(actual, hasItems("Area 1 Level 2", "Area 2 Level 2", "Area 3 Level 2"));
-
 	}
 }

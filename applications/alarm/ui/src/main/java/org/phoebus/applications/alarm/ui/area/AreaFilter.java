@@ -31,7 +31,9 @@ public class AreaFilter
 	{
 		if (! levelCheck(message.getPathName()))
 			return null;
-		itemSeverity.put(message.getName(), message.getState().getSeverity());
+		final String name = message.getName();
+		if (null == itemSeverity.get(name))
+			itemSeverity.put(name, message.getState().getSeverity());
 		return message.getName();
 	}
 
