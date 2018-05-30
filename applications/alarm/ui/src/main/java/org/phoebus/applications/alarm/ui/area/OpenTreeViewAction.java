@@ -30,7 +30,6 @@ public class OpenTreeViewAction extends MenuItem
 	        	ApplicationLauncherService.logger.log(Level.SEVERE, "Unknown application 'alarm_tree'");
 	        	return;
 	        }
-
 	        app.create();
 		});
 	}
