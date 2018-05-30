@@ -21,10 +21,13 @@ import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -76,7 +79,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         this.model = model;
         areaFilter = new AreaFilter(level);
         model.addListener(this);
-
+        createContextMenu();
         setHgap(10);
         setVgap(10);
 	}
@@ -208,5 +211,19 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 		label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 		label.setFont(font);
 		return label;
+	}
+
+	// TODO: Implement and remove suppression.
+	@SuppressWarnings("all")
+	private void createContextMenu()
+	{
+        final ContextMenu menu = new ContextMenu();
+        this.setOnContextMenuRequested((event) ->
+        {
+        	final ObservableList<MenuItem> menu_items = menu.getItems();
+            menu_items.clear();
+            menu_items.add(new OpenTreeViewAction());
+            menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
 	}
 }
