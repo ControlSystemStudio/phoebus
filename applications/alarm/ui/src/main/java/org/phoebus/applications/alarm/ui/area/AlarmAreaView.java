@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -49,8 +50,8 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 	private final AlarmClient model;
 	private final AreaFilter areaFilter;
 
-	private final int level = 2;
-	private final int col_num = 2;
+	private final int level = AlarmSystem.alarm_area_level;
+	private final int col_num = AlarmSystem.area_column_count;
 
 	private final ConcurrentHashMap<String, Label> itemViewMap = new ConcurrentHashMap<>();
 
@@ -181,7 +182,6 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 		final Label view_item = itemViewMap.get(item_name);
 		final SeverityLevel severity = areaFilter.getSeverity(item_name);
 		final Paint color = AlarmUI.getColor(severity);
-		final CornerRadii radii = new CornerRadii(10);
 		view_item.setBackground(new Background(new BackgroundFill(color, radii, Insets.EMPTY)));
 	}
 
