@@ -29,6 +29,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
@@ -48,7 +49,6 @@ import javafx.scene.paint.Color;
 public class AlarmTableUI extends BorderPane
 {
     // TODO Share the AlarmClient for given configuration between table, tree, area
-    // TODO AlarmTableApplication, AlarmTableInstance
     // TODO Toolbar? to acknowledge/ un-ack, select by name
     // TODO Context menu for alarm guidance, PV actions
     // TODO Maintenance mode?
@@ -221,20 +221,36 @@ public class AlarmTableUI extends BorderPane
 
     void restore(final Memento memento)
     {
+        memento.getNumber("POS").ifPresent(pos -> split.setDividerPositions(pos.doubleValue()));
+
         int i = 0;
         for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
             memento.getNumber("COL" + i++).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
 
-        memento.getNumber("POS").ifPresent(pos -> split.setDividerPositions(pos.doubleValue()));
+        i = memento.getNumber("SORT").orElse(-1).intValue();
+        if (i >= 0)
+        {
+            final TableColumn<AlarmInfoRow, ?> col = active.getColumns().get(i);
+            active.getSortOrder().setAll(List.of(col));
+            memento.getNumber("DIR").ifPresent(dir -> col.setSortType(SortType.values()[dir.intValue()]));
+        }
     }
 
     void save(final Memento memento)
     {
+        memento.setNumber("POS", split.getDividers().get(0).getPosition());
+
         int i = 0;
         for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
             memento.setNumber("COL" + i++, col.getWidth());
 
-        memento.setNumber("POS", split.getDividers().get(0).getPosition());
+        final List<TableColumn<AlarmInfoRow, ?>> sorted = active.getSortOrder();
+        if (sorted.size() == 1)
+        {
+            i = active.getColumns().indexOf(sorted.get(0));
+            memento.setNumber("SORT", i);
+            memento.setNumber("DIR", active.getColumns().get(i).getSortType().ordinal());
+        }
     }
 
     /** Update the alarm information to show
