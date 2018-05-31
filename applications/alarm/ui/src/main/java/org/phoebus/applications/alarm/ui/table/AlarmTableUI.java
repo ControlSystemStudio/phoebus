@@ -7,19 +7,28 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Orientation;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
@@ -44,6 +53,8 @@ public class AlarmTableUI extends BorderPane
     // TODO Context menu for alarm guidance, PV actions
     // TODO Maintenance mode?
     // TODO Limit number of rows (was 2500)
+
+    private final AlarmClient client;
 
     // Sorting:
     //
@@ -84,8 +95,10 @@ public class AlarmTableUI extends BorderPane
         }
     }
 
-    public AlarmTableUI()
+    public AlarmTableUI(final AlarmClient client)
     {
+        this.client = client;
+
         // When user resizes columns, update them in the 'other' table
         active.setColumnResizePolicy(new LinkedColumnResize(active, acknowledged));
         acknowledged.setColumnResizePolicy(new LinkedColumnResize(acknowledged, active));
@@ -123,7 +136,7 @@ public class AlarmTableUI extends BorderPane
         col = new TableColumn<>("Description");
         col.setPrefWidth(400);
         col.setReorderable(false);
-        col.setCellValueFactory(cell -> cell.getValue().pv);
+        col.setCellValueFactory(cell -> cell.getValue().description);
         table.getColumns().add(col);
 
         TableColumn<AlarmInfoRow, SeverityLevel> sevcol = new TableColumn<>("Alarm Severity");
@@ -136,6 +149,7 @@ public class AlarmTableUI extends BorderPane
         col = new TableColumn<>("Alarm Status");
         col.setPrefWidth(130);
         col.setReorderable(false);
+        col.setCellValueFactory(cell -> cell.getValue().status);
         table.getColumns().add(col);
 
         col = new TableColumn<>("Alarm Time");
@@ -148,19 +162,61 @@ public class AlarmTableUI extends BorderPane
         col.setReorderable(false);
         table.getColumns().add(col);
 
-        col = new TableColumn<>("PV Severity");
-        col.setPrefWidth(130);
-        col.setReorderable(false);
-        table.getColumns().add(col);
+        sevcol = new TableColumn<>("PV Severity");
+        sevcol.setPrefWidth(130);
+        sevcol.setReorderable(false);
+        sevcol.setCellValueFactory(cell -> cell.getValue().pv_severity);
+        sevcol.setCellFactory(c -> new SeverityLevelCell());
+        table.getColumns().add(sevcol);
 
         col = new TableColumn<>("PV Status");
         col.setPrefWidth(130);
         col.setReorderable(false);
+        col.setCellValueFactory(cell -> cell.getValue().pv_status);
         table.getColumns().add(col);
 
         table.setPlaceholder(new Label(active ? "No active alarms" : "No acknowledged alarms"));
 
+        createContextMenu(table, active);
+
+        // Double-click to acknowledge or un-acknowledge
+        table.setRowFactory(tv ->
+        {
+            final TableRow<AlarmInfoRow> row = new TableRow<>();
+            row.setOnMouseClicked(event ->
+            {
+                if (event.getClickCount() == 2  &&  !row.isEmpty())
+                    client.acknowledge(row.getItem().item, active);
+            });
+            return row;
+        });
+
         return table;
+    }
+
+    private void createContextMenu(final TableView<AlarmInfoRow> table, final boolean active)
+    {
+        final ContextMenu menu = new ContextMenu();
+        table.setOnContextMenuRequested(event ->
+        {
+            final ObservableList<MenuItem> menu_items = menu.getItems();
+            menu_items.clear();
+
+            final List<AlarmTreeItem<?>> selection = new ArrayList<>();
+            for (AlarmInfoRow row : table.getSelectionModel().getSelectedItems())
+                selection.add(row.item);
+
+            // Add guidance etc.
+            new AlarmContextMenuHelper().addSupportedEntries(table, client, menu_items, selection);
+            if (menu_items.size() > 0)
+                menu_items.add(new SeparatorMenuItem());
+
+            if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
+                menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
+
+            // TODO Add context menu actions for "PV"
+            menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
     }
 
     /** Update the alarm information to show

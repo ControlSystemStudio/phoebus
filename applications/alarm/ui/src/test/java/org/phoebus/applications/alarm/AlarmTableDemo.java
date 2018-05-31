@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
+import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.ui.table.AlarmTableMediator;
 import org.phoebus.applications.alarm.ui.table.AlarmTableUI;
 
@@ -23,13 +24,14 @@ public class AlarmTableDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final AlarmTableUI table = new AlarmTableUI();
+        final AlarmClient client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name);
+        final AlarmTableUI table = new AlarmTableUI(client);
         final Scene scene = new Scene(table, 1200, 300);
         stage.setScene(scene);
         stage.setTitle("Alarm Table Demo");
         stage.show();
 
-        final AlarmTableMediator mediator = new AlarmTableMediator(table);
+        final AlarmTableMediator mediator = new AlarmTableMediator(client, table);
     }
 
     public static void main(final String[] args)

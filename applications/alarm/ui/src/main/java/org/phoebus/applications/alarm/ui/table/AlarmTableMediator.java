@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -35,10 +34,10 @@ public class AlarmTableMediator implements AlarmClientListener
     private final AlarmTableModel model = new AlarmTableModel();
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::throttledUpdate);
 
-    public AlarmTableMediator(final AlarmTableUI ui)
+    public AlarmTableMediator(final AlarmClient client, final AlarmTableUI ui)
     {
+        this.client = client;
         this.ui = ui;
-        client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name);
         client.addListener(this);
         client.start();
     }
@@ -62,21 +61,17 @@ public class AlarmTableMediator implements AlarmClientListener
     public void itemUpdated(final AlarmTreeItem<?> item)
     {
         if (model.handleUpdate(item))
-        {
-            System.out.println("Got new alarm info for table on " + Thread.currentThread().getName());
             throttle.trigger();
-        }
     }
 
     private void throttledUpdate()
     {
-        System.out.println("Updating on " + Thread.currentThread().getName());
         final List<AlarmInfoRow> active = new ArrayList<>(),
                                  acknowledged = new ArrayList<>();
         for (AlarmClientLeaf pv : model.getActiveAlarms())
-            active.add(AlarmInfoRow.of(pv));
+            active.add(new AlarmInfoRow(pv));
         for (AlarmClientLeaf pv : model.getAcknowledgedAlarms())
-            acknowledged.add(AlarmInfoRow.of(pv));
+            acknowledged.add(new AlarmInfoRow(pv));
         Platform.runLater(() -> ui.update(active, acknowledged));
     }
 }

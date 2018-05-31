@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.ui.table;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
 import javafx.beans.Observable;
@@ -18,6 +19,10 @@ import javafx.beans.property.StringProperty;
 import javafx.util.Callback;
 
 /** Information for one 'row' in the alarm table
+ *
+ *  <p>Refers to an {@link AlarmClientLeaf} and duplicates
+ *  its information in JFX observables.
+ *
  *  @author Kay Kasemir
  */
 public class AlarmInfoRow
@@ -32,26 +37,43 @@ public class AlarmInfoRow
     row -> new Observable[]
     {
         row.pv,
-        row.severity
+        row.description,
+        row.severity,
+        row.status,
+        row.pv_severity,
+        row.pv_status
     };
 
+    public volatile AlarmClientLeaf item;
     public final StringProperty pv = new SimpleStringProperty();
+    public final StringProperty description = new SimpleStringProperty();
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
+    public final StringProperty status = new SimpleStringProperty();
+    public final ObjectProperty<SeverityLevel> pv_severity = new SimpleObjectProperty<>(SeverityLevel.OK);
+    public final StringProperty pv_status = new SimpleStringProperty();
 
-    public static AlarmInfoRow of(final AlarmClientLeaf pv)
+    public AlarmInfoRow(final AlarmClientLeaf item)
     {
-        return new AlarmInfoRow(pv.getName(), pv.getState().severity);
-    }
+        this.item = item;
 
-    public AlarmInfoRow(final String pv, final SeverityLevel severity)
-    {
-        this.pv.set(pv);
-        this.severity.set(severity);
+        pv.set(item.getName());
+        description.set(item.getDescription());
+
+        final ClientState state = item.getState();
+        severity.set(state.severity);
+        status.set(state.message);
+        pv_severity.set(state.current_severity);
+        pv_status.set(state.current_message);
     }
 
     public void copy(final AlarmInfoRow other)
     {
+        this.item = other.item;
         pv.set(other.pv.get());
+        description.set(other.description.get());
         severity.set(other.severity.get());
+        status.set(other.status.get());
+        pv_severity.set(other.pv_severity.get());
+        pv_status.set(other.pv_status.get());
     }
 }

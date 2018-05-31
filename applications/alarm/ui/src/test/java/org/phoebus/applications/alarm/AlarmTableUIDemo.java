@@ -7,12 +7,15 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.table.AlarmInfoRow;
 import org.phoebus.applications.alarm.ui.table.AlarmTableUI;
@@ -33,7 +36,7 @@ public class AlarmTableUIDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final AlarmTableUI table = new AlarmTableUI();
+        final AlarmTableUI table = new AlarmTableUI(null);
         final Scene scene = new Scene(table, 1200, 300);
         stage.setScene(scene);
         stage.setTitle("Alarm Table UI Demo");
@@ -43,9 +46,19 @@ public class AlarmTableUIDemo extends Application
         final List<AlarmInfoRow> active = new ArrayList<>();
         final List<AlarmInfoRow> acknowledged = new ArrayList<>();
         for (int i=0; i<20; ++i)
-            active.add(new AlarmInfoRow(String.format("pv %02d", i), SeverityLevel.values()[i % 9]));
+        {
+            final AlarmClientLeaf item = new AlarmClientLeaf(null, String.format("pv %02d", i));
+            final SeverityLevel severity = SeverityLevel.values()[i % 9];
+            item.setState(new ClientState(severity, "", "", Instant.now(), severity, ""));
+            active.add(new AlarmInfoRow(item));
+        }
         for (int i=0; i<20; ++i)
-            acknowledged.add(new AlarmInfoRow("ackpv " + i, SeverityLevel.values()[i % 9]));
+        {
+            final AlarmClientLeaf item = new AlarmClientLeaf(null, String.format("pv %02d", i));
+            final SeverityLevel severity = SeverityLevel.values()[i % 9];
+            item.setState(new ClientState(severity, "", "", Instant.now(), severity, ""));
+            acknowledged.add(new AlarmInfoRow(item));
+        }
 
         table.update(active, acknowledged);
 
@@ -70,7 +83,12 @@ public class AlarmTableUIDemo extends Application
             Platform.runLater(() ->
             {
                 if (active.size() == 20)
-                    active.add(new AlarmInfoRow("pv 20", SeverityLevel.INVALID));
+                {
+                    final AlarmClientLeaf item = new AlarmClientLeaf(null, "pv 20");
+                    final SeverityLevel severity = SeverityLevel.INVALID;
+                    item.setState(new ClientState(severity, "", "", Instant.now(), severity, ""));
+                    active.add(new AlarmInfoRow(item));
+                }
                 else
                     active.remove(active.size()-1);
                 table.update(active, acknowledged);
