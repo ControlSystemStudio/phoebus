@@ -153,11 +153,9 @@ public class SpreadsheetIterator implements Iterator<VType[]>, Closeable
         // 'time' now defines the current spreadsheet line.
         for (int i=0; i<raw_data.length; ++i)
         {
+            // Channel has no new data? Leave at last known value[i].
             if (raw_data[i] == null)
-            {   // This channel has no more data
-                values[i] = null;
                 continue;
-            }
             // Channel has data.
             if (VTypeHelper.getTimestamp(raw_data[i]).compareTo(time) <= 0)
             {   // 'raw_data' is still valid, so use it ....
