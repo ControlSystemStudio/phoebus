@@ -16,6 +16,7 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
+import org.phoebus.framework.persistence.Memento;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -48,7 +49,6 @@ public class AlarmTableUI extends BorderPane
 {
     // TODO Share the AlarmClient for given configuration between table, tree, area
     // TODO AlarmTableApplication, AlarmTableInstance
-    // TODO Save column sizes in memento
     // TODO Toolbar? to acknowledge/ un-ack, select by name
     // TODO Context menu for alarm guidance, PV actions
     // TODO Maintenance mode?
@@ -71,8 +71,11 @@ public class AlarmTableUI extends BorderPane
     private final ObservableList<AlarmInfoRow> active_rows = FXCollections.observableArrayList(AlarmInfoRow.CHANGING_PROPERTIES);
     private final ObservableList<AlarmInfoRow> acknowledged_rows = FXCollections.observableArrayList(AlarmInfoRow.CHANGING_PROPERTIES);
 
+    private final SplitPane split;
+
     private final TableView<AlarmInfoRow> active = createTable(active_rows, true);
     private final TableView<AlarmInfoRow> acknowledged = createTable(acknowledged_rows, false);
+
 
     /** Table cell that shows a Severity */
     private class SeverityLevelCell extends TableCell<AlarmInfoRow, SeverityLevel>
@@ -107,13 +110,10 @@ public class AlarmTableUI extends BorderPane
         active.getSortOrder().addListener(new LinkedColumnSorter(active, acknowledged));
         acknowledged.getSortOrder().addListener(new LinkedColumnSorter(acknowledged, active));
 
-        // Table automatically shows scroll bars,
-        // except when it's empty and columns exceed visible width
-        // https://bugs.openjdk.java.net/browse/JDK-8089225
-        final SplitPane tables = new SplitPane(active, acknowledged);
-        tables.setOrientation(Orientation.VERTICAL);
+        split = new SplitPane(active, acknowledged);
+        split.setOrientation(Orientation.VERTICAL);
 
-        setCenter(tables);
+        setCenter(split);
     }
 
     private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,
@@ -217,6 +217,24 @@ public class AlarmTableUI extends BorderPane
             // TODO Add context menu actions for "PV"
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
+    }
+
+    void restore(final Memento memento)
+    {
+        int i = 0;
+        for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
+            memento.getNumber("COL" + i++).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
+
+        memento.getNumber("POS").ifPresent(pos -> split.setDividerPositions(pos.doubleValue()));
+    }
+
+    void save(final Memento memento)
+    {
+        int i = 0;
+        for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
+            memento.setNumber("COL" + i++, col.getWidth());
+
+        memento.setNumber("POS", split.getDividers().get(0).getPosition());
     }
 
     /** Update the alarm information to show

@@ -32,6 +32,8 @@ public class AlarmTableDemo extends Application
         stage.show();
 
         final AlarmTableMediator mediator = new AlarmTableMediator(client, table);
+        client.addListener(mediator);
+        client.start();
     }
 
     public static void main(final String[] args)

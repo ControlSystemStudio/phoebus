@@ -30,16 +30,12 @@ import javafx.application.Platform;
 public class AlarmTableMediator implements AlarmClientListener
 {
     private final AlarmTableUI ui;
-    private final AlarmClient client;
     private final AlarmTableModel model = new AlarmTableModel();
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::throttledUpdate);
 
     public AlarmTableMediator(final AlarmClient client, final AlarmTableUI ui)
     {
-        this.client = client;
         this.ui = ui;
-        client.addListener(this);
-        client.start();
     }
 
     // AlarmClientListener
