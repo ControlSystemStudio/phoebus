@@ -7,11 +7,17 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.area;
 
+import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
+/** Menu entry for alarm area panel
+ *  @author Evan Smith
+ */
+@SuppressWarnings("nls")
 public class AlarmAreaMenuEntry implements MenuEntry
 {
     @Override
@@ -23,8 +29,7 @@ public class AlarmAreaMenuEntry implements MenuEntry
     @Override
     public Image getIcon()
     {
-       // return ImageCache.getImage(AlarmUI.class, "/icons/alarmarea.png");
-    	return null;
+        return ImageCache.getImage(AlarmUI.class, "/icons/areapanel.png");
     }
 
     @Override

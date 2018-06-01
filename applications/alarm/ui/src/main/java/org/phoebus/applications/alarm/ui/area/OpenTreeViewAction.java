@@ -9,28 +9,33 @@ package org.phoebus.applications.alarm.ui.area;
 
 import java.util.logging.Level;
 
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.ui.tree.AlarmTreeMenuEntry;
 
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.ImageView;
+
 /** Action to open a tree view from an area view.
  *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class OpenTreeViewAction extends MenuItem
 {
-	public OpenTreeViewAction()
-	{
-		super("Open Alarm Tree");
-		setOnAction((event)->
-		{
-			final AppDescriptor app = ApplicationService.findApplication("alarm_tree");
-	        if (app == null)
-	        {
-	        	ApplicationLauncherService.logger.log(Level.SEVERE, "Unknown application 'alarm_tree'");
-	        	return;
-	        }
-	        app.create();
-		});
-	}
+    public OpenTreeViewAction()
+    {
+        final AlarmTreeMenuEntry entry = new AlarmTreeMenuEntry();
+        setText(entry.getName());
+        setGraphic(new ImageView(entry.getIcon()));
+        setOnAction(event ->
+        {
+            try
+            {
+                entry.call();
+            }
+            catch (Exception ex)
+            {
+                AlarmSystem.logger.log(Level.WARNING, "Cannot open alarm tree", ex);
+            }
+        });
+    }
 }

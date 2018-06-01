@@ -22,9 +22,10 @@ import org.phoebus.applications.alarm.ui.area.AreaFilter;
 /** Tests the AreaFilter class and its methods.
  *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class AreaFilterTest
 {
-	@Test
+    @Test
 	public void testAreaFilter()
 	{
 		final int level = 2;

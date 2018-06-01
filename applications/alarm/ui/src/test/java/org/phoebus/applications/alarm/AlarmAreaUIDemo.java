@@ -17,10 +17,10 @@ import javafx.stage.Stage;
 /** Demo of {@link AlarmAreaView}
  *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class AlarmAreaUIDemo extends Application
 {
-
-	@Override
+    @Override
 	public void start(final Stage stage) throws Exception
 	{
 		final AlarmClient client = new AlarmClient("localhost:9092", "Accelerator");

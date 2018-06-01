@@ -21,9 +21,13 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
+/** Alarm area panel application instance (singleton)
+ *  @author Evan Smith
+ */
+@SuppressWarnings("nls")
 public class AlarmAreaInstance implements AppInstance
 {
-	/** Singleton instance maintained by {@link AlarmAreaApplication} */
+    /** Singleton instance maintained by {@link AlarmAreaApplication} */
     static AlarmAreaInstance INSTANCE = null;
 
     private final AlarmAreaApplication app;
@@ -79,5 +83,4 @@ public class AlarmAreaInstance implements AppInstance
             client = null;
         }
     }
-
 }
