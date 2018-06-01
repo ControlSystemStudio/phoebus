@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,6 +34,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 
@@ -50,7 +53,6 @@ public class AlarmTableUI extends BorderPane
 {
     // TODO Share the AlarmClient for given configuration between table, tree, area
     // TODO Toolbar? to acknowledge/ un-ack, select by name
-    // TODO Context menu for alarm guidance, PV actions
     // TODO Maintenance mode?
     // TODO Limit number of rows (was 2500)
 
@@ -76,8 +78,22 @@ public class AlarmTableUI extends BorderPane
     private final TableView<AlarmInfoRow> active = createTable(active_rows, true);
     private final TableView<AlarmInfoRow> acknowledged = createTable(acknowledged_rows, false);
 
+    /** Table cell that shows a Severity as Icon */
+    private class SeverityIconCell extends TableCell<AlarmInfoRow, SeverityLevel>
+    {
+        @Override
+        protected void updateItem(final SeverityLevel item, final boolean empty)
+        {
+            super.updateItem(item, empty);
 
-    /** Table cell that shows a Severity */
+            if (empty  ||  item == null)
+                setGraphic(null);
+            else
+                setGraphic(new ImageView(AlarmUI.getIcon(item)));
+        }
+    }
+
+    /** Table cell that shows a Severity as text */
     private class SeverityLevelCell extends TableCell<AlarmInfoRow, SeverityLevel>
     {
         @Override
@@ -95,6 +111,22 @@ public class AlarmTableUI extends BorderPane
                 setText(item.toString());
                 setTextFill(AlarmUI.getColor(item));
             }
+        }
+    }
+
+
+    /** Table cell that shows a time stamp */
+    private class TimeCell extends TableCell<AlarmInfoRow, Instant>
+    {
+        @Override
+        protected void updateItem(final Instant item, final boolean empty)
+        {
+            super.updateItem(item, empty);
+
+            if (empty  ||  item == null)
+                setText("");
+            else
+                setText(TimestampFormats.MILLI_FORMAT.format(item));
         }
     }
 
@@ -126,6 +158,14 @@ public class AlarmTableUI extends BorderPane
         // of the TableView is changed by the user clicking on table headers.
         sorted.comparatorProperty().bind(table.comparatorProperty());
 
+        TableColumn<AlarmInfoRow, SeverityLevel> sevcol = new TableColumn<>(/* Icon */);
+        sevcol.setPrefWidth(25);
+        sevcol.setReorderable(false);
+        sevcol.setResizable(false);
+        sevcol.setCellValueFactory(cell -> cell.getValue().severity);
+        sevcol.setCellFactory(c -> new SeverityIconCell());
+        table.getColumns().add(sevcol);
+
         TableColumn<AlarmInfoRow, String> col = new TableColumn<>("PV");
         col.setPrefWidth(240);
         col.setReorderable(false);
@@ -139,7 +179,7 @@ public class AlarmTableUI extends BorderPane
         col.setCellValueFactory(cell -> cell.getValue().description);
         table.getColumns().add(col);
 
-        TableColumn<AlarmInfoRow, SeverityLevel> sevcol = new TableColumn<>("Alarm Severity");
+        sevcol = new TableColumn<>("Alarm Severity");
         sevcol.setPrefWidth(130);
         sevcol.setReorderable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().severity);
@@ -152,14 +192,17 @@ public class AlarmTableUI extends BorderPane
         col.setCellValueFactory(cell -> cell.getValue().status);
         table.getColumns().add(col);
 
-        col = new TableColumn<>("Alarm Time");
-        col.setPrefWidth(200);
-        col.setReorderable(false);
-        table.getColumns().add(col);
+        TableColumn<AlarmInfoRow, Instant> timecol = new TableColumn<>("Alarm Time");
+        timecol.setPrefWidth(200);
+        timecol.setReorderable(false);
+        timecol.setCellValueFactory(cell -> cell.getValue().time);
+        timecol.setCellFactory(c -> new TimeCell());
+        table.getColumns().add(timecol);
 
         col = new TableColumn<>("Alarm Value");
         col.setPrefWidth(100);
         col.setReorderable(false);
+        col.setCellValueFactory(cell -> cell.getValue().value);
         table.getColumns().add(col);
 
         sevcol = new TableColumn<>("PV Severity");

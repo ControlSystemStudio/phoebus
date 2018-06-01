@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
 
+import java.time.Instant;
+
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -40,6 +42,8 @@ public class AlarmInfoRow
         row.description,
         row.severity,
         row.status,
+        row.time,
+        row.value,
         row.pv_severity,
         row.pv_status
     };
@@ -49,6 +53,8 @@ public class AlarmInfoRow
     public final StringProperty description = new SimpleStringProperty();
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
     public final StringProperty status = new SimpleStringProperty();
+    public final ObjectProperty<Instant> time = new SimpleObjectProperty<>(null);
+    public final StringProperty value = new SimpleStringProperty();
     public final ObjectProperty<SeverityLevel> pv_severity = new SimpleObjectProperty<>(SeverityLevel.OK);
     public final StringProperty pv_status = new SimpleStringProperty();
 
@@ -62,6 +68,8 @@ public class AlarmInfoRow
         final ClientState state = item.getState();
         severity.set(state.severity);
         status.set(state.message);
+        time.set(state.time);
+        value.set(state.value);
         pv_severity.set(state.current_severity);
         pv_status.set(state.current_message);
     }
@@ -73,6 +81,8 @@ public class AlarmInfoRow
         description.set(other.description.get());
         severity.set(other.severity.get());
         status.set(other.status.get());
+        time.set(other.time.get());
+        value.set(other.value.get());
         pv_severity.set(other.pv_severity.get());
         pv_status.set(other.pv_status.get());
     }
