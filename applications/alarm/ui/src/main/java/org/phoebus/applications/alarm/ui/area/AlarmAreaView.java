@@ -55,7 +55,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     private final AreaFilter areaFilter;
 
     private final int level = AlarmSystem.alarm_area_level;
-    private final int col_num = AlarmSystem.area_column_count;
+    private final int col_num = AlarmSystem.alarm_area_column_count;
 
     /** Map item name to label in UI that represents the item */
     private final ConcurrentHashMap<String, Label> itemViewMap = new ConcurrentHashMap<>();
@@ -81,7 +81,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     // For label formatting.
     private final CornerRadii radii = new CornerRadii(10);
     private final BorderStrokeStyle style = new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, 10, 0, null);
-    private final Font font = new Font(20);
+    private final Font font = new Font(AlarmSystem.alarm_area_font_size);
     private final Border border = new Border(new BorderStroke(Color.BLACK, style, radii, new BorderWidths(2)));
 
     public AlarmAreaView(final AlarmClient model)
