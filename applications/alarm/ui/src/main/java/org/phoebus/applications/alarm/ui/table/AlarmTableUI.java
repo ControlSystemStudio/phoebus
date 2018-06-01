@@ -27,6 +27,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
@@ -113,7 +114,6 @@ public class AlarmTableUI extends BorderPane
             }
         }
     }
-
 
     /** Table cell that shows a time stamp */
     private class TimeCell extends TableCell<AlarmInfoRow, Instant>
@@ -219,6 +219,7 @@ public class AlarmTableUI extends BorderPane
         table.getColumns().add(col);
 
         table.setPlaceholder(new Label(active ? "No active alarms" : "No acknowledged alarms"));
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         createContextMenu(table, active);
 
