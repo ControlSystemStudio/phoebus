@@ -207,14 +207,13 @@ public class AlarmTableUI extends BorderPane
                 selection.add(row.item);
 
             // Add guidance etc.
-            new AlarmContextMenuHelper().addSupportedEntries(table, client, menu_items, selection);
+            new AlarmContextMenuHelper().addSupportedEntries(table, client, menu, selection);
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
             if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
                 menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
 
-            // TODO Add context menu actions for "PV"
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
