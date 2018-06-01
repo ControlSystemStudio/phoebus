@@ -8,9 +8,11 @@
 package org.phoebus.applications.alarm.ui.area;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -24,7 +26,6 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -57,10 +58,22 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     private final int level = AlarmSystem.alarm_area_level;
     private final int col_num = AlarmSystem.area_column_count;
 
+    /** Map item name to label in UI that represents the item */
     private final ConcurrentHashMap<String, Label> itemViewMap = new ConcurrentHashMap<>();
 
-    private final Set<String> items_to_add = new LinkedHashSet<>();
-    private final Set<String> items_to_remove = new LinkedHashSet<>();
+    /** As items are added or removed, this is set to the latest list of items.
+     *
+     *  <p>To keep items sorted by name, it's easier to simply re-create
+     *  all item representations (Labels) whenever an item is added or removed.
+     *
+     *  <p>For a huge number of always changing items that would be inefficient,
+     *  but the number of items is small (~10), and the throttle means
+     *  we likely only re-create the list a few times when handling the initial flurry
+     *  of item additions.
+     */
+    private final AtomicReference<List<String>> item_changes = new AtomicReference<>();
+
+    /** Set of items that have updated, with iteration order based on when they updated */
     private final Set<String> items_to_update = new LinkedHashSet<>();
 
     /** Throttle [5Hz] used for updates of existing items */
@@ -87,35 +100,30 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
 
     // From AlarmClientListener
     @Override
-    public void itemAdded(AlarmTreeItem<?> item)
+    public void itemAdded(final AlarmTreeItem<?> item)
     {
         final String item_name = areaFilter.filter(item);
         if (null == item_name)
             return;
-        synchronized(items_to_add)
-        {
-            items_to_add.add(item_name);
-        }
+        item_changes.set(areaFilter.getItems());
         update_throttle.trigger();
     }
 
     // From AlarmClientListener
     @Override
-    public void itemRemoved(AlarmTreeItem<?> item)
+    public void itemRemoved(final AlarmTreeItem<?> item)
     {
         final String item_name = areaFilter.filter(item);
         if (null == item_name)
             return;
-        synchronized(items_to_remove)
-        {
-            items_to_remove.add(item_name);
-        }
+        areaFilter.removeItem(item_name);
+        item_changes.set(areaFilter.getItems());
         update_throttle.trigger();
     }
 
     // From AlarmClientListener
     @Override
-    public void itemUpdated(AlarmTreeItem<?> item)
+    public void itemUpdated(final AlarmTreeItem<?> item)
     {
         final String item_name = areaFilter.filter(item);
         if (null == item_name)
@@ -131,19 +139,9 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     // Called  by update_throttle when it triggers.
     private void updateItems()
     {
-        final String[] add_array;
-        final String[] remove_array;
+        final List<String> changed_items = item_changes.getAndSet(null);
+
         final String[] update_array;
-        synchronized (items_to_add)
-        {
-            add_array = items_to_add.toArray(new String[items_to_add.size()]);
-            items_to_add.clear();
-        }
-        synchronized (items_to_remove)
-        {
-            remove_array = items_to_remove.toArray(new String[items_to_remove.size()]);
-            items_to_remove.clear();
-        }
         synchronized (items_to_update)
         {
             update_array = items_to_update.toArray(new String[items_to_update.size()]);
@@ -151,53 +149,30 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         }
         Platform.runLater(() ->
         {
-            for (final String item_name : add_array)
-                addItem(item_name);
-            for (final String item_name : remove_array)
-                removeItem(item_name);
+            if (changed_items != null)
+                recreateItems(changed_items);
             for (final String item_name : update_array)
                 updateItem(item_name);
         });
     }
 
-    // Add the label to the grid pane and map the label to its name.
-    private void addItem(String item_name)
+    /** @param items Items for which to re-create UI */
+    private void recreateItems(final List<String> items)
     {
-        final Label view_item = newAreaLabel(item_name);
-        itemViewMap.put(item_name, view_item);
-        setHgrow(view_item, Priority.ALWAYS);
-        setVgrow(view_item, Priority.ALWAYS);
-        getChildren().add(view_item);
-        resetGridConstraints();
-    }
+        // Remove all labels from UI and forget their mapping
+        itemViewMap.clear();
+        getChildren().clear();
 
-    private void removeItem(String item_name)
-    {
-        final Label view_item = itemViewMap.get(item_name);
-        getChildren().remove(view_item);
-        itemViewMap.remove(item_name);
-        areaFilter.removeItem(item_name);
-        resetGridConstraints();
-    }
-
-    // Update the items severity.
-    private void updateItem(String item_name)
-    {
-        final Label view_item = itemViewMap.get(item_name);
-        final SeverityLevel severity = areaFilter.getSeverity(item_name);
-        final Paint color = AlarmUI.getColor(severity);
-        view_item.setBackground(new Background(new BackgroundFill(color, radii, Insets.EMPTY)));
-    }
-
-    private void resetGridConstraints()
-    {
+        // (Re-)create Label for each item
         int index = 0;
-        for (final Node child : getChildren())
+        for (String item_name : items)
         {
+            final Label view_item = newAreaLabel(item_name);
+            itemViewMap.put(item_name, view_item);
             final int columnIndex = index%col_num;
             final int rowIndex = index/col_num;
-            setConstraints(child, columnIndex, rowIndex);
-            index++;
+            add(view_item, columnIndex, rowIndex);
+            ++index;
         }
     }
 
@@ -211,7 +186,18 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         label.setAlignment(Pos.CENTER);
         label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         label.setFont(font);
+        setHgrow(label, Priority.ALWAYS);
+        setVgrow(label, Priority.ALWAYS);
         return label;
+    }
+
+    // Update the items severity.
+    private void updateItem(final String item_name)
+    {
+        final Label view_item = itemViewMap.get(item_name);
+        final SeverityLevel severity = areaFilter.getSeverity(item_name);
+        final Paint color = AlarmUI.getColor(severity);
+        view_item.setBackground(new Background(new BackgroundFill(color, radii, Insets.EMPTY)));
     }
 
     // TODO: Implement and remove suppression.
