@@ -1,2 +1,3 @@
 org.phoebus.applications.alarm.ui.table.AlarmTableMenuEntry
 org.phoebus.applications.alarm.ui.tree.AlarmTreeMenuEntry
+org.phoebus.applications.alarm.ui.area.AlarmAreaMenuEntry

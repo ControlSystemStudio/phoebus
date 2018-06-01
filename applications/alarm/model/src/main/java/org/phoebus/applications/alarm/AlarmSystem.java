@@ -35,11 +35,18 @@ public class AlarmSystem
     /** Timeout in seconds for initial PV connection */
     public static final int connection_timeout;
 
+    /** Number of columns in the alarm area */
+    public static final int area_column_count;
+
+    /** Item level of alarm area. A level of 2 would show all the root levels children. */
+    public static final int alarm_area_level;
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
         server = prefs.get("server");
         config_name = prefs.get("config_name");
         connection_timeout = prefs.getInt("connection_timeout");
+        area_column_count = prefs.getInt("area_column_count");
+        alarm_area_level = prefs.getInt("alarm_area_level");
     }
 }
