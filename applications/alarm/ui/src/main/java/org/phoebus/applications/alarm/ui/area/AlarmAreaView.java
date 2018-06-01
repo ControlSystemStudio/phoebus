@@ -54,9 +54,6 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     private final AlarmClient model;
     private final AreaFilter areaFilter;
 
-    private final int level = AlarmSystem.alarm_area_level;
-    private final int col_num = AlarmSystem.alarm_area_column_count;
-
     /** Map item name to label in UI that represents the item */
     private final ConcurrentHashMap<String, Label> itemViewMap = new ConcurrentHashMap<>();
 
@@ -89,12 +86,15 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         if (model.isRunning())
             throw new IllegalStateException();
 
+        setHgap(AlarmSystem.alarm_area_gap);
+        setVgap(AlarmSystem.alarm_area_gap);
+        setPadding(new Insets(AlarmSystem.alarm_area_gap));
+
         this.model = model;
-        areaFilter = new AreaFilter(level);
+        areaFilter = new AreaFilter(AlarmSystem.alarm_area_level);
         model.addListener(this);
+
         createContextMenu();
-        setHgap(10);
-        setVgap(10);
     }
 
     // From AlarmClientListener
@@ -169,9 +169,9 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             final Label view_item = newAreaLabel(item_name);
             itemViewMap.put(item_name, view_item);
             updateItem(item_name);
-            final int columnIndex = index%col_num;
-            final int rowIndex = index/col_num;
-            add(view_item, columnIndex, rowIndex);
+            final int column = index % AlarmSystem.alarm_area_column_count;
+            final int row = index / AlarmSystem.alarm_area_column_count;
+            add(view_item, column, row);
             ++index;
         }
     }

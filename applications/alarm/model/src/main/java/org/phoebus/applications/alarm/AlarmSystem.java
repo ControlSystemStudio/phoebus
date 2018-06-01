@@ -35,14 +35,18 @@ public class AlarmSystem
     /** Timeout in seconds for initial PV connection */
     public static final int connection_timeout;
 
+    /** Item level of alarm area. A level of 2 would show all the root levels children. */
+    public static final int alarm_area_level;
+
     /** Number of columns in the alarm area */
     public static final int alarm_area_column_count;
+
+    /** Gap between alarm area panel items */
+    public static final int alarm_area_gap;
 
     /** Font size for the alarm area view */
     public static final int alarm_area_font_size;
 
-    /** Item level of alarm area. A level of 2 would show all the root levels children. */
-    public static final int alarm_area_level;
 
     static
     {
@@ -50,8 +54,9 @@ public class AlarmSystem
         server = prefs.get("server");
         config_name = prefs.get("config_name");
         connection_timeout = prefs.getInt("connection_timeout");
-        alarm_area_column_count = prefs.getInt("alarm_area_column_count");
-        alarm_area_font_size = prefs.getInt("alarm_area_font_size");
         alarm_area_level = prefs.getInt("alarm_area_level");
+        alarm_area_column_count = prefs.getInt("alarm_area_column_count");
+        alarm_area_gap = prefs.getInt("alarm_area_gap");
+        alarm_area_font_size = prefs.getInt("alarm_area_font_size");
     }
 }
