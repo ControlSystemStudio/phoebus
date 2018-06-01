@@ -8,15 +8,13 @@
  */
 package org.csstudio.display.builder.representation.javafx;
 
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
@@ -99,11 +97,16 @@ public class WidgetColorPopOverController implements Initializable {
 
     private Consumer<WidgetColor>              colorChangeConsumer;
     private PopOver                            popOver;
-    private final AtomicBoolean                namesLoaded   = new AtomicBoolean(false);
-    private final Map<Color, NamedWidgetColor> namedColors   = Collections.synchronizedMap(new HashMap<>());
+    private final CountDownLatch               namesLoaded   = new CountDownLatch(1);
     private WidgetColor                        defaultColor  = null;
     private WidgetColor                        originalColor = null;
     private boolean                            updating      = false;
+    private final ObservableList<NamedWidgetColor> namedColorsList   = FXCollections.observableArrayList();
+    private final FilteredList<NamedWidgetColor>   filteredNamedColorsList = new FilteredList<>(new SortedList<>(
+                      namedColorsList,
+                      (nc1, nc2) -> String.CASE_INSENSITIVE_ORDER.compare(nc1.getName(), nc2.getName())
+                      ));
+
 
     /*
      * ---- color property -----------------------------------------------------
@@ -112,7 +115,7 @@ public class WidgetColorPopOverController implements Initializable {
         @Override
         protected void invalidated() {
 
-            WidgetColor col = get();
+            final WidgetColor col = get();
 
             if ( col == null ) {
                 set(WidgetColorService.getColor(NamedWidgetColors.BACKGROUND));
@@ -141,7 +144,7 @@ public class WidgetColorPopOverController implements Initializable {
 
         updateButton(okButton, ButtonType.OK);
         updateButton(cancelButton, ButtonType.CANCEL);
-        updateButton(defaultButton, new ButtonType(Messages.WidgetColorPopOver_DefaultButton, ButtonData.LEFT));
+        updateButton(defaultButton, new ButtonType(Messages.WidgetColorPopOver_DefaultButton, ButtonData.BACK_PREVIOUS));
 
         okButton.setText(ButtonType.OK.getText());
         ButtonBar.setButtonData(okButton, ButtonType.OK.getButtonData());
@@ -149,6 +152,7 @@ public class WidgetColorPopOverController implements Initializable {
         {
             if (event.getCode() == KeyCode.ENTER)
                 okPressed(null);
+                event.consume();
         });
 
         picker.valueProperty().addListener(( observable, oldColor, newColor ) -> {
@@ -159,8 +163,8 @@ public class WidgetColorPopOverController implements Initializable {
         defaultButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(defaultColor), colorProperty()));
         okButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(originalColor), colorProperty()));
 
-        SpinnerValueFactory<Integer> redSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
-        TextFormatter<Integer> redSpinnerFormatter = new TextFormatter<>(redSpinnerValueFactory.getConverter(), redSpinnerValueFactory.getValue());
+        final SpinnerValueFactory<Integer> redSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        final TextFormatter<Integer> redSpinnerFormatter = new TextFormatter<>(redSpinnerValueFactory.getConverter(), redSpinnerValueFactory.getValue());
 
         redSpinnerValueFactory.valueProperty().bindBidirectional(redSpinnerFormatter.valueProperty());
         redSpinner.getEditor().setTextFormatter(redSpinnerFormatter);
@@ -172,8 +176,8 @@ public class WidgetColorPopOverController implements Initializable {
             }
         });
 
-        SpinnerValueFactory<Integer> greenSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
-        TextFormatter<Integer> greenSpinnerFormatter = new TextFormatter<>(greenSpinnerValueFactory.getConverter(), greenSpinnerValueFactory.getValue());
+        final SpinnerValueFactory<Integer> greenSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        final TextFormatter<Integer> greenSpinnerFormatter = new TextFormatter<>(greenSpinnerValueFactory.getConverter(), greenSpinnerValueFactory.getValue());
 
         greenSpinnerValueFactory.valueProperty().bindBidirectional(greenSpinnerFormatter.valueProperty());
         greenSpinner.getEditor().setTextFormatter(greenSpinnerFormatter);
@@ -185,8 +189,8 @@ public class WidgetColorPopOverController implements Initializable {
             }
         });
 
-        SpinnerValueFactory<Integer> blueSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
-        TextFormatter<Integer> blueSpinnerFormatter = new TextFormatter<>(blueSpinnerValueFactory.getConverter(), blueSpinnerValueFactory.getValue());
+        final SpinnerValueFactory<Integer> blueSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        final TextFormatter<Integer> blueSpinnerFormatter = new TextFormatter<>(blueSpinnerValueFactory.getConverter(), blueSpinnerValueFactory.getValue());
 
         blueSpinnerValueFactory.valueProperty().bindBidirectional(blueSpinnerFormatter.valueProperty());
         blueSpinner.getEditor().setTextFormatter(blueSpinnerFormatter);
@@ -198,8 +202,8 @@ public class WidgetColorPopOverController implements Initializable {
             }
         });
 
-        SpinnerValueFactory<Integer> alphaSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
-        TextFormatter<Integer> alphaSpinnerFormatter = new TextFormatter<>(alphaSpinnerValueFactory.getConverter(), alphaSpinnerValueFactory.getValue());
+        final SpinnerValueFactory<Integer> alphaSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
+        final TextFormatter<Integer> alphaSpinnerFormatter = new TextFormatter<>(alphaSpinnerValueFactory.getConverter(), alphaSpinnerValueFactory.getValue());
 
         alphaSpinnerValueFactory.valueProperty().bindBidirectional(alphaSpinnerFormatter.valueProperty());
         alphaSpinner.getEditor().setTextFormatter(alphaSpinnerFormatter);
@@ -220,7 +224,7 @@ public class WidgetColorPopOverController implements Initializable {
 
             updating = true;
 
-            Color jfxColor = JFXUtil.convert(getColor());
+            final Color jfxColor = JFXUtil.convert(getColor());
 
             picker.setValue(jfxColor);
             currentColorCircle.setFill(jfxColor);
@@ -239,7 +243,7 @@ public class WidgetColorPopOverController implements Initializable {
         });
 
         colorNames.setPlaceholder(new Label(Messages.WidgetColorPopOver_PredefinedColors));
-        colorNames.setItems(filteredColorsList);
+        colorNames.setItems(filteredNamedColorsList);
         colorNames.setCellFactory(view -> new NamedWidgetColorCell());
         colorNames.getSelectionModel().selectedItemProperty().addListener(( observable, oldValue, newValue ) -> {
             if ( newValue != null ) {
@@ -250,14 +254,10 @@ public class WidgetColorPopOverController implements Initializable {
         // Get colors on background thread
         ModelThreadPool.getExecutor().execute( ( ) -> {
 
-            final NamedWidgetColors colors = WidgetColorService.getColors();
-            final Collection<NamedWidgetColor> values = colors.getColors();
-
-            values.parallelStream().forEach(nc -> namedColors.put(JFXUtil.convert(nc), nc));
-
+            final Collection<NamedWidgetColor> namedColors = WidgetColorService.getColors().getColors();
             Platform.runLater(() -> {
-                namedColorsList.addAll(values);
-                namesLoaded.set(true);
+                namedColorsList.addAll(namedColors);
+                namesLoaded.countDown();
             });
 
         });
@@ -291,21 +291,25 @@ public class WidgetColorPopOverController implements Initializable {
         picker.getCustomColors().add(Color.rgb(204, 204, 204));
 
         //  Search field
-        searchField.setPromptText(Messages.WidgetColorPopOver_SearchField);
+        //searchField.setPromptText(Messages.WidgetColorPopOver_SearchField);
         searchField.setTooltip(new Tooltip(Messages.WidgetColorPopOver_SearchFieldTT));
         searchField.setPrefColumnCount(9);
         searchField.textProperty().addListener(o -> {
 
-            String filter = searchField.getText();
+            final String filter = searchField.getText();
 
             if ( filter == null || filter.isEmpty() ) {
-                filteredColorsList.setPredicate(null);
+                filteredNamedColorsList.setPredicate(null);
             } else {
 
-                String lcFilter = filter.toLowerCase();
+                final String lcFilter = filter.toLowerCase();
 
-                filteredColorsList.setPredicate(s -> s.getName().toLowerCase().contains(lcFilter));
-                Platform.runLater(() -> colorNames.refresh());
+                filteredNamedColorsList.setPredicate(s -> s.getName().toLowerCase().contains(lcFilter));
+                Platform.runLater(() ->
+                {
+                    colorNames.refresh();
+                    colorNames.scrollTo(0);
+                });
 
             }
 
@@ -313,11 +317,6 @@ public class WidgetColorPopOverController implements Initializable {
 
     }
 
-    private ObservableList<NamedWidgetColor> namedColorsList = FXCollections.observableArrayList();
-    private FilteredList<NamedWidgetColor> filteredColorsList = new FilteredList<>(new SortedList<>(
-        namedColorsList,
-        (nc1, nc2) -> String.CASE_INSENSITIVE_ORDER.compare(nc1.getName(), nc2.getName())
-    ));
 
     @FXML
     void cancelPressed ( ActionEvent event ) {
@@ -368,7 +367,8 @@ public class WidgetColorPopOverController implements Initializable {
             WidgetColor originalWidgetColor,
             final WidgetColor defaultWidgetColor,
             final String propertyName,
-            final Consumer<WidgetColor> colorChangeConsumer ) {
+            final Consumer<WidgetColor> colorChangeConsumer )
+    {
 
         this.colorChangeConsumer = colorChangeConsumer;
         this.popOver = popOver;
@@ -383,8 +383,13 @@ public class WidgetColorPopOverController implements Initializable {
 
         ModelThreadPool.getExecutor().execute( ( ) -> {
 
-            while ( !namesLoaded.get() ) {
-                Thread.yield();
+            try
+            {
+                namesLoaded.await();
+            }
+            catch ( final InterruptedException iex )
+            {
+                logger.throwing(WidgetColorPopOverController.class.getName(), "setInitialConditions[executor]", iex);
             }
 
             Platform.runLater(() -> {

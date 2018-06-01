@@ -37,19 +37,19 @@ public class WidgetFontPropertyBinding
     };
 
     /** Update model from user input */
-    private EventHandler<ActionEvent> action_handler = event ->
+    private final EventHandler<ActionEvent> action_handler = event ->
     {
         if (popover == null)
-            popover = new WidgetFontPopOver(widget_property.getValue(), font ->
+            popover = new WidgetFontPopOver(widget_property, font ->
             {
-                undo.execute(new SetWidgetPropertyAction<WidgetFont>(widget_property, font));
+                undo.execute(new SetWidgetPropertyAction<>(widget_property, font));
                 if (! other.isEmpty())
                 {
                     final String path = widget_property.getPath();
-                    for (Widget w : other)
+                    for (final Widget w : other)
                     {
                         final FontWidgetProperty other_prop = (FontWidgetProperty) w.getProperty(path);
-                        undo.execute(new SetWidgetPropertyAction<WidgetFont>(other_prop, font));
+                        undo.execute(new SetWidgetPropertyAction<>(other_prop, font));
                     }
                 }
             });

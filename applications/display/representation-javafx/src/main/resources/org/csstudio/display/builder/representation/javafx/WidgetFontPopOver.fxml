@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import org.phoebus.ui.javafx.ClearingTextField?>
+
+
+
+<VBox prefHeight="550.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.WidgetFontPopOverController">
+   <children>
+      <SplitPane dividerPositions="0.8" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" orientation="VERTICAL" style="-fx-box-border: transparent;" stylesheets="@opibuilder.css" VBox.vgrow="ALWAYS">
+         <items>
+            <GridPane fx:id="root" hgap="12.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-box-border: ladder(-fx-color,black 20%,derive(-fx-color,-15%) 30%);">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="280.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="280.0" />
+              </columnConstraints>
+              <rowConstraints>
+                  <RowConstraints fillHeight="false" vgrow="NEVER" />
+                <RowConstraints vgrow="NEVER" />
+                <RowConstraints minHeight="100.0" vgrow="ALWAYS" />
+                <RowConstraints valignment="CENTER" vgrow="NEVER" />
+              </rowConstraints>
+               <children>
+                  <Label fx:id="infoLabel" text="%WidgetFontPopOver_Info" GridPane.columnSpan="2147483647">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <GridPane.margin>
+                        <Insets bottom="12.0" />
+                     </GridPane.margin>
+                  </Label>
+                  <ClearingTextField fx:id="searchField" maxWidth="300.0" promptText="%WidgetFontPopOver_SearchPrompt" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
+                     <GridPane.margin>
+                        <Insets bottom="12.0" />
+                     </GridPane.margin>
+                  </ClearingTextField>
+                  <TitledPane alignment="CENTER" animated="false" collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%WidgetFontPopOver_PredefinedFonts" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+                     <GridPane.margin>
+                        <Insets bottom="12.0" />
+                     </GridPane.margin>
+                     <content>
+                        <ListView fx:id="fontNames" prefHeight="100.0" prefWidth="200.0" />
+                     </content>
+                  </TitledPane>
+                  <TitledPane alignment="CENTER" animated="false" collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%WidgetFontPopOver_FontsFamilies" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+                     <GridPane.margin>
+                        <Insets bottom="12.0" />
+                     </GridPane.margin>
+                     <content>
+                        <ListView fx:id="families" prefHeight="100.0" prefWidth="200.0" />
+                     </content>
+                  </TitledPane>
+                  <BorderPane GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="NEVER">
+                     <left>
+                        <Label alignment="CENTER_RIGHT" text="%WidgetFontPopOver_StyleCaption" BorderPane.alignment="CENTER">
+                           <BorderPane.margin>
+                              <Insets right="6.0" />
+                           </BorderPane.margin>
+                        </Label>
+                     </left>
+                     <center>
+                        <ComboBox fx:id="styles" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" promptText="%WidgetFontPopOver_StylePrompt" BorderPane.alignment="CENTER" />
+                     </center>
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                  </BorderPane>
+                  <BorderPane GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="NEVER">
+                     <left>
+                        <Label text="%WidgetFontPopOver_SizeCaption" BorderPane.alignment="CENTER">
+                           <BorderPane.margin>
+                              <Insets right="6.0" />
+                           </BorderPane.margin>
+                        </Label>
+                     </left>
+                     <center>
+                        <ComboBox fx:id="sizes" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" promptText="%WidgetFontPopOver_SizePrompt" BorderPane.alignment="CENTER" />
+                     </center>
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                  </BorderPane>
+               </children>
+               <padding>
+                  <Insets bottom="12.0" />
+               </padding>
+            </GridPane>
+            <TitledPane alignment="CENTER" animated="false" collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-box-border: ladder(-fx-color,black 20%,derive(-fx-color,-15%) 30%);" text="%WidgetFontPopOver_Preview">
+               <content>
+                  <TextField fx:id="preview" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="50.0" promptText="%WidgetFontPopOver_PreviewPrompt" style="-fx-text-box-border: transparent;" text="%WidgetFontPopOver_ExampleText" />
+               </content>
+            </TitledPane>
+         </items>
+      </SplitPane>
+      <ButtonBar>
+         <VBox.margin>
+            <Insets top="18.0" />
+         </VBox.margin>
+         <buttons>
+            <Button fx:id="defaultButton" mnemonicParsing="false" onAction="#defaultPressed" text="D" />
+            <Button fx:id="cancelButton" cancelButton="true" mnemonicParsing="false" onAction="#cancelPressed" text="CC" />
+            <Button fx:id="okButton" defaultButton="true" mnemonicParsing="false" onAction="#okPressed" text="O" />
+         </buttons>
+      </ButtonBar>
+   </children>
+   <padding>
+      <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+   </padding>
+</VBox>
+

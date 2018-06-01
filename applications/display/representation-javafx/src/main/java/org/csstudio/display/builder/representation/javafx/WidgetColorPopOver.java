@@ -29,7 +29,7 @@ import javafx.scene.control.Label;
 
 
 /**
- * A factory class for popover editors.
+ * PopOver editor for selecting {@link WidgetColor}s.
  *
  * @author claudiorosati, European Spallation Source ERIC
  * @version 1.0.0 30 Nov 2017
@@ -37,24 +37,37 @@ import javafx.scene.control.Label;
 @SuppressWarnings("nls")
 public class WidgetColorPopOver extends PopOver
 {
-    public WidgetColorPopOver(final ColorWidgetProperty color_prop,
-                              final Consumer<WidgetColor> colorChangeConsumer)
-    {
-        try
+	/**
+	 * Create dialog
+	 *
+	 * @param color_prop {@link ColorWidgetProperty} used to configure initial values.
+	 * @param colorChangeConsumer Will be called when user press OK to leave the popover.
+	 */
+	public WidgetColorPopOver ( final ColorWidgetProperty color_prop,
+								final Consumer<WidgetColor> colorChangeConsumer )
+	{
+
+	    try
         {
-            URL fxml = WidgetColorPopOver.class.getResource("WidgetColorPopOver.fxml");
-            InputStream iStream = WidgetColorPopOver.class.getResourceAsStream("messages.properties");
-            ResourceBundle bundle = new PropertyResourceBundle(iStream);
-            FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
-            Node content = (Node) fxmlLoader.load();
+            final URL fxml = WidgetColorPopOver.class.getResource("WidgetColorPopOver.fxml");
+            final InputStream iStream = WidgetColorPopOver.class.getResourceAsStream("messages.properties");
+            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            final FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
+            final Node content = (Node) fxmlLoader.load();
 
             setContent(content);
 
-            WidgetColorPopOverController controller = fxmlLoader.<WidgetColorPopOverController>getController();
+            final WidgetColorPopOverController controller = fxmlLoader.<WidgetColorPopOverController> getController();
 
-            controller.setInitialConditions(this, color_prop.getValue(), color_prop.getDefaultValue(), color_prop.getDescription(), colorChangeConsumer);
+            controller.setInitialConditions(
+            this,
+            color_prop.getValue(),
+            color_prop.getDefaultValue(),
+            color_prop.getDescription(),
+            colorChangeConsumer
+            );
         }
-        catch (IOException ex)
+        catch (final IOException ex)
         {
             logger.log(Level.WARNING, "Unable to edit color.", ex);
             setContent(new Label("Unable to edit color."));

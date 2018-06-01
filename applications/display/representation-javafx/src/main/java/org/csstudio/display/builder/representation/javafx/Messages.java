@@ -134,6 +134,13 @@ public class Messages
     public static String WidgetColorPopOver_Red;
     public static String WidgetColorPopOver_SearchField;
     public static String WidgetColorPopOver_SearchFieldTT;
+    public static String WidgetFontPopOver_Default;
+    public static String WidgetFontPopOver_FontsFamilies;
+    public static String WidgetFontPopOver_Info;
+    public static String WidgetFontPopOver_PredefinedFonts;
+    public static String WidgetFontPopOver_SearchFieldTT;
+    public static String WidgetFontPopOver_Sizes;
+    public static String WidgetFontPopOver_Styles;
     public static String WidgetInfoDialog_Category;
     public static String WidgetInfoDialog_Disconnected;
     public static String WidgetInfoDialog_Info_Fmt;
