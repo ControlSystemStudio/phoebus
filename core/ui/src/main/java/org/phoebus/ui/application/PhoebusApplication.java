@@ -46,6 +46,8 @@ import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
+import org.phoebus.ui.layout.LoadLayoutMenuItem;
+import org.phoebus.ui.layout.SaveLayoutMenuItem;
 import org.phoebus.ui.monitoring.ResponsivenessMonitor;
 import org.phoebus.ui.statusbar.StatusBar;
 import org.phoebus.ui.welcome.Welcome;
@@ -97,6 +99,12 @@ public class PhoebusApplication extends Application {
 
     /** Menu item to show/hide tabs */
     private CheckMenuItem show_tabs;
+
+    /** Menu item to save layout */
+    private SaveLayoutMenuItem save_layout;
+
+    /** Menu to load layout */
+    private Menu load_layout;
 
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
@@ -188,7 +196,7 @@ public class PhoebusApplication extends Application {
                 // Leaving remaining 40% to the UI startup
                 startUI(memento, new SubJobMonitor(monitor, 40));
             }
-            catch (Throwable ex)
+            catch (final Throwable ex)
             {
                 logger.log(Level.SEVERE, "Application cannot start up", ex);
             }
@@ -276,7 +284,7 @@ public class PhoebusApplication extends Application {
         {
             handleParameters(parameters);
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.SEVERE, "Cannot handle client parameters " + parameters, ex);
         }
@@ -315,11 +323,11 @@ public class PhoebusApplication extends Application {
         Platform.runLater(() ->
         {
             // Handle requests to open resource from command line
-            for (URI resource : launchResources)
+            for (final URI resource : launchResources)
                 openResource(resource, false);
 
             // Handle requests to open application from command line
-            for (String app_name : launchApps)
+            for (final String app_name : launchApps)
                 launchApp(app_name);
         });
     }
@@ -381,7 +389,7 @@ public class PhoebusApplication extends Application {
 
         // Application Contributions
         final Menu applicationsMenu = new Menu(Messages.Applications);
-        MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
+        final MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
         addMenuNode(applicationsMenu, node);
         menuBar.getMenus().add(applicationsMenu);
 
@@ -389,7 +397,21 @@ public class PhoebusApplication extends Application {
         show_tabs = new CheckMenuItem(Messages.AlwaysShowTabs);
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
-        menuBar.getMenus().add(new Menu(Messages.Window, null, show_tabs));
+
+        save_layout = new SaveLayoutMenuItem(Messages.SaveLayoutAs);
+        save_layout.setOnAction(event -> {
+            save_layout.saveLayout(last_opened_file, default_application);
+            load_layout.getItems().clear();
+            createLoadMenu();
+        });
+
+        load_layout = new Menu("Load Past Layouts");
+        createLoadMenu();
+
+        final Menu menu = new Menu(Messages.Window, null);
+
+        menu.getItems().addAll(show_tabs, save_layout, load_layout);
+        menuBar.getMenus().add(menu);
 
         // Help
         final MenuItem content = createMenuItem(new OpenHelp());
@@ -399,6 +421,21 @@ public class PhoebusApplication extends Application {
         return menuBar;
     }
 
+    private void createLoadMenu()
+    {
+        final File phoebus_dir = new File(Locations.user().getAbsolutePath());
+        final File[] phoebus_files = phoebus_dir.listFiles();
+        for (final File phoebus_file : phoebus_files)
+        {
+            if (phoebus_file.isFile() && phoebus_file.getName().endsWith(".memento"))
+            {
+                final LoadLayoutMenuItem loadLayoutMenuItem = new LoadLayoutMenuItem(phoebus_file);
+
+                load_layout.getItems().add(loadLayoutMenuItem);
+            }
+        }
+        load_layout.getItems().sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+    }
     /** @param entry {@link MenuEntry}
      *  @return {@link MenuItem}
      */
@@ -414,7 +451,7 @@ public class PhoebusApplication extends Application {
             {
                 entry.call();
             }
-            catch (Exception ex)
+            catch (final Exception ex)
             {
                 logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
             }
@@ -486,13 +523,13 @@ public class PhoebusApplication extends Application {
 
     private void addMenuNode(Menu parent, MenuTreeNode node) {
 
-        for (MenuEntry entry : node.getMenuItems()) {
-            MenuItem m = createMenuItem(entry);
+        for (final MenuEntry entry : node.getMenuItems()) {
+            final MenuItem m = createMenuItem(entry);
             parent.getItems().add(m);
         }
 
-        for (MenuTreeNode child : node.getChildren()) {
-            Menu childMenu = new Menu(child.getName());
+        for (final MenuTreeNode child : node.getChildren()) {
+            final Menu childMenu = new Menu(child.getName());
             addMenuNode(childMenu, child);
             parent.getItems().add(childMenu);
         }
@@ -537,7 +574,7 @@ public class PhoebusApplication extends Application {
                         new_stage.show();
                     } else
                         entry.call();
-                } catch (Exception ex) {
+                } catch (final Exception ex) {
                     logger.log(Level.WARNING, "Error invoking toolbar " + entry.getName(), ex);
                 }
             });
@@ -588,8 +625,8 @@ public class PhoebusApplication extends Application {
         // Pick default application based on preference setting?
         if (! prompt)
         {
-            for (AppResourceDescriptor app : applications)
-                for (String part : Preferences.default_apps)
+            for (final AppResourceDescriptor app : applications)
+                for (final String part : Preferences.default_apps)
                     if (app.getName().contains(part))
                         return app;
             // , not just the first one, which may be undefined
@@ -648,7 +685,7 @@ public class PhoebusApplication extends Application {
                 return XMLMementoTree.read(new FileInputStream(memfile));
             }
         }
-        catch (Exception ex)
+        catch (final Exception ex)
         {
             logger.log(Level.SEVERE, "Error restoring saved state from " + memfile, ex);
         }
@@ -679,7 +716,7 @@ public class PhoebusApplication extends Application {
             });
 
             // Settings for each stage
-            for (MementoTree stage_memento : memento.getChildren()) {
+            for (final MementoTree stage_memento : memento.getChildren()) {
                 final String id = stage_memento.getName();
                 Stage stage = DockStage.getDockStageByID(id);
                 if (stage == null) {
@@ -692,7 +729,7 @@ public class PhoebusApplication extends Application {
 
                 any |= MementoHelper.restoreStage(stage_memento, stage);
             }
-        } catch (Throwable ex) {
+        } catch (final Throwable ex) {
             logger.log(Level.WARNING, "Error restoring saved state", ex);
         }
         return any;
@@ -713,14 +750,14 @@ public class PhoebusApplication extends Application {
             memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
 
             // Persist each stage (window) and its tabs
-            for (Stage stage : DockStage.getDockStages())
+            for (final Stage stage : DockStage.getDockStages())
                 MementoHelper.saveStage(memento, stage);
 
             // Write the memento file
             if (!memfile.getParentFile().exists())
                 memfile.getParentFile().mkdirs();
             memento.write(new FileOutputStream(memfile));
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             logger.log(Level.WARNING, "Error writing saved state to " + memfile, ex);
         }
     }
@@ -782,7 +819,7 @@ public class PhoebusApplication extends Application {
         // there's nothing left to save
         saveState();
 
-        for (Stage stage : stages_to_check) {
+        for (final Stage stage : stages_to_check) {
             // Could close via event, but then still need to check if the stage remained
             // open
             // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
@@ -802,7 +839,7 @@ public class PhoebusApplication extends Application {
     {
         final Collection<AppDescriptor> apps = ApplicationService.getApplications();
         monitor.beginTask("Start applications", apps.size());
-        for (AppDescriptor app : apps)
+        for (final AppDescriptor app : apps)
         {
             monitor.updateTaskName("Starting " + app.getDisplayName());
             app.start();
@@ -814,7 +851,7 @@ public class PhoebusApplication extends Application {
      * Stop all applications
      */
     private void stopApplications() {
-        for (AppDescriptor app : ApplicationService.getApplications())
+        for (final AppDescriptor app : ApplicationService.getApplications())
             app.stop();
     }
 
