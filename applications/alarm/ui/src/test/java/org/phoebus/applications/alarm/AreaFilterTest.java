@@ -68,7 +68,7 @@ public class AreaFilterTest
 
 		// If Area 1 Level 2 is deleted from model, filter should reflect that.
 		areaFilter.removeItem("Area 1 Level 2");
-		assertThat(areaFilter.getSeverity("Area 1 Level 2"), equalTo(null));
+		assertThat(areaFilter.getSeverity("Area 1 Level 2"), equalTo(SeverityLevel.UNDEFINED));
 		actual = areaFilter.getItems();
 		assertThat(actual.size(), equalTo(2));
 		assertThat(actual, hasItems("Area 2 Level 2", "Area 3 Level 2"));
