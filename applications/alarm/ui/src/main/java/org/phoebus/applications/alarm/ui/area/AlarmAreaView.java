@@ -39,7 +39,6 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
@@ -85,7 +84,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     private final Font font = new Font(20);
     private final Border border = new Border(new BorderStroke(Color.BLACK, style, radii, new BorderWidths(2)));
 
-    public AlarmAreaView(AlarmClient model)
+    public AlarmAreaView(final AlarmClient model)
     {
         if (model.isRunning())
             throw new IllegalStateException();
@@ -169,6 +168,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         {
             final Label view_item = newAreaLabel(item_name);
             itemViewMap.put(item_name, view_item);
+            updateItem(item_name);
             final int columnIndex = index%col_num;
             final int rowIndex = index/col_num;
             add(view_item, columnIndex, rowIndex);
@@ -179,9 +179,6 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     private Label newAreaLabel(final String item_name)
     {
         final Label label = new Label(item_name);
-        final SeverityLevel severity = areaFilter.getSeverity(item_name);
-        final Color color = AlarmUI.getColor(severity);
-        label.setBackground(new Background(new BackgroundFill(color, radii, Insets.EMPTY)));
         label.setBorder(border);
         label.setAlignment(Pos.CENTER);
         label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -196,8 +193,12 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     {
         final Label view_item = itemViewMap.get(item_name);
         final SeverityLevel severity = areaFilter.getSeverity(item_name);
-        final Paint color = AlarmUI.getColor(severity);
+        final Color color = AlarmUI.getColor(severity);
         view_item.setBackground(new Background(new BackgroundFill(color, radii, Insets.EMPTY)));
+        if (color.getBrightness() >= 0.5)
+            view_item.setTextFill(Color.BLACK);
+        else
+            view_item.setTextFill(Color.WHITE);
     }
 
     // TODO: Implement and remove suppression.
