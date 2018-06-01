@@ -39,6 +39,7 @@ class ShowGuidanceAction extends MenuItem
 
             final TextArea details = new TextArea(guidance.detail);
             details.setEditable(false);
+            details.setWrapText(true);
 
             dialog.getDialogPane().setContent(details);
 
