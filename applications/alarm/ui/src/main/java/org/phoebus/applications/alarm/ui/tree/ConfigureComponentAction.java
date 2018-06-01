@@ -20,7 +20,7 @@ import javafx.scene.control.MenuItem;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class ConfigureComponentAction extends MenuItem
+public class ConfigureComponentAction extends MenuItem
 {
     /** @param node Node to position dialog
      *  @param model Model where new component is added
