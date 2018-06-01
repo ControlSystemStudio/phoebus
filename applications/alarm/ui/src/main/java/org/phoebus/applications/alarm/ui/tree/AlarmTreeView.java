@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -336,22 +335,22 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
 
 
 
-    private long next_stats = 0;
-    private final AtomicInteger update_count = new AtomicInteger();
-    private volatile double updates_per_sec = 0.0;
+//    private long next_stats = 0;
+//    private final AtomicInteger update_count = new AtomicInteger();
+//    private volatile double updates_per_sec = 0.0;
 
     private void updateStats()
     {
-        final long time = System.currentTimeMillis();
-        if (time > next_stats)
-        {
-            final int updates = update_count.getAndSet(0);
-            updates_per_sec = updates_per_sec * 0.9 + updates * 0.1;
-            next_stats = time + 1000;
-            System.out.format("%.2f updates/sec\n", updates_per_sec);
-        }
-        else
-            update_count.incrementAndGet();
+//        final long time = System.currentTimeMillis();
+//        if (time > next_stats)
+//        {
+//            final int updates = update_count.getAndSet(0);
+//            updates_per_sec = updates_per_sec * 0.9 + updates * 0.1;
+//            next_stats = time + 1000;
+//            System.out.format("%.2f updates/sec\n", updates_per_sec);
+//        }
+//        else
+//            update_count.incrementAndGet();
     }
 
     private void dumpTree(TreeItem<AlarmTreeItem<?>> item)
