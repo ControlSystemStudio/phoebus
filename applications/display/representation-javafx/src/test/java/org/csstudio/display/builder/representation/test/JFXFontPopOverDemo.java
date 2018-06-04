@@ -9,6 +9,8 @@ package org.csstudio.display.builder.representation.test;
 
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.FontWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.WidgetFontPopOver;
 
 import javafx.application.Application;
@@ -26,10 +28,10 @@ public class JFXFontPopOverDemo extends Application
     @Override
     public void start(final Stage stage)
     {
-        final WidgetFontPopOver popover = new WidgetFontPopOver(WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD), font ->
-        {
-            System.out.println("Selected " + font);
-        });
+        final WidgetFontPopOver popover = new WidgetFontPopOver(
+                (FontWidgetProperty) CommonWidgetProperties.propFont.createProperty(null, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
+                font -> System.out.println("Selected " + font)
+                );
 
         final Button toggle_popup = new Button("Font");
         toggle_popup.setOnAction(event ->

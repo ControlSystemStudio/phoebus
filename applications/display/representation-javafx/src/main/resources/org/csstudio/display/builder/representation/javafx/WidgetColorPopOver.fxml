@@ -40,7 +40,7 @@
             <VBox>
                <children>
                   <ListView fx:id="colorNames" />
-                  <ClearingTextField fx:id="searchField" prefHeight="-1.0" >
+                  <ClearingTextField fx:id="searchField" prefHeight="-1.0" promptText="%WidgetColorPopOver_SearchField" >
                      <VBox.margin>
                         <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
                      </VBox.margin>
