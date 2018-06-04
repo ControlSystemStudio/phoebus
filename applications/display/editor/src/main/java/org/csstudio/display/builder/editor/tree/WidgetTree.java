@@ -100,7 +100,7 @@ public class WidgetTree
     };
 
     /** Cell factory that displays {@link WidgetOrTab} info in tree cell */
-    private final Callback<TreeView<WidgetOrTab>, TreeCell<WidgetOrTab>> cell_factory = cell ->  new WidgetTreeCell();
+    private final Callback<TreeView<WidgetOrTab>, TreeCell<WidgetOrTab>> cell_factory;
 
     /** Construct widget tree
      *  @param selection Handler of selected widgets
@@ -108,6 +108,7 @@ public class WidgetTree
     public WidgetTree(final DisplayEditor editor)
     {
         this.editor = editor;
+        cell_factory = cell ->  new WidgetTreeCell(editor.getUndoableActionManager());
 
         children_listener = (p, removed, added) ->
         {
@@ -167,6 +168,7 @@ public class WidgetTree
         tree_view.setShowRoot(false);
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tree_view.setCellFactory(cell_factory);
+        tree_view.setEditable(true);
 
         bindSelections();
         tree_view.setOnKeyPressed(this::handleKeyPress);
@@ -271,7 +273,7 @@ public class WidgetTree
         // Might be called on UI thread, move off
         EditorUtil.getExecutor().execute(() ->
         {
-            final TreeItem<WidgetOrTab> root = new TreeItem<WidgetOrTab>(WidgetOrTab.of(model));
+            final TreeItem<WidgetOrTab> root = new TreeItem<>(WidgetOrTab.of(model));
             if (model != null)
             {
                 widget2tree.put(model, root);
