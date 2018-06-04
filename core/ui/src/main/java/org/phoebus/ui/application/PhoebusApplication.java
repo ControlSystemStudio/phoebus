@@ -2,7 +2,6 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
@@ -735,33 +734,6 @@ public class PhoebusApplication extends Application {
         return any;
     }
 
-    /** Save state of all stages to memento */
-    private void saveState() {
-        final File memfile = XMLMementoTree.getDefaultFile();
-        logger.log(Level.INFO, "Persisting state to " + memfile);
-        try {
-            final XMLMementoTree memento = XMLMementoTree.create();
-
-            // Persist global settings
-            if (last_opened_file != null)
-                memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
-            if (default_application != null)
-                memento.setString(DEFAULT_APPLICATION, default_application);
-            memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
-
-            // Persist each stage (window) and its tabs
-            for (final Stage stage : DockStage.getDockStages())
-                MementoHelper.saveStage(memento, stage);
-
-            // Write the memento file
-            if (!memfile.getParentFile().exists())
-                memfile.getParentFile().mkdirs();
-            memento.write(new FileOutputStream(memfile));
-        } catch (final Exception ex) {
-            logger.log(Level.WARNING, "Error writing saved state to " + memfile, ex);
-        }
-    }
-
     /**
      * Close the main stage
      *
@@ -815,9 +787,10 @@ public class PhoebusApplication extends Application {
      *         stage didn't want to close.
      */
     private boolean closeStages(final List<Stage> stages_to_check) {
+        final File memfile = XMLMementoTree.getDefaultFile();
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
-        saveState();
+        MementoHelper.saveState(memfile, last_opened_file, default_application);
 
         for (final Stage stage : stages_to_check) {
             // Could close via event, but then still need to check if the stage remained

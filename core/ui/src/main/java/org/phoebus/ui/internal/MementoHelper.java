@@ -9,15 +9,19 @@ package org.phoebus.ui.internal;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
+import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -49,6 +53,11 @@ public class MementoHelper
     private static final String X = "x";
     private static final String Y = "y";
 
+    /** Memento keys */
+    private static final String LAST_OPENED_FILE = "last_opened_file",
+                                DEFAULT_APPLICATION = "default_application",
+                                SHOW_TABS = "show_tabs";
+
     /** Save state of Stage to memento
      *  @param memento
      *  @param stage
@@ -71,6 +80,14 @@ public class MementoHelper
         savePaneOrSplit(stage_memento, node);
     }
 
+    /** Persist each stage (window) and its tabs
+     * @param memento */
+    public static void saveStages(final MementoTree memento)
+    {
+        for (final Stage stage : DockStage.getDockStages())
+           saveStage(memento, stage);
+    }
+
     /** @param memento
      *  @param item DockPane or SplitDock
      */
@@ -83,7 +100,7 @@ public class MementoHelper
             if (pane.isFixed())
                 pane_memento.setBoolean(FIXED, true);
             pane_memento.setNumber(SELECTED, pane.getSelectionModel().getSelectedIndex());
-            for (DockItem item : pane.getDockItems())
+            for (final DockItem item : pane.getDockItems())
                 saveDockItem(pane_memento, item);
         }
         else if (node instanceof SplitDock)
@@ -93,7 +110,7 @@ public class MementoHelper
             split_memento.setNumber(POS, split.getDividerPosition());
             if (! split.isHorizontal())
                 split_memento.setBoolean(HORIZONTAL, false);
-            for (Node sub : split.getItems())
+            for (final Node sub : split.getItems())
                 savePaneOrSplit(split_memento, sub);
         }
         else
@@ -128,7 +145,7 @@ public class MementoHelper
         {
             application.save(item_memento);
         }
-        catch (Throwable ex)
+        catch (final Throwable ex)
         {
             logger.log(Level.SEVERE, "Application " + application.getAppDescriptor().getDisplayName() + " memento error", ex);
         }
@@ -173,7 +190,7 @@ public class MementoHelper
         boolean any = false;
         if (content.getName().equals(PANE))
         {   // Fill given pane with tabs
-            for (MementoTree item_memento : content.getChildren())
+            for (final MementoTree item_memento : content.getChildren())
                 any |= restoreDockItem(item_memento, pane);
             // Maybe select a specific tab
             // If the new tab is inside a SplitDock,
@@ -256,5 +273,39 @@ public class MementoHelper
             instance = app.create();
 
         instance.restore(item_memento);
+    }
+
+    /**
+     * <p> Write all the current stages to a memento file.
+     * @param memento_file
+     * @param last_opened_file
+     * @param default_application
+     *  */
+    public static void saveState(final File memento_file, final File last_opened_file, final String default_application)
+    {
+        PhoebusApplication.logger.log(Level.INFO, "Persisting state to " + memento_file);
+        try
+        {
+            final XMLMementoTree memento = XMLMementoTree.create();
+
+            // Persist global settings
+            if (last_opened_file != null)
+                memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
+            if (default_application != null)
+                memento.setString(DEFAULT_APPLICATION, default_application);
+            memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
+
+            // Persist each stage (window) and its tabs
+            saveStages(memento);
+
+            // Write the memento file
+            if (!memento_file.getParentFile().exists())
+                memento_file.getParentFile().mkdirs();
+            memento.write(new FileOutputStream(memento_file));
+        }
+        catch (final Exception ex)
+        {
+            PhoebusApplication.logger.log(Level.WARNING, "Error writing saved state to " + memento_file, ex);
+        }
     }
 }
