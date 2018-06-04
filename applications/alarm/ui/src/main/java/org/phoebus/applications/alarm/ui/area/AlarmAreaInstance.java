@@ -4,8 +4,8 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- ******************************************************************************/
-package org.phoebus.applications.alarm.ui.tree;
+ *******************************************************************************/
+package org.phoebus.applications.alarm.ui.area;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
@@ -21,22 +21,21 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
-/** Alarm tree application instance (singleton)
- *  @author Kay Kasemir
+/** Alarm area panel application instance (singleton)
+ *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-class AlarmTreeInstance implements AppInstance
+public class AlarmAreaInstance implements AppInstance
 {
-    /** Singleton instance maintained by {@link AlarmTreeApplication} */
-    static AlarmTreeInstance INSTANCE = null;
+    /** Singleton instance maintained by {@link AlarmAreaApplication} */
+    static AlarmAreaInstance INSTANCE = null;
 
-    private final AlarmTreeApplication app;
+    private final AlarmAreaApplication app;
 
     private AlarmClient client;
     private final DockItem tab;
 
-
-    public AlarmTreeInstance(final AlarmTreeApplication app)
+    public AlarmAreaInstance(final AlarmAreaApplication app)
     {
         this.app = app;
         tab = new DockItem(this, create());
@@ -46,14 +45,7 @@ class AlarmTreeInstance implements AppInstance
             return true;
         });
         tab.addClosedNotification(() -> INSTANCE = null);
-        final DockPane dockPane = DockPane.getActiveDockPane();
-        if (null != dockPane)
-        	dockPane.addTab(tab);
-        else
-        {
-        	dispose();
-        	INSTANCE = null;
-        }
+        DockPane.getActiveDockPane().addTab(tab);
     }
 
     @Override
@@ -72,14 +64,14 @@ class AlarmTreeInstance implements AppInstance
         try
         {
             client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name);
-            final AlarmTreeView tree_view = new AlarmTreeView(client);
+            final AlarmAreaView area_view = new AlarmAreaView(client);
             client.start();
-            return tree_view;
+            return area_view;
         }
         catch (final Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot create alarm tree", ex);
-            return new Label("Cannot create alarm tree");
+            logger.log(Level.WARNING, "Cannot create alarm area", ex);
+            return new Label("Cannot create alarm area");
         }
     }
 

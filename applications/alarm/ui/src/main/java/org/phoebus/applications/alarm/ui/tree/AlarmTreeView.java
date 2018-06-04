@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -115,7 +114,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             throw new IllegalStateException("Found existing view item for " + model_item.getPathName());
 
         // Create view items for model item's children
-        for (AlarmTreeItem<?> model_child : model_item.getChildren())
+        for (final AlarmTreeItem<?> model_child : model_item.getChildren())
             view_item.getChildren().add(createViewItem(model_child));
 
         return view_item;
@@ -130,9 +129,12 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         // Parent must already exist
         final AlarmTreeItem<BasicState> model_parent = item.getParent();
         final TreeItem<AlarmTreeItem<?>> view_parent = path2view.get(model_parent.getPathName());
-        if (view_parent == null)
-            throw new IllegalStateException("Missing parent view item for " + item.getPathName());
 
+        if (view_parent == null)
+        {
+        	dumpTree(tree_view.getRoot());
+            throw new IllegalStateException("Missing parent view item for " + item.getPathName());
+        }
         // Create view item ASAP so that following updates will find it..
         final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
 
@@ -159,7 +161,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         {
             done.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             logger.log(Level.WARNING, "Alarm tree update error for added item " + item.getPathName(), ex);
         }
@@ -199,7 +201,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         {
             done.await();
         }
-        catch (InterruptedException ex)
+        catch (final InterruptedException ex)
         {
             logger.log(Level.WARNING, "Alarm tree update error for removed item " + item.getPathName(), ex);
         }
@@ -212,7 +214,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
     {
         final TreeItem<AlarmTreeItem<?>> view_item = path2view.remove(item.getPathName());
 
-        for (AlarmTreeItem<?> child : item.getChildren())
+        for (final AlarmTreeItem<?> child : item.getChildren())
             removeViewItems(child);
 
         return view_item;
@@ -259,7 +261,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
             items_to_update.clear();
         }
 
-        for (TreeItem<?> view_item : view_items)
+        for (final TreeItem<?> view_item : view_items)
             TreeHelper.triggerTreeItemRefresh(view_item);
     }
 
@@ -293,9 +295,7 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
                     if (item instanceof AlarmClientNode)
                         menu_items.add(new AddComponentAction(tree_view, model, item));
 
-                    // TODO Should be able to rename any item, not just a leaf
-                    if (item instanceof AlarmClientLeaf)
-                        menu_items.add(new RenameTreeItemAction(tree_view, model, item));
+                    menu_items.add(new RenameTreeItemAction(tree_view, model, item));
 
                     if (item instanceof AlarmClientLeaf)
                         menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
@@ -335,21 +335,32 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
 
 
 
-    private long next_stats = 0;
-    private AtomicInteger update_count = new AtomicInteger();
-    private volatile double updates_per_sec = 0.0;
+//    private long next_stats = 0;
+//    private final AtomicInteger update_count = new AtomicInteger();
+//    private volatile double updates_per_sec = 0.0;
 
     private void updateStats()
     {
-        final long time = System.currentTimeMillis();
-        if (time > next_stats)
-        {
-            final int updates = update_count.getAndSet(0);
-            updates_per_sec = updates_per_sec * 0.9 + updates * 0.1;
-            next_stats = time + 1000;
-            System.out.format("%.2f updates/sec\n", updates_per_sec);
-        }
-        else
-            update_count.incrementAndGet();
+//        final long time = System.currentTimeMillis();
+//        if (time > next_stats)
+//        {
+//            final int updates = update_count.getAndSet(0);
+//            updates_per_sec = updates_per_sec * 0.9 + updates * 0.1;
+//            next_stats = time + 1000;
+//            System.out.format("%.2f updates/sec\n", updates_per_sec);
+//        }
+//        else
+//            update_count.incrementAndGet();
+    }
+
+    private void dumpTree(TreeItem<AlarmTreeItem<?>> item)
+    {
+    	final ObservableList<TreeItem<AlarmTreeItem<?>>> children = item.getChildren();
+    	System.out.printf("item: %s , has %d children.\n", item.getValue().getName(), children.size());
+    	for (final TreeItem<AlarmTreeItem<?>> child : children)
+    	{
+    		System.out.println(child.getValue().getName());
+    		dumpTree(child);
+    	}
     }
 }

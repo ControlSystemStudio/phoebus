@@ -206,9 +206,9 @@ public class AlarmConfigTool
 	{
 		// Determine if the item is a node or a leaf and add to the model appropriately.
 		if (tree_item instanceof AlarmTreeLeaf)
-			client.addPV(parent, tree_item.getName());
+			client.addPV(parent.getPathName(), tree_item.getName());
 		else if (tree_item instanceof AlarmTreeItem)
-			client.addComponent(parent, tree_item.getName());
+			client.addComponent(parent.getPathName(), tree_item.getName());
 
 		// Send the configuration for the newly created node.
 		client.sendItemConfigurationUpdate(tree_item.getPathName(), tree_item);

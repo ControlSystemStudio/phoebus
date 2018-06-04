@@ -61,7 +61,7 @@ class ItemConfigDialog extends Dialog<Boolean>
             final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
 
             layout.add(new Label("Description:"), 0, row);
-            description = new TextField(leaf.getName());
+            description = new TextField(leaf.getDescription());
             description.setTooltip(new Tooltip("Alarm description, also used for annunciation"));
             layout.add(description, 1, row++);
             GridPane.setHgrow(description, Priority.ALWAYS);
@@ -187,6 +187,7 @@ class ItemConfigDialog extends Dialog<Boolean>
         if (item instanceof AlarmClientLeaf)
         {
             final AlarmClientLeaf pv = new AlarmClientLeaf(null, item.getName());
+            pv.setDescription(description.getText().trim());
             pv.setEnabled(enabled.isSelected());
             pv.setLatching(latching.isSelected());
             pv.setAnnunciating(annunciating.isSelected());
