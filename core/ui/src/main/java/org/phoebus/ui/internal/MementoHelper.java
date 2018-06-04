@@ -101,7 +101,9 @@ public class MementoHelper
                 pane_memento.setBoolean(FIXED, true);
             pane_memento.setNumber(SELECTED, pane.getSelectionModel().getSelectedIndex());
             for (final DockItem item : pane.getDockItems())
+            {
                 saveDockItem(pane_memento, item);
+            }
         }
         else if (node instanceof SplitDock)
         {
@@ -307,5 +309,49 @@ public class MementoHelper
         {
             PhoebusApplication.logger.log(Level.WARNING, "Error writing saved state to " + memento_file, ex);
         }
+    }
+
+    /** <p> Close a DockPane or SplitDock and all tabs held within.
+     * @param node
+     * @return <code>true</code> if all the tabs close successfully.*/
+    public static boolean closePaneOrSplit(Node node)
+    {
+        if (node instanceof DockPane)
+        {
+            final DockPane pane = (DockPane) node;
+            for (final DockItem item : pane.getDockItems())
+            {
+                if (! closeDockItem(item))
+                    return false;
+            }
+        }
+        else if (node instanceof SplitDock)
+        {
+            final SplitDock split = (SplitDock) node;
+
+            for (final Node sub : split.getItems())
+            {
+                if (! closePaneOrSplit(sub))
+                    return false;
+            }
+        }
+        else
+        {
+            logger.log(Level.WARNING, "Cannot close " + node);
+            return false;
+        }
+
+        return true;
+    }
+
+    /** <p> Close a dock item.
+     * @param item
+     * @return <code>true</code> if the dock item closed.
+     * */
+    private static boolean closeDockItem(DockItem item)
+    {
+        if (! item.close())
+            return false;
+        return true;
     }
 }
