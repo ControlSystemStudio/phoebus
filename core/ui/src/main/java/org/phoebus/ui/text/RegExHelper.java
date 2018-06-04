@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.archive.reader.channelarchiver;
+package org.phoebus.ui.text;
 
 /** Helper for creating regular expression from 'glob' pattern
  *  @author Kay Kasemir

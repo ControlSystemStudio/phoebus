@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.ui.text.RegExHelper;
 import org.phoebus.vtype.AlarmSeverity;
 import org.w3c.dom.Element;
 

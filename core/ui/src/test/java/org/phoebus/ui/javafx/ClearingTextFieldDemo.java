@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.phoebus.ui.javafx;
 
-import org.phoebus.ui.javafx.ClearingTextField;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
@@ -18,6 +17,7 @@ import javafx.stage.Stage;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ClearingTextFieldDemo extends Application
 {
     public static void main(String[] args)
@@ -30,6 +30,7 @@ public class ClearingTextFieldDemo extends Application
     {
         final TextField text = new ClearingTextField();
         text.setMaxWidth(Double.MAX_VALUE);
+        text.setOnAction(event -> System.out.println("Text is '" + text.getText() + "'"));
         final BorderPane layout = new BorderPane(text);
         stage.setScene(new Scene(layout));
         stage.show();
