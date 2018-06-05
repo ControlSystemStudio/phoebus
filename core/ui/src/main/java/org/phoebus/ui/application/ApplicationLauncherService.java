@@ -21,18 +21,18 @@ import javafx.stage.Stage;
 
 /**
  * A Service to help launch a particular application.
- * 
+ *
  * The service allows you to directly launch an application if you have the
  * application name.
- * 
+ *
  * It also queries the {@link ResourceHandlerService} and
  * {@link ApplicationService} to provide the option to launch application from
  * their associated resources.
- * 
+ *
  * @author Kunal Shroff
  * @author Kay Kasemir
- *
  */
+@SuppressWarnings("nls")
 public class ApplicationLauncherService {
 
     /** Logger for all application messages */
@@ -68,7 +68,7 @@ public class ApplicationLauncherService {
 
     /**
      * Open file
-     * 
+     *
      * @param stage
      *            Parent stage
      * @param prompt
@@ -84,18 +84,20 @@ public class ApplicationLauncherService {
     }
 
     /**
+     * Locate suitable application
+     *
      * @param resource
-     *            Resource
+     *            Resource {@link URI}
      * @param prompt
      *            Prompt if there are multiple applications, or use first one?
-     * @return Application for opening resource, or <code>null</code> if none
-     *         found
      * @param stage
      *            If prompt is enabled, a selection dialog will be launched
-     *            positioned next to the provided stage. If null then the
+     *            positioned next to the provided stage. If <code>null</code> then the
      *            default or first application will be used
+     * @return Application for opening resource, or <code>null</code> if none
+     *         found
      */
-    static AppResourceDescriptor findApplication(final URI resource, final boolean prompt, final Stage stage)
+    public static AppResourceDescriptor findApplication(final URI resource, final boolean prompt, final Stage stage)
     {
         // Does resource request a specific application?
         final String app_name = ResourceParser.getAppName(resource);

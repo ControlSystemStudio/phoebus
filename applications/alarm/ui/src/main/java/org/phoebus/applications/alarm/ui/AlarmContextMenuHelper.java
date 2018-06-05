@@ -170,11 +170,10 @@ public class AlarmContextMenuHelper
                              final AlarmTreeItem<?> item,
                              final AtomicInteger  count)
     {
-        // TODO Create a new OpenRelatedDisplayAction(..) which opens the resource
         for (TitleDetail display : item.getDisplays())
             if (added.add(display))
                 if (count.incrementAndGet() <= AlarmSystem.alarm_menu_max_items)
-                    menu_items.add(new MenuItem(display.title, ImageCache.getImageView(AlarmSystem.class, "/icons/related_display.png")));
+                    menu_items.add(new OpenDisplayAction(node, item, display));
                 else
                 {
                     menu_items.add(createSkippedEntriesHint(node, "display links"));

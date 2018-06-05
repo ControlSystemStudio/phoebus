@@ -18,7 +18,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 
-/** Action that adds a new item to the alarm tree configuration
+/** Action that displays an AlarmTreeItem's guidance
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")

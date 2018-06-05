@@ -69,6 +69,7 @@ public class AlarmTableUI extends BorderPane
     // TODO Alarm server 'heartbeat', indicate timeout
     // TODO Share the AlarmClient for given configuration between table, tree, area
     // TODO Maintenance mode?
+    // TODO Check that deleted alarm is removed from UI (tends to remain in table if it was in alarm before deleted)
 
     private final AlarmClient client;
 
