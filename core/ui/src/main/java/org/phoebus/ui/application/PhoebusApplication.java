@@ -421,6 +421,9 @@ public class PhoebusApplication extends Application {
         return menuBar;
     }
 
+    /**
+     * <p> Create the load layout menu.
+     */
     private void createLoadMenu()
     {
     	// Schedule on background thread. Looking for files so can't be on UI thread.
@@ -468,11 +471,13 @@ public class PhoebusApplication extends Application {
 	                    
 	                    if (null != memento)
 	                        restoreState(memento);
+	                    
 	                });
-	                
+	                // Add the item to the load layout menu.
 	                load_layout.getItems().add(menuItem);
 	            }
 	        }
+	        // Sort the menu items alphabetically.
 	        load_layout.getItems().sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
     	});
     }
@@ -737,6 +742,13 @@ public class PhoebusApplication extends Application {
         return null;
     }
 
+    /**
+     * <p> Load the contents of an XML memento file into a MementoTree.
+     * @param memfile Memento file.
+     * @return
+     * @throws FileNotFoundException
+     * @throws Exception
+     */
     private MementoTree load(File memfile) throws FileNotFoundException, Exception
     {
         return XMLMementoTree.read(new FileInputStream(memfile));

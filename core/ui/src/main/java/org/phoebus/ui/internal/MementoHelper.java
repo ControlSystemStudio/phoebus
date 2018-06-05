@@ -81,7 +81,7 @@ public class MementoHelper
     }
 
     /** Persist each stage (window) and its tabs
-     * @param memento */
+     * @param memento The memento tree to which each stage will be saved.*/
     public static void saveStages(final MementoTree memento)
     {
         for (final Stage stage : DockStage.getDockStages())
@@ -279,9 +279,9 @@ public class MementoHelper
 
     /**
      * <p> Write all the current stages to a memento file.
-     * @param memento_file
-     * @param last_opened_file
-     * @param default_application
+     * @param memento_file The file the memento xml is stored in.
+     * @param last_opened_file The last opened file.
+     * @param default_application The default application name.
      *  */
     public static void saveState(final File memento_file, final File last_opened_file, final String default_application)
     {
@@ -312,16 +312,18 @@ public class MementoHelper
     }
 
     /** <p> Close a DockPane or SplitDock and all tabs held within.
-     * @param node
-     * @return <code>true</code> if all the tabs close successfully.*/
+     * @param node Node, either a dock item or split pane, that will be closed.
+     * @return boolean <code>true</code> if all the tabs close successfully.*/
     public static boolean closePaneOrSplit(Node node)
     {
         if (node instanceof DockPane)
         {
+        	// Close every dock item in the dock pane.
             final DockPane pane = (DockPane) node;
         	final List<DockItem> items = pane.getDockItems();
             for (final DockItem item : items)
             {
+            	// If it refuses to close, return false.
                 if (! closeDockItem(item))
                     return false;
             }
@@ -337,6 +339,7 @@ public class MementoHelper
             int size = split.getItems().size();
             for (int i = 0; i < size; i++)
             {
+            	// If the node fails to close, return false.
             	if (! closePaneOrSplit(split.getItems().get(0)))
             		return false;
             }
@@ -351,12 +354,11 @@ public class MementoHelper
     }
 
     /** <p> Close a dock item.
-     * @param item
+     * @param item Dock Item to be closed.
      * @return <code>true</code> if the dock item closed.
      * */
     private static boolean closeDockItem(DockItem item)
     {
-    	System.out.println("Closing " + item.toString());
         if (! item.close())
             return false;
         return true;
