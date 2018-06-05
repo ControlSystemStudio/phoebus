@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -80,7 +81,10 @@ public class AlarmContextMenuHelper
                 pvnames.add(new ProcessVariable(item.getName()));
         }
 
-        // TODO Initial context menu item for alarm info, if in alarm
+        if (active.size() == 1  &&  active.get(0) instanceof AlarmClientLeaf)
+            menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) active.get(0)));
+        if (acked.size() == 1  &&  acked.get(0) instanceof AlarmClientLeaf)
+            menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) acked.get(0)));
 
         // TODO Somehow indicate the origin of guidance, display, command.
         // On one hand it's nice that the context menu inherits all the entries

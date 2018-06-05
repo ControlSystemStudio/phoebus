@@ -15,6 +15,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 
 /** Dialog for entering multi-line text
+ *
+ *  <p>Can also be used to just display text,
+ *  allowing to 'copy' the text, but no changes.
+ *
  *  @author Kay Kasemir
  */
 public class MultiLineInputDialog extends Dialog<String>
@@ -24,16 +28,7 @@ public class MultiLineInputDialog extends Dialog<String>
     /** @param initial_text Initial text */
     public MultiLineInputDialog(final String initial_text)
     {
-        text = new TextArea(initial_text);
-
-        getDialogPane().setContent(new BorderPane(text));
-        getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        setResizable(true);
-
-        setResultConverter(button ->
-        {
-            return button == ButtonType.OK ? text.getText() : null;
-        });
+        this(null, initial_text, true);
     }
 
     /** @param parent Parent node, dialog will be positioned relative to it
@@ -41,11 +36,37 @@ public class MultiLineInputDialog extends Dialog<String>
      */
     public MultiLineInputDialog(final Node parent, final String initial_text)
     {
-        this(initial_text);
-        initOwner(parent.getScene().getWindow());
-        final Bounds bounds = parent.localToScreen(parent.getBoundsInLocal());
-        setX(bounds.getMinX());
-        setY(bounds.getMinY());
+        this(parent, initial_text, true);
+    }
+
+    /** @param parent Parent node, dialog will be positioned relative to it
+     *  @param initial_text Initial text
+     *  @param editable Allow editing?
+     *  */
+    public MultiLineInputDialog(final Node parent, final String initial_text, final boolean editable)
+    {
+        text = new TextArea(initial_text);
+        text.setEditable(editable);
+
+        getDialogPane().setContent(new BorderPane(text));
+        if (editable)
+            getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        else
+            getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+        setResizable(true);
+
+        setResultConverter(button ->
+        {
+            return button == ButtonType.OK ? text.getText() : null;
+        });
+
+        if (parent != null)
+        {
+            initOwner(parent.getScene().getWindow());
+            final Bounds bounds = parent.localToScreen(parent.getBoundsInLocal());
+            setX(bounds.getMinX());
+            setY(bounds.getMinY());
+        }
     }
 
     /** @param pixels Suggested height of text in pixels */
