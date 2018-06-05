@@ -429,6 +429,7 @@ public class PhoebusApplication extends Application {
     	// Schedule on background thread. Looking for files so can't be on UI thread.
     	JobManager.schedule("Create Load Menu", (monitor) ->
     	{
+    		ArrayList<MenuItem> menu_items = new ArrayList<>();
     		// Get every file in the default directory.
 	        final File dir = new File(Locations.user().getAbsolutePath());
 	        final File[] files = dir.listFiles();
@@ -474,11 +475,14 @@ public class PhoebusApplication extends Application {
 	                    
 	                });
 	                // Add the item to the load layout menu.
-	                load_layout.getItems().add(menuItem);
+	                menu_items.add(menuItem);
 	            }
 	        }
 	        // Sort the menu items alphabetically.
-	        load_layout.getItems().sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+	        menu_items.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+
+	        // Update the menu with the menu items on the UI thread.
+	        Platform.runLater(()-> load_layout.getItems().addAll(menu_items));
     	});
     }
 
