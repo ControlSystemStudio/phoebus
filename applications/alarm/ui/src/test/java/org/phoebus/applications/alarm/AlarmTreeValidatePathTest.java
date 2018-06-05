@@ -34,12 +34,16 @@ public class AlarmTreeValidatePathTest
         assertTrue(AlarmTreeHelper.validatePath("root/Area 1/PV 1", root));
         assertTrue(AlarmTreeHelper.validatePath("root/", root));
         // Split path consumes the '/' as a delimiter. This is valid.
-        assertTrue(AlarmTreeHelper.validatePath("root/Area 1///", root));
-
+        assertTrue(AlarmTreeHelper.validatePath("//root///////Area 1///", root));
+        // PV 5 would be the new PV.
+        assertTrue(AlarmTreeHelper.validatePath("//root/Area 2/Area 4/PV 5", root));
+        
         // Invalid. All should be false.
+        assertFalse(AlarmTreeHelper.validatePath(null, root));
         assertFalse(AlarmTreeHelper.validatePath("", root));
         assertFalse(AlarmTreeHelper.validatePath("do what now?", root));
         assertFalse(AlarmTreeHelper.validatePath("Area 1/root", root));
+        // Path contains PV. PV cannot have children.
         assertFalse(AlarmTreeHelper.validatePath("root/Area 1/PV 1/New PV", root));
     }
 }

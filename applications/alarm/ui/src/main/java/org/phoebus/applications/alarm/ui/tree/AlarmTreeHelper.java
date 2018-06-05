@@ -73,6 +73,9 @@ public class AlarmTreeHelper {
 	 */
 	public static boolean validatePath(String path, AlarmTreeItem<?> root)
 	{
+	    if (null == path || path.isEmpty())
+	        return false;
+	    
 		String[] path_elems = AlarmTreePath.splitPath(path);
 		// Make sure the path exists
 		// The proposed parent must exist. path_elems includes the new addition as well so only check length-1.
