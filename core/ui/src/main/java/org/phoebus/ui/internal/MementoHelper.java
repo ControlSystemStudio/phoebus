@@ -319,7 +319,8 @@ public class MementoHelper
         if (node instanceof DockPane)
         {
             final DockPane pane = (DockPane) node;
-            for (final DockItem item : pane.getDockItems())
+        	final List<DockItem> items = pane.getDockItems();
+            for (final DockItem item : items)
             {
                 if (! closeDockItem(item))
                     return false;
@@ -328,11 +329,16 @@ public class MementoHelper
         else if (node instanceof SplitDock)
         {
             final SplitDock split = (SplitDock) node;
-
-            for (final Node sub : split.getItems())
+            
+            // Altering size of list we are iterating over.
+            // Cannot rely on ...getItems.size() to provide fixed value.
+            // Cannot rely on foreach or for loop iterators.
+            // Read size once and request the first node a fixed number of times.
+            int size = split.getItems().size();
+            for (int i = 0; i < size; i++)
             {
-                if (! closePaneOrSplit(sub))
-                    return false;
+            	if (! closePaneOrSplit(split.getItems().get(0)))
+            		return false;
             }
         }
         else
@@ -350,6 +356,7 @@ public class MementoHelper
      * */
     private static boolean closeDockItem(DockItem item)
     {
+    	System.out.println("Closing " + item.toString());
         if (! item.close())
             return false;
         return true;

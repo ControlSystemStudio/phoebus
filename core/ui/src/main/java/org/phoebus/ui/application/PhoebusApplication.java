@@ -459,7 +459,6 @@ public class PhoebusApplication extends Application {
 	                        {
 	                            logger.log(Level.INFO, "Loading state from " + memento_file);
 	                            memento = load(memento_file);
-	                            System.out.println(memento.toString());
 	                        }
 	                    }
 	                    catch (final Exception ex)
