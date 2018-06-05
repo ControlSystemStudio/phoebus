@@ -422,7 +422,7 @@ public class PhoebusApplication extends Application {
     }
 
     /**
-     * <p> Create the load layout menu.
+     * <p> Create the load past layouts menu.
      */
     private void createLoadMenu()
     {
