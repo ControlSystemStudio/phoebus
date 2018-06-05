@@ -47,6 +47,9 @@ public class AlarmSystem
     /** Font size for the alarm area view */
     public static final int alarm_area_font_size;
 
+    /** Limit for the number of context menu items */
+    public static final int alarm_menu_max_items;
+
     /** Alarm table row limit */
     public static final int alarm_table_max_rows;
 
@@ -60,6 +63,7 @@ public class AlarmSystem
         alarm_area_column_count = prefs.getInt("alarm_area_column_count");
         alarm_area_gap = prefs.getInt("alarm_area_gap");
         alarm_area_font_size = prefs.getInt("alarm_area_font_size");
+        alarm_menu_max_items = prefs.getInt("alarm_menu_max_items");
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
     }
 }
