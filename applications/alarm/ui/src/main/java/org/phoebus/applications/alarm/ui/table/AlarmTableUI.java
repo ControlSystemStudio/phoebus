@@ -49,6 +49,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -164,7 +165,13 @@ public class AlarmTableUI extends BorderPane
         // Insets make ack. count appear similar to the active count,
         // which is laid out based on the ack/unack/search buttons in the toolbar
         acknowledged_count.setPadding(new Insets(10, 0, 10, 5));
+        VBox.setVgrow(acknowledged, Priority.ALWAYS);
         final VBox bottom = new VBox(acknowledged_count, acknowledged);
+
+        // Overall layout:
+        // Toolbar
+        // Top section of split: Active alarms
+        // Bottom section o. s.: Ack'ed alarms
         split = new SplitPane(active, bottom);
         split.setOrientation(Orientation.VERTICAL);
 
