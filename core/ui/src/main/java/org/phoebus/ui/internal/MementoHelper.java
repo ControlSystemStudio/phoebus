@@ -332,10 +332,13 @@ public class MementoHelper
         {
             final SplitDock split = (SplitDock) node;
             
-            // Altering size of list we are iterating over.
+            // We are altering the size of the list we are iterating over.
             // Cannot rely on ...getItems.size() to provide fixed value.
-            // Cannot rely on foreach or for loop iterators.
-            // Read size once and request the first node a fixed number of times.
+            // Cannot rely on foreach construct or for loop iterators.
+            //		This is because the for any size greater than 1, list will eventually 
+            //		shrink in size from 2 to 1, but the iterator will point to the end of 
+            //		the list instead of the last element.
+            // Therefore, read size once and request the first node a fixed number of times.
             int size = split.getItems().size();
             for (int i = 0; i < size; i++)
             {
