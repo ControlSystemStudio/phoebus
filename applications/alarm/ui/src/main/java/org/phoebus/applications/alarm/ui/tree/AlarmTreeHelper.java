@@ -3,6 +3,7 @@ package org.phoebus.applications.alarm.ui.tree;
 import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -89,6 +90,10 @@ public class AlarmTreeHelper {
 		{
 		    item = item.getChild(path_elems[i]);
 		    if (null == item)
+		        return false;
+		    // Make sure the path does not contain a PV.
+		    // PV cannot have children.
+		    if (item instanceof AlarmClientLeaf)
 		        return false;
 		}
 		return true;
