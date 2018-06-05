@@ -420,62 +420,62 @@ public class PhoebusApplication extends Application {
     /** Create the load past layouts menu */
     private void createLoadMenu()
     {
-    	// Schedule on background thread. Looking for files so can't be on UI thread.
-    	JobManager.schedule("Create Load Menu", (monitor) ->
-    	{
-    	    final List<MenuItem> menu_items = new ArrayList<>();
-    		// Get every file in the default directory.
-	        final File dir = new File(Locations.user().getAbsolutePath());
-	        final File[] files = dir.listFiles();
-	        // For every non default memento file create a menu item for the load layout menu.
-	        for (final File memento_file : files)
-	        {
-	            final String filename = memento_file.getName();
-	            if (memento_file.isFile() && filename.endsWith(".memento"))
-	            {
-	                // Use just the file name w/o ".memento" for the menu entry
-	                final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
-	                menuItem.setOnAction( (event) ->
-	                {
-	                    final List<Stage> stages = DockStage.getDockStages();
+        // Schedule on background thread. Looking for files so can't be on UI thread.
+        JobManager.schedule("Create Load Menu", (monitor) ->
+        {
+            final List<MenuItem> menu_items = new ArrayList<>();
+            // Get every file in the default directory.
+            final File dir = new File(Locations.user().getAbsolutePath());
+            final File[] files = dir.listFiles();
+            // For every non default memento file create a menu item for the load layout menu.
+            for (final File memento_file : files)
+            {
+                final String filename = memento_file.getName();
+                if (memento_file.isFile() && filename.endsWith(".memento"))
+                {
+                    // Use just the file name w/o ".memento" for the menu entry
+                    final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                    menuItem.setOnAction( (event) ->
+                    {
+                        final List<Stage> stages = DockStage.getDockStages();
 
-	                    // Remove the main stage from the list of stages to close.
-	                    stages.remove(main_stage);
+                        // Remove the main stage from the list of stages to close.
+                        stages.remove(main_stage);
 
-	                    // If any stages failed to close, return.
-	                    if (!closeStages(stages))
-	                        return;
+                        // If any stages failed to close, return.
+                        if (!closeStages(stages))
+                            return;
 
-	                    // Go into the main stage and close all of the tabs. If any of them refuse, return.
-	                    final Node node = DockStage.getPaneOrSplit(main_stage);
-	                    if (! MementoHelper.closePaneOrSplit(node))
-	                        return;
+                        // Go into the main stage and close all of the tabs. If any of them refuse, return.
+                        final Node node = DockStage.getPaneOrSplit(main_stage);
+                        if (! MementoHelper.closePaneOrSplit(node))
+                            return;
 
-	                    // Load the new stages from the specified memento file.
-	                    try
-	                    {
-	                        if (memento_file.canRead())
-	                        {
-	                            logger.log(Level.INFO, "Loading state from " + memento_file);
-	                            final MementoTree memento = load(memento_file);
-	                            restoreState(memento);
-	                        }
-	                    }
-	                    catch (final Exception ex)
-	                    {
-	                        logger.log(Level.SEVERE, "Error restoring saved state from " + memento_file, ex);
-	                    }
-	                });
-	                // Add the item to the load layout menu.
-	                menu_items.add(menuItem);
-	            }
-	        }
-	        // Sort the menu items alphabetically.
-	        menu_items.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+                        // Load the new stages from the specified memento file.
+                        try
+                        {
+                            if (memento_file.canRead())
+                            {
+                                logger.log(Level.INFO, "Loading state from " + memento_file);
+                                final MementoTree memento = load(memento_file);
+                                restoreState(memento);
+                            }
+                        }
+                        catch (final Exception ex)
+                        {
+                            logger.log(Level.SEVERE, "Error restoring saved state from " + memento_file, ex);
+                        }
+                    });
+                    // Add the item to the load layout menu.
+                    menu_items.add(menuItem);
+                }
+            }
+            // Sort the menu items alphabetically.
+            menu_items.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
 
-	        // Update the menu with the menu items on the UI thread.
-	        Platform.runLater(()-> load_layout.getItems().addAll(menu_items));
-    	});
+            // Update the menu with the menu items on the UI thread.
+            Platform.runLater(()-> load_layout.getItems().addAll(menu_items));
+        });
     }
 
     /** @param entry {@link MenuEntry}

@@ -21,7 +21,6 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -100,10 +99,8 @@ public class MementoHelper
             if (pane.isFixed())
                 pane_memento.setBoolean(FIXED, true);
             pane_memento.setNumber(SELECTED, pane.getSelectionModel().getSelectedIndex());
-            for (final DockItem item : pane.getDockItems())
-            {
+            for (DockItem item : pane.getDockItems())
                 saveDockItem(pane_memento, item);
-            }
         }
         else if (node instanceof SplitDock)
         {
@@ -112,7 +109,7 @@ public class MementoHelper
             split_memento.setNumber(POS, split.getDividerPosition());
             if (! split.isHorizontal())
                 split_memento.setBoolean(HORIZONTAL, false);
-            for (final Node sub : split.getItems())
+            for (Node sub : split.getItems())
                 savePaneOrSplit(split_memento, sub);
         }
         else
@@ -147,7 +144,7 @@ public class MementoHelper
         {
             application.save(item_memento);
         }
-        catch (final Throwable ex)
+        catch (Throwable ex)
         {
             logger.log(Level.SEVERE, "Application " + application.getAppDescriptor().getDisplayName() + " memento error", ex);
         }
@@ -192,7 +189,7 @@ public class MementoHelper
         boolean any = false;
         if (content.getName().equals(PANE))
         {   // Fill given pane with tabs
-            for (final MementoTree item_memento : content.getChildren())
+            for (MementoTree item_memento : content.getChildren())
                 any |= restoreDockItem(item_memento, pane);
             // Maybe select a specific tab
             // If the new tab is inside a SplitDock,
@@ -277,15 +274,14 @@ public class MementoHelper
         instance.restore(item_memento);
     }
 
-    /**
-     * <p> Write all the current stages to a memento file.
-     * @param memento_file The file the memento xml is stored in.
-     * @param last_opened_file The last opened file.
-     * @param default_application The default application name.
-     *  */
+    /** Write all the current stages to a memento file.
+     *  @param memento_file The file the memento xml is stored in.
+     *  @param last_opened_file The last opened file.
+     *  @param default_application The default application name.
+     */
     public static void saveState(final File memento_file, final File last_opened_file, final String default_application)
     {
-        PhoebusApplication.logger.log(Level.INFO, "Persisting state to " + memento_file);
+        logger.log(Level.INFO, "Persisting state to " + memento_file);
         try
         {
             final XMLMementoTree memento = XMLMementoTree.create();
@@ -305,46 +301,47 @@ public class MementoHelper
                 memento_file.getParentFile().mkdirs();
             memento.write(new FileOutputStream(memento_file));
         }
-        catch (final Exception ex)
+        catch (Exception ex)
         {
-            PhoebusApplication.logger.log(Level.WARNING, "Error writing saved state to " + memento_file, ex);
+            logger.log(Level.WARNING, "Error writing saved state to " + memento_file, ex);
         }
     }
 
-    /** <p> Close a DockPane or SplitDock and all tabs held within.
-     * @param node Node, either a dock item or split pane, that will be closed.
-     * @return boolean <code>true</code> if all the tabs close successfully.*/
+    /** Close a DockPane or SplitDock and all tabs held within.
+     *  @param node Node, either a dock item or split pane, that will be closed.
+     *  @return boolean <code>true</code> if all the tabs close successfully.
+     */
     public static boolean closePaneOrSplit(Node node)
     {
         if (node instanceof DockPane)
         {
-        	// Close every dock item in the dock pane.
+            // Close every dock item in the dock pane.
             final DockPane pane = (DockPane) node;
-        	final List<DockItem> items = pane.getDockItems();
+            final List<DockItem> items = pane.getDockItems();
             for (final DockItem item : items)
             {
-            	// If it refuses to close, return false.
-                if (! closeDockItem(item))
+                // If it refuses to close, return false.
+                if (! item.close())
                     return false;
             }
         }
         else if (node instanceof SplitDock)
         {
             final SplitDock split = (SplitDock) node;
-            
+
             // We are altering the size of the list we are iterating over.
             // Cannot rely on ...getItems.size() to provide fixed value.
             // Cannot rely on foreach construct or for loop iterators.
-            //		This is because the for any size greater than 1, list will eventually 
-            //		shrink in size from 2 to 1, but the iterator will point to the end of 
-            //		the list instead of the last element.
+            // This is because the for any size greater than 1, list will eventually
+            // shrink in size from 2 to 1, but the iterator will point to the end of
+            // the list instead of the last element.
             // Therefore, read size once and request the first node a fixed number of times.
-            int size = split.getItems().size();
+            final int size = split.getItems().size();
             for (int i = 0; i < size; i++)
             {
-            	// If the node fails to close, return false.
-            	if (! closePaneOrSplit(split.getItems().get(0)))
-            		return false;
+                // If the node fails to close, return false.
+                if (! closePaneOrSplit(split.getItems().get(0)))
+                    return false;
             }
         }
         else
@@ -353,17 +350,6 @@ public class MementoHelper
             return false;
         }
 
-        return true;
-    }
-
-    /** <p> Close a dock item.
-     * @param item Dock Item to be closed.
-     * @return <code>true</code> if the dock item closed.
-     * */
-    private static boolean closeDockItem(DockItem item)
-    {
-        if (! item.close())
-            return false;
         return true;
     }
 }
