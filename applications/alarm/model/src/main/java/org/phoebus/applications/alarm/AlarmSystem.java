@@ -7,7 +7,11 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
+import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 
@@ -53,6 +57,9 @@ public class AlarmSystem
     /** Alarm table row limit */
     public static final int alarm_table_max_rows;
 
+    /** Directory used for executing commands */
+    public static final File command_directory;
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
@@ -65,5 +72,24 @@ public class AlarmSystem
         alarm_area_font_size = prefs.getInt("alarm_area_font_size");
         alarm_menu_max_items = prefs.getInt("alarm_menu_max_items");
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
+        command_directory = new File(replaceProperties(prefs.get("command_directory")));
+    }
+
+    /** @param value Value that might contain "$(prop)"
+     *  @return Value where "$(prop)" is replaced by Java system property "prop"
+     */
+    private static String replaceProperties(final String value)
+    {
+        final Matcher matcher = Pattern.compile("\\$\\((.*)\\)").matcher(value);
+        if (matcher.matches())
+        {
+            final String prop_name = matcher.group(1);
+            final String prop = System.getProperty(prop_name);
+            if (prop == null)
+                logger.log(Level.SEVERE, "Alarm System settings: Property '" + prop_name + "' is not defined");
+            return prop;
+        }
+        // Return as is
+        return value;
     }
 }

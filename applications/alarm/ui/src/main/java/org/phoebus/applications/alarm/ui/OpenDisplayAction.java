@@ -12,6 +12,8 @@ import java.net.URI;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.framework.jobs.CommandExecutor;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.application.ApplicationLauncherService;
@@ -59,14 +61,18 @@ class OpenDisplayAction extends MenuItem
 
             // For web pages, fall back to web browser
             if (display.detail.startsWith("http:") ||
-                    display.detail.startsWith("https:"))
+                display.detail.startsWith("https:"))
             {
                 Platform.runLater(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(display.detail));
                 return;
             }
 
-            // TODO Execute external command
-            System.out.println(display.detail);
+            // Execute external command
+            JobManager.schedule(display.title, monitor ->
+            {
+                final CommandExecutor executor = new CommandExecutor(display.detail, AlarmSystem.command_directory);
+                executor.call();
+            });
         });
     }
 }

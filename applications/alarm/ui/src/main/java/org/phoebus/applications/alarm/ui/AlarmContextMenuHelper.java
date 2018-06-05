@@ -23,7 +23,6 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -189,11 +188,10 @@ public class AlarmContextMenuHelper
                              final AlarmTreeItem<?> item,
                              final AtomicInteger  count)
     {
-        // TODO Create a new ExecuteCommandAction(..) which executes the command
         for (TitleDetail command : item.getCommands())
             if (added.add(command))
                 if (count.incrementAndGet() <= AlarmSystem.alarm_menu_max_items)
-                    menu_items.add(new MenuItem(command.title, ImageCache.getImageView(AlarmSystem.class, "/icons/exec_command.png")));
+                    menu_items.add(new ExecuteCommandAction(item, command));
                 else
                 {
                     menu_items.add(createSkippedEntriesHint(node, "commands"));
