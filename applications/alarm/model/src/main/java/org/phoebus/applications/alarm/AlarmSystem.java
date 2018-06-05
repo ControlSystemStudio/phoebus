@@ -47,6 +47,8 @@ public class AlarmSystem
     /** Font size for the alarm area view */
     public static final int alarm_area_font_size;
 
+    /** Alarm table row limit */
+    public static final int alarm_table_max_rows;
 
     static
     {
@@ -58,5 +60,6 @@ public class AlarmSystem
         alarm_area_column_count = prefs.getInt("alarm_area_column_count");
         alarm_area_gap = prefs.getInt("alarm_area_gap");
         alarm_area_font_size = prefs.getInt("alarm_area_font_size");
+        alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
     }
 }

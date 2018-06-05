@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -67,7 +68,6 @@ public class AlarmTableUI extends BorderPane
     // TODO Alarm server 'heartbeat', indicate timeout
     // TODO Share the AlarmClient for given configuration between table, tree, area
     // TODO Maintenance mode?
-    // TODO Limit number of rows (was 2500)
 
     private final AlarmClient client;
 
@@ -356,10 +356,29 @@ public class AlarmTableUI extends BorderPane
     public void update(final List<AlarmInfoRow> active,
                        final List<AlarmInfoRow> acknowledged)
     {
-        active_count.setText(active.size() + " Active Alarms");
-        acknowledged_count.setText(acknowledged.size() + " Acknowledged Alarms");
+        limitAlarmCount(active, active_count, "Active Alarms");
+        limitAlarmCount(acknowledged, acknowledged_count, "Acknowledged Alarms");
         update(active_rows, active);
         update(acknowledged_rows, acknowledged);
+    }
+
+    /** Limit the number of alarms
+     *  @param alarms List of alarms, may be trimmed
+     *  @param alarm_count Label where count will be shown
+     *  @param message Message to use for the count
+     */
+    private void limitAlarmCount(final List<AlarmInfoRow> alarms,
+                                 final Label alarm_count, final String message)
+    {
+        final int N = alarms.size();
+        final StringBuilder buf = new StringBuilder();
+        buf.append(N).append(' ').append(message);
+        if (N > AlarmSystem.alarm_table_max_rows)
+        {
+            buf.append(" (").append(N - AlarmSystem.alarm_table_max_rows).append(" not shown)");
+            alarms.subList(AlarmSystem.alarm_table_max_rows, N).clear();
+        }
+        alarm_count.setText(buf.toString());
     }
 
     /** Update existing list of items with new input
