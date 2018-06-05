@@ -301,7 +301,8 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
                         menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
 
                     // TODO Implement move
-                    menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+                    //menu_items.add(new MenuItem("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+                    menu_items.add(new MoveTreeItemAction(tree_view, model, item));
                 }
                 if (selection.size() >= 1)
                 {
