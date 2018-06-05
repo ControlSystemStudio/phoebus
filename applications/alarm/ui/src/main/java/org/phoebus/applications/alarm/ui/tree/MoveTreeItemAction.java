@@ -37,7 +37,7 @@ public class MoveTreeItemAction extends MenuItem
     	{
     		//Prompt for new name
         	String new_path = null;
-        	while (new_path != null && ! AlarmTreeHelper.validatePath(new_path, node))
+        	while (new_path != null && ! AlarmTreeHelper.validatePath(new_path, node.getRoot().getValue()))
         	{
     			new_path = AlarmTreeHelper.prompt(getText(), "Enter new name for Component", item.getPathName(), node);
     			if (null == new_path)

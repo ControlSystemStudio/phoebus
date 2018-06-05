@@ -63,39 +63,42 @@ public class AlarmTreeHelper {
 
 	/**
 	 * <p> Validate the passed path string by checking if the path name is valid.
-	 * <p> A path name is considered valid if all the elements making up the path are valid filenames,
-	 * if the path to the items new location exists in the tree, and if the items new location is not
-	 * a PV.
+	 * <p> A path name is considered valid if the path to the items new location exists in the tree, 
+	 * and if the items new location is not a PV.
 	 * <p> For example: If "top/middle/bottom/to_move" wanted to be moved to "top/middle/to_move". 
-	 * The path "top/middle" must be in the tree view. And middle must not be a PV.
-	 * <p> A path is considered valid if it contains only alphanumeric characters, '.' and '-'.
-	 * <p> Each path element must match the regular expression [\\w.-]*
-	 * @param path
-	 * @return <code>true</code> if the pathname is valid, and if the path to the new location exists in the tree view.
+	 * The path "top/middle" must be in the tree. And middle must not be a PV.
+	 * @param path The path to the new location.
+	 * @param root The root node of the AlarmTree
+	 * @return <code>true</code> if the pathname is valid, and if the path to the new location exists in the tree.
 	 */
-	public static boolean validatePath(String path, TreeView<AlarmTreeItem<?>> tree_view)
+	public static boolean validatePath(String path, AlarmTreeItem<?> root)
 	{
 		String[] path_elems = AlarmTreePath.splitPath(path);
-		// Make sure each element in the path is valid.
-		for (String element : path_elems)
-		{
-		    if (! element.matches("[\\w.-]*"))
-		        return false;
-		}
 		// Make sure the path exists
-		// The proposed parent must exist.
+		// The proposed parent must exist. path_elems includes the new addition as well so only check length-1.
 		int elem_num = path_elems.length - 1;
-		AlarmTreeItem<?> item = tree_view.getRoot().getValue();
-		for (int i = 0; i < elem_num; i++)
+		AlarmTreeItem<?> item = root;
+		// Check the root area.
+		if (! (path_elems.length > 0) || ! (root.getName().equals(path_elems[0])))
+		    return false;
+		
+		for (int i = 1; i < elem_num; i++)
 		{
 		    item = item.getChild(path_elems[i]);
 		    if (null == item)
+		    {
+		        System.out.println("Path element " + path_elems[i] + " does not exist in the tree at that location.");
 		        return false;
+		    }
 		    // Make sure the path does not contain a PV.
 		    // PV cannot have children.
 		    if (item instanceof AlarmClientLeaf)
+		    {
+		        System.out.println("Path element " + path_elems[i] + " is a leaf.");
 		        return false;
+		    }
 		}
+		
 		return true;
 	}
 }
