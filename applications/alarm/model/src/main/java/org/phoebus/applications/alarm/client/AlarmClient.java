@@ -335,42 +335,42 @@ public class AlarmClient
     }
 
     /** Add a component to the alarm tree
-     *  @param parent Root or parent component under which to add the component
+     *  @param path to parent Root or parent component under which to add the component
      *  @param name Name of the new component
      */
-    public void addComponent(final AlarmTreeItem<?> parent, final String new_name)
+    public void addComponent(final String path_name, final String new_name)
     {
         try
         {
-            sendNewItemInfo(parent, new_name, new AlarmClientNode(null, new_name));
+            sendNewItemInfo(path_name, new_name, new AlarmClientNode(null, new_name));
         }
         catch (final Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot add component " + new_name + " to " + parent.getPathName(), ex);
+            logger.log(Level.WARNING, "Cannot add component " + new_name + " to " + path_name, ex);
         }
     }
 
     /** Add a component to the alarm tree
-     *  @param parent Root or parent component under which to add the component
+     *  @param path to parent Root or parent component under which to add the component
      *  @param name Name of the new component
      */
-    public void addPV(final AlarmTreeItem<?> parent, final String new_name)
+    public void addPV(final String path_name, final String new_name)
     {
         try
         {
-            sendNewItemInfo(parent, new_name, new AlarmClientLeaf(null, new_name));
+            sendNewItemInfo(path_name, new_name, new AlarmClientLeaf(null, new_name));
         }
         catch (final Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot add pv " + new_name + " to " + parent.getPathName(), ex);
+            logger.log(Level.WARNING, "Cannot add pv " + new_name + " to " + path_name, ex);
         }
     }
 
-    private void sendNewItemInfo(final AlarmTreeItem<?> parent, final String new_name, final AlarmTreeItem<?> content) throws Exception
+    private void sendNewItemInfo(String path_name, final String new_name, final AlarmTreeItem<?> content) throws Exception
     {
         // Send message about new component.
         // All clients, including this one, will receive and then add the new component.
-        final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
+        final String new_path = AlarmTreePath.makePath(path_name, new_name);
         sendItemConfigurationUpdate(new_path, content);
     }
 
@@ -394,7 +394,6 @@ public class AlarmClient
      */
     public void removeComponent(final AlarmTreeItem<?> item)
     {
-
     	// Depth first deletion of all child nodes.
     	final List<AlarmTreeItem<?>> children = item.getChildren();
     	for (final AlarmTreeItem<?> child : children)

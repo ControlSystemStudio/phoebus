@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.applications.alarm.ui.tree;
+package org.phoebus.applications.alarm.ui.table;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
@@ -13,6 +13,8 @@ import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.ui.tree.AlarmTreeApplication;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -21,22 +23,23 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
-/** Alarm tree application instance (singleton)
+/** Alarm table application instance (singleton)
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class AlarmTreeInstance implements AppInstance
+class AlarmTableInstance implements AppInstance
 {
     /** Singleton instance maintained by {@link AlarmTreeApplication} */
-    static AlarmTreeInstance INSTANCE = null;
+    static AlarmTableInstance INSTANCE = null;
 
-    private final AlarmTreeApplication app;
+    private final AlarmTableApplication app;
 
     private AlarmClient client;
+    private AlarmTableUI table;
+    private AlarmTableMediator mediator;
     private final DockItem tab;
 
-
-    public AlarmTreeInstance(final AlarmTreeApplication app)
+    public AlarmTableInstance(final AlarmTableApplication app)
     {
         this.app = app;
         tab = new DockItem(this, create());
@@ -46,14 +49,7 @@ class AlarmTreeInstance implements AppInstance
             return true;
         });
         tab.addClosedNotification(() -> INSTANCE = null);
-        final DockPane dockPane = DockPane.getActiveDockPane();
-        if (null != dockPane)
-        	dockPane.addTab(tab);
-        else
-        {
-        	dispose();
-        	INSTANCE = null;
-        }
+        DockPane.getActiveDockPane().addTab(tab);
     }
 
     @Override
@@ -72,19 +68,38 @@ class AlarmTreeInstance implements AppInstance
         try
         {
             client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name);
-            final AlarmTreeView tree_view = new AlarmTreeView(client);
+            table = new AlarmTableUI(client);
+            mediator = new AlarmTableMediator(client, table);
+            client.addListener(mediator);
             client.start();
-            return tree_view;
+            return table;
         }
-        catch (final Exception ex)
+        catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot create alarm tree", ex);
             return new Label("Cannot create alarm tree");
         }
     }
 
+    @Override
+    public void restore(final Memento memento)
+    {
+        table.restore(memento);
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        table.save(memento);
+    }
+
     private void dispose()
     {
+        if (mediator != null)
+        {
+            client.removeListener(mediator);
+            mediator = null;
+        }
         if (client != null)
         {
             client.shutdown();

@@ -108,9 +108,9 @@ class AddComponentAction extends MenuItem
                 return;
 
             if (dialog.isPV())
-                model.addPV(parent, new_name);
+                model.addPV(parent.getPathName(), new_name);
             else
-                model.addComponent(parent, new_name);
+                model.addComponent(parent.getPathName(), new_name);
         });
     }
 }

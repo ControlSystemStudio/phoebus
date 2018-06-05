@@ -28,8 +28,8 @@ public class AlarmUI
         Color.rgb(  0, 100,   0), // OK
         Color.rgb(120,  90,  10), // MINOR_ACK
         Color.rgb(100,   0,   0), // MAJOR_ACK
-        Color.rgb(100,   0, 100), // INVALID_ACK
-        Color.rgb(100,   0, 100), // UNDEFINED_ACK
+        Color.rgb(100,  50, 100), // INVALID_ACK
+        Color.rgb(100,  50, 100), // UNDEFINED_ACK
         Color.rgb(207, 192,   0), // MINOR
         Color.rgb(255,   0,   0), // MAJOR
         Color.rgb(255,   0, 255), // INVALID
