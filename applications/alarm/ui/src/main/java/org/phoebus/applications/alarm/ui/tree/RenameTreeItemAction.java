@@ -40,7 +40,7 @@ class RenameTreeItemAction extends MenuItem
         	setOnAction(event ->
         	{
         		//Prompt for new name
-	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for PV", node, item);
+	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for PV", item.getName(), node);
 	        	if (null == new_name)
 	        		return;
 	        	// Tree view keeps the selection indices, which will point to wrong content
@@ -66,7 +66,7 @@ class RenameTreeItemAction extends MenuItem
 	        setOnAction(event ->
 	        {
 	        	//Prompt for new name
-	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for PV", node, item);
+	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for PV", item.getName(), node);
 	        	if (null == new_name)
 	        		return;
 	        	// Tree view keeps the selection indices, which will point to wrong content
