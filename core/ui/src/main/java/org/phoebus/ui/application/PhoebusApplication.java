@@ -423,57 +423,59 @@ public class PhoebusApplication extends Application {
 
     private void createLoadMenu()
     {
-        final File phoebus_dir = new File(Locations.user().getAbsolutePath());
-        final File[] phoebus_files = phoebus_dir.listFiles();
-        for (final File phoebus_file : phoebus_files)
-        {
-            if (phoebus_file.isFile() && phoebus_file.getName().endsWith(".memento"))
-            {
-                final MenuItem menuItem = new MenuItem(phoebus_file.getName());
-                menuItem.setOnAction( (event) ->
-                {
-                    final List<Stage> stages = DockStage.getDockStages();
-
-                    // Remove the main stage from the list of stages to close.
-                    stages.remove(main_stage);
-
-                    // Save the current state to the default memento file.
-                    final File memfile = XMLMementoTree.getDefaultFile();
-                    MementoHelper.saveState(memfile, last_opened_file, default_application);
-
-                    // If any stages failed to close, return.
-                    if (!closeStages(stages))
-                        return;
-
-                    // Go into the main stage and close all of the tabs. If any of them refuse, return.
-                    final Node node = DockStage.getPaneOrSplit(main_stage);
-                    if (! MementoHelper.closePaneOrSplit(node))
-                        return;
-
-                    // Load the new stages from the specified memento file.
-
-                    MementoTree memento = null;
-                    try
-                    {
-                        if (phoebus_file.canRead())
-                        {
-                            logger.log(Level.INFO, "Loading state from " + phoebus_file);
-                            memento = load(memfile);
-                        }
-                    }
-                    catch (final Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Error restoring saved state from " + phoebus_file, ex);
-                    }
-
-                    if (null != memento)
-                        restoreState(memento);
-                });
-
-                load_layout.getItems().add(menuItem);
-            }
-        }
-        load_layout.getItems().sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+    	// Schedule on background thread. Looking for files so can't be on UI thread.
+    	JobManager.schedule("Create Load Menu", (monitor) ->
+    	{
+    		// Get every file in the default directory.
+	        final File dir = new File(Locations.user().getAbsolutePath());
+	        final File[] files = dir.listFiles();
+	        // For every non default memento file create a menu item for the load layout menu.
+	        for (final File memento_file : files)
+	        {
+	            if (memento_file.isFile() && memento_file.getName().endsWith(".memento"))
+	            {
+	                final MenuItem menuItem = new MenuItem(memento_file.getName());
+	                menuItem.setOnAction( (event) ->
+	                {
+	                    final List<Stage> stages = DockStage.getDockStages();
+	
+	                    // Remove the main stage from the list of stages to close.
+	                    stages.remove(main_stage);
+	
+	                    // If any stages failed to close, return.
+	                    if (!closeStages(stages))
+	                        return;
+	
+	                    // Go into the main stage and close all of the tabs. If any of them refuse, return.
+	                    final Node node = DockStage.getPaneOrSplit(main_stage);
+	                    if (! MementoHelper.closePaneOrSplit(node))
+	                        return;
+	
+	                    // Load the new stages from the specified memento file.
+	                    MementoTree memento = null;
+	                    try
+	                    {
+	                        if (memento_file.canRead())
+	                        {
+	                            logger.log(Level.INFO, "Loading state from " + memento_file);
+	                            memento = load(memento_file);
+	                            System.out.println(memento.toString());
+	                        }
+	                    }
+	                    catch (final Exception ex)
+	                    {
+	                        logger.log(Level.SEVERE, "Error restoring saved state from " + memento_file, ex);
+	                    }
+	                    
+	                    if (null != memento)
+	                        restoreState(memento);
+	                });
+	                
+	                load_layout.getItems().add(menuItem);
+	            }
+	        }
+	        load_layout.getItems().sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+    	});
     }
 
     /** @param entry {@link MenuEntry}
