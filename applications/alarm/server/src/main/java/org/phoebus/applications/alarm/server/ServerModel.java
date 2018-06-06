@@ -37,6 +37,7 @@ import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
+import org.phoebus.framework.jobs.JobManager;
 
 /** Server's model of the alarm configuration
  *
@@ -85,6 +86,10 @@ class ServerModel
         consumer = connectConsumer(Objects.requireNonNull(kafka_servers), config_name);
         producer = connectProducer(kafka_servers, config_name);
 
+        // TODO Where to put this?
+        // Discover if any of the default topics exist, and create them if they do not.
+        JobManager.schedule("Auto Create Topics", (monitor) -> CreateTopics.discoverAndCreateTopics(kafka_servers));
+        
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
     }
