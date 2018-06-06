@@ -10,7 +10,6 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,10 +74,8 @@ class ServerModel
                        final ServerModelListener listener)
     {
         this.initial_states = initial_states;
-
-        for (Entry<String, ClientState> state : initial_states.entrySet())
-            System.out.println("Initial state for " + state.getKey() + " : " + state.getValue());
-
+        // initial_states.entrySet().forEach(state ->
+        //    System.out.println("Initial state for " + state.getKey() + " : " + state.getValue()));
 
         config_topic = Objects.requireNonNull(config_name);
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
