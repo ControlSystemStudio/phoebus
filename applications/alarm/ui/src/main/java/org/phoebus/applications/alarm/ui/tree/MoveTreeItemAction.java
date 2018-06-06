@@ -10,12 +10,13 @@ package org.phoebus.applications.alarm.ui.tree;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeView;
 
-/** Action to move a PV
+/** Action to move an AlarmTreeItem to a new location in an AlarmTree.
  *  @author Evan Smith
  */
 public class MoveTreeItemAction extends MenuItem 
@@ -36,34 +37,31 @@ public class MoveTreeItemAction extends MenuItem
 		setOnAction(event ->
     	{
     		//Prompt for new name
-        	String new_path = null;
-        	while (! AlarmTreeHelper.validateNewPath(new_path, node.getRoot().getValue()) )
+        	String path = null;
+        	while (! AlarmTreeHelper.validateNewPath(path, node.getRoot().getValue()) )
         	{
-    			new_path = AlarmTreeHelper.prompt(getText(), "Enter new name for Component", item.getPathName(), node);
-    			if (null == new_path)
+    			path = AlarmTreeHelper.prompt(getText(), "Enter new path for item.", item.getPathName(), node);
+    			if (null == path)
     				return;
         	}
-        	
-        	System.out.println(new_path);
         	
     		// Tree view keeps the selection indices, which will point to wrong content
             // after those items have been removed.
             if (node instanceof TreeView<?>)
                 ((TreeView<?>) node).getSelectionModel().clearSelection();
 
-			/*
-            // Delete old, rebuild child links, and add new name in background thread.
+			final String new_path = path;
+			// On a background thread, send the item configuration updates for the item to be moved and all its children.
             JobManager.schedule(getText(), monitor ->
             {
-                final AlarmTreeItem<BasicState> parent = item.getParent();
-                // Remove the item and all its children.
-                // Add the new item, and then rebuild all its children.
-                final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
-				model.sendItemConfigurationUpdate(new_path, item);
+                // Move the item.
+                model.sendItemConfigurationUpdate(new_path, item);
+                // Move the item's children.
                 AlarmTreeHelper.rebuildTree(model, item, new_path);
+                // Delete the old item. This deletes the old item's children as well.
                 model.removeComponent(item);
             });
-            */
+            
     	});
 	}
 
