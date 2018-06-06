@@ -26,6 +26,7 @@ import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
+import org.phoebus.framework.jobs.CommandExecutor;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
 

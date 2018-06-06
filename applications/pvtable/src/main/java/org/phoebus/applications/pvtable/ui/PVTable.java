@@ -62,6 +62,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
@@ -423,7 +424,11 @@ public class PVTable extends VBox
         table.setEditable(true);
 
         final Node toolbar = createToolbar();
+
+        // Have table use the available space
         setMargin(table, new Insets(5));
+        VBox.setVgrow(table, Priority.ALWAYS);
+
         getChildren().setAll(toolbar, table);
 
         setItemsFromModel();

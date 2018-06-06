@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.model;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
+import org.phoebus.util.time.SecondsParser;
+import org.phoebus.util.time.TimeDuration;
 import org.phoebus.util.time.TimestampFormats;
 
 /** 'Full' alarm state that includes severity, message, value, time
@@ -47,6 +50,15 @@ public class AlarmState extends BasicState
     public Instant getTime()
     {
         return time;
+    }
+
+    /** @return Duration of current alarm state or empty text */
+    public String getDuration()
+    {
+        final Duration duration = Duration.between(time, Instant.now());
+        if (duration.isNegative())
+            return "";
+        return SecondsParser.formatSeconds(TimeDuration.toSecondsDouble(duration));
     }
 
     /** @return <code>true</code> if this state has higher alarm update

@@ -41,4 +41,10 @@ public class BasicState
         final BasicState other = (BasicState) obj;
         return severity == other.severity;
     }
+
+    @Override
+    public String toString()
+    {
+        return severity.name();
+    }
 }

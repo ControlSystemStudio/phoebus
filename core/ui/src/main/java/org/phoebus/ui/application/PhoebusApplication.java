@@ -87,6 +87,13 @@ public class PhoebusApplication extends Application {
     /** Logger for all application messages */
     public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
 
+    /** JavaFx {@link Application}
+     *
+     *  <p>Set on {@link #start()},
+     *  may be used to for example get HostServices
+     */
+    public static Application INSTANCE;
+
     /** Memento keys */
     private static final String LAST_OPENED_FILE = "last_opened_file",
                                 DEFAULT_APPLICATION = "default_application",
@@ -142,6 +149,8 @@ public class PhoebusApplication extends Application {
      */
     @Override
     public void start(final Stage initial_stage) throws Exception {
+        INSTANCE = this;
+
         // Show splash screen as soon as possible..
         final Splash splash = new Splash(initial_stage);
 

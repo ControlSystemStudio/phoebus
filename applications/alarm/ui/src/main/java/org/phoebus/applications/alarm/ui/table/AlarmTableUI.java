@@ -10,7 +10,9 @@ package org.phoebus.applications.alarm.ui.table;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -18,12 +20,19 @@ import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.ui.javafx.ClearingTextField;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.ui.text.RegExHelper;
 import org.phoebus.util.time.TimestampFormats;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -35,8 +44,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 /** Alarm Table UI
@@ -52,10 +66,10 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTableUI extends BorderPane
 {
+    // TODO Alarm server 'heartbeat', indicate timeout
     // TODO Share the AlarmClient for given configuration between table, tree, area
-    // TODO Toolbar? to acknowledge/ un-ack, select by name
     // TODO Maintenance mode?
-    // TODO Limit number of rows (was 2500)
+    // TODO Check that deleted alarm is removed from UI (tends to remain in table if it was in alarm before deleted)
 
     private final AlarmClient client;
 
@@ -76,8 +90,15 @@ public class AlarmTableUI extends BorderPane
 
     private final SplitPane split;
 
+    private final Label active_count = new Label("Active Alarms");
+    private final Label acknowledged_count = new Label("Acknowledged Alarms");
+
     private final TableView<AlarmInfoRow> active = createTable(active_rows, true);
     private final TableView<AlarmInfoRow> acknowledged = createTable(acknowledged_rows, false);
+
+    final TextField search = new ClearingTextField();
+
+    private ToolBar toolbar = createToolbar();
 
     /** Table cell that shows a Severity as Icon */
     private class SeverityIconCell extends TableCell<AlarmInfoRow, SeverityLevel>
@@ -142,10 +163,45 @@ public class AlarmTableUI extends BorderPane
         active.getSortOrder().addListener(new LinkedColumnSorter(active, acknowledged));
         acknowledged.getSortOrder().addListener(new LinkedColumnSorter(acknowledged, active));
 
-        split = new SplitPane(active, acknowledged);
+        // Insets make ack. count appear similar to the active count,
+        // which is laid out based on the ack/unack/search buttons in the toolbar
+        acknowledged_count.setPadding(new Insets(10, 0, 10, 5));
+        VBox.setVgrow(acknowledged, Priority.ALWAYS);
+        final VBox bottom = new VBox(acknowledged_count, acknowledged);
+
+        // Overall layout:
+        // Toolbar
+        // Top section of split: Active alarms
+        // Bottom section o. s.: Ack'ed alarms
+        split = new SplitPane(active, bottom);
         split.setOrientation(Orientation.VERTICAL);
 
+        setTop(toolbar);
         setCenter(split);
+    }
+
+    private ToolBar createToolbar()
+    {
+        final Button acknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
+        acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
+        acknowledge.setOnAction(event ->
+        {
+            for (AlarmInfoRow row : active.getSelectionModel().getSelectedItems())
+                client.acknowledge(row.item, true);
+        });
+
+        final Button unacknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/unacknowledge.png"));
+        unacknowledge.disableProperty().bind(Bindings.isEmpty(acknowledged.getSelectionModel().getSelectedItems()));
+        unacknowledge.setOnAction(event ->
+        {
+            for (AlarmInfoRow row : acknowledged.getSelectionModel().getSelectedItems())
+                client.acknowledge(row.item, false);
+        });
+
+        search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
+        search.textProperty().addListener(prop -> selectRows());
+
+        return new ToolBar(active_count, ToolbarHelper.createSpring(), acknowledge, unacknowledge, search);
     }
 
     private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,
@@ -308,8 +364,29 @@ public class AlarmTableUI extends BorderPane
     public void update(final List<AlarmInfoRow> active,
                        final List<AlarmInfoRow> acknowledged)
     {
+        limitAlarmCount(active, active_count, "Active Alarms");
+        limitAlarmCount(acknowledged, acknowledged_count, "Acknowledged Alarms");
         update(active_rows, active);
         update(acknowledged_rows, acknowledged);
+    }
+
+    /** Limit the number of alarms
+     *  @param alarms List of alarms, may be trimmed
+     *  @param alarm_count Label where count will be shown
+     *  @param message Message to use for the count
+     */
+    private void limitAlarmCount(final List<AlarmInfoRow> alarms,
+                                 final Label alarm_count, final String message)
+    {
+        final int N = alarms.size();
+        final StringBuilder buf = new StringBuilder();
+        buf.append(N).append(' ').append(message);
+        if (N > AlarmSystem.alarm_table_max_rows)
+        {
+            buf.append(" (").append(N - AlarmSystem.alarm_table_max_rows).append(" not shown)");
+            alarms.subList(AlarmSystem.alarm_table_max_rows, N).clear();
+        }
+        alarm_count.setText(buf.toString());
     }
 
     /** Update existing list of items with new input
@@ -335,5 +412,38 @@ public class AlarmTableUI extends BorderPane
         }
         else // Trim items, input has fewer elements
             items.remove(N, items.size());
+
+        selectRows();
+    }
+
+    /** Select all rows that match the current 'search' pattern */
+    private void selectRows()
+    {
+        final String glob = search.getText().trim();
+        if (glob.isEmpty())
+        {
+            active.getSelectionModel().clearSelection();
+            acknowledged.getSelectionModel().clearSelection();
+            return;
+        }
+
+        final Pattern pattern = Pattern.compile(RegExHelper.fullRegexFromGlob(glob),
+                                                Pattern.CASE_INSENSITIVE);
+        selectRows(active, pattern);
+        selectRows(acknowledged, pattern);
+    }
+
+    private void selectRows(final TableView<AlarmInfoRow> table, final Pattern pattern)
+    {
+        table.getSelectionModel().clearSelection();
+
+        int i = 0;
+        for (AlarmInfoRow row : table.getItems())
+        {
+            if (pattern.matcher(row.pv.get()).matches()  ||
+                pattern.matcher(row.description.get()).matches())
+                table.getSelectionModel().select(i);
+            ++i;
+        }
     }
 }

@@ -83,7 +83,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         final AlarmLogicListener listener = new AlarmLogicListener()
         {
             @Override
-            public void alarmStateChanged(AlarmState current, AlarmState alarm)
+            public void alarmStateChanged(final AlarmState current, final AlarmState alarm)
             {
                 // Send alarm and current state to clients
                 logger.log(Level.FINER, () -> getPathName() + " changes to " + current + ", " + alarm);
@@ -97,7 +97,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             }
 
             @Override
-            public void annunciateAlarm(SeverityLevel level)
+            public void annunciateAlarm(final SeverityLevel level)
             {
                 // TODO Send text to Kafka, so that annunciators can, well, annunciate
                 // model.sentAnnunciationMessage(...)

@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -21,9 +23,11 @@ import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
-import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -77,23 +81,42 @@ public class AlarmContextMenuHelper
                 pvnames.add(new ProcessVariable(item.getName()));
         }
 
-        // TODO Initial context menu item for alarm info, if in alarm
+        if (active.size() == 1  &&  active.get(0) instanceof AlarmClientLeaf)
+            menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) active.get(0)));
+        if (acked.size() == 1  &&  acked.get(0) instanceof AlarmClientLeaf)
+            menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) acked.get(0)));
 
         // TODO Somehow indicate the origin of guidance, display, command.
         // On one hand it's nice that the context menu inherits all the entries
         // up the alarm tree, but when trying to edit an entry,
         // this means it takes some time to figure out on which item contributed the entry.
+        final AtomicInteger count = new AtomicInteger();
         for (AlarmTreeItem<?> item : selection)
-            addGuidance(node, menu_items, item);
+        {
+            addGuidance(node, menu_items, item, count);
+            if (count.get() >= AlarmSystem.alarm_menu_max_items)
+                break;
+        }
         added.clear();
+        count.set(0);
 
         for (AlarmTreeItem<?> item : selection)
-            addDisplays(node, menu_items, item);
+        {
+            addDisplays(node, menu_items, item, count);
+            if (count.get() >= AlarmSystem.alarm_menu_max_items)
+                break;
+        }
         added.clear();
+        count.set(0);
 
         for (AlarmTreeItem<?> item : selection)
-            addCommands(node, menu_items, item);
+        {
+            addCommands(node, menu_items, item, count);
+            if (count.get() >= AlarmSystem.alarm_menu_max_items)
+                break;
+        }
         added.clear();
+        count.set(0);
 
         if (AlarmUI.mayAcknowledge())
         {
@@ -112,41 +135,74 @@ public class AlarmContextMenuHelper
         }
     }
 
+    private static MenuItem createSkippedEntriesHint(final Node node, final String type)
+    {
+        final MenuItem more = new MenuItem("...");
+        more.setOnAction(event ->
+        {
+            final Alert dialog = new Alert(AlertType.INFORMATION);
+            dialog.setHeaderText("Since too many entries were selected,\n" +
+                                 "some " + type + " were suppressed.");
+            DialogHelper.positionDialog(dialog, node, 0, 0);
+            dialog.showAndWait();
+        });
+        return more;
+    }
+
     private void addGuidance(final Node node,
                              final List<MenuItem> menu_items,
-                             final AlarmTreeItem<?> item)
+                             final AlarmTreeItem<?> item,
+                             final AtomicInteger count)
     {
         for (TitleDetail guidance : item.getGuidance())
             if (added.add(guidance))
-                menu_items.add(new ShowGuidanceAction(node, item, guidance));
+                if (count.incrementAndGet() <= AlarmSystem.alarm_menu_max_items)
+                    menu_items.add(new ShowGuidanceAction(node, item, guidance));
+                else
+                {
+                    menu_items.add(createSkippedEntriesHint(node, "guidance messages"));
+                    return;
+                }
 
         if (item.getParent() != null)
-            addGuidance(node, menu_items, item.getParent());
+            addGuidance(node, menu_items, item.getParent(), count);
     }
 
     private void addDisplays(final Node node,
                              final List<MenuItem> menu_items,
-                             final AlarmTreeItem<?> item)
+                             final AlarmTreeItem<?> item,
+                             final AtomicInteger  count)
     {
-        // TODO Create a new OpenRelatedDisplayAction(..) which opens the resource
         for (TitleDetail display : item.getDisplays())
             if (added.add(display))
-                menu_items.add(new MenuItem(display.title, ImageCache.getImageView(AlarmSystem.class, "/icons/related_display.png")));
+                if (count.incrementAndGet() <= AlarmSystem.alarm_menu_max_items)
+                    menu_items.add(new OpenDisplayAction(node, item, display));
+                else
+                {
+                    menu_items.add(createSkippedEntriesHint(node, "display links"));
+                    return;
+                }
 
         if (item.getParent() != null)
-            addDisplays(node, menu_items, item.getParent());
+            addDisplays(node, menu_items, item.getParent(), count);
     }
 
     private void addCommands(final Node node,
                              final List<MenuItem> menu_items,
-                             final AlarmTreeItem<?> item)
+                             final AlarmTreeItem<?> item,
+                             final AtomicInteger  count)
     {
-        // TODO Create a new ExecuteCommandAction(..) which executes the command
         for (TitleDetail command : item.getCommands())
             if (added.add(command))
-                menu_items.add(new MenuItem(command.title, ImageCache.getImageView(AlarmSystem.class, "/icons/exec_command.png")));
+                if (count.incrementAndGet() <= AlarmSystem.alarm_menu_max_items)
+                    menu_items.add(new ExecuteCommandAction(item, command));
+                else
+                {
+                    menu_items.add(createSkippedEntriesHint(node, "commands"));
+                    return;
+                }
 
         if (item.getParent() != null)
-            addCommands(node, menu_items, item.getParent());
+            addCommands(node, menu_items, item.getParent(), count);
     }
 }

@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 
-import org.csstudio.display.builder.runtime.LogWriter;
+import org.phoebus.framework.jobs.LogWriter;
 
 import py4j.GatewayServer;
 

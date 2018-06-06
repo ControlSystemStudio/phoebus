@@ -1,13 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.runtime;
+package org.phoebus.framework.jobs;
 
-import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
+import static org.phoebus.framework.jobs.JobManager.logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,7 +40,19 @@ public class CommandExecutor implements Callable<Integer>
 
     public CommandExecutor(final String cmd, final File directory)
     {
-        process_builder = new ProcessBuilder(splitCmd(cmd)).directory(directory);
+        final List<String> cmd_parts = splitCmd(cmd);
+
+        if (cmd_parts.size() > 0)
+        {
+            // ProcessBuilder executes commands that are on the PATH, fine.
+            // When the command is in the 'directory',
+            // it requires using "./the_command" to invoke a command right there.
+            // Keep users from having to add "./" by doing that for them.
+            final File full_path = new File(directory, cmd_parts.get(0));
+            if (full_path.canExecute())
+                cmd_parts.set(0, full_path.toString());
+        }
+        process_builder = new ProcessBuilder(cmd_parts).directory(directory);
     }
 
     /** Split command into items, honoring double quotes
@@ -85,6 +97,9 @@ public class CommandExecutor implements Callable<Integer>
         return items;
     }
 
+    /** Invoke the command.
+     *  @return Return code of the command, or <code>null</code> if left running
+     */
     @Override
     public Integer call() throws Exception
     {
