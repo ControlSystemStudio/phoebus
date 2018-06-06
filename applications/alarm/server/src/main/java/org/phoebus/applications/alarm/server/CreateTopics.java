@@ -35,7 +35,14 @@ public class CreateTopics
                             
     private static AdminClient client = null;
     
-    public static void discoverAndCreateTopics (String kafka_servers)
+    /**
+     * <p> Discover the currently active Kafka topics, and creates any default topics that
+     * do not yet exist.
+     * <p> The default topics are currently "Accelerator", "AcceleratorState", and "AcceleratorCommand".
+     * The topic "AcceleratorTalk" is not yet implemented, but will be added upon completion.
+     * @param kafka_servers The network address for the kafka_servers. Example: 'localhost:9092'.
+     */
+    public static void discoverAndCreateTopics(String kafka_servers)
     {
         // Connect to Kafka server.
         Properties props = new Properties();
@@ -48,6 +55,11 @@ public class CreateTopics
         client.close();
     }
     
+    /**
+     * <p> Discover any currently active Kafka topics. Return a list of strings filled with any default topics that need to be created.
+     * @return topics_to_create <code>List</code> of <code>Strings</code> with all the topic names that need to be created. 
+     *                           Returns <code>null</code> if none need to be created.
+     */
     private static List<String> discoverTopics()
     {
         // Discover what topics currently exist.
@@ -78,6 +90,10 @@ public class CreateTopics
         return topics_to_create;
     }
     
+    /**
+     * <p> Create a topic for each of the topics in the passed list.
+     * @param topics_to_create <code>List</code> of <code>Strings</code> filled with the names of topics to create.
+     */
     private static void createTopics(List<String> topics_to_create)
     {
         for (String topic : topics_to_create)
@@ -94,6 +110,12 @@ public class CreateTopics
         }
     }
     
+    /**
+     * <p> Create a Kafka topic with the passed name.
+     * @param topic_name Name of the topic to be created.
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     private static void createTopic(String topic_name) throws InterruptedException, ExecutionException
     {
         ArrayList<NewTopic> topics = new ArrayList<NewTopic>();
