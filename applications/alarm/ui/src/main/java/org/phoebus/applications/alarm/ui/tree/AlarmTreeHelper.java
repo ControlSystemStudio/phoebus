@@ -63,15 +63,15 @@ public class AlarmTreeHelper {
 
 	/**
 	 * <p> Validate the passed path string by checking if the path name is valid.
-	 * <p> A path name is considered valid if the path to the items new location exists in the tree, 
+	 * <p> A path name is considered valid if the path to the item's new location exists in the tree, 
 	 * and if the items new location is not a PV.
 	 * <p> For example: If "top/middle/bottom/to_move" wanted to be moved to "top/middle/to_move". 
-	 * The path "top/middle" must be in the tree. And middle must not be a PV.
+	 * The path "top/middle" must be in the tree and middle must not be a PV.
 	 * @param path The path to the new location.
 	 * @param root The root node of the AlarmTree
 	 * @return <code>true</code> if the pathname is valid, and if the path to the new location exists in the tree.
 	 */
-	public static boolean validatePath(String path, AlarmTreeItem<?> root)
+	public static boolean validateNewPath(String path, AlarmTreeItem<?> root)
 	{
 	    if (null == path || path.isEmpty())
 	        return false;
@@ -81,7 +81,8 @@ public class AlarmTreeHelper {
 		// The proposed parent must exist. path_elems includes the new addition as well so only check length-1.
 		int elem_num = path_elems.length - 1;
 		AlarmTreeItem<?> item = root;
-		// Check the root area.
+		
+		// New addition must be above root level. Tree only displays what's on top of root area.
 		if (! (path_elems.length > 0) || ! (root.getName().equals(path_elems[0])))
 		    return false;
 		

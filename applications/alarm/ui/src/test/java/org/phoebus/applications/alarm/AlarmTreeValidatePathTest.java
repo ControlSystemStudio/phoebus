@@ -30,20 +30,27 @@ public class AlarmTreeValidatePathTest
         //      -> Area 2 -> Area 4 -> PV 4
         //                -> PV 2
 
-        // Valid. All should be true.
-        assertTrue(AlarmTreeHelper.validatePath("root/Area 1/PV 1", root));
-        assertTrue(AlarmTreeHelper.validatePath("root/", root));
-        // Split path consumes the '/' as a delimiter. This is valid.
-        assertTrue(AlarmTreeHelper.validatePath("//root///////Area 1///", root));
+        // Valid examples of inserting new items at all path locations. All should be true.
+        assertTrue(AlarmTreeHelper.validateNewPath("root/new", root));
+        assertTrue(AlarmTreeHelper.validateNewPath("root/Area 1/new", root));
+        assertTrue(AlarmTreeHelper.validateNewPath("root/Area 2/new", root));
+        assertTrue(AlarmTreeHelper.validateNewPath("root/Area 1/Area 3/new", root));
+        assertTrue(AlarmTreeHelper.validateNewPath("root/Area 2/Area 4/new", root));
+        // Split path, used internally, consumes the '/' as a delimiter. This is valid.
+        assertTrue(AlarmTreeHelper.validateNewPath("//root///////Area 1///", root));
         // PV 5 would be the new PV.
-        assertTrue(AlarmTreeHelper.validatePath("//root/Area 2/Area 4/PV 5", root));
+        assertTrue(AlarmTreeHelper.validateNewPath("//root/Area 2/Area 4/PV 5", root));
         
         // Invalid. All should be false.
-        assertFalse(AlarmTreeHelper.validatePath(null, root));
-        assertFalse(AlarmTreeHelper.validatePath("", root));
-        assertFalse(AlarmTreeHelper.validatePath("do what now?", root));
-        assertFalse(AlarmTreeHelper.validatePath("Area 1/root", root));
+        assertFalse(AlarmTreeHelper.validateNewPath(null, root));
+        assertFalse(AlarmTreeHelper.validateNewPath("", root));
+        // The Alarm Tree only displays areas and PVs above the root level, and only allows for a single root level.
+        // Any attempt to add a new root should be invalid.
+        assertFalse(AlarmTreeHelper.validateNewPath("new", root));
+        assertFalse(AlarmTreeHelper.validateNewPath("new/new PV", root));
+        // The split path method does not consume leading or trailing whitespace of the path elements.
+        assertFalse(AlarmTreeHelper.validateNewPath(" /root / Area 1 / PV 1 ", root));
         // Path contains PV. PV cannot have children.
-        assertFalse(AlarmTreeHelper.validatePath("root/Area 1/PV 1/New PV", root));
+        assertFalse(AlarmTreeHelper.validateNewPath("root/Area 1/PV 1/New PV", root));
     }
 }
