@@ -18,6 +18,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
@@ -44,7 +45,7 @@ public class AlarmStateInitializer
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
     private final Thread thread;
-    private final ConcurrentHashMap<String, SeverityLevel> inititial_severity = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ClientState> inititial_severity = new ConcurrentHashMap<>();
 
     /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
@@ -100,10 +101,10 @@ public class AlarmStateInitializer
                 {
                     // Get node_config as JSON map to check for "pv" key
                     final Object json = JsonModelReader.parseAlarmItemConfig(node_config);
-                    final SeverityLevel severity = JsonModelReader.parseSeverity(json);
-                    if (severity != null  &&  severity != SeverityLevel.OK)
+                    final ClientState state = JsonModelReader.parseClientState(json);
+                    if (state != null  &&  state.severity != SeverityLevel.OK)
                     {
-                        inititial_severity.put(path, severity);
+                        inititial_severity.put(path, state);
                         timer.reset();
                     }
                 }
@@ -126,9 +127,9 @@ public class AlarmStateInitializer
     }
 
     /** Stop the state initializer
-     *  @return Map of alarm paths and non-OK severities
+     *  @return Map of alarm paths and non-OK alarm state
      */
-    public ConcurrentHashMap<String,SeverityLevel> shutdown()
+    public ConcurrentHashMap<String, ClientState> shutdown()
     {
         running.set(false);
         try

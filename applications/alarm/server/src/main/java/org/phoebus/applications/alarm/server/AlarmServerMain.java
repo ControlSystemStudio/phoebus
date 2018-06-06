@@ -18,8 +18,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 
@@ -49,7 +49,7 @@ public class AlarmServerMain implements ServerModelListener
                 final AlarmStateInitializer init = new AlarmStateInitializer(server, config);
                 if (! init.awaitCompleteStates())
                     logger.log(Level.WARNING, "Keep receiving state updates, may have incomplete initial set of alarm states");
-                final ConcurrentHashMap<String, SeverityLevel> initial_states = init.shutdown();
+                final ConcurrentHashMap<String, ClientState> initial_states = init.shutdown();
 
                 logger.info("Start handling alarms");
                 model = new ServerModel(server, config, initial_states, this);
@@ -86,6 +86,8 @@ public class AlarmServerMain implements ServerModelListener
      *      Prints all disconnected PVs
      *  <li>pvs /some/path -
      *      Prints PVs in subtree
+     *  <li>pv name_of_PV -
+     *      Prints that PV
      *  <li>restart -
      *      Re-load configuration
      *  <li>shutdown -
@@ -143,6 +145,13 @@ public class AlarmServerMain implements ServerModelListener
                     throw new Exception("Unknown alarm tree node '" + detail + "'");
                 System.out.println("PVs for " + node.getPathName() + ":");
                 listPVs(node, detail != null && detail.startsWith("dis"));
+            }
+            else if (command.equalsIgnoreCase("pv"))
+            {
+                final AlarmServerPV pv = model.findPV(detail);
+                if (pv == null)
+                    throw new Exception("Unknown PV '" + detail + "'");
+                listPVs(pv, false);
             }
             else if (command.equalsIgnoreCase("shutdown"))
                 restart.offer(false);

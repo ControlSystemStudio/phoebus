@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,11 +23,11 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
-import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 
@@ -54,7 +55,7 @@ class ServerModel
     // disposing all sub sections.
     // The alarm server needs to handle the removal of each PV in the sub tree.
 
-    private final ConcurrentHashMap<String, SeverityLevel> initial_states;
+    private final ConcurrentHashMap<String, ClientState> initial_states;
 
     private final String config_topic, command_topic, state_topic;
     private final ServerModelListener listener;
@@ -70,10 +71,15 @@ class ServerModel
      *  @throws Exception on error
      */
     public ServerModel(final String kafka_servers, final String config_name,
-                       final ConcurrentHashMap<String, SeverityLevel> initial_states,
+                       final ConcurrentHashMap<String, ClientState> initial_states,
                        final ServerModelListener listener)
     {
         this.initial_states = initial_states;
+
+        for (Entry<String, ClientState> state : initial_states.entrySet())
+            System.out.println("Initial state for " + state.getKey() + " : " + state.getValue());
+
+
         config_topic = Objects.requireNonNull(config_name);
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
         state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
@@ -224,6 +230,35 @@ class ServerModel
         return node;
     }
 
+
+    /** Find existing PV
+     *
+     *  @param name PV name
+     *  @return Node, <code>null</code> if model does not contain the PV
+     *  @throws Exception on error
+     */
+    public AlarmServerPV findPV(final String name) throws Exception
+    {
+        return findPV(name, root);
+    }
+
+    private AlarmServerPV findPV(final String name, final AlarmTreeItem<?> node)
+    {
+        if (node instanceof AlarmServerPV)
+        {
+            if (node.getName().equalsIgnoreCase(name))
+                return (AlarmServerPV) node;
+        }
+        else
+            for (AlarmTreeItem<?> child : node.getChildren())
+            {
+                final AlarmServerPV pv = findPV(name, child);
+                if (pv != null)
+                    return pv;
+            }
+        return null;
+    }
+
     /** Find an existing alarm tree item or create a new one
      *
      *  <p>Informs listener about created nodes,
@@ -253,8 +288,9 @@ class ServerModel
             // Create missing nodes
             if (node == null)
             {   // Done when creating leaf
+                // Use the known initial state, but only once (remove from map)
                 if (last &&  is_leaf)
-                    return new AlarmServerPV(this, parent, name);
+                    return new AlarmServerPV(this, parent, name, initial_states.remove(path));
                 else
                 {
                     node = new AlarmServerNode(this, parent, name);
