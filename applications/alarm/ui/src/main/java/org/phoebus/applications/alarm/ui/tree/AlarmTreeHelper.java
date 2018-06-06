@@ -55,10 +55,10 @@ public class AlarmTreeHelper {
         DialogHelper.positionDialog(prompt, node, -200, -100);
         prompt.setTitle(title);
         prompt.setHeaderText(header);
-        final String new_name = prompt.showAndWait().orElse(null);
-        if (new_name == null || new_name.isEmpty())
+        final String input = prompt.showAndWait().orElse(null);
+        if (input == null || input.isEmpty())
             return null;
-        return new_name;
+        return input;
     }
 
 	/**
