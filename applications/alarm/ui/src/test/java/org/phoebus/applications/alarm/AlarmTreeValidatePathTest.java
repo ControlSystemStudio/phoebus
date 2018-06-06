@@ -10,6 +10,7 @@ import org.phoebus.applications.alarm.ui.tree.AlarmTreeHelper;
 
 public class AlarmTreeValidatePathTest
 {
+    // Needed for the AlarmClientNodes and AlarmClientLeaves other than root.
     @SuppressWarnings("unused")
     @Test 
     public void testValidatePath()
@@ -36,10 +37,8 @@ public class AlarmTreeValidatePathTest
         assertTrue(AlarmTreeHelper.validateNewPath("root/Area 2/new", root));
         assertTrue(AlarmTreeHelper.validateNewPath("root/Area 1/Area 3/new", root));
         assertTrue(AlarmTreeHelper.validateNewPath("root/Area 2/Area 4/new", root));
-        // Split path, used internally, consumes the '/' as a delimiter. This is valid.
+        // splitPath(), used internally, consumes the '/' as a delimiter. This is valid.
         assertTrue(AlarmTreeHelper.validateNewPath("//root///////Area 1///", root));
-        // PV 5 would be the new PV.
-        assertTrue(AlarmTreeHelper.validateNewPath("//root/Area 2/Area 4/PV 5", root));
         
         // Invalid. All should be false.
         assertFalse(AlarmTreeHelper.validateNewPath(null, root));
