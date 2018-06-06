@@ -9,32 +9,24 @@ package org.phoebus.applications.alarm.server;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 
@@ -61,6 +53,9 @@ class ServerModel
     // In the AlarmClient, deleting a node simply removes it from the tree,
     // disposing all sub sections.
     // The alarm server needs to handle the removal of each PV in the sub tree.
+
+    private final ConcurrentHashMap<String, SeverityLevel> initial_states;
+
     private final String config_topic, command_topic, state_topic;
     private final ServerModelListener listener;
     private final AlarmServerNode root;
@@ -71,19 +66,25 @@ class ServerModel
 
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
+     * @param initial_states
      *  @throws Exception on error
      */
     public ServerModel(final String kafka_servers, final String config_name,
+                       final ConcurrentHashMap<String, SeverityLevel> initial_states,
                        final ServerModelListener listener)
     {
+        this.initial_states = initial_states;
         config_topic = Objects.requireNonNull(config_name);
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
         state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
         this.listener = Objects.requireNonNull(listener);
 
         root = new AlarmServerNode(this, null, config_name);
-        consumer = connectConsumer(Objects.requireNonNull(kafka_servers), config_name);
-        producer = connectProducer(kafka_servers, config_name);
+
+        consumer = KafkaHelper.connectConsumer(Objects.requireNonNull(kafka_servers),
+                                               List.of(config_topic, command_topic),
+                                               List.of(config_topic));
+        producer = KafkaHelper.connectProducer(kafka_servers);
 
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
@@ -100,65 +101,6 @@ class ServerModel
     public AlarmServerNode getRoot()
     {
         return root;
-    }
-
-    private Consumer<String, String> connectConsumer(final String kafka_servers, final String config_name)
-    {
-        final Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_servers);
-        // API requires for Consumer to be in a group.
-        // Each alarm client must receive all updates,
-        // cannot balance updates across a group
-        // --> Use unique group for each client
-        final String group_id = "ServerModel-" + UUID.randomUUID();
-        props.put("group.id", group_id);
-
-        final List<String> topics = List.of(config_topic, command_topic);
-        logger.info(group_id + " subscribes to " + kafka_servers + " for " + topics);
-
-        // Read key, value as string
-        final Deserializer<String> deserializer = new StringDeserializer();
-        final Consumer<String, String> consumer = new KafkaConsumer<>(props, deserializer, deserializer);
-
-        // Rewind whenever assigned to partition
-        final ConsumerRebalanceListener crl = new ConsumerRebalanceListener()
-        {
-            @Override
-            public void onPartitionsAssigned(final Collection<TopicPartition> parts)
-            {
-                // For 'configuration', start reading all messages.
-                // For 'commands', OK to just read commands from now on.
-                for (TopicPartition part : parts)
-                    if (part.topic().equals(config_name))
-                    {
-                        consumer.seekToBeginning(List.of(part));
-                        logger.info("Reading from start of " + part.topic());
-                    }
-                    else
-                        logger.info("Reading updates for " + part.topic());
-            }
-
-            @Override
-            public void onPartitionsRevoked(final Collection<TopicPartition> parts)
-            {
-                // Ignore
-            }
-        };
-        consumer.subscribe(topics, crl);
-
-        return consumer;
-    }
-
-    private Producer<String, String> connectProducer(final String kafka_servers, final String config_name)
-    {
-        final Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_servers);
-        // Collect messages for 20ms until sending them out as a batch
-        props.put("linger.ms", 20);
-
-        // Write String key, value
-        final Serializer<String> serializer = new StringSerializer();
-        return new KafkaProducer<>(props, serializer, serializer);
     }
 
     /** Background thread loop that checks for alarm tree updates */

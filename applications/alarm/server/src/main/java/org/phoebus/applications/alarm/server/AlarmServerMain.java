@@ -13,12 +13,13 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
-import org.phoebus.applications.alarm.AlarmConfigTool;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 
@@ -44,7 +45,14 @@ public class AlarmServerMain implements ServerModelListener
             boolean run = true;
             while (run)
             {
-                model = new ServerModel(server, config, this);
+                logger.info("Fetching past alarm states...");
+                final AlarmStateInitializer init = new AlarmStateInitializer(server, config);
+                if (! init.awaitCompleteStates())
+                    logger.log(Level.WARNING, "Keep receiving state updates, may have incomplete initial set of alarm states");
+                final ConcurrentHashMap<String, SeverityLevel> initial_states = init.shutdown();
+
+                logger.info("Start handling alarms");
+                model = new ServerModel(server, config, initial_states, this);
                 model.start();
 
                 // Run until, via command topic, asked to
@@ -283,6 +291,7 @@ public class AlarmServerMain implements ServerModelListener
             ex.printStackTrace();
             return;
         }
+
 
         new AlarmServerMain(server, config);
     }

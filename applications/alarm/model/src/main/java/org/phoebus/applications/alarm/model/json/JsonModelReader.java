@@ -159,6 +159,15 @@ public class JsonModelReader
         return false;
     }
 
+    public static SeverityLevel parseSeverity(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        final JsonNode jn = actual.get(JsonTags.SEVERITY);
+        if (jn == null)
+            return null;
+        return SeverityLevel.valueOf(jn.asText());
+    }
+
     private static boolean updateAlarmLeafState(final AlarmClientLeaf node, final JsonNode json)
     {
         SeverityLevel severity = SeverityLevel.UNDEFINED;
