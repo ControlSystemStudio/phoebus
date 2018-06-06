@@ -250,6 +250,12 @@ public class AlarmServerMain implements ServerModelListener
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-create_topics"))
+                {
+                    iter.remove();
+                    logger.info("Discovering and creating any missing topics at " + server);
+                    CreateTopics.discoverAndCreateTopics(server);
+                }
                 else if (cmd.equals("-import"))
                 {
                 	if (! iter.hasNext())
