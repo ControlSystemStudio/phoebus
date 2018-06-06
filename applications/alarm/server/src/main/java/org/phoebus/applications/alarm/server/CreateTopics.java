@@ -28,7 +28,7 @@ public class CreateTopics
     private static int PARTITIONS = 1;
     private static String cleanup_policy = "cleanup.policy",
                             policy         = "compact",
-                            segment_time   = "ms.segment",
+                            segment_time   = "segment.ms",
                             time           = "10000",
                             dirty2clean    = "min.cleanable.dirty.ratio",
                             ratio          = "0.01";
@@ -42,7 +42,7 @@ public class CreateTopics
      * The topic "AcceleratorTalk" is not yet implemented, but will be added upon completion.
      * @param kafka_servers The network address for the kafka_servers. Example: 'localhost:9092'.
      */
-    public static void discoverAndCreateTopics(String kafka_servers)
+    public static void discoverAndCreateTopics (String kafka_servers)
     {
         // Connect to Kafka server.
         Properties props = new Properties();
@@ -96,38 +96,38 @@ public class CreateTopics
      */
     private static void createTopics(List<String> topics_to_create)
     {
+        ArrayList<NewTopic> new_topics = new ArrayList<NewTopic>();
+        // Create the new topics locally.
         for (String topic : topics_to_create)
         {
-            try
-            {
                 logger.info("Creating topic " + topic);
-                createTopic(topic);
-            } 
-            catch (InterruptedException | ExecutionException e)
-            {
-                logger.log(Level.WARNING, "Attempt to create topic '" + topic + "' failed.", e);
-            }
+                new_topics.add(createTopic(topic));
+        }
+        // Create the new topics in the Kafka server.
+        try
+        {
+            CreateTopicsResult res = client.createTopics(new_topics);
+            KafkaFuture<Void> future = res.all();
+            future.get();
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            logger.log(Level.WARNING, "Attempt to create topics failed.", e);
         }
     }
     
     /**
      * <p> Create a Kafka topic with the passed name.
-     * @param topic_name Name of the topic to be created.
-     * @throws InterruptedException
-     * @throws ExecutionException
+     * @param   topic_name Name of the topic to be created.
+     * @return  new_topic The newly created topic.
      */
-    private static void createTopic(String topic_name) throws InterruptedException, ExecutionException
+    private static NewTopic createTopic(String topic_name)
     {
-        ArrayList<NewTopic> topics = new ArrayList<NewTopic>();
         NewTopic new_topic = new NewTopic(topic_name, PARTITIONS, REPLICATION_FACTOR);
         HashMap<String, String> configs = new HashMap<String, String>();
         configs.put(cleanup_policy, policy);
         configs.put(segment_time, time);
         configs.put(dirty2clean, ratio);
-        new_topic.configs(configs);
-        topics.add(new_topic);
-        CreateTopicsResult res = client.createTopics(topics);
-        KafkaFuture<Void> future = res.all();
-        future.get();
+        return new_topic.configs(configs);
     }
 }
