@@ -37,7 +37,7 @@ public class MoveTreeItemAction extends MenuItem
     	{
     		//Prompt for new name
         	String new_path = null;
-        	while (new_path != null && ! AlarmTreeHelper.validateNewPath(new_path, node.getRoot().getValue()))
+        	while (! AlarmTreeHelper.validateNewPath(new_path, node.getRoot().getValue()) )
         	{
     			new_path = AlarmTreeHelper.prompt(getText(), "Enter new name for Component", item.getPathName(), node);
     			if (null == new_path)
@@ -45,7 +45,7 @@ public class MoveTreeItemAction extends MenuItem
         	}
         	
         	System.out.println(new_path);
-        	/*
+        	
     		// Tree view keeps the selection indices, which will point to wrong content
             // after those items have been removed.
             if (node instanceof TreeView<?>)
