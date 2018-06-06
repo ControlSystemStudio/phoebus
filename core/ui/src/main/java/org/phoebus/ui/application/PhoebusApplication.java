@@ -2,7 +2,6 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
@@ -46,12 +45,14 @@ import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
+import org.phoebus.ui.layout.SaveLayoutMenuItem;
 import org.phoebus.ui.monitoring.ResponsivenessMonitor;
 import org.phoebus.ui.statusbar.StatusBar;
 import org.phoebus.ui.welcome.Welcome;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -104,6 +105,12 @@ public class PhoebusApplication extends Application {
 
     /** Menu item to show/hide tabs */
     private CheckMenuItem show_tabs;
+
+    /** Menu item to save layout */
+    private SaveLayoutMenuItem save_layout;
+
+    /** Menu to load past layouts */
+    private final Menu load_layout = new Menu("Load Layout");
 
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
@@ -390,7 +397,7 @@ public class PhoebusApplication extends Application {
 
         // Application Contributions
         final Menu applicationsMenu = new Menu(Messages.Applications);
-        MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
+        final MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
         addMenuNode(applicationsMenu, node);
         menuBar.getMenus().add(applicationsMenu);
 
@@ -398,7 +405,18 @@ public class PhoebusApplication extends Application {
         show_tabs = new CheckMenuItem(Messages.AlwaysShowTabs);
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
-        menuBar.getMenus().add(new Menu(Messages.Window, null, show_tabs));
+
+        save_layout = new SaveLayoutMenuItem(Messages.SaveLayoutAs);
+        save_layout.setOnAction(event -> {
+            save_layout.saveLayout(last_opened_file, default_application);
+            load_layout.getItems().clear();
+            createLoadMenu();
+        });
+
+        createLoadMenu();
+
+        final Menu menu = new Menu(Messages.Window, null, show_tabs, save_layout, load_layout);
+        menuBar.getMenus().add(menu);
 
         // Help
         final MenuItem content = createMenuItem(new OpenHelp());
@@ -406,6 +424,67 @@ public class PhoebusApplication extends Application {
         menuBar.getMenus().add(new Menu(Messages.Help, null, about, content));
 
         return menuBar;
+    }
+
+    /** Create the load past layouts menu */
+    private void createLoadMenu()
+    {
+        // Schedule on background thread. Looking for files so can't be on UI thread.
+        JobManager.schedule("Create Load Menu", (monitor) ->
+        {
+            final List<MenuItem> menu_items = new ArrayList<>();
+            // Get every file in the default directory.
+            final File dir = new File(Locations.user().getAbsolutePath());
+            final File[] files = dir.listFiles();
+            // For every non default memento file create a menu item for the load layout menu.
+            for (final File memento_file : files)
+            {
+                final String filename = memento_file.getName();
+                if (memento_file.isFile() && filename.endsWith(".memento"))
+                {
+                    // Use just the file name w/o ".memento" for the menu entry
+                    final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                    menuItem.setOnAction( (event) ->
+                    {
+                        final List<Stage> stages = DockStage.getDockStages();
+
+                        // Remove the main stage from the list of stages to close.
+                        stages.remove(main_stage);
+
+                        // If any stages failed to close, return.
+                        if (!closeStages(stages))
+                            return;
+
+                        // Go into the main stage and close all of the tabs. If any of them refuse, return.
+                        final Node node = DockStage.getPaneOrSplit(main_stage);
+                        if (! MementoHelper.closePaneOrSplit(node))
+                            return;
+
+                        // Load the new stages from the specified memento file.
+                        try
+                        {
+                            if (memento_file.canRead())
+                            {
+                                logger.log(Level.INFO, "Loading state from " + memento_file);
+                                final MementoTree memento = load(memento_file);
+                                restoreState(memento);
+                            }
+                        }
+                        catch (final Exception ex)
+                        {
+                            logger.log(Level.SEVERE, "Error restoring saved state from " + memento_file, ex);
+                        }
+                    });
+                    // Add the item to the load layout menu.
+                    menu_items.add(menuItem);
+                }
+            }
+            // Sort the menu items alphabetically.
+            menu_items.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+
+            // Update the menu with the menu items on the UI thread.
+            Platform.runLater(()-> load_layout.getItems().addAll(menu_items));
+        });
     }
 
     /** @param entry {@link MenuEntry}
@@ -654,7 +733,7 @@ public class PhoebusApplication extends Application {
             if (memfile.canRead())
             {
                 logger.log(Level.INFO, "Loading state from " + memfile);
-                return XMLMementoTree.read(new FileInputStream(memfile));
+                return load(memfile);
             }
         }
         catch (Exception ex)
@@ -668,16 +747,28 @@ public class PhoebusApplication extends Application {
         return null;
     }
 
+    /** Load the contents of an XML memento file into a MementoTree.
+     *  @param memfile Memento file.
+     *  @return {@link MementoTree}
+     *  @throws Exception on error
+     */
+    private MementoTree load(final File memfile) throws Exception
+    {
+        return XMLMementoTree.read(new FileInputStream(memfile));
+    }
+
     /** Restore stages from memento
      *  @return <code>true</code> if any tab was restored
      */
-    private boolean restoreState(final MementoTree memento) {
+    private boolean restoreState(final MementoTree memento)
+    {
         boolean any = false;
 
         if (memento == null)
             return any;
 
-        try {
+        try
+        {
             // Global settings
             memento.getString(LAST_OPENED_FILE).ifPresent(path -> last_opened_file = new File(path));
             memento.getString(DEFAULT_APPLICATION).ifPresent(app -> default_application = app);
@@ -688,7 +779,8 @@ public class PhoebusApplication extends Application {
             });
 
             // Settings for each stage
-            for (MementoTree stage_memento : memento.getChildren()) {
+            for (MementoTree stage_memento : memento.getChildren())
+            {
                 final String id = stage_memento.getName();
                 Stage stage = DockStage.getDockStageByID(id);
                 if (stage == null) {
@@ -701,37 +793,11 @@ public class PhoebusApplication extends Application {
 
                 any |= MementoHelper.restoreStage(stage_memento, stage);
             }
-        } catch (Throwable ex) {
+        }
+        catch (Throwable ex) {
             logger.log(Level.WARNING, "Error restoring saved state", ex);
         }
         return any;
-    }
-
-    /** Save state of all stages to memento */
-    private void saveState() {
-        final File memfile = XMLMementoTree.getDefaultFile();
-        logger.log(Level.INFO, "Persisting state to " + memfile);
-        try {
-            final XMLMementoTree memento = XMLMementoTree.create();
-
-            // Persist global settings
-            if (last_opened_file != null)
-                memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
-            if (default_application != null)
-                memento.setString(DEFAULT_APPLICATION, default_application);
-            memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
-
-            // Persist each stage (window) and its tabs
-            for (Stage stage : DockStage.getDockStages())
-                MementoHelper.saveStage(memento, stage);
-
-            // Write the memento file
-            if (!memfile.getParentFile().exists())
-                memfile.getParentFile().mkdirs();
-            memento.write(new FileOutputStream(memfile));
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Error writing saved state to " + memfile, ex);
-        }
     }
 
     /**
@@ -787,9 +853,10 @@ public class PhoebusApplication extends Application {
      *         stage didn't want to close.
      */
     private boolean closeStages(final List<Stage> stages_to_check) {
+        final File memfile = XMLMementoTree.getDefaultFile();
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
-        saveState();
+        MementoHelper.saveState(memfile, last_opened_file, default_application);
 
         for (Stage stage : stages_to_check) {
             // Could close via event, but then still need to check if the stage remained
