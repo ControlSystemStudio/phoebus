@@ -54,6 +54,7 @@ public class FileBasedAuthorization implements Authorization
         }
     }
     
+    // TODO REMOVE
     // TEST ONLY
     public void setUser(final String user_name)
     {
@@ -70,6 +71,7 @@ public class FileBasedAuthorization implements Authorization
         }
     }
     
+    // TODO REMOVE
     // TEST ONLY
     public String getUser()
     {
