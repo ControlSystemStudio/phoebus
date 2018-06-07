@@ -79,14 +79,20 @@ public class AlarmUI
 
     public static boolean mayAcknowledge()
     {
-        return authorizationService.hasAuthorization("alarm_ack");
-        //return true;
+        if (initialized)
+        {
+            return authorizationService.hasAuthorization("alarm_ack");
+        } 
+        return false;
     }
 
     public static boolean mayConfigure()
     {
-        return authorizationService.hasAuthorization("alarm_config");
-        //return true;
+        if (initialized)
+        {
+            return authorizationService.hasAuthorization("alarm_config");
+        } 
+        return false;
     }
 
     public static void initializeAuthorizationService()
