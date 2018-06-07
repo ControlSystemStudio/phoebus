@@ -66,6 +66,9 @@ public class AlarmSystem
     /** Authorization file */
     public static final String authorization_file;
     
+    /** Annunciator threshold */
+    // public static final int annunciator_threshold;
+    
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
@@ -80,6 +83,7 @@ public class AlarmSystem
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
         command_directory = new File(replaceProperties(prefs.get("command_directory")));
         authorization_file = replaceProperties(prefs.get("authorization_file"));
+        //annunciator_threshold = prefs.getInt("annunciator_threshold");
     }
 
     /** @param value Value that might contain "$(prop)"
