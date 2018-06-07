@@ -45,7 +45,6 @@ import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
-import org.phoebus.ui.layout.SaveLayoutMenuItem;
 import org.phoebus.ui.monitoring.ResponsivenessMonitor;
 import org.phoebus.ui.statusbar.StatusBar;
 import org.phoebus.ui.welcome.Welcome;
@@ -409,13 +408,7 @@ public class PhoebusApplication extends Application {
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
 
-        save_layout = new SaveLayoutMenuItem(Messages.SaveLayoutAs);
-        save_layout.setOnAction(event -> {
-            save_layout.saveLayout(last_opened_file, default_application);
-            load_layout.getItems().clear();
-            createLoadLayoutsMenu();
-        });
-
+        save_layout = new SaveLayoutMenuItem(this);
         createLoadLayoutsMenu();
 
         final Menu menu = new Menu(Messages.Window, null, show_tabs, save_layout, load_layout);
@@ -430,7 +423,7 @@ public class PhoebusApplication extends Application {
     }
 
     /** Create the load past layouts menu */
-    private void createLoadLayoutsMenu()
+    void createLoadLayoutsMenu()
     {
         // Schedule on background thread. Looking for files so can't be on UI thread.
         JobManager.schedule("Create Load Layouts Menu", (monitor) ->
