@@ -75,7 +75,7 @@ public class AlarmUI
     }
 
     /**
-     * <p> Verify acknowledge action through authorization service.
+     * Verify acknowledge action through authorization service.
      * @return <code>true</code> if the user has authorization to acknowledge.
      */
     public static boolean mayAcknowledge()
@@ -84,7 +84,7 @@ public class AlarmUI
     }
 
     /**
-     * <p> Verify configure action through authorization service.
+     * Verify configure action through authorization service.
      * @return <code>true</code> if the user has authorization to configure.
      */
     public static boolean mayConfigure()

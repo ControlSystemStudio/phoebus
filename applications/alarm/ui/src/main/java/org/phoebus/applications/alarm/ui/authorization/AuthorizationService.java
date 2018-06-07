@@ -18,7 +18,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 
 /**
- * <p> Authorization Service
+ * Authorization Service
  * @author Evan Smith
  *
  */
