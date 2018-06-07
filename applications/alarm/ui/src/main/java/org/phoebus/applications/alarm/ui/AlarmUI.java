@@ -8,6 +8,8 @@
 package org.phoebus.applications.alarm.ui;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.ui.authorization.AuthorizationService;
+import org.phoebus.applications.alarm.ui.authorization.FileBasedAuthorizationService;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -50,7 +52,9 @@ public class AlarmUI
     };
 
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
-
+    
+    private static final AuthorizationService authorizationService = new FileBasedAuthorizationService();
+    
     /** @param severity {@link SeverityLevel}
      *  @return Color
      */
@@ -70,13 +74,11 @@ public class AlarmUI
 
     public static boolean mayAcknowledge()
     {
-        // TODO Check if current user is authorized to ack/un-ack alarms
-        return true;
+        return authorizationService.hasAuthorization("alarm_ack");
     }
 
     public static boolean mayConfigure()
     {
-        // TODO Check if current user is authorized to change configuration
-        return true;
+        return authorizationService.hasAuthorization("alarm_config");
     }
 }
