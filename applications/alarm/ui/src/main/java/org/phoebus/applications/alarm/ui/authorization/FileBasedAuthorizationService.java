@@ -1,5 +1,6 @@
 package org.phoebus.applications.alarm.ui.authorization;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -15,8 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import org.phoebus.applications.alarm.AlarmSystem;
-
 public class FileBasedAuthorizationService implements AuthorizationService
 {
     private final  String USER_PROPERTY = "user.name";
@@ -24,11 +23,13 @@ public class FileBasedAuthorizationService implements AuthorizationService
     
     private  String user_name;
     private Authorizations user_authorizations = null;
+    private final File auth_config;
     
-    public FileBasedAuthorizationService()
+    public FileBasedAuthorizationService(File config_file)
     {
         logger = Logger.getLogger(getClass().getName());
         user_name = System.getProperty(USER_PROPERTY);
+        auth_config = config_file;
         try
         {
             user_authorizations = getAuthorizations();
@@ -57,11 +58,11 @@ public class FileBasedAuthorizationService implements AuthorizationService
         return user_name;
     }
         
-    private static InputStream getInputStream()
+    private InputStream getInputStream()
     {
         try
         {
-            return new FileInputStream(AlarmSystem.authorization_file);
+            return new FileInputStream(auth_config);
         }
         catch (Exception e)
         {
@@ -102,7 +103,7 @@ public class FileBasedAuthorizationService implements AuthorizationService
     private Map<String, List<Pattern>> readConfigurationFile() throws Exception
     {
         final InputStream config_stream = getInputStream();
-        
+
         final Properties settings = new Properties();
         settings.load(config_stream);
 

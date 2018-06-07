@@ -4,6 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import org.junit.Test;
 import org.phoebus.applications.alarm.ui.authorization.FileBasedAuthorizationService;
 
@@ -19,11 +23,23 @@ public class AuthorizationServiceTest
             # Full authorization.
             FULL = 1es
      */
+    private static String config_str = "alarm_ack=.*\n"
+                                       + "alarm_config = 3tl, 8hm, 8w4, 9pj, ac7, amp, c2y, cmp, fd4, fg2, gmc, ky9, kasemir, mkp, nnl, txg, udn, xgc\n"
+                                       + "FULL = 1es\n";
     @SuppressWarnings("unused")
     @Test
-    public void testAuthorizationService()
+    public void testAuthorizationService() throws IOException
     {
-        FileBasedAuthorizationService as = new FileBasedAuthorizationService();
+        // Create a temp file that will delete on program exit.
+        File config = File.createTempFile("AlarmAuthTest", "");
+        config.deleteOnExit();
+
+        // Write config to temp file.
+        FileWriter writer = new FileWriter(config);
+        writer.write(config_str);
+        writer.close();
+
+        FileBasedAuthorizationService as = new FileBasedAuthorizationService(config);
         
         // Acknowledge only.
         as.setUser("blah");
@@ -31,6 +47,7 @@ public class AuthorizationServiceTest
         assertTrue(as.hasAuthorization("alarm_ack"));
         assertFalse(as.hasAuthorization("alarm_config"));
         
+        // Acknowledge and Configure
         as.setUser("3tl");
         assertEquals("3tl", as.getUser());
 
