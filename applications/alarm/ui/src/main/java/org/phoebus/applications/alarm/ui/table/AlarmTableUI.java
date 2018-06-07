@@ -178,8 +178,6 @@ public class AlarmTableUI extends BorderPane
         
         setTop(toolbar);
         setCenter(split);
-        
-        AlarmUI.initializeAuthorizationService();
     }
 
     private ToolBar createToolbar()
