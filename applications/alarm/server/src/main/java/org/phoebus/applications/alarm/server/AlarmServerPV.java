@@ -74,12 +74,20 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
      */
     private volatile Filter filter = null;
 
-    public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name)
+    public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name, final ClientState initial)
     {
         super(parent, name, Collections.emptyList());
         description = name;
 
-        final AlarmState initial = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
+        final AlarmState current_state;
+        final AlarmState alarm_state;
+        if (initial == null)
+            current_state = alarm_state = new AlarmState(SeverityLevel.OK, "", "", Instant.now());
+        else
+        {
+            current_state = new AlarmState(initial.current_severity, initial.current_message, "?", initial.time);
+            alarm_state = new AlarmState(initial.severity, initial.message, initial.value, initial.time);
+        }
         final AlarmLogicListener listener = new AlarmLogicListener()
         {
             @Override
@@ -103,7 +111,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                 // model.sentAnnunciationMessage(...)
             }
         };
-        logic = new AlarmLogic(listener, true, true, 0, 0, initial, initial, 0);
+        logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);
     }
 
     @Override
