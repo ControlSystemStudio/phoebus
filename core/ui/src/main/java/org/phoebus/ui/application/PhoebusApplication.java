@@ -123,6 +123,9 @@ public class PhoebusApplication extends Application {
     /** Application last picked when prompted for app to use */
     private String default_application;
 
+    /** 'Main' stage which holds menu bar.
+     *  <p>Closing this one exits the application.
+     */
     private Stage main_stage;
 
     private static final WeakReference<DockItemWithInput> NO_ACTIVE_ITEM_WITH_INPUT = new WeakReference<>(null);
@@ -194,7 +197,7 @@ public class PhoebusApplication extends Application {
 
         // Load saved state (slow file access) off UI thread, allocating 30% to that
         monitor.beginTask("Load saved state");
-        final MementoTree memento = loadMemento(new SubJobMonitor(monitor, 30));
+        final MementoTree memento = loadDefaultMemento(new SubJobMonitor(monitor, 30));
 
         // Back to UI thread
         Platform.runLater(() ->
@@ -410,10 +413,10 @@ public class PhoebusApplication extends Application {
         save_layout.setOnAction(event -> {
             save_layout.saveLayout(last_opened_file, default_application);
             load_layout.getItems().clear();
-            createLoadMenu();
+            createLoadLayoutsMenu();
         });
 
-        createLoadMenu();
+        createLoadLayoutsMenu();
 
         final Menu menu = new Menu(Messages.Window, null, show_tabs, save_layout, load_layout);
         menuBar.getMenus().add(menu);
@@ -427,10 +430,10 @@ public class PhoebusApplication extends Application {
     }
 
     /** Create the load past layouts menu */
-    private void createLoadMenu()
+    private void createLoadLayoutsMenu()
     {
         // Schedule on background thread. Looking for files so can't be on UI thread.
-        JobManager.schedule("Create Load Menu", (monitor) ->
+        JobManager.schedule("Create Load Layouts Menu", (monitor) ->
         {
             final List<MenuItem> menu_items = new ArrayList<>();
             // Get every file in the default directory.
@@ -444,37 +447,7 @@ public class PhoebusApplication extends Application {
                 {
                     // Use just the file name w/o ".memento" for the menu entry
                     final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
-                    menuItem.setOnAction( (event) ->
-                    {
-                        final List<Stage> stages = DockStage.getDockStages();
-
-                        // Remove the main stage from the list of stages to close.
-                        stages.remove(main_stage);
-
-                        // If any stages failed to close, return.
-                        if (!closeStages(stages))
-                            return;
-
-                        // Go into the main stage and close all of the tabs. If any of them refuse, return.
-                        final Node node = DockStage.getPaneOrSplit(main_stage);
-                        if (! MementoHelper.closePaneOrSplit(node))
-                            return;
-
-                        // Load the new stages from the specified memento file.
-                        try
-                        {
-                            if (memento_file.canRead())
-                            {
-                                logger.log(Level.INFO, "Loading state from " + memento_file);
-                                final MementoTree memento = load(memento_file);
-                                restoreState(memento);
-                            }
-                        }
-                        catch (final Exception ex)
-                        {
-                            logger.log(Level.SEVERE, "Error restoring saved state from " + memento_file, ex);
-                        }
-                    });
+                    menuItem.setOnAction(event -> startLayoutReplacement(memento_file));
                     // Add the item to the load layout menu.
                     menu_items.add(menuItem);
                 }
@@ -483,7 +456,7 @@ public class PhoebusApplication extends Application {
             menu_items.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
 
             // Update the menu with the menu items on the UI thread.
-            Platform.runLater(()-> load_layout.getItems().addAll(menu_items));
+            Platform.runLater(()-> load_layout.getItems().setAll(menu_items));
         });
     }
 
@@ -722,9 +695,47 @@ public class PhoebusApplication extends Application {
         ApplicationService.createInstance(appName);
     }
 
-    /** @param monitor
-     *  @return Memento for previously persisted state or <code>null</code> */
-    private MementoTree loadMemento(final JobMonitor monitor)
+    /** Initiate replacing current layout with a different one
+     *  @param memento_file Memento for the desired layout
+     */
+    private void startLayoutReplacement(final File memento_file)
+    {
+        JobManager.schedule(memento_file.getName(), monitor ->
+        {
+            // Load memento in background
+            logger.log(Level.INFO, "Loading state from " + memento_file);
+            final MementoTree memento = loadMemento(memento_file);
+
+            // On success, switch layout on UI thread
+            Platform.runLater(() -> replaceLayout(memento));
+        });
+    }
+
+    /** @param memento Memento for new layout that should replace current one */
+    private void replaceLayout(final MementoTree memento)
+    {
+        final List<Stage> stages = DockStage.getDockStages();
+
+        // Remove the main stage from the list of stages to close.
+        stages.remove(main_stage);
+
+        // If any stages failed to close, return.
+        if (!closeStages(stages))
+            return;
+
+        // Go into the main stage and close all of the tabs. If any of them refuse, return.
+        final Node node = DockStage.getPaneOrSplit(main_stage);
+        if (! MementoHelper.closePaneOrSplit(node))
+            return;
+
+        // Load the specified memento file.
+        restoreState(memento);
+    }
+
+    /** @param monitor {@link JobMonitor}
+     *  @return Memento for previously persisted state or <code>null</code> if none found
+     */
+    private MementoTree loadDefaultMemento(final JobMonitor monitor)
     {
         monitor.beginTask("Load persisted state", 1);
         final File memfile = XMLMementoTree.getDefaultFile();
@@ -733,7 +744,7 @@ public class PhoebusApplication extends Application {
             if (memfile.canRead())
             {
                 logger.log(Level.INFO, "Loading state from " + memfile);
-                return load(memfile);
+                return loadMemento(memfile);
             }
         }
         catch (Exception ex)
@@ -752,7 +763,7 @@ public class PhoebusApplication extends Application {
      *  @return {@link MementoTree}
      *  @throws Exception on error
      */
-    private MementoTree load(final File memfile) throws Exception
+    private MementoTree loadMemento(final File memfile) throws Exception
     {
         return XMLMementoTree.read(new FileInputStream(memfile));
     }
@@ -800,26 +811,24 @@ public class PhoebusApplication extends Application {
         return any;
     }
 
-    /**
-     * Close the main stage
+    /** Close the main stage
      *
-     * <p>
-     * If there are more stages open, warn user that they will be closed.
+     *  <p>If there are more stages open, warn user that they will be closed.
      *
-     * <p>
-     * When called from the onCloseRequested handler of the primary stage, we must
-     * _not_ send another close request to it because that would create an infinite
-     * loop.
+     *  <p>When called from the onCloseRequested handler of the primary stage, we must
+     *  _not_ send another close request to it because that would create an infinite
+     *  loop.
      *
-     * @param main_stage_already_closing
-     *            Primary stage when called from its onCloseRequested handler, else
-     *            <code>null</code>
-     * @return
+     *  @param main_stage_already_closing
+     *            Primary stage when called from its onCloseRequested handler, else <code>null</code>
+     *  @return <code>true</code> on success, <code>false</code> when some panel doesn't want to close
      */
-    private boolean closeMainStage(final Stage main_stage_already_closing) {
+    private boolean closeMainStage(final Stage main_stage_already_closing)
+    {
         final List<Stage> stages = DockStage.getDockStages();
 
-        if (stages.size() > 1) {
+        if (stages.size() > 1)
+        {
             final Alert dialog = new Alert(AlertType.CONFIRMATION);
             dialog.setTitle("Exit Phoebus");
             dialog.setHeaderText("Close main window");
@@ -833,6 +842,11 @@ public class PhoebusApplication extends Application {
         // skip that one when closing all stages
         if (main_stage_already_closing != null)
             stages.remove(main_stage_already_closing);
+
+        // Save current state, _before_ tabs are closed and thus
+        // there's nothing left to save
+        final File memfile = XMLMementoTree.getDefaultFile();
+        MementoHelper.saveState(memfile, last_opened_file, default_application);
 
         if (!closeStages(stages))
             return false;
@@ -852,15 +866,11 @@ public class PhoebusApplication extends Application {
      * @return <code>true</code> if all stages closed, <code>false</code> if one
      *         stage didn't want to close.
      */
-    private boolean closeStages(final List<Stage> stages_to_check) {
-        final File memfile = XMLMementoTree.getDefaultFile();
-        // Save current state, _before_ tabs are closed and thus
-        // there's nothing left to save
-        MementoHelper.saveState(memfile, last_opened_file, default_application);
-
-        for (Stage stage : stages_to_check) {
-            // Could close via event, but then still need to check if the stage remained
-            // open
+    private boolean closeStages(final List<Stage> stages_to_check)
+    {
+        for (Stage stage : stages_to_check)
+        {
+            // Could close via event, but then still need to check if the stage remained open
             // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
             if (DockStage.isStageOkToClose(stage))
                 stage.close();
