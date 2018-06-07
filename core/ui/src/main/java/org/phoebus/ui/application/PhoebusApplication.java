@@ -716,17 +716,25 @@ public class PhoebusApplication extends Application {
     {
         final List<Stage> stages = DockStage.getDockStages();
 
+        // To switch layout, 'fixed' panes must be cleared
+        for (Stage stage : stages)
+            DockStage.clearFixedPanes(stage);
+
         // Remove the main stage from the list of stages to close.
         stages.remove(main_stage);
 
         // If any stages failed to close, return.
-        if (!closeStages(stages, true))
+        if (!closeStages(stages))
             return;
 
         // Go into the main stage and close all of the tabs. If any of them refuse, return.
         final Node node = DockStage.getPaneOrSplit(main_stage);
-        if (! MementoHelper.closePaneOrSplit(node, true))
+        if (! MementoHelper.closePaneOrSplit(node))
             return;
+
+        // System.out.println("Remaining stages:");
+        // for (Stage stage : DockStage.getDockStages())
+        //    DockStage.dump(stage);
 
         // Load the specified memento file.
         restoreState(memento);
@@ -848,29 +856,28 @@ public class PhoebusApplication extends Application {
         final File memfile = XMLMementoTree.getDefaultFile();
         MementoHelper.saveState(memfile, last_opened_file, default_application);
 
-        if (!closeStages(stages, false))
+        if (!closeStages(stages))
             return false;
 
         // Once all other stages are closed,
         // potentially check the main stage.
-        if (main_stage_already_closing != null && !DockStage.isStageOkToClose(main_stage_already_closing, false))
+        if (main_stage_already_closing != null && !DockStage.isStageOkToClose(main_stage_already_closing))
             return false;
         return true;
     }
 
     /** Close several stages
      *  @param stages_to_check  Stages that will be asked to close
-     *  @param close_fixed Close even 'fixed' {@link DockPane}s?
      *  @return <code>true</code> if all stages closed,
      *          <code>false</code> if one stage didn't want to close.
      */
-    private boolean closeStages(final List<Stage> stages_to_check, final boolean close_fixed)
+    private boolean closeStages(final List<Stage> stages_to_check)
     {
         for (Stage stage : stages_to_check)
         {
             // Could close via event, but then still need to check if the stage remained open
             // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
-            if (DockStage.isStageOkToClose(stage, close_fixed))
+            if (DockStage.isStageOkToClose(stage))
                 stage.close();
             else
                 return false;

@@ -199,7 +199,13 @@ public class MementoHelper
             // is rendered on the next UI tick, resulting in a NullPointerException
             // deep inside JFX calling TabPane$TabPaneSelectionModel.select
             // By deferring to a later UI tick, the tab selection succeeds
-            content.getNumber(SELECTED).ifPresent(index -> Platform.runLater(() -> pane.getSelectionModel().select(index.intValue())));
+            content.getNumber(SELECTED).ifPresent(index -> Platform.runLater(() ->
+            {
+                // .. unless a previously selected tab could not be restored,
+                // so check once more
+                if (index.intValue() < pane.getTabs().size())
+                    pane.getSelectionModel().select(index.intValue());
+            }));
 
             // If pane is 'fixed', mark as such _after_ all items have been restored
             // to prevent changes from now on
@@ -311,17 +317,14 @@ public class MementoHelper
 
     /** Close a DockPane or SplitDock and all tabs held within.
      *  @param node Node, either a dock item or split pane, that will be closed.
-     *  @param close_fixed Close even 'fixed' {@link DockPane}s?
      *  @return boolean <code>true</code> if all the tabs close successfully.
      */
-    public static boolean closePaneOrSplit(final Node node, final boolean close_fixed)
+    public static boolean closePaneOrSplit(final Node node)
     {
         if (node instanceof DockPane)
         {
             // Close every dock item in the dock pane.
             final DockPane pane = (DockPane) node;
-            if (pane.isFixed() && close_fixed)
-                pane.setFixed(false);
             final List<DockItem> items = pane.getDockItems();
             for (final DockItem item : items)
             {
@@ -337,7 +340,7 @@ public class MementoHelper
             final List<Node> items = new ArrayList<>(split.getItems());
             // If a node fails to close, return false.
             for (Node item : items)
-                if (! closePaneOrSplit(item, close_fixed))
+                if (! closePaneOrSplit(item))
                     return false;
         }
         else
