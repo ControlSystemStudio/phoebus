@@ -37,6 +37,7 @@ public class AlarmInfoAction extends MenuItem
                 .append(", that is ").append(item.getState().getDuration()).append(" HH:MM:SS");
 
             final MultiLineInputDialog dialog = new MultiLineInputDialog(node, info.toString(), false);
+            dialog.setTextWidth(800);
             dialog.showAndWait();
         });
     }

@@ -75,6 +75,12 @@ public class MultiLineInputDialog extends Dialog<String>
         text.setPrefHeight(pixels);
     }
 
+    /** @param pixels Suggested width of text in pixels */
+    public void setTextWidth(final double pixels)
+    {
+        text.setPrefWidth(pixels);
+    }
+
     // TODO Catch/consume 'escape'
     // If ESC key is pressed while editing the text,
     // the dialog closes, not returning a value.

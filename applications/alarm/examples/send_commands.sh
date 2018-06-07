@@ -14,6 +14,7 @@ echo "dump!/some/path"
 echo "pvs!"
 echo "pvs!/some/path"
 echo "pvs!disconnected"
+echo "pv!name_of_PV"
 echo "restart!"
 echo "shutdown!"
 

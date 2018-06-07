@@ -30,6 +30,9 @@ public class AlarmSystem
     /** Suffix for the topic that clients use to send commands to alarm server */
     public static final String COMMAND_TOPIC_SUFFIX = "Command";
 
+    /** Suffix for the topic that server uses to send annunciations */
+    public static final String TALK_TOPIC_SUFFIX = "Talk";
+
     /** Kafka Server host:port */
     public static final String server;
 

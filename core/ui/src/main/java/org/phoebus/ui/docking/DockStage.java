@@ -154,11 +154,13 @@ public class DockStage
      */
     public static boolean isStageOkToClose(final Stage stage)
     {
-        for (DockPane tab_pane : getDockPanes(stage))
-            for (DockItem item : tab_pane.getDockItems())
+        for (DockPane pane : getDockPanes(stage))
+        {
+            for (DockItem item : pane.getDockItems())
                 if (! item.close())
                     // Abort the close request
                     return false;
+        }
 
         // All tabs either saved or don't care to save,
         // so this stage will be closed
@@ -235,5 +237,57 @@ public class DockStage
                             return item;
                     }
         return null;
+    }
+
+    /** Locate any 'fixed' {@link DockPane}s and un-fix them
+     *  @param stage Stage where to clear 'fixed' panes
+     */
+    public static void clearFixedPanes(final Stage stage)
+    {
+        clearFixedPanes(getPaneOrSplit(stage));
+    }
+
+    private static void clearFixedPanes(final Node pane_or_split)
+    {
+        if (pane_or_split instanceof DockPane)
+        {
+            final DockPane pane = (DockPane) pane_or_split;
+            if (pane.isFixed())
+                pane.setFixed(false);
+        }
+        else if (pane_or_split instanceof SplitDock)
+        {
+            final SplitDock split = (SplitDock) pane_or_split;
+            for (Node item : split.getItems())
+                clearFixedPanes(item);
+        }
+    }
+
+    /** @param stage Stage for which to dump basic panel hierarchy */
+    public static void dump(final Stage stage)
+    {
+        final Node node = getPaneOrSplit(stage);
+        System.out.println("Stage " + stage.getTitle());
+        dump(node, 0);
+    }
+
+    private static void dump(final Node node, final int level)
+    {
+        for (int i=0; i<level; ++i)
+            System.out.print("  ");
+        if (node instanceof DockPane)
+        {
+            final DockPane pane = (DockPane) node;
+            System.out.println(pane);
+        }
+        else if (node instanceof SplitDock)
+        {
+            final SplitDock split = (SplitDock) node;
+            System.out.println("Split");
+            dump(split.getItems().get(0), level + 1);
+            dump(split.getItems().get(1), level + 1);
+        }
+        else
+            System.out.println(node);
     }
 }

@@ -216,6 +216,7 @@ public class Messages
     public static String RequestTypeTT;
     public static String RequestTypeWarning;
     public static String RequestTypeWarningDetail;
+    public static String SampleView_Count;
     public static String SampleView_Item;
     public static String SampleView_MinMaxValueTT;
     public static String SampleView_NoPlot;

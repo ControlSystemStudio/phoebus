@@ -13,11 +13,12 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
-import org.phoebus.applications.alarm.AlarmConfigTool;
+import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
@@ -44,7 +45,14 @@ public class AlarmServerMain implements ServerModelListener
             boolean run = true;
             while (run)
             {
-                model = new ServerModel(server, config, this);
+                logger.info("Fetching past alarm states...");
+                final AlarmStateInitializer init = new AlarmStateInitializer(server, config);
+                if (! init.awaitCompleteStates())
+                    logger.log(Level.WARNING, "Keep receiving state updates, may have incomplete initial set of alarm states");
+                final ConcurrentHashMap<String, ClientState> initial_states = init.shutdown();
+
+                logger.info("Start handling alarms");
+                model = new ServerModel(server, config, initial_states, this);
                 model.start();
 
                 // Run until, via command topic, asked to
@@ -78,6 +86,8 @@ public class AlarmServerMain implements ServerModelListener
      *      Prints all disconnected PVs
      *  <li>pvs /some/path -
      *      Prints PVs in subtree
+     *  <li>pv name_of_PV -
+     *      Prints that PV
      *  <li>restart -
      *      Re-load configuration
      *  <li>shutdown -
@@ -86,9 +96,9 @@ public class AlarmServerMain implements ServerModelListener
      *
      *  TODO Alarm server console?
      *  At this time, the alarm server has no console/shell/terminal interface.
-     *  It can only receive alarms from a "..Command" topic,
-     *  and then prints the result on the console.
-     *  Ideally, command and reply could be seen in the same terminal.
+     *  It can only receive commands from a "..Command" topic,
+     *  and then print the result on the console.
+     *  Ideally, command and reply could be seen in a terminal.
      *
      *  @param command Command received from the client
      *  @param detail Detail for the command, usually path to alarm tree node
@@ -135,6 +145,13 @@ public class AlarmServerMain implements ServerModelListener
                     throw new Exception("Unknown alarm tree node '" + detail + "'");
                 System.out.println("PVs for " + node.getPathName() + ":");
                 listPVs(node, detail != null && detail.startsWith("dis"));
+            }
+            else if (command.equalsIgnoreCase("pv"))
+            {
+                final AlarmServerPV pv = model.findPV(detail);
+                if (pv == null)
+                    throw new Exception("Unknown PV '" + detail + "'");
+                listPVs(pv, false);
             }
             else if (command.equalsIgnoreCase("shutdown"))
                 restart.offer(false);
@@ -195,6 +212,7 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println("-help                    - This text");
         System.out.println("-server   localhost:9092 - Kafka server");
         System.out.println("-config   Accelerator    - Alarm configuration");
+        System.out.println("-create_topics           - Create Kafka topics for alarm configuration?");
         System.out.println("-settings settings.xml   - Import preferences (PV connectivity) from property format file");
         System.out.println("-export   config.xml     - Export alarm configuration to file");
         System.out.println("-import   config.xml     - Import alarm configruation from file");
@@ -250,6 +268,12 @@ public class AlarmServerMain implements ServerModelListener
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-create_topics"))
+                {
+                    iter.remove();
+                    logger.info("Discovering and creating any missing topics at " + server);
+                    CreateTopics.discoverAndCreateTopics(server, config);
+                }
                 else if (cmd.equals("-import"))
                 {
                 	if (! iter.hasNext())
@@ -283,6 +307,7 @@ public class AlarmServerMain implements ServerModelListener
             ex.printStackTrace();
             return;
         }
+
 
         new AlarmServerMain(server, config);
     }

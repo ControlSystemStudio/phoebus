@@ -12,6 +12,7 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -191,13 +192,20 @@ public class MementoHelper
         {   // Fill given pane with tabs
             for (MementoTree item_memento : content.getChildren())
                 any |= restoreDockItem(item_memento, pane);
+
             // Maybe select a specific tab
             // If the new tab is inside a SplitDock,
             // it won't actually exist until the content of the SplitDock's SplitPane
             // is rendered on the next UI tick, resulting in a NullPointerException
             // deep inside JFX calling TabPane$TabPaneSelectionModel.select
             // By deferring to a later UI tick, the tab selection succeeds
-            content.getNumber(SELECTED).ifPresent(index -> Platform.runLater(() -> pane.getSelectionModel().select(index.intValue())));
+            content.getNumber(SELECTED).ifPresent(index -> Platform.runLater(() ->
+            {
+                // .. unless a previously selected tab could not be restored,
+                // so check once more
+                if (index.intValue() < pane.getTabs().size())
+                    pane.getSelectionModel().select(index.intValue());
+            }));
 
             // If pane is 'fixed', mark as such _after_ all items have been restored
             // to prevent changes from now on
@@ -311,7 +319,7 @@ public class MementoHelper
      *  @param node Node, either a dock item or split pane, that will be closed.
      *  @return boolean <code>true</code> if all the tabs close successfully.
      */
-    public static boolean closePaneOrSplit(Node node)
+    public static boolean closePaneOrSplit(final Node node)
     {
         if (node instanceof DockPane)
         {
@@ -328,21 +336,12 @@ public class MementoHelper
         else if (node instanceof SplitDock)
         {
             final SplitDock split = (SplitDock) node;
-
-            // We are altering the size of the list we are iterating over.
-            // Cannot rely on ...getItems.size() to provide fixed value.
-            // Cannot rely on foreach construct or for loop iterators.
-            // This is because the for any size greater than 1, list will eventually
-            // shrink in size from 2 to 1, but the iterator will point to the end of
-            // the list instead of the last element.
-            // Therefore, read size once and request the first node a fixed number of times.
-            final int size = split.getItems().size();
-            for (int i = 0; i < size; i++)
-            {
-                // If the node fails to close, return false.
-                if (! closePaneOrSplit(split.getItems().get(0)))
+            // We are altering the size of the list we are iterating over...
+            final List<Node> items = new ArrayList<>(split.getItems());
+            // If a node fails to close, return false.
+            for (Node item : items)
+                if (! closePaneOrSplit(item))
                     return false;
-            }
         }
         else
         {
