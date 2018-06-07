@@ -50,6 +50,11 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/undefined.png")
     };
 
+    static
+    {
+        AuthorizationService.init();
+    }
+    
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
     
     /** @param severity {@link SeverityLevel}
@@ -69,15 +74,21 @@ public class AlarmUI
         return severity_icons[severity.ordinal()];
     }
 
+    /**
+     * <p> Verify acknowledge action through authorization service.
+     * @return <code>true</code> if the user has authorization to acknowledge.
+     */
     public static boolean mayAcknowledge()
     {
         return AuthorizationService.hasAuthorization("alarm_ack");
     }
 
+    /**
+     * <p> Verify configure action through authorization service.
+     * @return <code>true</code> if the user has authorization to configure.
+     */
     public static boolean mayConfigure()
     {
-        
         return AuthorizationService.hasAuthorization("alarm_config");
-        
     }
 }

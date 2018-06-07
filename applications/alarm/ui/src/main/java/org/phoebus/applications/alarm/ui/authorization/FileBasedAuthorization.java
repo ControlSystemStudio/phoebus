@@ -40,6 +40,7 @@ public class FileBasedAuthorization implements Authorization
         }
     }
     
+    // TEST ONLY
     public void setUser(final String user_name)
     {
         this.user_name = user_name;
@@ -53,6 +54,7 @@ public class FileBasedAuthorization implements Authorization
         }
     }
     
+    // TEST ONLY
     public String getUser()
     {
         return user_name;
@@ -85,6 +87,11 @@ public class FileBasedAuthorization implements Authorization
         return new Authorizations(authorizations);
     }
 
+    /**
+     * <p> Returns true if the user's user name matches in the list of users for this action.
+     * @param patterns
+     * @return
+     */
     private boolean userMatchesPattern(List<Pattern> patterns)
     {
         for (Pattern pattern : patterns)
