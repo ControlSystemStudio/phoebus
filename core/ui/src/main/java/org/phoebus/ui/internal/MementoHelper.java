@@ -9,11 +9,14 @@ package org.phoebus.ui.internal;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
+import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -49,6 +52,11 @@ public class MementoHelper
     private static final String X = "x";
     private static final String Y = "y";
 
+    /** Memento keys */
+    private static final String LAST_OPENED_FILE = "last_opened_file",
+                                DEFAULT_APPLICATION = "default_application",
+                                SHOW_TABS = "show_tabs";
+
     /** Save state of Stage to memento
      *  @param memento
      *  @param stage
@@ -69,6 +77,14 @@ public class MementoHelper
 
         final Node node = DockStage.getPaneOrSplit(stage);
         savePaneOrSplit(stage_memento, node);
+    }
+
+    /** Persist each stage (window) and its tabs
+     * @param memento The memento tree to which each stage will be saved.*/
+    public static void saveStages(final MementoTree memento)
+    {
+        for (final Stage stage : DockStage.getDockStages())
+           saveStage(memento, stage);
     }
 
     /** @param memento
@@ -256,5 +272,84 @@ public class MementoHelper
             instance = app.create();
 
         instance.restore(item_memento);
+    }
+
+    /** Write all the current stages to a memento file.
+     *  @param memento_file The file the memento xml is stored in.
+     *  @param last_opened_file The last opened file.
+     *  @param default_application The default application name.
+     */
+    public static void saveState(final File memento_file, final File last_opened_file, final String default_application)
+    {
+        logger.log(Level.INFO, "Persisting state to " + memento_file);
+        try
+        {
+            final XMLMementoTree memento = XMLMementoTree.create();
+
+            // Persist global settings
+            if (last_opened_file != null)
+                memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
+            if (default_application != null)
+                memento.setString(DEFAULT_APPLICATION, default_application);
+            memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
+
+            // Persist each stage (window) and its tabs
+            saveStages(memento);
+
+            // Write the memento file
+            if (!memento_file.getParentFile().exists())
+                memento_file.getParentFile().mkdirs();
+            memento.write(new FileOutputStream(memento_file));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Error writing saved state to " + memento_file, ex);
+        }
+    }
+
+    /** Close a DockPane or SplitDock and all tabs held within.
+     *  @param node Node, either a dock item or split pane, that will be closed.
+     *  @return boolean <code>true</code> if all the tabs close successfully.
+     */
+    public static boolean closePaneOrSplit(Node node)
+    {
+        if (node instanceof DockPane)
+        {
+            // Close every dock item in the dock pane.
+            final DockPane pane = (DockPane) node;
+            final List<DockItem> items = pane.getDockItems();
+            for (final DockItem item : items)
+            {
+                // If it refuses to close, return false.
+                if (! item.close())
+                    return false;
+            }
+        }
+        else if (node instanceof SplitDock)
+        {
+            final SplitDock split = (SplitDock) node;
+
+            // We are altering the size of the list we are iterating over.
+            // Cannot rely on ...getItems.size() to provide fixed value.
+            // Cannot rely on foreach construct or for loop iterators.
+            // This is because the for any size greater than 1, list will eventually
+            // shrink in size from 2 to 1, but the iterator will point to the end of
+            // the list instead of the last element.
+            // Therefore, read size once and request the first node a fixed number of times.
+            final int size = split.getItems().size();
+            for (int i = 0; i < size; i++)
+            {
+                // If the node fails to close, return false.
+                if (! closePaneOrSplit(split.getItems().get(0)))
+                    return false;
+            }
+        }
+        else
+        {
+            logger.log(Level.WARNING, "Cannot close " + node);
+            return false;
+        }
+
+        return true;
     }
 }

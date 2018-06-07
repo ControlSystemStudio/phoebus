@@ -30,29 +30,33 @@ import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.BorderPane;
 
 /** Tree-based UI for alarm configuration
  *
- *  <p>Implemented as StackPane, but should be treated
+ *  <p>Implemented as {@link BorderPane}, but should be treated
  *  as generic JavaFX Node, only calling public methods
  *  defined on this class.
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmTreeView extends StackPane implements AlarmClientListener
+public class AlarmTreeView extends BorderPane implements AlarmClientListener
 {
     private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
 
@@ -95,7 +99,9 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        getChildren().setAll(tree_view);
+
+        setTop(createToolbar());
+        setCenter(tree_view);
 
         tree_view.setRoot(createViewItem(model.getRoot()));
 
@@ -103,6 +109,34 @@ public class AlarmTreeView extends StackPane implements AlarmClientListener
 
         createContextMenu();
         addClickSupport();
+    }
+
+    private ToolBar createToolbar()
+    {
+        final Button collapse = new Button("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
+        collapse.setTooltip(new Tooltip("Collapse alarm tree"));
+        collapse.setOnAction(event ->
+        {
+            for (TreeItem<AlarmTreeItem<?>> sub : tree_view.getRoot().getChildren())
+                sub.setExpanded(false);
+        });
+
+        final Button show_alarms = new Button("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
+        show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
+        show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
+        return new ToolBar(ToolbarHelper.createSpring(), collapse, show_alarms);
+    }
+
+    private void expandAlarms(final TreeItem<AlarmTreeItem<?>> node)
+    {
+        if (node.isLeaf())
+            return;
+
+        node.setExpanded(node.getValue().getState().severity.isActive());
+        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
+            expandAlarms(sub);
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)

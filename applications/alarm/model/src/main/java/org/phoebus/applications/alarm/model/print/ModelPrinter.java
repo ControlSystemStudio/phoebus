@@ -34,13 +34,13 @@ public class ModelPrinter
             out.print("  ");
         if (item instanceof AlarmTreeLeaf)
         {
-            out.print("PV " + item.getName());
+            out.print("PV " + item.getName() + ": " + item.getState().severity);
             final AlarmTreeLeaf leaf = (AlarmTreeLeaf) item;
             if (! leaf.isEnabled())
                 out.print(" - disabled");
         }
         else
-            out.print(item.getName());
+            out.print(item.getName() + ": " + item.getState().severity);
         out.println();
         for (AlarmTreeItem<?> child : item.getChildren())
             print(child, out, level+1);

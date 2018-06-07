@@ -1,17 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.runtime.test;
+package org.phoebus.framework.jobs;
 
-import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.phoebus.framework.jobs.JobManager.logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -22,7 +22,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 
-import org.csstudio.display.builder.runtime.CommandExecutor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,12 +54,12 @@ public class CommandExecutorTest
         logger.addHandler(handler);
 
         // Locate examples via class
-        examples_dir = new File(CommandExecutorTest.class.getResource("/rt_examples").getPath().replace("file:", ""));
+        examples_dir = new File(CommandExecutorTest.class.getResource("/cmds").getPath().replace("file:", ""));
 
-        // Change either runtime/target/display-runtime*.jar!/rt_examples
-        // or            runtime/target/classes/rt_examples into
+        // Change either framework/target/display-runtime*.jar!/cmds
+        // or            framework/target/classes/cmds
         // into the source location
-        examples_dir = new File(examples_dir.getParentFile().getParentFile().getParentFile(), "src/main/resources/rt_examples");
+        examples_dir = new File(examples_dir.getParentFile().getParentFile().getParentFile(), "src/test/resources/cmds");
 
         System.out.println("Examples directory: " + examples_dir);
     }
@@ -118,7 +117,7 @@ public class CommandExecutorTest
             return;
 
         // Start one directory 'up' to generate error
-        final Integer status = new CommandExecutor("rt_examples/cmd_short.sh", examples_dir.getParentFile()).call();
+        final Integer status = new CommandExecutor("cmds/cmd_short.sh", examples_dir.getParentFile()).call();
 
         final String log = getLoggedMessages();
         assertThat(log, containsString("Wrong directory"));

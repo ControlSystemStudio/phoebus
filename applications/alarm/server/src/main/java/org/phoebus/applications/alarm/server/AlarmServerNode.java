@@ -20,6 +20,13 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 public class AlarmServerNode extends AlarmClientNode
 {
     private final ServerModel model;
+    // Alarm _server_ doesn't read the old alarm state,
+    // since monitoring the state would mean it keeps reading
+    // its own state updates.
+    // That does mean, however, that it's unaware of the last state
+    // sent out for all alarm nodes, so use a flag to assert one initial
+    // notification to clients.
+    private volatile boolean never_updated = true;
 
     public AlarmServerNode(final ServerModel model, final AlarmClientNode parent, final String name)
     {
@@ -51,8 +58,9 @@ public class AlarmServerNode extends AlarmClientNode
                 new_severity = child_severity;
         }
 
-        if (new_severity != getState().severity)
+        if (never_updated  ||  new_severity != getState().severity)
         {
+            never_updated = false;
             final BasicState new_state = new BasicState(new_severity);
             setState(new_state);
             model.sentStateUpdate(getPathName(), new_state);

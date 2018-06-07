@@ -21,6 +21,7 @@ public class Messages
     public static String OpenWith;
     public static String Save;
     public static String SaveAs;
+    public static String SaveLayoutAs;
     public static String TopResources;
     public static String Window;
 
