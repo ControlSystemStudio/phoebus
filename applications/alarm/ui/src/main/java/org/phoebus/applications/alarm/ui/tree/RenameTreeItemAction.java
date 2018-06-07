@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import java.util.List;
-
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -16,15 +14,14 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeView;
 
 /** Action to rename a PV
  *  @author Kay Kasemir
+ *  @author Evan Smith
  */
 @SuppressWarnings("nls")
 class RenameTreeItemAction extends MenuItem
@@ -39,14 +36,12 @@ class RenameTreeItemAction extends MenuItem
     {
         super("Rename Item", ImageCache.getImageView(AlarmSystem.class, "/icons/rename.png"));
 
-        // TODO Should be able to rename any item, not just a leaf,
-        //      by renaming that item and all its child entries
         if (item instanceof AlarmClientNode)
         {
         	setOnAction(event ->
         	{
         		//Prompt for new name
-	        	final String new_name = prompt("Enter new name for Component", node, item);
+	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for PV", item.getName(), node);
 	        	if (null == new_name)
 	        		return;
 	        	// Tree view keeps the selection indices, which will point to wrong content
@@ -62,7 +57,7 @@ class RenameTreeItemAction extends MenuItem
 	                // Add the new item, and then rebuild all its children.
 	                final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
 					model.sendItemConfigurationUpdate(new_path, item);
-	                rebuildTree(model, item, new_path);
+	                AlarmTreeHelper.rebuildTree(model, item, new_path);
 	                model.removeComponent(item);
 	            });
         	});
@@ -72,7 +67,7 @@ class RenameTreeItemAction extends MenuItem
 	        setOnAction(event ->
 	        {
 	        	//Prompt for new name
-	        	final String new_name = prompt("Enter new name for PV", node, item);
+	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for PV", item.getName(), node);
 	        	if (null == new_name)
 	        		return;
 	        	// Tree view keeps the selection indices, which will point to wrong content
@@ -92,37 +87,5 @@ class RenameTreeItemAction extends MenuItem
         }
     }
 
-	private void rebuildTree(AlarmClient model, AlarmTreeItem<?> parent, String path) throws Exception
-	{
-		if (null == model ||
-			null == parent ||
-			null == path ||
-			path.isEmpty())
-			return;
 
-		// Recreate every child. Each child provides the content for recreation.
-		// There is no need to check if the child is a leaf or node because the
-		// item configuration update takes the child as an argument. Whatever it
-		// is, is how it will be recreated.
-		final List<AlarmTreeItem<?>> children = parent.getChildren();
-		for (final AlarmTreeItem<?> child : children)
-		{
-			final String new_path = AlarmTreePath.makePath(path, child.getName());
-			model.sendItemConfigurationUpdate(new_path, child);
-			rebuildTree(model, child, new_path);
-		}
-	}
-
-	private String prompt(String text, final TreeView<AlarmTreeItem<?>> node, final AlarmTreeItem<?> item)
-    {
-    	// Prompt for new name
-        final TextInputDialog prompt = new TextInputDialog(item.getName());
-        DialogHelper.positionDialog(prompt, node, -200, -100);
-        prompt.setTitle(getText());
-        prompt.setHeaderText(text);
-        final String new_name = prompt.showAndWait().orElse(null);
-        if (new_name == null || new_name.isEmpty())
-            return null;
-        return new_name;
-    }
 }
