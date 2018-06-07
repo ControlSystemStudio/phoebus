@@ -104,7 +104,7 @@ public class DockStage
 
         stage.setOnCloseRequest(event ->
         {
-            if (! isStageOkToClose(stage))
+            if (! isStageOkToClose(stage, false))
                 event.consume();
         });
 
@@ -151,14 +151,20 @@ public class DockStage
      *  or abort the close request.
      *
      *  @param stage {@link Stage} with {@link DockPane}
+     *  @param close_fixed Close even 'fixed' {@link DockPane}s?
      */
-    public static boolean isStageOkToClose(final Stage stage)
+    public static boolean isStageOkToClose(final Stage stage, final boolean close_fixed)
     {
-        for (DockPane tab_pane : getDockPanes(stage))
-            for (DockItem item : tab_pane.getDockItems())
+        for (DockPane pane : getDockPanes(stage))
+        {
+            if (pane.isFixed()  &&  close_fixed)
+                pane.setFixed(false);
+
+            for (DockItem item : pane.getDockItems())
                 if (! item.close())
                     // Abort the close request
                     return false;
+        }
 
         // All tabs either saved or don't care to save,
         // so this stage will be closed

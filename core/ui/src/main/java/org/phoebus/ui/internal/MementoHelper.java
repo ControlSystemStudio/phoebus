@@ -12,6 +12,7 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -191,6 +192,7 @@ public class MementoHelper
         {   // Fill given pane with tabs
             for (MementoTree item_memento : content.getChildren())
                 any |= restoreDockItem(item_memento, pane);
+
             // Maybe select a specific tab
             // If the new tab is inside a SplitDock,
             // it won't actually exist until the content of the SplitDock's SplitPane
@@ -309,14 +311,17 @@ public class MementoHelper
 
     /** Close a DockPane or SplitDock and all tabs held within.
      *  @param node Node, either a dock item or split pane, that will be closed.
+     *  @param close_fixed Close even 'fixed' {@link DockPane}s?
      *  @return boolean <code>true</code> if all the tabs close successfully.
      */
-    public static boolean closePaneOrSplit(Node node)
+    public static boolean closePaneOrSplit(final Node node, final boolean close_fixed)
     {
         if (node instanceof DockPane)
         {
             // Close every dock item in the dock pane.
             final DockPane pane = (DockPane) node;
+            if (pane.isFixed() && close_fixed)
+                pane.setFixed(false);
             final List<DockItem> items = pane.getDockItems();
             for (final DockItem item : items)
             {
@@ -328,21 +333,12 @@ public class MementoHelper
         else if (node instanceof SplitDock)
         {
             final SplitDock split = (SplitDock) node;
-
-            // We are altering the size of the list we are iterating over.
-            // Cannot rely on ...getItems.size() to provide fixed value.
-            // Cannot rely on foreach construct or for loop iterators.
-            // This is because the for any size greater than 1, list will eventually
-            // shrink in size from 2 to 1, but the iterator will point to the end of
-            // the list instead of the last element.
-            // Therefore, read size once and request the first node a fixed number of times.
-            final int size = split.getItems().size();
-            for (int i = 0; i < size; i++)
-            {
-                // If the node fails to close, return false.
-                if (! closePaneOrSplit(split.getItems().get(0)))
+            // We are altering the size of the list we are iterating over...
+            final List<Node> items = new ArrayList<>(split.getItems());
+            // If a node fails to close, return false.
+            for (Node item : items)
+                if (! closePaneOrSplit(item, close_fixed))
                     return false;
-            }
         }
         else
         {

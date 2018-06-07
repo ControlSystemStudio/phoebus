@@ -720,12 +720,12 @@ public class PhoebusApplication extends Application {
         stages.remove(main_stage);
 
         // If any stages failed to close, return.
-        if (!closeStages(stages))
+        if (!closeStages(stages, true))
             return;
 
         // Go into the main stage and close all of the tabs. If any of them refuse, return.
         final Node node = DockStage.getPaneOrSplit(main_stage);
-        if (! MementoHelper.closePaneOrSplit(node))
+        if (! MementoHelper.closePaneOrSplit(node, true))
             return;
 
         // Load the specified memento file.
@@ -848,31 +848,29 @@ public class PhoebusApplication extends Application {
         final File memfile = XMLMementoTree.getDefaultFile();
         MementoHelper.saveState(memfile, last_opened_file, default_application);
 
-        if (!closeStages(stages))
+        if (!closeStages(stages, false))
             return false;
 
         // Once all other stages are closed,
         // potentially check the main stage.
-        if (main_stage_already_closing != null && !DockStage.isStageOkToClose(main_stage_already_closing))
+        if (main_stage_already_closing != null && !DockStage.isStageOkToClose(main_stage_already_closing, false))
             return false;
         return true;
     }
 
-    /**
-     * Close several stages
-     *
-     * @param stages_to_check
-     *            Stages that will be asked to close
-     * @return <code>true</code> if all stages closed, <code>false</code> if one
-     *         stage didn't want to close.
+    /** Close several stages
+     *  @param stages_to_check  Stages that will be asked to close
+     *  @param close_fixed Close even 'fixed' {@link DockPane}s?
+     *  @return <code>true</code> if all stages closed,
+     *          <code>false</code> if one stage didn't want to close.
      */
-    private boolean closeStages(final List<Stage> stages_to_check)
+    private boolean closeStages(final List<Stage> stages_to_check, final boolean close_fixed)
     {
         for (Stage stage : stages_to_check)
         {
             // Could close via event, but then still need to check if the stage remained open
             // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
-            if (DockStage.isStageOkToClose(stage))
+            if (DockStage.isStageOkToClose(stage, close_fixed))
                 stage.close();
             else
                 return false;
