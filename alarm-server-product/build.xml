@@ -13,6 +13,8 @@
         <include name="dependencies/**/lz4*.jar"/>
         <include name="dependencies/**/slf4j*.jar"/>
         <include name="dependencies/**/snappy-java*.jar"/>
+        <include name="dependencies/**/reactive-streams*.jar"/>
+        <include name="dependencies/**/rxjava*.jar"/>
         <include name="core/vtype/target/vtype*.jar"/>
       	<include name="core/util/target/util*.jar"/>
         <include name="core/framework/target/framework*.jar"/>

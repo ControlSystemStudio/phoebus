@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.VTable;
 import org.phoebus.vtype.VType;
 
 import io.reactivex.BackpressureStrategy;
@@ -136,6 +137,11 @@ abstract public class PV
     {
         if (value == null)
             return true;
+
+        // VTable does not implement alarm,
+        // but receiving a table means we're not disconnected
+        if (value instanceof VTable)
+            return false;
         if (! (value instanceof Alarm))
             return true;
         final Alarm alarm = (Alarm) value;

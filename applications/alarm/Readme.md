@@ -53,7 +53,9 @@ For tests, you can use localhost:
 
 
 Start local instance:
-    # Zookeeper must be started first. If kafka is started first it will fail to start and close with a null pointer exception. 
+
+    # Zookeeper must be started first.
+    # If kafka is started first it will fail to start and close with a null pointer exception. 
     # Simply start kafka after zookeeper is running to recover.
     cd kafka
     bin/zookeeper-server-start.sh config/zookeeper.properties
@@ -121,7 +123,6 @@ You can track the log cleaner runs via
     tail -f logs/log-cleaner.log
 
 
-
 Demos
 -----
 
@@ -151,6 +152,17 @@ it can lock the UI while the internal TreeView code gets to traverse all 'siblin
 This has been observed if there are 10000 or more siblings, i.e. direct child nodes to one node of the alarm tree.
 It can be avoided by for example adding sub-nodes.
 
+
+Alarm Tools
+-----------
+
+`alarm-server-product`:
+The alarm server. Run with `-help` to see command line options.
+Can create the required topics by invoking it with the `-create_topics` option.
+
+
+`Applications`, `Alarm` Menu:
+Open the alarm tree, table etc. to configure and interact with the running alarm server.
 
 
 Next
