@@ -19,20 +19,16 @@ import org.phoebus.applications.alarm.AlarmSystem;
 
 public class FileBasedAuthorizationService implements AuthorizationService
 {
-    private final static String USER_PROPERTY = "user.name";
+    private final  String USER_PROPERTY = "user.name";
     private static Logger logger;
     
-    private static String user_name;
+    private  String user_name;
     private Authorizations user_authorizations = null;
-    
-    static 
-    {
-        user_name = System.getProperty(USER_PROPERTY);
-    }
     
     public FileBasedAuthorizationService()
     {
         logger = Logger.getLogger(getClass().getName());
+        user_name = System.getProperty(USER_PROPERTY);
         try
         {
             user_authorizations = getAuthorizations();
@@ -45,9 +41,22 @@ public class FileBasedAuthorizationService implements AuthorizationService
     
     public void setUser(final String user_name)
     {
-        FileBasedAuthorizationService.user_name = user_name;
+        this.user_name = user_name;
+        try
+        {
+            user_authorizations = getAuthorizations();
+        } 
+        catch (Exception e)
+        {
+            logger.log(Level.SEVERE, "Authorization initialziation failed.", e);
+        }
     }
     
+    public String getUser()
+    {
+        return user_name;
+    }
+        
     private static InputStream getInputStream()
     {
         try
