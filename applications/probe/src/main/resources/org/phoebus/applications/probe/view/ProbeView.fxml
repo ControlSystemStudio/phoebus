@@ -22,7 +22,7 @@
           <children>
             <Label alignment="CENTER" text="PV Name: " />
             <TextField fx:id="txtPVName" onAction="#setSelection" HBox.hgrow="ALWAYS" />
-            <Button fx:id="btncalculate" mnemonicParsing="false" onAction="#search" text="search" />
+            <Button fx:id="btncalculate" mnemonicParsing="false" onAction="#search" text="Search" />
           </children>
         </HBox>
         <Separator prefWidth="200.0" />
