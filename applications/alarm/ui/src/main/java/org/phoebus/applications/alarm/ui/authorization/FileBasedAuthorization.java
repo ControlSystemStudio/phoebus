@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-public class FileBasedAuthorizationService implements AuthorizationService
+public class FileBasedAuthorization implements Authorization
 {
     private final  String USER_PROPERTY = "user.name";
     private static Logger logger;
@@ -25,7 +25,7 @@ public class FileBasedAuthorizationService implements AuthorizationService
     private Authorizations user_authorizations = null;
     private final File auth_config;
     
-    public FileBasedAuthorizationService(File config_file)
+    public FileBasedAuthorization(File config_file)
     {
         logger = Logger.getLogger(getClass().getName());
         user_name = System.getProperty(USER_PROPERTY);

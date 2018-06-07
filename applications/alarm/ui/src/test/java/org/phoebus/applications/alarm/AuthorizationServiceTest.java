@@ -9,7 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import org.junit.Test;
-import org.phoebus.applications.alarm.ui.authorization.FileBasedAuthorizationService;
+import org.phoebus.applications.alarm.ui.authorization.FileBasedAuthorization;
 
 public class AuthorizationServiceTest
 {
@@ -39,7 +39,7 @@ public class AuthorizationServiceTest
         writer.write(config_str);
         writer.close();
 
-        FileBasedAuthorizationService as = new FileBasedAuthorizationService(config);
+        FileBasedAuthorization as = new FileBasedAuthorization(config);
         
         // Acknowledge only.
         as.setUser("blah");

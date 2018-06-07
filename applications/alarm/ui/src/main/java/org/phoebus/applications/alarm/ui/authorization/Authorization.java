@@ -1,6 +1,6 @@
 package org.phoebus.applications.alarm.ui.authorization;
 
-public interface AuthorizationService
+public interface Authorization
 {
     
     public boolean hasAuthorization(final String authorization);

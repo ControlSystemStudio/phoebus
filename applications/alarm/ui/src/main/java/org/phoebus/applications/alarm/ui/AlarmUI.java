@@ -7,14 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.authorization.AuthorizationService;
-import org.phoebus.applications.alarm.ui.authorization.FileBasedAuthorizationService;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -58,9 +52,6 @@ public class AlarmUI
 
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
     
-    private static AtomicBoolean initialized = new AtomicBoolean(false);
-    private static AuthorizationService authorizationService;
-    
     /** @param severity {@link SeverityLevel}
      *  @return Color
      */
@@ -80,30 +71,13 @@ public class AlarmUI
 
     public static boolean mayAcknowledge()
     {
-        if (initialized.get())
-        {
-            return authorizationService.hasAuthorization("alarm_ack");
-        } 
-        return false;
+        return AuthorizationService.hasAuthorization("alarm_ack");
     }
 
     public static boolean mayConfigure()
     {
-        if (initialized.get())
-        {
-            return authorizationService.hasAuthorization("alarm_config");
-        } 
-        return false;
-    }
-
-    public static void initializeAuthorizationService()
-    { 
-        if (! initialized.get())
-        {
-            final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
-            File auth_conf = new File(prefs.get("authorization_file"));
-            authorizationService = new FileBasedAuthorizationService(auth_conf);
-            initialized.getAndSet(true);
-        }
+        
+        return AuthorizationService.hasAuthorization("alarm_config");
+        
     }
 }
