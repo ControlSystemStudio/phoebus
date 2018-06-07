@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm.ui.authorization;
 
 import java.io.File;
@@ -16,6 +23,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+/**
+ * <p> File Based Authorization Implementation
+ * @author Evan Smith
+ *
+ */
 public class FileBasedAuthorization implements Authorization
 {
     private final  String USER_PROPERTY = "user.name";
@@ -33,6 +45,8 @@ public class FileBasedAuthorization implements Authorization
         try
         {
             user_authorizations = getAuthorizations();
+            if (null == user_authorizations)
+                throw new Exception("user_authorizations null.");
         } 
         catch (Exception e)
         {
@@ -47,6 +61,8 @@ public class FileBasedAuthorization implements Authorization
         try
         {
             user_authorizations = getAuthorizations();
+            if (null == user_authorizations)
+                throw new Exception("user_authorizations null.");
         } 
         catch (Exception e)
         {
@@ -76,6 +92,10 @@ public class FileBasedAuthorization implements Authorization
     public Authorizations getAuthorizations() throws Exception
     {
         Map<String, List<Pattern>> rules = readConfigurationFile();
+        
+        if (null == rules)
+            return null;
+        
         Set<String> authorizations = new HashSet<>();
         for(Entry<String, List<Pattern>> rule : rules.entrySet())
         {
@@ -110,7 +130,10 @@ public class FileBasedAuthorization implements Authorization
     private Map<String, List<Pattern>> readConfigurationFile() throws Exception
     {
         final InputStream config_stream = getInputStream();
-
+        
+        if (null == config_stream)
+            return null;
+        
         final Properties settings = new Properties();
         settings.load(config_stream);
 
@@ -131,7 +154,7 @@ public class FileBasedAuthorization implements Authorization
     @Override
     public boolean hasAuthorization(String authorization)
     {
-        if (user_authorizations == null)
+        if (null == user_authorizations)
             return false;
         return user_authorizations.haveAuthorization(authorization);
     }
