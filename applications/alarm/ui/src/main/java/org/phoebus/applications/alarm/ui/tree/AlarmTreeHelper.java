@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
 import java.util.List;
@@ -11,7 +18,8 @@ import org.phoebus.ui.dialog.DialogHelper;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeView;
 
-public class AlarmTreeHelper {
+public class AlarmTreeHelper
+{
 	/**
 	 * <p> Rebuild the tree structure by recreating the parents' children at the new path location.
 	 * @param model AlarmClient used to communicate to the AlarmServer
@@ -41,7 +49,7 @@ public class AlarmTreeHelper {
 	}
 
 	/**
-	 * <p> Prompt the screen with a dialog box. 
+	 * <p> Prompt the screen with a dialog box.
 	 * @param title Title string of the dialog box.
 	 * @param header Header string of the dialog box.
 	 * @param node Node where the dialog box will be located.
@@ -63,9 +71,9 @@ public class AlarmTreeHelper {
 
 	/**
 	 * <p> Validate the passed path string by checking if the path name is valid.
-	 * <p> A path name is considered valid if the path to the item's new location exists in the tree, 
+	 * <p> A path name is considered valid if the path to the item's new location exists in the tree,
 	 * and if the items new location is not a PV.
-	 * <p> For example: If "top/middle/bottom/to_move" wanted to be moved to "top/middle/to_move". 
+	 * <p> For example: If "top/middle/bottom/to_move" wanted to be moved to "top/middle/to_move".
 	 * The path "top/middle" must be in the tree and middle must not be a PV.
 	 * @param path The path to the new location.
 	 * @param root The root node of the AlarmTree
@@ -75,34 +83,34 @@ public class AlarmTreeHelper {
 	{
 	    if (null == path || path.isEmpty())
 	        return false;
-	    
+
 		String[] path_elems = AlarmTreePath.splitPath(path);
 		// Make sure the path exists
 		// The proposed parent must exist. path_elems includes the new addition as well so only check length-1.
 		int elem_num = path_elems.length - 1;
 		AlarmTreeItem<?> item = root;
-		
+
 		// New addition must be above root level. Tree only displays what's on top of root area.
 		if (! (path_elems.length > 0) || ! (root.getName().equals(path_elems[0])))
 		    return false;
-		
+
 		for (int i = 1; i < elem_num; i++)
 		{
 		    item = item.getChild(path_elems[i]);
 		    if (null == item)
 		    {
-		        System.out.println("Path element " + path_elems[i] + " does not exist in the tree at that location.");
+		        // System.out.println("Path element " + path_elems[i] + " does not exist in the tree at that location.");
 		        return false;
 		    }
 		    // Make sure the path does not contain a PV.
 		    // PV cannot have children.
 		    if (item instanceof AlarmClientLeaf)
 		    {
-		        System.out.println("Path element " + path_elems[i] + " is a leaf.");
+		        // System.out.println("Path element " + path_elems[i] + " is a leaf.");
 		        return false;
 		    }
 		}
-		
+
 		return true;
 	}
 }

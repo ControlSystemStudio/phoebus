@@ -16,24 +16,26 @@ import org.phoebus.ui.javafx.ImageCache;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeView;
 
-/** Action to move an AlarmTreeItem to a new location in an AlarmTree.
+/** Action to move an {@link AlarmTreeItem} to a new location in an AlarmTree.
  *  @author Evan Smith
  */
-public class MoveTreeItemAction extends MenuItem 
+@SuppressWarnings("nls")
+public class MoveTreeItemAction extends MenuItem
 {
 
-	/**
-	 * <p> Constructor for MoveTreeItemAction. Sets onAction to move the passed item within the passed tree view.
-	 * @param node The TreeView.
-	 * @param model The AlarmClient.
-	 * @param item The item within the TreeView to move.
+	/** Constructor for MoveTreeItemAction
+	 *
+	 *  <p>Sets onAction to move the passed item within the passed tree view.
+	 *  @param node The TreeView.
+	 *  @param model The AlarmClient.
+	 *  @param item The item within the TreeView to move.
 	 */
-	public MoveTreeItemAction(TreeView<AlarmTreeItem<?>> node, 
-							   AlarmClient model, 
+    public MoveTreeItemAction(TreeView<AlarmTreeItem<?>> node,
+							   AlarmClient model,
 							   AlarmTreeItem<?> item)
 	{
 		super("Move Item", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png"));
-		
+
 		setOnAction(event ->
     	{
     		//Prompt for new name
@@ -44,7 +46,7 @@ public class MoveTreeItemAction extends MenuItem
     			if (null == path)
     				return;
         	}
-        	
+
     		// Tree view keeps the selection indices, which will point to wrong content
             // after those items have been removed.
             if (node instanceof TreeView<?>)
@@ -61,7 +63,7 @@ public class MoveTreeItemAction extends MenuItem
                 // Delete the old item. This deletes the old item's children as well.
                 model.removeComponent(item);
             });
-            
+
     	});
 	}
 

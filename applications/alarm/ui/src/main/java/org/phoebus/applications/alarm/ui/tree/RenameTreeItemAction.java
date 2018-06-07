@@ -21,6 +21,7 @@ import javafx.scene.control.TreeView;
 
 /** Action to rename a PV
  *  @author Kay Kasemir
+ *  @author Evan Smith
  */
 @SuppressWarnings("nls")
 class RenameTreeItemAction extends MenuItem
@@ -86,5 +87,5 @@ class RenameTreeItemAction extends MenuItem
         }
     }
 
-	
+
 }
