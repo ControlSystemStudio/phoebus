@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.ui;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -57,7 +58,7 @@ public class AlarmUI
 
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
     
-    private static boolean initialized = false;
+    private static AtomicBoolean initialized = new AtomicBoolean(false);
     private static AuthorizationService authorizationService;
     
     /** @param severity {@link SeverityLevel}
@@ -79,7 +80,7 @@ public class AlarmUI
 
     public static boolean mayAcknowledge()
     {
-        if (initialized)
+        if (initialized.get())
         {
             return authorizationService.hasAuthorization("alarm_ack");
         } 
@@ -88,7 +89,7 @@ public class AlarmUI
 
     public static boolean mayConfigure()
     {
-        if (initialized)
+        if (initialized.get())
         {
             return authorizationService.hasAuthorization("alarm_config");
         } 
@@ -97,12 +98,12 @@ public class AlarmUI
 
     public static void initializeAuthorizationService()
     { 
-        if (! initialized)
+        if (! initialized.get())
         {
             final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
             File auth_conf = new File(prefs.get("authorization_file"));
             authorizationService = new FileBasedAuthorizationService(auth_conf);
-            initialized = true;
+            initialized.getAndSet(true);
         }
     }
 }
