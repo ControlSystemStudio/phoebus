@@ -49,6 +49,7 @@ public class SampleView extends VBox
 {
     private final Model model;
     private final ComboBox<String> items = new ComboBox<>();
+    private final Label sample_count = new Label(Messages.SampleView_Count);
     private final TableView<PlotSample> sample_table = new TableView<>();
     private volatile String item_name = null;
 
@@ -94,8 +95,9 @@ public class SampleView extends VBox
         createSampleTable();
 
         top_row.setPadding(new Insets(5));
+        sample_count.setPadding(new Insets(5));
         sample_table.setPadding(new Insets(0, 5, 5, 5));
-        getChildren().setAll(top_row, sample_table);
+        getChildren().setAll(top_row, sample_count, sample_table);
 
         // TODO Add 'export' to sample view? CSV in a format usable by import
 
@@ -173,6 +175,12 @@ public class SampleView extends VBox
                 }
         }
         // Update UI
-        Platform.runLater(() -> sample_table.setItems(samples));
+        Platform.runLater(() -> updateSamples(samples));
+    }
+
+    private void updateSamples(final ObservableList<PlotSample> samples)
+    {
+        sample_count.setText(Messages.SampleView_Count + " " + samples.size());
+        sample_table.setItems(samples);
     }
 }
