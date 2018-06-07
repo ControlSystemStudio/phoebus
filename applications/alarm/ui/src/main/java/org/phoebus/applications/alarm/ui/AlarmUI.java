@@ -7,7 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import java.io.File;
+
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.ui.authorization.AuthorizationService;
+import org.phoebus.applications.alarm.ui.authorization.FileBasedAuthorizationService;
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -51,7 +57,7 @@ public class AlarmUI
 
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
     
-    //private static final AuthorizationService authorizationService = new FileBasedAuthorizationService();
+    private static AuthorizationService authorizationService;
     
     /** @param severity {@link SeverityLevel}
      *  @return Color
@@ -72,13 +78,20 @@ public class AlarmUI
 
     public static boolean mayAcknowledge()
     {
-        //return authorizationService.hasAuthorization("alarm_ack");
-        return true;
+        return authorizationService.hasAuthorization("alarm_ack");
+        //return true;
     }
 
     public static boolean mayConfigure()
     {
-        //return authorizationService.hasAuthorization("alarm_config");
-        return true;
+        return authorizationService.hasAuthorization("alarm_config");
+        //return true;
+    }
+
+    public static void initializeAuthorizationService()
+    { 
+        final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
+        File auth_conf = new File(prefs.get("authorization_file"));
+        authorizationService = new FileBasedAuthorizationService(auth_conf);
     }
 }

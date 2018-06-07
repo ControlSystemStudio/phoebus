@@ -107,6 +107,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         model.addListener(this);
 
+        AlarmUI.initializeAuthorizationService();
         createContextMenu();
         addClickSupport();
     }
