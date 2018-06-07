@@ -5,19 +5,13 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm;
+package org.phoebus.applications.alarm.server;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -26,7 +20,6 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
-import org.phoebus.framework.jobs.NamedThreadFactory;
 
 /**
  * Writes Alarm System model to XML.
@@ -36,30 +29,13 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class AlarmConfigTool
 {
-	private class UpdateMonitor
+    /** Time the model must be stable for. Unit is seconds. Default is 4 seconds. */
+    private static final long STABILIZATION_SECS = 4;
+
+    private class UpdateMonitor
 	{
-		// Time the model must be stable for. Unit is seconds. Default is 4 seconds.
-		private long time = 4;
-
-		private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
-	    private final CountDownLatch no_more_messages = new CountDownLatch(1);
-	    private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
-	    private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
+		private final ResettableTimer timer = new ResettableTimer(STABILIZATION_SECS);
         private final AtomicInteger updates = new AtomicInteger();
-
-	    // Sets the timeout member variable.
-		private UpdateMonitor(final long new_time)
-		{
-			time = new_time;
-			resetTimer();
-		}
-
-	    void resetTimer()
-	    {
-	        final ScheduledFuture<?> previous = timeout.getAndSet(timer.schedule(signal_no_more_messages, time, TimeUnit.SECONDS));
-	        if (previous != null)
-	            previous.cancel(false);
-	    }
 
 	    private final AlarmClientListener updateListener = new AlarmClientListener()
         {
@@ -67,7 +43,7 @@ public class AlarmConfigTool
             public void itemAdded(final AlarmTreeItem<?> item)
             {
             	// Reset the timer when receiving update
-                resetTimer();
+                timer.reset();
         		updates.incrementAndGet();
             }
 
@@ -75,7 +51,7 @@ public class AlarmConfigTool
             public void itemRemoved(final AlarmTreeItem<?> item)
             {
             	// Reset the timer when receiving update
-                resetTimer();
+                timer.reset();
         		updates.incrementAndGet();
             }
 
@@ -86,10 +62,10 @@ public class AlarmConfigTool
             }
         };
 
-        public void listen(AlarmClient client) throws InterruptedException, Exception
+        public void listen(AlarmClient client) throws Exception
         {
-        	client.addListener(updateListener);
-        	 if (! no_more_messages.await(30, TimeUnit.SECONDS))
+            client.addListener(updateListener);
+            if (! timer.awaitTimeout(30))
                  throw new Exception("30 seconds have passed, I give up waiting for updates to subside.");
         	// Reset the counter to count any updates received after we decide to continue.
         	updates.set(0);
@@ -103,8 +79,6 @@ public class AlarmConfigTool
 
     private AlarmClient client = null;
     private UpdateMonitor updateMonitor = null;
-
-	private final long time = 4;
 
 	// Export an alarm system model to an xml file.
     public void exportModel(String filename, String server, String config) throws Exception
@@ -131,15 +105,15 @@ public class AlarmConfigTool
 		client = new AlarmClient(server, config);
         client.start();
 
-        System.out.printf("Writing file after model is stable for %d seconds:\n", time);
+        System.out.printf("Writing file after model is stable for %d seconds:\n", STABILIZATION_SECS);
 
         System.out.println("Monitoring changes...");
 
-        updateMonitor = new UpdateMonitor(time);
+        updateMonitor = new UpdateMonitor();
 
         updateMonitor.listen(client);
 
-        System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", time);
+        System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", STABILIZATION_SECS);
 
         //Write the model.
 
@@ -166,7 +140,7 @@ public class AlarmConfigTool
         client.start();
         try
         {
-            updateMonitor = new UpdateMonitor(time);
+            updateMonitor = new UpdateMonitor();
 
             System.out.println("Fetching server model. This could take some time ...");
 

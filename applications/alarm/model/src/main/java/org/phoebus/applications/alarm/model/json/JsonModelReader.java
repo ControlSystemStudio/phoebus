@@ -159,8 +159,12 @@ public class JsonModelReader
         return false;
     }
 
-    private static boolean updateAlarmLeafState(final AlarmClientLeaf node, final JsonNode json)
+    /** @param _json JSon that might contain {@link ClientState}
+     *  @return {@link ClientState} or <code>null</code>
+     */
+    public static ClientState parseClientState(final Object _json)
     {
+        final JsonNode json = (JsonNode) _json;
         SeverityLevel severity = SeverityLevel.UNDEFINED;
         String message = "<?>";
         String value = "<?>";
@@ -170,40 +174,53 @@ public class JsonModelReader
 
         JsonNode jn = json.get(JsonTags.SEVERITY);
         if (jn == null)
-            return false;
+            return null;
         severity = SeverityLevel.valueOf(jn.asText());
 
         jn = json.get(JsonTags.MESSAGE);
-        if (jn != null)
-            message = jn.asText();
+        if (jn == null)
+            return null;
+        message = jn.asText();
 
         jn = json.get(JsonTags.VALUE);
-        if (jn != null)
-            value = jn.asText();
+        if (jn == null)
+            return null;
+        value = jn.asText();
 
         jn = json.get(JsonTags.CURRENT_SEVERITY);
-        if (jn != null)
-            current_severity = SeverityLevel.valueOf(jn.asText());
+        if (jn == null)
+            return null;
+        current_severity = SeverityLevel.valueOf(jn.asText());
 
         jn = json.get(JsonTags.CURRENT_MESSAGE);
-        if (jn != null)
-            current_message = jn.asText();
+        if (jn == null)
+            return null;
+        current_message = jn.asText();
 
         jn = json.get(JsonTags.TIME);
-        if (jn != null)
-        {
-            long secs = 0, nano = 0;
-            JsonNode sub = jn.get(JsonTags.SECONDS);
-            if (sub != null)
-                secs = sub.asLong();
-            sub = jn.get(JsonTags.NANO);
-            if (sub != null)
-                nano = sub.asLong();
-            time = Instant.ofEpochSecond(secs, nano);
-        }
+        if (jn == null)
+            return null;
 
-        final ClientState state = new ClientState(severity, message, value, time, current_severity, current_message);
-        return node.setState(state);
+        long secs = 0, nano = 0;
+        JsonNode sub = jn.get(JsonTags.SECONDS);
+        if (sub != null)
+            secs = sub.asLong();
+        sub = jn.get(JsonTags.NANO);
+        if (sub != null)
+            nano = sub.asLong();
+        time = Instant.ofEpochSecond(secs, nano);
+
+        return new ClientState(severity, message, value, time, current_severity, current_message);
+    }
+
+    /** @param node Node to update from json
+     *  @param json Json that might contain {@link ClientState}
+     *  @return <code>true</code> if this changed the alarm state of the node
+     */
+    private static boolean updateAlarmLeafState(final AlarmClientLeaf node, final JsonNode json)
+    {
+        final ClientState state = parseClientState(json);
+        return (state != null)  &&  node.setState(state);
     }
 
     private static boolean updateAlarmNodeState(final AlarmClientNode node, final JsonNode json)

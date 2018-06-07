@@ -9,28 +9,17 @@ package org.phoebus.applications.alarm.client;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
@@ -52,7 +41,7 @@ import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 @SuppressWarnings("nls")
 public class AlarmClient
 {
-    private final String config_topic, state_topic, command_topic;
+    private final String config_topic, command_topic;
     private final CopyOnWriteArrayList<AlarmClientListener> listeners = new CopyOnWriteArrayList<>();
     private final AlarmClientNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -69,12 +58,12 @@ public class AlarmClient
         Objects.requireNonNull(config_name);
 
         config_topic = config_name;
-        state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
 
         root = new AlarmClientNode(null, config_name);
-        consumer = connectConsumer(server, config_name);
-        producer = connectProducer(server, config_name);
+        final List<String> topics = List.of(config_topic, config_name + AlarmSystem.STATE_TOPIC_SUFFIX);
+        consumer = KafkaHelper.connectConsumer(server, topics, topics);
+        producer = KafkaHelper.connectProducer(server);
 
         thread = new Thread(this::run, "AlarmClientModel");
         thread.setDaemon(true);
@@ -110,57 +99,6 @@ public class AlarmClient
     public AlarmClientNode getRoot()
     {
         return root;
-    }
-
-    private Consumer<String, String> connectConsumer(final String kafka_servers, final String config_name)
-    {
-        final Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_servers);
-        // API requires for Consumer to be in a group.
-        // Each alarm client must receive all updates,
-        // cannot balance updates across a group
-        // --> Use unique group for each client
-        final String group_id = "AlarmClientModel-" + UUID.randomUUID();
-        props.put("group.id", group_id);
-
-        final List<String> topics = List.of(config_topic, state_topic);
-        logger.info(group_id + " subscribes to " + kafka_servers + " for " + topics);
-
-        // Read key, value as string
-        final Deserializer<String> deserializer = new StringDeserializer();
-        final Consumer<String, String> consumer = new KafkaConsumer<>(props, deserializer, deserializer);
-
-        // Rewind whenever assigned to partition
-        final ConsumerRebalanceListener crl = new ConsumerRebalanceListener()
-        {
-            @Override
-            public void onPartitionsAssigned(final Collection<TopicPartition> parts)
-            {
-                consumer.seekToBeginning(parts);
-            }
-
-            @Override
-            public void onPartitionsRevoked(final Collection<TopicPartition> parts)
-            {
-                // Ignore
-            }
-        };
-        consumer.subscribe(topics, crl);
-
-        return consumer;
-    }
-
-    private Producer<String, String> connectProducer(final String kafka_servers, final String config_name)
-    {
-        final Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_servers);
-
-        // Write String key, value
-        final Serializer<String> serializer = new StringSerializer();
-
-        final Producer<String, String> producer = new KafkaProducer<>(props, serializer, serializer);
-
-        return producer;
     }
 
     /** Background thread loop that checks for alarm tree updates */
