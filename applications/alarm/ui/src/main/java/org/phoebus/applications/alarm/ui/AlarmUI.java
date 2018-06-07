@@ -57,6 +57,7 @@ public class AlarmUI
 
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
     
+    private static boolean initialized = false;
     private static AuthorizationService authorizationService;
     
     /** @param severity {@link SeverityLevel}
@@ -90,8 +91,12 @@ public class AlarmUI
 
     public static void initializeAuthorizationService()
     { 
-        final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
-        File auth_conf = new File(prefs.get("authorization_file"));
-        authorizationService = new FileBasedAuthorizationService(auth_conf);
+        if (! initialized)
+        {
+            final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
+            File auth_conf = new File(prefs.get("authorization_file"));
+            authorizationService = new FileBasedAuthorizationService(auth_conf);
+            initialized = true;
+        }
     }
 }
