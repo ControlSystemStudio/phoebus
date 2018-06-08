@@ -17,55 +17,69 @@ import org.phoebus.applications.alarm.talk.TalkClientListener;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 /**
  * Table View for the Annunciator
  * @author Evan Smith
  */
-public class AnnunciatorTableView extends TableView<Message> implements TalkClientListener
+public class AnnunciatorTable extends VBox implements TalkClientListener
 {
+    final ToggleButton mute_button = new ToggleButton("Mute Annunciator");
+    final TableView<Message> table = new TableView<Message>();
     
     final CopyOnWriteArrayList<Message> messages = new CopyOnWriteArrayList<>();
     final TalkClient client;
     final ArrayList<TableColumn<Message, String>> columns = new ArrayList<>();
 
-    public AnnunciatorTableView (TalkClient client)
+    public AnnunciatorTable (TalkClient client)
     {
         this.client = client;
         client.addListener(this);
         TableColumn<Message, String> time = new TableColumn<Message, String>("Time Received");
         time.setCellValueFactory(new PropertyValueFactory<>("time"));
-        time.prefWidthProperty().bind(widthProperty().multiply(0.2));
+        time.prefWidthProperty().bind(table.widthProperty().multiply(0.2));
         time.setResizable(false);
         columns.add(time);
         
         TableColumn<Message, String> severity = new TableColumn<Message, String>("Severity");
         severity.setCellValueFactory(new PropertyValueFactory<>("severity"));
-        severity.prefWidthProperty().bind(widthProperty().multiply(0.1));
+        severity.prefWidthProperty().bind(table.widthProperty().multiply(0.1));
         severity.setResizable(false);
         columns.add(severity);
 
         TableColumn<Message, String> description = new TableColumn<Message, String>("Description");
         description.setCellValueFactory(new PropertyValueFactory<>("description"));
-        description.prefWidthProperty().bind(widthProperty().multiply(0.7));
+        description.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
         description.setResizable(false);
         columns.add(description);
 
-        // This seems foolish. Is there no way to build the observable list beforehand?
-        setItems(FXCollections.observableArrayList(messages));
-        getColumns().addAll(columns);
+        table.setItems(FXCollections.observableArrayList(messages));
+        table.getColumns().addAll(columns);
+        
+        HBox hbox = new HBox();
+        hbox.getChildren().add(mute_button);
+        hbox.setAlignment(Pos.BASELINE_RIGHT);
+        this.getChildren().add(hbox);
+        this.getChildren().add(table);
     }
     
+   
     @Override
     public void messageRecieved(String severity, String description)
     {
         Instant now = Instant.now();
         messages.add(new Message(now.toString(), severity, description));
-        Platform.runLater( () -> {
-            setItems(FXCollections.observableArrayList(messages));
+        // Update the table on the UI thread.
+        Platform.runLater( () ->
+        {
+            table.setItems(FXCollections.observableArrayList(messages));
         });
     }
 

@@ -8,7 +8,7 @@
 package org.phoebus.applications.alarm;
 
 import org.phoebus.applications.alarm.talk.TalkClient;
-import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorTableView;
+import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorTable;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -24,7 +24,7 @@ public class AnnunciatorTableDemo extends Application
     public void start(final Stage stage) throws Exception
     {
         final TalkClient client = new TalkClient(AlarmSystem.server, AlarmSystem.config_name);
-        final AnnunciatorTableView table = new AnnunciatorTableView(client);
+        final AnnunciatorTable table = new AnnunciatorTable(client);
         final Scene scene = new Scene(table, 1200, 300);
         stage.setScene(scene);
         stage.setTitle("Alarm Annunciator Table Demo");
