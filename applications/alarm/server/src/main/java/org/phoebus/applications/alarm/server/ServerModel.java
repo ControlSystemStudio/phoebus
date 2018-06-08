@@ -56,7 +56,7 @@ class ServerModel
 
     private final ConcurrentHashMap<String, ClientState> initial_states;
 
-    private final String config_topic, command_topic, state_topic;
+    private final String config_topic, command_topic, state_topic, talk_topic;
     private final ServerModelListener listener;
     private final AlarmServerNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -80,6 +80,7 @@ class ServerModel
         config_topic = Objects.requireNonNull(config_name);
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
         state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
+        talk_topic = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
         this.listener = Objects.requireNonNull(listener);
 
         root = new AlarmServerNode(this, null, config_name);
@@ -366,6 +367,20 @@ class ServerModel
         }
     }
 
+    public void sentAnnunciatorMessage(final String path, final BasicState new_state)
+    {
+        try
+        {
+            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, path, json);
+            producer.send(record);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot send talk message for " + path, ex);
+        }
+    }
+    
     /** Stop client */
     public void shutdown()
     {
