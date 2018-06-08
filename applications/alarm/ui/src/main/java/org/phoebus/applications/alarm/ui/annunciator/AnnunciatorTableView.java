@@ -21,6 +21,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+/**
+ * Table View for the Annunciator
+ * @author Evan Smith
+ */
 public class AnnunciatorTableView extends TableView<Message> implements TalkClientListener
 {
     

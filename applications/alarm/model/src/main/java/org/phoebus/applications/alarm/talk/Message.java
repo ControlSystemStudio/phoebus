@@ -9,6 +9,12 @@ package org.phoebus.applications.alarm.talk;
 
 import javafx.beans.property.SimpleStringProperty;
 
+/**
+ * Message class for the Annunciation Table.
+ * <p> Each message contains a time, severity, and description represented by strings.
+ * @author 1es
+ *
+ */
 public class Message
 {
     private final SimpleStringProperty time;

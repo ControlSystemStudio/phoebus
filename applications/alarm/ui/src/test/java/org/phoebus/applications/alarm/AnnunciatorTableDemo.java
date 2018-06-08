@@ -14,7 +14,10 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-
+/** 
+ *  Demo of the AnnunciatorTable
+ *  @author Evan Smith
+ */
 public class AnnunciatorTableDemo extends Application
 {
     @Override

@@ -32,8 +32,6 @@ public class TalkClient
 {
     private final String talk_topic;
     private final CopyOnWriteArrayList<TalkClientListener> listeners = new CopyOnWriteArrayList<>();
-    // TODO What type of list?
-    //private final List<Message> messages = new ArrayList<>();
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
     // TODO Do we need a producer? Are we sending messages back deleting the message once it has been annunciated? How should this work?
