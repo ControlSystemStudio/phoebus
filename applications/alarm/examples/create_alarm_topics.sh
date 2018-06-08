@@ -8,7 +8,7 @@ fi
 
 config=$1
 
-for topic in "$1" "${1}State" "${1}Command" "{1}Talk"
+for topic in "$1" "${1}State" "${1}Command" "${1}Talk"
 do
     kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic $topic
     kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --alter --entity-name $topic \
