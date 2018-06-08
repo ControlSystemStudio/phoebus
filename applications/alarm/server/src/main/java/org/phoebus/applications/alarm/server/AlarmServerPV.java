@@ -109,7 +109,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             {
                 // TODO Send text to Kafka, so that annunciators can, well, annunciate
                 // Level, Severity, Description
-                model.sentAnnunciationMessage()
+                
+                model.sentAnnunciatorMessage(level, description);
             }
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);
