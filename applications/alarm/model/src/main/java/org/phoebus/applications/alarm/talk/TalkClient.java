@@ -30,7 +30,7 @@ import org.phoebus.applications.alarm.client.KafkaHelper;
  */
 public class TalkClient
 {
-    private final String config_topic, talk_topic;
+    private final String talk_topic;
     private final CopyOnWriteArrayList<TalkClientListener> listeners = new CopyOnWriteArrayList<>();
     // TODO What type of list?
     //private final List<Message> messages = new ArrayList<>();
@@ -47,11 +47,10 @@ public class TalkClient
     {
         Objects.requireNonNull(server);
         Objects.requireNonNull(config_name);
-
-        config_topic = config_name;
+        
         talk_topic = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
 
-        final List<String> topics = List.of(config_topic, talk_topic);
+        final List<String> topics = List.of(talk_topic);
         consumer = KafkaHelper.connectConsumer(server, topics, topics);
         //producer = KafkaHelper.connectProducer(server);
 
