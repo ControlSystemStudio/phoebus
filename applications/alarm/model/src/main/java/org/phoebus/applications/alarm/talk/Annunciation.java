@@ -29,8 +29,8 @@ public class Annunciation
     
     public Annunciation(Instant time_received, SeverityLevel severity, String message)
     {
-        this.severity.set(severity);
         this.time_received.set(time_received);
+        this.severity.set(severity);
         this.message.set(message);
     }
     
