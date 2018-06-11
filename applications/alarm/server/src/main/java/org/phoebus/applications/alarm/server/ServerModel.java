@@ -373,10 +373,8 @@ class ServerModel
         try
         {
             String severity = level.toString();
-            final String json = "{\"severity\": \"" + severity + "\", \"description\": \"" + description +"\"}";
-            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, severity, json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, severity, description);
             producer.send(record);
-            
         }
         catch (Throwable ex)
         {

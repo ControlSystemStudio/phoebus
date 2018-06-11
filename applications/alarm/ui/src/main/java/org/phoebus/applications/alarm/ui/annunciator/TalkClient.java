@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.talk;
+package org.phoebus.applications.alarm.ui.annunciator;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
@@ -19,22 +19,16 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.KafkaHelper;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
-/**
- * Client for *Talk Topics
- * <p> Largely based on Kay Kasemir's {@link AlarmClient}. 
- * @author Evan Smith
- *
- */
+
+@SuppressWarnings("nls")
 public class TalkClient
 {
-    private final String talk_topic;
     private final CopyOnWriteArrayList<TalkClientListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
-    // TODO Do we need a producer? Are we sending messages back deleting the message once it has been annunciated? How should this work?
     //private final Producer<String, String> producer;
     private final Thread thread;
 
@@ -45,14 +39,12 @@ public class TalkClient
     {
         Objects.requireNonNull(server);
         Objects.requireNonNull(config_name);
-        
-        talk_topic = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
 
-        final List<String> topics = List.of(talk_topic);
+        final List<String> topics = List.of(config_name + AlarmSystem.TALK_TOPIC_SUFFIX);
         consumer = KafkaHelper.connectConsumer(server, topics, topics);
         //producer = KafkaHelper.connectProducer(server);
 
-        thread = new Thread(this::run, "TalkClient");
+        thread = new Thread(this::run, "AlarmClientModel");
         thread.setDaemon(true);
     }
 
@@ -68,6 +60,7 @@ public class TalkClient
         if (! listeners.remove(listener))
             throw new IllegalStateException("Unknown listener");
     }
+
     /** Start client
      *  @see #shutdown()
      */
@@ -81,7 +74,7 @@ public class TalkClient
     {
         return thread.isAlive();
     }
-    
+
     /** Background thread loop that checks for alarm tree updates */
     private void run()
     {
@@ -101,7 +94,7 @@ public class TalkClient
             consumer.close();
         }
     }
-    
+
     /** Perform one check for updates */
     private void checkUpdates()
     {
@@ -109,14 +102,21 @@ public class TalkClient
         for (final ConsumerRecord<String, String> record : records)
         {
             final String severity = record.key();
-            final String description = record.value();
-            for (TalkClientListener listener : listeners)
+            final String message = record.value();
+            try
             {
-                listener.messageRecieved(severity, description);
+                for (final TalkClientListener listener : listeners)
+                    listener.messageReceived(SeverityLevel.valueOf(severity), message);
+            }
+            catch (final Exception ex)
+            {
+                logger.log(Level.WARNING,
+                           "Talk error for " + severity +
+                           ", " + message, ex);
             }
         }
     }
-    
+
     /** Stop client */
     public void shutdown()
     {
@@ -128,9 +128,8 @@ public class TalkClient
         }
         catch (final InterruptedException ex)
         {
-            logger.log(Level.WARNING, "Alarm client thread doesn't shut down", ex);
+            logger.log(Level.WARNING, "Talk client thread doesn't shut down", ex);
         }
         logger.info(thread.getName() + " shut down");
-
     }
 }

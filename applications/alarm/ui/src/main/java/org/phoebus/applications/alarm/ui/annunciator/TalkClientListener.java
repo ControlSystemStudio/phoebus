@@ -5,19 +5,16 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.talk;
+package org.phoebus.applications.alarm.ui.annunciator;
+
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /**
- * Listener for {@link TalkClient}
+ * Interface for talk client listener.
  * @author Evan Smith
  *
  */
 public interface TalkClientListener
 {
-    /**
-     * Called when client receives a message.
-     * @param severity Alarm Severity
-     * @param description Description attached to alarm
-     */
-    public void messageRecieved(final String severity, final String description);
+    public void messageReceived(SeverityLevel severity, String message);
 }

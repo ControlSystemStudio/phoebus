@@ -7,7 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.talk;
 
-import gov.aps.jca.dbr.Severity;
+import java.time.Instant;
+
+import org.phoebus.applications.alarm.model.SeverityLevel;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 
 /**
  * Annunciation class for the Annunciation Table.
@@ -17,18 +23,15 @@ import gov.aps.jca.dbr.Severity;
  */
 public class Annunciation
 {
-    private final String time;
-    private final Severity severity;
-    private final String message;
+    public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
+    public final ObjectProperty<Instant> time_received = new SimpleObjectProperty<>(null);
+    public final SimpleStringProperty message = new SimpleStringProperty();
     
-    public Annunciation(final String time_received, Severity level, String msg)
+    public Annunciation(Instant time_received, SeverityLevel severity, String message)
     {
-        time = time_received;
-        severity = level;
-        message = msg;
+        this.severity.set(severity);
+        this.time_received.set(time_received);
+        this.message.set(message);
     }
     
-    public String   getTime()     { return time; }
-    public Severity getSeverity() { return severity; }
-    public String   getMessage()  { return message; }
 }

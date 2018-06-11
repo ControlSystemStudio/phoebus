@@ -8,24 +8,25 @@
 package org.phoebus.applications.alarm.ui.annunciator;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.Annunciation;
-import org.phoebus.applications.alarm.talk.TalkClient;
-import org.phoebus.applications.alarm.talk.TalkClientListener;
+import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.util.time.TimestampFormats;
 
-import gov.aps.jca.dbr.Severity;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 /**
  * Table View for the Annunciator
@@ -34,36 +35,75 @@ import javafx.scene.layout.VBox;
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
     final ToggleButton mute_button = new ToggleButton("Mute Annunciator");
-    final TableView<Annunciation> table = new TableView<Annunciation>();
+    final TableView<Annunciation> table = new TableView<>();
     
     final CopyOnWriteArrayList<Annunciation> messages = new CopyOnWriteArrayList<>();
     final TalkClient client;
-    final ArrayList<TableColumn<Annunciation, String>> columns = new ArrayList<>();
 
+    private class SeverityCell extends TableCell<Annunciation, SeverityLevel>
+    {
+        @Override
+        protected void updateItem(final SeverityLevel item, final boolean empty)
+        {
+            super.updateItem(item, empty);
+
+            if (empty  ||  item == null)
+            {
+                setGraphic(null);
+                setText("");
+                setTextFill(Color.BLACK);
+            }
+            else
+            {
+                setGraphic(new ImageView(AlarmUI.getIcon(item)));
+                setText(item.toString());
+                setTextFill(AlarmUI.getColor(item));
+            }
+        }
+    }
+    
+    /** Table cell that shows a time stamp */
+    private class TimeCell extends TableCell<Annunciation, Instant>
+    {
+        @Override
+        protected void updateItem(final Instant item, final boolean empty)
+        {
+            super.updateItem(item, empty);
+
+            if (empty  ||  item == null)
+                setText("");
+            else
+                setText(TimestampFormats.MILLI_FORMAT.format(item));
+        }
+    }
+    
     public AnnunciatorTable (TalkClient client)
     {
         this.client = client;
         client.addListener(this);
-        TableColumn<Annunciation, String> time = new TableColumn<Annunciation, String>("Time Received");
-        time.setCellValueFactory(new PropertyValueFactory<>("time"));
+        TableColumn<Annunciation, Instant> time = new TableColumn<>("Time Received");
+        
+        time.setCellValueFactory(cell -> cell.getValue().time_received);
+        time.setCellFactory(c -> new TimeCell());
+        
         time.prefWidthProperty().bind(table.widthProperty().multiply(0.2));
         time.setResizable(false);
-        columns.add(time);
+        table.getColumns().add(time);
         
-        TableColumn<Annunciation, String> severity = new TableColumn<Annunciation, String>("Severity");
-        severity.setCellValueFactory(new PropertyValueFactory<>("severity"));
+        TableColumn<Annunciation, SeverityLevel> severity = new TableColumn<>("Severity");
+        severity.setCellValueFactory(cell -> cell.getValue().severity);
+        severity.setCellFactory(c -> new SeverityCell());
         severity.prefWidthProperty().bind(table.widthProperty().multiply(0.1));
         severity.setResizable(false);
-        columns.add(severity);
+        table.getColumns().add(severity);
 
-        TableColumn<Annunciation, String> description = new TableColumn<Annunciation, String>("Description");
-        description.setCellValueFactory(new PropertyValueFactory<>("description"));
+        TableColumn<Annunciation, String> description = new TableColumn<>("Description");
+        description.setCellValueFactory(cell -> cell.getValue().message);
         description.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
         description.setResizable(false);
-        columns.add(description);
+        table.getColumns().add(description);
 
         table.setItems(FXCollections.observableArrayList(messages));
-        table.getColumns().addAll(columns);
         
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
@@ -78,16 +118,17 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     }
     
    
+    
     @Override
-    public void messageRecieved(String severity, String message)
+    public void messageReceived(SeverityLevel severity, String message)
     {
-        Instant now = Instant.now();
-        messages.add(new Annunciation(now.toString(), Severity.forName(severity), message));
+        messages.add(new Annunciation(Instant.now(), severity, message));
         // Update the table on the UI thread.
         Platform.runLater( () ->
         {
             table.setItems(FXCollections.observableArrayList(messages));
         });
     }
+    
 
 }
