@@ -20,11 +20,13 @@ import javafx.stage.Stage;
  */
 public class AnnunciatorTableDemo extends Application
 {
+    final TalkClient client = new TalkClient(AlarmSystem.server, AlarmSystem.config_name);
+    final AnnunciatorTable table = new AnnunciatorTable(client);
+    
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final TalkClient client = new TalkClient(AlarmSystem.server, AlarmSystem.config_name);
-        final AnnunciatorTable table = new AnnunciatorTable(client);
+        
         final Scene scene = new Scene(table, 1200, 300);
         stage.setScene(scene);
         stage.setTitle("Alarm Annunciator Table Demo");
@@ -32,6 +34,12 @@ public class AnnunciatorTableDemo extends Application
         client.start();
     }
 
+    @Override
+    public void stop()
+    {
+        table.shutdown();
+    }
+    
     public static void main(final String[] args)
     {
         launch(args);

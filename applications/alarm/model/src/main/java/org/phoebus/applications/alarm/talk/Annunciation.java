@@ -35,10 +35,8 @@ public class Annunciation implements Comparable<Annunciation>
     }
 
     @Override
-    public int compareTo(Annunciation o)
+    public int compareTo(Annunciation a)
     {
-        
-        Annunciation a = (Annunciation) o;
         if (this.severity.get().getAlarmUpdatePriority() == a.severity.get().getAlarmUpdatePriority())
             return this.time_received.get().compareTo(a.time_received.get());
         else

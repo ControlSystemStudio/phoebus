@@ -30,7 +30,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-
 /**
  * Table View for the Annunciator
  * @author Evan Smith
@@ -47,12 +46,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 
     private final CopyOnWriteArrayList<Annunciation> messages = new CopyOnWriteArrayList<>();
     
+    
     @SuppressWarnings("unused")
     private final TalkClient client;
     
     private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
     private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
     
+    private final Annunciator annunciator = new Annunciator(annunciator_threshold, 5); 
+
     /**
      * Table cell that displays alarm severity using icons and colored text.
      * @author 1es
@@ -133,6 +135,8 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         
         this.getChildren().add(hbox);
         this.getChildren().add(table);    
+        
+        annunciator.start();
     }
     
     @Override
@@ -140,6 +144,9 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     {
         // Update the table on the UI thread.
         Annunciation a = new Annunciation(Instant.now(), severity, message);
+        
+        annunciator.annunciate(a);
+        
         messages.add(a);
         
         logger.info(TimestampFormats.MILLI_FORMAT.format(a.time_received.get()) + 
@@ -159,5 +166,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             table.getItems().add(new Annunciation(Instant.now(), severity, message));
             table.getItems().sort(table.getComparator());
         });
+    }
+    
+    public void shutdown()
+    {
+        annunciator.stop();
     }
 }
