@@ -44,6 +44,6 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/slf4j-api-1.7.25.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/reactive-streams-1.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/rxjava-2.1.13.jar"/>
-	<classpathentry kind="lib" path="target/lib/freetts-1.2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/freetts-1.2.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

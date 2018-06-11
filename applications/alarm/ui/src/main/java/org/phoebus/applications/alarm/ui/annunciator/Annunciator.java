@@ -8,8 +8,13 @@ import java.util.concurrent.TimeUnit;
 import org.phoebus.applications.alarm.talk.Annunciation;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
+import com.sun.speech.freetts.Voice;
+import com.sun.speech.freetts.VoiceManager;
+
 public class Annunciator
 {
+    private final VoiceManager voiceManager = VoiceManager.getInstance();
+    private final Voice        voice        = voiceManager.getVoice("kevin16");
     private int threshold = 3;
     private long timeout_secs = 5;
     
@@ -44,12 +49,19 @@ public class Annunciator
         
         if (to_annunciate.size() > threshold)
         {
-            System.out.println("There were " + to_annunciate.size() + " messages recieved in the last " + timeout_secs + " seconds");
+            String msg = "There were " + to_annunciate.size() + " messages recieved in the last " + timeout_secs + " seconds";
+            System.out.println(msg);
+            voice.allocate();
+            voice.speak(msg);
+            voice.deallocate();
         }
         else
         {
             for (Annunciation a : to_annunciate)
             {
+                voice.allocate();
+                voice.speak(a.message.get());
+                voice.deallocate();
                 System.out.println(a.time_received + " " + a.severity + " " + a.message);
             }
         }
