@@ -53,7 +53,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
     private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
     
-    private final Annunciator annunciator = new Annunciator(annunciator_threshold, 5); 
+    private final Annunciator annunciator = new Annunciator(annunciator_threshold, 6); 
 
     /**
      * Table cell that displays alarm severity using icons and colored text.

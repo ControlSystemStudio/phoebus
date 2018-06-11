@@ -19,10 +19,13 @@ public class Annunciator
     private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
     private final Runnable speaker = () -> annunciate();
     
-    public Annunciator( int threshold, long time)
+    public Annunciator(int threshold, long time)
     {
-        this.threshold = threshold;
-        timeout_secs = time;
+        // If sensible arguments are not given, maintain defaults.
+        if (threshold > 1)
+            this.threshold = threshold;
+        if (timeout_secs > 1)
+            timeout_secs = time;
     }
     
     public void annunciate(Annunciation a)
@@ -30,10 +33,9 @@ public class Annunciator
         message_queue.add(a);
     }
 
+    // TODO Integrate freeTTS into method.
     private void annunciate()
     {
-        System.out.println("Annunciating");
-        System.out.println(message_queue.size());
         synchronized(message_queue)
         {
             to_annunciate.addAll(message_queue);
@@ -42,7 +44,7 @@ public class Annunciator
         
         if (to_annunciate.size() > threshold)
         {
-            System.out.println("There were " + to_annunciate.size() + " recieved in the last " + timeout_secs + " seconds");
+            System.out.println("There were " + to_annunciate.size() + " messages recieved in the last " + timeout_secs + " seconds");
         }
         else
         {
