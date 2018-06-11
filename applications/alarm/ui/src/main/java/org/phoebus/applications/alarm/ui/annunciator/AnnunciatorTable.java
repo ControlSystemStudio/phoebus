@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.annunciator;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.time.Instant;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -22,6 +24,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -33,7 +36,6 @@ import javafx.scene.paint.Color;
  * @author Evan Smith
  */
 
-@SuppressWarnings("nls")
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
     private final ToggleButton mute_button = new ToggleButton("Mute Annunciator");
@@ -47,10 +49,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     
     @SuppressWarnings("unused")
     private final TalkClient client;
-
+    
     private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
     private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
     
+    /**
+     * Table cell that displays alarm severity using icons and colored text.
+     * @author 1es
+     *
+     */
     private class SeverityCell extends TableCell<Annunciation, SeverityLevel>
     {
         @Override
@@ -73,7 +80,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         }
     }
     
-    /** Table cell that shows a time stamp */
+    /**
+     * Table cell that shows a time stamp 
+     * @Author Kay Kasemir
+     * */
     private class TimeCell extends TableCell<Annunciation, Instant>
     {
         @Override
@@ -117,6 +127,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         
         // Top button row
         HBox hbox = new HBox();
+        mute_button.setTooltip(new Tooltip("Mute the annunciator."));
         hbox.getChildren().add(mute_button);
         hbox.setAlignment(Pos.BASELINE_RIGHT);
         
@@ -128,9 +139,23 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     public void messageReceived(SeverityLevel severity, String message)
     {
         // Update the table on the UI thread.
-        messages.add(new Annunciation(Instant.now(), severity, message));
+        Annunciation a = new Annunciation(Instant.now(), severity, message);
+        messages.add(a);
+        
+        logger.info(TimestampFormats.MILLI_FORMAT.format(a.time_received.get()) + 
+                     " " + a.severity.get() + 
+                     " Alarm: \"" + a.message.get() + "\"");
+        
+        // Remove the oldest messages to stay under the message retention threshold. 
+        // Only the table items are sorted, the messages list maintains chronological order.
+        if (messages.size() > annunciator_retention_count && messages.size() > 0)
+        {
+            messages.remove(0);
+        }
+        
         Platform.runLater( () ->
         {
+            // The table should maintain its selected sort order after message addition.
             table.getItems().add(new Annunciation(Instant.now(), severity, message));
             table.getItems().sort(table.getComparator());
         });

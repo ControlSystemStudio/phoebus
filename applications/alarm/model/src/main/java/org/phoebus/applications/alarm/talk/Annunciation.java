@@ -38,10 +38,10 @@ public class Annunciation implements Comparable<Annunciation>
     public int compareTo(Annunciation o)
     {
         
-            Annunciation a = (Annunciation) o;
-            if (this.severity.get().getAlarmUpdatePriority() == a.severity.get().getAlarmUpdatePriority())
-                return this.time_received.get().compareTo(a.time_received.get());
-            else
-                return this.severity.get().getAlarmUpdatePriority() > a.severity.get().getAlarmUpdatePriority() ? -1 : 1;
+        Annunciation a = (Annunciation) o;
+        if (this.severity.get().getAlarmUpdatePriority() == a.severity.get().getAlarmUpdatePriority())
+            return this.time_received.get().compareTo(a.time_received.get());
+        else
+            return this.severity.get().getAlarmUpdatePriority() > a.severity.get().getAlarmUpdatePriority() ? -1 : 1;
     }
 }
