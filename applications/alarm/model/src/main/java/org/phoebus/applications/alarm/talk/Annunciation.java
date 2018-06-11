@@ -21,7 +21,7 @@ import javafx.beans.property.SimpleStringProperty;
  * @author 1es
  *
  */
-public class Annunciation
+public class Annunciation implements Comparable<Annunciation>
 {
     public final ObjectProperty<Instant> time_received = new SimpleObjectProperty<>(null);
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
@@ -33,5 +33,15 @@ public class Annunciation
         this.severity.set(severity);
         this.message.set(message);
     }
-    
+
+    @Override
+    public int compareTo(Annunciation o)
+    {
+        
+            Annunciation a = (Annunciation) o;
+            if (this.severity.get().getAlarmUpdatePriority() == a.severity.get().getAlarmUpdatePriority())
+                return this.time_received.get().compareTo(a.time_received.get());
+            else
+                return this.severity.get().getAlarmUpdatePriority() > a.severity.get().getAlarmUpdatePriority() ? -1 : 1;
+    }
 }

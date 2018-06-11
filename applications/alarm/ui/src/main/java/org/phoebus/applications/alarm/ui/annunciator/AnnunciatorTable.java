@@ -17,7 +17,6 @@ import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -33,14 +32,25 @@ import javafx.scene.paint.Color;
  * Table View for the Annunciator
  * @author Evan Smith
  */
+
+@SuppressWarnings("nls")
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
-    final ToggleButton mute_button = new ToggleButton("Mute Annunciator");
-    final TableView<Annunciation> table = new TableView<>();
+    private final ToggleButton mute_button = new ToggleButton("Mute Annunciator");
+    private final TableView<Annunciation> table = new TableView<>();
     
-    final CopyOnWriteArrayList<Annunciation> messages = new CopyOnWriteArrayList<>();
-    final TalkClient client;
+    TableColumn<Annunciation, Instant> time = new TableColumn<>("Time Received");
+    TableColumn<Annunciation, SeverityLevel> severity = new TableColumn<>("Severity");
+    TableColumn<Annunciation, String> description = new TableColumn<>("Description");
 
+    private final CopyOnWriteArrayList<Annunciation> messages = new CopyOnWriteArrayList<>();
+    
+    @SuppressWarnings("unused")
+    private final TalkClient client;
+
+    private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
+    private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
+    
     private class SeverityCell extends TableCell<Annunciation, SeverityLevel>
     {
         @Override
@@ -80,10 +90,8 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     
     public AnnunciatorTable (TalkClient client)
     {
-        AlarmSystem.
         this.client = client;
         client.addListener(this);
-        TableColumn<Annunciation, Instant> time = new TableColumn<>("Time Received");
         
         time.setCellValueFactory(cell -> cell.getValue().time_received);
         time.setCellFactory(c -> new TimeCell());
@@ -92,21 +100,18 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         time.setResizable(false);
         table.getColumns().add(time);
         
-        TableColumn<Annunciation, SeverityLevel> severity = new TableColumn<>("Severity");
+        
         severity.setCellValueFactory(cell -> cell.getValue().severity);
         severity.setCellFactory(c -> new SeverityCell());
         severity.prefWidthProperty().bind(table.widthProperty().multiply(0.1));
         severity.setResizable(false);
         table.getColumns().add(severity);
 
-        TableColumn<Annunciation, String> description = new TableColumn<>("Description");
         description.setCellValueFactory(cell -> cell.getValue().message);
         description.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
         description.setResizable(false);
         table.getColumns().add(description);
 
-        table.setItems(FXCollections.observableArrayList(messages));
-        
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
         
@@ -116,21 +121,18 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         hbox.setAlignment(Pos.BASELINE_RIGHT);
         
         this.getChildren().add(hbox);
-        this.getChildren().add(table);
+        this.getChildren().add(table);    
     }
-    
-   
     
     @Override
     public void messageReceived(SeverityLevel severity, String message)
     {
-        messages.add(new Annunciation(Instant.now(), severity, message));
         // Update the table on the UI thread.
+        messages.add(new Annunciation(Instant.now(), severity, message));
         Platform.runLater( () ->
         {
-            table.setItems(FXCollections.observableArrayList(messages));
+            table.getItems().add(new Annunciation(Instant.now(), severity, message));
+            table.getItems().sort(table.getComparator());
         });
     }
-    
-
 }
