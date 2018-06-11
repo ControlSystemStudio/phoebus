@@ -23,8 +23,8 @@ import javafx.beans.property.SimpleStringProperty;
  */
 public class Annunciation
 {
-    public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
     public final ObjectProperty<Instant> time_received = new SimpleObjectProperty<>(null);
+    public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
     public final SimpleStringProperty message = new SimpleStringProperty();
     
     public Annunciation(Instant time_received, SeverityLevel severity, String message)
