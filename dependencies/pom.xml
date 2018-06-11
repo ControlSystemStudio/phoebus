@@ -212,6 +212,12 @@
       <version>2.1.13</version>
     </dependency>
     
+    <!-- freeTTS text to speech library used by annunciator -->
+    <dependency>
+        <groupId>net.sf.sociaal</groupId>
+        <artifactId>freetts</artifactId>
+        <version>1.2.2</version>
+    </dependency>
   </dependencies>
 
   <build>
