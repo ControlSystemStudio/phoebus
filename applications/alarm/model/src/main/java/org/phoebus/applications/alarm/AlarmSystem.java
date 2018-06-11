@@ -67,7 +67,10 @@ public class AlarmSystem
     public static final String authorization_file;
     
     /** Annunciator threshold */
-    // public static final int annunciator_threshold;
+    public static final int annunciator_threshold;
+    
+    /** Annunciator message retention count */
+    public static final int annunciator_retention_count;
     
     static
     {
@@ -83,7 +86,8 @@ public class AlarmSystem
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
         command_directory = new File(replaceProperties(prefs.get("command_directory")));
         authorization_file = replaceProperties(prefs.get("authorization_file"));
-        //annunciator_threshold = prefs.getInt("annunciator_threshold");
+        annunciator_threshold = prefs.getInt("annunciator_threshold");
+        annunciator_retention_count = prefs.getInt("annunciator_retention_count");
     }
 
     /** @param value Value that might contain "$(prop)"

@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import java.time.Instant;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.Annunciation;
 import org.phoebus.applications.alarm.ui.AlarmUI;
@@ -79,6 +80,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     
     public AnnunciatorTable (TalkClient client)
     {
+        AlarmSystem.
         this.client = client;
         client.addListener(this);
         TableColumn<Annunciation, Instant> time = new TableColumn<>("Time Received");
