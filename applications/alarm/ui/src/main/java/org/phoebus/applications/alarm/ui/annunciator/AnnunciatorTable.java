@@ -53,8 +53,8 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
     private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
     
-    private final Annunciator annunciator = new Annunciator(); 
-    private final AnnunciatorController annunciatorController = new AnnunciatorController(annunciator, annunciator_threshold);
+    private final Annunciator annunciator;
+    private final AnnunciatorController annunciatorController;
 
     /**
      * Table cell that displays alarm severity using icons and colored text.
@@ -128,6 +128,9 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
         
+        annunciator = new Annunciator(); 
+        annunciatorController = new AnnunciatorController(annunciator, annunciator_threshold);
+        
         // Top button row
         HBox hbox = new HBox();
         mute_button.setTooltip(new Tooltip("Mute the annunciator."));
@@ -138,7 +141,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         this.getChildren().add(hbox);
         this.getChildren().add(table);    
         
-        //annunciator.start();
+      
     }
     
     @Override
