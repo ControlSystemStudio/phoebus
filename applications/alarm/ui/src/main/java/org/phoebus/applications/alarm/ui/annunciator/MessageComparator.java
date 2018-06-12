@@ -1,9 +1,21 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm.ui.annunciator;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Message comparator for alarm system messages of the form 'SEVERITY Alarm: message...'
+ * @author Evan Smith
+ *
+ */
 public class MessageComparator implements Comparator<String>
 {
     private final List<String> severities = Arrays.asList( "OK",  "MINOR_ACK",  "MAJOR_ACK", "INVALID_ACK", "UNDEFINED_ACK", "MINOR", "MAJOR", "INVALID", "UNDEFINED");
