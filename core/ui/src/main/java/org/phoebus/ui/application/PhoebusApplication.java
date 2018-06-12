@@ -168,7 +168,7 @@ public class PhoebusApplication extends Application {
         INSTANCE = this;
 
         // Show splash screen as soon as possible..
-        final Splash splash = new Splash(initial_stage);
+        final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
 
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
@@ -218,7 +218,8 @@ public class PhoebusApplication extends Application {
                 logger.log(Level.SEVERE, "Application cannot start up", ex);
             }
             monitor.done();
-            splash.close();
+            if (splash != null)
+                splash.close();
         });
     }
 
