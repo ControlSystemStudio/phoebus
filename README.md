@@ -87,6 +87,31 @@ Restart Eclipse IDE.
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
 
+## Developing with Intellij IDEA
+
+First, download the target platform as described above.
+
+To import the project:
+
+* Start Intellij
+* Import Project
+* Select the Phoebus directory
+* Import project from external model: Maven
+* Accept the default options and click Next twice
+* Ensure that the JDK is version 9 or above
+* Change the project name to Phoebus and click finish
+
+To run the Phoebus application:
+
+* Run | Edit Configurations...
+* Select + | Application
+* Search for main class and type Launcher
+* Use classpath of module: select product
+* Set the name to Phoebus
+* Click OK
+* In the top right of the IDE, click the green play button
+
+
 ## Complete Distribution, including manual
 
     # Obtain sources for documentation and product
