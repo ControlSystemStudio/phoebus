@@ -7,7 +7,8 @@ public class AnnunciatorController
     private final Annunciator annunciator;
     private final Thread thread;
     private final CopyOnWriteArrayList<String> to_annunciate = new CopyOnWriteArrayList<String>();
-    private int threshold;    
+    private int threshold; 
+    private volatile boolean muted = false;
 
     public AnnunciatorController(Annunciator a, int threshold)
     {
@@ -46,14 +47,16 @@ public class AnnunciatorController
                 {
                     synchronized (annunciator)
                     {
-                        annunciator.speak("There are " + size + " new messages.");
+                        if (! muted)
+                            annunciator.speak("There are " + size + " new messages.");
                     }
                 }
                 else
                 {
                     synchronized (annunciator)
                     {
-                        annunciator.speak(to_annunciate.remove(0));
+                        if(! muted)
+                            annunciator.speak(to_annunciate.remove(0));
                     }
                 }
             }
@@ -70,5 +73,10 @@ public class AnnunciatorController
             to_annunciate.add(message);
             to_annunciate.notify();
         }
+    }
+    
+    public void mute(boolean val)
+    {
+        muted = val;
     }
 }

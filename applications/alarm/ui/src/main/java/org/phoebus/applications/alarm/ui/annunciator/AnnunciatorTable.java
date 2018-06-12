@@ -131,6 +131,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Top button row
         HBox hbox = new HBox();
         mute_button.setTooltip(new Tooltip("Mute the annunciator."));
+        mute_button.setOnAction((event) -> annunciatorController.mute(mute_button.isSelected()));
         hbox.getChildren().add(mute_button);
         hbox.setAlignment(Pos.BASELINE_RIGHT);
         
@@ -141,10 +142,14 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     }
     
     @Override
-    public void messageReceived(SeverityLevel severity, String message)
+    public void messageReceived(SeverityLevel severity, String description)
     {
         // Update the table on the UI thread.
-        Annunciation a = new Annunciation(Instant.now(), severity, message);
+        Annunciation a = new Annunciation(Instant.now(), severity, description);
+        
+        String message = description;
+        if (! message.startsWith("*"))
+            message = severity.toString() + " Alarm: " + message;
         
         annunciatorController.annunciate(message);
         
@@ -164,7 +169,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         Platform.runLater( () ->
         {
             // The table should maintain its selected sort order after message addition.
-            table.getItems().add(new Annunciation(Instant.now(), severity, message));
+            table.getItems().add(a);
             table.getItems().sort(table.getComparator());
         });
     }
