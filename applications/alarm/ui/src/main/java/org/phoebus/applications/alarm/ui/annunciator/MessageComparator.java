@@ -28,7 +28,7 @@ public class MessageComparator implements Comparator<String>
         }
            
         // Put the non alarms at the back of the queue.
-        return -1;
+        return 1;
     }
     
     private boolean isSeverity(String sev)
