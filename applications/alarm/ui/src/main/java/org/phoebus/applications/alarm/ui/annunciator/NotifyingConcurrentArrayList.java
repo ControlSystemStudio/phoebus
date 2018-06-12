@@ -132,4 +132,14 @@ public class NotifyingConcurrentArrayList<T>
     {
         return remove(0);
     }
+
+    public int size()
+    {
+        return size;
+    }
+
+    public void clear()
+    {
+        array.clear();
+    }
 }
