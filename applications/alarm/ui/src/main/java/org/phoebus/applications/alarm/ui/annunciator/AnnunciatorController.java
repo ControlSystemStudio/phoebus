@@ -4,57 +4,60 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AnnunciatorController
 {
-    //private final Annunciator annunciator;
+    private final Annunciator annunciator;
     private final Thread thread;
     private final CopyOnWriteArrayList<String> to_annunciate = new CopyOnWriteArrayList<String>();
     private int threshold;    
 
-    private final Runnable speaker = () -> 
-    {
-        while(true)
-        {
-            try
-            {
-                synchronized(to_annunciate)
-                {
-                    to_annunciate.wait();
-                }
-            } 
-            catch (InterruptedException e1)
-            {
-            }
-            
-            if (to_annunciate.size() > threshold)
-            {
-                // Simulate speaking.
-                try
-                {
-                    Thread.sleep(2500);
-                } 
-                catch (InterruptedException e)
-                {
-                }
-                System.out.println("There are " + to_annunciate.size() + " messages.");
-                to_annunciate.clear();
-            }
-            else
-            {
-             // Simulate speaking.
-                try
-                {
-                    Thread.sleep(2500);
-                } 
-                catch (InterruptedException e)
-                {
-                }
-                System.out.println(to_annunciate.remove(0));
-            }
-        }
-    };
     public AnnunciatorController(Annunciator a, int threshold)
     {
-        //annunciator = a;
+        annunciator = a;
         this.threshold = threshold;
+        final Runnable speaker = () -> 
+        {
+            while(true)
+            {
+                try
+                {
+                    synchronized(to_annunciate)
+                    {
+                        to_annunciate.wait();
+                    }
+                } 
+                catch (InterruptedException e1)
+                {
+                    // What do?
+                }
+                
+                // Make size based annunciation decisions quickly not holding list for long. 
+                // AnnunciatorTable thread waits on this.
+                int size = 0;
+                synchronized (to_annunciate)
+                {
+                    size = to_annunciate.size();
+                    if (size > this.threshold)
+                    {
+                        to_annunciate.clear();
+                    }
+                }
+                
+                // Speak based on size vs. threshold.
+                if (size > this.threshold)
+                {
+                    synchronized (annunciator)
+                    {
+                        annunciator.speak("There are " + size + " new messages.");
+                    }
+                }
+                else
+                {
+                    synchronized (annunciator)
+                    {
+                        annunciator.speak(to_annunciate.remove(0));
+                    }
+                }
+            }
+        };
         thread = new Thread(speaker);
         thread.setDaemon(true);
         thread.start();
@@ -62,9 +65,9 @@ public class AnnunciatorController
     
     public void annunciate(String message)
     {
-        to_annunciate.add(message);
         synchronized(to_annunciate)
         {
+            to_annunciate.add(message);
             to_annunciate.notify();
         }
     }
