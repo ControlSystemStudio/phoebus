@@ -65,15 +65,7 @@ public class ImageCache
             }
             try
             {
-                // When opening an image based on the 'external' form of a URL,
-                // the Image class will look for high-res versions.
-                // TODO: On Mac OS X, images used for menu entries in the main menu
-                // must not use high-res icons, because those would show up too large.
-                // So for now disable high-res icons on Mac OS
-                if (PlatformInfo.is_mac_os_x)
-                    return new Image(clazz.getResourceAsStream(path));
-                else
-                    return new Image(resource.toExternalForm());
+                return new Image(resource.toExternalForm());
             }
             catch (Throwable ex)
             {
