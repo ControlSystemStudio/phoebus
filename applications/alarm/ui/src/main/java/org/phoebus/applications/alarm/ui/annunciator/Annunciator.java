@@ -24,6 +24,12 @@ public class Annunciator
     private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
     private final Runnable speaker = () -> annunciate();
     
+    // Define the voices directory.
+    static
+    {
+        System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
+    }
+    
     public Annunciator(int threshold, long time)
     {
         // If sensible arguments are not given, maintain defaults.
@@ -53,7 +59,6 @@ public class Annunciator
             System.out.println(msg);
             voice.allocate();
             voice.speak(msg);
-            voice.deallocate();
         }
         else
         {
@@ -61,7 +66,6 @@ public class Annunciator
             {
                 voice.allocate();
                 voice.speak(a.message.get());
-                voice.deallocate();
                 System.out.println(a.time_received + " " + a.severity + " " + a.message);
             }
         }
