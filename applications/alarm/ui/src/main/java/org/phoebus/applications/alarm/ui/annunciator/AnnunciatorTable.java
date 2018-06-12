@@ -147,7 +147,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     @Override
     public void messageReceived(SeverityLevel severity, String description)
     {
-        // Update the table on the UI thread.
         Annunciation a = new Annunciation(Instant.now(), severity, description);
         
         String message = description;
@@ -169,6 +168,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             messages.remove(0);
         }
         
+        // Update the table on the UI thread.
         Platform.runLater( () ->
         {
             // The table should maintain its selected sort order after message addition.

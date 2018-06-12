@@ -28,6 +28,8 @@ public class AnnunciatorController
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
     private volatile boolean muted = false;
 
+    MessageComparator messageComparator = new MessageComparator();
+    
     /**
      * Constructor. The annunciator must be non null and the threshold must be greater than 0.
      * @param a - Annunciator.
@@ -105,6 +107,7 @@ public class AnnunciatorController
         synchronized(to_annunciate)
         {
             to_annunciate.add(message);
+            to_annunciate.sort(messageComparator);
             to_annunciate.notify();
         }
     }
