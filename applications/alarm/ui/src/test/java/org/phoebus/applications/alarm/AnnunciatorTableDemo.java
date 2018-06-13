@@ -34,6 +34,12 @@ public class AnnunciatorTableDemo extends Application
         client.start();
     }
 
+    @Override
+    public void stop()
+    {
+        table.shutdown();
+    }
+    
     public static void main(final String[] args)
     {
         launch(args);

@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.annunciator;
 
-import java.util.Objects;
 import java.util.PriorityQueue;
 
 import org.phoebus.applications.alarm.talk.Annunciation;
@@ -33,15 +32,15 @@ public class AnnunciatorController
     // Muted is only ever set in the application thread so it doesn't need to be thread safe.
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
     private volatile Boolean muted = false;
-
+    private volatile Boolean run = true;
     /**
      * Constructor. The annunciator must be non null and the threshold must be greater than 0.
      * @param a - Annunciator.
      * @param threshold - Integer value that the length of the queue should not exceed.
      */
-    public AnnunciatorController(Annunciator a, int threshold)
+    public AnnunciatorController(int threshold)
     {
-        annunciator = Objects.requireNonNull(a);
+       annunciator = new Annunciator();
         if (threshold > 0)
             this.threshold = threshold;
         else
@@ -51,7 +50,7 @@ public class AnnunciatorController
         final Runnable speaker = () -> 
         {
             // Process new messages until killed.
-            while(true)
+            while(run)
             {
                 synchronized (to_annunciate)
                 {
@@ -139,5 +138,18 @@ public class AnnunciatorController
         {
             muted = val;
         }
+    }
+
+    /**
+     * Shutdown the annunciator controller.
+     * @throws InterruptedException
+     */
+    public void shutdown() throws InterruptedException
+    {
+        synchronized(run)
+        {
+            run = false;
+        }
+        annunciator.shutdown();
     }
 }

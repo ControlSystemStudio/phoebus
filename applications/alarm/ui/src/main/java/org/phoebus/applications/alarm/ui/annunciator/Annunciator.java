@@ -38,4 +38,9 @@ public class Annunciator
         if (null != message)
             voice.speak(message);
     }
+    
+    public void shutdown()
+    {
+        voice.deallocate();
+    }
 }

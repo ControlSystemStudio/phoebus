@@ -54,7 +54,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
     private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
     
-    private final Annunciator annunciator;
     private final AnnunciatorController annunciatorController;
 
     /**
@@ -132,8 +131,8 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
         
-        annunciator = new Annunciator(); 
-        annunciatorController = new AnnunciatorController(annunciator, annunciator_threshold);
+         
+        annunciatorController = new AnnunciatorController(annunciator_threshold);
         
         // Top button row
         HBox hbox = new HBox();
@@ -185,5 +184,16 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
                 " " + annunciation.severity.get() + 
                 " Alarm: \"" + annunciation.message.get() + "\"");
+    }
+
+    public void shutdown()
+    {
+        // Stop the annunciator controller.
+        try
+        {
+            annunciatorController.shutdown();
+        } 
+        catch (InterruptedException e)
+        { /* Ignore. Time to die. */ }
     }
 }
