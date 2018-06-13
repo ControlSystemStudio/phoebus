@@ -3,18 +3,35 @@ import threading
 import Queue
 import uuid
 import subprocess
+import sys
+import argparse
 
-# TODO Implement server and config name being taken from the command line.
+server = 'localhost:9092'
+config = 'Acclerator'
 
+argParser = argparse.ArgumentParser()
+
+argParser.add_argument("-server", "--server", help="The server name that the annunciator will listen to.")
+argParser.add_argument("-config", "--config", help="The config name that the annunciator will listen to.")
+
+args = argParser.parse_args()
+if args.server:
+    server = args.server
+    print("server: {}".format(server))
+if args.config:
+    config = args.config
+    print("config: {}".format(config))
+
+    
 # Kafka spreads messages across groups so group.id should be unique so that every 
 # alarm listener gets all of the messages.
 c = Consumer({
-    'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': '{}'.format(server),
     'group.id' : 'Alarm-' + str(uuid.uuid4()),
     'default.topic.config' : {}
     })
 
-c.subscribe(['AcceleratorTalk'])
+c.subscribe(['{}Talk'.format(config)])
 
 # Message queue and accompanying lock.
 queueLock = threading.Lock()
@@ -56,10 +73,12 @@ class annunciatorThread(threading.Thread):
             
             annunciateCondition.acquire()
             annunciateCondition.wait()
-                          
+
+# Add a message to the queue.                         
 def enqueueMessage(message):
     threading._start_new_thread(messageProducer, (message,))
 
+# Add the message to the queue in another thread. Notify all waiting consumer threads.
 def messageProducer(message):
     queueLock.acquire()
     messageQueue.put(message)
@@ -70,8 +89,10 @@ def messageProducer(message):
 
 annunciator = annunciatorThread()
 annunciator.start()
+
 while True:
-    msg = c.poll(10)
+    # TODO Is there a Double.MaxValue Equivalent?
+    msg = c.poll(1000)
     
     if msg is None:
         continue
