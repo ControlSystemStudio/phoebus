@@ -8,7 +8,10 @@
 package org.phoebus.applications.alarm.ui.annunciator;
 
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.PriorityQueue;
+
+import org.phoebus.applications.alarm.talk.Annunciation;
+import org.phoebus.framework.jobs.JobManager;
 
 /**
  * Controller class for an annunciator class.
@@ -21,15 +24,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class AnnunciatorController
 {
     private final Annunciator annunciator;
-    private final Thread thread;
-    private final CopyOnWriteArrayList<String> to_annunciate = new CopyOnWriteArrayList<String>();
+    private final Thread annunciatorThread;
+    
+    MessageComparator messageComparator = new MessageComparator();
+    private final PriorityQueue<String> to_annunciate = new PriorityQueue<String>(messageComparator);
+    
     private int threshold; 
     // Muted is only ever set in the application thread so it doesn't need to be thread safe.
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
-    private volatile boolean muted = false;
+    private volatile Boolean muted = false;
 
-    MessageComparator messageComparator = new MessageComparator();
-    
     /**
      * Constructor. The annunciator must be non null and the threshold must be greater than 0.
      * @param a - Annunciator.
@@ -64,12 +68,17 @@ public class AnnunciatorController
                 // Make size based annunciation decisions quickly not holding list for long. 
                 // AnnunciatorTable thread waits on this.
                 int size = 0;
+                String message = "NONE";
                 synchronized (to_annunciate)
                 {
                     size = to_annunciate.size();
                     if (size > this.threshold)
                     {
                         to_annunciate.clear();
+                    }
+                    else
+                    {
+                        message = to_annunciate.poll();
                     }
                 }
                 
@@ -78,37 +87,64 @@ public class AnnunciatorController
                 {
                     synchronized (annunciator)
                     {
-                        if (! muted)
-                            annunciator.speak("There are " + size + " new messages.");
+                        synchronized (muted)
+                        {
+                            if(! muted)
+                                annunciator.speak("There are " + size + " new messages.");.speak(message);
+                        }
                     }
                 }
                 else
                 {
                     synchronized (annunciator)
                     {
-                        if(! muted)
-                            annunciator.speak(to_annunciate.remove(0));
+                        synchronized (muted)
+                        {
+                            if(! muted)
+                                annunciator.speak(message);
+                        }
                     }
                 }
             }
         };
-        thread = new Thread(speaker);
-        thread.setDaemon(true);
-        thread.start();
+        
+        annunciatorThread = new Thread(speaker);
+        annunciatorThread.setDaemon(true);
+        annunciatorThread.start();
     }
     
     /**
      * Annunciate the passed message.
      * @param message
      */
-    public void annunciate(String message)
+    private void annunciate(String message)
     {
-        // Add the new message and notify the speech thread.
-        synchronized(to_annunciate)
+        // May block on the to_annunciate queue. So call in another thread to prevent blocking on UI thread.
+        JobManager.schedule("annunciate message", (monitor) -> 
         {
-            to_annunciate.add(message);
-            to_annunciate.sort(messageComparator);
-            to_annunciate.notifyAll();
+            // Add the new message and notify the speech thread.
+            synchronized(to_annunciate)
+            {
+                to_annunciate.add(message);
+                to_annunciate.notifyAll();
+            }
+        });
+    }
+    
+    /**
+     * Handle an annunciation by notifying the speaker thread that a message has been received.
+     * @param a - Annunciation
+     */
+    public void handleAnnunciation(Annunciation a)
+    {
+        if (! a.message.get().startsWith("*"))
+        {
+            final String message = a.severity.get().toString() + " Alarm: " + a.message.get();
+            annunciate(message);
+        }
+        else
+        {
+            annunciate(a.message.get());
         }
     }
     
@@ -118,6 +154,9 @@ public class AnnunciatorController
      */
     public void mute(boolean val)
     {
-        muted = val;
+        synchronized (muted)
+        {
+            muted = val;
+        }
     }
 }

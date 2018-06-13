@@ -19,13 +19,13 @@ public class Annunciator
 {
     private final VoiceManager voiceManager; 
     private final Voice        voice;
-   
+    private static final String voice_name = "kevin16";
     public Annunciator()
     {
         // Define the voices directory.
         System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
         voiceManager = VoiceManager.getInstance();
-        voice = voiceManager.getVoice("kevin16");
+        voice = voiceManager.getVoice(voice_name);
         voice.allocate();
     }
     
@@ -35,6 +35,7 @@ public class Annunciator
      */
     public void speak(String message)
     {
-        voice.speak(message);
+        if (null != message)
+            voice.speak(message);
     }
 }

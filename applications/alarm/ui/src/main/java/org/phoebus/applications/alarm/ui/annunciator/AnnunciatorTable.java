@@ -16,7 +16,6 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.Annunciation;
 import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
@@ -148,25 +147,13 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     @Override
     public void messageReceived(SeverityLevel severity, String description)
     {
-        Annunciation a = new Annunciation(Instant.now(), severity, description);
+        Annunciation annunciation = new Annunciation(Instant.now(), severity, description);
         
+        annunciatorController.handleAnnunciation(annunciation);
         
-        if (! description.startsWith("*"))
-        {
-            final String message = severity.toString() + " Alarm: " + description;
-            JobManager.schedule("annunciate message", (monitor) -> annunciatorController.annunciate(message));
-        }
-        else
-        {
-            final String message = description;
-            JobManager.schedule("annunciate message", (monitor) -> annunciatorController.annunciate(message));
-        }
+        logAnnunciation(annunciation);
         
-        logger.info(TimestampFormats.MILLI_FORMAT.format(a.time_received.get()) + 
-                " " + a.severity.get() + 
-                " Alarm: \"" + a.message.get() + "\"");
-        
-        messages.add(a);
+        messages.add(annunciation);
         
         // Remove the oldest messages to stay under the message retention threshold. 
         // Only the table items are sorted, the messages list maintains chronological order.
@@ -179,8 +166,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         Platform.runLater( () ->
         {
             // The table should maintain its selected sort order after message addition.
-            table.getItems().add(a);
+            table.getItems().add(annunciation);
             table.getItems().sort(table.getComparator());
         });
+    }
+    
+    private void logAnnunciation(Annunciation annunciation)
+    {
+        logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
+                " " + annunciation.severity.get() + 
+                " Alarm: \"" + annunciation.message.get() + "\"");
     }
 }
