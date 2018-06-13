@@ -11,6 +11,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -106,6 +107,9 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         this.client = client;
         client.addListener(this);
         
+        if (annunciator_retention_count < 1)
+            logger.log(Level.SEVERE, "Annunciation Retention Count set below 1.");
+            
         time.setCellValueFactory(cell -> cell.getValue().time_received);
         time.setCellFactory(c -> new TimeCell());
         
@@ -157,9 +161,14 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         
         // Remove the oldest messages to stay under the message retention threshold. 
         // Only the table items are sorted, the messages list maintains chronological order.
-        if (messages.size() > annunciator_retention_count && messages.size() > 0)
+        if (messages.size() > annunciator_retention_count)
         {
-            messages.remove(0);
+            final Annunciation to_remove = messages.remove(0);
+            Platform.runLater(() -> 
+            {
+                table.getItems().remove(to_remove);
+                table.getItems().sort(table.getComparator());
+            });
         }
         
         // Update the table on the UI thread.

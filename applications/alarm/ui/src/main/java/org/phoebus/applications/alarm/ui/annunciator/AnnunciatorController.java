@@ -59,7 +59,11 @@ public class AnnunciatorController
                     int size = to_annunciate.size();
                     if (size > this.threshold)
                     {
-                        annunciator.speak("There are " + size + " new messages.");
+                        synchronized (muted)
+                        {
+                            if (! muted)
+                                annunciator.speak("There are " + size + " new messages.");
+                        }
                         to_annunciate.clear();
                     }
                     else // Otherwise speak the messages in the queue.
@@ -67,7 +71,11 @@ public class AnnunciatorController
                         while (! to_annunciate.isEmpty())
                         {
                             String message = to_annunciate.poll();
-                            annunciator.speak(message);
+                            synchronized (muted)
+                            {
+                                if (! muted)
+                                    annunciator.speak(message);
+                            }
                         }
                     }
                     // Wait for more.
