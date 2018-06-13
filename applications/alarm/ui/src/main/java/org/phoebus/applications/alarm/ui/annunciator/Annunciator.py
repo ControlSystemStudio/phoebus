@@ -4,6 +4,10 @@ import Queue
 import uuid
 import subprocess
 
+# TODO Implement server and config name being taken from the command line.
+
+# Kafka spreads messages across groups so group.id should be unique so that every 
+# alarm listener gets all of the messages.
 c = Consumer({
     'bootstrap.servers': 'localhost:9092',
     'group.id' : 'Alarm-' + str(uuid.uuid4()),
@@ -30,16 +34,16 @@ class annunciatorThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.name = "Annunciator: Message Queue Consumer"
+        # The thread should die when the script is killed.
+        self.daemon = True
 
     def run(self):
         while (run):
             queueLock.acquire()
             size = messageQueue.qsize()
-            print("queue size: {}".format(size))
             if size > threshold:
                 messageQueue.clear()
                 ex = "echo \"There are {} new messages.\" | festival --tts".format(size)
-                print("There are {} new messages.".format(size))
                 subprocess.call(ex, shell=True)
             else:
                 while not messageQueue.empty():
@@ -47,21 +51,18 @@ class annunciatorThread(threading.Thread):
                     Str = message.key().decode('utf-8') + ' Alarm: ' + message.value().decode('utf-8')
                     ex = "echo \"{}\" | festival --tts".format(Str)
                     subprocess.call(ex, shell=True)
-                    print(Str)
             
             queueLock.release()
             
             annunciateCondition.acquire()
             annunciateCondition.wait()
-            
-                
+                          
 def enqueueMessage(message):
     threading._start_new_thread(messageProducer, (message,))
 
 def messageProducer(message):
     queueLock.acquire()
     messageQueue.put(message)
-    print("Message put in queue.")
     annunciateCondition.acquire()
     annunciateCondition.notify_all()
     annunciateCondition.release()
