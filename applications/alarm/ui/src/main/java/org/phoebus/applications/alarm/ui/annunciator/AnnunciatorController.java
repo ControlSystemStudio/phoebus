@@ -108,7 +108,7 @@ public class AnnunciatorController
         {
             to_annunciate.add(message);
             to_annunciate.sort(messageComparator);
-            to_annunciate.notify();
+            to_annunciate.notifyAll();
         }
     }
     

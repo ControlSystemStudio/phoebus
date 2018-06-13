@@ -27,10 +27,10 @@ public class MessageComparatorTest
                                                "MAJOR Alarm: blah", "MINOR Alarm: blah");
         MessageComparator mc = new MessageComparator();
         messages.sort(mc);
-        /*
+        
         for (String message : messages)
             System.out.println(message);
-        */
+        
         assertEquals(0, messages.indexOf("UNDEFINED Alarm: blah blah"));
         assertEquals(1, messages.indexOf("INVALID Alarm: blah blah"));
         assertEquals(2, messages.indexOf("MAJOR Alarm: blah blah"));

@@ -16,6 +16,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.Annunciation;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
@@ -149,17 +150,23 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     {
         Annunciation a = new Annunciation(Instant.now(), severity, description);
         
-        String message = description;
-        if (! message.startsWith("*"))
-            message = severity.toString() + " Alarm: " + message;
         
-        annunciatorController.annunciate(message);
-        
-        messages.add(a);
+        if (! description.startsWith("*"))
+        {
+            final String message = severity.toString() + " Alarm: " + description;
+            JobManager.schedule("annunciate message", (monitor) -> annunciatorController.annunciate(message));
+        }
+        else
+        {
+            final String message = description;
+            JobManager.schedule("annunciate message", (monitor) -> annunciatorController.annunciate(message));
+        }
         
         logger.info(TimestampFormats.MILLI_FORMAT.format(a.time_received.get()) + 
-                     " " + a.severity.get() + 
-                     " Alarm: \"" + a.message.get() + "\"");
+                " " + a.severity.get() + 
+                " Alarm: \"" + a.message.get() + "\"");
+        
+        messages.add(a);
         
         // Remove the oldest messages to stay under the message retention threshold. 
         // Only the table items are sorted, the messages list maintains chronological order.
