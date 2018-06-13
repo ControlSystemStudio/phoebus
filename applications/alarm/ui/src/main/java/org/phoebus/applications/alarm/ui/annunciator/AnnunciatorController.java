@@ -90,7 +90,7 @@ public class AnnunciatorController
                         synchronized (muted)
                         {
                             if(! muted)
-                                annunciator.speak("There are " + size + " new messages.");.speak(message);
+                                annunciator.speak("There are " + size + " new messages.");
                         }
                     }
                 }
