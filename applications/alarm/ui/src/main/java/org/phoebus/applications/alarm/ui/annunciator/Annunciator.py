@@ -17,12 +17,12 @@ argParser.add_argument("-config", "--config", help="The config name that the ann
 args = argParser.parse_args()
 if args.server:
     server = args.server
-    print("server: {}".format(server))
 if args.config:
     config = args.config
-    print("config: {}".format(config))
 
-    
+print("Started with server value: {}".format(server))
+print("Started with config value: {}".format(config))
+
 # Kafka spreads messages across groups so group.id should be unique so that every 
 # alarm listener gets all of the messages.
 c = Consumer({
@@ -32,6 +32,7 @@ c = Consumer({
     })
 
 c.subscribe(['{}Talk'.format(config)])
+print("Connected to topic {}Talk".format(config))
 
 # Message queue and accompanying lock.
 queueLock = threading.Lock()
@@ -89,10 +90,9 @@ def messageProducer(message):
 
 annunciator = annunciatorThread()
 annunciator.start()
-
+print("Started the annunciator.")
 while True:
-    # TODO Is there a Double.MaxValue Equivalent?
-    msg = c.poll(1000)
+    msg = c.poll(sys.float_info.max)
     
     if msg is None:
         continue
