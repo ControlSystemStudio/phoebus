@@ -50,60 +50,33 @@ public class AnnunciatorController
         // Runnable that will execute in another thread. Handles speaking and message queue.
         final Runnable speaker = () -> 
         {
-            // Wait for new messages until shutdown.
+            // Process new messages until killed.
             while(true)
             {
-                try
+                synchronized (to_annunciate)
                 {
-                    synchronized(to_annunciate)
+                    //Clear the queue if above the threshold.
+                    int size = to_annunciate.size();
+                    if (size > this.threshold)
+                    {
+                        annunciator.speak("There are " + size + " new messages.");
+                        to_annunciate.clear();
+                    }
+                    else // Otherwise speak the messages in the queue.
+                    {
+                        while (! to_annunciate.isEmpty())
+                        {
+                            String message = to_annunciate.poll();
+                            annunciator.speak(message);
+                        }
+                    }
+                    // Wait for more.
+                    try
                     {
                         to_annunciate.wait();
                     }
-                } 
-                catch (InterruptedException e1)
-                {
-                    // What do?
-                }
-                
-                // Make size based annunciation decisions quickly not holding list for long. 
-                // AnnunciatorTable thread waits on this.
-                int size = 0;
-                String message = "NONE";
-                synchronized (to_annunciate)
-                {
-                    size = to_annunciate.size();
-                    if (size > this.threshold)
-                    {
-                        to_annunciate.clear();
-                    }
-                    else
-                    {
-                        message = to_annunciate.poll();
-                    }
-                }
-                
-                // Speak based on size vs. threshold.
-                if (size > this.threshold)
-                {
-                    synchronized (annunciator)
-                    {
-                        synchronized (muted)
-                        {
-                            if(! muted)
-                                annunciator.speak("There are " + size + " new messages.");
-                        }
-                    }
-                }
-                else
-                {
-                    synchronized (annunciator)
-                    {
-                        synchronized (muted)
-                        {
-                            if(! muted)
-                                annunciator.speak(message);
-                        }
-                    }
+                    catch (InterruptedException e)
+                    {/* Time to die? */}
                 }
             }
         };
