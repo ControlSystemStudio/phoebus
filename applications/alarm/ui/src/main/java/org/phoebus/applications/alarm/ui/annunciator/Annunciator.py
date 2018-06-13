@@ -1,5 +1,8 @@
 from confluent_kafka import Consumer, KafkaError
+import threading
+import Queue
 import uuid
+import subprocess
 
 c = Consumer({
     'bootstrap.servers': 'localhost:9092',
@@ -9,6 +12,63 @@ c = Consumer({
 
 c.subscribe(['AcceleratorTalk'])
 
+# Message queue and accompanying lock.
+queueLock = threading.Lock()
+messageQueue = Queue.Queue()
+
+# Condition variable signifying that there are messages to annunciate.
+annunciateCondition = threading.Condition()
+
+# Boolean value, should the annunciator run?
+run = True
+
+# Threshold of message count that causes a generic notification
+threshold = 3
+
+# Annunciator, runs in its own thread, acts as consumer to messageQueue.
+class annunciatorThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.name = "Annunciator: Message Queue Consumer"
+
+    def run(self):
+        while (run):
+            queueLock.acquire()
+            size = messageQueue.qsize()
+            print("queue size: {}".format(size))
+            if size > threshold:
+                messageQueue.clear()
+                ex = "echo \"There are {} new messages.\" | festival --tts".format(size)
+                print("There are {} new messages.".format(size))
+                subprocess.call(ex, shell=True)
+            else:
+                while not messageQueue.empty():
+                    message = messageQueue.get()
+                    Str = message.key().decode('utf-8') + ' Alarm: ' + message.value().decode('utf-8')
+                    ex = "echo \"{}\" | festival --tts".format(Str)
+                    subprocess.call(ex, shell=True)
+                    print(Str)
+            
+            queueLock.release()
+            
+            annunciateCondition.acquire()
+            annunciateCondition.wait()
+            
+                
+def enqueueMessage(message):
+    threading._start_new_thread(messageProducer, (message,))
+
+def messageProducer(message):
+    queueLock.acquire()
+    messageQueue.put(message)
+    print("Message put in queue.")
+    annunciateCondition.acquire()
+    annunciateCondition.notify_all()
+    annunciateCondition.release()
+    queueLock.release()
+
+annunciator = annunciatorThread()
+annunciator.start()
 while True:
     msg = c.poll(10)
     
@@ -22,4 +82,5 @@ while True:
             print(msg.error())
             break
     
-    print('Recieved message: {}'.format(msg.value().decode('utf-8')))
+    enqueueMessage(msg)
+    
