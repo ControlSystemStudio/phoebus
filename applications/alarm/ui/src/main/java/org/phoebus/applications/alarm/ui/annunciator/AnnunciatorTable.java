@@ -175,8 +175,8 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private void logAnnunciation(Annunciation annunciation)
     {
         logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
-                " " + annunciation.severity.get() + 
-                " Alarm: \"" + annunciation.description.get() + "\"");
+                " Severity: " + annunciation.severity.get() + 
+                ", Description: \"" + annunciation.description.get() + "\"");
     }
 
     /**
