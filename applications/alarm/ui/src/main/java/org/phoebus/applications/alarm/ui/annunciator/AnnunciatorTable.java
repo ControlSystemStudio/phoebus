@@ -145,6 +145,9 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         muteButton.setTooltip(new Tooltip("Mute the annunciator."));
         muteButton.setOnAction((event) -> annunciatorController.mute(muteButton.isSelected()));
         
+        clearTableAlert.setTitle("Clear Annunciator Table");
+        clearTableAlert.setHeaderText("Clear the table of all annunciations?");
+        
         clearTableButton.setTooltip(new Tooltip("Clear the messages in the table."));
         clearTableButton.setOnAction((event) -> 
         { 
@@ -152,9 +155,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             if (clearTableAlert.getResult() == ButtonType.OK)
                 clearTable();
         });
-        
-        clearTableAlert.setTitle("Clear Annunciator Table");
-        clearTableAlert.setHeaderText("Clear the table of all annunciations?");
         
         hbox.getChildren().addAll(muteButton, clearTableButton);
         hbox.setAlignment(Pos.BASELINE_RIGHT);
@@ -165,8 +165,12 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
       
     }
     
+    /**
+     * Clear the table and the message list.
+     */
     private void clearTable()
     {
+        logger.log(Level.INFO, "Annunciator table cleared.");
         messages.clear();
         Platform.runLater(() -> 
         {
