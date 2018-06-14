@@ -20,7 +20,7 @@ import org.phoebus.framework.jobs.JobManager;
  * will be spoken and the message queue will be cleared.
  * <p>Messages marked as 'standout' will always be annunciated regardless of queue size.
  * @author Evan Smith
- **/
+ */
 public class AnnunciatorController
 {
     private final Annunciator annunciator;

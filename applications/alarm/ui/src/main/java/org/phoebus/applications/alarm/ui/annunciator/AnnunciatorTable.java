@@ -31,11 +31,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+
 /**
  * Table View for the Annunciator
  * @author Evan Smith
  */
-
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
     private final ToggleButton mute_button = new ToggleButton("Mute Annunciator");
@@ -82,7 +82,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     /**
      * Table cell that shows a time stamp 
      * @Author Kay Kasemir
-     * */
+     */
     private class TimeCell extends TableCell<Annunciation, Instant>
     {
         @Override
@@ -172,6 +172,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         });
     }
     
+    /**
+     * Log an annunciation.
+     * @param annunciation
+     */
     private void logAnnunciation(Annunciation annunciation)
     {
         logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
@@ -180,7 +184,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     }
 
     /**
-     * 
+     * Shut down the table.
      */
     public void shutdown()
     {
