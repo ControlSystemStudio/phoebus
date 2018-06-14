@@ -24,7 +24,7 @@ import org.phoebus.framework.jobs.JobManager;
 public class AnnunciatorController
 {
     private final Annunciator annunciator;
-    private final Thread annunciatorThread;
+    private final Thread      annunciatorThread;
     
     private final PriorityQueue<AnnunciatorMessage> to_annunciate = new PriorityQueue<AnnunciatorMessage>();
     
@@ -33,7 +33,7 @@ public class AnnunciatorController
     // Muted is only ever set in the application thread so it doesn't need to be thread safe.
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
     private volatile Boolean muted = false;
-    private volatile Boolean run = true;
+    private volatile Boolean run   = true;
     
     /**
      * Create AnnunciatorController. The threshold must be greater than 0.
@@ -41,7 +41,7 @@ public class AnnunciatorController
      */
     public AnnunciatorController(int threshold)
     {
-       annunciator = new Annunciator();
+        annunciator = new Annunciator();
         if (threshold > 0)
             this.threshold = threshold;
         else
@@ -175,10 +175,10 @@ public class AnnunciatorController
     }
     
     /**
-     * Mute the annunciator.
+     * Set the muted attribute of the annunciator.
      * @param val True for muted, False for not muted.
      */
-    public void mute(boolean val)
+    public void setMuted(boolean val)
     {
         synchronized (muted)
         {

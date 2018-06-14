@@ -142,7 +142,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         HBox hbox = new HBox();
         
         muteButton.setTooltip(new Tooltip("Mute the annunciator."));
-        muteButton.setOnAction((event) -> annunciatorController.mute(muteButton.isSelected()));
+        muteButton.setOnAction((event) -> annunciatorController.setMuted(muteButton.isSelected()));
         
         clearTableAlert.setTitle("Clear Annunciator Table");
         clearTableAlert.setHeaderText("Clear the table of all annunciations?");
