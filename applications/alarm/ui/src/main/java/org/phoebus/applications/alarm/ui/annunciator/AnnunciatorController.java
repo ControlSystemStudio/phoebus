@@ -26,7 +26,6 @@ public class AnnunciatorController
     private final Annunciator annunciator;
     private final Thread annunciatorThread;
     
-    MessageComparator messageComparator = new MessageComparator();
     private final PriorityQueue<AnnunciatorMessage> to_annunciate = new PriorityQueue<AnnunciatorMessage>();
     
     private int threshold; 
