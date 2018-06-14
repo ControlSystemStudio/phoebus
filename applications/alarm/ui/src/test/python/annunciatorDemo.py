@@ -20,6 +20,8 @@ coolaid = '{"severity":"MAJOR", "description":"We are out of coolaid."}'
 barbeque = '{"severity":"MINOR", "description":"We are out of barbeque sauce."}'
 tater_salad = '{"severity":"MAJOR", "description":"We are out of potato salad."}'
 
+print("This demo expects there to be a kafka topic 'AcceleratorTalk' and for the annunciator threshold to be set at 4.")
+
 # Demo the ability of the annunciator to receive a message.
 
 p.poll(0)
@@ -47,6 +49,7 @@ p.flush()
 sleep(11)
 
 # Demo the ability of the annunciator to receive a string of messages greater than the queue threshold.
+# The annunciator will then annunciate a message stating "There are N new messages". N in this case should be 7.
 p.poll(0)
 p.produce(topic, coolaid.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
