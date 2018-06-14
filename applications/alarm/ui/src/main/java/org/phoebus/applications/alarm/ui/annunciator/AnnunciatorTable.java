@@ -21,6 +21,10 @@ import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -38,12 +42,16 @@ import javafx.scene.paint.Color;
  */
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
-    private final ToggleButton mute_button = new ToggleButton("Mute Annunciator");
+    // TODO Implement a clear button that clears the table. It should trigger a context menu that confirms the clear action.
+    private final Button clearTableButton = new Button("Clear Messages"); 
+    private final Alert clearTableAlert = new Alert(AlertType.CONFIRMATION);
+    private final ToggleButton muteButton = new ToggleButton("Mute Annunciator");
+    
     private final TableView<Annunciation> table = new TableView<>();
     
-    TableColumn<Annunciation, Instant> time = new TableColumn<>("Time Received");
-    TableColumn<Annunciation, SeverityLevel> severity = new TableColumn<>("Severity");
-    TableColumn<Annunciation, String> description = new TableColumn<>("Description");
+    TableColumn<Annunciation, Instant>       time        = new TableColumn<>("Time Received");
+    TableColumn<Annunciation, SeverityLevel> severity    = new TableColumn<>("Severity");
+    TableColumn<Annunciation, String>        description = new TableColumn<>("Description");
 
     private final CopyOnWriteArrayList<Annunciation> messages = new CopyOnWriteArrayList<>();
     
@@ -97,6 +105,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         }
     }
     
+    /**
+     * Create an AnnunciatorTable view.
+     * @param client - TalkClient used to listen to the *Talk topic.
+     */
     public AnnunciatorTable (TalkClient client)
     {
         this.client = client;
@@ -129,9 +141,22 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         
         // Top button row
         HBox hbox = new HBox();
-        mute_button.setTooltip(new Tooltip("Mute the annunciator."));
-        mute_button.setOnAction((event) -> annunciatorController.mute(mute_button.isSelected()));
-        hbox.getChildren().add(mute_button);
+        
+        muteButton.setTooltip(new Tooltip("Mute the annunciator."));
+        muteButton.setOnAction((event) -> annunciatorController.mute(muteButton.isSelected()));
+        
+        clearTableButton.setTooltip(new Tooltip("Clear the messages in the table."));
+        clearTableButton.setOnAction((event) -> 
+        { 
+            clearTableAlert.showAndWait();
+            if (clearTableAlert.getResult() == ButtonType.OK)
+                clearTable();
+        });
+        
+        clearTableAlert.setTitle("Clear Annunciator Table");
+        clearTableAlert.setHeaderText("Clear the table of all annunciations?");
+        
+        hbox.getChildren().addAll(muteButton, clearTableButton);
         hbox.setAlignment(Pos.BASELINE_RIGHT);
         
         this.getChildren().add(hbox);
@@ -140,6 +165,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
       
     }
     
+    private void clearTable()
+    {
+        messages.clear();
+        Platform.runLater(() -> 
+        {
+            table.getItems().clear();
+        });
+    }
+
     @Override
     public void messageReceived(SeverityLevel severity, String description)
     {
