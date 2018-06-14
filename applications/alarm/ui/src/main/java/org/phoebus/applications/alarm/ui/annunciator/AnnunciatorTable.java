@@ -42,9 +42,8 @@ import javafx.scene.paint.Color;
  */
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
-    // TODO Implement a clear button that clears the table. It should trigger a context menu that confirms the clear action.
     private final Button clearTableButton = new Button("Clear Messages"); 
-    private final Alert clearTableAlert = new Alert(AlertType.CONFIRMATION);
+    private final Alert  clearTableAlert  = new Alert(AlertType.CONFIRMATION);
     private final ToggleButton muteButton = new ToggleButton("Mute Annunciator");
     
     private final TableView<Annunciation> table = new TableView<>();
