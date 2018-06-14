@@ -29,13 +29,14 @@ public class AnnunciatorController
     private final PriorityQueue<AnnunciatorMessage> to_annunciate = new PriorityQueue<AnnunciatorMessage>();
     
     private int threshold; 
+    
     // Muted is only ever set in the application thread so it doesn't need to be thread safe.
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
     private volatile Boolean muted = false;
     private volatile Boolean run = true;
+    
     /**
-     * Constructor. The annunciator must be non null and the threshold must be greater than 0.
-     * @param a - Annunciator.
+     * Create AnnunciatorController. The threshold must be greater than 0.
      * @param threshold - Integer value that the length of the queue should not exceed.
      */
     public AnnunciatorController(int threshold)
