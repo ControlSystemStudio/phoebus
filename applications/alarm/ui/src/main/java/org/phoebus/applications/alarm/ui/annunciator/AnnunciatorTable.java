@@ -42,9 +42,9 @@ import javafx.scene.paint.Color;
  */
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
-    private final Button clearTableButton = new Button("Clear Messages"); 
-    private final Alert  clearTableAlert  = new Alert(AlertType.CONFIRMATION);
-    private final ToggleButton muteButton = new ToggleButton("Mute Annunciator");
+    private final Button       clearTableButton = new Button("Clear Messages"); 
+    private final Alert        clearTableAlert  = new Alert(AlertType.CONFIRMATION);
+    private final ToggleButton muteButton       = new ToggleButton("Mute Annunciator");
     
     private final TableView<Annunciation> table = new TableView<>();
     
@@ -149,7 +149,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         
         clearTableButton.setTooltip(new Tooltip("Clear the messages in the table."));
         clearTableButton.setOnAction((event) -> 
-        { 
+        {
             clearTableAlert.showAndWait();
             if (clearTableAlert.getResult() == ButtonType.OK)
                 clearTable();
@@ -177,15 +177,27 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         });
     }
 
+    /**
+     * Override of the TalkClientListener messageReceived method.
+     * <p> Called whenever the listener is notified of a received message.
+     */
     @Override
     public void messageReceived(SeverityLevel severity, String description)
     {
+        
         Annunciation annunciation = new Annunciation(Instant.now(), severity, description);
         
+        addAnnunciationToTable(annunciation);
+        logAnnunciation(annunciation);  
+
         annunciatorController.handleAnnunciation(annunciation);
-        
-        logAnnunciation(annunciation);
-        
+    }
+    
+    /**
+     * Handle message addition to the table.
+     */
+    private void addAnnunciationToTable(Annunciation annunciation)
+    {
         messages.add(annunciation);
         
         // Remove the oldest messages to stay under the message retention threshold. 
