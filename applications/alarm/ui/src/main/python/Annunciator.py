@@ -7,7 +7,7 @@ import sys
 import argparse
 
 server = 'localhost:9092'
-config = 'Acclerator'
+config = 'Accelerator'
 
 argParser = argparse.ArgumentParser()
 
@@ -61,13 +61,15 @@ class annunciatorThread(threading.Thread):
             size = messageQueue.qsize()
             
             if size > threshold:
-                messageQueue.clear()
-                handleNMessages(size)
+                # Empty the queue
+                while not messageQueue.empty():
+                    messageQueue.get()
+                self.handleNMessages(size)
             
             else:
                 while not messageQueue.empty():
                     messageWithPriority = messageQueue.get()
-                    handleMessage(messageWithPriority[1])
+                    self.handleMessage(messageWithPriority[1])
             
             queueLock.release()
             
@@ -75,42 +77,44 @@ class annunciatorThread(threading.Thread):
             annunciateCondition.wait()
 
     # Annunciates "There are N new messages"
-    def handleNMessages(N):
-        ex = "echo \"There are {} new messages.\" | festival --tts".format(size)
+    def handleNMessages(self, N):
+        ex = "echo \"There are {} new messages.\" | festival --tts".format(N)
         subprocess.call(ex, shell=True)
     
     # Annunciates message
-    def handleMessage(message):
+    def handleMessage(self, message):
         toSay = message.value().decode('utf-8')
         
         if not toSay.startswith("*"):
             toSay = message.key().decode('utf-8') + 'Alarm: ' + toSay
         
-        ex = "echo \"{}\" | festival --tts".format(Str)
+        ex = "echo \"{}\" | festival --tts".format(toSay)
         subprocess.call(ex, shell=True)
 
 # Add a message to the queue.                         
 def enqueueMessage(message):
+    print("enqueue message")
     threading._start_new_thread(messageProducer, (message,))
 
 # Add the message to the queue in another thread. Notify all waiting consumer threads.
 def messageProducer(message):
-    messagePriority = getMessagePriority(message)
+    priority = getMessagePriority(message)
     queueLock.acquire()
     messageQueue.put((priority, message))
+    queueLock.release()
     annunciateCondition.acquire()
     annunciateCondition.notify_all()
     annunciateCondition.release()
-    queueLock.release()
+    
 
-severites = ["OK",  "MINOR_ACK",  "MAJOR_ACK", "INVALID_ACK", "UNDEFINED_ACK", "MINOR", "MAJOR", "INVALID", "UNDEFINED"]
+severities = ["UNDEFINED", "INVALID", "MAJOR", "MINOR", "UNDEFINED_ACK", "INVALID_ACK", "MAJOR_ACK" , "MINOR_ACK", "OK"]
 # Determine the priority of the message based on the alarm severity.
 def getMessagePriority(message):
     severity = message.key().decode('utf-8')
     try:
         priority = severities.index(severity)
     except ValueError:
-        return 0
+        return 10
     return priority
 
 annunciator = annunciatorThread()
