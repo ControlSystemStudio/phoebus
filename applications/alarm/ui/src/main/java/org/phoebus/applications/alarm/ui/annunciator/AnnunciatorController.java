@@ -146,10 +146,14 @@ public class AnnunciatorController
      */
     public void shutdown() throws InterruptedException
     {
+        // Set run to false and interrupt the annunciatorThread.
         synchronized(run)
         {
             run = false;
         }
+        // The thread will shutdown having left the while(run) loop.
+        annunciatorThread.interrupt();
+        // Deallocate the annunciator's voice.
         annunciator.shutdown();
     }
 }

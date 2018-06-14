@@ -47,8 +47,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 
     private final CopyOnWriteArrayList<Annunciation> messages = new CopyOnWriteArrayList<>();
     
-    
-    @SuppressWarnings("unused")
     private final TalkClient client;
     
     private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
@@ -58,8 +56,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 
     /**
      * Table cell that displays alarm severity using icons and colored text.
-     * @author 1es
-     *
      */
     private class SeverityCell extends TableCell<Annunciation, SeverityLevel>
     {
@@ -104,34 +100,30 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     public AnnunciatorTable (TalkClient client)
     {
         this.client = client;
-        client.addListener(this);
+        this.client.addListener(this);
         
         if (annunciator_retention_count < 1)
             logger.log(Level.SEVERE, "Annunciation Retention Count set below 1.");
             
         time.setCellValueFactory(cell -> cell.getValue().time_received);
         time.setCellFactory(c -> new TimeCell());
-        
-        time.prefWidthProperty().bind(table.widthProperty().multiply(0.2));
+        time.setPrefWidth(190);
         time.setResizable(false);
         table.getColumns().add(time);
-        
-        
+               
         severity.setCellValueFactory(cell -> cell.getValue().severity);
         severity.setCellFactory(c -> new SeverityCell());
-        severity.prefWidthProperty().bind(table.widthProperty().multiply(0.1));
+        severity.setPrefWidth(80);
         severity.setResizable(false);
         table.getColumns().add(severity);
 
         description.setCellValueFactory(cell -> cell.getValue().message);
-        description.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
-        description.setResizable(false);
+        description.prefWidthProperty().bind(table.widthProperty().subtract(270));
         table.getColumns().add(description);
 
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
-        
-         
+          
         annunciatorController = new AnnunciatorController(annunciator_threshold);
         
         // Top button row

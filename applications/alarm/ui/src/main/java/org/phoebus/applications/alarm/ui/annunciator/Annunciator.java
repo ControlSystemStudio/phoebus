@@ -39,6 +39,9 @@ public class Annunciator
             voice.speak(message);
     }
     
+    /**
+     * Deallocates the voice.
+     */
     public void shutdown()
     {
         voice.deallocate();
