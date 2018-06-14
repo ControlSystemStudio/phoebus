@@ -16,9 +16,10 @@ def delivery_report(err, msg):
 
 
 key ="test"
-coolaid = '{"severity":"MAJOR", "description":"We are out of coolaid."}'
-barbeque = '{"severity":"MINOR", "description":"We are out of barbeque sauce."}'
+coolaid = '{"severity":"MAJOR", "description":"We are out of purple cool aid."}'
+barbeque = '{"severity":"MINOR", "description":"We are out of barbecue sauce."}'
 tater_salad = '{"severity":"MAJOR", "description":"We are out of potato salad."}'
+dont_ignore = '{"severity":"OK", "description":"*!This message will not be ignored."}'
 
 print("This demo expects there to be a kafka topic 'AcceleratorTalk' and for the annunciator threshold to be set at 4.")
 
@@ -66,4 +67,6 @@ p.flush()
 p.produce(topic, barbeque.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
 p.produce(topic, tater_salad.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
+p.flush()
+p.produce(topic, dont_ignore.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()

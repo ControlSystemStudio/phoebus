@@ -117,8 +117,9 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         severity.setResizable(false);
         table.getColumns().add(severity);
 
-        description.setCellValueFactory(cell -> cell.getValue().message);
-        description.prefWidthProperty().bind(table.widthProperty().subtract(270));
+        description.setCellValueFactory(cell -> cell.getValue().description);
+        // Width left in window is window width minus time width (180), minus severity width (90), minus width of window edges(1 * 2).
+        description.prefWidthProperty().bind(table.widthProperty().subtract(272));
         table.getColumns().add(description);
 
         // Table should always grow to fill VBox.
@@ -175,9 +176,12 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     {
         logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
                 " " + annunciation.severity.get() + 
-                " Alarm: \"" + annunciation.message.get() + "\"");
+                " Alarm: \"" + annunciation.description.get() + "\"");
     }
 
+    /**
+     * 
+     */
     public void shutdown()
     {
         // Stop the annunciator controller.

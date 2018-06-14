@@ -9,24 +9,25 @@ package org.phoebus.applications.alarm.ui.annunciator;
 
 import java.util.PriorityQueue;
 
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.Annunciation;
 import org.phoebus.framework.jobs.JobManager;
 
 /**
- * Controller class for an annunciator class.
- * <p>Annunciates messages so long as the message queue remains below a given threshold.
- * Should the threshold be exceeded a message saying "There are N new messages" will be
- * spoken and the message queue will be cleared.
+ * Controller class for an annunciator.
+ * <p>Annunciates messages in order of severity so long as the message queue remains below 
+ * a given threshold. Should the threshold be exceeded, a message saying "There are N new messages" 
+ * will be spoken and the message queue will be cleared.
+ * <p>Messages marked as 'standout' will always be annunciated regardless of queue size.
  * @author Evan Smith
- *
- */
+ **/
 public class AnnunciatorController
 {
     private final Annunciator annunciator;
     private final Thread annunciatorThread;
     
     MessageComparator messageComparator = new MessageComparator();
-    private final PriorityQueue<String> to_annunciate = new PriorityQueue<String>(messageComparator);
+    private final PriorityQueue<AnnunciatorMessage> to_annunciate = new PriorityQueue<AnnunciatorMessage>();
     
     private int threshold; 
     // Muted is only ever set in the application thread so it doesn't need to be thread safe.
@@ -54,26 +55,46 @@ public class AnnunciatorController
             {
                 synchronized (to_annunciate)
                 {
-                    //Clear the queue if above the threshold.
+                    // If above threshold, empty the queue, annunciating any stand out messages, and annunciate a generic queue size message.
                     int size = to_annunciate.size();
                     if (size > this.threshold)
                     {
-                        synchronized (muted)
-                        {
-                            if (! muted)
-                                annunciator.speak("There are " + size + " new messages.");
-                        }
-                        to_annunciate.clear();
-                    }
-                    else // Otherwise speak the messages in the queue.
-                    {
+                        int flurry = 0;
+                        // Empty the queue 
                         while (! to_annunciate.isEmpty())
                         {
-                            String message = to_annunciate.poll();
+                            AnnunciatorMessage message = to_annunciate.poll();
+                            // Annunciate if marked as stand out.
+                            if (message.standout)
+                            {
+                                synchronized (muted)
+                                {
+                                    if (! muted)
+                                        annunciator.speak(message.message);
+                                }
+                            }
+                            else // Increment count of non stand out messages.
+                                flurry++;
+                        }
+                        // Annunciate generic message for queue size.
+                        if (flurry > 0)
+                        {
                             synchronized (muted)
                             {
                                 if (! muted)
-                                    annunciator.speak(message);
+                                    annunciator.speak("There are " + flurry + " new messages.");
+                            }
+                        }
+                    }
+                    else // Otherwise, speak the messages in the queue.
+                    {
+                        while (! to_annunciate.isEmpty())
+                        {
+                            AnnunciatorMessage message = to_annunciate.poll();
+                            synchronized (muted)
+                            {
+                                if (! muted)
+                                    annunciator.speak(message.message);
                             }
                         }
                     }
@@ -89,20 +110,23 @@ public class AnnunciatorController
         };
         
         annunciatorThread = new Thread(speaker);
+        // The thread should be killed by shutdown() call, but set to daemon so it dies 
+        // when program closes regardless.
         annunciatorThread.setDaemon(true);
         annunciatorThread.start();
     }
     
+
     /**
      * Annunciate the passed message.
      * @param message
      */
-    private void annunciate(String message)
+    private void annunciate(AnnunciatorMessage message)
     {
         // May block on the to_annunciate queue. So call in another thread to prevent blocking on UI thread.
         JobManager.schedule("annunciate message", (monitor) -> 
         {
-            // Add the new message and notify the speech thread.
+            // Add the new message and notify the annunciator thread.
             synchronized(to_annunciate)
             {
                 to_annunciate.add(message);
@@ -117,15 +141,37 @@ public class AnnunciatorController
      */
     public void handleAnnunciation(Annunciation a)
     {
-        if (! a.message.get().startsWith("*"))
+        final String description = a.description.get();
+        final SeverityLevel severity = a.severity.get();
+        
+        String message = description; // Message to be annunciated.
+        boolean noSev = false;      // Message should include alarm severity.
+        boolean standout = false;   // Message should always be annunciated.
+        
+        int beginIndex = 0; // Beginning index of description substring.
+        
+        if (description.startsWith("*"))
         {
-            final String message = a.severity.get().toString() + " Alarm: " + a.message.get();
-            annunciate(message);
+            noSev = true;
+            beginIndex++;
         }
-        else
+        if (description.substring(beginIndex).startsWith("!"))
         {
-            annunciate(a.message.get());
+            standout = true;
+            beginIndex++;
         }
+        
+        // The message should not include '*' or '!'. 
+        // If '*' or '!' is the entirety of the description, message will be an empty string.
+        message = description.substring(beginIndex);
+        
+        // Add the severity if appropriate.
+        if (! noSev)
+        {
+            message = severity.toString() + " Alarm: " + message;
+        }
+        
+        annunciate(new AnnunciatorMessage(standout, severity, message));
     }
     
     /**

@@ -25,13 +25,13 @@ public class Annunciation implements Comparable<Annunciation>
 {
     public final ObjectProperty<Instant> time_received = new SimpleObjectProperty<>(null);
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
-    public final SimpleStringProperty message = new SimpleStringProperty();
+    public final SimpleStringProperty description = new SimpleStringProperty();
     
     public Annunciation(Instant time_received, SeverityLevel severity, String message)
     {
         this.time_received.set(time_received);
         this.severity.set(severity);
-        this.message.set(message);
+        this.description.set(message);
     }
 
     @Override
