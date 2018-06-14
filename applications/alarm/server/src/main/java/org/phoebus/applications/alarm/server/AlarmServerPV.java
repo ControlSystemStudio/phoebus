@@ -107,7 +107,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             @Override
             public void annunciateAlarm(final SeverityLevel level)
             {
-                model.sentAnnunciatorMessage(level, description);
+                String severity = level.toString();
+                String json = "{\"severity\":\"" + severity + "\", \"description\":\"" + description + "\"}";
+                
+                model.sentAnnunciatorMessage(getPathName(), json);
             }
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);

@@ -14,46 +14,53 @@ def delivery_report(err, msg):
     else:
         print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
 
+
+key ="test"
+coolaid = '{"severity":"MAJOR", "description":"We are out of coolaid."}'
+barbeque = '{"severity":"MINOR", "description":"We are out of barbeque sauce."}'
+tater_salad = '{"severity":"MAJOR", "description":"We are out of potato salad."}'
+
 # Demo the ability of the annunciator to receive a message.
+
 p.poll(0)
-p.produce(topic, "We are out of coolaid".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, coolaid.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
 
 sleep(3)
 
 # Demo the ability of the annunciator to receive a message ignoring severity. 
 p.poll(0)
-p.produce(topic, "*We are out of coolaid".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, coolaid.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
 
 sleep(3)
 
 # Demo the ability of the annunciator to receive a string of messages, sort them on priority, and annunciate them.
 p.poll(0)
-p.produce(topic, "We are out of coolaid".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, coolaid.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of barbeque sauce".encode('utf-8'), "MINOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, barbeque.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of potato salad".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, tater_salad.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
 
 sleep(11)
 
 # Demo the ability of the annunciator to receive a string of messages greater than the queue threshold.
 p.poll(0)
-p.produce(topic, "We are out of coolaid".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, coolaid.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of barbeque sauce".encode('utf-8'), "MINOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, barbeque.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of potato salad".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, tater_salad.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of barbeque sauce".encode('utf-8'), "MINOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, barbeque.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of potato salad".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, tater_salad.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of potato salad".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, tater_salad.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of barbeque sauce".encode('utf-8'), "MINOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, barbeque.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
-p.produce(topic, "We are out of potato salad".encode('utf-8'), "MAJOR".encode('utf-8'), callback=delivery_report)
+p.produce(topic, tater_salad.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()

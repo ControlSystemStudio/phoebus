@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.ui.annunciator;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -22,6 +23,8 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings("nls")
 public class TalkClient
@@ -101,18 +104,31 @@ public class TalkClient
         final ConsumerRecords<String, String> records = consumer.poll(100);
         for (final ConsumerRecord<String, String> record : records)
         {
-            final String severity = record.key();
-            final String message = record.value();
+            String jsonString = record.value();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jn = null;
+            try
+            {
+                jn = mapper.readTree(jsonString);
+            } catch (IOException e)
+            {
+               logger.log(Level.SEVERE, "Parsing payload for " + record.key()+ " failed.", e);
+               continue;
+            }
+            
+            final String severity = jn.get("severity").textValue();
+            final String description = jn.get("description").textValue();
+            
             try
             {
                 for (final TalkClientListener listener : listeners)
-                    listener.messageReceived(SeverityLevel.valueOf(severity), message);
+                    listener.messageReceived(SeverityLevel.valueOf(severity), description);
             }
             catch (final Exception ex)
             {
                 logger.log(Level.WARNING,
                            "Talk error for " + severity +
-                           ", " + message, ex);
+                           ", " + description, ex);
             }
         }
     }

@@ -27,7 +27,6 @@ import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
-import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 
@@ -368,17 +367,16 @@ class ServerModel
         }
     }
 
-    public void sentAnnunciatorMessage(final SeverityLevel level, final String description)
+    public void sentAnnunciatorMessage(final String pathName, final String payload)
     {
         try
         {
-            String severity = level.toString();
-            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, severity, description);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, pathName, payload);
             producer.send(record);
         }
         catch (Throwable ex)
         {
-            logger.log(Level.WARNING, "Cannot send talk message for " + description, ex);
+            logger.log(Level.WARNING, "Cannot send talk message for " + pathName, ex);
         }
     }
     

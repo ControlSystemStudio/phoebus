@@ -5,6 +5,7 @@ import uuid
 import subprocess
 import sys
 import argparse
+import json
 
 server = 'localhost:9092'
 config = 'Accelerator'
@@ -83,17 +84,19 @@ class annunciatorThread(threading.Thread):
     
     # Annunciates message
     def handleMessage(self, message):
-        toSay = message.value().decode('utf-8')
+        parsed_json = json.loads(message.value().decode('utf-8'))
+        toSay = parsed_json['description']
         
         if not toSay.startswith("*"):
-            toSay = message.key().decode('utf-8') + 'Alarm: ' + toSay
+            toSay = parsed_json['severity'] + ' Alarm: ' + toSay
         
+        print(toSay)
         ex = "echo \"{}\" | festival --tts".format(toSay)
         subprocess.call(ex, shell=True)
 
 # Add a message to the queue.                         
 def enqueueMessage(message):
-    print("enqueue message")
+    print('enqueue message')
     threading._start_new_thread(messageProducer, (message,))
 
 # Add the message to the queue in another thread. Notify all waiting consumer threads.
