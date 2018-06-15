@@ -3,8 +3,8 @@ import threading
 import Queue
 import uuid
 import subprocess
-import sys
 import argparse
+import sys
 import json
 
 server = 'localhost:9092'
@@ -39,16 +39,16 @@ c.subscribe(['{}Talk'.format(config)])
 print("Connected to topic {}Talk".format(config))
 
 # Message queue and accompanying lock.
+annunciationQueue = Queue.PriorityQueue()
 queueLock = threading.Lock()
-messageQueue = Queue.PriorityQueue()
 
 # Condition variable signifying that there are messages to annunciate.
 annunciateCondition = threading.Condition()
 
-# Boolean value, should the annunciator run?
+# Should the annunciator run?
 run = True
 
-# Annunciator, runs in its own thread, acts as consumer to messageQueue.
+# Annunciator, runs in its own thread, acts as consumer to annunciationQueue.
 class annunciatorThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -59,18 +59,15 @@ class annunciatorThread(threading.Thread):
     def run(self):
         while (run):
             queueLock.acquire()
-            size = messageQueue.qsize()
+            size = annunciationQueue.qsize()
             
             if size > threshold:
-                # Empty the queue
-                while not messageQueue.empty():
-                    messageQueue.get()
-                self.handleNMessages(size)
+                self.handleNAnnunciations()
             
             else:
-                while not messageQueue.empty():
-                    messageWithPriority = messageQueue.get()
-                    self.handleMessage(messageWithPriority[1])
+                while not annunciationQueue.empty():
+                    annunciation = annunciationQueue.get()
+                    self.handleAnnunciation(annunciation)
             
             queueLock.release()
             
@@ -78,42 +75,69 @@ class annunciatorThread(threading.Thread):
             annunciateCondition.wait()
 
     # Annunciates "There are N new messages"
-    def handleNMessages(self, N):
-        ex = "echo \"There are {} new messages.\" | festival --tts".format(N)
+    def handleNAnnunciations(self):
+        flurry = 0
+        while not annunciationQueue.empty():
+             annunciation = annunciationQueue.get()
+             standout = annunciation[1]
+             if standout:
+                 self.handleAnnunciation(annunciation)
+             else:
+                 flurry+=1
+        ex = "echo \"There are {} new messages.\" | festival --tts".format(flurry)
         subprocess.call(ex, shell=True)
     
     # Annunciates message
-    def handleMessage(self, message):
-        parsed_json = json.loads(message.value().decode('utf-8'))
-        toSay = parsed_json['description']
-        
-        if not toSay.startswith("*"):
-            toSay = parsed_json['severity'] + ' Alarm: ' + toSay
-        
-        print(toSay)
+    def handleAnnunciation(self, annunciation):
+        toSay = annunciation[2]
         ex = "echo \"{}\" | festival --tts".format(toSay)
         subprocess.call(ex, shell=True)
 
 # Add a message to the queue.                         
 def enqueueMessage(message):
-    print('enqueue message')
-    threading._start_new_thread(messageProducer, (message,))
+    threading._start_new_thread(annunciationProducer, (message,))
 
 # Add the message to the queue in another thread. Notify all waiting consumer threads.
-def messageProducer(message):
-    priority = getMessagePriority(message)
+def annunciationProducer(message):
+    annunciation = parseMessage(message)
+    
     queueLock.acquire()
-    messageQueue.put((priority, message))
+    annunciationQueue.put(annunciation)
     queueLock.release()
+    
     annunciateCondition.acquire()
     annunciateCondition.notify_all()
     annunciateCondition.release()
+
+# Parse the message and create the annunciation tuple (priority, standout, toSay)
+def parseMessage(message):
+    parsed_json = json.loads(message.value().decode('utf-8'))
     
+    severity = parsed_json['severity']
+    priority = getMessagePriority(severity)
+    description = parsed_json['description']
+    
+    toSay = ""
+    noSev = False
+    standout = False
+    beginIndex = 0
+    
+    if description.startswith("*"):
+        noSev = True
+        beginIndex += 1
+    if description[beginIndex:].startswith("!"):
+        standout = True
+        beginIndex += 1
+        
+    if not noSev:
+        toSay = severity + " Alarm: "
+    toSay += description[beginIndex:]
+    
+    return ((priority, standout, toSay))
 
 severities = ["UNDEFINED", "INVALID", "MAJOR", "MINOR", "UNDEFINED_ACK", "INVALID_ACK", "MAJOR_ACK" , "MINOR_ACK", "OK"]
 # Determine the priority of the message based on the alarm severity.
-def getMessagePriority(message):
-    severity = message.key().decode('utf-8')
+def getMessagePriority(severity):   
     try:
         priority = severities.index(severity)
     except ValueError:
@@ -122,6 +146,7 @@ def getMessagePriority(message):
 
 annunciator = annunciatorThread()
 annunciator.start()
+
 print("Started the annunciator.")
 print("Beginning to poll for messages.")
 while True:
