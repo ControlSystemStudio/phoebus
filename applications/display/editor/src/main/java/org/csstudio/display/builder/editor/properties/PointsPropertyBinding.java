@@ -17,9 +17,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.PointsWidgetProperty;
-import org.csstudio.display.builder.representation.javafx.ModalityHack;
 import org.csstudio.display.builder.representation.javafx.PointsDialog;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -40,9 +38,7 @@ public class PointsPropertyBinding
 
     private EventHandler<ActionEvent> actionHandler = event ->
     {
-        final PointsDialog dialog = new PointsDialog(widget_property.getValue());
-        DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
-        ModalityHack.forDialog(dialog);
+        final PointsDialog dialog = new PointsDialog(widget_property.getValue(), jfx_node);
         final Optional<Points> result = dialog.showAndWait();
         if (result.isPresent())
         {

@@ -15,9 +15,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.MacrosWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.MacrosDialog;
-import org.csstudio.display.builder.representation.javafx.ModalityHack;
 import org.phoebus.framework.macros.Macros;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -39,20 +37,18 @@ public class MacrosPropertyBinding
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final MacrosDialog dialog = new MacrosDialog(widget_property.getValue());
-        DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -300);
-        ModalityHack.forDialog(dialog);
+        final MacrosDialog dialog = new MacrosDialog(widget_property.getValue(), jfx_node);
         final Optional<Macros> result = dialog.showAndWait();
         if (result.isPresent())
         {
-            undo.execute(new SetWidgetPropertyAction<Macros>(widget_property, result.get()));
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, result.get()));
             if (! other.isEmpty())
             {
                 final String path = widget_property.getPath();
                 for (Widget w : other)
                 {
                     final MacrosWidgetProperty other_prop = (MacrosWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<Macros>(other_prop, result.get()));
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, result.get()));
                 }
             }
         }

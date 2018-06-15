@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.Widget;
@@ -33,7 +31,7 @@ import org.csstudio.display.builder.representation.javafx.Messages;
 import org.csstudio.display.builder.representation.javafx.PVTableItem;
 import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoCompletedTableCell;
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
-import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.LineNumberTableCellFactory;
@@ -89,7 +87,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     public abstract static class ExprItem<T>
     {
         final protected StringProperty boolExp = new SimpleStringProperty();
-        final protected SimpleObjectProperty<Node> field = new SimpleObjectProperty<Node>();
+        final protected SimpleObjectProperty<Node> field = new SimpleObjectProperty<>();
         final protected List<WidgetPropertyBinding<?,?>> bindings = new ArrayList<>();
 
         public ExprItem(final String boolE, final T valE, final UndoableActionManager undo)
@@ -162,7 +160,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         @Override
         public ExprInfoValue<T> toExprInfo()
         {
-            return new ExprInfoValue<T>(boolExp.get(), internal_prop_val);
+            return new ExprInfoValue<>(boolExp.get(), internal_prop_val);
         }
 
         @Override
@@ -419,6 +417,9 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     /** The splitter used in the rule side. */
     private SplitPane ruleSplitPane;
 
+    /** The main splitter */
+    private final SplitPane content;
+
     /** turn this rule's property into the long string form used in the combo box **/
     public String getPropLongString(RuleItem rule)
     {
@@ -426,8 +427,12 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         return pi.toString();
     }
 
-    /** @param rules Rules to show/edit in the dialog */
-    public RulesDialog(final UndoableActionManager undo, final List<RuleInfo> rules, final Widget attached_widget)
+    /** @param undo Undo support
+     *  @param rules Rules to show/edit in the dialog
+     *  @param attached_widget Widget
+     *  @param owner The node starting this dialog
+     **/
+    public RulesDialog(final UndoableActionManager undo, final List<RuleInfo> rules, final Widget attached_widget, final Node owner)
     {
         this.undo = undo;
         this.attached_widget = attached_widget;
@@ -438,13 +443,10 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                       attached_widget.getType() + " " +
                       attached_widget.getName());
 
-        final Node node = JFXBaseRepresentation.getJFXNode(attached_widget);
-        initOwner(node.getScene().getWindow());
-
         rules.forEach(rule -> rule_items.add(RuleItem.forInfo(attached_widget, rule, undo)));
         fixupRules(0);
 
-        final SplitPane content = createContent();
+        content = createContent();
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         // use same stylesheet as ScriptsDialog, ActionsDialog
@@ -461,22 +463,20 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                              .collect(Collectors.toList());
         });
 
-        setOnHidden(event ->
-        {
-            final Preferences pref = Preferences.userNodeForPackage(RulesDialog.class);
-            pref.putDouble("content.width", content.getWidth());
-            pref.putDouble("content.height", content.getHeight());
-            pref.putDouble("content.divider.position", content.getDividerPositions()[0]);
-            pref.putDouble("rule.content.divider.position", ruleSplitPane.getDividerPositions()[0]);
-            try
+        DialogHelper.positionAndSize(
+            this,
+            owner,
+            PhoebusPreferenceService.userNodeForClass(RulesDialog.class),
+            prefs ->
             {
-                pref.flush();
-            }
-            catch (BackingStoreException ex)
+                content.setDividerPositions(prefs.getDouble("content.divider.position", 0.5));
+                ruleSplitPane.setDividerPositions(prefs.getDouble("rule.content.divider.position", 0.5));
+            },
+            prefs ->
             {
-               logger.log(Level.WARNING, "Unable to flush preferences", ex);
-            }
-        });
+                prefs.putDouble("content.divider.position", content.getDividerPositions()[0]);
+                prefs.putDouble("rule.content.divider.position", ruleSplitPane.getDividerPositions()[0]);
+            });
     }
 
     private SplitPane createContent()
@@ -592,7 +592,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 prop_opt = prop_opt.substring(0, MAX_PROP_LENGTH) + "...";
             prop_id_opts.add(prop_opt);
         }
-        propComboBox = new ComboBox<String>(prop_id_opts);
+        propComboBox = new ComboBox<>(prop_id_opts);
         propComboBox.setDisable(true);
         propComboBox.getSelectionModel().selectedIndexProperty().addListener( (p, o, index) ->
         {   // Select property info based on index within combo.
@@ -631,12 +631,8 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         HBox.setHgrow(pvs, Priority.ALWAYS);
         HBox.setHgrow(exprs, Priority.ALWAYS);
 
-        final Preferences pref = Preferences.userNodeForPackage(RulesDialog.class);
-        final double prefRSPDividerPosition = pref.getDouble("rule.content.divider.position", 0.5);
-
         ruleSplitPane = new SplitPane(pvs, exprs);
         ruleSplitPane.setOrientation(Orientation.HORIZONTAL);
-        ruleSplitPane.setDividerPositions(prefRSPDividerPosition);
         ruleSplitPane.setStyle("-fx-background-insets: 0, 0;");
         VBox.setVgrow(ruleSplitPane, Priority.ALWAYS);
 
@@ -647,16 +643,8 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         VBox.setVgrow(rules, Priority.ALWAYS);
         HBox.setHgrow(subitems, Priority.ALWAYS);
 
-        final double prefWidth = pref.getDouble("content.width", -1);
-        final double prefHeight = pref.getDouble("content.height", -1);
-        final double prefDividerPosition = pref.getDouble("content.divider.position", 0.3);
         final SplitPane splitPane = new SplitPane(rulebox, subitems);
-
         splitPane.setOrientation(Orientation.HORIZONTAL);
-        splitPane.setDividerPositions(prefDividerPosition);
-
-        if (prefWidth > 0 && prefHeight > 0)
-            splitPane.setPrefSize(prefWidth, prefHeight);
 
         // Select the first rule
         if (!rules_table.getItems().isEmpty())
@@ -680,7 +668,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         final TableColumn<RuleItem, String> name_col = new TableColumn<>(Messages.RulesDialog_ColName);
 
         name_col.setCellValueFactory(new PropertyValueFactory<RuleItem, String>("name"));
-        name_col.setCellFactory(list -> new TextFieldTableCell<RuleItem, String>(new DefaultStringConverter())
+        name_col.setCellFactory(list -> new TextFieldTableCell<>(new DefaultStringConverter())
         {
             private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
             {
@@ -810,7 +798,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             if (sel >= 0)
             {
                 final String content = rule_items.get(sel).getRuleInfo().getTextPy(attached_widget);
-                final MultiLineInputDialog dialog = new MultiLineInputDialog(content);
+                final MultiLineInputDialog dialog = new MultiLineInputDialog(btn_show_script, content);
                 DialogHelper.positionDialog(dialog, btn_show_script, -200, -300);
                 dialog.setTextHeight(600);
                 dialog.show();
@@ -847,7 +835,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         final TableColumn<ExprItem<?>, String> bool_exp_col = new TableColumn<>(Messages.RulesDialog_ColBoolExp);
         bool_exp_col.setSortable(false);
         bool_exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, String>("boolExp"));
-        bool_exp_col.setCellFactory(tableColumn -> new TextFieldTableCell<ExprItem<?>, String>(new DefaultStringConverter())
+        bool_exp_col.setCellFactory(tableColumn -> new TextFieldTableCell<>(new DefaultStringConverter())
         {
             private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
             {
@@ -899,7 +887,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
 
         val_exp_col.setSortable(false);
         val_exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, Node>("field"));
-        val_exp_col.setCellFactory(tableColumn -> new TableCell<ExprItem<?>, Node>()
+        val_exp_col.setCellFactory(tableColumn -> new TableCell<>()
         {
             @Override
             protected void updateItem (final Node item, final boolean empty)

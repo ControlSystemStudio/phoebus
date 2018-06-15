@@ -404,8 +404,7 @@ public class PropertyPanelSection extends GridPane
             final Button open_editor = new Button("...");
             open_editor.setOnAction(event ->
             {
-                final MultiLineInputDialog dialog = new MultiLineInputDialog(pv_prop.getSpecification());
-                DialogHelper.positionDialog(dialog, open_editor, -600, 0);
+                final MultiLineInputDialog dialog = new MultiLineInputDialog(open_editor, pv_prop.getSpecification());
                 final Optional<String> result = dialog.showAndWait();
                 if (!result.isPresent())
                     return;
