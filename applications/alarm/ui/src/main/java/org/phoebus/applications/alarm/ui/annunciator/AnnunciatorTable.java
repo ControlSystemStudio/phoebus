@@ -15,7 +15,7 @@ import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.talk.Annunciation;
+import org.phoebus.applications.alarm.talk.AnnunciationRowInfo;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -46,17 +46,17 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final Alert        clearTableAlert  = new Alert(AlertType.CONFIRMATION);
     private final ToggleButton muteButton       = new ToggleButton("Mute Annunciator");
     
-    private final TableView<Annunciation> table = new TableView<>();
+    private final TableView<AnnunciationRowInfo> table = new TableView<>();
     
-    TableColumn<Annunciation, Instant>       time        = new TableColumn<>("Time Received");
-    TableColumn<Annunciation, SeverityLevel> severity    = new TableColumn<>("Severity");
-    TableColumn<Annunciation, String>        description = new TableColumn<>("Description");
+    TableColumn<AnnunciationRowInfo, Instant>       time        = new TableColumn<>("Time Received");
+    TableColumn<AnnunciationRowInfo, SeverityLevel> severity    = new TableColumn<>("Severity");
+    TableColumn<AnnunciationRowInfo, String>        description = new TableColumn<>("Description");
 
-    private final CopyOnWriteArrayList<Annunciation> messages = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<AnnunciationRowInfo> messages = new CopyOnWriteArrayList<>();
     
     private final TalkClient client;
     
-    private final int annunciator_threshold = AlarmSystem.annunciator_threshold;
+    private final int annunciator_threshold       = AlarmSystem.annunciator_threshold;
     private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
     
     private final AnnunciatorController annunciatorController;
@@ -64,7 +64,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     /**
      * Table cell that displays alarm severity using icons and colored text.
      */
-    private class SeverityCell extends TableCell<Annunciation, SeverityLevel>
+    private class SeverityCell extends TableCell<AnnunciationRowInfo, SeverityLevel>
     {
         @Override
         protected void updateItem(final SeverityLevel item, final boolean empty)
@@ -90,7 +90,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      * Table cell that shows a time stamp 
      * @Author Kay Kasemir
      */
-    private class TimeCell extends TableCell<Annunciation, Instant>
+    private class TimeCell extends TableCell<AnnunciationRowInfo, Instant>
     {
         @Override
         protected void updateItem(final Instant item, final boolean empty)
@@ -124,13 +124,13 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                
         severity.setCellValueFactory(cell -> cell.getValue().severity);
         severity.setCellFactory(c -> new SeverityCell());
-        severity.setPrefWidth(80);
+        severity.setPrefWidth(90);
         severity.setResizable(false);
         table.getColumns().add(severity);
 
         description.setCellValueFactory(cell -> cell.getValue().description);
-        // Width left in window is window width minus time width (180), minus severity width (90), minus width of window edges(1 * 2).
-        description.prefWidthProperty().bind(table.widthProperty().subtract(272));
+        // Width left in window is window width minus time width (190), minus severity width (90), minus width of window edges(1 * 2).
+        description.prefWidthProperty().bind(table.widthProperty().subtract(282));
         table.getColumns().add(description);
 
         // Table should always grow to fill VBox.
@@ -150,18 +150,16 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         clearTableButton.setTooltip(new Tooltip("Clear the messages in the table."));
         clearTableButton.setOnAction((event) -> 
         {
-            clearTableAlert.showAndWait();
-            if (clearTableAlert.getResult() == ButtonType.OK)
-                clearTable();
+            clearTableAlert.showAndWait()
+                .filter(response -> response == ButtonType.OK)
+                .ifPresent(response -> clearTable());
         });
         
         hbox.getChildren().addAll(muteButton, clearTableButton);
         hbox.setAlignment(Pos.BASELINE_RIGHT);
         
         this.getChildren().add(hbox);
-        this.getChildren().add(table);    
-        
-      
+        this.getChildren().add(table);      
     }
     
     /**
@@ -171,6 +169,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     {
         logger.log(Level.INFO, "Annunciator table cleared.");
         messages.clear();
+        // Clear the table on the UI thread.
         Platform.runLater(() -> 
         {
             table.getItems().clear();
@@ -183,9 +182,8 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      */
     @Override
     public void messageReceived(SeverityLevel severity, String description)
-    {
-        
-        Annunciation annunciation = new Annunciation(Instant.now(), severity, description);
+    {     
+        AnnunciationRowInfo annunciation = new AnnunciationRowInfo(Instant.now(), severity, description);
         
         addAnnunciationToTable(annunciation);
         logAnnunciation(annunciation);  
@@ -196,15 +194,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     /**
      * Handle message addition to the table.
      */
-    private void addAnnunciationToTable(Annunciation annunciation)
+    private void addAnnunciationToTable(AnnunciationRowInfo annunciation)
     {
         messages.add(annunciation);
         
         // Remove the oldest messages to stay under the message retention threshold. 
-        // Only the table items are sorted, the messages list maintains chronological order.
         if (messages.size() > annunciator_retention_count)
         {
-            final Annunciation to_remove = messages.remove(0);
+            // Only the table items are sorted, the messages list maintains chronological order.
+            final AnnunciationRowInfo to_remove = messages.remove(0);
             Platform.runLater(() -> 
             {
                 table.getItems().remove(to_remove);
@@ -225,7 +223,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      * Log an annunciation.
      * @param annunciation
      */
-    private void logAnnunciation(Annunciation annunciation)
+    private void logAnnunciation(AnnunciationRowInfo annunciation)
     {
         logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
                 " Severity: " + annunciation.severity.get() + 

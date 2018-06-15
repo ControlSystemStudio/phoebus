@@ -21,25 +21,31 @@ import javafx.beans.property.SimpleStringProperty;
  * @author 1es
  *
  */
-public class Annunciation implements Comparable<Annunciation>
+public class AnnunciationRowInfo implements Comparable<AnnunciationRowInfo>
 {
     public final ObjectProperty<Instant> time_received = new SimpleObjectProperty<>(null);
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
     public final SimpleStringProperty description = new SimpleStringProperty();
     
-    public Annunciation(Instant time_received, SeverityLevel severity, String message)
+    public AnnunciationRowInfo(Instant time_received, SeverityLevel severity, String message)
     {
         this.time_received.set(time_received);
         this.severity.set(severity);
         this.description.set(message);
     }
 
+    /** 
+     * Sort by severity, if severity is equal, sort by time received.
+     */
     @Override
-    public int compareTo(Annunciation a)
+    public int compareTo(AnnunciationRowInfo other)
     {
-        if (this.severity.get().getAlarmUpdatePriority() == a.severity.get().getAlarmUpdatePriority())
-            return this.time_received.get().compareTo(a.time_received.get());
+        // Multiply by -1 to invert the sort order. The greater the severity, the greater the sort priority.
+        int result = -1 * this.severity.get().compareTo(other.severity.get());
+        // Multiply by -1 to invert the sort order, newest messages should be first.
+        if (0 == result) 
+            return -1 * this.time_received.get().compareTo(other.time_received.get());
         else
-            return this.severity.get().getAlarmUpdatePriority() > a.severity.get().getAlarmUpdatePriority() ? -1 : 1;
+            return result;
     }
 }

@@ -11,7 +11,7 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /**
  * Annunciator Message class. 
- * Serves as a container for all the values the annunciator needs.
+ * Serves as a container for all the values the annunciator needs to annunciate a message.
  * <p>
  * <b>Contains:</b>
  * <ol>
@@ -20,18 +20,18 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  * <li> message  - what the annunciator will say.
  * </ol>
  * @author Evan Smith
- **/
+ */
 public class AnnunciatorMessage implements Comparable<AnnunciatorMessage>
 {
-    public final boolean       standout;
-    public final SeverityLevel  severity;
-    public final String         message;
+    public final boolean      standout;
+    public final SeverityLevel severity;
+    public final String        message;
     
     public AnnunciatorMessage(final boolean standout, final SeverityLevel severity, final String message)
     {
         this.standout = standout;
         this.severity = severity;
-        this.message = message;
+        this.message  = message;
     }
 
     @Override

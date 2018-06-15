@@ -10,7 +10,7 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import java.util.PriorityQueue;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.talk.Annunciation;
+import org.phoebus.applications.alarm.talk.AnnunciationRowInfo;
 import org.phoebus.framework.jobs.JobManager;
 
 /**
@@ -139,7 +139,7 @@ public class AnnunciatorController
      * Handle an annunciation by notifying the speaker thread that a message has been received.
      * @param a - Annunciation
      */
-    public void handleAnnunciation(Annunciation a)
+    public void handleAnnunciation(AnnunciationRowInfo a)
     {
         final String description = a.description.get();
         final SeverityLevel severity = a.severity.get();
@@ -176,7 +176,7 @@ public class AnnunciatorController
     
     /**
      * Set the muted attribute of the annunciator.
-     * @param val True for muted, False for not muted.
+     * @param val - True for muted, False for not muted.
      */
     public void setMuted(boolean val)
     {
@@ -197,7 +197,7 @@ public class AnnunciatorController
         {
             run = false;
         }
-        // The thread will shutdown having left the while(run) loop.
+        // The thread should shutdown having left the while(run) loop.
         annunciatorThread.interrupt();
         // Deallocate the annunciator's voice.
         annunciator.shutdown();
