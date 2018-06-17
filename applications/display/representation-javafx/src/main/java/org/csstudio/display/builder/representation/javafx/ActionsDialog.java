@@ -26,7 +26,9 @@ import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
@@ -131,8 +133,9 @@ public class ActionsDialog extends Dialog<ActionInfos>
     /** Create dialog
      *  @param widget Widget
      *  @param initial_actions Initial list of actions
+     *  @param owner Node that started this dialog
      */
-    public ActionsDialog(final Widget widget, final ActionInfos initial_actions)
+    public ActionsDialog(final Widget widget, final ActionInfos initial_actions, final Node owner)
     {
         this.widget = widget;
 
@@ -322,6 +325,9 @@ public class ActionsDialog extends Dialog<ActionInfos>
         // Select first action, if there is one
         if (actions.size() > 0)
             action_list.getSelectionModel().select(0);
+
+        DialogHelper.positionAndSize(this, owner,
+                                     PhoebusPreferenceService.userNodeForClass(ActionsDialog.class));
     }
 
     /** @param details StackPane

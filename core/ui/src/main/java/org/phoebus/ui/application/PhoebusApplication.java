@@ -95,15 +95,22 @@ public class PhoebusApplication extends Application {
     public static Application INSTANCE;
 
     /** Memento keys */
-    private static final String LAST_OPENED_FILE = "last_opened_file",
-                                DEFAULT_APPLICATION = "default_application",
-                                SHOW_TABS = "show_tabs";
+    public static final String LAST_OPENED_FILE = "last_opened_file",
+                               DEFAULT_APPLICATION = "default_application",
+                               SHOW_TABS = "show_tabs",
+                               SHOW_TOOLBAR = "show_toolbar";
 
     /** Menu item for top resources */
     private Menu top_resources_menu;
 
     /** Menu item to show/hide tabs */
     private CheckMenuItem show_tabs;
+
+    /** Tool bar, may be hidden */
+    private ToolBar toolbar;
+
+    /** Menu item to show/hide toolbar */
+    private CheckMenuItem show_toolbar;
 
     /** Menu item to save layout */
     private SaveLayoutMenuItem save_layout;
@@ -161,7 +168,7 @@ public class PhoebusApplication extends Application {
         INSTANCE = this;
 
         // Show splash screen as soon as possible..
-        final Splash splash = new Splash(initial_stage);
+        final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
 
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
@@ -211,7 +218,8 @@ public class PhoebusApplication extends Application {
                 logger.log(Level.SEVERE, "Application cannot start up", ex);
             }
             monitor.done();
-            splash.close();
+            if (splash != null)
+                splash.close();
         });
     }
 
@@ -221,7 +229,7 @@ public class PhoebusApplication extends Application {
 
         main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
-        final ToolBar toolBar = createToolbar();
+        toolbar = createToolbar();
         createTopResourcesMenu();
 
         DockStage.configureStage(main_stage);
@@ -229,9 +237,14 @@ public class PhoebusApplication extends Application {
         // (in case we ever need to identify the main window)
         main_stage.getProperties().put(DockStage.KEY_ID, DockStage.ID_MAIN);
 
+        // isToolbarVisible() and showToolbar() depend on layout.top -> VBox -> menu, toolbar
         final BorderPane layout = DockStage.getLayout(main_stage);
-        layout.setTop(new VBox(menuBar, toolBar));
+        layout.setTop(new VBox(menuBar, toolbar));
         layout.setBottom(StatusBar.getInstance());
+
+        // Update items now that methods like isToolbarVisible()
+        // can function since the scene has been populated
+        show_toolbar.setSelected(isToolbarVisible());
 
         // Main stage may still be moved, resized, and restored apps are added.
         // --> Would be nice to _not_ show it, yet.
@@ -396,22 +409,24 @@ public class PhoebusApplication extends Application {
         });
         menuBar.getMenus().add(file);
 
-
         // Application Contributions
         final Menu applicationsMenu = new Menu(Messages.Applications);
         final MenuTreeNode node = MenuEntryService.getInstance().getMenuEntriesTree();
         addMenuNode(applicationsMenu, node);
         menuBar.getMenus().add(applicationsMenu);
 
-
+        // Window
         show_tabs = new CheckMenuItem(Messages.AlwaysShowTabs);
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
 
+        show_toolbar = new CheckMenuItem(Messages.ShowToolbar);
+        show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
+
         save_layout = new SaveLayoutMenuItem(this);
         createLoadLayoutsMenu();
 
-        final Menu menu = new Menu(Messages.Window, null, show_tabs, save_layout, load_layout);
+        final Menu menu = new Menu(Messages.Window, null, show_tabs, show_toolbar, save_layout, load_layout);
         menuBar.getMenus().add(menu);
 
         // Help
@@ -602,6 +617,27 @@ public class PhoebusApplication extends Application {
         return toolBar;
     }
 
+    /** @return <code>true</code> if toolbar is visible */
+    boolean isToolbarVisible()
+    {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        final VBox top = (VBox) layout.getTop();
+        return top.getChildren().contains(toolbar);
+    }
+
+    private void showToolbar(final boolean show)
+    {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        final VBox top = (VBox) layout.getTop();
+        if (show)
+        {
+            if (! top.getChildren().contains(toolbar))
+                top.getChildren().add(toolbar);
+        }
+        else
+            top.getChildren().remove(toolbar);
+    }
+
     /** @param resource Resource
      *  @param prompt Prompt if there are multiple applications, or use first one?
      *  @return Application for opening resource, or <code>null</code> if none found
@@ -789,6 +825,11 @@ public class PhoebusApplication extends Application {
                 DockPane.alwaysShowTabs(show);
                 show_tabs.setSelected(show);
             });
+            memento.getBoolean(SHOW_TOOLBAR).ifPresent(show ->
+            {
+                showToolbar(show);
+                show_toolbar.setSelected(show);
+            });
 
             // Settings for each stage
             for (MementoTree stage_memento : memento.getChildren())
@@ -847,7 +888,7 @@ public class PhoebusApplication extends Application {
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
-        MementoHelper.saveState(memfile, last_opened_file, default_application);
+        MementoHelper.saveState(memfile, last_opened_file, default_application, isToolbarVisible());
 
         if (!closeStages(stages))
             return false;

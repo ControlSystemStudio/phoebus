@@ -17,8 +17,6 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.representation.javafx.ModalityHack;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -40,22 +38,20 @@ extends WidgetPropertyBinding<Button, RulesWidgetProperty>
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final RulesDialog dialog = new RulesDialog(undo, widget_property.getValue(), widget_property.getWidget());
-        DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
-        ModalityHack.forDialog(dialog);
+        final RulesDialog dialog = new RulesDialog(undo, widget_property.getValue(), widget_property.getWidget(), jfx_node);
         //ScenicView.show(dialog.getDialogPane());
         final Optional<List<RuleInfo>> result = dialog.showAndWait();
 
         if (result.isPresent())
         {
-            undo.execute(new SetWidgetPropertyAction<List<RuleInfo>>(widget_property, result.get()));
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, result.get()));
             if (! other.isEmpty())
             {
                 final String path = widget_property.getPath();
                 for (Widget w : other)
                 {
                     final RulesWidgetProperty other_prop = (RulesWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<List<RuleInfo>>(other_prop, result.get()));
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, result.get()));
                 }
             }
         }

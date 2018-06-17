@@ -17,9 +17,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
-import org.csstudio.display.builder.representation.javafx.ModalityHack;
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -42,20 +40,18 @@ public class ScriptsPropertyBinding
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final ScriptsDialog dialog = new ScriptsDialog(widget_property.getWidget(), widget_property.getValue());
-        DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
-        ModalityHack.forDialog(dialog);
+        final ScriptsDialog dialog = new ScriptsDialog(widget_property.getWidget(), widget_property.getValue(), jfx_node);
         final Optional<List<ScriptInfo>> result = dialog.showAndWait();
         if (result.isPresent())
         {
-            undo.execute(new SetWidgetPropertyAction<List<ScriptInfo>>(widget_property, result.get()));
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, result.get()));
             if (! other.isEmpty())
             {
                 final String path = widget_property.getPath();
                 for (Widget w : other)
                 {
                     final ScriptsWidgetProperty other_prop = (ScriptsWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<List<ScriptInfo>>(other_prop, result.get()));
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, result.get()));
                 }
             }
         }

@@ -30,7 +30,7 @@ public class JFXPointsDialogDemo  extends Application
         points.add(1, 10);
         points.add(2, 20);
         points.add(3, 30);
-        final PointsDialog dialog = new PointsDialog(points);
+        final PointsDialog dialog = new PointsDialog(points, null);
         System.out.println(dialog.showAndWait());
     }
 }

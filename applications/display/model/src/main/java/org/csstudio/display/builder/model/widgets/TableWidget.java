@@ -57,7 +57,7 @@ import org.w3c.dom.Element;
 /** Widget that displays a string table
  *
  *  <p>The 'value' can be either a VTable
- *  or a <code>List&lt;List&lt;String>></code>.
+ *  or a <code>List&lt;List&lt;String&gt;&gt;</code>.
  *  The latter includes 2-D string arrays written
  *  by Jython scripts.
  *
@@ -128,12 +128,12 @@ public class TableWidget extends VisibleWidget
 
     /** Like runtimePropValue, but not limited to VType */
     private static final WidgetPropertyDescriptor<Object> runtimeValueDescriptor =
-        new WidgetPropertyDescriptor<Object>(WidgetPropertyCategory.RUNTIME, runtimePropPVValue.getName(), Messages.WidgetProperties_Value)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, runtimePropPVValue.getName(), Messages.WidgetProperties_Value)
         {
             @Override
             public WidgetProperty<Object> createProperty(final Widget widget, final Object value)
             {
-                return new RuntimeWidgetProperty<Object>(this, widget, value)
+                return new RuntimeWidgetProperty<>(this, widget, value)
                 {
                     @Override
                     public void setValueFromObject(final Object value) throws Exception
@@ -153,13 +153,13 @@ public class TableWidget extends VisibleWidget
 
     /** Optional cell colors */
     private static final WidgetPropertyDescriptor<List<List<WidgetColor>>> runtimeCellColorsDescriptor =
-        new WidgetPropertyDescriptor<List<List<WidgetColor>>>(WidgetPropertyCategory.RUNTIME, "cell_colors", Messages.WidgetProperties_CellColors)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, "cell_colors", Messages.WidgetProperties_CellColors)
         {
 
             @Override
             public WidgetProperty<List<List<WidgetColor>>> createProperty(final Widget widget, final List<List<WidgetColor>> default_value)
             {
-                return new RuntimeWidgetProperty<List<List<WidgetColor>>>(this, widget, default_value)
+                return new RuntimeWidgetProperty<>(this, widget, default_value)
                 {
                     @SuppressWarnings({ "rawtypes", "unchecked" })
                     @Override

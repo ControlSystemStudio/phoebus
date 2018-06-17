@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.Widget;
@@ -22,7 +20,7 @@ import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoCompletedTableCell;
-import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.LineNumberTableCellFactory;
@@ -173,26 +171,26 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
     private CheckBox btn_check_connections;
 
+    /** The main splitter */
+    private final SplitPane content;
+
     private ScriptItem selected_script_item = null;
 
     /** @param widget Widget
      *  @param scripts Scripts to show/edit in the dialog
-     *  @param menu AutocompleteMenu
+     *  @param owner The node starting this dialog.
      */
-    public ScriptsDialog(final Widget widget, final List<ScriptInfo> scripts)
+    public ScriptsDialog (final Widget widget, final List<ScriptInfo> scripts, final Node owner)
     {
         this.widget = widget;
 
         setTitle(Messages.ScriptsDialog_Title);
         setHeaderText(Messages.ScriptsDialog_Info);
 
-        final Node node = JFXBaseRepresentation.getJFXNode(widget);
-        initOwner(node.getScene().getWindow());
-
         scripts.forEach(script -> script_items.add(ScriptItem.forInfo(script)));
         fixupScripts(0);
 
-        final SplitPane content = createContent();
+        content = createContent();
 
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -209,22 +207,12 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 					           .collect(Collectors.toList());
         });
 
-        setOnHidden(event ->
-        {
-            final Preferences pref = Preferences.userNodeForPackage(ScriptsDialog.class);
-            pref.putDouble("content.width", content.getWidth());
-            pref.putDouble("content.height", content.getHeight());
-            pref.putDouble("content.divider.position", content.getDividerPositions()[0]);
-
-            try
-            {
-                pref.flush();
-            }
-            catch (BackingStoreException ex)
-            {
-                logger.log(Level.WARNING, "Unable to flush preferences", ex);
-            }
-        });
+        DialogHelper.positionAndSize(
+            this,
+            owner,
+            PhoebusPreferenceService.userNodeForClass(ScriptsDialog.class),
+            prefs -> content.setDividerPositions(prefs.getDouble("content.divider.position", 0.5)),
+            prefs -> prefs.putDouble("content.divider.position", content.getDividerPositions()[0]));
     }
 
     private SplitPane createContent()
@@ -320,15 +308,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         scripts.setPadding(new Insets(0, 10, 0, 0));
         pvs.setPadding(new Insets(0, 0, 0, 10));
 
-        final Preferences pref = Preferences.userNodeForPackage(ScriptsDialog.class);
-        double prefWidth = pref.getDouble("content.width", -1);
-        double prefHeight = pref.getDouble("content.height", -1);
-        double prefDividerPosition = pref.getDouble("content.divider.position", 0.5);
-
         final SplitPane splitPane = new SplitPane(scripts, pvs);
-        splitPane.setDividerPositions(prefDividerPosition);
-        if (prefWidth > 0  &&  prefHeight > 0)
-            splitPane.setPrefSize(prefWidth, prefHeight);
 
         // Select the first script
         if ( !scripts_table.getItems().isEmpty())
@@ -349,13 +329,13 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     private Region createScriptsTable()
     {
         scripts_icon_col = new TableColumn<>();
-        scripts_icon_col.setCellValueFactory(cdf-> new SimpleObjectProperty<ImageView>(getScriptImage(cdf.getValue()))
+        scripts_icon_col.setCellValueFactory(cdf-> new SimpleObjectProperty<>(getScriptImage(cdf.getValue()))
         {
             {
                 bind(Bindings.createObjectBinding(() -> getScriptImage(cdf.getValue()), cdf.getValue().fileProperty()));
             }
         });
-        scripts_icon_col.setCellFactory(col -> new TableCell<ScriptItem, ImageView>()
+        scripts_icon_col.setCellFactory(col -> new TableCell<>()
         {
             /* Instance initializer. */
             {
@@ -377,7 +357,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         // Create table with editable script 'file' column
         scripts_name_col = new TableColumn<>(Messages.ScriptsDialog_ColScript);
         scripts_name_col.setCellValueFactory(new PropertyValueFactory<ScriptItem, String>("file"));
-        scripts_name_col.setCellFactory(col -> new TextFieldTableCell<ScriptItem, String>(new DefaultStringConverter())
+        scripts_name_col.setCellFactory(col -> new TextFieldTableCell<>(new DefaultStringConverter())
         {
             private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
             {
@@ -636,7 +616,6 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                 Platform.runLater(() ->
                 {
                     final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
-                    DialogHelper.positionDialog(dlg, btn_edit, -300, -200);
                     dlg.showAndWait().ifPresent(result -> selected_script_item.text = result);
                 });
             }
@@ -746,7 +725,6 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         else
         {
             final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
-            DialogHelper.positionDialog(dlg, btn_edit, -300, -200);
             dlg.showAndWait().ifPresent(result -> selected_script_item.text = result);
         }
     }

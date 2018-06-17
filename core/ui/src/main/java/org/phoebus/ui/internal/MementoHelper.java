@@ -22,6 +22,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -52,11 +53,6 @@ public class MementoHelper
     private static final String WIDTH = "width";
     private static final String X = "x";
     private static final String Y = "y";
-
-    /** Memento keys */
-    private static final String LAST_OPENED_FILE = "last_opened_file",
-                                DEFAULT_APPLICATION = "default_application",
-                                SHOW_TABS = "show_tabs";
 
     /** Save state of Stage to memento
      *  @param memento
@@ -286,8 +282,12 @@ public class MementoHelper
      *  @param memento_file The file the memento xml is stored in.
      *  @param last_opened_file The last opened file.
      *  @param default_application The default application name.
+     *  @param show_toolbar Show toolbar?
      */
-    public static void saveState(final File memento_file, final File last_opened_file, final String default_application)
+    public static void saveState(final File memento_file,
+                                 final File last_opened_file,
+                                 final String default_application,
+                                 final boolean show_toolbar)
     {
         logger.log(Level.INFO, "Persisting state to " + memento_file);
         try
@@ -296,10 +296,11 @@ public class MementoHelper
 
             // Persist global settings
             if (last_opened_file != null)
-                memento.setString(LAST_OPENED_FILE, last_opened_file.toString());
+                memento.setString(PhoebusApplication.LAST_OPENED_FILE, last_opened_file.toString());
             if (default_application != null)
-                memento.setString(DEFAULT_APPLICATION, default_application);
-            memento.setBoolean(SHOW_TABS, DockPane.isAlwaysShowingTabs());
+                memento.setString(PhoebusApplication.DEFAULT_APPLICATION, default_application);
+            memento.setBoolean(PhoebusApplication.SHOW_TABS, DockPane.isAlwaysShowingTabs());
+            memento.setBoolean(PhoebusApplication.SHOW_TOOLBAR, show_toolbar);
 
             // Persist each stage (window) and its tabs
             saveStages(memento);
