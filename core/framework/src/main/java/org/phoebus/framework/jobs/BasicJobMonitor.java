@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class BasicJobMonitor implements JobMonitor
+public class BasicJobMonitor implements JobMonitor
 {
     private volatile String task = "Idle";
     private volatile int steps = -1;
@@ -96,5 +96,4 @@ class BasicJobMonitor implements JobMonitor
             return task + " (" + worked.get() + "/" + steps + ")";
         return task;
     }
-
 }
