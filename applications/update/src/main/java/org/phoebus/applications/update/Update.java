@@ -25,6 +25,12 @@ import org.phoebus.framework.workbench.Locations;
  *  <p>Deletes existing installation,
  *  and then extracts 'distribution' ZIP into that location.
  *
+ *  <p>This will replace the jar files for itself,
+ *  i.e. the code that's currently running.
+ *  Since that code has been read from the jar into memory,
+ *  it succeeds, but a restart is required as soon
+ *  as the update completes.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -53,6 +59,7 @@ public class Update
         if (! install_location.canWrite())
             throw new Exception("Cannot write " + install_location);
 
+        // Delete current installation
         // TODO Better progress reporting
         // Consider overall task to have 110 steps,
         // then create submonitors for delete (10 steps)
@@ -60,6 +67,7 @@ public class Update
         monitor.beginTask("Delete " + install_location);
         DirectoryDeleter.delete(install_location);
 
+        // Un-zip new distribution
         try
         (
             ZipFile zip = new ZipFile(update_zip);
@@ -91,7 +99,7 @@ public class Update
                     {
                         Files.copy(in, outfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         // ZIP contains a few entries that are 'executable' for Linux and OS X.
-                        // XXX How to get this info from the ZIP file?
+                        // XXX How to get file permissions from ZIP file?
                         // For now just make shell scripts
                         if (outfile.getName().endsWith(".sh"))
                             outfile.setExecutable(true);
