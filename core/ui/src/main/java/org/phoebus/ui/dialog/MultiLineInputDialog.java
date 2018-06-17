@@ -7,7 +7,8 @@
  ******************************************************************************/
 package org.phoebus.ui.dialog;
 
-import javafx.geometry.Bounds;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -60,13 +61,9 @@ public class MultiLineInputDialog extends Dialog<String>
             return button == ButtonType.OK ? text.getText() : null;
         });
 
-        if (parent != null)
-        {
-            initOwner(parent.getScene().getWindow());
-            final Bounds bounds = parent.localToScreen(parent.getBoundsInLocal());
-            setX(bounds.getMinX());
-            setY(bounds.getMinY());
-        }
+        DialogHelper.positionAndSize(this, parent,
+                                     PhoebusPreferenceService.userNodeForClass(MultiLineInputDialog.class),
+                                     600, 300);
     }
 
     /** @param pixels Suggested height of text in pixels */

@@ -10,6 +10,8 @@ package org.csstudio.display.builder.representation.javafx;
 import org.csstudio.display.builder.model.properties.ColorMap;
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.javafx.rtplot.ColorMappingFunction;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleObjectProperty;
@@ -78,8 +80,10 @@ public class ColorMapDialog extends Dialog<ColorMap>
     /** Current 'value' of the dialog */
     private ColorMap map;
 
-    /** @param map {@link ColorMap} show/edit in the dialog */
-    public ColorMapDialog(final ColorMap map)
+    /** @param map {@link ColorMap} show/edit in the dialog
+     *  @param owner Node that invoked this dialog
+     */
+    public ColorMapDialog(final ColorMap map, final Node owner)
     {
         setTitle(Messages.ColorMapDialog_Title);
         setHeaderText(Messages.ColorMapDialog_Info);
@@ -93,6 +97,9 @@ public class ColorMapDialog extends Dialog<ColorMap>
         hookListeners();
 
         setResultConverter(button -> (button == ButtonType.OK) ? this.map : null);
+
+        DialogHelper.positionAndSize(this, owner,
+                                     PhoebusPreferenceService.userNodeForClass(ColorMapDialog.class));
     }
 
     /** Table cell that shows ColorPicker for ColorSection */
@@ -144,7 +151,7 @@ public class ColorMapDialog extends Dialog<ColorMap>
         color_column.setCellValueFactory(param ->
         {
             final ColorSection segment = param.getValue();
-            return new SimpleObjectProperty<ColorPicker>(createColorPicker(segment));
+            return new SimpleObjectProperty<>(createColorPicker(segment));
         });
         color_column.setCellFactory(column -> new ColorTableCell());
 
