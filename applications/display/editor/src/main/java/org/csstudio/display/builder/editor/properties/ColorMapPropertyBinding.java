@@ -18,8 +18,6 @@ import org.csstudio.display.builder.model.properties.ColorMapWidgetProperty;
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.representation.javafx.ColorMapDialog;
 import org.csstudio.display.builder.representation.javafx.Messages;
-import org.csstudio.display.builder.representation.javafx.ModalityHack;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -43,20 +41,18 @@ public class ColorMapPropertyBinding
 
     private final EventHandler<ActionEvent> edit_colormap = event ->
     {
-        final ColorMapDialog dialog = new ColorMapDialog(widget_property.getValue());
-        DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
-        ModalityHack.forDialog(dialog);
+        final ColorMapDialog dialog = new ColorMapDialog(widget_property.getValue(), jfx_node);
         final Optional<ColorMap> result = dialog.showAndWait();
         if (result.isPresent())
         {
-            undo.execute(new SetWidgetPropertyAction<ColorMap>(widget_property, result.get()));
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, result.get()));
             if (! other.isEmpty())
             {
                 final String path = widget_property.getPath();
                 for (Widget w : other)
                 {
                     final ColorMapWidgetProperty other_prop = (ColorMapWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<ColorMap>(other_prop, result.get()));
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, result.get()));
                 }
             }
         }

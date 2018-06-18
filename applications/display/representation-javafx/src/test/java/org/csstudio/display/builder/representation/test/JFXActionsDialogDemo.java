@@ -49,7 +49,7 @@ public class JFXActionsDialogDemo  extends Application
                 new WritePVActionInfo("Reset", "Test:CS:Reset", "1"),
                 new ExecuteScriptActionInfo("Script", new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, "print 'hi'", false, Collections.emptyList())))
                 );
-        final ActionsDialog dialog = new ActionsDialog(widget, actions);
+        final ActionsDialog dialog = new ActionsDialog(widget, actions, null);
         final Optional<ActionInfos> result = dialog.showAndWait();
         if (result.isPresent())
         {

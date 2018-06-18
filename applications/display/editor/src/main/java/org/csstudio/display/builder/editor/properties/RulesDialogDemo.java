@@ -29,7 +29,7 @@ public class RulesDialogDemo extends Application
         final UndoableActionManager undo = new UndoableActionManager(10);
         final Widget widget = new LabelWidget();
         final List<RuleInfo> rules = widget.propRules().getValue();
-        final RulesDialog dialog = new RulesDialog(undo, rules, widget);
+        final RulesDialog dialog = new RulesDialog(undo, rules, widget, null);
         System.out.println(dialog.showAndWait());
     }
 

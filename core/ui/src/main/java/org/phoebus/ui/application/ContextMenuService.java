@@ -52,7 +52,7 @@ public class ContextMenuService {
         }).collect(Collectors.toList());
 
         // Take into account the types the selected objects can be converted into
-        List<Class> allAdaptableSelectionType = new ArrayList<Class>();
+        List<Class> allAdaptableSelectionType = new ArrayList<>();
         selectionTypes.forEach(s -> {
             // Class can certainly be converted to the class itself,
             // but also to all its super classes
@@ -76,10 +76,15 @@ public class ContextMenuService {
                 });
             });
         });
-        //
-        return contextMenuEntries.stream().filter(p -> {
-            return !Collections.disjoint(p.getSupportedTypes(), allAdaptableSelectionType);
-        }).collect(Collectors.toList());
 
+        //
+        final List<ContextMenuEntry> result = contextMenuEntries
+            .stream()
+            .filter(p -> {
+                  return !Collections.disjoint(p.getSupportedTypes(), allAdaptableSelectionType);
+            })
+            .collect(Collectors.toList());
+        result.sort((a, b) -> a.getName().compareTo(b.getName()));
+        return result;
     }
 }

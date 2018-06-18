@@ -16,8 +16,6 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.ActionsDialog;
-import org.csstudio.display.builder.representation.javafx.ModalityHack;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -39,20 +37,18 @@ public class ActionsPropertyBinding
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final ActionsDialog dialog = new ActionsDialog(widget_property.getWidget(), widget_property.getValue());
-        DialogHelper.positionDialog(dialog, DialogHelper.getContainer(jfx_node), -200, -200);
-        ModalityHack.forDialog(dialog);
+        final ActionsDialog dialog = new ActionsDialog(widget_property.getWidget(), widget_property.getValue(), jfx_node);
         final Optional<ActionInfos> result = dialog.showAndWait();
         if (result.isPresent())
         {
-            undo.execute(new SetWidgetPropertyAction<ActionInfos>(widget_property, result.get()));
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, result.get()));
             if (! other.isEmpty())
             {
                 final String path = widget_property.getPath();
                 for (Widget w : other)
                 {
                     final ActionsWidgetProperty other_prop = (ActionsWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<ActionInfos>(other_prop, result.get()));
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, result.get()));
                 }
             }
         }

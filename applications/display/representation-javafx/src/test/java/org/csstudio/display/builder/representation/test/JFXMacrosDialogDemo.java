@@ -30,7 +30,7 @@ public class JFXMacrosDialogDemo extends Application
         final Macros macros = new Macros();
         macros.add("S", "Test");
         macros.add("N", "17");
-        final MacrosDialog dialog = new MacrosDialog(macros);
+        final MacrosDialog dialog = new MacrosDialog(macros, null);
         System.out.println(dialog.showAndWait());
     }
 }

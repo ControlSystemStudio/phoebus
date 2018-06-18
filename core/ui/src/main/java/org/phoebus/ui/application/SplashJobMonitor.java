@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,13 +15,14 @@ import org.phoebus.framework.jobs.JobMonitor;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 class SplashJobMonitor implements JobMonitor
 {
     final JobMonitor parent;
     final Splash splash;
 
     /** @param parent Base {@link JobMonitor} to which all calls will be forwarded
-     *  @param splash {@link Splash} that will be updated
+     *  @param splash {@link Splash} that will be updated, or <code>null</code>
      */
     public SplashJobMonitor(final JobMonitor parent, final Splash splash)
     {
@@ -33,27 +34,31 @@ class SplashJobMonitor implements JobMonitor
     public void beginTask(final String task_name)
     {
         parent.beginTask(task_name);
-        splash.updateStatus(task_name);
+        if (splash != null)
+            splash.updateStatus(task_name);
     }
 
     @Override
     public void beginTask(final String task_name, final int steps)
     {
         parent.beginTask(task_name, steps);
-        splash.updateStatus(task_name);
+        if (splash != null)
+            splash.updateStatus(task_name);
     }
 
     @Override
     public void updateTaskName(final String task_name)
     {
-        splash.updateStatus(task_name);
+        if (splash != null)
+            splash.updateStatus(task_name);
     }
 
     @Override
     public void worked(final int steps)
     {
         parent.worked(steps);
-        splash.updateProgress(parent.getPercentage());
+        if (splash != null)
+            splash.updateProgress(parent.getPercentage());
     }
 
     @Override
@@ -78,7 +83,10 @@ class SplashJobMonitor implements JobMonitor
     public void done()
     {
         parent.done();
-        splash.updateStatus("Enjoy Phoebus!");
-        splash.updateProgress(parent.getPercentage());
+        if (splash != null)
+        {
+            splash.updateStatus("Enjoy Phoebus!");
+            splash.updateProgress(parent.getPercentage());
+        }
     }
 }
