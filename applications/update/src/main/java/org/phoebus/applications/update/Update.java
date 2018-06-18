@@ -159,25 +159,45 @@ public class Update
      *
      *  <p>Check if the `update_url` has an update that is newer
      *  than the `current_version`.
+     *
+     *  @param monitor {@link JobMonitor}
+     *  @return Time stamp of the new version, or <code>null</code> if there is no valid update
+     *  @throws Exception on error
+     */
+    public static Instant checkForUpdate(final JobMonitor monitor) throws Exception
+    {
+        if (update_url.isEmpty()  ||  current_version == null)
+            return null;
+        monitor.updateTaskName("Checking " + update_url);
+        final URL distribution_url = new URL(update_url);
+        final Instant update_version = Update.getVersion(monitor, distribution_url);
+
+        monitor.updateTaskName("Found version " + TimestampFormats.DATETIME_FORMAT.format(update_version));
+        if (update_version.isAfter(current_version))
+            return update_version;
+        monitor.updateTaskName("Keeping current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        return null;
+    }
+
+    /** Check for update
+     *
+     *  <p>Check if the `update_url` has an update that is newer
+     *  than the `current_version`.
      *  If so, download and replace the current installation.
      *
      *  @param monitor {@link JobMonitor}
      *  @param install_location Existing {@link Locations#install()}
      *  @throws Exception on error
      */
-    public static void checkForUpdate(final JobMonitor monitor, final File install_location) throws Exception
+    public static void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
     {
-        if (update_url.isEmpty()  ||  current_version == null)
-            return;
-        monitor.updateTaskName("Checking " + update_url);
-        final URL distribution_url = new URL(update_url);
-        final Instant update_version = Update.getVersion(monitor, distribution_url);
-
-        monitor.updateTaskName("Found version " + TimestampFormats.DATETIME_FORMAT.format(update_version));
-
-        if (update_version.isAfter(current_version))
-        {
-            monitor.updateTaskName("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        monitor.updateTaskName("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        // Local file?
+        if (update_url.startsWith("file:"))
+            update(monitor, install_location, new File(update_url.substring(5)));
+        else
+        {   // Download
+            final URL distribution_url = new URL(update_url);
             final File distribution_zip = download(monitor, distribution_url);
             try
             {
@@ -188,10 +208,6 @@ public class Update
                 monitor.updateTaskName("Deleting " + distribution_zip);
                 distribution_zip.delete();
             }
-        }
-        else
-        {
-            monitor.updateTaskName("Keeping current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
         }
     }
 }

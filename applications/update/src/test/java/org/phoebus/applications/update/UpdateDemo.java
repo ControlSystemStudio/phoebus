@@ -8,6 +8,7 @@
 package org.phoebus.applications.update;
 
 import java.io.File;
+import java.time.Instant;
 
 import org.phoebus.framework.jobs.BasicJobMonitor;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -48,6 +49,8 @@ public class UpdateDemo
             }
         };
 
-        Update.checkForUpdate(monitor, install_location);
+        final Instant new_version = Update.checkForUpdate(monitor);
+        if (new_version != null)
+            Update.downloadAndUpdate(monitor, install_location);
     }
 }
