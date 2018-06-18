@@ -23,7 +23,7 @@ public class AuthorizationServiceTest
 {
     private static String config_str =
         "alarm_ack=.*\n" +
-        "alarm_config = fred, jane, egon\n" +
+        "alarm_config = fred, jane.*, egon\n" +
         "FULL = root\n";
 
     private static Authorization createAuthorization(final String user_name) throws Exception
@@ -41,7 +41,7 @@ public class AuthorizationServiceTest
         assertFalse(as.hasAuthorization("alarm_config"));
 
         // Acknowledge and Configure
-        for (String user : List.of("fred", "jane", "egon"))
+        for (String user : List.of("fred", "jane", "janet", "egon"))
         {
             as = createAuthorization(user);
             assertTrue(as.hasAuthorization("alarm_ack"));
