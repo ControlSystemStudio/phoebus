@@ -63,9 +63,6 @@ public class AlarmSystem
     /** Directory used for executing commands */
     public static final File command_directory;
 
-    /** Authorization file */
-    public static final String authorization_file;
-    
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
@@ -79,7 +76,6 @@ public class AlarmSystem
         alarm_menu_max_items = prefs.getInt("alarm_menu_max_items");
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
         command_directory = new File(replaceProperties(prefs.get("command_directory")));
-        authorization_file = replaceProperties(prefs.get("authorization_file"));
     }
 
     /** @param value Value that might contain "$(prop)"
@@ -94,7 +90,8 @@ public class AlarmSystem
             final String prop = System.getProperty(prop_name);
             if (prop == null)
                 logger.log(Level.SEVERE, "Alarm System settings: Property '" + prop_name + "' is not defined");
-            return prop;
+            else
+                return prop;
         }
         // Return as is
         return value;

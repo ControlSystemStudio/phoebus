@@ -175,7 +175,7 @@ public class AlarmTableUI extends BorderPane
         // Bottom section o. s.: Ack'ed alarms
         split = new SplitPane(active, bottom);
         split.setOrientation(Orientation.VERTICAL);
-        
+
         setTop(toolbar);
         setCenter(split);
     }
