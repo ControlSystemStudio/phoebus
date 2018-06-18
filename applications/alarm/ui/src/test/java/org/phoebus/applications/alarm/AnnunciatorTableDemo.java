@@ -7,8 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
+import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorTable;
-import org.phoebus.applications.alarm.ui.annunciator.TalkClient;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

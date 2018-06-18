@@ -12,6 +12,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
