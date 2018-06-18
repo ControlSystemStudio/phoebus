@@ -10,7 +10,6 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import java.util.PriorityQueue;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.talk.AnnunciationRowInfo;
 import org.phoebus.framework.jobs.JobManager;
 
 /**

@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.talk;
+package org.phoebus.applications.alarm.ui.annunciator;
 
 import java.time.Instant;
 

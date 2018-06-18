@@ -15,7 +15,6 @@ import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.talk.AnnunciationRowInfo;
 import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.talk.TalkClientListener;
 import org.phoebus.applications.alarm.ui.AlarmUI;
