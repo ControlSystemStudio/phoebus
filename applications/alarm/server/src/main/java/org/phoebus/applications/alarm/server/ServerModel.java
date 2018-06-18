@@ -133,16 +133,20 @@ class ServerModel
         final ConsumerRecords<String, String> records = consumer.poll(100);
         for (ConsumerRecord<String, String> record : records)
         {
+            final String payload = record.value();
+            final String[] contents = payload.split("#MSGSEP#");
+            
             if (record.topic().equals(command_topic))
             {
                 final String command = record.key();
-                final String detail = record.value();
+                final String detail = contents.length > 1 ? contents[1] : "";
+
                 listener.handleCommand(command, detail);
             }
             else
             {
                 final String path = record.key();
-                final String node_config = record.value();
+                final String node_config = contents.length > 1 ? contents[1] : null;
                 try
                 {
                     // System.out.printf("\n%s - %s:\n", path, node_config);
