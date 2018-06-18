@@ -7,12 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui;
 
-import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.ui.application.PhoebusApplication;
 
 /** Preference settings
  *
@@ -36,25 +31,6 @@ public class Preferences
         default_apps = prefs.get(DEFAULT_APPS).split("\\s*,\\s*");
         top_resources = prefs.get(TOP_RESOURCES);
         splash = prefs.getBoolean(SPLASH);
-        authorization_file = replaceProperties(prefs.get("authorization_file"));
-    }
-
-    /** @param value Value that might contain "$(prop)"
-     *  @return Value where "$(prop)" is replaced by Java system property "prop"
-     */
-    private static String replaceProperties(final String value)
-    {
-        final Matcher matcher = Pattern.compile("\\$\\((.*)\\)").matcher(value);
-        if (matcher.matches())
-        {
-            final String prop_name = matcher.group(1);
-            final String prop = System.getProperty(prop_name);
-            if (prop == null)
-                PhoebusApplication.logger.log(Level.SEVERE, "UI Preferences: Property '" + prop_name + "' is not defined");
-            else
-                return prop;
-        }
-        // Return as is
-        return value;
+        authorization_file = PreferencesReader.replaceProperties(prefs.get("authorization_file"));
     }
 }
