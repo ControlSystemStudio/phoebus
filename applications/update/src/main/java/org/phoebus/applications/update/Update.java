@@ -14,7 +14,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Enumeration;
+import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -40,6 +43,8 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class Update
 {
+    public static final Logger logger = Logger.getLogger(Update.class.getPackageName());
+
     /** Current version, or <code>null</code> if not set */
     public static final Instant current_version;
 
@@ -56,7 +61,7 @@ public class Update
     /** Check version (i.e. date/time) of a distribution
      *  @param monitor {@link JobMonitor}
      *  @param distribution_url URL for distribution (ZIP)
-     *  @return Version of that distribution
+     *  @return Version of that distribution, or Instant of 0 when nothing found
      *  @throws Exception on error
      */
     public static Instant getVersion(final JobMonitor monitor, final URL distribution_url) throws Exception
@@ -80,7 +85,7 @@ public class Update
             // URL can be read, so OK to create file.
             // Caller will delete the file.
             final File file = File.createTempFile("phoebus_update", ".zip");
-            monitor.updateTaskName("Download " + distribution_url + " into " + file);
+            logger.info("Download " + distribution_url + " into " + file);
             Files.copy(src, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file;
         }
@@ -99,7 +104,7 @@ public class Update
         if (! install_location.canWrite())
             throw new Exception("Cannot write " + install_location);
 
-        monitor.updateTaskName("Deleting " + install_location);
+        logger.info("Deleting " + install_location);
         DirectoryDeleter.delete(install_location);
 
         // Un-zip new distribution
@@ -121,12 +126,12 @@ public class Update
                 final File outfile = new File(install_location, stripInitialDir(entry.getName()));
                 if (entry.isDirectory())
                 {
-                    monitor.updateTaskName(counter + "/" + num_entries + ": " + "Create " + outfile);
+                    logger.info(counter + "/" + num_entries + ": " + "Create " + outfile);
                     outfile.mkdirs();
                 }
                 else
                 {
-                    monitor.updateTaskName(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
+                    logger.info(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
                     try
                     (
                         BufferedInputStream in = new BufferedInputStream(zip.getInputStream(entry));
@@ -168,14 +173,14 @@ public class Update
     {
         if (update_url.isEmpty()  ||  current_version == null)
             return null;
-        monitor.updateTaskName("Checking " + update_url);
+        logger.info("Checking " + update_url);
         final URL distribution_url = new URL(update_url);
         final Instant update_version = Update.getVersion(monitor, distribution_url);
 
-        monitor.updateTaskName("Found version " + TimestampFormats.DATETIME_FORMAT.format(update_version));
+        logger.info("Found version " + TimestampFormats.DATETIME_FORMAT.format(update_version));
         if (update_version.isAfter(current_version))
             return update_version;
-        monitor.updateTaskName("Keeping current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        logger.info("Keeping current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
         return null;
     }
 
@@ -191,7 +196,7 @@ public class Update
      */
     public static void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
     {
-        monitor.updateTaskName("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        logger.info("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
         // Local file?
         if (update_url.startsWith("file:"))
             update(monitor, install_location, new File(update_url.substring(5)));
@@ -205,9 +210,28 @@ public class Update
             }
             finally
             {
-                monitor.updateTaskName("Deleting " + distribution_zip);
+                logger.info("Deleting " + distribution_zip);
                 distribution_zip.delete();
             }
         }
+    }
+
+    /** Set the `current_version` to now
+     *
+     *  <p>Ideally, the updated version contains its own setting
+     *  for the `current_version`, but if it doesn't,
+     *  the result would be a continuous update loop.
+     *
+     *  <p>By setting the `current_version` to now,
+     *  this is prevented.
+     *  @throws Exception on error updating the preferences
+     */
+    public static void adjustCurrentVersion() throws Exception
+    {
+        final Preferences prefs = Preferences.userNodeForPackage(Update.class);
+        // Add a minute in case we updated right now to a version that has the current HH:MM,
+        // to prevent another update on restart where we're still within the same HH:MM
+        prefs.put("current_version", TimestampFormats.DATETIME_FORMAT.format(Instant.now().plus(1, ChronoUnit.MINUTES)));
+        prefs.flush();
     }
 }

@@ -90,18 +90,19 @@ public class UpdateApplication implements AppDescriptor
                                        ButtonType.OK, ButtonType.CANCEL);
         prompt.setTitle(NAME);
         prompt.setHeaderText("A new version of this software is available");
-        DialogHelper.positionDialog(prompt, node, -400, -250);
-        if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
-            return;
-
-        JobManager.schedule(NAME, monitor ->
-        {
-            Update.downloadAndUpdate(monitor, install_location);
-            Platform.runLater(this::restart);
-        });
+        prompt.setResizable(true);
+        DialogHelper.positionDialog(prompt, node, -600, -350);
+        prompt.getDialogPane().setPrefSize(600, 300);
+        if (prompt.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK)
+            JobManager.schedule(NAME, monitor ->
+            {
+                Update.adjustCurrentVersion();
+                Update.downloadAndUpdate(monitor, install_location);
+                Platform.runLater(() -> restart(node));
+            });
     }
 
-    private void restart()
+    private void restart(final Node node)
     {
         final String message =
                 "The application will now exit,\n" +
@@ -111,6 +112,7 @@ public class UpdateApplication implements AppDescriptor
                                        ButtonType.OK);
         prompt.setTitle(NAME);
         prompt.setHeaderText("Update completed");
+        DialogHelper.positionDialog(prompt, node, -400, -250);
         prompt.showAndWait();
         System.exit(0);
     }
