@@ -31,6 +31,7 @@
     <ant target="clean" dir="applications/scan/client"/>
     <ant target="clean" dir="applications/scan/ui"/>
     <ant target="clean" dir="applications/scan/server"/>
+    <ant target="clean" dir="applications/update"/>
     <ant target="clean" dir="phoebus-product"/>
     <ant target="clean" dir="scan-server-product"/>
     <ant target="clean" dir="alarm-server-product"/>
@@ -70,6 +71,7 @@
     <ant dir="applications/scan/client"/>
     <ant dir="applications/scan/ui"/>
     <ant dir="applications/scan/server"/>
+    <ant dir="applications/update"/>
   </target>
 
   <target name="product" depends="applications" description="Assemble product">
