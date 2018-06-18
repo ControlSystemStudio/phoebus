@@ -34,7 +34,7 @@ public class CreateTopics
     private static final short REPLICATION_FACTOR = 1;
     private static final int PARTITIONS = 1;
     private static final String cleanup_policy = "cleanup.policy",
-                                policy         = "[compact, delete]",
+                                policy         = "compact, delete",
                                 segment_time   = "segment.ms",
                                 time           = "10000",
                                 dirty2clean    = "min.cleanable.dirty.ratio",
