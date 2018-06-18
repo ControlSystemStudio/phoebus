@@ -9,16 +9,20 @@ package org.phoebus.applications.update;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.phoebus.framework.jobs.BasicJobMonitor;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.workbench.DirectoryDeleter;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.util.time.TimestampFormats;
 
 /** Update installation from distributed ZIP file
  *
@@ -36,35 +40,66 @@ import org.phoebus.framework.workbench.Locations;
 @SuppressWarnings("nls")
 public class Update
 {
-    private final File update_zip;
-    private final File install_location;
+    /** Current version, or <code>null</code> if not set */
+    public static final Instant current_version;
 
-    /** @param update_zip ZIP file with distribution
-     *  @param install_location Existing {@link Locations#install()}
-     */
-    public Update(final File update_zip, final File install_location)
+    /** Update URL, or empty if not set */
+    public static final String update_url;
+
+    static
     {
-        this.update_zip = update_zip;
-        this.install_location = install_location;
+        final PreferencesReader prefs = new PreferencesReader(Update.class, "/update_preferences.properties");
+        current_version = TimestampFormats.parse(prefs.get("current_version"));
+        update_url = prefs.get("update_url");
+    }
+
+    /** Check version (i.e. date/time) of a distribution
+     *  @param monitor {@link JobMonitor}
+     *  @param distribution_url URL for distribution (ZIP)
+     *  @return Version of that distribution
+     *  @throws Exception on error
+     */
+    public static Instant getVersion(final JobMonitor monitor, final URL distribution_url) throws Exception
+    {
+        return Instant.ofEpochMilli(
+                distribution_url.openConnection().getLastModified());
+    }
+
+    /** @param monitor {@link JobMonitor}
+     *  @param distribution_url URL for distribution (ZIP)
+     *  @return Downloaded file, needs to be deleted when done
+     *  @throws Exception on error
+     */
+    public static File download(final JobMonitor monitor, final URL distribution_url) throws Exception
+    {
+        try
+        (
+            final InputStream src = distribution_url.openStream();
+        )
+        {
+            // URL can be read, so OK to create file.
+            // Caller will delete the file.
+            final File file = File.createTempFile("phoebus_update", ".zip");
+            monitor.updateTaskName("Download " + distribution_url + " into " + file);
+            Files.copy(src, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return file;
+        }
     }
 
     /** Update installation
      *  @param monitor {@link JobMonitor}
+     *  @param install_location Existing {@link Locations#install()}
+     *  @param update_zip ZIP file with distribution
      *  @throws Exception on error
      */
-    public void perform(final JobMonitor monitor) throws Exception
+    public static void update(final JobMonitor monitor, final File install_location, final File update_zip) throws Exception
     {
         if (! update_zip.canRead())
             throw new Exception("Cannot read " + update_zip);
         if (! install_location.canWrite())
             throw new Exception("Cannot write " + install_location);
 
-        // Delete current installation
-        // TODO Better progress reporting
-        // Consider overall task to have 110 steps,
-        // then create submonitors for delete (10 steps)
-        // and copy, using actual file count for progress of the remaining "100" steps
-        monitor.beginTask("Delete " + install_location);
+        monitor.updateTaskName("Deleting " + install_location);
         DirectoryDeleter.delete(install_location);
 
         // Un-zip new distribution
@@ -86,12 +121,12 @@ public class Update
                 final File outfile = new File(install_location, stripInitialDir(entry.getName()));
                 if (entry.isDirectory())
                 {
-                    monitor.beginTask(counter + "/" + num_entries + ": " + "Create " + outfile);
+                    monitor.updateTaskName(counter + "/" + num_entries + ": " + "Create " + outfile);
                     outfile.mkdirs();
                 }
                 else
                 {
-                    monitor.beginTask(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
+                    monitor.updateTaskName(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
                     try
                     (
                         BufferedInputStream in = new BufferedInputStream(zip.getInputStream(entry));
@@ -99,7 +134,7 @@ public class Update
                     {
                         Files.copy(in, outfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         // ZIP contains a few entries that are 'executable' for Linux and OS X.
-                        // XXX How to get file permissions from ZIP file?
+                        // How to get file permissions from ZIP file?
                         // For now just make shell scripts
                         if (outfile.getName().endsWith(".sh"))
                             outfile.setExecutable(true);
@@ -120,23 +155,43 @@ public class Update
         return path;
     }
 
-    // TODO Remove demo code
-    public static void main(String[] args) throws Exception
+    /** Check for update
+     *
+     *  <p>Check if the `update_url` has an update that is newer
+     *  than the `current_version`.
+     *  If so, download and replace the current installation.
+     *
+     *  @param monitor {@link JobMonitor}
+     *  @param install_location Existing {@link Locations#install()}
+     *  @throws Exception on error
+     */
+    public static void checkForUpdate(final JobMonitor monitor, final File install_location) throws Exception
     {
-        final JobMonitor monitor = new BasicJobMonitor()
+        if (update_url.isEmpty()  ||  current_version == null)
+            return;
+        monitor.updateTaskName("Checking " + update_url);
+        final URL distribution_url = new URL(update_url);
+        final Instant update_version = Update.getVersion(monitor, distribution_url);
+
+        monitor.updateTaskName("Found version " + TimestampFormats.DATETIME_FORMAT.format(update_version));
+
+        if (update_version.isAfter(current_version))
         {
-            @Override
-            public void beginTask(final String task_name)
+            monitor.updateTaskName("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+            final File distribution_zip = download(monitor, distribution_url);
+            try
             {
-                System.out.println(task_name);
-                super.beginTask(task_name);
+                update(monitor, install_location, distribution_zip);
             }
-        };
-        // Actual implementation:
-        // Fetch distribution from update site (preference setting),
-        // install into Locations.install()
-        final Update update = new Update(new File("/Users/ky9/git/dist/phoebus-0.0.1.zip"),
-                                         new File("/Users/ky9/git/dist/phoebus-0.0.1"));
-        update.perform(monitor);
+            finally
+            {
+                monitor.updateTaskName("Deleting " + distribution_zip);
+                distribution_zip.delete();
+            }
+        }
+        else
+        {
+            monitor.updateTaskName("Keeping current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        }
     }
 }
