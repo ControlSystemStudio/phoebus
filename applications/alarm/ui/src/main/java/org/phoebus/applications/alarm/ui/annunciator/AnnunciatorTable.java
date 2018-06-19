@@ -129,7 +129,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         severity.setResizable(false);
         table.getColumns().add(severity);
 
-        description.setCellValueFactory(cell -> cell.getValue().description);
+        description.setCellValueFactory(cell -> cell.getValue().message);
         // Width left in window is window width minus time width (190), minus severity width (90), minus width of window edges(1 * 2).
         description.prefWidthProperty().bind(table.widthProperty().subtract(282));
         table.getColumns().add(description);
@@ -182,14 +182,14 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      * <p> Called whenever the listener is notified of a received message.
      */
     @Override
-    public void messageReceived(SeverityLevel severity, String description)
+    public void messageReceived(SeverityLevel severity, boolean standout, String message)
     {     
-        AnnunciationRowInfo annunciation = new AnnunciationRowInfo(Instant.now(), severity, description);
+        AnnunciationRowInfo annunciation = new AnnunciationRowInfo(Instant.now(), severity, message);
         
         addAnnunciationToTable(annunciation);
         logAnnunciation(annunciation);  
 
-        annunciatorController.handleAnnunciation(annunciation);
+        annunciatorController.handleAnnunciation(standout, annunciation);
     }
     
     /**
@@ -228,7 +228,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     {
         logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
                 " Severity: " + annunciation.severity.get() + 
-                ", Description: \"" + annunciation.description.get() + "\"");
+                ", Description: \"" + annunciation.message.get() + "\"");
     }
 
     /**

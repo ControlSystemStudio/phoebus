@@ -27,6 +27,7 @@ import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.VType;
@@ -105,11 +106,17 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             }
 
             @Override
-            public void annunciateAlarm(final SeverityLevel level)
+            public void annunciateAlarm(final SeverityLevel severity)
             {
-                String severity = level.toString();
-                String json = "{\"severity\":\"" + severity + "\", \"description\":\"" + description + "\"}";
-                
+                final String json;
+                try
+                {
+                    json = new String(JsonModelWriter.talkToBytes(severity, description));
+                } catch (Exception e)
+                {
+                    logger.log(Level.WARNING, "Unable to construct JSON for talk message", e);
+                    return;
+                }
                 model.sentAnnunciatorMessage(getPathName(), json);
             }
         };

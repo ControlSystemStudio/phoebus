@@ -9,7 +9,6 @@ package org.phoebus.applications.alarm.talk;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -22,9 +21,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.json.JsonModelReader;
+import org.phoebus.applications.alarm.model.json.JsonTags;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings("nls")
 public class TalkClient
@@ -104,31 +104,33 @@ public class TalkClient
         final ConsumerRecords<String, String> records = consumer.poll(100);
         for (final ConsumerRecord<String, String> record : records)
         {
+            String path = record.key();
             String jsonString = record.value();
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode jn = null;
+            
+            final JsonNode jn;
             try
             {
-                jn = mapper.readTree(jsonString);
-            } catch (IOException e)
+                jn = (JsonNode) JsonModelReader.parseJsonText(jsonString);
+            } catch (Exception ex)
             {
-               logger.log(Level.SEVERE, "Parsing payload for " + record.key()+ " failed.", e);
-               continue;
+                logger.log(Level.WARNING, "Parsing of talk message for " + path + " failed.", ex);
+                continue;
             }
             
             final String severity = jn.get("severity").textValue();
-            final String description = jn.get("description").textValue();
+            final boolean standout = jn.get(JsonTags.STANDOUT).asBoolean();
+            final String message = jn.get(JsonTags.TALK).textValue();
             
             try
             {
                 for (final TalkClientListener listener : listeners)
-                    listener.messageReceived(SeverityLevel.valueOf(severity), description);
+                    listener.messageReceived(SeverityLevel.valueOf(severity), standout, message);
             }
             catch (final Exception ex)
             {
                 logger.log(Level.WARNING,
                            "Talk error for " + severity +
-                           ", " + description, ex);
+                           ", " + message, ex);
             }
         }
     }

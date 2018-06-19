@@ -16,5 +16,5 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  */
 public interface TalkClientListener
 {
-    public void messageReceived(SeverityLevel severity, String message);
+    public void messageReceived(SeverityLevel severity, boolean standout, String message);
 }

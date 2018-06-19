@@ -138,38 +138,11 @@ public class AnnunciatorController
      * Handle an annunciation by notifying the speaker thread that a message has been received.
      * @param a - Annunciation
      */
-    public void handleAnnunciation(AnnunciationRowInfo a)
+    public void handleAnnunciation(boolean standout, AnnunciationRowInfo a)
     {
-        final String description = a.description.get();
+        final String message = a.message.get();
         final SeverityLevel severity = a.severity.get();
-        
-        String message = description; // Message to be annunciated.
-        boolean noSev = false;      // Message should include alarm severity.
-        boolean standout = false;   // Message should always be annunciated.
-        
-        int beginIndex = 0; // Beginning index of description substring.
-        
-        if (description.startsWith("*"))
-        {
-            noSev = true;
-            beginIndex++;
-        }
-        if (description.substring(beginIndex).startsWith("!"))
-        {
-            standout = true;
-            beginIndex++;
-        }
-        
-        // The message should not include '*' or '!'. 
-        // If '*' or '!' is the entirety of the description, message will be an empty string.
-        message = description.substring(beginIndex);
-        
-        // Add the severity if appropriate.
-        if (! noSev)
-        {
-            message = severity.toString() + " Alarm: " + message;
-        }
-        
+       
         annunciate(new AnnunciatorMessage(standout, severity, message));
     }
     
