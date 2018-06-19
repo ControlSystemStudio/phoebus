@@ -10,7 +10,7 @@
 	<classpathentry kind="lib" path="/dependencies/target/lib/activation-1.1.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-all-1.3.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/hamcrest-core-1.3.jar"/>
-	<classpathentry kind="lib" path="/dependencies/target/lib/javax.mail-1.6.0.jar"/>
+	<classpathentry kind="lib" path="/dependencies/target/lib/javax.mail-1.6.1.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/jca-2.4.1.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/junit-4.12.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/mockito-core-1.9.5.jar"/>
