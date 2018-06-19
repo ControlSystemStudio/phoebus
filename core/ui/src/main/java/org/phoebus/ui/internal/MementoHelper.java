@@ -46,6 +46,7 @@ public class MementoHelper
     private static final String INPUT_URI = "input_uri";
     private static final String MAXIMIZED = "maximized";
     private static final String MINIMIZED = "minimized";
+    private static final String NAME = "name";
     private static final String PANE = "pane";
     private static final String POS = "pos";
     private static final String SELECTED = "selected";
@@ -95,6 +96,8 @@ public class MementoHelper
             final MementoTree pane_memento = memento.createChild(PANE);
             if (pane.isFixed())
                 pane_memento.setBoolean(FIXED, true);
+            if (pane.getName().length() > 0)
+                pane_memento.setString(NAME, pane.getName());
             pane_memento.setNumber(SELECTED, pane.getSelectionModel().getSelectedIndex());
             for (DockItem item : pane.getDockItems())
                 saveDockItem(pane_memento, item);
@@ -202,6 +205,8 @@ public class MementoHelper
                 if (index.intValue() < pane.getTabs().size())
                     pane.getSelectionModel().select(index.intValue());
             }));
+
+            content.getString(NAME).ifPresent(pane::setName);
 
             // If pane is 'fixed', mark as such _after_ all items have been restored
             // to prevent changes from now on

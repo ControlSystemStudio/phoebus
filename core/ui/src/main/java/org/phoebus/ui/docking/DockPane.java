@@ -9,6 +9,7 @@ package org.phoebus.ui.docking;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -157,8 +158,11 @@ public class DockPane extends TabPane
      */
     private Parent dock_parent = null;
 
+    /** Optional name of the pane */
+    private String name = "";
+
     /** Is this dock pane 'fixed' ? */
-    private boolean fixed;
+    private boolean fixed = false;
 
     /** Create DockPane
      *  @param tabs
@@ -203,6 +207,18 @@ public class DockPane extends TabPane
             this.dock_parent = dock_parent;
         else
             throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
+    }
+
+    /** @param name Name, may not be <code>null</code> */
+    public void setName(final String name)
+    {
+        this.name = Objects.requireNonNull(name);
+    }
+
+    /** @return Name of this pane, may be empty */
+    public String getName()
+    {
+        return name;
     }
 
     /** @param fixed Mark as 'fixed', i.e. tabs cannot be added/removed/closed? */
