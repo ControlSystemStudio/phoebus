@@ -199,4 +199,24 @@ public class JsonModelWriter
        }
        return buf.toByteArray();
    }
+
+   public static byte[] deleteMessageToBytes() throws Exception
+   {
+       final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+       try
+       (
+           JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+       )
+       {
+           jg.writeStartObject();
+           final String user = IdentificationHelper.getUser();
+           final String host = IdentificationHelper.getHost();
+           final String msg = "User '" + user + "' at '" + host + "' is deleting node"; 
+           jg.writeStringField(JsonTags.USER, user);
+           jg.writeStringField(JsonTags.HOST, host);
+           jg.writeStringField(JsonTags.DELETE, msg);
+           jg.writeEndObject();
+       }
+       return buf.toByteArray();
+   }
 }
