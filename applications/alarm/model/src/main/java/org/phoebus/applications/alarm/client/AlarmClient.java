@@ -359,7 +359,8 @@ public class AlarmClient
         try
         {
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, cmd, item.getPathName());
+            final String json = new String (JsonModelWriter.toJsonBytes(cmd));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, item.getPathName(), json);
             producer.send(record);
         }
         catch (final Exception ex)

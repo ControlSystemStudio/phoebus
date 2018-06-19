@@ -23,6 +23,7 @@ public interface JsonTags
 {
     public static final String ACTIONS = "actions";
     public static final String ANNUNCIATING = "annunciating";
+    public static final String COMMAND = "command";
     public static final String COMMANDS = "commands";
     public static final String COUNT = "count";
     public static final String CURRENT_MESSAGE = "current_message";

@@ -15,5 +15,5 @@ public interface ServerModelListener
     /** @param command Command received from the client
      *  @param detail Detail for the command, usually path to alarm tree node
      */
-    public void handleCommand(String command, String detail);
+    public void handleCommand(String path, String json);
 }

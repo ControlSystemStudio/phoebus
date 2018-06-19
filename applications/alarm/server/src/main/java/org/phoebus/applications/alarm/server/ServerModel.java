@@ -135,9 +135,9 @@ class ServerModel
         {
             if (record.topic().equals(command_topic))
             {
-                final String command = record.key();
-                final String detail = record.value();
-                listener.handleCommand(command, detail);
+                final String path = record.key();
+                final String json = record.value();
+                listener.handleCommand(path, json);
             }
             else
             {

@@ -131,4 +131,27 @@ public class JsonModelWriter
         }
         jg.writeEndArray();
     }
+
+    /**
+     * Create a json byte array of a command.
+     * @param ack - Acknowledge
+     * @return byte[]
+     * @throws Exception
+     */
+    public static byte[] toJsonBytes(final String cmd) throws Exception
+    {
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        try
+        (
+            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+        )
+        {
+            jg.writeStartObject();
+            jg.writeStringField(JsonTags.USER, IdentificationHelper.getUser());
+            jg.writeStringField(JsonTags.HOST, IdentificationHelper.getHost());
+            jg.writeStringField(JsonTags.COMMAND, cmd);
+            jg.writeEndObject();
+        }
+        return buf.toByteArray();
+    }
 }

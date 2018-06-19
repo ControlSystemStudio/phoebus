@@ -50,6 +50,22 @@ public class JsonModelReader
         }
     }
 
+    /** Parse JSON text for command
+     *  @param json_text JSON test
+     *  @return JSON object
+     *  @throws Exception
+     */
+    public static Object parseCommand(final String json_text) throws Exception
+    {
+        try
+        (
+            final JsonParser jp = JsonModelWriter.mapper.getFactory().createParser(json_text);
+        )
+        {
+            return JsonModelWriter.mapper.readTree(jp);
+        }
+    }
+    
     /** Is this the configuration or alarm state for a leaf?
      *  @param json JSON returned by {@link #parseAlarmItemConfig(String)}
      *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmClientNode}
