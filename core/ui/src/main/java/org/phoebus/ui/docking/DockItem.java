@@ -20,6 +20,7 @@ import java.util.logging.Level;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.authorization.AuthorizationService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -85,6 +86,8 @@ public class DockItem extends Tab
                                detach_icon = ImageCache.getImage(DockItem.class, "/icons/detach.png"),
                                split_horiz_icon = ImageCache.getImage(DockItem.class, "/icons/split_horiz.png"),
                                split_vert_icon = ImageCache.getImage(DockItem.class, "/icons/split_vert.png"),
+                               lock_icon = ImageCache.getImage(DockItem.class, "/icons/lock.png"),
+                               unlock_icon = ImageCache.getImage(DockItem.class, "/icons/unlock.png"),
                                close_icon = ImageCache.getImage(DockItem.class, "/icons/remove.png"),
                                close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
 
@@ -180,6 +183,12 @@ public class DockItem extends Tab
         final MenuItem split_vert = new MenuItem("Split Vertically", new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
+        final MenuItem lock = new MenuItem("Lock Pane", new ImageView(lock_icon));
+        lock.setOnAction(event -> lock(true));
+
+        final MenuItem unlock = new MenuItem("Un-lock Pane", new ImageView(unlock_icon));
+        unlock.setOnAction(event -> lock(false));
+
         final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
         close.setOnAction(event -> close());
 
@@ -200,21 +209,34 @@ public class DockItem extends Tab
         });
 
 
-        final ContextMenu menu = new ContextMenu(info,
-                                                 new SeparatorMenuItem(),
-                                                 detach,
-                                                 split_horiz,
-                                                 split_vert,
-                                                 new SeparatorMenuItem(),
-                                                 close,
-                                                 close_other,
-                                                 new SeparatorMenuItem(),
-                                                 close_all);
-        // For items in 'fixed' pane, remove all but the 'info' entry
+        final ContextMenu menu = new ContextMenu(info);
+
         menu.setOnShowing(event ->
         {
+            menu.getItems().setAll(info);
+
+            final boolean may_lock = AuthorizationService.hasAuthorization("lock_ui");
             if (getDockPane().isFixed())
-                menu.getItems().setAll(info);
+            {
+                if (may_lock)
+                    menu.getItems().add(unlock);
+            }
+            else
+            {
+                menu.getItems().addAll(new SeparatorMenuItem(),
+                                       detach,
+                                       split_horiz,
+                                       split_vert);
+
+                if (may_lock)
+                    menu.getItems().add(lock);
+
+                menu.getItems().addAll(new SeparatorMenuItem(),
+                                       close,
+                                       close_other,
+                                       new SeparatorMenuItem(),
+                                       close_all);
+            }
         });
 
         name_tab.setContextMenu(menu);
@@ -438,6 +460,15 @@ public class DockItem extends Tab
         // where UI would otherwise be stuck in context menu and not
         // allow using the mouse etc.
         Platform.runLater(() -> pane.split(horizontally));
+    }
+
+    /** Request DockPane to lock or not
+     *  @param fixed Lock, or un-lock?
+     */
+    private void lock(final boolean fixed)
+    {
+        final DockPane pane = getDockPane();
+        pane.setFixed(fixed);
     }
 
     /** Select this tab, i.e. raise it in case another tab is currently visible */
