@@ -174,7 +174,7 @@ The state topic JSON format for an alarm tree leaf:
         "value":    String,
         "time": {
                     "seconds": Long,
-                    "nano":    Long,
+                    "nano":    Long
                 },
         "current_severity": String,
         "current_message":  String
@@ -225,10 +225,10 @@ An example message that could appear in a command topic:
     /path/to/pv : {"severity":"MAJOR", "standout":true, "message": "We are out of potato salad!"}
 
 ________________
-Long Term Topic:
+- Long Term Topic:
 
-The messages in the long term topic are identical to the messages in all the other topics. The long term topic simply serves as a non compacted store for all messages that traverse the alarm system.
-
+The messages in the long term topic are identical to the messages in all the other topics. The long term topic simply serves as a non compacted aggregate store for all the messages that traverse the alarm system.
+__________________
 Demos
 -----
 
