@@ -129,26 +129,11 @@ public class AlarmClient
         {
             final String path = record.key();
             final String node_config = record.value();
-            String config = "";
-            if (null == node_config)
-            {
-                config = null;
-            }
-            else if (node_config.contains("#MSGSEP#"))
-            {
-                final String[] contents = node_config.split("#MSGSEP#");
-                config = contents.length > 1 ? contents[1] : "";
-            }
-            else
-                config = node_config;
-            System.out.println("Config: " + config);
-            
             try
             {
                 // System.out.printf("\n%s - %s:\n", path, node_config);
-                if (config == null)
-                {
-                    // No config -> Delete node
+                if (node_config == null)
+                {   // No config -> Delete node
                     // Message may actually come from either config topic,
                     // where some client originally requested the removal,
                     // or the state topic, where running alarm server
@@ -162,7 +147,7 @@ public class AlarmClient
                 else
                 {
                     // Get node_config as JSON map to check for "pv" key
-                    final Object json = JsonModelReader.parseAlarmItemConfig(config);
+                    final Object json = JsonModelReader.parseAlarmItemConfig(node_config);
                     AlarmTreeItem<?> node = findNode(path);
                     // Only update listeners if this is a new node or the config changed
                     if (node == null)
@@ -338,8 +323,7 @@ public class AlarmClient
     public void sendItemConfigurationUpdate(final String path, final AlarmTreeItem<?> config) throws Exception
     {
         final String json = new String(JsonModelWriter.toJsonBytes(config));
-        final String payload = "User: " + IdentificationHelper.getUser() + ", Host: " + IdentificationHelper.getHost() + "#MSGSEP#" + json; 
-        final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, path, payload);
+        final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, path, json);
         producer.send(record);
     }
 
@@ -358,8 +342,7 @@ public class AlarmClient
         try
         {
             // Remove from configuration
-            final String payload = "User: " + IdentificationHelper.getUser() + ", Host: " + IdentificationHelper.getHost() + "#MSGSEP#"; 
-            final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), payload);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
             producer.send(record);
         }
         catch (final Exception ex)
@@ -376,8 +359,7 @@ public class AlarmClient
         try
         {
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
-            final String payload = "User: " + IdentificationHelper.getUser() + ", Host: " + IdentificationHelper.getHost() + "#MSGSEP#" + item.getPathName(); 
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, cmd, payload);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, cmd, item.getPathName());
             producer.send(record);
         }
         catch (final Exception ex)

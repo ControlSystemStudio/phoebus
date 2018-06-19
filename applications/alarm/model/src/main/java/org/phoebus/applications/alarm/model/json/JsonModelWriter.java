@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import org.phoebus.applications.alarm.client.ClientState;
+import org.phoebus.applications.alarm.client.IdentificationHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
@@ -81,7 +82,10 @@ public class JsonModelWriter
         )
         {
             jg.writeStartObject();
-
+            
+            jg.writeStringField("user", IdentificationHelper.getUser());
+            jg.writeStringField("host", IdentificationHelper.getHost());
+            
             if (item instanceof AlarmTreeLeaf)
                 writeLeafDetail(jg, (AlarmTreeLeaf) item);
 
