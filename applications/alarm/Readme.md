@@ -122,6 +122,112 @@ You can track the log cleaner runs via
 
     tail -f logs/log-cleaner.log
 
+Message Formats
+---------------
+_______________
+- Config Topic:
+
+The messages in the config topic consist of a path to the alarm tree item that is being configured along with a JSON of its configuration.
+The message always contains the user name and host name of who is changing the configuration. 
+
+The config topic JSON format for a alarm tree leaf:
+
+    {
+        "user":        String,
+        "host":        String,
+        "description": String,
+        "delay":       Integer,
+        "count":       Integer,
+        "filter":      String,
+        "guidance": [{"title": String, "details": String}],
+        "displays": [{"title": String, "details": String}],
+        "commands": [{"title": String, "details": String}],
+        "actions":  [{"title": String, "details": String}]
+    }
+
+The config topic JSON format for a alarm tree node:
+
+    {
+        "user":        String,
+        "host":        String,
+        "guidance": [{"title": String, "details": String}],
+        "displays": [{"title": String, "details": String}],
+        "commands": [{"title": String, "details": String}],
+        "actions":  [{"title": String, "details": String}]
+    }
+
+
+An example message that could appear in a config topic:
+
+    /path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
+
+______________
+- State Topic:
+
+The messages in the state topic consist of a path to the alarm tree item that's state is being updated along with a JSON of its new state.
+
+The state topic JSON format for an alarm tree leaf:
+
+    {
+        "severity": String,
+        "message":  String,
+        "value":    String,
+        "time": {
+                    "seconds": Long,
+                    "nano":    Long,
+                },
+        "current_severity": String,
+        "current_message":  String
+    }
+
+The state topic JSON format for an alarm tree node:
+
+    {
+        "severity": String
+    }
+
+An example message that could appear in a state topic:
+
+    /path/to/pv :{"severity":"MAJOR","message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MINOR","current_message":"LOW"}
+
+________________
+- Command Topic:
+
+The messages in the command topic consist of a path to the alarm tree item that is the subject of the command along with a JSON of the command. The JSON always contains the user name and host name of who is issuing the command.
+
+The command topic JSON format:
+
+    {
+        "user":    String,
+        "host":    String,
+        "command": String
+    }
+    
+An example message that could appear in a command topic:
+
+    /path/to/pv : {"user":"user name", "host":"host name", "command":"acknowledge"}
+
+____________
+- Talk Topic:
+
+The messages in the talk topic consist of a path to the alarm tree item being referenced along with a JSON. The JSON contains the alarm severity, a boolean value to indicate if the message should always be annunciated, and the message to annunciate.
+
+The talk topic JSON format:
+
+    {
+        "severity": String,
+        "standout": boolean,
+        "message":  String
+    }
+
+An example message that could appear in a command topic:
+
+    /path/to/pv : {"severity":"MAJOR", "standout":true, "message": "We are out of potato salad!"}
+
+________________
+Long Term Topic:
+
+The messages in the long term topic are identical to the messages in all the other topics. The long term topic simply serves as a non compacted store for all messages that traverse the alarm system.
 
 Demos
 -----
