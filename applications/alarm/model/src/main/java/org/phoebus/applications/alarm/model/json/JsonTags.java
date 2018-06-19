@@ -29,7 +29,7 @@ public interface JsonTags
     public static final String CURRENT_MESSAGE = "current_message";
     public static final String CURRENT_SEVERITY = "current_severity";
     public static final String DELAY = "delay";
-    public static final String DELETE = "delete";
+    public static final String DELETE = "deletion message";
     public static final String DESCRIPTION = "description";
     public static final String DETAILS = "details";
     public static final String DISPLAYS = "displays";

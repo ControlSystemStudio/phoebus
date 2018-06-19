@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.model.json;
 
 import java.io.ByteArrayOutputStream;
+import java.time.Instant;
 import java.util.List;
 
 import org.phoebus.applications.alarm.client.ClientState;
@@ -17,6 +18,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,67 +158,75 @@ public class JsonModelWriter
         return buf.toByteArray();
     }
     
-   public static byte[] talkToBytes(final SeverityLevel severity, final String description) throws Exception
-   {
-       String message = description; // Message to be annunciated.
-       boolean noSev = false;      // Message should include alarm severity.
-       boolean standout = false;   // Message should always be annunciated.
+    public static byte[] talkToBytes(final SeverityLevel severity, final String description) throws Exception
+    {
+        String message = description; // Message to be annunciated.
+        boolean noSev = false;      // Message should include alarm severity.
+        boolean standout = false;   // Message should always be annunciated.
+        
+        int beginIndex = 0; // Beginning index of description substring.
        
-       int beginIndex = 0; // Beginning index of description substring.
+        if (description.startsWith("*"))
+        {
+            noSev = true;
+            beginIndex++;
+        }
+        if (description.substring(beginIndex).startsWith("!"))
+        {
+            standout = true;
+            beginIndex++;
+        }
        
-       if (description.startsWith("*"))
-       {
-           noSev = true;
-           beginIndex++;
-       }
-       if (description.substring(beginIndex).startsWith("!"))
-       {
-           standout = true;
-           beginIndex++;
-       }
+        // The message should not include '*' or '!'. 
+        // If '*' or '!' is the entirety of the description, message will be an empty string.
+        message = description.substring(beginIndex);
        
-       // The message should not include '*' or '!'. 
-       // If '*' or '!' is the entirety of the description, message will be an empty string.
-       message = description.substring(beginIndex);
+        // Add the severity if appropriate.
+        if (! noSev)
+        {
+            message = severity.toString() + " Alarm: " + message;
+        }
        
-       // Add the severity if appropriate.
-       if (! noSev)
-       {
-           message = severity.toString() + " Alarm: " + message;
-       }
-       
-       final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-       try
-       (
-           JsonGenerator jg = mapper.getFactory().createGenerator(buf);
-       )
-       {
-           jg.writeStartObject();
-           jg.writeBooleanField(JsonTags.STANDOUT, standout);
-           jg.writeStringField(JsonTags.SEVERITY, severity.toString());
-           jg.writeStringField(JsonTags.TALK, message);
-           jg.writeEndObject();
-       }
-       return buf.toByteArray();
-   }
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        try
+        (
+            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+        )
+        {
+            jg.writeStartObject();
+            jg.writeBooleanField(JsonTags.STANDOUT, standout);
+            jg.writeStringField(JsonTags.SEVERITY, severity.toString());
+            jg.writeStringField(JsonTags.TALK, message);
+            jg.writeEndObject();
+        }
+        return buf.toByteArray();
+    }
 
-   public static byte[] deleteMessageToBytes() throws Exception
-   {
-       final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-       try
-       (
-           JsonGenerator jg = mapper.getFactory().createGenerator(buf);
-       )
-       {
-           jg.writeStartObject();
-           final String user = IdentificationHelper.getUser();
-           final String host = IdentificationHelper.getHost();
-           final String msg = "User '" + user + "' at '" + host + "' is deleting node"; 
-           jg.writeStringField(JsonTags.USER, user);
-           jg.writeStringField(JsonTags.HOST, host);
-           jg.writeStringField(JsonTags.DELETE, msg);
-           jg.writeEndObject();
-       }
-       return buf.toByteArray();
-   }
+   /**
+    * Create a deletion message for identifying who is creating a tombstone at what time.
+    * @return byte[]
+    * @throws Exception
+    */
+    public static byte[] deleteMessageToBytes() throws Exception
+    {
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        try
+        (
+            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+        )
+        {
+            final String user = IdentificationHelper.getUser();
+            final String host = IdentificationHelper.getHost();
+            final String msg  = "Deleting node."; 
+            final String time = TimestampFormats.MILLI_FORMAT.format(Instant.now());
+            
+            jg.writeStartObject();
+            jg.writeStringField(JsonTags.USER, user);
+            jg.writeStringField(JsonTags.HOST, host);
+            jg.writeStringField(JsonTags.DELETE, msg);
+            jg.writeStringField(JsonTags.TIME, time);
+            jg.writeEndObject();
+        }
+        return buf.toByteArray();
+    }
 }
