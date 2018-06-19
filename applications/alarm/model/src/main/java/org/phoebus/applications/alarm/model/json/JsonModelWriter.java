@@ -15,6 +15,7 @@ import org.phoebus.applications.alarm.client.IdentificationHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -134,11 +135,11 @@ public class JsonModelWriter
 
     /**
      * Create a json byte array of a command.
-     * @param ack - Acknowledge
+     * @param cmd - Command
      * @return byte[]
      * @throws Exception
      */
-    public static byte[] toJsonBytes(final String cmd) throws Exception
+    public static byte[] commandToBytes(final String cmd) throws Exception
     {
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
@@ -154,4 +155,48 @@ public class JsonModelWriter
         }
         return buf.toByteArray();
     }
+    
+   public static byte[] talkToBytes(final SeverityLevel severity, final String description) throws Exception
+   {
+       String message = description; // Message to be annunciated.
+       boolean noSev = false;      // Message should include alarm severity.
+       boolean standout = false;   // Message should always be annunciated.
+       
+       int beginIndex = 0; // Beginning index of description substring.
+       
+       if (description.startsWith("*"))
+       {
+           noSev = true;
+           beginIndex++;
+       }
+       if (description.substring(beginIndex).startsWith("!"))
+       {
+           standout = true;
+           beginIndex++;
+       }
+       
+       // The message should not include '*' or '!'. 
+       // If '*' or '!' is the entirety of the description, message will be an empty string.
+       message = description.substring(beginIndex);
+       
+       // Add the severity if appropriate.
+       if (! noSev)
+       {
+           message = severity.toString() + " Alarm: " + message;
+       }
+       
+       final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+       try
+       (
+           JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+       )
+       {
+           jg.writeStartObject();
+           jg.writeBooleanField(JsonTags.STANDOUT, standout);
+           jg.writeStringField(JsonTags.SEVERITY, severity.toString());
+           jg.writeStringField(JsonTags.TALK, message);
+           jg.writeEndObject();
+       }
+       return buf.toByteArray();
+   }
 }
