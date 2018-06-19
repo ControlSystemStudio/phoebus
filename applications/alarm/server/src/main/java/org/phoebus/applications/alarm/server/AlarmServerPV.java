@@ -108,6 +108,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             public void annunciateAlarm(final SeverityLevel level)
             {
                 // TODO Send text to Kafka, so that annunciators can, well, annunciate
+                // Level, Severity, Description
                 // model.sentAnnunciationMessage(...)
             }
         };

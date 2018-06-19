@@ -23,6 +23,7 @@ public class Preferences
     public static String[] default_apps;
     public static String top_resources;
     public static boolean splash;
+    public static final String authorization_file;
 
     static
     {
@@ -30,5 +31,6 @@ public class Preferences
         default_apps = prefs.get(DEFAULT_APPS).split("\\s*,\\s*");
         top_resources = prefs.get(TOP_RESOURCES);
         splash = prefs.getBoolean(SPLASH);
+        authorization_file = PreferencesReader.replaceProperties(prefs.get("authorization_file"));
     }
 }

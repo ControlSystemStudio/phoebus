@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.ui;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.ui.authorization.AuthorizationService;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -68,15 +69,21 @@ public class AlarmUI
         return severity_icons[severity.ordinal()];
     }
 
+    /**
+     * Verify acknowledge action through authorization service.
+     * @return <code>true</code> if the user has authorization to acknowledge.
+     */
     public static boolean mayAcknowledge()
     {
-        // TODO Check if current user is authorized to ack/un-ack alarms
-        return true;
+        return AuthorizationService.hasAuthorization("alarm_ack");
     }
 
+    /**
+     * Verify configure action through authorization service.
+     * @return <code>true</code> if the user has authorization to configure.
+     */
     public static boolean mayConfigure()
     {
-        // TODO Check if current user is authorized to change configuration
-        return true;
+        return AuthorizationService.hasAuthorization("alarm_config");
     }
 }

@@ -32,6 +32,7 @@ import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
 import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
 import org.phoebus.ui.Preferences;
+import org.phoebus.ui.authorization.AuthorizationService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ListPickerDialog;
 import org.phoebus.ui.dialog.OpenFileDialog;
@@ -204,6 +205,9 @@ public class PhoebusApplication extends Application {
         // Load saved state (slow file access) off UI thread, allocating 30% to that
         monitor.beginTask("Load saved state");
         final MementoTree memento = loadDefaultMemento(new SubJobMonitor(monitor, 30));
+
+        // Trigger initialization of authentication service
+        AuthorizationService.init();
 
         // Back to UI thread
         Platform.runLater(() ->
