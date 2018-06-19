@@ -77,28 +77,37 @@ public class ActionsDialog extends Dialog<ActionInfos>
 
     /** Table of actions */
     private final ListView<ActionInfo> action_list = new ListView<>(actions);
-    private CheckBox execute_all;
+    private final CheckBox execute_all = new CheckBox(Messages.ActionsDialog_ExecuteAll);
+
 
     // UI elements for OpenDisplayAction
-    private TextField open_display_description, open_display_path;
+    private final TextField open_display_description = new TextField(),
+                            open_display_path = new TextField(),
+                            open_display_pane = new TextField();
     private ToggleGroup open_display_targets;
     private MacrosTable open_display_macros;
 
     // UI elements for WritePVAction
-    private TextField write_pv_description, write_pv_name, write_pv_value;
+    private final TextField write_pv_description = new TextField(),
+                            write_pv_name = new TextField(),
+                            write_pv_value = new TextField();
 
     // UI elements for ExecuteScriptAction
-    private TextField execute_script_description, execute_script_file;
-    private TextArea execute_script_text;
+    private final TextField execute_script_description = new TextField(),
+                            execute_script_file = new TextField();
+    private final TextArea execute_script_text = new TextArea();
 
     // UI elements for ExecuteCommandAction
-    private TextField execute_command_description, execute_command_file;
+    private final TextField execute_command_description = new TextField(),
+                            execute_command_file = new TextField();
 
     // UI elements for OpenFileAction
-    private TextField open_file_description, open_file_file;
+    private final TextField open_file_description = new TextField(),
+                            open_file_file = new TextField();
 
     // UI elements for OpenWebpageAction
-    private TextField open_web_description, open_web_url;
+    private final TextField open_web_description = new TextField(),
+                            open_web_url = new TextField();
 
     /** Prevent circular updates */
     private boolean updating = false;
@@ -163,7 +172,6 @@ public class ActionsDialog extends Dialog<ActionInfos>
         action_list.setCellFactory(view -> new ActionInfoCell());
         layout.add(action_list, 0, 1);
 
-        execute_all = new CheckBox(Messages.ActionsDialog_ExecuteAll);
         execute_all.setSelected(initial_actions.isExecutedAsOne());
         layout.add(execute_all, 0, 2);
 
@@ -355,13 +363,11 @@ public class ActionsDialog extends Dialog<ActionInfos>
         open_display_details.setVgap(10);
 
         open_display_details.add(new Label(Messages.ActionsDialog_Description), 0, 0);
-        open_display_description = new TextField();
         open_display_description.textProperty().addListener(update);
         open_display_details.add(open_display_description, 1, 0);
         GridPane.setHgrow(open_display_description, Priority.ALWAYS);
 
         open_display_details.add(new Label(Messages.ActionsDialog_DisplayPath), 0, 1);
-        open_display_path = new TextField();
         open_display_path.textProperty().addListener(update);
         final Button select = new Button("...");
         select.setOnAction(event ->
@@ -391,12 +397,18 @@ public class ActionsDialog extends Dialog<ActionInfos>
             target.setToggleGroup(open_display_targets);
             target.selectedProperty().addListener(update);
             modes_box.getChildren().add(target);
+
+            if (modes[i] == Target.TAB)
+                open_display_pane.disableProperty().bind(target.selectedProperty().not());
         }
         open_display_details.add(modes_box, 0, 2, 2, 1);
 
+        open_display_details.add(new Label("Pane:"), 0, 3);
+        open_display_details.add(open_display_pane, 1, 3);
+
         open_display_macros = new MacrosTable(new Macros());
         open_display_macros.addListener(update);
-        open_display_details.add(open_display_macros.getNode(), 0, 3, 2, 1);
+        open_display_details.add(open_display_macros.getNode(), 0, 4, 2, 1);
         GridPane.setHgrow(open_display_macros.getNode(), Priority.ALWAYS);
         GridPane.setVgrow(open_display_macros.getNode(), Priority.ALWAYS);
 
@@ -412,6 +424,7 @@ public class ActionsDialog extends Dialog<ActionInfos>
             open_display_description.setText(info.getDescription());
             open_display_path.setText(info.getFile());
             open_display_targets.getToggles().get(info.getTarget().ordinal()).setSelected(true);
+            open_display_pane.setText(info.getPane());
             open_display_macros.setMacros(info.getMacros());
         }
         finally
@@ -435,7 +448,8 @@ public class ActionsDialog extends Dialog<ActionInfos>
         return new OpenDisplayActionInfo(open_display_description.getText(),
                                          open_display_path.getText().trim(),
                                          open_display_macros.getMacros(),
-                                         target);
+                                         target,
+                                         open_display_pane.getText().trim());
     }
 
     /** @return Sub-pane for WritePV action */
@@ -453,19 +467,16 @@ public class ActionsDialog extends Dialog<ActionInfos>
         write_pv_details.setVgap(10);
 
         write_pv_details.add(new Label(Messages.ActionsDialog_Description), 0, 0);
-        write_pv_description = new TextField();
         write_pv_description.textProperty().addListener(update);
         write_pv_details.add(write_pv_description, 1, 0);
         GridPane.setHgrow(write_pv_description, Priority.ALWAYS);
 
         write_pv_details.add(new Label(Messages.ActionsDialog_PVName), 0, 1);
-        write_pv_name = new TextField();
         PVAutocompleteMenu.INSTANCE.attachField(write_pv_name);
         write_pv_name.textProperty().addListener(update);
         write_pv_details.add(write_pv_name, 1, 1);
 
         write_pv_details.add(new Label(Messages.ActionsDialog_Value), 0, 2);
-        write_pv_value = new TextField();
         write_pv_value.textProperty().addListener(update);
         write_pv_details.add(write_pv_value, 1, 2);
 
@@ -511,13 +522,11 @@ public class ActionsDialog extends Dialog<ActionInfos>
         execute_script_details.setVgap(10);
 
         execute_script_details.add(new Label(Messages.ActionsDialog_Description), 0, 0);
-        execute_script_description = new TextField();
         execute_script_description.textProperty().addListener(update);
         execute_script_details.add(execute_script_description, 1, 0);
         GridPane.setHgrow(execute_script_description, Priority.ALWAYS);
 
         execute_script_details.add(new Label(Messages.ActionsDialog_ScriptPath), 0, 1);
-        execute_script_file = new TextField();
         execute_script_file.textProperty().addListener(update);
         final Button select = new Button("...");
         select.setOnAction(event ->
@@ -563,7 +572,6 @@ public class ActionsDialog extends Dialog<ActionInfos>
         execute_script_details.add(new HBox(10, btn_embed_py, btn_embed_js), 1, 2);
 
         execute_script_details.add(new Label(Messages.ActionsDialog_ScriptText), 0, 3);
-        execute_script_text = new TextArea();
         execute_script_text.setText(null);
         execute_script_text.textProperty().addListener(update);
         execute_script_details.add(execute_script_text, 0, 4, 2, 1);
@@ -615,13 +623,11 @@ public class ActionsDialog extends Dialog<ActionInfos>
         execute_command_details.setVgap(10);
 
         execute_command_details.add(new Label(Messages.ActionsDialog_Description), 0, 0);
-        execute_command_description = new TextField();
         execute_command_description.textProperty().addListener(update);
         execute_command_details.add(execute_command_description, 1, 0);
         GridPane.setHgrow(execute_command_description, Priority.ALWAYS);
 
         execute_command_details.add(new Label(Messages.ActionsDialog_FilePath), 0, 1);
-        execute_command_file = new TextField();
         execute_command_file.textProperty().addListener(update);
         final Button select = new Button("...");
         select.setOnAction(event ->
@@ -682,13 +688,11 @@ public class ActionsDialog extends Dialog<ActionInfos>
         open_file_details.setVgap(10);
 
         open_file_details.add(new Label(Messages.ActionsDialog_Description), 0, 0);
-        open_file_description = new TextField();
         open_file_description.textProperty().addListener(update);
         open_file_details.add(open_file_description, 1, 0);
         GridPane.setHgrow(open_file_description, Priority.ALWAYS);
 
         open_file_details.add(new Label(Messages.ActionsDialog_FilePath), 0, 1);
-        open_file_file = new TextField();
         open_file_file.textProperty().addListener(update);
         final Button select = new Button("...");
         select.setOnAction(event ->
@@ -749,13 +753,11 @@ public class ActionsDialog extends Dialog<ActionInfos>
         open_web_details.setVgap(10);
 
         open_web_details.add(new Label(Messages.ActionsDialog_Description), 0, 0);
-        open_web_description = new TextField();
         open_web_description.textProperty().addListener(update);
         open_web_details.add(open_web_description, 1, 0);
         GridPane.setHgrow(open_web_description, Priority.ALWAYS);
 
         open_web_details.add(new Label(Messages.ActionsDialog_URL), 0, 1);
-        open_web_url = new TextField();
         open_web_url.textProperty().addListener(update);
         open_web_details.add(open_web_url, 1, 1);
 
