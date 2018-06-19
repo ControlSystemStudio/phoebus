@@ -34,12 +34,12 @@ public class JsonModelReader
     // Later updates of the JsonModelReader/Writer will not affect code
     // that calls them.
 
-    /** Parse JSON text for alarm item configuration
-     *  @param json_text JSON test
+    /** Parse JSON text
+     *  @param json_text JSON text
      *  @return JSON object
      *  @throws Exception
      */
-    public static Object parseAlarmItemConfig(final String json_text) throws Exception
+    public static Object parseJsonText(final String json_text) throws Exception
     {
         try
         (
@@ -50,22 +50,6 @@ public class JsonModelReader
         }
     }
 
-    /** Parse JSON text for command
-     *  @param json_text JSON test
-     *  @return JSON object
-     *  @throws Exception
-     */
-    public static Object parseCommand(final String json_text) throws Exception
-    {
-        try
-        (
-            final JsonParser jp = JsonModelWriter.mapper.getFactory().createParser(json_text);
-        )
-        {
-            return JsonModelWriter.mapper.readTree(jp);
-        }
-    }
-    
     /** Is this the configuration or alarm state for a leaf?
      *  @param json JSON returned by {@link #parseAlarmItemConfig(String)}
      *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmClientNode}
