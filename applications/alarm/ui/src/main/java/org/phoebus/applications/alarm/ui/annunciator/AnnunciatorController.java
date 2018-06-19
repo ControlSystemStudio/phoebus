@@ -35,16 +35,13 @@ public class AnnunciatorController
     private volatile Boolean run   = true;
     
     /**
-     * Create AnnunciatorController. The threshold must be greater than 0.
+     * Create AnnunciatorController.
      * @param threshold - Integer value that the length of the queue should not exceed.
      */
     public AnnunciatorController(int threshold)
     {
         annunciator = new Annunciator();
-        if (threshold > 0)
-            this.threshold = threshold;
-        else
-            threshold = 3;
+        this.threshold = threshold;
         
         // Runnable that will execute in another thread. Handles speaking and message queue.
         final Runnable speaker = () -> 
