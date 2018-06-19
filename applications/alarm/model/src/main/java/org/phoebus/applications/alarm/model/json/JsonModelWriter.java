@@ -83,8 +83,8 @@ public class JsonModelWriter
         {
             jg.writeStartObject();
             
-            jg.writeStringField("user", IdentificationHelper.getUser());
-            jg.writeStringField("host", IdentificationHelper.getHost());
+            jg.writeStringField(JsonTags.USER, IdentificationHelper.getUser());
+            jg.writeStringField(JsonTags.HOST, IdentificationHelper.getHost());
             
             if (item instanceof AlarmTreeLeaf)
                 writeLeafDetail(jg, (AlarmTreeLeaf) item);

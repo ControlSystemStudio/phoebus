@@ -34,6 +34,7 @@ public interface JsonTags
     public static final String ENABLED = "enabled";
     public static final String FILTER = "filter";
     public static final String GUIDANCE = "guidance";
+    public static final String HOST = "host";
     public static final String LATCHING = "latching";
     public static final String MESSAGE = "message";
     public static final String NANO = "nano";
@@ -41,5 +42,6 @@ public interface JsonTags
     public static final String SEVERITY = "severity";
     public static final String TIME = "time";
     public static final String TITLE = "title";
+    public static final String USER = "user";
     public static final String VALUE = "value";
 }
