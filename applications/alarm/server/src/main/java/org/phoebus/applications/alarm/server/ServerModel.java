@@ -162,7 +162,7 @@ class ServerModel
                     else
                     {
                         // Get node_config as JSON map to check for "pv" key
-                        final Object json = JsonModelReader.parseAlarmItemConfig(node_config);
+                        final Object json = JsonModelReader.parseJsonText(node_config);
                         AlarmTreeItem<?> node = findNode(path);
 
                         // New node? Create it.

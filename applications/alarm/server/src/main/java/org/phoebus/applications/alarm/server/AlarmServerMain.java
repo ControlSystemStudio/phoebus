@@ -112,7 +112,7 @@ public class AlarmServerMain implements ServerModelListener
     {
         try
         {
-            JsonNode jsonNode = (JsonNode) JsonModelReader.parseCommand(json);
+            JsonNode jsonNode = (JsonNode) JsonModelReader.parseJsonText(json);
             JsonNode commandNode = jsonNode.get(JsonTags.COMMAND);
             if (null == commandNode)
             {

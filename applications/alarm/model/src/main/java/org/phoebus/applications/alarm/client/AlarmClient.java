@@ -147,7 +147,7 @@ public class AlarmClient
                 else
                 {
                     // Get node_config as JSON map to check for "pv" key
-                    final Object json = JsonModelReader.parseAlarmItemConfig(node_config);
+                    final Object json = JsonModelReader.parseJsonText(node_config);
                     AlarmTreeItem<?> node = findNode(path);
                     // Only update listeners if this is a new node or the config changed
                     if (node == null)
@@ -359,7 +359,7 @@ public class AlarmClient
         try
         {
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
-            final String json = new String (JsonModelWriter.toJsonBytes(cmd));
+            final String json = new String (JsonModelWriter.commandToBytes(cmd));
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, item.getPathName(), json);
             producer.send(record);
         }
