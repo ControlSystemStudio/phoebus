@@ -10,19 +10,15 @@ package org.csstudio.display.builder.editor.app;
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 
@@ -32,6 +28,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.framework.workbench.DirectoryDeleter;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
@@ -108,24 +105,7 @@ public class InstallExamplesMenuEntry implements MenuEntry
             if (examples.exists())
             {   // Delete existing directory
                 monitor.beginTask("Delete " + examples);
-                Files.walkFileTree(examples.toPath(), new SimpleFileVisitor<>()
-                {
-                    @Override
-                    public FileVisitResult visitFile(final Path file,
-                                                     final BasicFileAttributes attr) throws IOException
-                    {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(final Path dir,
-                                                              final IOException ex) throws IOException
-                    {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
+                DirectoryDeleter.delete(examples);
             }
 
             // Install examples, which may be in local file system or JAR

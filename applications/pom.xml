@@ -19,6 +19,7 @@
   	<module>databrowser</module>
   	<module>display</module>
   	<module>alarm</module>
+  	<module>update</module>
     <module>scan</module>
     <module>filebrowser</module>
     <module>channel</module>
