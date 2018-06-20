@@ -220,7 +220,7 @@ The talk topic JSON format:
         "talk":     String
     }
 
-An example message that could appear in a command topic:
+An example message that could appear in a talk topic:
 
     /path/to/pv : {"severity":"MAJOR", "standout":true, "message": "We are out of potato salad!"}
 
