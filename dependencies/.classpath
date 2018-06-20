@@ -45,5 +45,6 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/reactive-streams-1.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/rxjava-2.1.13.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/freetts-1.2.2.jar" sourcepath="/usr/1es/.m2/repository/net/sf/sociaal/freetts/1.2.2/freetts-1.2.2-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-1.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
