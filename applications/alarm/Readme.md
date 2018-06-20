@@ -185,6 +185,8 @@ The above example of deleting a pv would then look like this:
 
     /path/to/pv : {"user":"user name", "host":"host name", "delete message": "Deleting node.", "time": "2018-01-01 00:00:00.000"}
     /path/to/pv : null
+    
+The message about who deleted the PV and when they deleted it would obviously be compacted and deleted itself, but it would be aggregated into the long term topic beforehand thus preserving a record of the deletion.
 ______________
 - State Topic:
 
@@ -246,7 +248,7 @@ The talk topic JSON format:
 
 An example message that could appear in a talk topic:
 
-    /path/to/pv : {"severity":"MAJOR", "standout":true, "message": "We are out of potato salad!"}
+    /path/to/pv : {"severity":"MAJOR", "standout":true, "message":"We are out of potato salad!"}
 
 ________________
 - Long Term Topic:
@@ -485,13 +487,12 @@ This is an example configuration, as printed by Kafka on startup:
 
 The alarm topics are created by `examples/create_alarm_topics.sh` as follows (output of `examples/list_topics.sh`):
 
-	Topic:Accelerator	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
+	Topic:Accelerator	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
 		Topic: Accelerator	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-	Topic:AcceleratorCommand	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
+	Topic:AcceleratorCommand	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
 		Topic: AcceleratorCommand	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-	Topic:AcceleratorState	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
+	Topic:AcceleratorState	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
 		Topic: AcceleratorState	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-
 
 The file `kafka/logs/log-cleaner.log` will often not show any log-cleaner action:
  
