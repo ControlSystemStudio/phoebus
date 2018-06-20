@@ -44,7 +44,7 @@ public class TalkClient
     private final Thread thread;
 
     /** @param server Kafka Server host:port
-     *  @param config_name Name of alarm tree root
+     *  @param config_name Name of kafka config topic that the talk topic accompanies.
      */
     public TalkClient(final String server, final String config_name)
     {
