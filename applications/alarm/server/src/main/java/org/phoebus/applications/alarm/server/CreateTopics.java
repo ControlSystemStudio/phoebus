@@ -85,8 +85,6 @@ public class CreateTopics
                 topics_to_create.add(config + AlarmSystem.COMMAND_TOPIC_SUFFIX);
             if (! topic_names.contains(config + AlarmSystem.TALK_TOPIC_SUFFIX))
                 topics_to_create.add(config + AlarmSystem.TALK_TOPIC_SUFFIX);
-            if (! topic_names.contains(config + AlarmSystem.LONG_TERM_TOPIC_SUFFIX))
-                topics_to_create.add(config + AlarmSystem.LONG_TERM_TOPIC_SUFFIX);
         }
         catch (Exception ex)
         {
@@ -107,10 +105,7 @@ public class CreateTopics
         for (String topic : topics_to_create)
         {
                 logger.info("Creating topic '" + topic + "'");
-                if (topic.endsWith(AlarmSystem.LONG_TERM_TOPIC_SUFFIX))
-                    new_topics.add(createTopic(client, topic));
-                else
-                    new_topics.add(createCompactTopic(client, topic));
+                new_topics.add(createTopic(client, topic));                
         }
         // Create the new topics in the Kafka server.
         try
@@ -125,25 +120,12 @@ public class CreateTopics
         }
     }
 
-    /** Create a Kafka topic with the passed name.
-     *  @param client {@link AdminClient}
-     *  @param topic_name Name of the topic to be created.
-     *  @return new_topic The newly created topic.
-     */
-    private static NewTopic createTopic(AdminClient client, String topic_name)
-    {
-        final NewTopic new_topic = new NewTopic(topic_name, PARTITIONS, REPLICATION_FACTOR);
-        final Map<String, String> configs = new HashMap<>();
-        configs.put(segment_time, time);
-        return new_topic.configs(configs);
-    }
-
     /** Create a Kafka topic with the passed name that has a cleanup policy of compact, delete.
      *  @param client {@link AdminClient}
      *  @param topic_name Name of the topic to be created.
      *  @return new_topic The newly created topic.
      */
-    private static NewTopic createCompactTopic(final AdminClient client, final String topic_name)
+    private static NewTopic createTopic(final AdminClient client, final String topic_name)
     {
         final NewTopic new_topic = new NewTopic(topic_name, PARTITIONS, REPLICATION_FACTOR);
         final Map<String, String> configs = new HashMap<>();

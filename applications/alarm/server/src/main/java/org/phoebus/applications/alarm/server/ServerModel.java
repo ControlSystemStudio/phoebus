@@ -12,7 +12,6 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -21,7 +20,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.streams.KafkaStreams;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
@@ -58,13 +56,12 @@ class ServerModel
 
     private final ConcurrentHashMap<String, ClientState> initial_states;
 
-    private final String config_topic, command_topic, state_topic, talk_topic, longterm_topic;
+    private final String config_topic, command_topic, state_topic, talk_topic;
     private final ServerModelListener listener;
     private final AlarmServerNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
-    private final KafkaStreams streamToLongTerm;
     private final Thread thread;
 
     /** @param kafka_servers Servers
@@ -84,7 +81,6 @@ class ServerModel
         command_topic  = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
         state_topic    = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
         talk_topic     = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
-        longterm_topic = config_name + AlarmSystem.LONG_TERM_TOPIC_SUFFIX;
         this.listener = Objects.requireNonNull(listener);
 
         root = new AlarmServerNode(this, null, config_name);
@@ -94,11 +90,7 @@ class ServerModel
                                                List.of(config_topic));
         producer = KafkaHelper.connectProducer(kafka_servers);
 
-        streamToLongTerm = KafkaHelper.aggregateTopics(kafka_servers, 
-                                                       List.of(config_topic, command_topic, state_topic, talk_topic), 
-                                                       longterm_topic);
         
-        streamToLongTerm.start();
         
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
@@ -396,8 +388,7 @@ class ServerModel
     {
         running.set(false);
         consumer.wakeup();
-        // close the stream aggregate and wait 1 second at most for threads to join.
-        streamToLongTerm.close(1000, TimeUnit.MILLISECONDS);
+        
         try
         {
             thread.join(2000);
