@@ -10,11 +10,16 @@ package org.phoebus.applications.alarm.talk;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /**
- * Interface for talk client listener.
+ * Interface for talk client listener. 
  * @author Evan Smith
- *
  */
 public interface TalkClientListener
 {
+    /**
+     * Called when TalkClient that this listener has been added to receives a message.
+     * @param severity - SeverityLevel
+     * @param standout - boolean
+     * @param message  - String
+     */
     public void messageReceived(SeverityLevel severity, boolean standout, String message);
 }
