@@ -18,11 +18,14 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.csstudio.scan.device.DeviceInfo;
+import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.csstudio.scan.server.httpd.ScanWebServer;
 import org.csstudio.scan.server.internal.ScanServerImpl;
 import org.csstudio.scan.server.log.DataLogFactory;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.util.shell.CommandShell;
 
 /** Main Instance of the Scan Server application
  *  @author Kay Kasemir
@@ -80,6 +83,47 @@ public class ScanServerInstance
         System.out.println("-config scan_config.xml  - Scan config (REST port, jython paths, simulation settings");
         System.out.println("-settings settings.xml   - Import preferences (PV connectivity) from property format file");
         System.out.println();
+    }
+
+    private static boolean handleShellCommands(final String... args) throws Throwable
+    {
+        if (args.length == 1)
+        {
+            if (args[0].startsWith("shut"))
+            {
+                stop();
+                return true;
+            }
+            else if (args[0].equals("scans"))
+            {
+                System.out.println("Scans:");
+                for (ScanInfo scan : getScanServer().getScanInfos())
+                    System.out.println(scan);
+                return true;
+            }
+            else if (args[0].equals("abort"))
+            {
+                getScanServer().abort(-1);
+                return true;
+            }
+        }
+        else if (args.length == 2)
+        {
+            final int id = Integer.parseInt(args[1]);
+            if (args[0].startsWith("dev"))
+            {
+                System.out.println("Devices of scan " + id + ":");
+                for (DeviceInfo dev : getScanServer().getDeviceInfos(id))
+                    System.out.println(dev);
+                return true;
+            }
+            else if (args[0].equals("abort"))
+            {
+                getScanServer().abort(id);
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void main(final String[] original_args) throws Exception
@@ -145,8 +189,21 @@ public class ScanServerInstance
         {
             httpd.start();
 
+            final CommandShell shell = new CommandShell(
+                "Scan Server Commands:\n" +
+                "help       -  Show commands\n" +
+                "scans      -  Show commands\n" +
+                "devices ID -  Show devices used by scan\n" +
+                "abort ID   -  Abort given scan\n" +
+                "abort      -  Abort all scans\n" +
+                "shutdown   -  Stop the scan server",
+                ScanServerInstance::handleShellCommands);
+            shell.start();
+
             // Main thread could do other things while web server is running...
             done.await();
+
+            shell.stop();
         }
         catch (Exception ex)
         {
