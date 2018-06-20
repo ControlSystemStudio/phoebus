@@ -136,10 +136,11 @@ public class JsonModelWriter
     }
 
     /**
-     * Create a json byte array of a command.
+     * Create a JSON byte array of a command.
      * @param cmd - Command
      * @return byte[]
      * @throws Exception
+     * @author Evan Smith
      */
     public static byte[] commandToBytes(final String cmd) throws Exception
     {
@@ -158,6 +159,15 @@ public class JsonModelWriter
         return buf.toByteArray();
     }
     
+    /**
+     * Create a JSON byte array of a *Talk topic message.
+     * <p> This method handles the parsing of '*' and '!' in regards to the message format, and whether the message can be silenced.
+     * @see <a href="http://cs-studio.sourceforge.net/docbook/ch14.html#fig_annunciator_view">CSS Annunciator View Docs</a>
+     * @param severity
+     * @param description
+     * @return
+     * @throws Exception
+     */
     public static byte[] talkToBytes(final SeverityLevel severity, final String description) throws Exception
     {
         String message = description; // Message to be annunciated.
@@ -203,9 +213,10 @@ public class JsonModelWriter
     }
 
    /**
-    * Create a deletion message for identifying who is creating a tombstone at what time.
+    * Create a deletion message for identifying who is creating a kafka tombstone, and at what time.
     * @return byte[]
     * @throws Exception
+    * @author Evan Smith
     */
     public static byte[] deleteMessageToBytes() throws Exception
     {
@@ -217,13 +228,14 @@ public class JsonModelWriter
         {
             final String user = IdentificationHelper.getUser();
             final String host = IdentificationHelper.getHost();
+            // TODO: Why a delete occurred can be important. Perhaps in the future allow for this to be user set through some type of dialog.
             final String msg  = "Deleting node."; 
             final String time = TimestampFormats.MILLI_FORMAT.format(Instant.now());
             
             jg.writeStartObject();
             jg.writeStringField(JsonTags.USER, user);
             jg.writeStringField(JsonTags.HOST, host);
-            jg.writeStringField(JsonTags.DELETE, msg);
+            jg.writeStringField(JsonTags.DELETE_MESSAGE, msg);
             jg.writeStringField(JsonTags.TIME, time);
             jg.writeEndObject();
         }
