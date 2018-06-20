@@ -7,72 +7,44 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
-import org.phoebus.vtype.VType;
-
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.functions.Cancellable;
 
 /** Support for {@link Flowable} that sends <code>true</code> for write access
- *
  *  @author Eric Berryman
  *  @author Kay Kasemir
  */
-class AccessRightsEventOnSubscribe implements FlowableOnSubscribe<Boolean>
+class AccessRightsEventHandler implements FlowableOnSubscribe<Boolean>
 {
     private final PV pv;
 
-    // TODO While this is still based on the PVListener,
-    //      the access rights flow receives all value updates (and ignores but the first).
-    private class FlowSubscription implements Cancellable, PVListener
+    class Subscription implements Cancellable
     {
         private final FlowableEmitter<Boolean> emitter;
-        private boolean first = true;
 
-        public FlowSubscription(final FlowableEmitter<Boolean> emitter)
+        public Subscription(final FlowableEmitter<Boolean> emitter)
         {
             this.emitter = emitter;
-            pv.addListener(this);
+            pv.addSubscription(this);
         }
 
-        // PVListener
-        @Override
-        public void valueChanged(final VType value)
-        {
-            // Ignore value, just send initial write access info
-            if (first)
-            {
-                first = false;
-                permissionsChanged(pv.isReadonly());
-            }
-        }
-
-        // PVListener
-        @Override
-        public void permissionsChanged(final boolean readonly)
+        public void update(final boolean readonly)
         {
             if (! (emitter.isCancelled()  ||  emitter.requested() <0))
                 emitter.onNext(! readonly);
-        }
-
-        // PVListener
-        @Override
-        public void disconnected()
-        {
-            // Not connected -> Can't write, read-only
-            permissionsChanged(true);
         }
 
         // Cancellable
         @Override
         public void cancel() throws Exception
         {
-            pv.removeListener(this);
+            pv.removeSubscription(this);
         }
     };
 
-    public AccessRightsEventOnSubscribe(final PV pv)
+    public AccessRightsEventHandler(final PV pv)
     {
         this.pv = pv;
     }
@@ -80,6 +52,6 @@ class AccessRightsEventOnSubscribe implements FlowableOnSubscribe<Boolean>
     @Override
     public void subscribe(final FlowableEmitter<Boolean> emitter) throws Exception
     {
-        emitter.setCancellable(new FlowSubscription(emitter));
+        emitter.setCancellable(new Subscription(emitter));
     }
 }
