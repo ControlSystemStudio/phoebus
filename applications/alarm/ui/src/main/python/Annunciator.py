@@ -32,7 +32,7 @@ print("Annunciator started with config value: {}".format(config))
 c = Consumer({
     'bootstrap.servers': '{}'.format(server),
     'group.id' : 'Alarm-' + str(uuid.uuid4()),
-    'default.topic.config' : {}
+    'default.topic.config' : {'auto.offset.reset':'largest'} # Start reading from the end of the topic.
     })
 
 c.subscribe(['{}Talk'.format(config)])
@@ -115,25 +115,10 @@ def parseMessage(message):
     
     severity = parsed_json['severity']
     priority = getMessagePriority(severity)
-    description = parsed_json['description']
-    
-    toSay = ""
-    noSev = False
-    standout = False
-    beginIndex = 0
-    
-    if description.startswith("*"):
-        noSev = True
-        beginIndex += 1
-    if description[beginIndex:].startswith("!"):
-        standout = True
-        beginIndex += 1
-        
-    if not noSev:
-        toSay = severity + " Alarm: "
-    toSay += description[beginIndex:]
-    
-    return ((priority, standout, toSay))
+    standout = parsed_json['standout']
+    message  = parsed_json['message']
+
+    return ((priority, standout, message))
 
 severities = ["UNDEFINED", "INVALID", "MAJOR", "MINOR", "UNDEFINED_ACK", "INVALID_ACK", "MAJOR_ACK" , "MINOR_ACK", "OK"]
 # Determine the priority of the message based on the alarm severity.

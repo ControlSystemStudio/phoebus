@@ -15,11 +15,11 @@ def delivery_report(err, msg):
         print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
 
 
-key ="test"
-coolaid = '{"severity":"MAJOR", "description":"We are out of purple cool aid."}'
-barbeque = '{"severity":"MINOR", "description":"We are out of barbecue sauce."}'
-tater_salad = '{"severity":"MAJOR", "description":"We are out of potato salad."}'
-dont_ignore = '{"severity":"OK", "description":"*!This message will not be ignored."}'
+key ="/test"
+coolaid =     '{"severity":"MAJOR", "standout":false, "message":"MAJOR Alarm: We are out of purple cool aid."}'
+barbeque =    '{"severity":"MINOR", "standout":false, "message":"MINOR Alarm: We are out of barbecue sauce."}'
+tater_salad = '{"severity":"MAJOR", "standout":false, "message":"MAJOR Alarm: We are out of potato salad."}'
+dont_ignore = '{"severity":"OK",    "standout":true,  "message":"This message will not be ignored."}'
 
 print("This demo expects there to be a kafka topic 'AcceleratorTalk' and for the annunciator threshold to be set at 4.")
 
@@ -50,7 +50,7 @@ p.flush()
 sleep(11)
 
 # Demo the ability of the annunciator to receive a string of messages greater than the queue threshold.
-# The annunciator will then annunciate a message stating "There are N new messages". N in this case should be 7.
+# The annunciator will then annunciate a message stating "There are N new messages". N in this case should be 8.
 p.poll(0)
 p.produce(topic, coolaid.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()
