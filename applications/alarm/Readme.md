@@ -156,7 +156,6 @@ The config topic JSON format for a alarm tree node:
         "actions":  [{"title": String, "details": String}]
     }
 
-
 An example message that could appear in a config topic:
 
     /path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
@@ -181,7 +180,7 @@ The config delete message JSON format:
         "time":           String
     }
     
-The above example of deleting a pv would then look like this:
+The above example of deleting a PV would then look like this:
 
     /path/to/pv : {"user":"user name", "host":"host name", "delete message": "Deleting node.", "time": "2018-01-01 00:00:00.000"}
     /path/to/pv : null

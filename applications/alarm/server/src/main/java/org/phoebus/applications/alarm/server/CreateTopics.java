@@ -34,11 +34,13 @@ public class CreateTopics
     private static final short REPLICATION_FACTOR = 1;
     private static final int PARTITIONS = 1;
     private static final String cleanup_policy = "cleanup.policy",
-                                policy         = "compact, delete",
-                                segment_time   = "segment.ms",
-                                time           = "10000",
-                                dirty2clean    = "min.cleanable.dirty.ratio",
-                                ratio          = "0.01";
+                                policy = "compact, delete",
+                                segment_time = "segment.ms",
+                                time = "10000",
+                                dirty2clean = "min.cleanable.dirty.ratio",
+                                ratio = "0.01",
+                                min_compaction_lag = "min.compaction.log",
+                                lag = "1000";
 
     /** Discover the currently active Kafka topics, and creates any that are missing.
      *
@@ -146,6 +148,7 @@ public class CreateTopics
         final NewTopic new_topic = new NewTopic(topic_name, PARTITIONS, REPLICATION_FACTOR);
         final Map<String, String> configs = new HashMap<>();
         configs.put(cleanup_policy, policy);
+        configs.put(min_compaction_lag, lag);
         configs.put(segment_time, time);
         configs.put(dirty2clean, ratio);
         return new_topic.configs(configs);
