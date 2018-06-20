@@ -126,9 +126,9 @@ public class TalkClient
             
             // Extract the message info from the JSON and notify the listeners.
             
-            final String severity = jn.get("severity").textValue();
+            final String   severity = jn.get(JsonTags.SEVERITY).textValue();
             final boolean standout = jn.get(JsonTags.STANDOUT).asBoolean();
-            final String message = jn.get(JsonTags.TALK).textValue();
+            final String   message  = jn.get(JsonTags.TALK).textValue();
             
             try
             {
