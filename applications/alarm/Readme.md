@@ -217,7 +217,7 @@ The talk topic JSON format:
     {
         "severity": String,
         "standout": boolean,
-        "message":  String
+        "talk":     String
     }
 
 An example message that could appear in a command topic:
