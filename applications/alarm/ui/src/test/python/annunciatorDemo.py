@@ -16,10 +16,10 @@ def delivery_report(err, msg):
 
 
 key ="/test"
-coolaid =     '{"severity":"MAJOR", "standout":false, "message":"MAJOR Alarm: We are out of purple cool aid."}'
-barbeque =    '{"severity":"MINOR", "standout":false, "message":"MINOR Alarm: We are out of barbecue sauce."}'
-tater_salad = '{"severity":"MAJOR", "standout":false, "message":"MAJOR Alarm: We are out of potato salad."}'
-dont_ignore = '{"severity":"OK",    "standout":true,  "message":"This message will not be ignored."}'
+coolaid =     '{"severity":"MAJOR", "standout":false, "talk":"MAJOR Alarm: We are out of purple cool aid."}'
+barbeque =    '{"severity":"MINOR", "standout":false, "talk":"MINOR Alarm: We are out of barbecue sauce."}'
+tater_salad = '{"severity":"MAJOR", "standout":false, "talk":"MAJOR Alarm: We are out of potato salad."}'
+dont_ignore = '{"severity":"OK",    "standout":true,  "talk":"This message will not be ignored."}'
 
 print("This demo expects there to be a kafka topic 'AcceleratorTalk' and for the annunciator threshold to be set at 4.")
 

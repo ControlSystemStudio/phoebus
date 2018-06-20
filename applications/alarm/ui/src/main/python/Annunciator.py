@@ -116,7 +116,7 @@ def parseMessage(message):
     severity = parsed_json['severity']
     priority = getMessagePriority(severity)
     standout = parsed_json['standout']
-    message  = parsed_json['message']
+    message  = parsed_json['talk']
 
     return ((priority, standout, message))
 
