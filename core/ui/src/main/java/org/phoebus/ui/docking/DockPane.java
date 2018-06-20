@@ -484,6 +484,6 @@ public class DockPane extends TabPane
     public String toString()
     {
         return (isFixed() ? "FIXED DockPane " : "DockPane ") +
-               Integer.toHexString(System.identityHashCode(this)) + " " + getTabs();
+               Integer.toHexString(System.identityHashCode(this)) + " '" + name + "' "+ getTabs();
     }
 }
