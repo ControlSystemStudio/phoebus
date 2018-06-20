@@ -18,7 +18,6 @@ import java.util.logging.Logger;
  *  reads from {@link System#in}
  *  and passes received commands to a handler.
  *
- *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
