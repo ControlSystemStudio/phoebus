@@ -161,6 +161,30 @@ An example message that could appear in a config topic:
 
     /path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
 
+- Deletions in the Config Topic
+
+Deleting a message simply consists of marking the value of the key value pair as null. This "tombstone" notifies Kafka that when compaction occurs this message can be deleted.
+
+For example:
+
+    /path/to/pv : null
+    
+This process variable is now marked as deleted. However, there is an issue. We do not know when, why, or by whom it was deleted. To address this, a message including the missing relevant information is sent before the tombstone is set.
+This message consists of a user name, host name, delete message, and a time stamp.
+
+The config delete message JSON format:
+
+    {
+        "user":           String,
+        "host":           String,
+        "delete message": String,
+        "time":           String
+    }
+    
+The above example of deleting a pv would then look like this:
+
+    /path/to/pv : {"user":"user name", "host":"host name", "delete message": "Deleting node.", "time": "2018-01-01 00:00:00.000"}
+    /path/to/pv : null
 ______________
 - State Topic:
 
