@@ -401,6 +401,7 @@ public class ActionsDialog extends Dialog<ActionInfos>
             if (modes[i] == Target.TAB)
                 open_display_pane.disableProperty().bind(target.selectedProperty().not());
         }
+        open_display_pane.textProperty().addListener(update);
         open_display_details.add(modes_box, 0, 2, 2, 1);
 
         open_display_details.add(new Label("Pane:"), 0, 3);
