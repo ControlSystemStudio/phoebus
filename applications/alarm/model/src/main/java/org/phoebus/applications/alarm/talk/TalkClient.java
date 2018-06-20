@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.talk;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -19,6 +20,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
@@ -26,13 +28,19 @@ import org.phoebus.applications.alarm.model.json.JsonTags;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+/**
+ * Alarm Client Model for a *Talk topic.
+ * <p>Given an alarm configuration name like "Accelerator", subscribes to the "AcceleratorTalk" topic for 
+ * alarm messages that can be displayed or annunciated. 
+ * <p> Largely based off of Kay Kasemir's {@link AlarmClient}
+ * @author Evan Smith
+ */
 @SuppressWarnings("nls")
 public class TalkClient
 {
     private final CopyOnWriteArrayList<TalkClientListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
-    //private final Producer<String, String> producer;
     private final Thread thread;
 
     /** @param server Kafka Server host:port
@@ -44,8 +52,7 @@ public class TalkClient
         Objects.requireNonNull(config_name);
 
         final List<String> topics = List.of(config_name + AlarmSystem.TALK_TOPIC_SUFFIX);
-        consumer = KafkaHelper.connectConsumer(server, topics, topics);
-        //producer = KafkaHelper.connectProducer(server);
+        consumer = KafkaHelper.connectConsumer(server, topics, Collections.emptyList());
 
         thread = new Thread(this::run, "AlarmClientModel");
         thread.setDaemon(true);
@@ -78,7 +85,7 @@ public class TalkClient
         return thread.isAlive();
     }
 
-    /** Background thread loop that checks for alarm tree updates */
+    /** Background thread loop that checks for alarm messages */
     private void run()
     {
         try
@@ -116,6 +123,8 @@ public class TalkClient
                 logger.log(Level.WARNING, "Parsing of talk message for " + path + " failed.", ex);
                 continue;
             }
+            
+            // Extract the message info from the JSON and notify the listeners.
             
             final String severity = jn.get("severity").textValue();
             final boolean standout = jn.get(JsonTags.STANDOUT).asBoolean();
