@@ -43,8 +43,8 @@ public class TalkClient
     private final Consumer<String, String> consumer;
     private final Thread thread;
 
-    /** @param server Kafka Server host:port
-     *  @param config_name Name of kafka config topic that the talk topic accompanies.
+    /** @param server - Kafka Server host:port
+     *  @param config_name - Name of kafka config topic that the talk topic accompanies.
      */
     public TalkClient(final String server, final String config_name)
     {
@@ -58,13 +58,13 @@ public class TalkClient
         thread.setDaemon(true);
     }
 
-    /** @param listener Listener to add */
+    /** @param listener - Listener to add */
     public void addListener(final TalkClientListener listener)
     {
         listeners.add(listener);
     }
 
-    /** @param listener Listener to remove */
+    /** @param listener - Listener to remove */
     public void removeListener(final TalkClientListener listener)
     {
         if (! listeners.remove(listener))
