@@ -135,7 +135,7 @@ annunciator.start()
 print("Started the annunciator.")
 print("Beginning to poll for messages.")
 while True:
-    msg = c.poll(sys.float_info.max)
+    msg = c.poll()
     
     if msg is None:
         continue
@@ -145,7 +145,6 @@ while True:
             continue
         else:
             print(msg.error())
-            break
     
     enqueueMessage(msg)
     
