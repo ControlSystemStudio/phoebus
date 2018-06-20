@@ -3,6 +3,7 @@ package org.csstudio.display.builder.runtime.app;
 import java.net.URI;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
@@ -87,7 +88,11 @@ public class DockItemRepresentation extends JFXRepresentation
             final DockPane named = DockStage.getDockPaneByName(name);
             if (named != null)
                 pane = named;
-            // TODO Else: Create a DockPane with that name
+            else if (pane != null)
+                // Create a new DockPane with that name
+                pane = pane.split(name);
+            else
+                logger.log(Level.WARNING, "Cannot locate pane to create new '" + name + "'");
         }
 
         // System.out.println("Open panel in " + app_instance.dock_item.getDockPane());

@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -300,6 +301,33 @@ public class DockPane extends TabPane
         return null;
     }
 
+    /** Somewhat hacky:
+     *  Need the scene of this dock pane to adjust the style sheet
+     *  or to interact with the Window.
+     *
+     *  We _have_ added this DockPane to a scene graph, so getScene() should
+     *  return the scene.
+     *  But if this dock pane is nested inside a newly created {@link SplitDock},
+     *  it will not have a scene until it is rendered.
+     *  So keep deferring to the next UI pulse until there is a scene.
+     *  @param user_of_scene Something that needs to run once there is a scene
+     */
+    public void deferUntilInScene(final Consumer<Scene> user_of_scene)
+    {
+        deferUntilInScene(0, user_of_scene);
+    }
+
+    // See deferUntilInScene, giving up after 10 attempts
+    private void deferUntilInScene(final int level, final Consumer<Scene> user_of_scene)
+    {
+        if (getScene() != null)
+            user_of_scene.accept(getScene());
+        else if (level < 10)
+            Platform.runLater(() -> deferUntilInScene(level+1, user_of_scene));
+        else
+            logger.log(Level.WARNING, this + " has no scene for deferred call to " + user_of_scene);
+    }
+
     /** Hide or show tabs
      *
      *  <p>When there's more than one tab, or always_show_tabs,
@@ -307,7 +335,7 @@ public class DockPane extends TabPane
      *  If there's just one tab, and ! always_show_tabs, hide that one tab
      *  to get a more compact UI.
      */
-    void autoHideTabs()
+    private void autoHideTabs()
     {
         // Anything to update?
         // This also handles the case where called on disposed DockPane:
@@ -315,16 +343,11 @@ public class DockPane extends TabPane
         if (getTabs().isEmpty())
             return;
 
-        // TODO Is this still happening?
-        if (getScene() == null)
-        {
-            logger.log(Level.SEVERE, "No Scene for " + this, new Exception());
-            logger.log(Level.SEVERE, "Stages:");
-            for (Stage stage : DockStage.getDockStages())
-                logger.log(Level.SEVERE, DockStage.getDockPanes(stage).toString());
-            return;
-        }
+        deferUntilInScene(this::doAutoHideTabs);
+    }
 
+    private void doAutoHideTabs(final Scene scene)
+    {
         final boolean do_hide = getTabs().size() == 1  &&  !always_show_tabs;
 
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX :
@@ -337,9 +360,9 @@ public class DockPane extends TabPane
 
         // If header for single tab is not shown,
         // put its label into the window tile
-        if (! (getScene().getWindow() instanceof Stage))
-            throw new IllegalStateException("Expect Stage, got " + getScene().getWindow());
-        final Stage stage = ((Stage) getScene().getWindow());
+        if (! (scene.getWindow() instanceof Stage))
+            throw new IllegalStateException("Expect Stage, got " + scene.getWindow());
+        final Stage stage = ((Stage) scene.getWindow());
         if (do_hide)
         {   // Bind to get actual header, which for DockItemWithInput may contain 'dirty' marker,
             // and keep updating as it changes
@@ -470,6 +493,18 @@ public class DockPane extends TabPane
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
         return split;
+    }
+
+    /** Split this dock pane horizontally, creating a new named pane to the right
+     *  @param name Name of the new pane
+     *  @return That new, named DockPane on the right
+     */
+    public DockPane split(final String name)
+    {
+        final SplitDock split = split(true);
+        final DockPane new_pane = (DockPane) split.getItems().get(1);
+        new_pane.setName(name);
+        return new_pane;
     }
 
     /** If this pane is within a SplitDock and empty, merge */

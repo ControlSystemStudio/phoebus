@@ -74,7 +74,7 @@ public class DisplayRuntimeInstance implements AppInstance
         this.app = app;
 
         final DockPane dock_pane = DockPane.getActiveDockPane();
-        JFXRepresentation.setSceneStyle(dock_pane.getScene());
+        dock_pane.deferUntilInScene(JFXRepresentation::setSceneStyle);
 
         representation = new DockItemRepresentation(this);
         RuntimeUtil.hookRepresentationListener(representation);
