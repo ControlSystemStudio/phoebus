@@ -283,7 +283,7 @@ public class DockPane extends TabPane
     private void handleTabChanges()
     {
         if (getTabs().isEmpty())
-            mergeEmptySplit();
+            mergeEmptyAnonymousSplit();
         else
             // Update tabs on next UI tick so that findTabHeader() can succeed
             // in case this is in a newly created SplitDock
@@ -507,10 +507,12 @@ public class DockPane extends TabPane
         return new_pane;
     }
 
-    /** If this pane is within a SplitDock and empty, merge */
-    void mergeEmptySplit()
+    /** If this pane is within a SplitDock, not named, and empty, merge! */
+    void mergeEmptyAnonymousSplit()
     {
         if (! (dock_parent instanceof SplitDock))
+            return;
+        if (name.length() > 0)
             return;
         ((SplitDock) dock_parent).merge();
     }
