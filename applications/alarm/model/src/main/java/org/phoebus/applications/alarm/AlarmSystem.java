@@ -33,6 +33,9 @@ public class AlarmSystem
     /** Suffix for the topic that server uses to send annunciations */
     public static final String TALK_TOPIC_SUFFIX = "Talk";
 
+    /** Suffic for the topic that serves as long term storage. */
+    public static final String LONG_TERM_TOPIC_SUFFIX = "LongTerm";
+
     /** Kafka Server host:port */
     public static final String server;
 
@@ -71,7 +74,7 @@ public class AlarmSystem
     
     /** Annunciator message retention count */
     public static final int annunciator_retention_count;
-    
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");

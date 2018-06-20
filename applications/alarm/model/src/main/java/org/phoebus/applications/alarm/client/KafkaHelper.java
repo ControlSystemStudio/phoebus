@@ -10,7 +10,9 @@ package org.phoebus.applications.alarm.client;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -21,9 +23,13 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
 
 /** Alarm client model
  *
@@ -114,4 +120,28 @@ public class KafkaHelper
 
         return producer;
     }
+    
+    /**
+     * Aggregate multiple topics into a single topic using KafkaStreams.
+     * @param kafka_servers
+     * @param topics
+     * @param aggregate_topic
+     * @return
+     */
+    public static KafkaStreams aggregateTopics(String kafka_servers, List<String> topics, String aggregate_topic)
+    {
+        Map<String, Object> props = new HashMap<>();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "Stream-To-Long-Term");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafka_servers);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        StreamsConfig config = new StreamsConfig(props);
+
+        StreamsBuilder builder = new StreamsBuilder();
+        
+        builder.<String, String>stream(topics).mapValues(value -> value).to(aggregate_topic);
+        
+        return new KafkaStreams(builder.build(), config);
+    }
+
 }
