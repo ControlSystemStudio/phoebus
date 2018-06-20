@@ -12,6 +12,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -80,9 +81,9 @@ class ServerModel
         //    System.out.println("Initial state for " + state.getKey() + " : " + state.getValue()));
 
         config_topic = Objects.requireNonNull(config_name);
-        command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
-        state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
-        talk_topic = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
+        command_topic  = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
+        state_topic    = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
+        talk_topic     = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
         longterm_topic = config_name + AlarmSystem.LONG_TERM_TOPIC_SUFFIX;
         this.listener = Objects.requireNonNull(listener);
 
@@ -395,6 +396,8 @@ class ServerModel
     {
         running.set(false);
         consumer.wakeup();
+        // close the stream aggregate and wait 1 second at most for threads to join.
+        streamToLongTerm.close(1000, TimeUnit.MILLISECONDS);
         try
         {
             thread.join(2000);
