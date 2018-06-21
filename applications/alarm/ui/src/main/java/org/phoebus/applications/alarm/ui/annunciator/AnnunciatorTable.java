@@ -18,6 +18,7 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.talk.TalkClientListener;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
@@ -32,6 +33,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -50,7 +52,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 {
     private final Button       clearTableButton = new Button("Clear Messages"); 
     private final Alert        clearTableAlert  = new Alert(AlertType.CONFIRMATION);
-    private final ToggleButton muteButton       = new ToggleButton("Mute Annunciator");
+    private final ToggleButton muteButton       = new ToggleButton();
     
     private final TableView<AnnunciationRowInfo> table = new TableView<>();
     
@@ -211,10 +213,12 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Top button row
         HBox hbox = new HBox();
         
+        Image muteIcon = ImageCache.getImage(AlarmUI.class, "/icons/mute.png");
         muteButton.setTooltip(new Tooltip("Mute the annunciator."));
+        muteButton.setGraphic(new ImageView(muteIcon));
         muteButton.setOnAction((event) -> {
             annunciatorController.setMuted(muteButton.isSelected());
-            // Refresh the cell items so that they recalculate their background color.
+            // Refresh the table cell items so that they recalculate their background color.
             table.refresh();
         });
         
