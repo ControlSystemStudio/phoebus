@@ -15,11 +15,3 @@ do
     kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --alter --entity-name $topic \
            --add-config cleanup.policy=[compact,delete],segment.ms=10000,min.cleanable.dirty.ratio=0.01,min.compaction.lag.ms=1000
 done
-
-# Create the non compacted long term topic.
-for topic in "${1}LongTerm"
-do
-    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic $topic
-    kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --alter --entity-name $topic \
-           --add-config segment.ms=10000,min.cleanable.dirty.ratio=0.01
-done
