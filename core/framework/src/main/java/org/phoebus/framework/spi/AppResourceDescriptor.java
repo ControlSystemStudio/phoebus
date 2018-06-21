@@ -21,7 +21,7 @@ public interface AppResourceDescriptor extends AppDescriptor {
 
     /**
      *
-     * @return A list of supported file extensions
+     * @return A list of supported file extensions (without 'dot')
      */
     public default List<String> supportedFileExtentions(){
         return Collections.emptyList();
