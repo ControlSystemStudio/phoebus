@@ -33,6 +33,9 @@ public class AlarmSystem
     /** Suffix for the topic that server uses to send annunciations */
     public static final String TALK_TOPIC_SUFFIX = "Talk";
 
+    /** Suffix for the topic that contains non compacted aggregate of other topics. */
+    public static final String LONG_TERM_TOPIC_SUFFIX = "LongTerm";
+    
     /** Kafka Server host:port */
     public static final String server;
 
