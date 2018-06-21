@@ -13,17 +13,18 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.kafka.streams.KafkaStreams;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.server.CreateTopics;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 public class AggregateTopics
 {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private Logger logger = Logger.getLogger(this.getClass().getPackageName());
     private String kafka_servers = "localhost:9092";
     private String config = "Accelerator";
     private final String longTerm;
@@ -41,6 +42,9 @@ public class AggregateTopics
             logger.info("Discovering and creating topics in " + topics.toString());
             CreateTopics.discoverAndCreateTopics(kafka_servers, false, List.of(longTerm));
         }
+        
+        logger.info("server:\"" + kafka_servers + "\", config: \"" + config + "\"");
+        logger.info("topics: " + topics.toString());
         
         aggregateStream = createStream();
         logger.info("Starting stream aggregation.");
@@ -63,7 +67,7 @@ public class AggregateTopics
             
         } catch (IOException ex)
         {
-            logger.error("Reading input from stdin failed.", ex);
+            logger.log(Level.WARNING, "Reading input from stdin failed.", ex);
         }
         
         // Exit the program. The shutdown hook will clean up the stream.
@@ -130,7 +134,7 @@ public class AggregateTopics
         }
         catch (Exception ex)
         {
-            logger.error("Argument Error", ex);
+            logger.log(Level.WARNING, "Argument Error", ex);
             help();
         }
     }
@@ -152,7 +156,7 @@ public class AggregateTopics
         
         // Log any uncaught exceptions.
         stream.setUncaughtExceptionHandler((Thread thread, Throwable throwable) -> {
-            logger.error("Kafka Streams Error.", throwable);
+            logger.log(Level.WARNING, "Kafka Streams Error.", throwable);
           });
          
         // Catch control-c and shutdown stream beforehand.
