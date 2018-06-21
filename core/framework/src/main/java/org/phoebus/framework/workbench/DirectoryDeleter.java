@@ -35,6 +35,7 @@ public class DirectoryDeleter
             public FileVisitResult visitFile(final Path file,
                                              final BasicFileAttributes attr) throws IOException
             {
+                // Delete a plain file
                 Files.delete(file);
                 return FileVisitResult.CONTINUE;
             }
@@ -43,6 +44,9 @@ public class DirectoryDeleter
             public FileVisitResult postVisitDirectory(final Path dir,
                                                       final IOException ex) throws IOException
             {
+                // Delete the directory _after_ the files in the directory have been deleted.
+                // XXX For NFS-mounted directory tree, this may fail with DirectoryNotEmptyException
+                // https://stackoverflow.com/questions/46144529/java-nio-treevisitor-delete-problems-with-nfs
                 Files.delete(dir);
                 return FileVisitResult.CONTINUE;
             }
