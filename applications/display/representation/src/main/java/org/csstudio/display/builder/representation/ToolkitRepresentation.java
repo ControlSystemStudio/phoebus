@@ -175,6 +175,8 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     *  with the current model, and then <code>representModel</code> with the new model.
     *
     *  @param model {@link DisplayModel} that provides name and initial size
+    *  @param name Optional name of the region where the new panel should be created.
+    *              May be empty, may also be ignored.
     *  @param close_handler Will be invoked when user closes the window
     *                       with the then active model, i.e. the model
     *                       provided in last call to <code>representModel</code>.
@@ -182,7 +184,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     *  @return The new ToolkitRepresentation of the new window
     *  @throws Exception on error
     */
-    public ToolkitRepresentation<TWP, TW> openPanel(DisplayModel model, Consumer<DisplayModel> close_handler) throws Exception
+    public ToolkitRepresentation<TWP, TW> openPanel(final DisplayModel model, final String name, final Consumer<DisplayModel> close_handler) throws Exception
     {   // Default: Same as openNewWindow
         return openNewWindow(model, close_handler);
     }

@@ -3,6 +3,7 @@ package org.csstudio.display.builder.runtime.app;
 import java.net.URI;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
@@ -76,11 +77,26 @@ public class DockItemRepresentation extends JFXRepresentation
 
     @Override
     public ToolkitRepresentation<Parent, Node> openPanel(final DisplayModel model,
+            final String name,
             final Consumer<DisplayModel> close_handler) throws Exception
     {
-        // Set active dock pane to the one used by this display
+        // By default, open in the pane used by this display
+        DockPane pane = app_instance.getDockItem().getDockPane();
+        if (name.length() > 0)
+        {
+            // Should the new panel open in a specific, named pane?
+            final DockPane named = DockStage.getDockPaneByName(name);
+            if (named != null)
+                pane = named;
+            else if (pane != null)
+                // Create a new DockPane with that name
+                pane = pane.split(name);
+            else
+                logger.log(Level.WARNING, "Cannot locate pane to create new '" + name + "'");
+        }
+
         // System.out.println("Open panel in " + app_instance.dock_item.getDockPane());
-        DockPane.setActiveDockPane(app_instance.getDockItem().getDockPane());
+        DockPane.setActiveDockPane(pane);
         return representModelInNewDockItem(model);
     }
 

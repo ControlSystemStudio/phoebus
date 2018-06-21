@@ -84,9 +84,9 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
         // 0 - REPLACE
         case 0: return OpenDisplayActionInfo.Target.REPLACE;
         // 7 - NEW_WINDOW
-        case 7: return OpenDisplayActionInfo.Target.WINDOW;
         // 8 - NEW_SHELL
-        case 8: return OpenDisplayActionInfo.Target.STANDALONE;
+        case 7:
+        case 8: return OpenDisplayActionInfo.Target.WINDOW;
         // 1 - NEW_TAB
         // 2 - NEW_TAB_LEFT
         // 3 - NEW_TAB_RIGHT
@@ -122,6 +122,12 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 writer.writeStartElement(XMLTags.TARGET);
                 writer.writeCharacters(action.getTarget().name().toLowerCase());
                 writer.writeEndElement();
+                if (action.getPane().length() > 0)
+                {
+                    writer.writeStartElement(XMLTags.NAME);
+                    writer.writeCharacters(action.getPane());
+                    writer.writeEndElement();
+                }
             }
             else if (info instanceof WritePVActionInfo)
             {
@@ -244,7 +250,9 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 else
                     macros = new Macros();
 
-                actions.add(new OpenDisplayActionInfo(description, file, macros, target));
+                final String pane = XMLUtil.getChildString(action_xml, XMLTags.NAME).orElse("");
+
+                actions.add(new OpenDisplayActionInfo(description, file, macros, target, pane));
             }
             else if (WRITE_PV.equalsIgnoreCase(type)) // legacy used uppercase type name
             {

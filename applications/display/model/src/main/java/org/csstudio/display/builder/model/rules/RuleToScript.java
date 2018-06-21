@@ -33,7 +33,7 @@ public class RuleToScript
     private static Map<String,String> pvNameOptions(int pvCount)
     {   // LinkedHashMap to preserve order of PVs
         // so it looks good in generated script
-        final Map<String,String> pvm = new LinkedHashMap<String,String>();
+        final Map<String,String> pvm = new LinkedHashMap<>();
         for (int idx = 0; idx < pvCount; idx++)
         {
             final String istr = Integer.toString(idx);
@@ -70,6 +70,10 @@ public class RuleToScript
             else
                 return "colorCurrent";
         case NUMERIC:
+            // Set enum to its ordinal
+            if (prop.getValue() instanceof Enum<?>)
+                return Integer.toString(((Enum<?>)prop.getValue()).ordinal());
+            // else: Format number as string
         default:
             return String.valueOf(prop.getValue());
         }
@@ -156,6 +160,8 @@ public class RuleToScript
             pform = PropFormat.NUMERIC;
         else if (prop.getDefaultValue() instanceof Boolean)
             pform = PropFormat.BOOLEAN;
+        else if (prop.getDefaultValue() instanceof Enum<?>)
+             pform = PropFormat.NUMERIC;
         else if (prop.getDefaultValue() instanceof WidgetColor)
             pform = PropFormat.COLOR;
         else
@@ -182,7 +188,7 @@ public class RuleToScript
         script.append("\n");
 
         // Check which pv* variables are actually used
-        final Map<String,String> output_pvm = new HashMap<String,String>();
+        final Map<String,String> output_pvm = new HashMap<>();
         for (ExpressionInfo<?> expr : rule.getExpressions())
         {
             // Check the boolean expressions.

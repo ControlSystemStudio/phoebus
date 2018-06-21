@@ -33,6 +33,7 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.VType;
 
@@ -202,6 +203,11 @@ public class ArchiveFetchJob implements JobRunnable
     public void run(JobMonitor monitor) throws Exception
     {
         if (item == null)
+            return;
+
+        // When creating a configuration with macros,
+        // data can only be fetched once the macros resolve
+        if (MacroHandler.containsMacros(item.getResolvedName()))
             return;
 
         monitor.beginTask(Messages.ArchiveFetchStart);

@@ -7,14 +7,18 @@
  ******************************************************************************/
 package org.csstudio.display.builder.model.widgets.plots;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propToolbar;
 
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Version;
@@ -121,6 +125,33 @@ public class DataBrowserWidget extends VisibleWidget
     public WidgetConfigurator getConfigurator(final Version persisted_version) throws Exception
     {
         return new CustomConfigurator(persisted_version);
+    }
+
+    /** @return Model of the data browser (samples, ...) */
+    public Object getDataBrowserModel()
+    {
+        // The Eclipse-based DataBrowserWidget had this method,
+        // and it makes sense for the model of the widget to
+        // hold the mode detailed model of the data browser.
+        // The data browser implementation, however, combines its model,
+        // plot (representation) and controller (runtime) in one package.
+        // To avoid a dependency from the display builder model to a specific representation,
+        // the DataBrowserRepresentation holds the data browser model + plot + controller.
+        // In here, use introspection to fetch the model from the DataBrowserRepresentation.
+        // This is meant to be called from scripts, so OK to return Object
+        // instead of the data browser Model type which is now known by this code.
+        try
+        {
+            final Object repr = Objects.requireNonNull(getUserData(USER_DATA_REPRESENTATION),
+                                                       "Data browser model is only available when rendered");
+            final Method get_model = repr.getClass().getMethod("getDataBrowserModel");
+            return get_model.invoke(repr);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot obtain data browser model", ex);
+        }
+        return null;
     }
 
     /** Databrowser widget extends parent macros

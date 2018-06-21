@@ -18,11 +18,17 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.csstudio.scan.data.ScanData;
+import org.csstudio.scan.data.ScanDataIterator;
+import org.csstudio.scan.data.ScanSample;
+import org.csstudio.scan.device.DeviceInfo;
+import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.csstudio.scan.server.httpd.ScanWebServer;
 import org.csstudio.scan.server.internal.ScanServerImpl;
 import org.csstudio.scan.server.log.DataLogFactory;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.util.shell.CommandShell;
 
 /** Main Instance of the Scan Server application
  *  @author Kay Kasemir
@@ -80,6 +86,81 @@ public class ScanServerInstance
         System.out.println("-config scan_config.xml  - Scan config (REST port, jython paths, simulation settings");
         System.out.println("-settings settings.xml   - Import preferences (PV connectivity) from property format file");
         System.out.println();
+    }
+
+    private static final String COMMANDS =
+        "Scan Server Commands:\n" +
+        "help            -  Show commands\n" +
+        "scans           -  Show commands\n" +
+        "info ID         -  Show info about scan with given ID\n" +
+        "devices ID      -  Show devices used by scan\n" +
+        "data ID         -  Dump log data for scan\n" +
+        "abort ID        -  Abort given scan\n" +
+        "abort           -  Abort all scans\n" +
+        "remove ID       -  Remove (completed) scan with given ID\n" +
+        "removeCompleted -  Remove completed scans\n" +
+        "shutdown        -  Stop the scan server";
+
+
+    private static boolean handleShellCommands(final String... args) throws Throwable
+    {
+        if (args.length == 1)
+        {
+            if (args[0].startsWith("shut"))
+                stop();
+            else if (args[0].equals("scans"))
+            {
+                System.out.println("Scans:");
+                for (ScanInfo scan : getScanServer().getScanInfos())
+                    System.out.println(scan);
+            }
+            else if (args[0].equals("abort"))
+                getScanServer().abort(-1);
+            else if (args[0].equals("removeCompleted"))
+                getScanServer().removeCompletedScans();
+            else
+                return false;
+        }
+        else if (args.length == 2)
+        {
+            final int id = Integer.parseInt(args[1]);
+            if (args[0].startsWith("dev"))
+            {
+                System.out.println("Devices of scan " + id + ":");
+                for (DeviceInfo dev : getScanServer().getDeviceInfos(id))
+                    System.out.println(dev);
+            }
+            else if (args[0].equals("info"))
+                System.out.println(getScanServer().getScanInfo(id));
+            else if (args[0].equals("data"))
+            {
+                // Dump data
+                final ScanData data = getScanServer().getScanData(id);
+                final ScanDataIterator sheet = new ScanDataIterator(data);
+
+                // Header: Device names
+                for (String device : sheet.getDevices())
+                    System.out.print(device + "  ");
+                System.out.println();
+                // Rows
+                while (sheet.hasNext())
+                {
+                    final ScanSample[] line = sheet.getSamples();
+                    for (ScanSample sample : line)
+                        System.out.print(sample + "  ");
+                    System.out.println();
+                }
+            }
+            else if (args[0].equals("abort"))
+                getScanServer().abort(id);
+            else if (args[0].equals("remove"))
+                getScanServer().remove(id);
+            else
+                return false;
+        }
+        else
+            return false;
+        return true;
     }
 
     public static void main(final String[] original_args) throws Exception
@@ -145,8 +226,14 @@ public class ScanServerInstance
         {
             httpd.start();
 
+            final CommandShell shell = new CommandShell(COMMANDS,
+                                                        ScanServerInstance::handleShellCommands);
+            shell.start();
+
             // Main thread could do other things while web server is running...
             done.await();
+
+            shell.stop();
         }
         catch (Exception ex)
         {

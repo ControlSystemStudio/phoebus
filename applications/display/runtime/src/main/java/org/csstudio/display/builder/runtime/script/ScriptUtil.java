@@ -103,6 +103,19 @@ public class ScriptUtil
      */
     public static void openDisplay(final Widget widget, final String file, final String target, final Map<String, String> macros)
     {
+        openDisplay(widget, file, target, macros, "");
+    }
+
+    /** Open a new display
+    *
+    *  @param widget Widget in 'current' display, used to resolve relative paths
+    *  @param file Path to the display
+    *  @param target Where to show the display: "REPLACE", "TAB", "WINDOW"
+    *  @param macros Macros, may be <code>null</code>
+    *  @param pane Named pane for a new "TAB"
+    */
+    public static void openDisplay(final Widget widget, final String file, final String target, final Map<String, String> macros, final String pane)
+    {
         OpenDisplayActionInfo.Target the_target;
         try
         {
@@ -123,7 +136,7 @@ public class ScriptUtil
                 the_macros.add(name, macros.get(name));
         }
 
-        final OpenDisplayActionInfo open = new OpenDisplayActionInfo("Open from script", file, the_macros, the_target);
+        final OpenDisplayActionInfo open = new OpenDisplayActionInfo("Open from script", file, the_macros, the_target, pane);
         ActionUtil.handleAction(widget, open);
     }
 

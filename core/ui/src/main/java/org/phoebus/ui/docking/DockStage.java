@@ -119,6 +119,13 @@ public class DockStage
         return (String) stage.getProperties().get(KEY_ID);
     }
 
+    // Implementation detail:
+    // The code in here tends to iterate over all windows, panes etc.
+    // This should be OK since we expect few windows (1..5),
+    // each with few panes (1..10).
+    // If there are more, maps would need to be used,
+    // with the added complexity of keeping them in sync with reality.
+
     /** @param id Unique ID of a stage
      *  @return That Stage or <code>null</code> if not found
      */
@@ -142,6 +149,18 @@ public class DockStage
                 dock_windows.add((Stage) window);
 
         return dock_windows;
+    }
+
+    /** @param name Name of a DockPane
+     *  @return That DockPane or <code>null</code> if not found
+     */
+    public static DockPane getDockPaneByName(final String name)
+    {
+        for (Stage stage : getDockStages())
+            for (DockPane pane : getDockPanes(stage))
+                if (pane.getName().equals(name))
+                    return pane;
+        return null;
     }
 
     /** Gracefully close all DockItems when stage closes

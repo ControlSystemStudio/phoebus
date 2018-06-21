@@ -40,16 +40,13 @@ public class WidgetFontPopOver extends PopOver
     */
     public WidgetFontPopOver ( final FontWidgetProperty font_prop, final Consumer<WidgetFont> fontChangeConsumer )
     {
-
         try
         {
             final URL fxml = WidgetFontPopOver.class.getResource("WidgetFontPopOver.fxml");
-            System.out.println(fxml);
             final InputStream iStream = WidgetFontPopOver.class.getResourceAsStream("messages.properties");
             final ResourceBundle bundle = new PropertyResourceBundle(iStream);
             final FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
             final Node content = (Node) fxmlLoader.load();
-
 
             setContent(content);
 

@@ -29,10 +29,12 @@
    -->
   <post_scan>examples:post_scan.scn</post_scan>
   
-  <!-- Prefix to scan server status PVs
+  <!-- Prefix of scan server status PVs
        When empty, no status PVs will be updated
-    -->
+       
   <status_pv_prefix>Demo:Scan:</status_pv_prefix>
+    -->
+  <status_pv_prefix></status_pv_prefix>
 
   <!-- Value check timeout [seconds]
        Set and Loop commands have a timeout that is used

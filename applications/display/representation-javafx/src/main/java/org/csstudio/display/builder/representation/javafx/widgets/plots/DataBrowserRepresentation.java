@@ -205,6 +205,12 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
         toolkit.scheduleUpdate(this);
     }
 
+    /** @return {@link Model} of the data browser (samples, ...) */
+    public Model getDataBrowserModel()
+    {
+        return model;
+    }
+
     private void optsChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         dirty_opts.mark();
