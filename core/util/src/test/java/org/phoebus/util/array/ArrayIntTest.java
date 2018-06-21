@@ -4,17 +4,15 @@
  */
 package org.phoebus.util.array;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 import org.junit.Test;
+import static org.junit.Assert.*;
+import org.phoebus.util.array.ArrayInt;
+import org.phoebus.util.array.CollectionNumbers;
+import static org.hamcrest.Matchers.*;
 
 /**
  *
