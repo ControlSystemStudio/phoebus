@@ -38,7 +38,7 @@ public class CreateTopics
                                 time = "10000",
                                 dirty2clean = "min.cleanable.dirty.ratio",
                                 ratio = "0.01",
-                                min_compaction_lag = "min.compaction.log",
+                                min_compaction_lag = "min.compaction.lag.ms",
                                 lag = "1000";
 
     /** Discover the currently active Kafka topics, and creates any that are missing.
