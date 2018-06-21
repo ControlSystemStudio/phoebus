@@ -77,12 +77,29 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      */
     private class AnnunciatorCell<K, V> extends TableCell<K, V>
     {
-        private final String ORANGE = "#ff8700";
-        private final String WHITE  = "#ffffff";
+        private final String ORANGE     = "#ff8700"; // RGB (255, 135,   0)
+        private final String OFF_ORANGE = "#dc6400"; // RGB (220, 100,   0)
+        private final String WHITE      = "#ffffff"; // RGB (255, 255, 255)
+        private final String OFF_WHITE  = "#f0f0f0"; // RGB (240, 240, 240)
+        
+        /**
+         * Set the color of the cell if muted is <code>true</code>.
+         * @param muted - boolean
+         */
         protected void setMutedColor(final boolean muted)
         {
-            String color = (muted) ? ORANGE : WHITE;
-            setBackground(new Background(new BackgroundFill(Paint.valueOf(color), new CornerRadii(0), new Insets(1))));
+            final int rowIndex = getTableRow().getIndex();
+            // Determine the row specific color.
+            final String rowColor       = rowIndex % 2 == 0 ? WHITE  : OFF_WHITE;
+            final String mutedRowColor  = rowIndex % 2 == 0 ? ORANGE : OFF_ORANGE;
+            
+            // Color the cells if muted, leave them the row color otherwise.
+            String color = (muted) ? mutedRowColor : rowColor;
+            
+            setBackground( new Background( new BackgroundFill(
+                                            Paint.valueOf(color), // Set the color.
+                                            new CornerRadii(0),   // We want square cells.
+                                            new Insets(1))));     // Don't color over the cell borders.
         }
     }
     
@@ -197,7 +214,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         muteButton.setTooltip(new Tooltip("Mute the annunciator."));
         muteButton.setOnAction((event) -> {
             annunciatorController.setMuted(muteButton.isSelected());
-            // Set the cell backgrounds to some color to identify table as muted.
+            // Refresh the cell items so that they recalculate their background color.
             table.refresh();
         });
         
