@@ -18,6 +18,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
@@ -289,7 +290,10 @@ public class AlarmServerMain implements ServerModelListener
                 {
                     iter.remove();
                     logger.info("Discovering and creating any missing topics at " + server);
-                    CreateTopics.discoverAndCreateTopics(server, config);
+                    CreateTopics.discoverAndCreateTopics(server, true, List.of(config, 
+                                                                               config + AlarmSystem.STATE_TOPIC_SUFFIX, 
+                                                                               config + AlarmSystem.COMMAND_TOPIC_SUFFIX, 
+                                                                               config + AlarmSystem.TALK_TOPIC_SUFFIX));
                 }
                 else if (cmd.equals("-import"))
                 {
