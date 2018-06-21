@@ -42,7 +42,7 @@ public class RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue 
     {
         this.pv = pv;
         value_flow = pv.onValueEvent()
-                .throttleLast(Preferences.update_throttle_ms, TimeUnit.MILLISECONDS)
+                .throttleLatest(Preferences.update_throttle_ms, TimeUnit.MILLISECONDS)
                 .subscribe(this::valueChanged);
         writable_flow = pv.onAccessRightsEvent()
                           .subscribe(this::writableChanged);

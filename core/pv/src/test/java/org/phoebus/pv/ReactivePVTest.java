@@ -10,6 +10,7 @@ package org.phoebus.pv;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
+import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueUtil;
 
@@ -151,6 +153,42 @@ public class ReactivePVTest
 
         PVPool.releasePV(pv);
     }
+
+    @Test
+    public void demoThrottleLastVsLatest() throws Exception
+    {
+        final PV pv = PVPool.getPV("sim://ramp(1, 1000, 1)");
+
+        System.out.println("Throttle a 1Hz value as 'Last' vs. 'Latest' every 3 seconds");
+        System.out.println("'Latest' receives the first value, while 'Last' has initial latency.");
+        System.out.println("From then on they throttle in similar way");
+
+        final Disposable last = pv
+            .onValueEvent(BackpressureStrategy.BUFFER)
+            .throttleLast(3, TimeUnit.SECONDS)
+            .subscribe(value ->
+            {
+                System.out.println("Last  : " + value + " @ " + TimestampFormats.MILLI_FORMAT.format(Instant.now()));
+            });
+        final Disposable latest = pv
+            .onValueEvent(BackpressureStrategy.BUFFER)
+            .throttleLatest(3, TimeUnit.SECONDS)
+            .subscribe(value ->
+            {
+                System.out.println("Latest: " + value + " @ " + TimestampFormats.MILLI_FORMAT.format(Instant.now()));
+            });
+
+        Thread.sleep(11000);
+        latest.dispose();
+        last.dispose();
+
+        PVPool.releasePV(pv);
+    }
+
+
+
+
+
 
     @Test
     public void demoBoggedThrottle() throws Exception

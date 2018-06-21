@@ -197,7 +197,7 @@ public class TreeModelItem
                 final PV pv = PVPool.getPV(pv_name);
                 value_flow = pv
                     .onValueEvent()
-                    .throttleLast(ms, TimeUnit.MILLISECONDS)
+                    .throttleLatest(ms, TimeUnit.MILLISECONDS)
                     .subscribe(value ->
                 {
                     current_value = VTypeHelper.format(value);

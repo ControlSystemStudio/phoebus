@@ -127,7 +127,7 @@ public class PVTableItem
                         ValueFactory.timeNow()));
             final PV new_pv = PVPool.getPV(name);
             value_flow = new_pv.onValueEvent()
-                               .throttleLast(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
+                               .throttleLatest(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
                                .subscribe(this::updateValue);
             permission_flow = new_pv.onAccessRightsEvent()
                                     .subscribe(writable -> listener.tableItemChanged(PVTableItem.this));
@@ -158,7 +158,7 @@ public class PVTableItem
             {
                 final PV new_desc_pv = PVPool.getPV(desc_name);
                 desc_flow = new_desc_pv.onValueEvent()
-                                       .throttleLast(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
+                                       .throttleLatest(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
                                        .subscribe(value ->
                 {
                     if (value instanceof VString)

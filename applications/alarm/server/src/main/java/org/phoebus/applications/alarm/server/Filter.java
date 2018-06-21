@@ -114,6 +114,8 @@ public class Filter
     {
         for (int i=0; i<pvs.length; ++i)
         {
+            // Filter on 'last', i.e. with some latency,
+            // but never ignoring the last known value.
             pvs[i] = PVPool.getPV(variables[i].getName());
             flows[i] = pvs[i].onValueEvent()
                              .throttleLast(500, TimeUnit.MILLISECONDS)

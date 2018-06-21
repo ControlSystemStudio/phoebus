@@ -99,7 +99,7 @@ public class ProbeController {
         {
             pv = PVPool.getPV(txtPVName.getText());
             pv_flow = pv.onValueEvent()
-                        .throttleLast(10, TimeUnit.MILLISECONDS)
+                        .throttleLatest(10, TimeUnit.MILLISECONDS)
                         .subscribe(this::update);
         }
         catch (Exception ex)
