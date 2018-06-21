@@ -21,6 +21,7 @@ import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -32,10 +33,14 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 /**
  * Table View for the Annunciator
@@ -63,9 +68,28 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final AnnunciatorController annunciatorController;
 
     /**
+     * AnnunciatorCell extends table cell and implements a method that can alter the cells background 
+     * to indicate if the mute button is selected or not.
+     * @author 1es
+     *
+     * @param <K>
+     * @param <V>
+     */
+    private class AnnunciatorCell<K, V> extends TableCell<K, V>
+    {
+        private final String ORANGE = "#ff8700";
+        private final String WHITE  = "#ffffff";
+        protected void setMutedColor(final boolean muted)
+        {
+            String color = (muted) ? ORANGE : WHITE;
+            setBackground(new Background(new BackgroundFill(Paint.valueOf(color), new CornerRadii(0), new Insets(1))));
+        }
+    }
+    
+    /**
      * Table cell that displays alarm severity using icons and colored text.
      */
-    private class SeverityCell extends TableCell<AnnunciationRowInfo, SeverityLevel>
+    private class SeverityCell extends AnnunciatorCell<AnnunciationRowInfo, SeverityLevel>
     {
         @Override
         protected void updateItem(final SeverityLevel item, final boolean empty)
@@ -84,14 +108,14 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                 setText(item.toString());
                 setTextFill(AlarmUI.getColor(item));
             }
+            setMutedColor(muteButton.isSelected());
         }
     }
     
     /**
-     * Table cell that shows a time stamp 
-     * @Author Kay Kasemir
+     * Table cell that shows a time stamp.
      */
-    private class TimeCell extends TableCell<AnnunciationRowInfo, Instant>
+    private class TimeCell extends AnnunciatorCell<AnnunciationRowInfo, Instant>
     {
         @Override
         protected void updateItem(final Instant item, final boolean empty)
@@ -99,9 +123,36 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             super.updateItem(item, empty);
 
             if (empty  ||  item == null)
+            {
                 setText("");
+            }
             else
+            {
                 setText(TimestampFormats.MILLI_FORMAT.format(item));
+            }
+            setMutedColor(muteButton.isSelected());
+        }
+    }
+    
+    /**
+     * Table Cell that shows a message.
+     */
+    private class MessageCell extends AnnunciatorCell<AnnunciationRowInfo, String>
+    {
+        @Override
+        protected void updateItem(final String item, final boolean empty)
+        {
+            super.updateItem(item, empty);
+
+            if (empty  ||  item == null)
+            {
+                setText("");
+            }
+            else
+            {
+                setText(item);
+            }
+            setMutedColor(muteButton.isSelected());
         }
     }
     
@@ -130,6 +181,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         table.getColumns().add(severity);
 
         description.setCellValueFactory(cell -> cell.getValue().message);
+        description.setCellFactory(c -> new MessageCell());
         // Width left in window is window width minus time width (190), minus severity width (90), minus width of window edges(1 * 2).
         description.prefWidthProperty().bind(table.widthProperty().subtract(282));
         table.getColumns().add(description);
@@ -143,7 +195,11 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         HBox hbox = new HBox();
         
         muteButton.setTooltip(new Tooltip("Mute the annunciator."));
-        muteButton.setOnAction((event) -> annunciatorController.setMuted(muteButton.isSelected()));
+        muteButton.setOnAction((event) -> {
+            annunciatorController.setMuted(muteButton.isSelected());
+            // Set the cell backgrounds to some color to identify table as muted.
+            table.refresh();
+        });
         
         clearTableAlert.setTitle("Clear Annunciator Table");
         clearTableAlert.setHeaderText("Clear the table of all annunciations?");
