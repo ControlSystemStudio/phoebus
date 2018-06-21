@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.ui.authorization;
+package org.phoebus.ui.authorization;
 
 import java.util.Collections;
 import java.util.Set;

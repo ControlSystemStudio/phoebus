@@ -90,7 +90,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                     if (event.isPrimaryButtonDown())
                     {
                         event.consume();
-                        toolkit.fireClick(model_widget, event.isControlDown());
+                        toolkit.fireClick(model_widget, event.isShortcutDown());
                     }
                 };
                 if (isFilteringEditModeClicks())

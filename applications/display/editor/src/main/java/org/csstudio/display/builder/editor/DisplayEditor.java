@@ -371,7 +371,7 @@ public class DisplayEditor
         {
             // Don't do that on control-click (to add/remove to current selection)
             // nor on right button (to open context menu)
-            if (event.isControlDown()   ||   ! event.isPrimaryButtonDown())
+            if (event.isShortcutDown()   ||   ! event.isPrimaryButtonDown())
                 return;
             logger.log(Level.FINE, "Mouse pressed in 'editor', de-select all widgets");
             event.consume();

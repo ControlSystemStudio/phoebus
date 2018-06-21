@@ -116,14 +116,14 @@ public class SelectedWidgetUITracker extends Tracker
         // Pass control-click down to underlying widgets
         addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
         {
-            if (event.isControlDown())
+            if (event.isShortcutDown())
                 passClickToWidgets(event);
         });
 
         // Allow 'dragging' selected widgets
         setOnDragDetected(event ->
         {
-            if (! event.isControlDown())
+            if (! event.isShortcutDown())
                 return;
 
             logger.log(Level.FINE, "Starting to drag {0}", widgets);
@@ -349,7 +349,7 @@ public class SelectedWidgetUITracker extends Tracker
             if (GeometryTools.getDisplayBounds(widget).contains(event.getX(), event.getY()))
             {
                 logger.log(Level.FINE, "Tracker passes click through to {0}", widget);
-                toolkit.fireClick(widget, event.isControlDown());
+                toolkit.fireClick(widget, event.isShortcutDown());
             }
     }
 

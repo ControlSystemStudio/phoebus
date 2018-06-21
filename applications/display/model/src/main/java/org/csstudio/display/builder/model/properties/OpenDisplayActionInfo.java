@@ -53,6 +53,7 @@ public class OpenDisplayActionInfo extends ActionInfo
     private final String file;
     private final Macros macros;
     private final Target target;
+    private final String pane;
 
     /** @param description Action description
      *  @param file Path to the display
@@ -61,10 +62,22 @@ public class OpenDisplayActionInfo extends ActionInfo
      */
     public OpenDisplayActionInfo(final String description, final String file, final Macros macros, final Target target)
     {
+        this(description, file, macros, target, "");
+    }
+
+    /** @param description Action description
+     *  @param file Path to the display
+     *  @param macros Macros
+     *  @param target Where to show the display
+     *  @param pane Pane in which to open (for target==TAB)
+     */
+    public OpenDisplayActionInfo(final String description, final String file, final Macros macros, final Target target, final String pane)
+    {
         super(description);
         this.file = Objects.requireNonNull(file);
         this.macros = macros;
         this.target = target;
+        this.pane = pane;
     }
 
     @Override
@@ -89,6 +102,12 @@ public class OpenDisplayActionInfo extends ActionInfo
     public Target getTarget()
     {
         return target;
+    }
+
+    /** @return Pane in which to open (for target == TAB) */
+    public String getPane()
+    {
+        return pane;
     }
 
     @Override

@@ -105,12 +105,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     {
         // 'control' ('command' on Mac OS X)
         if (event.isShortcutDown())
-        {
-            if (event.isShiftDown())
-                target_modifier = Optional.of(OpenDisplayActionInfo.Target.STANDALONE);
-            else
-                target_modifier = Optional.of(OpenDisplayActionInfo.Target.TAB);
-        }
+            target_modifier = Optional.of(OpenDisplayActionInfo.Target.TAB);
         else if (event.isShiftDown())
             target_modifier = Optional.of(OpenDisplayActionInfo.Target.WINDOW);
         else
@@ -249,7 +244,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         if (action instanceof OpenDisplayActionInfo  &&  target_modifier.isPresent())
         {
             final OpenDisplayActionInfo orig = (OpenDisplayActionInfo) action;
-            action = new OpenDisplayActionInfo(orig.getDescription(), orig.getFile(), orig.getMacros(), target_modifier.get());
+            action = new OpenDisplayActionInfo(orig.getDescription(), orig.getFile(), orig.getMacros(), target_modifier.get(), orig.getPane());
         }
         toolkit.fireAction(model_widget, action);
     }

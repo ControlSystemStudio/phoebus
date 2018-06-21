@@ -11,7 +11,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/epics-pvaccess-5.1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/epics-pvdata-6.1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/py4j-0.10.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/objenesis-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.servlet-api-3.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jetty-http-9.4.9.v20180320.jar"/>

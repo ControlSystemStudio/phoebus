@@ -26,7 +26,7 @@ public class JFXColorMapDialogDemo  extends Application
     @Override
     public void start(final Stage stage)
     {
-        final ColorMapDialog dialog = new ColorMapDialog(PredefinedColorMaps.VIRIDIS);
+        final ColorMapDialog dialog = new ColorMapDialog(PredefinedColorMaps.VIRIDIS, null);
         System.out.println(dialog.showAndWait());
     }
 }

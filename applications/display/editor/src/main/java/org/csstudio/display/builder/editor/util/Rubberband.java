@@ -105,7 +105,7 @@ public class Rubberband
 
         handler.handleSelectedRegion(new Rectangle2D(Math.min(x0, x1), Math.min(y0, y1),
                                                      Math.abs(x1 - x0), Math.abs(y1 - y0)),
-                                     event.isControlDown());
+                                     event.isShortcutDown());
         event.consume();
     }
 }

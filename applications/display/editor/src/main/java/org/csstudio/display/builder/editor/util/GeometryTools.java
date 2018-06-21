@@ -189,13 +189,19 @@ public class GeometryTools
             final List<Widget> found = new ArrayList<>();
             for (final Widget widget : widgets)
             {
+                // Select widget itself _or_ its children,
+                // not both to prevent selecting e.g. a Group
+                // and its content.
                 if (region.contains(getDisplayBounds(widget)))
                     found.add(widget);
-                final ChildrenProperty children = ChildrenProperty.getChildren(widget);
-                if (children != null)
+                else
                 {
-                    final WidgetSearch sub = new WidgetSearch(children.getValue(), region);
-                    found.addAll(sub.compute());
+                    final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+                    if (children != null)
+                    {
+                        final WidgetSearch sub = new WidgetSearch(children.getValue(), region);
+                        found.addAll(sub.compute());
+                    }
                 }
             }
             return found;

@@ -75,6 +75,11 @@ local.properties
 # Annotation Processing
 .apt_generated
 
+### Intellij IDEA ###
+# These could be committed, but let's ignore them for now.
+*.iml
+.idea/
+
 ### Maven ###
 target/
 pom.xml.tag

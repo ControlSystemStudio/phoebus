@@ -5,13 +5,16 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.ui.authorization;
+package org.phoebus.ui.authorization;
 
-/**
- * Interface for Authorization
- * @author Evan Smith
+/** Authorization support
+ *  @author Evan Smith
  */
 public interface Authorization
 {
+    /** Check if current user is authorized to do something
+     *  @param authorization Name of the authorization
+     *  @return <code>true</code> if user holds that authorization
+     */
     public boolean hasAuthorization(final String authorization);
 }

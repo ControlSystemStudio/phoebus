@@ -254,7 +254,7 @@ public class PointsEditor
                 y_offset = getY()+SIZE/2 - event.getY();
                 getScene().setCursor(Cursor.CLOSED_HAND);
 
-                if (event.isControlDown())
+                if (event.isShortcutDown())
                 {
                     final double x, y;
                     if (index < points.size() - 1)
@@ -293,7 +293,7 @@ public class PointsEditor
             setOnMouseMoved(event ->
             {
                 event.consume();
-                if (event.isControlDown()  &&  cursor_add != null)
+                if (event.isShortcutDown()  &&  cursor_add != null)
                     getScene().setCursor(cursor_add);
                 else if ((event.isShiftDown() || event.isAltDown())  &&  cursor_remove != null)
                     getScene().setCursor(cursor_remove);

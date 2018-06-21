@@ -86,6 +86,8 @@ public class OpenAbout implements MenuEntry
         details.append("Application Features\n");
         details.append("====================\n");
         ApplicationService.getApplications()
+                          .stream()
+                          .sorted((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()))
                           .forEach(app -> details.append(app.getDisplayName()).append("\n"));
 
         details.append("\n");

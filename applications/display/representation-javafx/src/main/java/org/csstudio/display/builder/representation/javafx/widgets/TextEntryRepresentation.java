@@ -96,8 +96,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                     // so all enter keys handled in here.
 
                     // Single line mode uses plain ENTER.
-                    // Multi line mode requires Control-ENTER.
-                    if (!isMultiLine()  ||  event.isControlDown())
+                    // Multi line mode requires Control or Command-ENTER.
+                    if (!isMultiLine()  ||  event.isShortcutDown())
                     {
                         // Submit value, leave active state
                         submit();

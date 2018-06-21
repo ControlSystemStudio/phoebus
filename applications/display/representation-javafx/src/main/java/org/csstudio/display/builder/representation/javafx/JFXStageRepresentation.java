@@ -15,6 +15,7 @@ import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -52,7 +53,7 @@ public class JFXStageRepresentation extends JFXRepresentation
         final String hexName = Integer.toHexString(name.hashCode()).toLowerCase();
         final String xPrefName = MessageFormat.format("stage.window.{0}.x", hexName);
         final String yPrefName = MessageFormat.format("stage.window.{0}.y", hexName);
-        final Preferences pref = Preferences.userNodeForPackage(JFXStageRepresentation.class);
+        final Preferences pref = PhoebusPreferenceService.userNodeForClass(JFXStageRepresentation.class);
 
         stage.setX(pref.getDouble(xPrefName, model.propX().getValue()));
         stage.setY(pref.getDouble(yPrefName, model.propY().getValue()));

@@ -11,6 +11,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /** Reads preferences while using property file for defaults
@@ -35,6 +37,26 @@ public class PreferencesReader
     private final Properties defaults = new Properties();
     private final Preferences prefs;
 
+    /** @param value Value that might contain "$(prop)"
+     *  @return Value where "$(prop)" is replaced by Java system property "prop"
+     */
+    public static String replaceProperties(final String value)
+    {
+        final Matcher matcher = Pattern.compile("\\$\\((.*)\\)").matcher(value);
+        if (matcher.matches())
+        {
+            final String prop_name = matcher.group(1);
+            final String prop = System.getProperty(prop_name);
+            if (prop == null)
+                Logger.getLogger(PreferencesReader.class.getPackageName())
+                      .log(Level.SEVERE, "Alarm System settings: Property '" + prop_name + "' is not defined");
+            else
+                return prop;
+        }
+        // Return as is
+        return value;
+    }
+
     /** Create reader for preferences
      *
      *  @param package_class Class of the package.
@@ -51,7 +73,7 @@ public class PreferencesReader
         }
         catch (Exception ex)
         {
-            Logger.getLogger(getClass().getName())
+            Logger.getLogger(PreferencesReader.class.getPackageName())
                   .log(Level.SEVERE, "Cannot read default preference settings for " + package_class + " from " + preferences_properties_filename);
         }
         prefs = Preferences.userNodeForPackage(package_class);

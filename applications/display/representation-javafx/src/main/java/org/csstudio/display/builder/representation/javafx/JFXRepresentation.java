@@ -152,7 +152,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     private Consumer<String> zoom_listener;
 
     /** For Middle Button (Wheel press) drag panning */
-    private final ObjectProperty<Point2D> lastMouseCoordinates = new SimpleObjectProperty<Point2D>();
+    private final ObjectProperty<Point2D> lastMouseCoordinates = new SimpleObjectProperty<>();
 
     /** Constructor
      *  @param edit_mode Edit mode?
@@ -264,7 +264,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         if (isEditMode())
             model_root.addEventFilter(ScrollEvent.ANY, evt ->
             {
-                if (evt.isControlDown())
+                if (evt.isShortcutDown())
                 {
                     evt.consume();
                     doWheelZoom(evt.getDeltaY(), evt.getX(), evt.getY());
@@ -273,7 +273,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         else
             widget_parent.addEventHandler(ScrollEvent.ANY, evt ->
             {
-                if (evt.isControlDown())
+                if (evt.isShortcutDown())
                 {
                     evt.consume();
                     ScrollEvent gevt = evt.copyFor(model_root, scroll_body);

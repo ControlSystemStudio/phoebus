@@ -37,7 +37,7 @@ public class JFXScriptsDialogDemo extends Application
         scripts.add(new ScriptInfo("/tmp/demo1.py", true, new ScriptPV("pv1")));
         scripts.add(new ScriptInfo("/tmp/demo2.py", false, new ScriptPV("pv1"), new ScriptPV("pv2", false)));
 
-        final ScriptsDialog dialog = new ScriptsDialog(new Widget("demo"), scripts);
+        final ScriptsDialog dialog = new ScriptsDialog(new Widget("demo"), scripts, null);
         final Optional<List<ScriptInfo>> result = dialog.showAndWait();
         if (result.isPresent())
         {

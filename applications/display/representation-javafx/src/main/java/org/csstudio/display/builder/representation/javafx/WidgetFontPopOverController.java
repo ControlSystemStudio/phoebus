@@ -264,7 +264,7 @@ public class WidgetFontPopOverController implements Initializable {
 
 
         //  Search field
-        searchField.setTooltip(new Tooltip(Messages.WidgetFontPopOver_SearchFieldTT));
+        searchField.setTooltip(new Tooltip(Messages.WidgetFontPopOver_SearchPromptTT));
         searchField.setPrefColumnCount(9);
         searchField.textProperty().addListener(o -> {
 

@@ -46,7 +46,19 @@ public class Launcher
                     return;
                 }
 
-                if (cmd.equals("-settings"))
+                if (cmd.equals("-splash"))
+                {
+                    iter.remove();
+                    Preferences.userNodeForPackage(org.phoebus.ui.Preferences.class)
+                               .putBoolean(org.phoebus.ui.Preferences.SPLASH, true);
+                }
+                else if (cmd.equals("-nosplash"))
+                {
+                    iter.remove();
+                    Preferences.userNodeForPackage(org.phoebus.ui.Preferences.class)
+                               .putBoolean(org.phoebus.ui.Preferences.SPLASH, false);
+                }
+                else if (cmd.equals("-settings"))
                 {
                     if (! iter.hasNext())
                         throw new Exception("Missing -settings file name");
@@ -140,6 +152,8 @@ public class Launcher
         System.out.println("Command-line arguments:");
         System.out.println();
         System.out.println("-help                                   -  This text");
+        System.out.println("-splash                                 -  Show splash screen");
+        System.out.println("-nosplash                               -  Suppress the splash screen");
         System.out.println("-settings settings.xml                  -  Import settings from file, either exported XML or property file format");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
         System.out.println("-list                                   -  List available application features");

@@ -8,7 +8,10 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.dialog.DialogHelper;
 
+import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 
@@ -21,8 +24,9 @@ public class MacrosDialog extends Dialog<Macros>
 
     /** Create dialog
      *  @param initial_macros Initial {@link Macros}
+     * @param owner Node that invoked this dialog
      */
-    public MacrosDialog(final Macros initial_macros)
+    public MacrosDialog(final Macros initial_macros, final Node owner)
     {
         setTitle(Messages.MacrosDialog_Title);
         setHeaderText(Messages.MacrosDialog_Info);
@@ -39,5 +43,8 @@ public class MacrosDialog extends Dialog<Macros>
                 return table.getMacros();
             return null;
         });
+
+        DialogHelper.positionAndSize(this, owner,
+                                     PhoebusPreferenceService.userNodeForClass(MacrosDialog.class));
     }
 }

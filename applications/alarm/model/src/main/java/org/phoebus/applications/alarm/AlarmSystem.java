@@ -66,9 +66,6 @@ public class AlarmSystem
     /** Directory used for executing commands */
     public static final File command_directory;
 
-    /** Authorization file */
-    public static final String authorization_file;
-    
     /** Annunciator threshold */
     public static final int annunciator_threshold;
     
@@ -87,27 +84,8 @@ public class AlarmSystem
         alarm_area_font_size = prefs.getInt("alarm_area_font_size");
         alarm_menu_max_items = prefs.getInt("alarm_menu_max_items");
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
-        command_directory = new File(replaceProperties(prefs.get("command_directory")));
-        authorization_file = replaceProperties(prefs.get("authorization_file"));
+        command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
         annunciator_threshold = prefs.getInt("annunciator_threshold");
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
-    }
-
-    /** @param value Value that might contain "$(prop)"
-     *  @return Value where "$(prop)" is replaced by Java system property "prop"
-     */
-    private static String replaceProperties(final String value)
-    {
-        final Matcher matcher = Pattern.compile("\\$\\((.*)\\)").matcher(value);
-        if (matcher.matches())
-        {
-            final String prop_name = matcher.group(1);
-            final String prop = System.getProperty(prop_name);
-            if (prop == null)
-                logger.log(Level.SEVERE, "Alarm System settings: Property '" + prop_name + "' is not defined");
-            return prop;
-        }
-        // Return as is
-        return value;
     }
 }

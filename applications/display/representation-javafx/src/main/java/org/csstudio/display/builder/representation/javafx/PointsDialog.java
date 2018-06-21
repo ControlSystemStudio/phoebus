@@ -8,7 +8,10 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import org.csstudio.display.builder.model.properties.Points;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.dialog.DialogHelper;
 
+import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 
@@ -17,8 +20,10 @@ import javafx.scene.control.Dialog;
  */
 public class PointsDialog extends Dialog<Points>
 {
-    /** @param initial_points Initial value */
-    public PointsDialog(final Points initial_points)
+    /** @param initial_points Initial value
+     *  @param owner Node that invoked the dialog
+     */
+    public PointsDialog(final Points initial_points, final Node owner)
     {
         final Points points = initial_points.clone();
 
@@ -36,5 +41,8 @@ public class PointsDialog extends Dialog<Points>
                 return points;
             return null;
         });
+
+        DialogHelper.positionAndSize(this, owner,
+                                     PhoebusPreferenceService.userNodeForClass(PointsDialog.class));
     }
 }

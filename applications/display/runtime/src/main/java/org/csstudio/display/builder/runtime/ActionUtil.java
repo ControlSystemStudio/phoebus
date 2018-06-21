@@ -108,7 +108,7 @@ public class ActionUtil
                 wait_for_ui = toolkit.submit(() ->
                 {   // Create new panel
                     final ToolkitRepresentation<Object, Object> new_toolkit =
-                        toolkit.openPanel(new_model, ActionUtil::handleClose);
+                        toolkit.openPanel(new_model, action.getPane(), ActionUtil::handleClose);
                     RuntimeUtil.hookRepresentationListener(new_toolkit);
                     return null;
                 });

@@ -11,7 +11,7 @@ Long-running jobs can be cancelled.
 Implementation Detail
 ---------------------
 
-Cancelling a job asks the application to abort an ongoing job
+Canceling a job asks the application to abort an ongoing job
 and depends on a proper implementation of the application feature
 to honor the request.
 

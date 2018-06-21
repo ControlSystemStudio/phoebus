@@ -8,7 +8,7 @@
 package org.phoebus.applications.alarm.ui;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.ui.authorization.AuthorizationService;
+import org.phoebus.ui.authorization.AuthorizationService;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -50,13 +50,8 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/undefined.png")
     };
 
-    static
-    {
-        AuthorizationService.init();
-    }
-    
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
-    
+
     /** @param severity {@link SeverityLevel}
      *  @return Color
      */

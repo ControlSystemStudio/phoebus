@@ -45,11 +45,11 @@ public class JFXActionsDialogDemo  extends Application
         macros.add("S", "Test");
         macros.add("N", "17");
         final ActionInfos actions = new ActionInfos(Arrays.asList(
-                new OpenDisplayActionInfo("Related Display", "../opi/some_file.opi", macros, Target.TAB),
+                new OpenDisplayActionInfo("Related Display", "../opi/some_file.opi", macros, Target.TAB, "Side"),
                 new WritePVActionInfo("Reset", "Test:CS:Reset", "1"),
                 new ExecuteScriptActionInfo("Script", new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, "print 'hi'", false, Collections.emptyList())))
                 );
-        final ActionsDialog dialog = new ActionsDialog(widget, actions);
+        final ActionsDialog dialog = new ActionsDialog(widget, actions, null);
         final Optional<ActionInfos> result = dialog.showAndWait();
         if (result.isPresent())
         {
