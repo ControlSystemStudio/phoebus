@@ -37,9 +37,7 @@ public class CreateTopics
                                 segment_time = "segment.ms",
                                 time = "10000",
                                 dirty2clean = "min.cleanable.dirty.ratio",
-                                ratio = "0.01",
-                                min_compaction_lag = "min.compaction.lag.ms",
-                                lag = "1000";
+                                ratio = "0.01";
 
     /** Discover the currently active Kafka topics, and creates any that are missing.
      *
@@ -132,7 +130,6 @@ public class CreateTopics
         if (compact)
         {
             configs.put(cleanup_policy, policy);
-            configs.put(min_compaction_lag, lag);
             configs.put(dirty2clean, ratio);
         }
         return new_topic.configs(configs);
