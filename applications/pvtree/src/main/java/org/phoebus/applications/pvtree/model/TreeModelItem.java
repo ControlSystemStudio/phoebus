@@ -36,6 +36,9 @@ import io.reactivex.functions.Consumer;
 @SuppressWarnings("nls")
 public class TreeModelItem
 {
+    /** Log level used to trace the progress of resolving links */
+    static final Level TRACE = Level.FINE;
+
     /** The model to which this whole tree belongs. */
     private final TreeModel model;
 
@@ -124,7 +127,7 @@ public class TreeModelItem
                 return;
             }
             String text = VTypeHelper.formatValue(value);
-            logger.fine("Link " + record_name + "." + field + " -> " + text);
+            logger.log(TRACE, "Link " + record_name + "." + field + " -> " + text);
             disposeLinkPV();
 
             // The value could be
@@ -162,11 +165,6 @@ public class TreeModelItem
             model.decrementLinks();
             resolveNextLink();
         };
-
-
-
-
-
     }
 
     /** @return Parent or <code>null</code> for root */
@@ -243,7 +241,7 @@ public class TreeModelItem
             type_flow = pv.onValueEvent().firstOrError().subscribe(value ->
             {
                 type = VTypeHelper.formatValue(value);
-                logger.fine("Type " + type);
+                logger.log(TRACE, "Type " + type);
                 disposeTypePV();
                 // Notify model to redraw this PV
                 model.itemUpdated(TreeModelItem.this);
@@ -263,13 +261,13 @@ public class TreeModelItem
         final TreeModelItem dup = model.findDuplicate(this);
         if (dup != null)
         {
-            logger.fine("Known item " + record_name + "." + info + ", not traversing inputs (again)");
+            logger.log(TRACE, "Known item " + record_name + "." + info + ", not traversing inputs (again)");
             return;
         }
         final List<String> type_links = Settings.field_info.get(type);
         if (type_links == null)
         {
-            logger.fine("Type " + type + " has no known links");
+            logger.log(TRACE, "Type " + type + " has no known links");
             return;
         }
         // Could fetch all links in parallel,
@@ -297,6 +295,7 @@ public class TreeModelItem
             link_name += "$";
         try
         {
+            logger.log(TRACE, "Resolve " + link_name);
             final PV pv = PVPool.getPV(link_name);
             link_flow = pv.onValueEvent().firstOrError().subscribe(link_consumer);
             link_pv.set(pv);

@@ -42,13 +42,6 @@
 
 package org.phoebus.olog.api;
 
-import com.sun.jersey.api.client.AbstractClientRequestAdapter;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientRequestAdapter;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.core.util.ReaderWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -59,7 +52,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.ws.rs.core.MultivaluedMap;
+
+import com.sun.jersey.api.client.AbstractClientRequestAdapter;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.api.client.ClientRequestAdapter;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.filter.ClientFilter;
+import com.sun.jersey.core.util.ReaderWriter;
 
 /**
  * A Raw HTML request/response logging filter. 
