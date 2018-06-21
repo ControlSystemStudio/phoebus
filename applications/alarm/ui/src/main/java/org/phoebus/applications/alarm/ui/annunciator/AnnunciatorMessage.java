@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.annunciator;
 
+import java.time.Instant;
+
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /**
@@ -25,18 +27,26 @@ public class AnnunciatorMessage implements Comparable<AnnunciatorMessage>
 {
     public final boolean      standout;
     public final SeverityLevel severity;
+    public final Instant       time;
     public final String        message;
     
-    public AnnunciatorMessage(final boolean standout, final SeverityLevel severity, final String message)
+    public AnnunciatorMessage(final boolean standout, final SeverityLevel severity, final Instant time, final String message)
     {
         this.standout = standout;
         this.severity = severity;
+        this.time     = time;
         this.message  = message;
     }
 
     @Override
     public int compareTo(AnnunciatorMessage other)
     {
-        return this.severity.compareTo(other.severity);
+        // Compare on severity.
+        int result = -1 * this.severity.compareTo(other.severity);
+        // If the same severity, compare on time.
+        if (result == 0)
+            result = this.time.compareTo(other.time);
+        
+        return result;
     }
 }

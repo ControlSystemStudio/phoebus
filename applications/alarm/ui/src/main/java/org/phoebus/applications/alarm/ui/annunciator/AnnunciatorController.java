@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.annunciator;
 
+import java.time.Instant;
 import java.util.PriorityQueue;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -139,8 +140,9 @@ public class AnnunciatorController
     {
         final String message = a.message.get();
         final SeverityLevel severity = a.severity.get();
+        final Instant time = a.time_received.get();
        
-        annunciate(new AnnunciatorMessage(standout, severity, message));
+        annunciate(new AnnunciatorMessage(standout, severity, time, message));
     }
     
     /**
