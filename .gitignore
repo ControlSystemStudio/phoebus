@@ -96,4 +96,3 @@ buildNumber.properties
 
 
 # End of https://www.gitignore.io/api/maven,eclipse
-/authorizations.conf
