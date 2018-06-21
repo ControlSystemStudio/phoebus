@@ -65,12 +65,13 @@ local.properties
 .scala_dependencies
 .worksheet
 
-### Eclipse Patch ###
-# Eclipse Core
-.project
 
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
+# Eventually, Eclipse settings should be removed,
+# but for now they are kept because this allows simple
+# "Import existing project into Workspace",
+# and other tools (mvn, ant, ..) don't care
+# .classpath
+# .project
 
 # Annotation Processing
 .apt_generated
