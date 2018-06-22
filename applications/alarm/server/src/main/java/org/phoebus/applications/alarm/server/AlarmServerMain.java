@@ -48,9 +48,13 @@ public class AlarmServerMain implements ServerModelListener
                         "\tls               - List all alarm tree items in the current directory.\n" +
                         "\tls -disconnected - List all the disconnected PVs in the entire alarm tree.\n" +
                         "\tls -all          - List all alarm tree PVs in the entire alarm tree.\n" +
-                        "\tls /path/to/dir  - List all alarm tree item in the specified directory.\n" +
+                        "\tls dir           - List all alarm tree items in the specified directory contained in the current directory.\n" +
+                        "\tls /path/to/dir  - List all alarm tree items in the specified directory at the specified path.\n" +
                         "\tcd               - Change to the root directory.\n" +
-                        "\tcd /path/to/dir  - Change to the specified directory.\n";
+                        "\tcd dir           - Change to the specified directory contained in the current directory.\n" +
+                        "\tcd /path/to/dir  - Change to the specified directory at the specified path.\n" +
+                        "\tpv pv            - Print the specified PV in the current directory.\n" +
+                        "\tpv /path/to/pv   - Print the specified PV at the specified path.\n";
     
     private AlarmServerMain(final String server, final String config)
     {
@@ -134,21 +138,25 @@ public class AlarmServerMain implements ServerModelListener
                     System.out.println(child.getName());
             }
         }
-        else if (args.length == 2)
+        else if (args.length >= 2)
         {
+            String args1 = "";
+            for (int i = 1; i < args.length; i++)
+                args1 += " " + args[i];
+            args1 = args1.trim();
             try 
             {
                 if (args[0].equals("cd")) 
                 {
                     AlarmTreeItem<?> new_loc = null;
                     
-                    String new_path = determinePath(args[1]);
+                    String new_path = determinePath(args1);
                     
                     new_loc = model.findNode(new_path);
                     
                     if (null == new_loc)
                     {
-                        System.out.println("Node not found: " + args[1]);
+                        System.out.println("Node not found: " + new_path);
                         return false;
                     }
     
@@ -164,23 +172,23 @@ public class AlarmServerMain implements ServerModelListener
                 }
                 else if (args[0].equals("ls")) 
                 {
-                    if (args[1].startsWith("-discon"))
+                    if (args1.startsWith("-dis"))
                     {
                         listPVs(model.getRoot(), true);
                     }
-                    else if (args[1].equals("-all"))
+                    else if (args1.equals("-all"))
                     {
                         listPVs(model.getRoot(), false);
                     }
                     else
                     {
-                        String path = determinePath(args[1]);
+                        String path = determinePath(args1);
                         
                         AlarmTreeItem<?> node = model.findNode(path);
                         
                         if (null == node)
                         {
-                            System.out.println("Node not found: " + args[1]);
+                            System.out.println("Node not found: " + path);
                             return false;
                         }
                         
@@ -191,6 +199,18 @@ public class AlarmServerMain implements ServerModelListener
                             System.out.println(child.getName());
                         }   
                     }
+                }
+                else if (args[0].equals("pv"))
+                {
+                    final String pvPath = determinePath(args1);
+                    AlarmTreeItem<?> node = model.findNode(pvPath);
+                    if (node instanceof AlarmServerNode)
+                    {
+                        System.out.println("Specified alarm tree item is not a PV: " + pvPath);
+                        return false;
+                    }
+                    AlarmServerPV pv = (AlarmServerPV) node;
+                    System.out.println(pv);
                 }
             } // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
             catch (Exception ex)
@@ -244,6 +264,9 @@ public class AlarmServerMain implements ServerModelListener
         {
             new_path = current_path + "/" + arg;
         }
+        
+        // Replace "//" in simulated PVs with "\/\/"
+        new_path = new_path.replaceAll("//", "\\\\/\\\\/");
         
         return new_path;
     }
