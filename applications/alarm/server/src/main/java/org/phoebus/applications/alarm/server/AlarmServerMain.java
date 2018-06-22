@@ -45,11 +45,12 @@ public class AlarmServerMain implements ServerModelListener
     private static final String COMMANDS = 
                         "Commands:\n\n" +
                         "Note: '.' and '..' will be interpreted as the current directory and the parent directory respectively.\n\n" +
-                        "\tls              - List all alarm tree items in the current directory.\n" +
-                        "\tls -d           - List all the disconnected PVs in the entire alarm tree.\n" +
-                        "\tls /path/to/dir - List all alarm tree item in the specified directory.\n" +
-                        "\tcd              - Change to the root directory.\n" +
-                        "\tcd /path/to/dir - Change to the specified directory.\n";
+                        "\tls               - List all alarm tree items in the current directory.\n" +
+                        "\tls -disconnected - List all the disconnected PVs in the entire alarm tree.\n" +
+                        "\tls -all          - List all alarm tree PVs in the entire alarm tree.\n" +
+                        "\tls /path/to/dir  - List all alarm tree item in the specified directory.\n" +
+                        "\tcd               - Change to the root directory.\n" +
+                        "\tcd /path/to/dir  - Change to the specified directory.\n";
     
     private AlarmServerMain(final String server, final String config)
     {
@@ -163,9 +164,13 @@ public class AlarmServerMain implements ServerModelListener
                 }
                 else if (args[0].equals("ls")) 
                 {
-                    if (args[1].equals("-d"))
+                    if (args[1].startsWith("-discon"))
                     {
                         listPVs(model.getRoot(), true);
+                    }
+                    else if (args[1].equals("-all"))
+                    {
+                        listPVs(model.getRoot(), false);
                     }
                     else
                     {
@@ -187,8 +192,7 @@ public class AlarmServerMain implements ServerModelListener
                         }   
                     }
                 }
-            }
-            // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
+            } // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
             catch (Exception ex)
             {
                 System.out.println(ex.getMessage());
