@@ -43,9 +43,10 @@ import org.w3c.dom.Element;
  * @author claudiorosati, European Spallation Source ERIC
  * @version 1.0.0 19 Jun 2017
  */
+@SuppressWarnings("nls")
 public class SymbolWidget extends PVWidget {
 
-    public final static String DEFAULT_SYMBOL = "/icons/default_symbol.png"; //$NON-NLS-1$
+    public final static String DEFAULT_SYMBOL = "examples:/icons/default_symbol.png";
 
     public static final WidgetDescriptor WIDGET_DESCRIPTOR = new WidgetDescriptor(
         "symbol",
@@ -73,7 +74,7 @@ public class SymbolWidget extends PVWidget {
     public static final WidgetPropertyDescriptor<Boolean>                       propPreserveRatio = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "preserve_ratio", Messages.WidgetProperties_PreserveRatio);
 
     /** 'items' property: list of items (string properties) for combo box */
-    public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propSymbols       = new ArrayWidgetProperty.Descriptor< WidgetProperty<String> >(
+    public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propSymbols       = new ArrayWidgetProperty.Descriptor< >(
         WidgetPropertyCategory.WIDGET,
         "symbols",
         Messages.WidgetProperties_Symbols,
