@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm;
 import java.io.File;
 import java.util.logging.Logger;
 
+import org.phoebus.applications.alarm.client.IdentificationHelper;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Common alarm system code
@@ -29,6 +30,9 @@ public class AlarmSystem
 
     /** Suffix for the topic that server uses to send annunciations */
     public static final String TALK_TOPIC_SUFFIX = "Talk";
+
+    /** Suffix for the topic that contains non compacted aggregate of other topics. */
+    public static final String LONG_TERM_TOPIC_SUFFIX = "LongTerm";
 
     /** Kafka Server host:port */
     public static final String server;
@@ -60,6 +64,12 @@ public class AlarmSystem
     /** Directory used for executing commands */
     public static final File command_directory;
 
+    /** Annunciator threshold */
+    public static final int annunciator_threshold;
+
+    /** Annunciator message retention count */
+    public static final int annunciator_retention_count;
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
@@ -73,5 +83,9 @@ public class AlarmSystem
         alarm_menu_max_items = prefs.getInt("alarm_menu_max_items");
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
         command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
+        annunciator_threshold = prefs.getInt("annunciator_threshold");
+        annunciator_retention_count = prefs.getInt("annunciator_retention_count");
+
+        IdentificationHelper.initialize();
     }
 }

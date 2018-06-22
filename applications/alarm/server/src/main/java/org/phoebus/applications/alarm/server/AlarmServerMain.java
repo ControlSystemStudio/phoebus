@@ -18,10 +18,15 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.json.JsonModelReader;
+import org.phoebus.applications.alarm.model.json.JsonTags;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /** Alarm Server
  *  @author Kay Kasemir
@@ -82,12 +87,12 @@ public class AlarmServerMain implements ServerModelListener
      *      Dumps subtree
      *  <li>pvs -
      *      Prints all PVs
-     *  <li>pvs disconnected -
-     *      Prints all disconnected PVs
      *  <li>pvs /some/path -
      *      Prints PVs in subtree
      *  <li>pv name_of_PV -
      *      Prints that PV
+     *  <li>disconnected -
+     *      Prints all disconnected PVs
      *  <li>restart -
      *      Re-load configuration
      *  <li>shutdown -
@@ -104,68 +109,81 @@ public class AlarmServerMain implements ServerModelListener
      *  @param detail Detail for the command, usually path to alarm tree node
      */
     @Override
-    public void handleCommand(final String command, final String detail)
+    public void handleCommand(final String path, final String json)
     {
         try
         {
+            JsonNode jsonNode = (JsonNode) JsonModelReader.parseJsonText(json);
+            JsonNode commandNode = jsonNode.get(JsonTags.COMMAND);
+            if (null == commandNode)
+            {
+                throw new Exception("Command parsing failed.");
+            }
+            
+            final String command = commandNode.asText();
             if (command.startsWith("ack"))
             {
-                final AlarmTreeItem<?> node = model.findNode(detail);
+                final AlarmTreeItem<?> node = model.findNode(path);
                 if (node == null)
-                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                    throw new Exception("Unknown alarm tree node '" + path + "'");
                 acknowledge(node, true);
             }
             else if (command.startsWith("unack"))
             {
-                final AlarmTreeItem<?> node = model.findNode(detail);
+                final AlarmTreeItem<?> node = model.findNode(path);
                 if (node == null)
-                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                    throw new Exception("Unknown alarm tree node '" + path + "'");
                 acknowledge(node, false);
             }
             else if (command.equalsIgnoreCase("dump"))
             {
                 final AlarmTreeItem<?> node;
-                if (detail.isEmpty())
-                    node = model.getRoot();
-                else
-                    node = model.findNode(detail);
+                node = model.findNode(path);
                 if (node == null)
-                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                    throw new Exception("Unknown alarm tree node '" + path + "'");
                 System.out.println(node.getPathName() + ":");
                 ModelPrinter.print(node);
             }
             else if (command.equalsIgnoreCase("pvs"))
             {
                 final AlarmTreeItem<?> node;
-                if (detail.startsWith("/"))
-                    node = model.findNode(detail);
-                else
-                    node = model.getRoot();
+                node = model.findNode(path);
                 if (node == null)
-                    throw new Exception("Unknown alarm tree node '" + detail + "'");
+                    throw new Exception("Unknown alarm tree node '" + path + "'");
                 System.out.println("PVs for " + node.getPathName() + ":");
-                listPVs(node, detail != null && detail.startsWith("dis"));
+                listPVs(node, false);
+            }
+            else if (command.equalsIgnoreCase("disconnected"))
+            {
+                final AlarmTreeItem<?> node;
+                node = model.findNode(path);
+                if (node == null)
+                    throw new Exception("Unknown alarm tree node '" + path + "'");
+                System.out.println("PVs for " + node.getPathName() + ":");
+                listPVs(node, true);
             }
             else if (command.equalsIgnoreCase("pv"))
             {
-                final AlarmServerPV pv = model.findPV(detail);
+                final AlarmServerPV pv = model.findPV(path);
                 if (pv == null)
-                    throw new Exception("Unknown PV '" + detail + "'");
+                    throw new Exception("Unknown PV '" + path + "'");
                 listPVs(pv, false);
             }
             else if (command.equalsIgnoreCase("shutdown"))
+            {
                 restart.offer(false);
+            }
             else if (command.equalsIgnoreCase("restart"))
             {
                 logger.log(Level.INFO, "Restart requested");
                 restart.offer(true);
             }
             else
-                throw new Exception("Unknown command");
+                throw new Exception("Unknown command.");
         }
-        catch (final Throwable ex)
+        catch (Exception ex)
         {
-            logger.log(Level.WARNING, "Error for command: '" + command + "', detail '" + detail + "'", ex);
+            logger.log(Level.WARNING, "Error for command. path: '" + path + "', JSON: '" + json + "'", ex);
         }
     }
 
@@ -272,7 +290,10 @@ public class AlarmServerMain implements ServerModelListener
                 {
                     iter.remove();
                     logger.info("Discovering and creating any missing topics at " + server);
-                    CreateTopics.discoverAndCreateTopics(server, config);
+                    CreateTopics.discoverAndCreateTopics(server, true, List.of(config, 
+                                                                               config + AlarmSystem.STATE_TOPIC_SUFFIX, 
+                                                                               config + AlarmSystem.COMMAND_TOPIC_SUFFIX, 
+                                                                               config + AlarmSystem.TALK_TOPIC_SUFFIX));
                 }
                 else if (cmd.equals("-import"))
                 {

@@ -10,7 +10,9 @@ package org.phoebus.applications.alarm.client;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -21,9 +23,13 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
 
 /** Alarm client model
  *
@@ -114,4 +120,34 @@ public class KafkaHelper
 
         return producer;
     }
+    
+    /**
+     * Aggregate multiple topics into a single topic using KafkaStreams.
+     * @param kafka_servers - Sever to connect to.
+     * @param topics List of topics to aggregate.
+     * @param aggregate_topic - Name of topic to aggregate to.
+     * @return aggregate_stream - KafkaStreams
+     * @author Evan Smith
+     */
+    public static KafkaStreams aggregateTopics(String kafka_servers, List<String> topics, String aggregate_topic)
+    {
+        Map<String, Object> props = new HashMap<>();
+        
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "Stream-To-Long-Term");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafka_servers);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        
+        StreamsConfig config = new StreamsConfig(props);
+
+        StreamsBuilder builder = new StreamsBuilder();
+        
+        // Aggregate the topics by mapping the topic key value pairs one to one into the aggregate topic.
+        builder.<String, String>stream(topics).mapValues(pair -> pair).to(aggregate_topic);
+        
+        KafkaStreams aggregate_stream = new KafkaStreams(builder.build(), config);
+        
+        return aggregate_stream;
+    }
+
 }

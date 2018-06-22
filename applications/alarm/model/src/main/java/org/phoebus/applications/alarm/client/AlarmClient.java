@@ -12,6 +12,8 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -20,11 +22,13 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
+import org.phoebus.framework.jobs.JobManager;
 
 /** Alarm client model
  *
@@ -147,7 +151,7 @@ public class AlarmClient
                 else
                 {
                     // Get node_config as JSON map to check for "pv" key
-                    final Object json = JsonModelReader.parseAlarmItemConfig(node_config);
+                    final Object json = JsonModelReader.parseJsonText(node_config);
                     AlarmTreeItem<?> node = findNode(path);
                     // Only update listeners if this is a new node or the config changed
                     if (node == null)
@@ -342,8 +346,18 @@ public class AlarmClient
         try
         {
             // Remove from configuration
-            final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, item.getPathName(), null);
-            producer.send(record);
+            
+            // Create and send a message identifying who is deleting the node.
+            // The id message must arrive before the tombstone, so wait. This should be done in separate thread to allow for UI to remain responsive.
+            JobManager.schedule("Send delete message", (monitor) ->
+            {
+                final String json = new String(JsonModelWriter.deleteMessageToBytes());
+                final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, item.getPathName(), json);
+                Future<RecordMetadata> res = producer.send(id);
+                res.get(100, TimeUnit.MILLISECONDS);
+                final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, item.getPathName(), null);
+                producer.send(tombstone);
+            });
         }
         catch (final Exception ex)
         {
@@ -359,7 +373,8 @@ public class AlarmClient
         try
         {
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, cmd, item.getPathName());
+            final String json = new String (JsonModelWriter.commandToBytes(cmd));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, item.getPathName(), json);
             producer.send(record);
         }
         catch (final Exception ex)
