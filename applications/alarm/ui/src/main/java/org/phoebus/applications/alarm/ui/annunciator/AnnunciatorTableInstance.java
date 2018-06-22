@@ -21,9 +21,12 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
+/** Instance of AnnunciatorTableApplication
+ *  @author Even Smith
+ */
+@SuppressWarnings("nls")
 public class AnnunciatorTableInstance implements AppInstance
 {
-
     /** Singleton instance maintained by {@link AnnunciatorTableApplication} */
     static AnnunciatorTableInstance INSTANCE = null;
 
@@ -83,5 +86,4 @@ public class AnnunciatorTableInstance implements AppInstance
             annunciatorTable.shutdown();
         }
     }
-
 }

@@ -18,12 +18,13 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.talk.TalkClientListener;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -32,45 +33,46 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
-/**
- * Table View for the Annunciator
- * @author Evan Smith
+/** Table View for the Annunciator
+ *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
-    private final Button       clearTableButton = new Button("Clear Messages"); 
-    private final Alert        clearTableAlert  = new Alert(AlertType.CONFIRMATION);
-    private final ToggleButton muteButton       = new ToggleButton();
-    
+    private final Button       clearTableButton = new Button("Clear Messages");
+    private static final Image anunciate_icon = ImageCache.getImage(AlarmUI.class, "/icons/annunciator.png");
+    private static final Image mute_icon = ImageCache.getImage(AlarmUI.class, "/icons/silence.png");
+    private final ToggleButton muteButton       = new ToggleButton("", new ImageView(mute_icon));
+
     private final TableView<AnnunciationRowInfo> table = new TableView<>();
-    
+
     TableColumn<AnnunciationRowInfo, Instant>       time        = new TableColumn<>("Time Received");
     TableColumn<AnnunciationRowInfo, SeverityLevel> severity    = new TableColumn<>("Severity");
     TableColumn<AnnunciationRowInfo, String>        description = new TableColumn<>("Description");
 
     private final CopyOnWriteArrayList<AnnunciationRowInfo> messages = new CopyOnWriteArrayList<>();
-    
+
     private final TalkClient client;
-    
+
     private final int annunciator_threshold       = AlarmSystem.annunciator_threshold;
     private final int annunciator_retention_count = AlarmSystem.annunciator_retention_count;
-    
+
     private final AnnunciatorController annunciatorController;
 
     /**
-     * AnnunciatorCell extends table cell and implements a method that can alter the cells background 
+     * AnnunciatorCell extends table cell and implements a method that can alter the cells background
      * to indicate if the mute button is selected or not.
      *
      * @param <K>
@@ -82,7 +84,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         private final String OFF_ORANGE = "#dc6400"; // RGB (220, 100,   0)
         private final String WHITE      = "#ffffff"; // RGB (255, 255, 255)
         private final String OFF_WHITE  = "#f0f0f0"; // RGB (240, 240, 240)
-        
+
         /**
          * Set the color of the cell if muted is <code>true</code>.
          * @param muted - boolean
@@ -93,17 +95,17 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             // Determine the row specific color.
             final String rowColor       = rowIndex % 2 == 0 ? WHITE  : OFF_WHITE;
             final String mutedRowColor  = rowIndex % 2 == 0 ? ORANGE : OFF_ORANGE;
-            
+
             // Color the cells if muted, leave them the row color otherwise.
             String color = (muted) ? mutedRowColor : rowColor;
-            
+
             setBackground( new Background( new BackgroundFill(
                                             Paint.valueOf(color), // Set the color.
                                             new CornerRadii(0),   // We want square cells.
                                             new Insets(1))));     // Don't color over the cell borders.
         }
     }
-    
+
     /**
      * Table cell that displays alarm severity using icons and colored text.
      */
@@ -129,7 +131,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             setMutedColor(muteButton.isSelected());
         }
     }
-    
+
     /**
      * Table cell that shows a time stamp.
      */
@@ -151,7 +153,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             setMutedColor(muteButton.isSelected());
         }
     }
-    
+
     /**
      * Table Cell that shows a message.
      */
@@ -173,7 +175,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             setMutedColor(muteButton.isSelected());
         }
     }
-    
+
     /**
      * Create an AnnunciatorTable view.
      * @param client - TalkClient used to listen to the *Talk topic.
@@ -182,16 +184,16 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     {
         this.client = client;
         this.client.addListener(this);
-        
+
         if (annunciator_retention_count < 1)
             logger.log(Level.SEVERE, "Annunciation Retention Count set below 1.");
-            
+
         time.setCellValueFactory(cell -> cell.getValue().time_received);
         time.setCellFactory(c -> new TimeCell());
         time.setPrefWidth(190);
         time.setResizable(false);
         table.getColumns().add(time);
-               
+
         severity.setCellValueFactory(cell -> cell.getValue().severity);
         severity.setCellFactory(c -> new SeverityCell());
         severity.setPrefWidth(90);
@@ -206,42 +208,42 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
-          
+
         annunciatorController = new AnnunciatorController(annunciator_threshold);
-        
+
         // Top button row
-        HBox hbox = new HBox();
-        
-        Image muteIcon = ImageCache.getImage(AlarmUI.class, "/icons/mute.png");
-        muteButton.setTooltip(new Tooltip("Mute the annunciator."));
-        muteButton.setGraphic(new ImageView(muteIcon));
-        muteButton.setOnAction((event) -> {
-            annunciatorController.setMuted(muteButton.isSelected());
+        muteButton.setTooltip(new Tooltip("Mute the annunciator"));
+        muteButton.setOnAction((event) ->
+        {
+            final boolean mute = muteButton.isSelected();
+            // Update image
+            final ImageView image = (ImageView) muteButton.getGraphic();
+            image.setImage(mute ? anunciate_icon : mute_icon);
+            annunciatorController.setMuted(mute);
             // Refresh the table cell items so that they recalculate their background color.
             table.refresh();
         });
-        
-        clearTableAlert.setTitle("Clear Annunciator Table");
-        clearTableAlert.setHeaderText("Clear the table of all annunciations?");
-        
+
         clearTableButton.setTooltip(new Tooltip("Clear the messages in the table."));
-        clearTableButton.setOnAction((event) -> 
+        clearTableButton.setOnAction((event) ->
         {
-            clearTableAlert.showAndWait()
+            final Alert alert  = new Alert(AlertType.CONFIRMATION);
+            alert.setTitle("Clear Annunciator Table");
+            alert.setHeaderText("Clear the table of all annunciations?");
+            DialogHelper.positionDialog(alert, clearTableButton, -200, -100);
+            alert.showAndWait()
                 .filter(response -> response == ButtonType.OK)
                 .ifPresent(response -> clearTable());
         });
-        
-        hbox.getChildren().addAll(muteButton, clearTableButton);
-        hbox.setAlignment(Pos.BASELINE_RIGHT);
-        
-        this.getChildren().add(hbox);
-        this.getChildren().add(table);
-        
+
+        final ToolBar hbox = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
+
+        this.getChildren().setAll(hbox, table);
+
         // Annunciate message so that user can determine if annunciator and table are indeed functional.
         messageReceived(SeverityLevel.OK, true, "The Annunciator is initialized and starting.");
     }
-    
+
     /**
      * Clear the table and the message list.
      */
@@ -250,7 +252,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         logger.log(Level.INFO, "Annunciator table cleared.");
         messages.clear();
         // Clear the table on the UI thread.
-        Platform.runLater(() -> 
+        Platform.runLater(() ->
         {
             table.getItems().clear();
         });
@@ -262,34 +264,34 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      */
     @Override
     public void messageReceived(SeverityLevel severity, boolean standout, String message)
-    {     
+    {
         AnnunciationRowInfo annunciation = new AnnunciationRowInfo(Instant.now(), severity, message);
-        
+
         addAnnunciationToTable(annunciation);
-        logAnnunciation(annunciation);  
+        logAnnunciation(annunciation);
 
         annunciatorController.handleAnnunciation(standout, annunciation);
     }
-    
+
     /**
      * Handle message addition to the table.
      */
     private void addAnnunciationToTable(AnnunciationRowInfo annunciation)
     {
         messages.add(annunciation);
-        
-        // Remove the oldest messages to stay under the message retention threshold. 
+
+        // Remove the oldest messages to stay under the message retention threshold.
         if (messages.size() > annunciator_retention_count)
         {
             // Only the table items are sorted, the messages list maintains chronological order.
             final AnnunciationRowInfo to_remove = messages.remove(0);
-            Platform.runLater(() -> 
+            Platform.runLater(() ->
             {
                 table.getItems().remove(to_remove);
                 table.getItems().sort(table.getComparator());
             });
         }
-        
+
         // Update the table on the UI thread.
         Platform.runLater( () ->
         {
@@ -298,15 +300,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             table.getItems().sort(table.getComparator());
         });
     }
-    
+
     /**
      * Log an annunciation.
      * @param annunciation
      */
     private void logAnnunciation(AnnunciationRowInfo annunciation)
     {
-        logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) + 
-                " Severity: " + annunciation.severity.get() + 
+        logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) +
+                " Severity: " + annunciation.severity.get() +
                 ", Description: \"" + annunciation.message.get() + "\"");
     }
 
@@ -319,7 +321,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         try
         {
             annunciatorController.shutdown();
-        } 
+        }
         catch (InterruptedException e)
         { /* Ignore. Time to die. */ }
     }
