@@ -21,10 +21,12 @@ import java.util.logging.LogManager;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonTags;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.util.shell.CommandShell;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -36,8 +38,10 @@ public class AlarmServerMain implements ServerModelListener
 {
     private final SynchronousQueue<Boolean> restart = new SynchronousQueue<>();
 
-    private volatile ServerModel model;
-
+    private volatile ServerModel  model;
+    private volatile CommandShell shell;
+    private String current_path = "";
+    
     private AlarmServerMain(final String server, final String config)
     {
         logger.info("Server: " + server);
@@ -59,12 +63,20 @@ public class AlarmServerMain implements ServerModelListener
                 logger.info("Start handling alarms");
                 model = new ServerModel(server, config, initial_states, this);
                 model.start();
-
-                // Run until, via command topic, asked to
+                
+                shell = new CommandShell("help message", this::handleShellCommands);
+                
+                current_path = model.getRoot().getPathName();
+                shell.setPrompt(current_path);
+                shell.start();
+                
+                // Run until, via command topic or shell input, asked to
                 // a) restart (restart given with value 'true')
                 // b) shut down (restart given with value 'false')
                 run = restart.take();
 
+                shell.stop();
+                
                 model.shutdown();
             }
         }
@@ -77,7 +89,142 @@ public class AlarmServerMain implements ServerModelListener
         System.exit(0);
 
     }
+    
+    /** 
+     * Handle shell commands. Passed to command shell.
+     * @param args - variadic String
+     * @return result - boolean result of executing the command.
+     * @throws Throwable
+     */
+    private boolean handleShellCommands(final String... args) throws Throwable
+    {
+        if (args.length == 1)
+        {
+            if (args[0].equals("shutdown"))
+            {
+                restart.offer(false);
+            }
+            else if (args[0].equals("restart"))
+            {
+                restart.offer(true);
+            }
+            else if (args[0].equals("cd"))
+            {
+                current_path = model.getRoot().getPathName();
+                shell.setPrompt(current_path);
+            }
+            else if (args[0].equals("ls"))
+            {
+                List<AlarmTreeItem<?>> children = model.findNode(current_path).getChildren();
+                for (final AlarmTreeItem<?> child : children)
+                {
+                    System.out.println(child.getName());
+                }
+            }
+        }
+        else if (args.length == 2)
+        {
 
+            if (args[0].equals("cd")) 
+            {
+                AlarmTreeItem<?> new_loc = null;
+                
+                String new_path = determinePath(args[1]);
+                
+                new_loc = model.findNode(new_path);
+                
+                if (null == new_loc)
+                {
+                    System.out.println("Node not found: " + args[1]);
+                    return false;
+                }
+
+                // Can't change location to leaves.
+                if (new_loc instanceof AlarmTreeLeaf)
+                {
+                    System.out.println("Node not a directory: " + new_loc.getPathName());
+                    return false;
+                }
+                
+                current_path = new_loc.getPathName();
+                shell.setPrompt(current_path);
+            }
+            else if (args[0].equals("ls")) 
+            {
+                if (args[1].equals("-d"))
+                {
+                    listPVs(model.getRoot(), true);
+                }
+                else
+                {
+                    String path = determinePath(args[1]);
+                    
+                    AlarmTreeItem<?> node = model.findNode(path);
+                    
+                    if (null == node)
+                    {
+                        System.out.println("Node not found: " + args[1]);
+                        return false;
+                    }
+                    
+                    List<AlarmTreeItem<?>> children = node.getChildren();
+                    
+                    for (final AlarmTreeItem<?> child : children)
+                    {
+                        System.out.println(child.getName());
+                    }   
+                }
+            }
+        }
+        else 
+            return false;
+        
+        return true;
+    }
+    
+    /**
+     * Determines the new path based on the passed string.
+     * <p> The passed string is expected to be ".", "..", a canonical path, a path from the current directory, or a child of the current directory.
+     * <ol>
+     * <li> .           -> current directory.
+     * <li> ..          -> parent directory.
+     * <li> /root/path/ -> /root/path/
+     * <li> /dir        -> current_path/dir
+     * <li> dir         -> current_path/dir
+     * </ol>
+     * @param arg - String to be examined. 
+     * @return new_path
+     * @throws Exception
+     */
+    private String determinePath(final String arg) throws Exception
+    {
+        String new_path = current_path;
+        if (arg.equals("."))
+        {
+            return new_path;
+        }
+        else if (arg.equals(".."))
+        {
+            AlarmTreeItem<?> parent = model.findNode(current_path).getParent();
+            if (null != parent)
+                new_path = parent.getPathName();
+        }
+        else if (arg.startsWith(model.getRoot().getPathName()))
+        {
+            new_path = arg;
+        }
+        else if (arg.startsWith("/"))
+        {
+            new_path = current_path + arg.substring(1);
+        }
+        else
+        {
+            new_path = current_path + "/" + arg;
+        }
+        
+        return new_path;
+    }
+    
     /** Handle commands
      *
      *  <ul>
@@ -328,7 +475,6 @@ public class AlarmServerMain implements ServerModelListener
             ex.printStackTrace();
             return;
         }
-
 
         new AlarmServerMain(server, config);
     }
