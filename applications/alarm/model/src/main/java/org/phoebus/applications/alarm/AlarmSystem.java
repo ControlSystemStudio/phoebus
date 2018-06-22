@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm;
 import java.io.File;
 import java.util.logging.Logger;
 
+import org.phoebus.applications.alarm.client.IdentificationHelper;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Common alarm system code
@@ -84,5 +85,7 @@ public class AlarmSystem
         command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
         annunciator_threshold = prefs.getInt("annunciator_threshold");
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
+
+        IdentificationHelper.initialize();
     }
 }
