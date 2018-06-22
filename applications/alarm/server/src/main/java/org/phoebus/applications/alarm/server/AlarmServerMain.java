@@ -42,6 +42,15 @@ public class AlarmServerMain implements ServerModelListener
     private volatile CommandShell shell;
     private String current_path = "";
     
+    private static final String COMMANDS = 
+                        "Commands:\n\n" +
+                        "Note: '.' and '..' will be interpreted as the current directory and the parent directory respectively.\n\n" +
+                        "\tls              - List all alarm tree items in the current directory.\n" +
+                        "\tls -d           - List all the disconnected PVs in the entire alarm tree.\n" +
+                        "\tls /path/to/dir - List all alarm tree item in the specified directory.\n" +
+                        "\tcd              - Change to the root directory.\n" +
+                        "\tcd /path/to/dir - Change to the specified directory.\n";
+    
     private AlarmServerMain(final String server, final String config)
     {
         logger.info("Server: " + server);
@@ -64,7 +73,7 @@ public class AlarmServerMain implements ServerModelListener
                 model = new ServerModel(server, config, initial_states, this);
                 model.start();
                 
-                shell = new CommandShell("help message", this::handleShellCommands);
+                shell = new CommandShell(COMMANDS, this::handleShellCommands);
                 
                 current_path = model.getRoot().getPathName();
                 shell.setPrompt(current_path);
@@ -108,6 +117,10 @@ public class AlarmServerMain implements ServerModelListener
             {
                 restart.offer(true);
             }
+            else if (args[0].startsWith("h"))
+            {
+                return false;
+            }
             else if (args[0].equals("cd"))
             {
                 current_path = model.getRoot().getPathName();
@@ -117,63 +130,69 @@ public class AlarmServerMain implements ServerModelListener
             {
                 List<AlarmTreeItem<?>> children = model.findNode(current_path).getChildren();
                 for (final AlarmTreeItem<?> child : children)
-                {
                     System.out.println(child.getName());
-                }
             }
         }
         else if (args.length == 2)
         {
-
-            if (args[0].equals("cd")) 
+            try 
             {
-                AlarmTreeItem<?> new_loc = null;
-                
-                String new_path = determinePath(args[1]);
-                
-                new_loc = model.findNode(new_path);
-                
-                if (null == new_loc)
+                if (args[0].equals("cd")) 
                 {
-                    System.out.println("Node not found: " + args[1]);
-                    return false;
-                }
-
-                // Can't change location to leaves.
-                if (new_loc instanceof AlarmTreeLeaf)
-                {
-                    System.out.println("Node not a directory: " + new_loc.getPathName());
-                    return false;
-                }
-                
-                current_path = new_loc.getPathName();
-                shell.setPrompt(current_path);
-            }
-            else if (args[0].equals("ls")) 
-            {
-                if (args[1].equals("-d"))
-                {
-                    listPVs(model.getRoot(), true);
-                }
-                else
-                {
-                    String path = determinePath(args[1]);
+                    AlarmTreeItem<?> new_loc = null;
                     
-                    AlarmTreeItem<?> node = model.findNode(path);
+                    String new_path = determinePath(args[1]);
                     
-                    if (null == node)
+                    new_loc = model.findNode(new_path);
+                    
+                    if (null == new_loc)
                     {
                         System.out.println("Node not found: " + args[1]);
                         return false;
                     }
-                    
-                    List<AlarmTreeItem<?>> children = node.getChildren();
-                    
-                    for (final AlarmTreeItem<?> child : children)
+    
+                    // Can't change location to leaves.
+                    if (new_loc instanceof AlarmTreeLeaf)
                     {
-                        System.out.println(child.getName());
-                    }   
+                        System.out.println("Node not a directory: " + new_loc.getPathName());
+                        return false;
+                    }
+                    
+                    current_path = new_loc.getPathName();
+                    shell.setPrompt(current_path);
                 }
+                else if (args[0].equals("ls")) 
+                {
+                    if (args[1].equals("-d"))
+                    {
+                        listPVs(model.getRoot(), true);
+                    }
+                    else
+                    {
+                        String path = determinePath(args[1]);
+                        
+                        AlarmTreeItem<?> node = model.findNode(path);
+                        
+                        if (null == node)
+                        {
+                            System.out.println("Node not found: " + args[1]);
+                            return false;
+                        }
+                        
+                        List<AlarmTreeItem<?>> children = node.getChildren();
+                        
+                        for (final AlarmTreeItem<?> child : children)
+                        {
+                            System.out.println(child.getName());
+                        }   
+                    }
+                }
+            }
+            // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
+            catch (Exception ex)
+            {
+                System.out.println(ex.getMessage());
+                return false;
             }
         }
         else 
@@ -215,7 +234,7 @@ public class AlarmServerMain implements ServerModelListener
         }
         else if (arg.startsWith("/"))
         {
-            new_path = current_path + arg.substring(1);
+            new_path = current_path + arg;
         }
         else
         {
