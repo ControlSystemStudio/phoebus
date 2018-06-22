@@ -16,8 +16,10 @@ import java.util.logging.Logger;
 
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.VDouble;
 import org.phoebus.vtype.VTable;
 import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
@@ -44,7 +46,9 @@ abstract public class PV
 
     final private String name;
 
-    final private List<PVListener> listeners = new CopyOnWriteArrayList<>();
+    final private List<ValueEventHandler.Subscription> value_subs = new CopyOnWriteArrayList<>();
+
+    final private List<AccessRightsEventHandler.Subscription> access_subs = new CopyOnWriteArrayList<>();
 
     private volatile boolean is_readonly = false;
 
@@ -68,28 +72,42 @@ abstract public class PV
      *
      *  <p>Note that the PV is shared via the {@link PVPool}.
      *  When updates are no longer desired, caller must
-     *  <code>removeListener()</code>.
+     *  <code>removeSubscription()</code>.
      *  Simply releasing the PV back to the {@link PVPool}
      *  will <b>not</b> automatically remove listeners!
      *
-     *  @param listener Listener that will receive value updates
-     *  @see #removeListener(PVListener)
+     *  @param value_sub Listener that will receive value updates
+     *  @see #removeSubscription()
      */
-    @Deprecated
-    public void addListener(final PVListener listener)
+    void addSubscription(final ValueEventHandler.Subscription value_sub)
     {
         // If there is a known value, perform initial update
         final VType value = last_value;
         if (value != null)
-            listener.valueChanged(value);
-        listeners.add(listener);
+            value_sub.update(value);
+        value_subs.add(value_sub);
     }
 
-    /** @param listener Listener that will no longer receive value updates */
-    @Deprecated
-    public void removeListener(final PVListener listener)
+    /** @param value_sub Listener that will no longer receive value updates */
+    void removeSubscription(final ValueEventHandler.Subscription value_sub)
     {
-        listeners.remove(listener);
+        value_subs.remove(value_sub);
+    }
+
+    /** @param access_sub Listener that will receive permission updates
+     *  @see #removeSubscription()
+     */
+    void addSubscription(final AccessRightsEventHandler.Subscription access_sub)
+    {
+        // perform initial update
+        access_sub.update(isReadonly());
+        access_subs.add(access_sub);
+    }
+
+    /** @param access_sub Listener that will no longer receive permission updates */
+    void removeSubscription(final AccessRightsEventHandler.Subscription access_sub)
+    {
+        access_subs.remove(access_sub);
     }
 
     /** Obtain {@link Flowable} for PV's values.
@@ -112,7 +130,7 @@ abstract public class PV
      */
     public Flowable<VType> onValueEvent(final BackpressureStrategy mode)
     {
-        return Flowable.create(new ValueEventOnSubscribe(this), mode);
+        return Flowable.create(new ValueEventHandler(this), mode);
     }
 
     /** Obtain {@link Flowable} for PV's write access.
@@ -125,7 +143,7 @@ abstract public class PV
      */
     public Flowable<Boolean> onAccessRightsEvent()
     {
-        return Flowable.create(new AccessRightsEventOnSubscribe(this), BackpressureStrategy.LATEST);
+        return Flowable.create(new AccessRightsEventHandler(this), BackpressureStrategy.LATEST);
     }
 
     /** Check if value indicates a disconnected PV
@@ -210,52 +228,42 @@ abstract public class PV
     }
 
     /** Helper for PV implementation to notify listeners */
-    protected void notifyListenersOfDisconnect()
+    protected void notifyListenersOfValue(final VType value)
     {
-        last_value = null;
-        for (PVListener listener : listeners)
+        last_value = value;
+        for (ValueEventHandler.Subscription sub : value_subs)
         {
             try
             {
-                listener.disconnected();
+                sub.update(value);
             }
             catch (Throwable ex)
             {
-                logger.log(Level.WARNING, name + " PVListener error", ex);
+                logger.log(Level.WARNING, name + " value update error", ex);
             }
         }
+    }
+
+    /** Helper for PV implementation to notify listeners */
+    protected void notifyListenersOfDisconnect()
+    {
+        final VType disconnected = VDouble.create(Double.NaN, ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, PV.DISCONNECTED), ValueFactory.timeNow(), ValueFactory.displayNone());
+        notifyListenersOfValue(disconnected);
     }
 
     /** Helper for PV implementation to notify listeners */
     protected void notifyListenersOfPermissions(final boolean readonly)
     {
         is_readonly = readonly;
-        for (PVListener listener : listeners)
+        for (AccessRightsEventHandler.Subscription sub : access_subs)
         {
             try
             {
-                listener.permissionsChanged(readonly);
+                sub.update(readonly);
             }
             catch (Throwable ex)
             {
-                logger.log(Level.WARNING, name + " PVListener error", ex);
-            }
-        }
-    }
-
-    /** Helper for PV implementation to notify listeners */
-    protected void notifyListenersOfValue(final VType value)
-    {
-        last_value = value;
-        for (PVListener listener : listeners)
-        {
-            try
-            {
-                listener.valueChanged(value);
-            }
-            catch (Throwable ex)
-            {
-                logger.log(Level.WARNING, name + " PVListener error", ex);
+                logger.log(Level.WARNING, name + " permission update error", ex);
             }
         }
     }

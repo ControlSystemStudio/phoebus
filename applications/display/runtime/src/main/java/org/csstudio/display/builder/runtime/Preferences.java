@@ -33,7 +33,7 @@ public class Preferences
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Preferences.class, "display_runtime_preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/display_runtime_preferences.properties");
         python_path = prefs.get(PYTHON_PATH);
 
         pv_name_patches = new ArrayList<>();

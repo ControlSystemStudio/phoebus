@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.util.VTypeUtil;
-import org.csstudio.display.builder.runtime.pv.vtype_pv.VTypePV;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.util.array.ArrayDouble;
@@ -100,11 +99,7 @@ public class ArrayPVDispatcher implements AutoCloseable
         this.basename = basename;
         this.listener = listener;
 
-        if (! (array_pv instanceof VTypePV))
-            throw new IllegalStateException("Only works with VType PV");
-
-        final VTypePV actual = (VTypePV) array_pv;
-        array_flow = actual.getPV().onValueEvent().subscribe(this::dispatchArrayUpdate);
+        array_flow = array_pv.getPV().onValueEvent().subscribe(this::dispatchArrayUpdate);
     }
 
     /** @param value Value update from array */
@@ -300,7 +295,7 @@ public class ArrayPVDispatcher implements AutoCloseable
             for (PV pv : new_pvs)
             {
                 element_flow.add(pv.onValueEvent().subscribe(this::updateArrayFromElements));
-                rt_pvs.add(new VTypePV(pv));
+                rt_pvs.add(new RuntimePV(pv));
             }
             listener.arrayChanged(rt_pvs);
         }
