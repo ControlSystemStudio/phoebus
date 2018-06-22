@@ -72,7 +72,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     /**
      * AnnunciatorCell extends table cell and implements a method that can alter the cells background 
      * to indicate if the mute button is selected or not.
-     * @author 1es
      *
      * @param <K>
      * @param <V>

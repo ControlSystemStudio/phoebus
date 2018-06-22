@@ -42,7 +42,7 @@ public class AnnunciationRowInfo implements Comparable<AnnunciationRowInfo>
     {
         // Multiply by -1 to invert the sort order. The greater the severity, the greater the sort priority.
         int result = -1 * this.severity.get().compareTo(other.severity.get());
-        // Multiply by -1 to invert the sort order, newest messages should be first.
+        // Multiply by -1 to invert the sort order, oldest messages should be first.
         if (0 == result) 
             return -1 * this.time_received.get().compareTo(other.time_received.get());
         else

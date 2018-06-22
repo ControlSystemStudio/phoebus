@@ -41,9 +41,9 @@ public class AnnunciatorMessage implements Comparable<AnnunciatorMessage>
     @Override
     public int compareTo(AnnunciatorMessage other)
     {
-        // Compare on severity.
+        // Compare on severity. Greater severity comes first.
         int result = -1 * this.severity.compareTo(other.severity);
-        // If the same severity, compare on time.
+        // If the same severity, compare on time. Newest in time comes first.
         if (result == 0)
             result = this.time.compareTo(other.time);
         
