@@ -8,10 +8,7 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 
@@ -35,7 +32,7 @@ public class AlarmSystem
 
     /** Suffix for the topic that contains non compacted aggregate of other topics. */
     public static final String LONG_TERM_TOPIC_SUFFIX = "LongTerm";
-    
+
     /** Kafka Server host:port */
     public static final String server;
 
@@ -68,7 +65,7 @@ public class AlarmSystem
 
     /** Annunciator threshold */
     public static final int annunciator_threshold;
-    
+
     /** Annunciator message retention count */
     public static final int annunciator_retention_count;
 
