@@ -6,6 +6,7 @@
     <javac srcdir="${src}" destdir="${classes}"/>
   	<jar destfile="${build}/framework-${version}.jar">
       <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
     </jar>
   </target>
 </project>
