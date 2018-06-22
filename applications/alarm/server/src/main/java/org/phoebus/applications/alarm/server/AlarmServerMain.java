@@ -142,7 +142,7 @@ public class AlarmServerMain implements ServerModelListener
         else if (args.length >= 2)
         {
             // Concatenate all the tokens whose index is > 0 into a single string.
-            // This allows for spaces in PV and Node names.
+            // This allows for spaces in PV and Node names. They would have been split on whitespace by the CommandShell.
             String args1 = "";
             for (int i = 1; i < args.length; i++)
                 args1 += " " + args[i];
@@ -184,7 +184,7 @@ public class AlarmServerMain implements ServerModelListener
                     {
                         listPVs(model.getRoot(), false);
                     }
-                    else
+                    else // List the PVs at the specified path.
                     {
                         String path = determinePath(args1);
                         
@@ -246,25 +246,25 @@ public class AlarmServerMain implements ServerModelListener
     private String determinePath(final String arg) throws Exception
     {
         String new_path = current_path;
-        if (arg.equals("."))
+        if (arg.equals(".")) // Current directory.
         {
             return new_path;
         }
-        else if (arg.equals(".."))
+        else if (arg.equals("..")) // Parent directory.
         {
             AlarmTreeItem<?> parent = model.findNode(current_path).getParent();
             if (null != parent)
                 new_path = parent.getPathName();
         }
-        else if (arg.startsWith(model.getRoot().getPathName()))
+        else if (arg.startsWith(model.getRoot().getPathName())) // If starts from root, treat it as a whole path.
         {
             new_path = arg;
         }
-        else if (arg.startsWith("/"))
+        else if (arg.startsWith("/")) // Allow for "command /dir".
         {
             new_path = current_path + arg;
         }
-        else
+        else // Allow for "command dir".
         {
             new_path = current_path + "/" + arg;
         }
