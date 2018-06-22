@@ -237,7 +237,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         hbox.setAlignment(Pos.BASELINE_RIGHT);
         
         this.getChildren().add(hbox);
-        this.getChildren().add(table);      
+        this.getChildren().add(table);
+        
+        // Annunciate message so that user can determine if annunciator and table are indeed functional.
+        messageReceived(SeverityLevel.OK, true, "The Annunciator is initialized and starting.");
     }
     
     /**
