@@ -36,7 +36,8 @@ public class CommandShell
     private final Thread thread;
     private final String help;
     private final CommandHandler handler;
-
+    private String prompt = "";
+    
     /** Create shell
      *  @param help Text that is displayed initially
      *              and whenever a command isn't handled
@@ -63,6 +64,18 @@ public class CommandShell
         thread.interrupt();
     }
 
+    /** Get the prompt string. */
+    public String getPrompt()
+    {
+        return prompt;
+    }
+    
+    /** Set the prompt string. */
+    public void setPrompt(final String newPrompt)
+    {
+        this.prompt = newPrompt;
+    }
+    
     private void run()
     {
         System.out.println(help);
@@ -71,7 +84,7 @@ public class CommandShell
         {
             while (! thread.isInterrupted())
             {
-                System.out.print("> ");
+                System.out.print(prompt + " > ");
                 final String line = reader.readLine().trim();
                 if (line.isEmpty())
                     continue;
