@@ -121,17 +121,18 @@ public class AlarmServerMain implements ServerModelListener
             else if (args[0].equals("restart"))
             {
                 restart.offer(true);
-            }
-            else if (args[0].startsWith("h"))
+            } 
+            else if (args[0].equals("help"))
             {
+                // Return false will print the commands message.
                 return false;
             }
-            else if (args[0].equals("cd"))
+            else if (args[0].equals("cd")) // cd with no argument goes to root directory.
             {
                 current_path = model.getRoot().getPathName();
                 shell.setPrompt(current_path);
             }
-            else if (args[0].equals("ls"))
+            else if (args[0].equals("ls")) // List alarm tree items in current directory. _Not_ recursive descent.
             {
                 List<AlarmTreeItem<?>> children = model.findNode(current_path).getChildren();
                 for (final AlarmTreeItem<?> child : children)
@@ -140,13 +141,16 @@ public class AlarmServerMain implements ServerModelListener
         }
         else if (args.length >= 2)
         {
+            // Concatenate all the tokens whose index is > 0 into a single string.
+            // This allows for spaces in PV and Node names.
             String args1 = "";
             for (int i = 1; i < args.length; i++)
                 args1 += " " + args[i];
             args1 = args1.trim();
+            
             try 
             {
-                if (args[0].equals("cd")) 
+                if (args[0].equals("cd")) // Change directory to specified location.
                 {
                     AlarmTreeItem<?> new_loc = null;
                     
@@ -170,13 +174,13 @@ public class AlarmServerMain implements ServerModelListener
                     current_path = new_loc.getPathName();
                     shell.setPrompt(current_path);
                 }
-                else if (args[0].equals("ls")) 
+                else if (args[0].equals("ls"))  // List the alarm tree items at the specified location.
                 {
-                    if (args1.startsWith("-dis"))
+                    if (args1.startsWith("-dis")) // Print all disconnected PVs in tree.
                     {
                         listPVs(model.getRoot(), true);
-                    }
-                    else if (args1.equals("-all"))
+                    } 
+                    else if (args1.equals("-all")) // Print all the PVs in the tree.
                     {
                         listPVs(model.getRoot(), false);
                     }
@@ -200,7 +204,7 @@ public class AlarmServerMain implements ServerModelListener
                         }   
                     }
                 }
-                else if (args[0].equals("pv"))
+                else if (args[0].equals("pv")) // Print the specified PV.
                 {
                     final String pvPath = determinePath(args1);
                     AlarmTreeItem<?> node = model.findNode(pvPath);
