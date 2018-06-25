@@ -16,6 +16,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -131,7 +132,7 @@ public class XmlModelReader
             processPV(component/* parent */, child);
     }
 
-    private void processCompAttr(AlarmClientNode component, Node node)
+    private void processCompAttr(AlarmClientNode component, Node node) throws Exception
     {
         ArrayList<TitleDetail> td = new ArrayList<>();
 
@@ -161,13 +162,14 @@ public class XmlModelReader
             td = new ArrayList<>();
         }
 
+        ArrayList<TitleDetailDelay> tdd = new ArrayList<>();
         for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
-            td.add(getTD(child));
+            tdd.add(getTDD(child));
 
-        if (td.size() > 0)
+        if (tdd.size() > 0)
         {
-            component.setActions(td);
-            td = new ArrayList<>();
+            component.setActions(tdd);
+            tdd = new ArrayList<>();
         }
     }
 
@@ -250,12 +252,13 @@ public class XmlModelReader
             td = new ArrayList<>();
         }
 
+        ArrayList<TitleDetailDelay> tdd = new ArrayList<>();
         for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
-            td.add(getTD(child));
+            tdd.add(getTDD(child));
 
         if (td.size() > 0)
         {
-            pv.setActions(td);
+            pv.setActions(tdd);
             td = new ArrayList<>();
         }
     }
@@ -265,5 +268,13 @@ public class XmlModelReader
         final String title = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
         final String detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
         return new TitleDetail(title, detail);
+    }
+    
+    private TitleDetailDelay getTDD(Element node) throws Exception
+    {
+        final String title = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
+        final String detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
+        final Integer delay = XMLUtil.getChildInteger(node, TAG_DELAY).orElse(0);
+        return new TitleDetailDelay(title, detail, delay);
     }
 }
