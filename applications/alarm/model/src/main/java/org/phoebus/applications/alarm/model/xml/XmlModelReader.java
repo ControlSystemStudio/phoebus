@@ -256,10 +256,10 @@ public class XmlModelReader
         for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
             tdd.add(getTDD(child));
 
-        if (td.size() > 0)
+        if (tdd.size() > 0)
         {
             pv.setActions(tdd);
-            td = new ArrayList<>();
+            tdd = new ArrayList<>();
         }
     }
 
@@ -272,9 +272,9 @@ public class XmlModelReader
     
     private TitleDetailDelay getTDD(Element node) throws Exception
     {
-        final String title = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
-        final String detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
-        final Integer delay = XMLUtil.getChildInteger(node, TAG_DELAY).orElse(0);
+        final String  title  = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
+        final String  detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
+        final Integer delay  = XMLUtil.getChildInteger(node, TAG_DELAY).orElse(0);
         return new TitleDetailDelay(title, detail, delay);
     }
 }
