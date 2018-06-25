@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 public class AlarmModelWriterTest
@@ -54,7 +55,7 @@ public class AlarmModelWriterTest
 		area1Displays.add(new TitleDetail("Area1 Display Title 2", "Area1 Display Detail 2"));
 
 		// Set area1 displays.
-		area1.setActions(area1Displays);
+		area1.setDisplays(area1Displays);
 
 
 		// Set area1 commands.
@@ -62,10 +63,10 @@ public class AlarmModelWriterTest
 				new TitleDetail("Area1 Command Title 1", "Area1 Command Detail 1"),
 				new TitleDetail("Area1 Command Title 2", "Area1 Command Detail 2")));
 
-		final List<TitleDetail> area1Actions = new ArrayList<>();
+		final List<TitleDetailDelay> area1Actions = new ArrayList<>();
 
-		area1Actions.add(new TitleDetail("Area1 Action Title 1", "Area1 Action Detail 1"));
-		area1Actions.add(new TitleDetail("Area1 Action Title 2", "Area1 Action Detail 2"));
+		area1Actions.add(new TitleDetailDelay("Area1 Action Title 1", "Area1 Action Detail 1", 4));
+		area1Actions.add(new TitleDetailDelay("Area1 Action Title 2", "Area1 Action Detail 2", 5));
 
 		// Set area1 commands.
 		area1.setActions(area1Actions);
@@ -116,7 +117,12 @@ public class AlarmModelWriterTest
         assertTrue(xml.contains("<details>Area1 Command Detail 1</details>"));
         assertTrue(xml.contains("<title>Area1 Command Title 2</title>"));
         assertTrue(xml.contains("<details>Area1 Command Detail 2</details>"));
-
+        assertTrue(xml.contains("<title>Area1 Action Title 1</title>"));
+        assertTrue(xml.contains("<details>Area1 Action Detail 1</details>"));
+        assertTrue(xml.contains("<delay>4</delay>"));
+        assertTrue(xml.contains("<title>Area1 Action Title 2</title>"));
+        assertTrue(xml.contains("<details>Area1 Action Detail 2</details>"));
+        assertTrue(xml.contains("<delay>5</delay>"));
         // Area1 PV1
         assertTrue(xml.contains("<pv name=\"a1pv1\">"));
         assertTrue(xml.contains("<description>a1pv1 description</description>"));
