@@ -9,12 +9,16 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
@@ -25,6 +29,8 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class SaveLayoutMenuItem extends MenuItem
 {
+    private final Alert fileExistsAlert = new Alert(AlertType.CONFIRMATION);    
+    
     /** Save layout menu item */
     public SaveLayoutMenuItem(final PhoebusApplication phoebus)
     {
@@ -49,22 +55,57 @@ public class SaveLayoutMenuItem extends MenuItem
         final TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle(getText());
         prompt.setHeaderText("Enter a file name to save the layout as.");
-        final List<Stage> stages = DockStage.getDockStages();
+        final List<Stage> stages = DockStage.getDockStages(); 
         DialogHelper.positionDialog(prompt, stages.get(0).getScene().getRoot(), -100, -100);
-        String filename;
+
         while (true)
         {
-            filename = prompt.showAndWait().orElse(null);
+            final String filename = prompt.showAndWait().orElse(null);
+            
             // Canceled?
             if (filename == null)
                 return;
             // OK to save?
-            if (validateFilename(filename))
+            if (! validateFilename(filename))
+            {
+                // Ask again
+                prompt.setHeaderText("Name must only contain alphanumeric characters, space, underscore or '-'.\nEnter a valid layout name.");
+                continue;
+            }
+            else
+            {
+                prompt.setHeaderText("Enter a file name to save the layout as.");   
+            }
+            
+            // Done if save succeeded.
+            if (saveState(phoebus, filename))
                 break;
-            // Ask again
-            prompt.setHeaderText("Name must only contain alphanumeric characters, space, underscore or '-'.\nEnter a valid layout name.");
         }
-        final File memento_file = new File(Locations.user(), filename + ".memento");
+    }
+
+    /**
+     * Save the state of the phoebus application with the given filename.
+     * <p> If the file already exists, alert the user and prompt for file overwrite confirmation.
+     * @param phoebus Phoebus application
+     * @param filename Memento file
+     * @return
+     */
+    private boolean saveState(PhoebusApplication phoebus, String filename)
+    {
+        final String memento_filename = filename + ".memento";
+        final File memento_file = new File(Locations.user(), memento_filename);
+        // File.exists() is blocking in nature. Better to just assume user knows about all potential overwrites?
+        if (phoebus.getMementoFiles().contains(memento_filename))
+        {
+            fileExistsAlert.setHeaderText("File \"" + filename + "\" already exists. Do you want to overwite it?");
+            Optional<ButtonType> result = fileExistsAlert.showAndWait();
+            if (! result.isPresent() || result.get() != ButtonType.OK)
+            {
+                return false;
+            }   
+        }
+
         MementoHelper.saveState(memento_file, null, null, phoebus.isToolbarVisible());
+        return true;
     }
 }
