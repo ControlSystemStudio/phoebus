@@ -80,6 +80,7 @@ public class AlarmServerMain implements ServerModelListener
                 
                 shell = new CommandShell(COMMANDS, this::handleShellCommands);
                 
+                // Start the command shell at the root node.
                 current_path = model.getRoot().getPathName();
                 shell.setPrompt(current_path);
                 shell.start();
@@ -138,6 +139,8 @@ public class AlarmServerMain implements ServerModelListener
                 for (final AlarmTreeItem<?> child : children)
                     System.out.println(child.getName());
             }
+            else
+                return false;
         }
         else if (args.length >= 2)
         {
