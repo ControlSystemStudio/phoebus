@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.model.json;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -83,19 +84,27 @@ public class JsonModelReader
         boolean changed = false;
 
         JsonNode jn = json.get(JsonTags.GUIDANCE);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setGuidance(Collections.emptyList());
+        else
             changed |= node.setGuidance(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.DISPLAYS);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setDisplays(Collections.emptyList());
+        else
             changed |= node.setDisplays(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.COMMANDS);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setCommands(Collections.emptyList());
+        else
             changed |= node.setCommands(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.ACTIONS);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setActions(Collections.emptyList());
+        else
             changed |= node.setActions(parseTitleDetailDelay(jn));
 
         return changed;
