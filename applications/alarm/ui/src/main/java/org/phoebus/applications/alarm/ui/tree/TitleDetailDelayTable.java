@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
 import java.util.ArrayList;
@@ -23,12 +30,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DefaultStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
+/**
+ * Table for editing list of {@link TitleDetailDelay}
+ * <p> Largely based of off {@link TitleDetailTable}
+ * @author Evan Smith
+ */
 public class TitleDetailDelayTable extends BorderPane
 {
     private final ObservableList<TitleDetailDelay> items = FXCollections.observableArrayList();
@@ -123,7 +136,7 @@ public class TitleDetailDelayTable extends BorderPane
 
     private void createButtons()
     {
-        // TODO Button tooltips
+        add.setTooltip(new Tooltip("Add a new table item."));
         add.setOnAction(event ->
         {
             items.add(new TitleDetailDelay("", "", 0));
@@ -138,7 +151,8 @@ public class TitleDetailDelayTable extends BorderPane
                 }),
                 200, TimeUnit.MILLISECONDS);
         });
-
+        
+        edit.setTooltip(new Tooltip("Edit the detail field of table item."));
         edit.setOnAction(event ->
         {
             final int row = table.getSelectionModel().getSelectedIndex();
@@ -153,6 +167,7 @@ public class TitleDetailDelayTable extends BorderPane
             });
         });
 
+        up.setTooltip(new Tooltip("Move table item up."));
         up.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -175,6 +190,7 @@ public class TitleDetailDelayTable extends BorderPane
             }
         });
 
+        down.setTooltip(new Tooltip("Move table item down."));
         down.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -198,6 +214,7 @@ public class TitleDetailDelayTable extends BorderPane
             }
         });
 
+        delete.setTooltip(new Tooltip("Delete table item."));
         delete.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
