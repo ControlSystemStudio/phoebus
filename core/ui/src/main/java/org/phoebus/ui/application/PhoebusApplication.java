@@ -6,6 +6,7 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -118,7 +119,13 @@ public class PhoebusApplication extends Application {
 
     /** Menu to load past layouts */
     private final Menu load_layout = new Menu("Load Layout");
+    
+    /** List of memento files in default directory. */
+    private final ArrayList<String> memento_files = new ArrayList<String>();
 
+    /** Return read only view of memento files list. */
+    public List<String> getMementoFiles() { return Collections.unmodifiableList(memento_files); }
+    
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
 
@@ -447,6 +454,9 @@ public class PhoebusApplication extends Application {
         // Schedule on background thread. Looking for files so can't be on UI thread.
         JobManager.schedule("Create Load Layouts Menu", (monitor) ->
         {
+            // Clear the list of memento files.
+            memento_files.clear();
+            
             final List<MenuItem> menu_items = new ArrayList<>();
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());
@@ -457,6 +467,8 @@ public class PhoebusApplication extends Application {
                 final String filename = memento_file.getName();
                 if (memento_file.isFile() && filename.endsWith(".memento"))
                 {
+                    // Build the list of memento files.
+                    memento_files.add(filename);
                     // Use just the file name w/o ".memento" for the menu entry
                     final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
                     menuItem.setOnAction(event -> startLayoutReplacement(memento_file));
