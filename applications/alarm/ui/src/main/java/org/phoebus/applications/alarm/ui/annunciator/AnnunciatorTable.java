@@ -241,7 +241,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         this.getChildren().setAll(hbox, table);
 
         // Annunciate message so that user can determine if annunciator and table are indeed functional.
-        messageReceived(SeverityLevel.OK, true, "The Annunciator is initialized and starting.");
+        messageReceived(SeverityLevel.OK, true, "Annunciator started");
     }
 
     /**
@@ -263,12 +263,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      * <p> Called whenever the listener is notified of a received message.
      */
     @Override
-    public void messageReceived(SeverityLevel severity, boolean standout, String message)
+    public void messageReceived(final SeverityLevel severity, final boolean standout, final String message)
     {
-        AnnunciationRowInfo annunciation = new AnnunciationRowInfo(Instant.now(), severity, message);
-
+        final AnnunciationRowInfo annunciation = new AnnunciationRowInfo(Instant.now(), severity, message);
         addAnnunciationToTable(annunciation);
-        logAnnunciation(annunciation);
+        logger.log(Level.FINE,
+                   () -> "Annunciator received " +
+                         TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) +
+                         " Severity: " + annunciation.severity.get() +
+                         ", Description: \"" + annunciation.message.get() + "\"");
 
         annunciatorController.handleAnnunciation(standout, annunciation);
     }
@@ -299,17 +302,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             table.getItems().add(annunciation);
             table.getItems().sort(table.getComparator());
         });
-    }
-
-    /**
-     * Log an annunciation.
-     * @param annunciation
-     */
-    private void logAnnunciation(AnnunciationRowInfo annunciation)
-    {
-        logger.info(TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) +
-                " Severity: " + annunciation.severity.get() +
-                ", Description: \"" + annunciation.message.get() + "\"");
     }
 
     /**
