@@ -68,7 +68,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
 
         // Action has not been triggered, so should not be invoked
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
@@ -88,6 +88,33 @@ public class AutomatedActionTest
     }
 
     @Test
+    public void testWasInAlarm() throws Exception
+    {
+        // TODO Use TitleDetailDelay with delay of DELAY_MS
+        final TitleDetail email = new TitleDetail("Send Email", "mailto:fred@mail.com");
+        final AlarmClientNode test_item = new AlarmClientNode(null, "test");
+        test_item.setActions(List.of(email));
+
+        // Assume item was already in alarm
+        final AutomatedActions auto_action = new AutomatedActions(test_item, true, perform_action);
+        // Receiving another alarm should _not_ trigger the action
+        auto_action.handleSeverityUpdate(SeverityLevel.MAJOR);
+        assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
+
+        // Trigger alarm as item clears and then enters alarm
+        auto_action.handleSeverityUpdate(SeverityLevel.OK);
+        auto_action.handleSeverityUpdate(SeverityLevel.INVALID);
+        final long start = System.currentTimeMillis();
+        assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
+        final long passed = System.currentTimeMillis() - start;
+        System.out.println("Action performed after " + passed + " ms");
+        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
+
+        // When no longer needed, close to stop timers etc.
+        auto_action.cancel();
+    }
+
+    @Test
     public void testMinorMajor() throws Exception
     {
         // TODO Use TitleDetailDelay with delay of DELAY_MS
@@ -95,7 +122,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
 
         // Trigger alarm via MINOR alarm
         final long start = System.currentTimeMillis();
@@ -124,7 +151,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
 
         // Trigger Action..
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR);
@@ -153,7 +180,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
 
         // Trigger Action..
         for (int i=0; i<5; ++i)

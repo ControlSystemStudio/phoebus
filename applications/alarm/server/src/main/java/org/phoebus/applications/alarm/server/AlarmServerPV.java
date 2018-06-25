@@ -73,6 +73,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     private volatile ScheduledFuture<?> connection_timeout_task = null;
 
     // TODO Add similar automated_actions to AlarmServerNode, updating in maximizeSeverity()
+    // TODO Update as PV is enabled/disabled
     private final AtomicReference<AutomatedActions> automated_actions = new AtomicReference<>();
 
     /** Filter that might be used to compute 'enabled' state;
@@ -272,7 +273,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             // Update Automated Actions since their configuration changed
             final AutomatedActions new_actions = actions.isEmpty()
                 ? null
-                : new AutomatedActions(this, AutomatedActionExecutor.INSTANCE);
+                : new AutomatedActions(this,
+                                       logic.getAlarmState().severity.isActive(),
+                                       AutomatedActionExecutor.INSTANCE);
 
             // Cancel previous ones.
             final AutomatedActions previous = automated_actions.getAndSet(new_actions);
