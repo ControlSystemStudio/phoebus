@@ -76,6 +76,7 @@ public class AutomatedActions
      */
     public void handleSeverityUpdate(final SeverityLevel severity)
     {
+        // System.out.println(item.getPathName() + " auto actions update for " + severity);
         final boolean is_active = severity.isActive();
         // Is this a change?
         if (active_alarm.compareAndSet(!is_active, is_active))

@@ -344,7 +344,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         try
         {
-            final AutomatedActions actions = automated_actions.getAndSet(null);
+            // Cancel ongoing actions, but don't set to null
+            // because in case there's another start() it needs
+            // to find & trigger the actions
+            final AutomatedActions actions = automated_actions.get();
             if (actions != null)
                 actions.cancel();
 
