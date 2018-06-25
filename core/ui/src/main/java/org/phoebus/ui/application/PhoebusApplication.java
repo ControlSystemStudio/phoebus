@@ -457,30 +457,30 @@ public class PhoebusApplication extends Application {
             // Clear the list of memento files.
             memento_files.clear();
             
-            final List<MenuItem> menu_items = new ArrayList<>();
+            final List<MenuItem> menuItemList = new ArrayList<>();
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());
-            final File[] files = dir.listFiles();
+            final File[] filesArray = dir.listFiles();
             // For every non default memento file create a menu item for the load layout menu.
-            for (final File memento_file : files)
+            for (final File file : filesArray)
             {
-                final String filename = memento_file.getName();
-                if (memento_file.isFile() && filename.endsWith(".memento"))
+                final String filename = file.getName();
+                if (file.isFile() && filename.endsWith(".memento"))
                 {
                     // Build the list of memento files.
                     memento_files.add(filename);
                     // Use just the file name w/o ".memento" for the menu entry
                     final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
-                    menuItem.setOnAction(event -> startLayoutReplacement(memento_file));
+                    menuItem.setOnAction(event -> startLayoutReplacement(file));
                     // Add the item to the load layout menu.
-                    menu_items.add(menuItem);
+                    menuItemList.add(menuItem);
                 }
             }
             // Sort the menu items alphabetically.
-            menu_items.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+            menuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
 
             // Update the menu with the menu items on the UI thread.
-            Platform.runLater(()-> load_layout.getItems().setAll(menu_items));
+            Platform.runLater(()-> load_layout.getItems().setAll(menuItemList));
         });
     }
 
