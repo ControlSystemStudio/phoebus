@@ -41,7 +41,7 @@ public class AlarmTableModel
         final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
         final ClientState state = leaf.getState();
         final SeverityLevel severity = state.severity;
-        if (severity == SeverityLevel.OK)
+        if (!leaf.isEnabled()  ||  severity == SeverityLevel.OK)
         {   // Clear from table
             changes |= active.remove(leaf) != null;
             changes |= acknowledged.remove(leaf) != null;
