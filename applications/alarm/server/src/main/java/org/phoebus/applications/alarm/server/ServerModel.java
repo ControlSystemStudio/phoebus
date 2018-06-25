@@ -56,7 +56,7 @@ class ServerModel
 
     private final ConcurrentHashMap<String, ClientState> initial_states;
 
-    private final String config_topic, command_topic, state_topic;
+    private final String config_topic, command_topic, state_topic, talk_topic;
     private final ServerModelListener listener;
     private final AlarmServerNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
@@ -78,8 +78,9 @@ class ServerModel
         //    System.out.println("Initial state for " + state.getKey() + " : " + state.getValue()));
 
         config_topic = Objects.requireNonNull(config_name);
-        command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
-        state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
+        command_topic  = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
+        state_topic    = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
+        talk_topic     = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
         this.listener = Objects.requireNonNull(listener);
 
         root = new AlarmServerNode(this, null, config_name);
@@ -89,10 +90,13 @@ class ServerModel
                                                List.of(config_topic));
         producer = KafkaHelper.connectProducer(kafka_servers);
 
+        
+        
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
     }
 
+   
     /** Start client
      *  @see #shutdown()
      */
@@ -134,9 +138,9 @@ class ServerModel
         {
             if (record.topic().equals(command_topic))
             {
-                final String command = record.key();
-                final String detail = record.value();
-                listener.handleCommand(command, detail);
+                final String path = record.key();
+                final String json = record.value();
+                listener.handleCommand(path, json);
             }
             else
             {
@@ -161,7 +165,7 @@ class ServerModel
                     else
                     {
                         // Get node_config as JSON map to check for "pv" key
-                        final Object json = JsonModelReader.parseAlarmItemConfig(node_config);
+                        final Object json = JsonModelReader.parseJsonText(node_config);
                         AlarmTreeItem<?> node = findNode(path);
 
                         // New node? Create it.
@@ -366,11 +370,25 @@ class ServerModel
         }
     }
 
+    public void sentAnnunciatorMessage(final String pathName, final String payload)
+    {
+        try
+        {
+            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, pathName, payload);
+            producer.send(record);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot send talk message for " + pathName, ex);
+        }
+    }
+    
     /** Stop client */
     public void shutdown()
     {
         running.set(false);
         consumer.wakeup();
+        
         try
         {
             thread.join(2000);

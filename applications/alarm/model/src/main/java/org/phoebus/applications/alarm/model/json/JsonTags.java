@@ -23,23 +23,29 @@ public interface JsonTags
 {
     public static final String ACTIONS = "actions";
     public static final String ANNUNCIATING = "annunciating";
+    public static final String COMMAND = "command";
     public static final String COMMANDS = "commands";
     public static final String COUNT = "count";
     public static final String CURRENT_MESSAGE = "current_message";
     public static final String CURRENT_SEVERITY = "current_severity";
     public static final String DELAY = "delay";
+    public static final String DELETE_MESSAGE = "delete message";
     public static final String DESCRIPTION = "description";
     public static final String DETAILS = "details";
     public static final String DISPLAYS = "displays";
     public static final String ENABLED = "enabled";
     public static final String FILTER = "filter";
     public static final String GUIDANCE = "guidance";
+    public static final String HOST = "host";
     public static final String LATCHING = "latching";
     public static final String MESSAGE = "message";
     public static final String NANO = "nano";
     public static final String SECONDS = "seconds";
     public static final String SEVERITY = "severity";
+    public static final String STANDOUT = "standout";
+    public static final String TALK = "talk";
     public static final String TIME = "time";
     public static final String TITLE = "title";
+    public static final String USER = "user";
     public static final String VALUE = "value";
 }

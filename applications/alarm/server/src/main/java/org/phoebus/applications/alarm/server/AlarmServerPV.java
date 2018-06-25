@@ -27,6 +27,7 @@ import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.VType;
@@ -105,11 +106,18 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             }
 
             @Override
-            public void annunciateAlarm(final SeverityLevel level)
+            public void annunciateAlarm(final SeverityLevel severity)
             {
-                // TODO Send text to Kafka, so that annunciators can, well, annunciate
-                // Level, Severity, Description
-                // model.sentAnnunciationMessage(...)
+                final String json;
+                try
+                {
+                    json = new String(JsonModelWriter.talkToBytes(severity, description));
+                } catch (Exception e)
+                {
+                    logger.log(Level.WARNING, "Unable to construct JSON for talk message", e);
+                    return;
+                }
+                model.sentAnnunciatorMessage(getPathName(), json);
             }
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);

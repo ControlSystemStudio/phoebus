@@ -122,7 +122,138 @@ You can track the log cleaner runs via
 
     tail -f logs/log-cleaner.log
 
+Message Formats
+---------------
+_______________
+- Config Topic:
 
+The messages in the config topic consist of a path to the alarm tree item that is being configured along with a JSON of its configuration.
+The message always contains the user name and host name of who is changing the configuration. 
+
+The config topic JSON format for a alarm tree leaf:
+
+    {
+        "user":        String,
+        "host":        String,
+        "description": String,
+        "delay":       Integer,
+        "count":       Integer,
+        "filter":      String,
+        "guidance": [{"title": String, "details": String}],
+        "displays": [{"title": String, "details": String}],
+        "commands": [{"title": String, "details": String}],
+        "actions":  [{"title": String, "details": String}]
+    }
+
+The config topic JSON format for a alarm tree node:
+
+    {
+        "user":        String,
+        "host":        String,
+        "guidance": [{"title": String, "details": String}],
+        "displays": [{"title": String, "details": String}],
+        "commands": [{"title": String, "details": String}],
+        "actions":  [{"title": String, "details": String}]
+    }
+
+An example message that could appear in a config topic:
+
+    /path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
+
+- Deletions in the Config Topic
+
+Deleting a message simply consists of marking the value of the key value pair as null. This "tombstone" notifies Kafka that when compaction occurs this message can be deleted.
+
+For example:
+
+    /path/to/pv : null
+    
+This process variable is now marked as deleted. However, there is an issue. We do not know when, why, or by whom it was deleted. To address this, a message including the missing relevant information is sent before the tombstone is set.
+This message consists of a user name, host name, delete message, and a time stamp.
+
+The config delete message JSON format:
+
+    {
+        "user":           String,
+        "host":           String,
+        "delete message": String,
+        "time":           String
+    }
+    
+The above example of deleting a PV would then look like this:
+
+    /path/to/pv : {"user":"user name", "host":"host name", "delete message": "Deleting node.", "time": "2018-01-01 00:00:00.000"}
+    /path/to/pv : null
+    
+The message about who deleted the PV and when they deleted it would obviously be compacted and deleted itself, but it would be aggregated into the long term topic beforehand thus preserving a record of the deletion.
+______________
+- State Topic:
+
+The messages in the state topic consist of a path to the alarm tree item that's state is being updated along with a JSON of its new state.
+
+The state topic JSON format for an alarm tree leaf:
+
+    {
+        "severity": String,
+        "message":  String,
+        "value":    String,
+        "time": {
+                    "seconds": Long,
+                    "nano":    Long
+                },
+        "current_severity": String,
+        "current_message":  String
+    }
+
+The state topic JSON format for an alarm tree node:
+
+    {
+        "severity": String
+    }
+
+An example message that could appear in a state topic:
+
+    /path/to/pv :{"severity":"MAJOR","message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MINOR","current_message":"LOW"}
+
+________________
+- Command Topic:
+
+The messages in the command topic consist of a path to the alarm tree item that is the subject of the command along with a JSON of the command. The JSON always contains the user name and host name of who is issuing the command.
+
+The command topic JSON format:
+
+    {
+        "user":    String,
+        "host":    String,
+        "command": String
+    }
+    
+An example message that could appear in a command topic:
+
+    /path/to/pv : {"user":"user name", "host":"host name", "command":"acknowledge"}
+
+____________
+- Talk Topic:
+
+The messages in the talk topic consist of a path to the alarm tree item being referenced along with a JSON. The JSON contains the alarm severity, a boolean value to indicate if the message should always be annunciated, and the message to annunciate.
+
+The talk topic JSON format:
+
+    {
+        "severity": String,
+        "standout": boolean,
+        "talk":     String
+    }
+
+An example message that could appear in a talk topic:
+
+    /path/to/pv : {"severity":"MAJOR", "standout":true, "message":"We are out of potato salad!"}
+
+________________
+- Long Term Topic:
+
+The messages in the long term topic are identical to the messages in all the other topics. The long term topic simply serves as a non compacted aggregate store for all the messages that traverse the alarm system.
+__________________
 Demos
 -----
 
@@ -355,13 +486,12 @@ This is an example configuration, as printed by Kafka on startup:
 
 The alarm topics are created by `examples/create_alarm_topics.sh` as follows (output of `examples/list_topics.sh`):
 
-	Topic:Accelerator	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
+	Topic:Accelerator	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
 		Topic: Accelerator	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-	Topic:AcceleratorCommand	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
+	Topic:AcceleratorCommand	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
 		Topic: AcceleratorCommand	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-	Topic:AcceleratorState	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
+	Topic:AcceleratorState	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
 		Topic: AcceleratorState	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-
 
 The file `kafka/logs/log-cleaner.log` will often not show any log-cleaner action:
  

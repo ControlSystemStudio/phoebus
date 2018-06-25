@@ -34,12 +34,12 @@ public class JsonModelReader
     // Later updates of the JsonModelReader/Writer will not affect code
     // that calls them.
 
-    /** Parse JSON text for alarm item configuration
-     *  @param json_text JSON test
+    /** Parse JSON text
+     *  @param json_text JSON text
      *  @return JSON object
      *  @throws Exception
      */
-    public static Object parseAlarmItemConfig(final String json_text) throws Exception
+    public static Object parseJsonText(final String json_text) throws Exception
     {
         try
         (

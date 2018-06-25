@@ -100,7 +100,7 @@ public class AlarmStateInitializer
                 else
                 {
                     // Get node_config as JSON map to check for "pv" key
-                    final Object json = JsonModelReader.parseAlarmItemConfig(node_config);
+                    final Object json = JsonModelReader.parseJsonText(node_config);
                     final ClientState state = JsonModelReader.parseClientState(json);
                     if (state != null  &&  state.severity != SeverityLevel.OK)
                     {
