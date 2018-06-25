@@ -12,6 +12,7 @@ import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 
 public class AlarmModelReaderTest
@@ -20,6 +21,16 @@ public class AlarmModelReaderTest
 	public static final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	+ "<config name=\"Test\">\n"
 	+ "  <component name=\"Area1\">\n"
+	+ "    <automated_action>\n"
+	+ "      <title>Area1 Action Title 1</title>\n"
+	+ "      <details>Area1 Action Detail 1</details>\n"
+	+ "      <delay>5</delay>\n"
+	+ "    </automated_action>\n"
+	+ "    <automated_action>\n"
+    + "      <title>Area1 Action Title 2</title>\n"
+    + "      <details>Area1 Action Detail 2</details>\n"
+    + "      <delay>6</delay>\n"
+    + "    </automated_action>\n"
 	+ "    <command>\n"
 	+ "      <title>Area1 Command Title 1</title>\n"
 	+ "      <details>Area1 Command Detail 1</details>\n"
@@ -98,6 +109,20 @@ public class AlarmModelReaderTest
 		assertEquals("Area1 Command Title 2", a1_command2.title);
 		assertEquals("Area1 Command Detail 2", a1_command2.detail);
 
+		final List<TitleDetailDelay> a1_actions = area1.getActions();
+		
+		assertEquals(2, a1_actions.size());
+		
+		final TitleDetailDelay a1_action1 = a1_actions.get(0);
+		assertEquals("Area1 Action Title 1", a1_action1.title);
+		assertEquals("Area1 Action Detail 1", a1_action1.detail);
+		assertEquals("5", a1_action1.delay.toString());
+		
+		final TitleDetailDelay a1_action2 = a1_actions.get(1);
+        assertEquals("Area1 Action Title 2", a1_action2.title);
+        assertEquals("Area1 Action Detail 2", a1_action2.detail);
+        assertEquals("6", a1_action2.delay.toString());
+		
 		final AlarmTreeLeaf a1pv1 = (AlarmTreeLeaf) area1.getChild("a1pv1");
 
 		assertEquals("a1pv1", area1.getChild("a1pv1").getName());
