@@ -18,6 +18,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -95,7 +96,7 @@ public class JsonModelWriter
             writeTitleDetail(jg, JsonTags.GUIDANCE, item.getGuidance());
             writeTitleDetail(jg, JsonTags.DISPLAYS, item.getDisplays());
             writeTitleDetail(jg, JsonTags.COMMANDS, item.getCommands());
-            writeTitleDetail(jg, JsonTags.ACTIONS, item.getActions());
+            writeTitleDetailDelay(jg, JsonTags.ACTIONS, item.getActions());
 
             jg.writeEndObject();
         }
@@ -134,7 +135,26 @@ public class JsonModelWriter
         }
         jg.writeEndArray();
     }
-
+    
+    private static void writeTitleDetailDelay(final JsonGenerator jg, final String name, final List<TitleDetailDelay> infos) throws Exception
+    {
+        if (infos.isEmpty())
+            return;
+        
+        jg.writeArrayFieldStart(name);
+        {
+            for (TitleDetailDelay info : infos)
+            {
+                jg.writeStartObject();
+                jg.writeStringField(JsonTags.TITLE, info.title);
+                jg.writeStringField(JsonTags.DETAILS, info.detail);
+                jg.writeNumberField(JsonTags.DELAY, info.delay);
+                jg.writeEndObject();
+            }
+        }
+        jg.writeEndArray();
+    }
+    
     /**
      * Create a JSON byte array of a command.
      * @param cmd - Command
