@@ -173,14 +173,14 @@ public class Update
     {
         if (update_url.isEmpty()  ||  current_version == null)
             return null;
-        logger.info("Checking " + update_url);
+        logger.info("Checking " + update_url + " for update to " + TimestampFormats.DATETIME_FORMAT.format(current_version));
         final URL distribution_url = new URL(update_url);
         final Instant update_version = Update.getVersion(monitor, distribution_url);
 
         logger.info("Found version " + TimestampFormats.DATETIME_FORMAT.format(update_version));
         if (update_version.isAfter(current_version))
             return update_version;
-        logger.info("Keeping current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        logger.info("Keeping current version");
         return null;
     }
 
@@ -231,7 +231,9 @@ public class Update
         final Preferences prefs = Preferences.userNodeForPackage(Update.class);
         // Add a minute in case we updated right now to a version that has the current HH:MM,
         // to prevent another update on restart where we're still within the same HH:MM
-        prefs.put("current_version", TimestampFormats.DATETIME_FORMAT.format(Instant.now().plus(1, ChronoUnit.MINUTES)));
+        final String updated = TimestampFormats.DATETIME_FORMAT.format(Instant.now().plus(1, ChronoUnit.MINUTES));
+        prefs.put("current_version", updated);
         prefs.flush();
+        logger.info("Updated 'current_version' preference to " + updated);
     }
 }
