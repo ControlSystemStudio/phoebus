@@ -49,7 +49,7 @@ public class SaveLayoutMenuItem extends MenuItem
         return filename.matches("[\\w -]+");
     }
 
-    /** Save the layout. Prompt for a new filename, validate, and then save. */
+    /** Save the layout. Prompt for a new filename, validate, possibly confirm an overwrite, and then save. */
     private void saveLayout(final PhoebusApplication phoebus)
     {
         final TextInputDialog prompt = new TextInputDialog();
@@ -94,7 +94,9 @@ public class SaveLayoutMenuItem extends MenuItem
     {
         final String memento_filename = filename + ".memento";
         final File memento_file = new File(Locations.user(), memento_filename);
-        // File.exists() is blocking in nature. Better to just assume user knows about all potential overwrites?
+        // File.exists() is blocking in nature.
+        // To combat this the phoebus application maintains a list of *.memento files that are in the default directory.
+        // Check if the file name is in the list, and confirm a file overwrite with the user.
         if (phoebus.getMementoFiles().contains(memento_filename))
         {
             fileExistsAlert.setHeaderText("File \"" + filename + "\" already exists. Do you want to overwite it?");
