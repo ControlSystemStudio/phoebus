@@ -63,7 +63,7 @@ public class AutomatedActions
         this.active_alarm = new AtomicBoolean(start_active);
         this.perform_action = perform_action;
 
-        // TODO If item is PV, and not enabled, this should never be called
+        // If item is PV, and not enabled, this should never be called
         if (item instanceof AlarmTreeLeaf   &&  ! ((AlarmTreeLeaf) item).isEnabled())
             throw new IllegalStateException();
     }
