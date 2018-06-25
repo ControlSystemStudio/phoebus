@@ -17,6 +17,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
 
@@ -121,20 +122,17 @@ public class XmlModelWriter
         {
             getTitleDetailListXML(commands, XmlModelReader.TAG_COMMAND);
         }
-        /*
-         * TODO : Automated actions are not yet implemented.
+        
         // Write XML for Actions
-        final List<TitleDetail> actions = item.getActions();
+        final List<TitleDetailDelay> actions = item.getActions();
 
         if (!actions.isEmpty())
         {
-            getTitleDetailListXML(actions, XmlModelReader.TAG_ACTIONS);
+            getTitleDetailDelayListXML(actions, XmlModelReader.TAG_ACTIONS);
         }
-        */
+        
     }
 
-    // TODO: This will not work with automated_actions as the XML schema expects a third child "delay" to go along
-    //          with "title" and "details".
     private void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
     {
         for (final TitleDetail td : tdList)
@@ -153,6 +151,26 @@ public class XmlModelWriter
         }
     }
 
+    private void getTitleDetailDelayListXML(List<TitleDetailDelay> tddList, String itemSubType) throws Exception
+    {
+        for (final TitleDetailDelay td : tddList)
+        {
+            writer.writeStartElement(itemSubType);
+
+            writer.writeStartElement(XmlModelReader.TAG_TITLE);
+            writer.writeCharacters(td.title);
+            writer.writeEndElement();
+            writer.writeStartElement(XmlModelReader.TAG_DETAILS);
+            writer.writeCharacters(td.detail);
+            writer.writeEndElement();
+            writer.writeStartElement(XmlModelReader.TAG_DELAY);
+            writer.writeCharacters(td.delay.toString());
+            writer.writeEndElement();
+
+            writer.writeEndElement();
+        }
+    }
+    
     private void getLeafXML(final AlarmTreeLeaf leaf) throws Exception
     {
         final String description = leaf.getDescription();
