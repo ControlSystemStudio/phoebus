@@ -11,6 +11,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -27,6 +28,7 @@ import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -70,6 +72,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     private volatile ScheduledFuture<?> connection_timeout_task = null;
 
+    // TODO Add similar automated_actions to AlarmServerNode, updating in maximizeSeverity()
+    private final AtomicReference<AutomatedActions> automated_actions = new AtomicReference<>();
+
     /** Filter that might be used to compute 'enabled' state;
      *  can be <code>null</code>
      */
@@ -100,6 +105,11 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                                                               current.severity,
                                                               current.message);
                 model.sentStateUpdate(getPathName(), new_state);
+
+                // Update automated actions
+                final AutomatedActions actions = automated_actions.get();
+                if (actions != null)
+                    actions.handleSeverityUpdate(alarm.severity);
 
                 // Whenever logic computes new state, maximize up parent tree
                 getParent().maximizeSeverity();
@@ -254,6 +264,25 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
+    @Override
+    public boolean setActions(final List<TitleDetail> actions)
+    {
+        if (super.setActions(actions))
+        {
+            // Update Automated Actions since their configuration changed
+            final AutomatedActions new_actions = actions.isEmpty()
+                ? null
+                : new AutomatedActions(this, AutomatedActionExecutor.INSTANCE);
+
+            // Cancel previous ones.
+            final AutomatedActions previous = automated_actions.getAndSet(new_actions);
+            if (previous != null)
+                previous.cancel();
+            return true;
+        }
+        return false;
+    }
+
     public void start()
     {
         if (! isEnabled())
@@ -312,6 +341,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         try
         {
+            final AutomatedActions actions = automated_actions.getAndSet(null);
+            if (actions != null)
+                actions.cancel();
+
             final PV the_pv = pv.getAndSet(null);
             // Be lenient if already stopped,
             // or never started because ! isEnabled()

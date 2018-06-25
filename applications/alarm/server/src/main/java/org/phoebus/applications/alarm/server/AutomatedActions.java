@@ -17,10 +17,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.framework.jobs.NamedThreadFactory;
@@ -34,24 +32,24 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 public class AutomatedActions
 {
     // TODO Replace TitleDetail with TitleDetailDelay, use its delay instead of fixed DELAY_MS
-    private static final long DELAY_MS = TimeUnit.SECONDS.toMillis(2);
+    private static final long DELAY_MS = TimeUnit.SECONDS.toMillis(1);
 
     private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("AutomatedActions"));
 
     private final ConcurrentHashMap<TitleDetail, ScheduledFuture<?>> scheduled_actions = new ConcurrentHashMap<>(1);
 
     /** Item for which to handle automated actions */
-    private final AlarmClientNode item;
+    private final AlarmTreeItem<?> item;
 
     /** Will be invoked to actually perform one of the item's actions */
-    private final BiConsumer<AlarmTreeItem<BasicState>, TitleDetail> perform_action;
+    private final BiConsumer<AlarmTreeItem<?>, TitleDetail> perform_action;
 
     /** Handle automated actions for one item
      *  @param item Item for which automated actions should be handled
      *  @param perform_action Will be invoked to actually perform the action for an item
      */
-    public AutomatedActions(final AlarmClientNode item,
-                            final BiConsumer<AlarmTreeItem<BasicState>, TitleDetail> perform_action)
+    public AutomatedActions(final AlarmTreeItem<?> item,
+                            final BiConsumer<AlarmTreeItem<?>, TitleDetail> perform_action)
     {
         this.item = item;
         this.perform_action = perform_action;
@@ -68,6 +66,9 @@ public class AutomatedActions
      */
     public void handleSeverityUpdate(final SeverityLevel severity)
     {
+        logger.log(Level.INFO, item.getPathName() + ": Automated action severity updated to " + severity);
+
+
         if (severity.isActive())
         {
             for (TitleDetail action : item.getActions())
@@ -93,11 +94,11 @@ public class AutomatedActions
         }
         else
         {   // Cancel all scheduled actions
-            close();
+            cancel();
         }
     }
 
-    public void close()
+    public void cancel()
     {
         // Cancel/clear all scheduled actions
         scheduled_actions.forEach((action, scheduled) ->

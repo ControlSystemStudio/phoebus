@@ -11,7 +11,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -19,14 +18,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 
@@ -42,11 +39,11 @@ public class AutomatedActionTest
     /** Time-based tests are fragile.
      *  Pick a large enough test delay.
      */
-    private static final long DELAY_MS = TimeUnit.SECONDS.toMillis(2);
+    private static final long DELAY_MS = TimeUnit.SECONDS.toMillis(1);
 
     final BlockingQueue<String> action_performed = new ArrayBlockingQueue<>(1);
 
-    final BiConsumer<AlarmTreeItem<BasicState>, TitleDetail> perform_action = (item, action) ->
+    final BiConsumer<AlarmTreeItem<?>, TitleDetail> perform_action = (item, action) ->
     {
         System.out.println("Invoked " + action + " on " + item);
         action_performed.offer(action.title);
@@ -66,7 +63,6 @@ public class AutomatedActionTest
     @Test
     public void testBasicAutomatedAction() throws Exception
     {
-        logger.log(Level.INFO, "Test basic automated action");
         // TODO Use TitleDetailDelay with delay of DELAY_MS
         final TitleDetail email = new TitleDetail("Send Email", "mailto:fred@mail.com");
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
@@ -88,7 +84,7 @@ public class AutomatedActionTest
         assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
 
         // When no longer needed, close to stop timers etc.
-        auto_action.close();
+        auto_action.cancel();
     }
 
     @Test
@@ -117,7 +113,7 @@ public class AutomatedActionTest
         assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
 
         // When no longer needed, close to stop timers etc.
-        auto_action.close();
+        auto_action.cancel();
     }
 
     @Test
@@ -146,7 +142,7 @@ public class AutomatedActionTest
         System.out.println("Action performed after " + passed + " ms");
         assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
 
-        auto_action.close();
+        auto_action.cancel();
     }
 
     @Test
@@ -173,6 +169,6 @@ public class AutomatedActionTest
         auto_action.handleSeverityUpdate(SeverityLevel.OK);
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
 
-        auto_action.close();
+        auto_action.cancel();
     }
 }
