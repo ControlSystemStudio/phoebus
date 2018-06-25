@@ -6,10 +6,10 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -83,6 +83,7 @@ import javafx.stage.Window;
  *
  * @author Kunal Shroff
  * @author Kay Kasemir
+ * @author Evan Smith
  */
 @SuppressWarnings("nls")
 public class PhoebusApplication extends Application {
@@ -119,13 +120,10 @@ public class PhoebusApplication extends Application {
 
     /** Menu to load past layouts */
     private final Menu load_layout = new Menu("Load Layout");
-    
-    /** List of memento files in default directory. */
-    private final ArrayList<String> memento_files = new ArrayList<String>();
 
-    /** Return read only view of memento files list. */
-    public List<String> getMementoFiles() { return Collections.unmodifiableList(memento_files); }
-    
+    /** List of memento files in default directory. */
+    private final List<String> memento_files = new CopyOnWriteArrayList<>();
+
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
 
@@ -434,7 +432,7 @@ public class PhoebusApplication extends Application {
         show_toolbar = new CheckMenuItem(Messages.ShowToolbar);
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
-        save_layout = new SaveLayoutMenuItem(this);
+        save_layout = new SaveLayoutMenuItem(this, memento_files);
         createLoadLayoutsMenu();
 
         final Menu menu = new Menu(Messages.Window, null, show_tabs, show_toolbar, save_layout, load_layout);
@@ -456,7 +454,7 @@ public class PhoebusApplication extends Application {
         {
             // Clear the list of memento files.
             memento_files.clear();
-            
+
             final List<MenuItem> menuItemList = new ArrayList<>();
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());
