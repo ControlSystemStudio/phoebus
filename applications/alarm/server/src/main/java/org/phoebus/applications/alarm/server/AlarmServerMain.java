@@ -21,10 +21,12 @@ import java.util.logging.LogManager;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonTags;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.util.shell.CommandShell;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -36,7 +38,25 @@ public class AlarmServerMain implements ServerModelListener
 {
     private final SynchronousQueue<Boolean> restart = new SynchronousQueue<>();
 
-    private volatile ServerModel model;
+    private volatile ServerModel  model;
+    private volatile CommandShell shell;
+    private String current_path = "";
+
+    private static final String COMMANDS =
+                        "Commands:\n\n" +
+                        "Note: '.' and '..' will be interpreted as the current directory and the parent directory respectively.\n\n" +
+                        "\tls               - List all alarm tree items in the current directory.\n" +
+                        "\tls -disconnected - List all the disconnected PVs in the entire alarm tree.\n" +
+                        "\tls -all          - List all alarm tree PVs in the entire alarm tree.\n" +
+                        "\tls dir           - List all alarm tree items in the specified directory contained in the current directory.\n" +
+                        "\tls /path/to/dir  - List all alarm tree items in the specified directory at the specified path.\n" +
+                        "\tcd               - Change to the root directory.\n" +
+                        "\tcd dir           - Change to the specified directory contained in the current directory.\n" +
+                        "\tcd /path/to/dir  - Change to the specified directory at the specified path.\n" +
+                        "\tpv pv            - Print the specified PV in the current directory.\n" +
+                        "\tpv /path/to/pv   - Print the specified PV at the specified path.\n" +
+                        "\trestart          - Re-load alarm configuration and restart.\n" +
+                        "\tshutdown         - Shut alarm server down and exit.\n";
 
     private AlarmServerMain(final String server, final String config)
     {
@@ -60,10 +80,19 @@ public class AlarmServerMain implements ServerModelListener
                 model = new ServerModel(server, config, initial_states, this);
                 model.start();
 
-                // Run until, via command topic, asked to
+                shell = new CommandShell(COMMANDS, this::handleShellCommands);
+
+                // Start the command shell at the root node.
+                current_path = model.getRoot().getPathName();
+                shell.setPrompt(current_path);
+                shell.start();
+
+                // Run until, via command topic or shell input, asked to
                 // a) restart (restart given with value 'true')
                 // b) shut down (restart given with value 'false')
                 run = restart.take();
+
+                shell.stop();
 
                 model.shutdown();
             }
@@ -76,6 +105,179 @@ public class AlarmServerMain implements ServerModelListener
         logger.info("Done.");
         System.exit(0);
 
+    }
+
+    /**
+     * Handle shell commands. Passed to command shell.
+     * @param args - variadic String
+     * @return result - boolean result of executing the command.
+     * @throws Throwable
+     */
+    private boolean handleShellCommands(final String... args) throws Throwable
+    {
+        if (args.length == 1)
+        {
+            if (args[0].equals("shutdown"))
+            {
+                restart.offer(false);
+            }
+            else if (args[0].equals("restart"))
+            {
+                restart.offer(true);
+            }
+            else if (args[0].equals("help"))
+            {
+                // Return false will print the commands message.
+                return false;
+            }
+            else if (args[0].equals("cd")) // cd with no argument goes to root directory.
+            {
+                current_path = model.getRoot().getPathName();
+                shell.setPrompt(current_path);
+            }
+            else if (args[0].equals("ls")) // List alarm tree items in current directory. _Not_ recursive descent.
+            {
+                List<AlarmTreeItem<?>> children = model.findNode(current_path).getChildren();
+                for (final AlarmTreeItem<?> child : children)
+                    System.out.println(child.getName());
+            }
+            else
+                return false;
+        }
+        else if (args.length >= 2)
+        {
+            // Concatenate all the tokens whose index is > 0 into a single string.
+            // This allows for spaces in PV and Node names. They would have been split on whitespace by the CommandShell.
+            String args1 = "";
+            for (int i = 1; i < args.length; i++)
+                args1 += " " + args[i];
+            args1 = args1.trim();
+
+            try
+            {
+                if (args[0].equals("cd")) // Change directory to specified location.
+                {
+                    AlarmTreeItem<?> new_loc = null;
+
+                    String new_path = determinePath(args1);
+
+                    new_loc = model.findNode(new_path);
+
+                    if (null == new_loc)
+                    {
+                        System.out.println("Node not found: " + new_path);
+                        return false;
+                    }
+
+                    // Can't change location to leaves.
+                    if (new_loc instanceof AlarmTreeLeaf)
+                    {
+                        System.out.println("Node not a directory: " + new_loc.getPathName());
+                        return false;
+                    }
+
+                    current_path = new_loc.getPathName();
+                    shell.setPrompt(current_path);
+                }
+                else if (args[0].equals("ls"))  // List the alarm tree items at the specified location.
+                {
+                    if (args1.startsWith("-dis")) // Print all disconnected PVs in tree.
+                    {
+                        listPVs(model.getRoot(), true);
+                    }
+                    else if (args1.equals("-all")) // Print all the PVs in the tree.
+                    {
+                        listPVs(model.getRoot(), false);
+                    }
+                    else // List the PVs at the specified path.
+                    {
+                        String path = determinePath(args1);
+
+                        AlarmTreeItem<?> node = model.findNode(path);
+
+                        if (null == node)
+                        {
+                            System.out.println("Node not found: " + path);
+                            return false;
+                        }
+
+                        List<AlarmTreeItem<?>> children = node.getChildren();
+
+                        for (final AlarmTreeItem<?> child : children)
+                        {
+                            System.out.println(child.getName());
+                        }
+                    }
+                }
+                else if (args[0].equals("pv")) // Print the specified PV.
+                {
+                    final String pvPath = determinePath(args1);
+                    AlarmTreeItem<?> node = model.findNode(pvPath);
+                    if (node instanceof AlarmServerNode)
+                    {
+                        System.out.println("Specified alarm tree item is not a PV: " + pvPath);
+                        return false;
+                    }
+                    AlarmServerPV pv = (AlarmServerPV) node;
+                    System.out.println(pv);
+                }
+            } // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
+            catch (Exception ex)
+            {
+                System.out.println(ex.getMessage());
+                return false;
+            }
+        }
+        else
+            return false;
+
+        return true;
+    }
+
+    /**
+     * Determines the new path based on the passed string.
+     * <p> The passed string is expected to be ".", "..", a canonical path, a path from the current directory, or a child of the current directory.
+     * <ol>
+     * <li> .           -> current directory.
+     * <li> ..          -> parent directory.
+     * <li> /root/path/ -> /root/path/
+     * <li> /dir        -> current_path/dir
+     * <li> dir         -> current_path/dir
+     * </ol>
+     * @param arg - String to be examined.
+     * @return new_path
+     * @throws Exception
+     */
+    private String determinePath(final String arg) throws Exception
+    {
+        String new_path = current_path;
+        if (arg.equals(".")) // Current directory.
+        {
+            return new_path;
+        }
+        else if (arg.equals("..")) // Parent directory.
+        {
+            AlarmTreeItem<?> parent = model.findNode(current_path).getParent();
+            if (null != parent)
+                new_path = parent.getPathName();
+        }
+        else if (arg.startsWith(model.getRoot().getPathName())) // If starts from root, treat it as a whole path.
+        {
+            new_path = arg;
+        }
+        else if (arg.startsWith("/")) // Allow for "command /dir".
+        {
+            new_path = current_path + arg;
+        }
+        else // Allow for "command dir".
+        {
+            new_path = current_path + "/" + arg;
+        }
+
+        // Replace "//" in simulated PVs with "\/\/"
+        new_path = new_path.replaceAll("//", "\\\\/\\\\/");
+
+        return new_path;
     }
 
     /** Handle commands
@@ -119,7 +321,7 @@ public class AlarmServerMain implements ServerModelListener
             {
                 throw new Exception("Command parsing failed.");
             }
-            
+
             final String command = commandNode.asText();
             if (command.startsWith("ack"))
             {
@@ -290,9 +492,9 @@ public class AlarmServerMain implements ServerModelListener
                 {
                     iter.remove();
                     logger.info("Discovering and creating any missing topics at " + server);
-                    CreateTopics.discoverAndCreateTopics(server, true, List.of(config, 
-                                                                               config + AlarmSystem.STATE_TOPIC_SUFFIX, 
-                                                                               config + AlarmSystem.COMMAND_TOPIC_SUFFIX, 
+                    CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
+                                                                               config + AlarmSystem.STATE_TOPIC_SUFFIX,
+                                                                               config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
                                                                                config + AlarmSystem.TALK_TOPIC_SUFFIX));
                 }
                 else if (cmd.equals("-import"))
@@ -328,7 +530,6 @@ public class AlarmServerMain implements ServerModelListener
             ex.printStackTrace();
             return;
         }
-
 
         new AlarmServerMain(server, config);
     }
