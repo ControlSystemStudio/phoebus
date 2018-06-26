@@ -11,6 +11,7 @@ import java.util.function.BiConsumer;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
+import org.phoebus.framework.jobs.JobManager;
 
 /** Executor for automated actions
  *
@@ -33,10 +34,14 @@ public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, Tit
     @Override
     public void accept(final AlarmTreeItem<?> item, final TitleDetailDelay action)
     {
-        // TODO Perform the automated action in designated thread (work queue)
-        if (action.detail.startsWith("mailto:"))
-            EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
-        else if (action.detail.startsWith("cmd:"))
-            System.out.println("TODO: Execute " + action + " for " + item.getPathName());
+        // Perform the automated action in background thread
+        JobManager.schedule("Automated Action", monitor ->
+        {
+            if (action.detail.startsWith("mailto:"))
+                EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
+            else if (action.detail.startsWith("cmd:"))
+                // TODO Execute cmd:.. actions
+                System.out.println("Execute " + action + " for " + item.getPathName());
+        });
     }
 }
