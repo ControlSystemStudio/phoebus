@@ -75,6 +75,9 @@ public class PVTableXMLPersistence extends PVTablePersistence
         doc.getDocumentElement().normalize();
         Element root_node = doc.getDocumentElement();
         String root_name = root_node.getNodeName();
+        
+        // boolean save = Boolean.parseBoolean(root_node.getAttribute("save"));
+        
         if (!root_name.equals(ROOT))
             throw new Exception("Expected <" + ROOT + ">, found <" + root_name + ">");
 
