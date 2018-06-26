@@ -26,6 +26,7 @@ import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 /** JUnit test of the AutomatedActions
  *  @author Kay Kasemir
@@ -63,8 +64,7 @@ public class AutomatedActionTest
     @Test
     public void testBasicAutomatedAction() throws Exception
     {
-        // TODO Use TitleDetailDelay with delay of DELAY_MS
-        final TitleDetail email = new TitleDetail("Send Email", "mailto:fred@mail.com");
+        final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
@@ -90,8 +90,7 @@ public class AutomatedActionTest
     @Test
     public void testWasInAlarm() throws Exception
     {
-        // TODO Use TitleDetailDelay with delay of DELAY_MS
-        final TitleDetail email = new TitleDetail("Send Email", "mailto:fred@mail.com");
+        final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
@@ -117,8 +116,7 @@ public class AutomatedActionTest
     @Test
     public void testMinorMajor() throws Exception
     {
-        // TODO Use TitleDetailDelay with delay of DELAY_MS
-        final TitleDetail email = new TitleDetail("Send Email", "mailto:fred@mail.com");
+        final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
@@ -146,8 +144,7 @@ public class AutomatedActionTest
     @Test
     public void testAutomatedActionReset() throws Exception
     {
-        // TODO Use TitleDetailDelay with delay of DELAY_MS
-        final TitleDetail email = new TitleDetail("Send Email", "mailto:fred@mail.com");
+        final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
@@ -175,8 +172,7 @@ public class AutomatedActionTest
     @Test
     public void testAutomatedActionClear() throws Exception
     {
-        // TODO Use TitleDetailDelay with delay of DELAY_MS
-        final TitleDetail email = new TitleDetail("Send Email", "mailto:fred@mail.com");
+        final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 

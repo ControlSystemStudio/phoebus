@@ -28,7 +28,7 @@ import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -274,7 +274,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     }
 
     @Override
-    public boolean setActions(final List<TitleDetail> actions)
+    public boolean setActions(final List<TitleDetailDelay> actions)
     {
         if (super.setActions(actions))
         {

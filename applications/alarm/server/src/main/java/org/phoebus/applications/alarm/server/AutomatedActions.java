@@ -22,6 +22,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
 
@@ -32,9 +33,6 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class AutomatedActions
 {
-    // TODO Replace TitleDetail with TitleDetailDelay, use its delay instead of fixed DELAY_MS
-    private static final long DELAY_MS = TimeUnit.SECONDS.toMillis(1);
-
     /** Timer shared by all automated actions */
     private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("AutomatedActions"));
 
@@ -42,7 +40,7 @@ public class AutomatedActions
     private final AtomicBoolean active_alarm;
 
     /** Actions that have been scheduled with the timer */
-    private final ConcurrentHashMap<TitleDetail, ScheduledFuture<?>> scheduled_actions = new ConcurrentHashMap<>(1);
+    private final ConcurrentHashMap<TitleDetailDelay, ScheduledFuture<?>> scheduled_actions = new ConcurrentHashMap<>(1);
 
     /** Item for which to handle automated actions */
     private final AlarmTreeItem<?> item;
@@ -83,7 +81,7 @@ public class AutomatedActions
         {
             if (is_active)
             {
-                for (TitleDetail action : item.getActions())
+                for (TitleDetailDelay action : item.getActions())
                 {
                     // Schedule action to be executed unless already scheduled
                     scheduled_actions.computeIfAbsent(action, a ->
@@ -98,9 +96,8 @@ public class AutomatedActions
                                 perform_action.accept(item, a);
                             }
                         };
-                        // TODO Schedule using TitleDetailDelay instead of DELAY_MS
-                        logger.log(Level.INFO, item.getPathName() + ": Schedule " + a.title + " in " + DELAY_MS + " ms");
-                        return timer.schedule(trigger_action, DELAY_MS, TimeUnit.MILLISECONDS);
+                        logger.log(Level.INFO, item.getPathName() + ": Schedule " + a.title + " in " + a.delay + " s");
+                        return timer.schedule(trigger_action, a.delay, TimeUnit.SECONDS);
                     });
                 }
             }

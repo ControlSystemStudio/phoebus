@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 /** Helper for handling {@link AutomatedActions} in server nodes and PVs
  *  @author Kay Kasemir
@@ -31,7 +31,7 @@ class AutomatedActionsHelper
                           final AlarmTreeItem<?> item,
                           final boolean is_active,
                           final boolean enabled,
-                          final List<TitleDetail> actions)
+                          final List<TitleDetailDelay> actions)
     {
         // Update Automated Actions since their configuration changed
         final AutomatedActions new_actions =
