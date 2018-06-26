@@ -1,4 +1,4 @@
-package org.phoebus.channel.views.ui;
+package org.phoebus.channelfinder.utility;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;
