@@ -8,7 +8,6 @@ import java.net.URI;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
@@ -16,6 +15,7 @@ import javax.mail.Session;
 
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.mail.EmailPreferences;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -49,21 +49,14 @@ public class EmailApp implements AppResourceDescriptor {
      */
     @Override
     public void start() {
-        Properties props = new Properties();
-        Properties defaultProps = new Properties();
-        try {
-            defaultProps.load(AppResourceDescriptor.class.getResourceAsStream("/preferences.properties"));
-        } catch (IOException e) {
-            log.log(Level.WARNING, "Failed to read default preferences", e);
-        }
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+        final Properties props = new Properties();
+        props.put("mail.smtp.host", EmailPreferences.mailhost);
+        props.put("mail.smtp.port", EmailPreferences.mailport);
 
-        props.put("mail.smtp.host", prefs.get("mailhost", defaultProps.getProperty("mailhost")));
-        props.put("mail.smtp.port", prefs.get("mailport", defaultProps.getProperty("mailport")));
+        final String username = EmailPreferences.username;
+        final String password = EmailPreferences.password;
 
-        String username = prefs.get("username", defaultProps.getProperty("username"));
-        String password = prefs.get("password", defaultProps.getProperty("password"));
-        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+        if (!username.isEmpty() && !password.isEmpty()) {
             PasswordAuthentication auth = new PasswordAuthentication(username, password);
             session = Session.getDefaultInstance(props, new Authenticator() {
                 @Override

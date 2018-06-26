@@ -7,14 +7,16 @@
 	
   <target name="clean" description="Remove all artifacts">
     <ant target="clean" dir="core/framework"/>
-  	<ant target="clean" dir="core/util"/>
-  	<ant target="clean" dir="core/vtype"/>
+    <ant target="clean" dir="core/util"/>
+    <ant target="clean" dir="core/vtype"/>
+    <ant target="clean" dir="core/mail"/>
     <ant target="clean" dir="core/pv"/>
     <ant target="clean" dir="core/ui"/>
     <ant target="clean" dir="core/logging"/>
     <ant target="clean" dir="core/types"/>
     <ant target="clean" dir="core/formula"/>
     <ant target="clean" dir="applications/greetings"/>
+    <ant target="clean" dir="applications/email"/>
     <ant target="clean" dir="applications/probe"/>
     <ant target="clean" dir="applications/logbook/inmemory"/>
     <ant target="clean" dir="applications/logConfiguration"/>
@@ -35,6 +37,13 @@
     <ant target="clean" dir="phoebus-product"/>
     <ant target="clean" dir="scan-server-product"/>
     <ant target="clean" dir="alarm-server-product"/>
+  	
+  	<!-- If above list is complete, each project should have deleted its output.
+  	     Just in case, another way to delete all mvn-created SNAPSHOT jars
+  	  -->
+  	<delete>
+  	  <fileset dir="." includes="**/*-SNAPSHOT.jar"/>
+  	</delete>
   </target>
 
   <target name="core" description="Build core modules">
@@ -46,6 +55,7 @@
     <ant dir="core/framework"/>
     <ant dir="core/util"/>
     <ant dir="core/vtype"/>
+    <ant dir="core/mail"/>
     <ant dir="core/pv"/>
     <ant dir="core/ui"/>
     <ant dir="core/logging"/>
@@ -55,6 +65,7 @@
 
   <target name="applications" depends="core" description="Build application modules">
     <ant dir="applications/greetings"/>
+    <ant dir="applications/email"/>
     <ant dir="applications/probe"/>
     <ant dir="applications/logbook/inmemory"/>
     <ant dir="applications/logConfiguration"/>
