@@ -45,7 +45,7 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
 
     private List<TitleDetail> commands = Collections.emptyList();
 
-    private List<TitleDetail> actions = Collections.emptyList();
+    private List<TitleDetailDelay> actions = Collections.emptyList();
 
     /** Constructor for item or leaf
      *  @param parent Parent item, <code>null</code> for root
@@ -174,7 +174,7 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         return commands;
     }
 
-    public boolean setActions(final List<TitleDetail> actions)
+    public boolean setActions(final List<TitleDetailDelay> actions)
     {
         if (this.actions.equals(actions))
             return false;
@@ -182,7 +182,7 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         return true;
     }
 
-    public List<TitleDetail> getActions()
+    public List<TitleDetailDelay> getActions()
     {
         return actions;
     }

@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.model.json;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -19,6 +20,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -82,20 +84,28 @@ public class JsonModelReader
         boolean changed = false;
 
         JsonNode jn = json.get(JsonTags.GUIDANCE);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setGuidance(Collections.emptyList());
+        else
             changed |= node.setGuidance(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.DISPLAYS);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setDisplays(Collections.emptyList());
+        else
             changed |= node.setDisplays(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.COMMANDS);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setCommands(Collections.emptyList());
+        else
             changed |= node.setCommands(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.ACTIONS);
-        if (jn != null)
-            changed |= node.setActions(parseTitleDetail(jn));
+        if (jn == null)
+            changed |= node.setActions(Collections.emptyList());
+        else
+            changed |= node.setActions(parseTitleDetailDelay(jn));
 
         return changed;
     }
@@ -114,6 +124,27 @@ public class JsonModelReader
             final String details = jn == null ? "" : jn.asText();
 
             entries.add(new TitleDetail(title, details));
+        }
+        return entries;
+    }
+    
+    private static List<TitleDetailDelay> parseTitleDetailDelay(final JsonNode array)
+    {
+        final List<TitleDetailDelay> entries = new ArrayList<>(array.size());
+        for (int i=0; i<array.size(); ++i)
+        {
+            final JsonNode info = array.get(i);
+
+            JsonNode jn = info.get(JsonTags.TITLE);
+            final String title = jn == null ? "" : jn.asText();
+
+            jn = info.get(JsonTags.DETAILS);
+            final String details = jn == null ? "" : jn.asText();
+
+            jn = info.get(JsonTags.DELAY);
+            final Integer delay = jn == null ? 0 : jn.asInt();
+            
+            entries.add(new TitleDetailDelay(title, details, delay));
         }
         return entries;
     }

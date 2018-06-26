@@ -87,9 +87,7 @@ public class AlarmConfigTool
 
         // Write to stdout or to file.
         if (filename.equals("stdout"))
-        {
             xmlWriter = new XmlModelWriter(System.out);
-        }
         else
         {
             final File modelFile = new File(filename);
@@ -106,19 +104,16 @@ public class AlarmConfigTool
         client.start();
 
         System.out.printf("Writing file after model is stable for %d seconds:\n", STABILIZATION_SECS);
-
         System.out.println("Monitoring changes...");
 
         updateMonitor = new UpdateMonitor();
-
         updateMonitor.listen(client);
 
         System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", STABILIZATION_SECS);
 
         //Write the model.
-
-
-        xmlWriter.getModelXML(client.getRoot());
+        xmlWriter.write(client.getRoot());
+        xmlWriter.close();
 
         System.out.println("\nModel written to file: " + filename);
         System.out.printf("%d updates were received while writing model to file.\n", updateMonitor.getCount());

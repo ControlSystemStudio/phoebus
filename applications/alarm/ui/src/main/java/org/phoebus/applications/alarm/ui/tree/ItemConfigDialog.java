@@ -42,7 +42,8 @@ class ItemConfigDialog extends Dialog<Boolean>
     private CheckBox enabled, latching, annunciating;
     private Spinner<Integer> delay, count;
     private TextField filter;
-    private final TitleDetailTable guidance, displays, commands, actions;
+    private final TitleDetailTable guidance, displays, commands;
+    private final TitleDetailDelayTable actions;
 
     public ItemConfigDialog(final AlarmClient model, final AlarmTreeItem<?> item)
     {
@@ -148,7 +149,7 @@ class ItemConfigDialog extends Dialog<Boolean>
 
         // Automated Actions:
         layout.add(new Label("Automated Actions:"), 0, row++);
-        actions = new TitleDetailTable(item.getActions());
+        actions = new TitleDetailDelayTable(item.getActions());
         actions.setPrefHeight(100);
         layout.add(actions, 0, row++, 2, 1);
 
