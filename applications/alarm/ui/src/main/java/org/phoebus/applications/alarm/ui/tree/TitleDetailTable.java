@@ -113,7 +113,6 @@ public class TitleDetailTable extends BorderPane
 
     private void createButtons()
     {
-        // TODO Button tooltips
         add.setTooltip(new Tooltip("Add a new table item."));
         add.setOnAction(event ->
         {

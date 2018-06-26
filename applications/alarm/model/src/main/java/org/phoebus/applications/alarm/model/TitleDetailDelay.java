@@ -9,29 +9,29 @@ package org.phoebus.applications.alarm.model;
 
 import java.util.Objects;
 
-/**
- * Wrapper for title, detail, and delay as use by automated commands.
- * <p> Extends {@link TitleDetail}
- * @author Evan Smith
+/** Wrapper for title, detail, and delay as used by automated commands.
+ *
+ *  <p>Extends {@link TitleDetail}
+ *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class TitleDetailDelay extends TitleDetail
 {
-    public final Integer delay;
-    
-    public TitleDetailDelay(String title, String details, Integer delay)
+    public final int delay;
+
+    public TitleDetailDelay(final String title, final String details, int delay)
     {
         super(title, details);
         this.delay = Objects.requireNonNull(delay);
     }
 
-    // TODO : Is this done correctly??
     @Override
     public int hashCode()
     {
         final int prime = 31;
         int result = detail.hashCode();
         result = prime * result + title.hashCode();
-        result = prime * result + delay.hashCode();
+        result = prime * result + delay;
         return result;
     }
 
@@ -41,15 +41,15 @@ public class TitleDetailDelay extends TitleDetail
         if (! (obj instanceof TitleDetailDelay))
             return false;
         final TitleDetailDelay other = (TitleDetailDelay) obj;
-        
+
         return other.title.equals(title)  &&
                other.detail.equals(detail) &&
-               other.delay.equals(delay);
+               other.delay == delay;
     }
 
     @Override
     public String toString()
     {
-        return title + ": " + detail + ", delay: " + delay.toString();
+        return title + ": " + detail + ", delay: " + delay;
     }
 }

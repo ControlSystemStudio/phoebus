@@ -37,11 +37,12 @@ import javafx.scene.layout.VBox;
 import javafx.util.converter.DefaultStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
-/**
- * Table for editing list of {@link TitleDetailDelay}
- * <p> Largely based of off {@link TitleDetailTable}
- * @author Evan Smith
+/** Table for editing list of {@link TitleDetailDelay}
+ *
+ *  <p>Largely based of off {@link TitleDetailTable}
+ *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class TitleDetailDelayTable extends BorderPane
 {
     private final ObservableList<TitleDetailDelay> items = FXCollections.observableArrayList();
@@ -109,7 +110,7 @@ public class TitleDetailDelayTable extends BorderPane
         {
             final int row = event.getTablePosition().getRow();
             items.set(row, new TitleDetailDelay(items.get(row).title, event.getNewValue().replace("\\n", "\n"), items.get(row).delay));
-            
+
             // Trigger editing the delay.
             UpdateThrottle.TIMER.schedule(() ->
                 Platform.runLater(() ->
@@ -121,13 +122,13 @@ public class TitleDetailDelayTable extends BorderPane
         });
         col.setSortable(false);
         table.getColumns().add(col);
-        
+
         TableColumn<TitleDetailDelay, Integer> delayCol = new TableColumn<>("Delay");
         delayCol.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().delay).asObject());
-        delayCol.setCellFactory(column -> new TextFieldTableCell<TitleDetailDelay, Integer>(new IntegerStringConverter()));
+        delayCol.setCellFactory(column -> new TextFieldTableCell<>(new IntegerStringConverter()));
         delayCol.setOnEditCommit(event ->
         {
-            final int row = event.getTablePosition().getRow();            
+            final int row = event.getTablePosition().getRow();
             items.set(row, new TitleDetailDelay(items.get(row).title, items.get(row).detail, event.getNewValue()));
         });
         delayCol.setSortable(false);
@@ -151,7 +152,7 @@ public class TitleDetailDelayTable extends BorderPane
                 }),
                 200, TimeUnit.MILLISECONDS);
         });
-        
+
         edit.setTooltip(new Tooltip("Edit the detail field of table item."));
         edit.setOnAction(event ->
         {
