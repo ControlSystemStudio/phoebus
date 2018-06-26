@@ -13,6 +13,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 
@@ -29,12 +30,12 @@ public class ConfigureComponentAction extends MenuItem
     public ConfigureComponentAction(final Node node, final AlarmClient model, final AlarmTreeItem<?> item)
     {
         super("Configure Item", ImageCache.getImageView(AlarmSystem.class, "/icons/configure.png"));
-        setOnAction(event ->
+        setOnAction(event -> Platform.runLater(() ->
         {
             final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
             DialogHelper.positionDialog(dialog, node, -250, -400);
             // Show dialog, not waiting for it to close with OK or Cancel
             dialog.show();
-        });
+        }));
     }
 }
