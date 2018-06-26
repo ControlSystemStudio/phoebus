@@ -30,6 +30,8 @@ import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
+import org.phoebus.applications.alarm.server.actions.AutomatedActions;
+import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.VType;
@@ -139,6 +141,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return logic.getAlarmState();
     }
 
+    public AlarmState getCurrentState()
+    {
+        return logic.getCurrentState();
+    }
 
     /** Acknowledge current alarm severity
      *  @param acknowledge Acknowledge or un-acknowledge?

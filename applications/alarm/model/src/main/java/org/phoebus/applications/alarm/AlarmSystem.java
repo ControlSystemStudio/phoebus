@@ -70,6 +70,9 @@ public class AlarmSystem
     /** Annunciator message retention count */
     public static final int annunciator_retention_count;
 
+    /** Name of the sender, the 'from' field of automated email actions */
+    public static final String automated_email_sender;
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
@@ -85,6 +88,7 @@ public class AlarmSystem
         command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
         annunciator_threshold = prefs.getInt("annunciator_threshold");
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
+        automated_email_sender = prefs.get("automated_email_sender");
 
         IdentificationHelper.initialize();
     }

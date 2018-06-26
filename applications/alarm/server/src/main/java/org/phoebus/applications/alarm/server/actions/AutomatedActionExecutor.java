@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.server;
+package org.phoebus.applications.alarm.server.actions;
 
 import java.util.function.BiConsumer;
 
@@ -25,19 +25,18 @@ import org.phoebus.applications.alarm.model.TitleDetailDelay;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, TitleDetailDelay>
 {
-    // TODO Use TitleDetailDelay
     public static final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> INSTANCE = new AutomatedActionExecutor();
 
     @Override
     public void accept(final AlarmTreeItem<?> item, final TitleDetailDelay action)
     {
         // TODO Perform the automated action in designated thread (work queue)
-        System.out.println("TODO: Execute " + action + " for " + item.getPathName());
         if (action.detail.startsWith("mailto:"))
-            System.out.println("TODO: Send email");
+            EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
         else if (action.detail.startsWith("cmd:"))
-            System.out.println("TODO: Execute external command");
+            System.out.println("TODO: Execute " + action + " for " + item.getPathName());
     }
 }

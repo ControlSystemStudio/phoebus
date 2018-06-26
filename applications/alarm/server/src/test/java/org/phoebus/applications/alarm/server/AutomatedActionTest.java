@@ -26,6 +26,7 @@ import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
+import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 
 /** JUnit test of the AutomatedActions
  *  @author Kay Kasemir

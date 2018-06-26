@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.server;
+package org.phoebus.applications.alarm.server.actions;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -17,21 +17,21 @@ import org.phoebus.applications.alarm.model.TitleDetailDelay;
 /** Helper for handling {@link AutomatedActions} in server nodes and PVs
  *  @author Kay Kasemir
  */
-class AutomatedActionsHelper
+public class AutomatedActionsHelper
 {
-    static void update(final AtomicReference<AutomatedActions> automated_actions,
-                       final SeverityLevel severity)
+    public static void update(final AtomicReference<AutomatedActions> automated_actions,
+                              final SeverityLevel severity)
     {
         final AutomatedActions actions = automated_actions.get();
         if (actions != null)
             actions.handleSeverityUpdate(severity);
     }
 
-    static void configure(final AtomicReference<AutomatedActions> automated_actions,
-                          final AlarmTreeItem<?> item,
-                          final boolean is_active,
-                          final boolean enabled,
-                          final List<TitleDetailDelay> actions)
+    public static void configure(final AtomicReference<AutomatedActions> automated_actions,
+                                 final AlarmTreeItem<?> item,
+                                 final boolean is_active,
+                                 final boolean enabled,
+                                 final List<TitleDetailDelay> actions)
     {
         // Update Automated Actions since their configuration changed
         final AutomatedActions new_actions =
@@ -45,7 +45,7 @@ class AutomatedActionsHelper
             previous.cancel();
     }
 
-    static void cancel(final AtomicReference<AutomatedActions> automated_actions)
+    public static void cancel(final AtomicReference<AutomatedActions> automated_actions)
     {
         final AutomatedActions actions = automated_actions.get();
         if (actions != null)

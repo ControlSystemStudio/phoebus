@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.applications.alarm.server;
+package org.phoebus.applications.alarm.server.actions;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
@@ -90,10 +90,7 @@ public class AutomatedActions
                             if (scheduled_actions.remove(a) == null)
                                 logger.log(Level.INFO, item.getPathName() + ": Aborting execution of cancelled action " + a);
                             else
-                            {
-                                logger.log(Level.INFO, item.getPathName() + ": Executing " + a);
                                 perform_action.accept(item, a);
-                            }
                         };
                         logger.log(Level.INFO, item.getPathName() + ": Schedule " + a.title + " in " + a.delay + " s");
                         return timer.schedule(trigger_action, a.delay, TimeUnit.SECONDS);
