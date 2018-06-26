@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm;
 
 import static org.junit.Assert.assertEquals;
@@ -14,9 +21,12 @@ import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
+/** JUnit test of {@link XmlModelWriter}
+ *  @author Evan Smith
+ */
+@SuppressWarnings("nls")
 public class AlarmModelWriterTest
 {
-
 	private void assertFrequency(final int expected, final String searchStr, final String xml)
 	{
 		int found = 0;
@@ -36,7 +46,7 @@ public class AlarmModelWriterTest
 	@Test
 	public void testAlarmModelWriter() throws Exception
 	{
-		final AlarmClientNode  root = new AlarmClientNode(null, "Test");
+        final AlarmClientNode  root = new AlarmClientNode(null, "Test");
 
 		// Create an area with 2 PV's.
 		final AlarmClientNode area1 = new AlarmClientNode(root, "Area1");
@@ -97,8 +107,8 @@ public class AlarmModelWriterTest
 		final ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
 		final XmlModelWriter xmlWriter = new XmlModelWriter(buf);
-
-		xmlWriter.getModelXML(root);
+		xmlWriter.write(root);
+		xmlWriter.close();
 
         final String xml = buf.toString();
 
@@ -147,7 +157,5 @@ public class AlarmModelWriterTest
         assertFrequency(4, "<enabled>true</enabled>", xml);
         assertFrequency(4, "<latching>true</latching>", xml);
         assertFrequency(4, "<annunciating>true</annunciating>", xml);
-
-
 	}
 }

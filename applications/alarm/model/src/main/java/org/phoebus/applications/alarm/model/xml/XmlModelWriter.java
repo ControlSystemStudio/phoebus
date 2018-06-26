@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.model.xml;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -27,32 +28,28 @@ import org.phoebus.framework.persistence.XMLUtil;
  *
  */
 @SuppressWarnings("nls")
-public class XmlModelWriter
+public class XmlModelWriter implements Closeable
 {
-    private XMLStreamWriter writer;
+    private final XMLStreamWriter writer;
 
-    public XmlModelWriter() throws Exception
-    {
-        initWriter(System.out);
-    }
-
+    /** Create XML writer
+     *  @param stream Stream to which XML will be written
+     *  @throws Exception on error
+     */
     public XmlModelWriter(final OutputStream stream) throws Exception
-    {
-        initWriter(stream);
-    }
-
-    private void initWriter(final OutputStream stream) throws Exception
     {
         final XMLStreamWriter base =
                 XMLOutputFactory.newInstance().createXMLStreamWriter(stream, XMLUtil.ENCODING);
-            writer = new IndentingXMLStreamWriter(base);
-
-            writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
+        writer = new IndentingXMLStreamWriter(base);
+        writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
     }
 
-    public void getModelXML(final AlarmTreeItem<?> item) throws Exception
+    /** @param root Alarm tree to write
+     *  @throws Exception on error
+     */
+    public void write(final AlarmTreeItem<?> root) throws Exception
     {
-        getModelXML(item, 0);
+        getModelXML(root, 0);
     }
 
     private void getModelXML(final AlarmTreeItem<?> item, final int level) throws Exception
@@ -68,7 +65,6 @@ public class XmlModelWriter
                 getModelXML(child, level+1);
 
             writer.writeEndElement();
-            close();
         }
         else if (item instanceof AlarmTreeLeaf) /* Leaf */
         {
@@ -122,7 +118,7 @@ public class XmlModelWriter
         {
             getTitleDetailListXML(commands, XmlModelReader.TAG_COMMAND);
         }
-        
+
         // Write XML for Actions
         final List<TitleDetailDelay> actions = item.getActions();
 
@@ -130,7 +126,7 @@ public class XmlModelWriter
         {
             getTitleDetailDelayListXML(actions, XmlModelReader.TAG_ACTIONS);
         }
-        
+
     }
 
     private void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
@@ -151,7 +147,7 @@ public class XmlModelWriter
         }
     }
 
-    private void getTitleDetailDelayListXML(List<TitleDetailDelay> tddList, String itemSubType) throws Exception
+    private void getTitleDetailDelayListXML(final List<TitleDetailDelay> tddList, final String itemSubType) throws Exception
     {
         for (final TitleDetailDelay td : tddList)
         {
@@ -164,13 +160,13 @@ public class XmlModelWriter
             writer.writeCharacters(td.detail);
             writer.writeEndElement();
             writer.writeStartElement(XmlModelReader.TAG_DELAY);
-            writer.writeCharacters(td.delay.toString());
+            writer.writeCharacters(Integer.toString(td.delay));
             writer.writeEndElement();
 
             writer.writeEndElement();
         }
     }
-    
+
     private void getLeafXML(final AlarmTreeLeaf leaf) throws Exception
     {
         final String description = leaf.getDescription();
@@ -228,6 +224,7 @@ public class XmlModelWriter
         }
     }
 
+    @Override
     public void close() throws IOException
     {
         try

@@ -23,11 +23,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-/**
-* Creates Alarm System model from XML.
-* @author Evan Smith
-*
-*/
+/** Creates Alarm System model from XML.
+ *  @author Evan Smith
+ */
 @SuppressWarnings("nls")
 public class XmlModelReader
 {
@@ -66,7 +64,7 @@ public class XmlModelReader
     }
 
     // Parse the xml stream and load the stream into a document.
-    public void load(InputStream stream) throws Exception
+    public void load(final InputStream stream) throws Exception
     {
         final DocumentBuilder docBuilder =
                 DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -96,7 +94,7 @@ public class XmlModelReader
             processPV(root /* parent */, child);
     }
 
-    private void processComponent(AlarmClientNode parent, Node node) throws Exception
+    private void processComponent(final AlarmClientNode parent, final Node node) throws Exception
     {
         // Name of the new component node.
         String comp_node_name = null;
@@ -132,7 +130,7 @@ public class XmlModelReader
             processPV(component/* parent */, child);
     }
 
-    private void processCompAttr(AlarmClientNode component, Node node) throws Exception
+    private void processCompAttr(final AlarmClientNode component, final Node node) throws Exception
     {
         ArrayList<TitleDetail> td = new ArrayList<>();
 
@@ -173,7 +171,7 @@ public class XmlModelReader
         }
     }
 
-    private void processPV(AlarmClientNode parent, final Element node) throws Exception
+    private void processPV(final AlarmClientNode parent, final Element node) throws Exception
     {
         String pv_node_name = null;
         final NamedNodeMap attrs = node.getAttributes();
@@ -263,18 +261,18 @@ public class XmlModelReader
         }
     }
 
-    private TitleDetail getTD(Element node)
+    private TitleDetail getTD(final Element node)
     {
         final String title = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
         final String detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
         return new TitleDetail(title, detail);
     }
-    
-    private TitleDetailDelay getTDD(Element node) throws Exception
+
+    private TitleDetailDelay getTDD(final Element node) throws Exception
     {
         final String  title  = XMLUtil.getChildString(node, TAG_TITLE).orElse("");
         final String  detail = XMLUtil.getChildString(node, TAG_DETAILS).orElse("");
-        final Integer delay  = XMLUtil.getChildInteger(node, TAG_DELAY).orElse(0);
+        final int delay  = XMLUtil.getChildInteger(node, TAG_DELAY).orElse(0);
         return new TitleDetailDelay(title, detail, delay);
     }
 }

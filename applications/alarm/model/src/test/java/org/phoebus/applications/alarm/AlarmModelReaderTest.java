@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.alarm;
 
 import static org.junit.Assert.assertEquals;
@@ -15,10 +22,14 @@ import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 
+/** JUnit test of {@link XmlModelReader}
+ *  @author Evan Smith
+ */
+@SuppressWarnings("nls")
 public class AlarmModelReaderTest
 {
 	// XML Alarm Test Model
-	public static final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    public static final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	+ "<config name=\"Test\">\n"
 	+ "  <component name=\"Area1\">\n"
 	+ "    <automated_action>\n"
@@ -110,19 +121,19 @@ public class AlarmModelReaderTest
 		assertEquals("Area1 Command Detail 2", a1_command2.detail);
 
 		final List<TitleDetailDelay> a1_actions = area1.getActions();
-		
+
 		assertEquals(2, a1_actions.size());
-		
+
 		final TitleDetailDelay a1_action1 = a1_actions.get(0);
 		assertEquals("Area1 Action Title 1", a1_action1.title);
 		assertEquals("Area1 Action Detail 1", a1_action1.detail);
-		assertEquals("5", a1_action1.delay.toString());
-		
+		assertEquals(5, a1_action1.delay);
+
 		final TitleDetailDelay a1_action2 = a1_actions.get(1);
         assertEquals("Area1 Action Title 2", a1_action2.title);
         assertEquals("Area1 Action Detail 2", a1_action2.detail);
-        assertEquals("6", a1_action2.delay.toString());
-		
+        assertEquals(6, a1_action2.delay);
+
 		final AlarmTreeLeaf a1pv1 = (AlarmTreeLeaf) area1.getChild("a1pv1");
 
 		assertEquals("a1pv1", area1.getChild("a1pv1").getName());
