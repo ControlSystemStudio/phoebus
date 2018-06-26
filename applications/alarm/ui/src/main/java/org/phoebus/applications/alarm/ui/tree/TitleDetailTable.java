@@ -29,6 +29,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -113,6 +114,7 @@ public class TitleDetailTable extends BorderPane
     private void createButtons()
     {
         // TODO Button tooltips
+        add.setTooltip(new Tooltip("Add a new table item."));
         add.setOnAction(event ->
         {
             items.add(new TitleDetail("", ""));
@@ -128,6 +130,7 @@ public class TitleDetailTable extends BorderPane
                 200, TimeUnit.MILLISECONDS);
         });
 
+        edit.setTooltip(new Tooltip("Edit the detail field of table item."));
         edit.setOnAction(event ->
         {
             final int row = table.getSelectionModel().getSelectedIndex();
@@ -142,6 +145,7 @@ public class TitleDetailTable extends BorderPane
             });
         });
 
+        up.setTooltip(new Tooltip("Move table item up."));
         up.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -164,6 +168,7 @@ public class TitleDetailTable extends BorderPane
             }
         });
 
+        down.setTooltip(new Tooltip("Move table item down."));
         down.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -187,6 +192,7 @@ public class TitleDetailTable extends BorderPane
             }
         });
 
+        delete.setTooltip(new Tooltip("Delete selected table items."));
         delete.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
