@@ -1,7 +1,11 @@
 sudo: required
 language: java
 dist: trusty
-jdk: oraclejdk9
+jdk:
+  - oraclejdk9
+  - openjdk10
+  - oraclejdk10
+
 
 script:
   - mvn clean install
