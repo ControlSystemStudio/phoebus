@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 /** JUnit test of the AutomatedActions
@@ -34,9 +33,6 @@ import org.phoebus.applications.alarm.model.TitleDetailDelay;
 @SuppressWarnings("nls")
 public class AutomatedActionTest
 {
-    // TODO Anything in here that uses TitleDetail should use
-    // a new, to-be-created class that adds a Delay, e.g. TitleDetailDelay
-
     /** Time-based tests are fragile.
      *  Pick a large enough test delay.
      */
@@ -44,7 +40,7 @@ public class AutomatedActionTest
 
     final BlockingQueue<String> action_performed = new ArrayBlockingQueue<>(1);
 
-    final BiConsumer<AlarmTreeItem<?>, TitleDetail> perform_action = (item, action) ->
+    final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> perform_action = (item, action) ->
     {
         System.out.println("Invoked " + action + " on " + item);
         action_performed.offer(action.title);

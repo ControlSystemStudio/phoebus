@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
@@ -46,7 +45,7 @@ public class AutomatedActions
     private final AlarmTreeItem<?> item;
 
     /** Will be invoked to actually perform one of the item's actions */
-    private final BiConsumer<AlarmTreeItem<?>, TitleDetail> perform_action;
+    private final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> perform_action;
 
     /** Handle automated actions for one item
      *  @param item Item for which automated actions should be handled
@@ -55,7 +54,7 @@ public class AutomatedActions
      */
     public AutomatedActions(final AlarmTreeItem<?> item,
                             final boolean start_active,
-                            final BiConsumer<AlarmTreeItem<?>, TitleDetail> perform_action)
+                            final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> perform_action)
     {
         this.item = item;
         this.active_alarm = new AtomicBoolean(start_active);

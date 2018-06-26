@@ -37,8 +37,7 @@ class AutomatedActionsHelper
         final AutomatedActions new_actions =
             (actions.isEmpty() ||  !enabled)
             ? null
-            : new AutomatedActions(item, is_active,
-                                   AutomatedActionExecutor.INSTANCE);
+            : new AutomatedActions(item, is_active, AutomatedActionExecutor.INSTANCE);
 
         // Cancel previous ones.
         final AutomatedActions previous = automated_actions.getAndSet(new_actions);

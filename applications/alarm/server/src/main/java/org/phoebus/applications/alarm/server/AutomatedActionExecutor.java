@@ -10,7 +10,7 @@ package org.phoebus.applications.alarm.server;
 import java.util.function.BiConsumer;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 /** Executor for automated actions
  *
@@ -25,13 +25,13 @@ import org.phoebus.applications.alarm.model.TitleDetail;
  *
  *  @author Kay Kasemir
  */
-public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, TitleDetail>
+public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, TitleDetailDelay>
 {
     // TODO Use TitleDetailDelay
-    public static final BiConsumer<AlarmTreeItem<?>, TitleDetail> INSTANCE = new AutomatedActionExecutor();
+    public static final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> INSTANCE = new AutomatedActionExecutor();
 
     @Override
-    public void accept(final AlarmTreeItem<?> item, final TitleDetail action)
+    public void accept(final AlarmTreeItem<?> item, final TitleDetailDelay action)
     {
         // TODO Perform the automated action in designated thread (work queue)
         System.out.println("TODO: Execute " + action + " for " + item.getPathName());
