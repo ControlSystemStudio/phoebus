@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
+import org.phoebus.channelfinder.utility.ChannelSearchJob;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
