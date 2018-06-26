@@ -4,7 +4,7 @@
      provided as jar files ../dependencies/lib
   -->
 <project name="Phoebus" default="product">
-	
+
   <target name="clean" description="Remove all artifacts">
     <ant target="clean" dir="core/framework"/>
     <ant target="clean" dir="core/util"/>
@@ -33,17 +33,22 @@
     <ant target="clean" dir="applications/scan/client"/>
     <ant target="clean" dir="applications/scan/ui"/>
     <ant target="clean" dir="applications/scan/server"/>
+    <ant target="clean" dir="applications/alarm/model"/>
+    <ant target="clean" dir="applications/alarm/server"/>
+    <ant target="clean" dir="applications/alarm/ui"/>
     <ant target="clean" dir="applications/update"/>
     <ant target="clean" dir="phoebus-product"/>
     <ant target="clean" dir="scan-server-product"/>
     <ant target="clean" dir="alarm-server-product"/>
-  	
-  	<!-- If above list is complete, each project should have deleted its output.
-  	     Just in case, another way to delete all mvn-created SNAPSHOT jars
-  	  -->
-  	<delete>
-  	  <fileset dir="." includes="**/*-SNAPSHOT.jar"/>
-  	</delete>
+      
+    <!-- If above list is complete, each project should have deleted its output.
+         Just in case, another way to delete all target dirs
+         _except_ dependencies
+      -->
+    <delete includeEmptyDirs="true">
+      <fileset dir="core" includes="**/target/**"/>
+      <fileset dir="applications" includes="**/target/**"/>
+    </delete>
   </target>
 
   <target name="core" description="Build core modules">
@@ -82,6 +87,9 @@
     <ant dir="applications/scan/client"/>
     <ant dir="applications/scan/ui"/>
     <ant dir="applications/scan/server"/>
+    <ant dir="applications/alarm/model"/>
+    <ant dir="applications/alarm/server"/>
+    <ant dir="applications/alarm/ui"/>
     <ant dir="applications/update"/>
   </target>
 

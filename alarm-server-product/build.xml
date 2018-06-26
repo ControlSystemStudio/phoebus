@@ -15,9 +15,12 @@
         <include name="dependencies/**/snappy-java*.jar"/>
         <include name="dependencies/**/reactive-streams*.jar"/>
         <include name="dependencies/**/rxjava*.jar"/>
+        <include name="dependencies/**/javax.activation*.jar"/>
+        <include name="dependencies/**/javax.mail*.jar"/>
         <include name="core/vtype/target/vtype*.jar"/>
       	<include name="core/util/target/util*.jar"/>
         <include name="core/framework/target/framework*.jar"/>
+        <include name="core/mail/target/mail*.jar"/>
         <include name="core/formula/target/formula*.jar"/>
         <include name="core/pv/target/pv*.jar"/>
         <include name="applications/alarm/model/target/alarm-model*.jar"/>
