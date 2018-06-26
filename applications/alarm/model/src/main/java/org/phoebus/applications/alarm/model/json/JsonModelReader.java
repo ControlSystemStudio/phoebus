@@ -53,7 +53,7 @@ public class JsonModelReader
     }
 
     /** Is this the configuration or alarm state for a leaf?
-     *  @param json JSON returned by {@link #parseAlarmItemConfig(String)}
+     *  @param json JSON returned by {@link #parseJsonText(String)}
      *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmClientNode}
      */
     public static boolean isLeafConfigOrState(final Object json)
@@ -62,6 +62,17 @@ public class JsonModelReader
         // Leaf config contains description
         // Leaf alarm state contains detail of AlarmState
         return actual.get(JsonTags.DESCRIPTION) != null  ||  actual.get(JsonTags.CURRENT_SEVERITY) != null;
+    }
+
+    /** Is this a configuration or state message?
+     *  @param json JSON returned by {@link #parseJsonText(String)}
+     *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmClientNode}
+     */
+    public static boolean isStateUpdate(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        // State updates contain SEVERITY
+        return actual.get(JsonTags.SEVERITY) != null;
     }
 
     /** Update configuration of alarm tree item

@@ -152,8 +152,9 @@ public class AlarmClient
                     // Only update listeners if this is a new node or the config changed
                     if (node == null)
                         node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
-                    final boolean need_update = JsonModelReader.updateAlarmItemConfig(node, json)  ||
-                                          JsonModelReader.updateAlarmState(node, json);
+                    final boolean need_update = JsonModelReader.isStateUpdate(json)
+                        ? JsonModelReader.updateAlarmState(node, json)
+                        : JsonModelReader.updateAlarmItemConfig(node, json);
                     // If there were changes, notify listeners
                     if (need_update)
                         for (final AlarmClientListener listener : listeners)

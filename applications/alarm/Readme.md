@@ -161,7 +161,10 @@ The full config topic JSON format for a alarm tree node:
         "actions":  [{"title": String, "details": String}]
     }
 
-The actual JSON format will only contain the used elements.
+The configuration of an alarm tree leaf, i.e. a PV, will
+always contain the "description", but otherwise the actual JSON
+format will only contain the used elements.
+
 For example, a PV that has no guidance, displays, commands, actions will look like this:
 
     /path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
@@ -216,6 +219,8 @@ The state topic JSON format for an alarm tree node:
     {
         "severity": String
     }
+
+At minimum, state updates this always contain a "severity". 
 
 An example message that could appear in a state topic:
 
