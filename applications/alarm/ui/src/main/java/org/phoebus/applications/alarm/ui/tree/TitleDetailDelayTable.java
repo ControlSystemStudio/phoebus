@@ -214,7 +214,7 @@ public class TitleDetailDelayTable extends BorderPane
             }
         });
 
-        delete.setTooltip(new Tooltip("Delete table item."));
+        delete.setTooltip(new Tooltip("Delete selected table items."));
         delete.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
