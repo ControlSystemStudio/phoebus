@@ -8,7 +8,6 @@
 package org.phoebus.applications.alarm.model.json;
 
 import java.io.ByteArrayOutputStream;
-import java.time.Instant;
 import java.util.List;
 
 import org.phoebus.applications.alarm.client.ClientState;
@@ -19,14 +18,15 @@ import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
-import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** Write alarm model as JSON
  *  @author Kay Kasemir
+ *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class JsonModelWriter
 {
     // Use Jackson ObjectMapper where it can be used
@@ -86,10 +86,10 @@ public class JsonModelWriter
         )
         {
             jg.writeStartObject();
-            
+
             jg.writeStringField(JsonTags.USER, IdentificationHelper.getUser());
             jg.writeStringField(JsonTags.HOST, IdentificationHelper.getHost());
-            
+
             if (item instanceof AlarmTreeLeaf)
                 writeLeafDetail(jg, (AlarmTreeLeaf) item);
 
@@ -135,12 +135,12 @@ public class JsonModelWriter
         }
         jg.writeEndArray();
     }
-    
+
     private static void writeTitleDetailDelay(final JsonGenerator jg, final String name, final List<TitleDetailDelay> infos) throws Exception
     {
         if (infos.isEmpty())
             return;
-        
+
         jg.writeArrayFieldStart(name);
         {
             for (TitleDetailDelay info : infos)
@@ -154,7 +154,7 @@ public class JsonModelWriter
         }
         jg.writeEndArray();
     }
-    
+
     /**
      * Create a JSON byte array of a command.
      * @param cmd - Command
@@ -178,7 +178,7 @@ public class JsonModelWriter
         }
         return buf.toByteArray();
     }
-    
+
     /**
      * Create a JSON byte array of a *Talk topic message.
      * <p> This method handles the parsing of '*' and '!' in regards to the message format, and whether the message can be silenced.
@@ -193,9 +193,9 @@ public class JsonModelWriter
         String message = description; // Message to be annunciated.
         boolean noSev = false;      // Message should include alarm severity.
         boolean standout = false;   // Message should always be annunciated.
-        
+
         int beginIndex = 0; // Beginning index of description substring.
-       
+
         if (description.startsWith("*"))
         {
             noSev = true;
@@ -206,17 +206,17 @@ public class JsonModelWriter
             standout = true;
             beginIndex++;
         }
-       
-        // The message should not include '*' or '!'. 
+
+        // The message should not include '*' or '!'.
         // If '*' or '!' is the entirety of the description, message will be an empty string.
         message = description.substring(beginIndex);
-       
+
         // Add the severity if appropriate.
         if (! noSev)
         {
             message = severity.toString() + " Alarm: " + message;
         }
-       
+
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
@@ -232,11 +232,9 @@ public class JsonModelWriter
         return buf.toByteArray();
     }
 
-   /**
-    * Create a deletion message for identifying who is creating a kafka tombstone, and at what time.
-    * @return byte[]
-    * @throws Exception
-    * @author Evan Smith
+   /** Create a deletion message for identifying who is creating a kafka tombstone
+    *  @return byte[]
+    *  @throws Exception
     */
     public static byte[] deleteMessageToBytes() throws Exception
     {
@@ -249,14 +247,12 @@ public class JsonModelWriter
             final String user = IdentificationHelper.getUser();
             final String host = IdentificationHelper.getHost();
             // TODO: Why a delete occurred can be important. Perhaps in the future allow for this to be user set through some type of dialog.
-            final String msg  = "Deleting node."; 
-            final String time = TimestampFormats.MILLI_FORMAT.format(Instant.now());
-            
+            final String msg  = "Deleting";
+
             jg.writeStartObject();
             jg.writeStringField(JsonTags.USER, user);
             jg.writeStringField(JsonTags.HOST, host);
-            jg.writeStringField(JsonTags.DELETE_MESSAGE, msg);
-            jg.writeStringField(JsonTags.TIME, time);
+            jg.writeStringField(JsonTags.DELETE, msg);
             jg.writeEndObject();
         }
         return buf.toByteArray();

@@ -127,7 +127,7 @@ public class JsonModelReader
         }
         return entries;
     }
-    
+
     private static List<TitleDetailDelay> parseTitleDetailDelay(final JsonNode array)
     {
         final List<TitleDetailDelay> entries = new ArrayList<>(array.size());
@@ -142,8 +142,8 @@ public class JsonModelReader
             final String details = jn == null ? "" : jn.asText();
 
             jn = info.get(JsonTags.DELAY);
-            final Integer delay = jn == null ? 0 : jn.asInt();
-            
+            final int delay = jn == null ? 0 : jn.asInt();
+
             entries.add(new TitleDetailDelay(title, details, delay));
         }
         return entries;
