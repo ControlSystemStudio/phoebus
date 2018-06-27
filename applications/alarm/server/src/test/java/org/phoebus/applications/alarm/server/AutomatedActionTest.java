@@ -78,7 +78,7 @@ public class AutomatedActionTest
         final long passed = System.currentTimeMillis() - start;
         System.out.println("Action performed after " + passed + " ms");
         // Actual delay should be within 20% of the expected delay
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
+        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
 
         // When no longer needed, close to stop timers etc.
         auto_action.cancel();
@@ -104,7 +104,7 @@ public class AutomatedActionTest
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         final long passed = System.currentTimeMillis() - start;
         System.out.println("Action performed after " + passed + " ms");
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
+        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
 
         // When no longer needed, close to stop timers etc.
         auto_action.cancel();
@@ -132,7 +132,7 @@ public class AutomatedActionTest
         final long passed = System.currentTimeMillis() - start;
         System.out.println("Action performed after " + passed + " ms");
         // Actual delay should be within 20% of the expected delay
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
+        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
 
         // When no longer needed, close to stop timers etc.
         auto_action.cancel();
@@ -161,7 +161,7 @@ public class AutomatedActionTest
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         final long passed = System.currentTimeMillis() - start;
         System.out.println("Action performed after " + passed + " ms");
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 5);
+        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
 
         auto_action.cancel();
     }
