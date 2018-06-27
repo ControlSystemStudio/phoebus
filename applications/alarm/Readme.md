@@ -1,5 +1,5 @@
 Alarm System
-------------
+============
 
 Update of the alarm system that originally used RDB for configuration,
 JMS for updates, RDB for persistence of most recent state.
@@ -11,8 +11,8 @@ Clients subscribe to both topics.
 They receive the most recent configuration and state, and from then on updates. 
 
 
-Setup
------
+Kafka Installation
+------------------
 
 Download Kafka as described on https://kafka.apache.org/quickstart
 
@@ -27,17 +27,19 @@ Download Kafka as described on https://kafka.apache.org/quickstart
     ln -s kafka_2.11-1.1.0 kafka
     
 Check `config/server.properties`. By default it contains this, which "works",
-but means data will periodically get deleted by Linux:
+but risks that Linux will delete the data:
 
-    # Suggest to change this to a location outside of /tmp
+    # Suggest to change this to a location outside of /tmp, for example /var/kafka
     log.dirs=/tmp/kafka-logs
 
+By default, Kafka will automatically create topics.
+This means you could accidentally start an alarm server for a non-existing configuration.
+The Kafka topics will automatically be created, but they will lack the desired
+settings for compaction etc.
+Best disable auto-topic-creation, create topics on purpose with the correct settings,
+and have alarm tools that try to access a non-existing configuration fail.
 
-By default, Kafka will automatically create topics. This will allow starting an alarm
-client for a configuration that doesn't exist, because the client will automatically
-create topics for an empty setup, which are not configured to use compaction etc.
-
-    # Suggest to add this to prevent automatic topic creation
+    # Suggest to add this to prevent automatic topic creation,
 	auto.create.topics.enable=false
 
 If the following "First steps" generate errors of the type
@@ -55,72 +57,102 @@ For tests, you can use localhost:
 Start local instance:
 
     # Zookeeper must be started first.
+    sh start_zookeeper.sh
+
+    # The, in other terminal, start Kafka
+    sh start_kafka.sh
+
     # If kafka is started first it will fail to start and close with a null pointer exception. 
     # Simply start kafka after zookeeper is running to recover.
-    cd kafka
-    bin/zookeeper-server-start.sh config/zookeeper.properties
-    # Other terminal
-    bin/kafka-server-start.sh config/server.properties
+
     
-First steps:
+Kafka Demo
+----------
 
     # Create new topic
-    bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic test
+    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic test
     
     # Topic info
-    bin/kafka-topics.sh  --zookeeper localhost:2181 --list
-    bin/kafka-topics.sh  --zookeeper localhost:2181 --describe
-    bin/kafka-topics.sh  --zookeeper localhost:2181 --describe --topic test
-    bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --describe
+    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --list
+    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --describe
+    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --describe --topic test
+    kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --describe
     
     # Produce messages for topic (no key) 
-    bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
+    kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
     Message 1
     Message 2
     <Ctrl-D>
 
     # Trace messages for topic
-    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+    kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
     <Wait until messages are dumped, then Ctrl-C>
 
     # .. with key:
-    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --property print.key=true --property key.separator=": " --topic test --from-beginning
+    kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --property print.key=true --property key.separator=": " --topic test --from-beginning
 
     # Delete topic
-    bin/kafka-topics.sh  --zookeeper localhost:2181 --delete --topic test
+    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --delete --topic test
 
 
 Stop local instance:
 
-    bin/kafka-server-stop.sh 
-    bin/zookeeper-server-stop.sh
+    # Either <Ctrl-C> in the kafka terminal, then in the zookeeper terminal
+    
+    # Or:
+    sh stop_all.sh
     
 For more, see https://kafka.apache.org/documentation.html
-    
 
-Configure 'compact' alarm topics
---------------------------------
 
-Fundamentally, a topic with `cleanup.policy=compact` will be compacted to keep "at least the last known value".
-In practice, the topic will retain many more messages because the log cleaner only runs
-every 15 seconds, it only acts when the ratio of old to new messages is sufficient.
-Further, it only cleans inactive segments.
-If the last segment contains many messages, they will not be compacted until
-writing at least one more message after the "segment.ms" to create a new segment.
+Configure Alarm Topics
+----------------------
+
+Run this to create the topics for an "Accelerator" configuration:
+
+     sh create_alarm_topics.sh Accelerator
+
+The alarm server includes a command-line option to `-create_topics`,
+but the `create_alarm_topics.sh` scripts is likely most up-to-date
+regarding the recommended settings.
+     
+If will create these topics:
+
+ * "Accelerator": Alarm configuration (compacted)
+ * "AcceleratorState": Alarm state (compacted)
+ * "AcceleratorCommand": Commands like "acknowledge" from UI to the alarm server (deleted)
+ * "AcceleratorTalk": Annunciations (deleted)
+ 
+The deleted topics are configured to delete older messages, because only new messages are relevant.
+ 
+The compacted topics use `cleanup.policy=compact` to keep "at least the last known value".
+In practice, the topic will retain more messages because the log cleaner only runs
+every 15 seconds, it only acts when the ratio of old to new messages is sufficient,
+and it only cleans inactive segments.
 
 More on this in http://www.shayne.me/blog/2015/2015-06-25-everything-about-kafka-part-2/
-
-The following settings request a new segment every 10 seconds with an aggressive cleanup ratio for the 'Accelerator' config topic:
-
-    bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic Accelerator
-
-    # Configure (existing) topic to be compact, and start a new segment every 10 seconds
-    bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --alter --entity-name Accelerator \
-           --add-config cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01
 
 You can track the log cleaner runs via
 
     tail -f logs/log-cleaner.log
+    
+    
+Start Alarm Server
+------------------
+
+Run the alarm server product.
+For "Accelerator" configuration on localhost, simply start it.
+Otherwise run `-help` to see options for importing or exporting configurations,
+using other configurations etc.
+
+
+User Interface
+--------------
+
+Open the Alarm Tree to show and edit the configuration.
+
+Open Alarm Table as the primary runtime user interface to see and acknowledge active alarms.
+
 
 Message Formats
 ---------------
@@ -296,24 +328,6 @@ When browsing the alarm tree while the large config is loaded,
 it can lock the UI while the internal TreeView code gets to traverse all 'siblings' of a newly added item.
 This has been observed if there are 10000 or more siblings, i.e. direct child nodes to one node of the alarm tree.
 It can be avoided by for example adding sub-nodes.
-
-
-Alarm Tools
------------
-
-`alarm-server-product`:
-The alarm server. Run with `-help` to see command line options.
-Can create the required topics by invoking it with the `-create_topics` option.
-
-
-`Applications`, `Alarm` Menu:
-Open the alarm tree, table etc. to configure and interact with the running alarm server.
-
-
-Next
-----
-
-Annunciator.
 
 
 
