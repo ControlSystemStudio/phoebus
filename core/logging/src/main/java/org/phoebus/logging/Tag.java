@@ -11,4 +11,7 @@ public interface Tag {
 
     public String getState();
 
+    public static Tag of(String name, String state) {
+        return new TagImpl(name, state);
+    }
 }

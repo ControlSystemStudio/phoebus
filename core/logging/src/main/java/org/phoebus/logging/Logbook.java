@@ -13,4 +13,11 @@ public interface Logbook {
 
     public String getOwner();
 
+    public static Logbook of(String name, String owner) {
+        return new LogbookImpl(name, owner);
+    }
+
+    public static Logbook of(String name) {
+        return new LogbookImpl(name);
+    }
 }
