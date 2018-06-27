@@ -19,14 +19,16 @@ import org.phoebus.applications.alarm.model.TitleDetailDelay;
  */
 public class AutomatedActionsHelper
 {
-    public static void update(final AtomicReference<AutomatedActions> automated_actions,
-                              final SeverityLevel severity)
-    {
-        final AutomatedActions actions = automated_actions.get();
-        if (actions != null)
-            actions.handleSeverityUpdate(severity);
-    }
-
+    /** Configure {@link AutomatedActions}
+     *
+     *  <p>Sets or updates a reference to automated actions.
+     *
+     *  @param automated_actions {@link AutomatedActions} to configure
+     *  @param item Item on which the actions should operate
+     *  @param is_active Is the alarm active at this time?
+     *  @param enabled Is the alarm enabled?
+     *  @param actions Actions to execute
+     */
     public static void configure(final AtomicReference<AutomatedActions> automated_actions,
                                  final AlarmTreeItem<?> item,
                                  final boolean is_active,
@@ -45,6 +47,20 @@ public class AutomatedActionsHelper
             previous.cancel();
     }
 
+    /** Update automated actions
+     *
+     *  @param automated_actions Ref to actions. May be empty.
+     *  @param severity Alarm severity that may trigger or cancel actions
+     */
+    public static void update(final AtomicReference<AutomatedActions> automated_actions,
+            final SeverityLevel severity)
+    {
+        final AutomatedActions actions = automated_actions.get();
+        if (actions != null)
+            actions.handleSeverityUpdate(severity);
+    }
+
+    /** @param automated_actions Actions to cancel */
     public static void cancel(final AtomicReference<AutomatedActions> automated_actions)
     {
         final AutomatedActions actions = automated_actions.get();
