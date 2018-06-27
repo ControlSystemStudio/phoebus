@@ -301,12 +301,6 @@ public class AlarmServerMain implements ServerModelListener
      *      Quit
      *  </ul>
      *
-     *  TODO Alarm server console?
-     *  At this time, the alarm server has no console/shell/terminal interface.
-     *  It can only receive commands from a "..Command" topic,
-     *  and then print the result on the console.
-     *  Ideally, command and reply could be seen in a terminal.
-     *
      *  @param command Command received from the client
      *  @param detail Detail for the command, usually path to alarm tree node
      */
