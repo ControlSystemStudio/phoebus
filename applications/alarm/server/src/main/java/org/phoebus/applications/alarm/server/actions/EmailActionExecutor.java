@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.server.actions;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -39,6 +40,9 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class EmailActionExecutor
 {
+    /** @param item Item for which to send email
+     *  @param addresses Receipients
+     */
     static void sendEmail(final AlarmTreeItem<?> item, final String[] addresses)
     {
         logger.log(Level.INFO, item.getPathName() + ": Send email to " + Arrays.toString(addresses));
@@ -97,19 +101,12 @@ public class EmailActionExecutor
             buf.append("Alarm Severity: ").append(item.getState().severity).append("\n");
             buf.append("\n");
             buf.append("PVs:");
-            addPVs(buf, item);
+            final List<AlarmServerPV> pvs = AutomatedActionExecutor.getAlarmPVs(item);
+            for (AlarmServerPV pv : pvs)
+                addPVDetail(buf, pv);
         }
 
         return buf.toString();
-    }
-
-    private static void addPVs(final StringBuilder buf, final AlarmTreeItem<?> item)
-    {
-        if (item instanceof AlarmServerPV)
-            addPVDetail(buf, (AlarmServerPV) item);
-        else
-            for (AlarmTreeItem<?> child : item.getChildren())
-                addPVs(buf, child);
     }
 
     private static void addPVDetail(final StringBuilder buf, final AlarmServerPV pv)
@@ -117,19 +114,19 @@ public class EmailActionExecutor
         final String[] path_elements = AlarmTreePath.splitPath(pv.getPathName());
         final String path = AlarmTreePath.makePath(path_elements, path_elements.length - 1);
 
-        buf.append(path).append(":\n")
-           .append("PV              : ").append(pv.getName()).append("\n")
-           .append("Description     : ").append(pv.getDescription()).append("\n");
+        buf.append(path).append("\n")
+           .append("PV: ").append(pv.getName()).append("\n")
+           .append("Description: ").append(pv.getDescription()).append("\n");
 
         AlarmState state = pv.getState();
-        buf.append("Alarm Time      : ").append(TimestampFormats.MILLI_FORMAT.format(state.time)).append("\n");
-        buf.append("Alarm Severity  : ").append(state.severity).append("\n");
-        buf.append("Alarm Status    : ").append(state.message).append("\n");
-        buf.append("Alarm Value     : ").append(state.value).append("\n");
+        buf.append("Alarm Time: ").append(TimestampFormats.MILLI_FORMAT.format(state.time)).append("\n");
+        buf.append("Alarm Severity: ").append(state.severity).append("\n");
+        buf.append("Alarm Status: ").append(state.message).append("\n");
+        buf.append("Alarm Value: ").append(state.value).append("\n");
 
         state = pv.getCurrentState();
         buf.append("Current Severity: ").append(state.severity).append("\n");
-        buf.append("Alarm Status    : ").append(state.message).append("\n");
+        buf.append("Alarm Status: ").append(state.message).append("\n");
         buf.append("\n");
     }
 }

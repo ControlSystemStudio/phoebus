@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server.actions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
+import org.phoebus.applications.alarm.server.AlarmServerPV;
 import org.phoebus.framework.jobs.JobManager;
 
 /** Executor for automated actions
@@ -40,8 +43,36 @@ public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, Tit
             if (action.detail.startsWith("mailto:"))
                 EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
             else if (action.detail.startsWith("cmd:"))
-                // TODO Execute cmd:.. actions
-                System.out.println("Execute " + action + " for " + item.getPathName());
+                CommandActionExecutor.run(item, action.detail.substring(4));
         });
+    }
+
+    /** Locate PVs in alarm
+     *
+     *  @param item Item in alarm tree
+     *  @return List of PVs which are currently in alarm at or below that item
+     */
+    public static List<AlarmServerPV> getAlarmPVs(final AlarmTreeItem<?> item)
+    {
+        final List<AlarmServerPV> pvs = new ArrayList<>();
+        locateAlarmPVs(pvs, item);
+        return pvs;
+    }
+
+    /** Locate PVs in alarm
+     *  @param pvs List where PVs are to be added
+     *  @param item Item in alarm tree
+     */
+    private static void locateAlarmPVs(final List<AlarmServerPV> pvs, final AlarmTreeItem<?> item)
+    {
+        if (item instanceof AlarmServerPV)
+        {
+            final AlarmServerPV pv = (AlarmServerPV) item;
+            if (pv.getState().severity.isActive())
+                pvs.add(pv);
+        }
+        else
+            for (AlarmTreeItem<?> child : item.getChildren())
+                locateAlarmPVs(pvs, child);
     }
 }
