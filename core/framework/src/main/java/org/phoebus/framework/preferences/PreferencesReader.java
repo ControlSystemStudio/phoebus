@@ -37,24 +37,33 @@ public class PreferencesReader
     private final Properties defaults = new Properties();
     private final Preferences prefs;
 
-    /** @param value Value that might contain "$(prop)"
+    private static final Pattern PROP_PATTERN = Pattern.compile("\\$\\([^\\)]+\\)");
+
+    /** Replace one or more property references
+     *  @param value Value that might contain "$(prop)"
      *  @return Value where "$(prop)" is replaced by Java system property "prop"
      */
     public static String replaceProperties(final String value)
     {
-        final Matcher matcher = Pattern.compile("\\$\\((.*)\\)").matcher(value);
-        if (matcher.matches())
+        String result = value;
+        Matcher matcher = PROP_PATTERN.matcher(value);
+        while (matcher.find())
         {
-            final String prop_name = matcher.group(1);
-            final String prop = System.getProperty(prop_name);
+            final String prop_name = matcher.group();
+            final int start = matcher.start();
+            final int end = matcher.end();
+            final String prop = System.getProperty(prop_name.substring(2, prop_name.length()-1));
             if (prop == null)
+            {
                 Logger.getLogger(PreferencesReader.class.getPackageName())
                       .log(Level.SEVERE, "Alarm System settings: Property '" + prop_name + "' is not defined");
+                break;
+            }
             else
-                return prop;
+                result = result.substring(0, start) + prop + result.substring(end);
+            matcher = PROP_PATTERN.matcher(result);
         }
-        // Return as is
-        return value;
+        return result;
     }
 
     /** Create reader for preferences
