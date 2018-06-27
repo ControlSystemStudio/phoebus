@@ -27,13 +27,6 @@ public interface LogEntry {
     public Collection<Tag> getTags();
 
     /**
-     * Get a set of Names of all the tags associated with this log.
-     * 
-     * @return Set of all tag Names
-     */
-    public Collection<String> getTagNames();
-
-    /**
      * Returns a Tag with the name tagName if it exists on this log else returns
      * null.
      * 
@@ -51,13 +44,6 @@ public interface LogEntry {
     public Collection<Logbook> getLogbooks();
 
     /**
-     * Get a set of all the logbook names.
-     * 
-     * @return
-     */
-    public Collection<String> getLogbookNames();
-
-    /**
      * Get all the attachments associated with this log.
      * 
      * @return
@@ -70,13 +56,6 @@ public interface LogEntry {
      * @return
      */
     public Collection<Property> getProperties();
-
-    /**
-     * Get a set of names for all the properties associated with this log.
-     * 
-     * @return a set of all property names.
-     */
-    public Collection<String> getPropertyNames();
 
     /**
      * return the {@link Property} with name <tt>propertyName</tt> if it exists

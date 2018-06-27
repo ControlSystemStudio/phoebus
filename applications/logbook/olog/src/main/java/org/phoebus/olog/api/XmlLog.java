@@ -300,11 +300,6 @@ public class XmlLog implements LogEntry {
     }
 
     @Override
-    public Collection<String> getPropertyNames() {
-        return properties.keySet();
-    }
-
-    @Override
     public Property getProperty(String propertyName) {
         return properties.get(propertyName);
     }
@@ -343,11 +338,6 @@ public class XmlLog implements LogEntry {
         return logbooks.values();
     }
 
-    @Override
-    public Collection<String> getLogbookNames() {
-        return logbooks.keySet();
-    }
-
     /**
      * Setter for log's XmlLogbooks.
      *
@@ -375,11 +365,6 @@ public class XmlLog implements LogEntry {
     @XmlElement(name = "tag")
     public Collection<Tag> getTags() {
         return tags.values();
-    }
-
-    @Override
-    public Collection<String> getTagNames() {
-        return tags.keySet();
     }
 
     @Override
