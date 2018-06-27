@@ -30,6 +30,8 @@ import org.phoebus.util.shell.CommandShell;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+// TODO "Idle" message in the absence of state updates, with timeout in clients
+
 /** Alarm Server
  *  @author Kay Kasemir
  */
