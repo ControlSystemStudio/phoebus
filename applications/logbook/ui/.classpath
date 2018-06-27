@@ -4,8 +4,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logging"/>
-	<classpathentry kind="output" path="target/classes"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-logbook-utility"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
