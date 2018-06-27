@@ -54,24 +54,29 @@ class EnableComponentAction extends MenuItem
             for (AlarmTreeItem<?> item : items)
                 findAffectedPVs(item, pvs);
 
-            final Alert dialog = new Alert(AlertType.CONFIRMATION);
-            dialog.setTitle(getText());
-            if (pvs.size() == 0)
-                dialog.setHeaderText(
-                    doEnable()
-                    ? "All PVs in the selected section are already enabled"
-                    : "All PVs in the selected section are already disabled");
-            else
-                dialog.setHeaderText(MessageFormat.format(
-                    doEnable()
-                    ? "Enable all PVs in the selected section of the alarm hierarchy?\n" +
-                      "This would enable {0} PVs"
-                    : "Disable all PVs in the selected section of the alarm hierarchy?\n" +
-                      "This would disable {0} PVs",
-                    pvs.size()));
-            DialogHelper.positionDialog(dialog, node, -100, -50);
-            if (dialog.showAndWait().get() != ButtonType.OK)
-                return;
+            // If this affects exactly one PV, just do it.
+            // Otherwise ask for confirmation
+            if (pvs.size() != 1)
+            {
+                final Alert dialog = new Alert(AlertType.CONFIRMATION);
+                dialog.setTitle(getText());
+                if (pvs.size() == 0)
+                    dialog.setHeaderText(
+                        doEnable()
+                        ? "All PVs in the selected section are already enabled"
+                        : "All PVs in the selected section are already disabled");
+                else
+                    dialog.setHeaderText(MessageFormat.format(
+                        doEnable()
+                        ? "Enable all PVs in the selected section of the alarm hierarchy?\n" +
+                          "This would enable {0} PVs"
+                        : "Disable all PVs in the selected section of the alarm hierarchy?\n" +
+                          "This would disable {0} PVs",
+                        pvs.size()));
+                DialogHelper.positionDialog(dialog, node, -100, -50);
+                if (dialog.showAndWait().get() != ButtonType.OK)
+                    return;
+            }
 
             JobManager.schedule(getText(), monitor ->
             {
@@ -102,7 +107,7 @@ class EnableComponentAction extends MenuItem
             // If pv has different enablement, and wasn't already added
             // because selection contains its parent as well as the PV itself...
             if (pv.isEnabled() != doEnable()  &&  !pvs.contains(pv))
-                    pvs.add(pv);
+                pvs.add(pv);
         }
         else
             for (AlarmTreeItem<?> sub : item.getChildren())
