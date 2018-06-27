@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.model.xml;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -17,6 +18,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
 
@@ -26,32 +28,28 @@ import org.phoebus.framework.persistence.XMLUtil;
  *
  */
 @SuppressWarnings("nls")
-public class XmlModelWriter
+public class XmlModelWriter implements Closeable
 {
-    private XMLStreamWriter writer;
+    private final XMLStreamWriter writer;
 
-    public XmlModelWriter() throws Exception
-    {
-        initWriter(System.out);
-    }
-
+    /** Create XML writer
+     *  @param stream Stream to which XML will be written
+     *  @throws Exception on error
+     */
     public XmlModelWriter(final OutputStream stream) throws Exception
-    {
-        initWriter(stream);
-    }
-
-    private void initWriter(final OutputStream stream) throws Exception
     {
         final XMLStreamWriter base =
                 XMLOutputFactory.newInstance().createXMLStreamWriter(stream, XMLUtil.ENCODING);
-            writer = new IndentingXMLStreamWriter(base);
-
-            writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
+        writer = new IndentingXMLStreamWriter(base);
+        writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
     }
 
-    public void getModelXML(final AlarmTreeItem<?> item) throws Exception
+    /** @param root Alarm tree to write
+     *  @throws Exception on error
+     */
+    public void write(final AlarmTreeItem<?> root) throws Exception
     {
-        getModelXML(item, 0);
+        getModelXML(root, 0);
     }
 
     private void getModelXML(final AlarmTreeItem<?> item, final int level) throws Exception
@@ -67,7 +65,6 @@ public class XmlModelWriter
                 getModelXML(child, level+1);
 
             writer.writeEndElement();
-            close();
         }
         else if (item instanceof AlarmTreeLeaf) /* Leaf */
         {
@@ -121,20 +118,17 @@ public class XmlModelWriter
         {
             getTitleDetailListXML(commands, XmlModelReader.TAG_COMMAND);
         }
-        /*
-         * TODO : Automated actions are not yet implemented.
+
         // Write XML for Actions
-        final List<TitleDetail> actions = item.getActions();
+        final List<TitleDetailDelay> actions = item.getActions();
 
         if (!actions.isEmpty())
         {
-            getTitleDetailListXML(actions, XmlModelReader.TAG_ACTIONS);
+            getTitleDetailDelayListXML(actions, XmlModelReader.TAG_ACTIONS);
         }
-        */
+
     }
 
-    // TODO: This will not work with automated_actions as the XML schema expects a third child "delay" to go along
-    //          with "title" and "details".
     private void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
     {
         for (final TitleDetail td : tdList)
@@ -147,6 +141,26 @@ public class XmlModelWriter
             writer.writeEndElement();
             writer.writeStartElement(XmlModelReader.TAG_DETAILS);
             writer.writeCharacters(td.detail);
+            writer.writeEndElement();
+
+            writer.writeEndElement();
+        }
+    }
+
+    private void getTitleDetailDelayListXML(final List<TitleDetailDelay> tddList, final String itemSubType) throws Exception
+    {
+        for (final TitleDetailDelay td : tddList)
+        {
+            writer.writeStartElement(itemSubType);
+
+            writer.writeStartElement(XmlModelReader.TAG_TITLE);
+            writer.writeCharacters(td.title);
+            writer.writeEndElement();
+            writer.writeStartElement(XmlModelReader.TAG_DETAILS);
+            writer.writeCharacters(td.detail);
+            writer.writeEndElement();
+            writer.writeStartElement(XmlModelReader.TAG_DELAY);
+            writer.writeCharacters(Integer.toString(td.delay));
             writer.writeEndElement();
 
             writer.writeEndElement();
@@ -210,6 +224,7 @@ public class XmlModelWriter
         }
     }
 
+    @Override
     public void close() throws IOException
     {
         try

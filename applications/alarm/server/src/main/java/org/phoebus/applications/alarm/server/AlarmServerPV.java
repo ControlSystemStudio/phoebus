@@ -11,6 +11,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -27,7 +28,10 @@ import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
+import org.phoebus.applications.alarm.server.actions.AutomatedActions;
+import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.VType;
@@ -70,6 +74,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     private volatile ScheduledFuture<?> connection_timeout_task = null;
 
+    // TODO Add similar automated_actions to AlarmServerNode, updating in maximizeSeverity()
+    private final AtomicReference<AutomatedActions> automated_actions = new AtomicReference<>();
+
     /** Filter that might be used to compute 'enabled' state;
      *  can be <code>null</code>
      */
@@ -91,6 +98,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         }
         final AlarmLogicListener listener = new AlarmLogicListener()
         {
+            // TODO public void alarmEnablementChanged(boolean is_enabled) { update automated_actions? }
+
             @Override
             public void alarmStateChanged(final AlarmState current, final AlarmState alarm)
             {
@@ -100,6 +109,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                                                               current.severity,
                                                               current.message);
                 model.sentStateUpdate(getPathName(), new_state);
+
+                // Update automated actions
+                AutomatedActionsHelper.update(automated_actions, alarm.severity);
 
                 // Whenever logic computes new state, maximize up parent tree
                 getParent().maximizeSeverity();
@@ -129,6 +141,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return logic.getAlarmState();
     }
 
+    public AlarmState getCurrentState()
+    {
+        return logic.getCurrentState();
+    }
 
     /** Acknowledge current alarm severity
      *  @param acknowledge Acknowledge or un-acknowledge?
@@ -168,7 +184,16 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public boolean setEnabled(final boolean enable)
     {
-        return enabled.compareAndSet(! enable, enable);
+        if (enabled.compareAndSet(! enable, enable))
+        {
+            AutomatedActionsHelper.configure(automated_actions,
+                                             this,
+                                             logic.getAlarmState().severity.isActive(),
+                                             enable,
+                                             getActions());
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -254,6 +279,19 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
+    @Override
+    public boolean setActions(final List<TitleDetailDelay> actions)
+    {
+        if (super.setActions(actions))
+        {
+            AutomatedActionsHelper.configure(automated_actions, this,
+                                             logic.getAlarmState().severity.isActive(),
+                                             isEnabled(), actions);
+            return true;
+        }
+        return false;
+    }
+
     public void start()
     {
         if (! isEnabled())
@@ -312,6 +350,11 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         try
         {
+            // Cancel ongoing actions, but don't set to null
+            // because in case there's another start() it needs
+            // to find & trigger the actions
+            AutomatedActionsHelper.cancel(automated_actions);
+
             final PV the_pv = pv.getAndSet(null);
             // Be lenient if already stopped,
             // or never started because ! isEnabled()

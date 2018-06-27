@@ -125,7 +125,7 @@ public class AlarmServerMain implements ServerModelListener
             {
                 restart.offer(true);
             }
-            else if (args[0].equals("help"))
+            else if (args[0].startsWith("h"))
             {
                 // Return false will print the commands message.
                 return false;
@@ -181,11 +181,11 @@ public class AlarmServerMain implements ServerModelListener
                 }
                 else if (args[0].equals("ls"))  // List the alarm tree items at the specified location.
                 {
-                    if (args1.startsWith("-dis")) // Print all disconnected PVs in tree.
+                    if (args1.startsWith("-d")) // Print all disconnected PVs in tree.
                     {
                         listPVs(model.getRoot(), true);
                     }
-                    else if (args1.equals("-all")) // Print all the PVs in the tree.
+                    else if (args1.equals("-a")) // Print all the PVs in the tree.
                     {
                         listPVs(model.getRoot(), false);
                     }

@@ -1,0 +1,16 @@
+<project default="module-mail">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="module-mail">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}">
+      <classpath>
+        <pathelement path="../framework/${build}/framework-${version}.jar"/>
+      </classpath>
+    </javac>
+    <jar destfile="${build}/mail-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

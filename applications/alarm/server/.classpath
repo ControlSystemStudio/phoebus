@@ -11,6 +11,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-mail"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-formula"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-alarm-model"/>

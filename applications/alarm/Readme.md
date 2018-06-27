@@ -124,13 +124,18 @@ You can track the log cleaner runs via
 
 Message Formats
 ---------------
+
+In general, most messages use the path to the alarm tree item as the `key`.
+Messages sent by the UI also include the user name and host name to help identify the origin of the message.
+
 _______________
+
 - Config Topic:
 
 The messages in the config topic consist of a path to the alarm tree item that is being configured along with a JSON of its configuration.
 The message always contains the user name and host name of who is changing the configuration. 
 
-The config topic JSON format for a alarm tree leaf:
+The full config topic JSON format for a alarm tree leaf:
 
     {
         "user":        String,
@@ -145,7 +150,7 @@ The config topic JSON format for a alarm tree leaf:
         "actions":  [{"title": String, "details": String}]
     }
 
-The config topic JSON format for a alarm tree node:
+The full config topic JSON format for a alarm tree node:
 
     {
         "user":        String,
@@ -156,36 +161,40 @@ The config topic JSON format for a alarm tree node:
         "actions":  [{"title": String, "details": String}]
     }
 
-An example message that could appear in a config topic:
+The configuration of an alarm tree leaf, i.e. a PV, will
+always contain the "description", but otherwise the actual JSON
+format will only contain the used elements.
+
+For example, a PV that has no guidance, displays, commands, actions will look like this:
 
     /path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
 
 - Deletions in the Config Topic
 
-Deleting a message simply consists of marking the value of the key value pair as null. This "tombstone" notifies Kafka that when compaction occurs this message can be deleted.
+Deleting an item consists of marking a path with a value of null. This "tombstone" notifies Kafka that when compaction occurs this message can be deleted.
 
 For example:
 
     /path/to/pv : null
     
 This process variable is now marked as deleted. However, there is an issue. We do not know when, why, or by whom it was deleted. To address this, a message including the missing relevant information is sent before the tombstone is set.
-This message consists of a user name, host name, delete message, and a time stamp.
+This message consists of a user name, host name, and a delete message.
+The delete message may offer details on why the item was deleted.
 
 The config delete message JSON format:
 
     {
-        "user":           String,
-        "host":           String,
-        "delete message": String,
-        "time":           String
+        "user":   String,
+        "host":   String,
+        "delete": String
     }
     
 The above example of deleting a PV would then look like this:
 
-    /path/to/pv : {"user":"user name", "host":"host name", "delete message": "Deleting node.", "time": "2018-01-01 00:00:00.000"}
+    /path/to/pv : {"user":"user name", "host":"host name", "delete": "Deleting"}
     /path/to/pv : null
     
-The message about who deleted the PV and when they deleted it would obviously be compacted and deleted itself, but it would be aggregated into the long term topic beforehand thus preserving a record of the deletion.
+The message about who deleted the PV would obviously be compacted and deleted itself, but it would be aggregated into the long term topic beforehand thus preserving a record of the deletion.
 ______________
 - State Topic:
 
@@ -210,6 +219,8 @@ The state topic JSON format for an alarm tree node:
     {
         "severity": String
     }
+
+At minimum, state updates this always contain a "severity". 
 
 An example message that could appear in a state topic:
 
@@ -249,10 +260,13 @@ An example message that could appear in a talk topic:
 
     /path/to/pv : {"severity":"MAJOR", "standout":true, "message":"We are out of potato salad!"}
 
-________________
-- Long Term Topic:
 
-The messages in the long term topic are identical to the messages in all the other topics. The long term topic simply serves as a non compacted aggregate store for all the messages that traverse the alarm system.
+__________
+
+When aggregating all messages into a long-term topic to preserve a history of all alarm system operations over time,
+the talk, command and state messages can be identified because they contain a "talk", "command" respectively "severity" element in their value.
+The remaining messages are from the configuration topic. Their content can be as short as "null". 
+
 __________________
 Demos
 -----

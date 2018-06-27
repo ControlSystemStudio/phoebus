@@ -33,7 +33,8 @@ public class CreateTopics
     private static final short REPLICATION_FACTOR = 1;
     private static final int PARTITIONS = 1;
     private static final String cleanup_policy = "cleanup.policy",
-                                policy = "compact, delete",
+                                compact_policy = "compact",
+                                delete_policy = "delete",
                                 segment_time = "segment.ms",
                                 time = "10000",
                                 dirty2clean = "min.cleanable.dirty.ratio",
@@ -101,7 +102,7 @@ public class CreateTopics
         for (String topic : topics_to_create)
         {
                 logger.info("Creating topic '" + topic + "'");
-                new_topics.add(createTopic(client, compact, topic));                
+                new_topics.add(createTopic(client, compact, topic));
         }
         // Create the new topics in the Kafka server.
         try
@@ -129,7 +130,12 @@ public class CreateTopics
         configs.put(segment_time, time);
         if (compact)
         {
-            configs.put(cleanup_policy, policy);
+            // Old talk messages are deleted.
+            // Other messages are compacted and deleted when null
+            if (topic_name.endsWith("Talk"))
+                configs.put(cleanup_policy, delete_policy);
+            else
+                configs.put(cleanup_policy, compact_policy);
             configs.put(dirty2clean, ratio);
         }
         return new_topic.configs(configs);

@@ -12,8 +12,6 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -22,13 +20,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
-import org.phoebus.framework.jobs.JobManager;
 
 /** Alarm client model
  *
@@ -156,8 +152,9 @@ public class AlarmClient
                     // Only update listeners if this is a new node or the config changed
                     if (node == null)
                         node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
-                    final boolean need_update = JsonModelReader.updateAlarmItemConfig(node, json)  ||
-                                          JsonModelReader.updateAlarmState(node, json);
+                    final boolean need_update = JsonModelReader.isStateUpdate(json)
+                        ? JsonModelReader.updateAlarmState(node, json)
+                        : JsonModelReader.updateAlarmItemConfig(node, json);
                     // If there were changes, notify listeners
                     if (need_update)
                         for (final AlarmClientListener listener : listeners)
@@ -333,35 +330,33 @@ public class AlarmClient
 
     /** Remove a component (and sub-items) from alarm tree
      *  @param item Item to remove
+     *  @throws Exception on error
      */
-    public void removeComponent(final AlarmTreeItem<?> item)
+    public void removeComponent(final AlarmTreeItem<?> item) throws Exception
     {
-    	// Depth first deletion of all child nodes.
-    	final List<AlarmTreeItem<?>> children = item.getChildren();
-    	for (final AlarmTreeItem<?> child : children)
-    		removeComponent(child);
-
-        // Send message about item to remove
-        // All clients, including this one, will receive and then remove the item.
         try
         {
+        	// Depth first deletion of all child nodes.
+        	final List<AlarmTreeItem<?>> children = item.getChildren();
+        	for (final AlarmTreeItem<?> child : children)
+        		removeComponent(child);
+
+            // Send message about item to remove
+            // All clients, including this one, will receive and then remove the item.
             // Remove from configuration
-            
+
             // Create and send a message identifying who is deleting the node.
-            // The id message must arrive before the tombstone, so wait. This should be done in separate thread to allow for UI to remain responsive.
-            JobManager.schedule("Send delete message", (monitor) ->
-            {
-                final String json = new String(JsonModelWriter.deleteMessageToBytes());
-                final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, item.getPathName(), json);
-                Future<RecordMetadata> res = producer.send(id);
-                res.get(100, TimeUnit.MILLISECONDS);
-                final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, item.getPathName(), null);
-                producer.send(tombstone);
-            });
+            // The id message must arrive before the tombstone.
+            final String json = new String(JsonModelWriter.deleteMessageToBytes());
+            final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, item.getPathName(), json);
+            producer.send(id);
+
+            final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, item.getPathName(), null);
+            producer.send(tombstone);
         }
-        catch (final Exception ex)
+        catch (Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot remove component " + item, ex);
+            throw new Exception("Error deleting " + item.getPathName(), ex);
         }
     }
 

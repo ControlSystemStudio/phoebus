@@ -24,7 +24,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-databrowser"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-rtplot"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-pvtable"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/email"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/applications-email"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/logConfiguration"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-pvtree"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/applications-probe"/>
@@ -34,6 +34,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-mail"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-vtype"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logging"/>

@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.model.json;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -19,6 +20,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,7 +53,7 @@ public class JsonModelReader
     }
 
     /** Is this the configuration or alarm state for a leaf?
-     *  @param json JSON returned by {@link #parseAlarmItemConfig(String)}
+     *  @param json JSON returned by {@link #parseJsonText(String)}
      *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmClientNode}
      */
     public static boolean isLeafConfigOrState(final Object json)
@@ -60,6 +62,17 @@ public class JsonModelReader
         // Leaf config contains description
         // Leaf alarm state contains detail of AlarmState
         return actual.get(JsonTags.DESCRIPTION) != null  ||  actual.get(JsonTags.CURRENT_SEVERITY) != null;
+    }
+
+    /** Is this a configuration or state message?
+     *  @param json JSON returned by {@link #parseJsonText(String)}
+     *  @return <code>true</code> for {@link AlarmTreeLeaf}, <code>false</code> for {@link AlarmClientNode}
+     */
+    public static boolean isStateUpdate(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        // State updates contain SEVERITY
+        return actual.get(JsonTags.SEVERITY) != null;
     }
 
     /** Update configuration of alarm tree item
@@ -82,20 +95,28 @@ public class JsonModelReader
         boolean changed = false;
 
         JsonNode jn = json.get(JsonTags.GUIDANCE);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setGuidance(Collections.emptyList());
+        else
             changed |= node.setGuidance(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.DISPLAYS);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setDisplays(Collections.emptyList());
+        else
             changed |= node.setDisplays(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.COMMANDS);
-        if (jn != null)
+        if (jn == null)
+            changed |= node.setCommands(Collections.emptyList());
+        else
             changed |= node.setCommands(parseTitleDetail(jn));
 
         jn = json.get(JsonTags.ACTIONS);
-        if (jn != null)
-            changed |= node.setActions(parseTitleDetail(jn));
+        if (jn == null)
+            changed |= node.setActions(Collections.emptyList());
+        else
+            changed |= node.setActions(parseTitleDetailDelay(jn));
 
         return changed;
     }
@@ -114,6 +135,27 @@ public class JsonModelReader
             final String details = jn == null ? "" : jn.asText();
 
             entries.add(new TitleDetail(title, details));
+        }
+        return entries;
+    }
+
+    private static List<TitleDetailDelay> parseTitleDetailDelay(final JsonNode array)
+    {
+        final List<TitleDetailDelay> entries = new ArrayList<>(array.size());
+        for (int i=0; i<array.size(); ++i)
+        {
+            final JsonNode info = array.get(i);
+
+            JsonNode jn = info.get(JsonTags.TITLE);
+            final String title = jn == null ? "" : jn.asText();
+
+            jn = info.get(JsonTags.DETAILS);
+            final String details = jn == null ? "" : jn.asText();
+
+            jn = info.get(JsonTags.DELAY);
+            final int delay = jn == null ? 0 : jn.asInt();
+
+            entries.add(new TitleDetailDelay(title, details, delay));
         }
         return entries;
     }

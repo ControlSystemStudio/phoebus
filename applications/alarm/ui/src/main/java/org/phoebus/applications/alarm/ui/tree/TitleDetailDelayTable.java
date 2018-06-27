@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.phoebus.applications.alarm.model.TitleDetail;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
@@ -20,6 +20,7 @@ import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,16 +35,19 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DefaultStringConverter;
+import javafx.util.converter.IntegerStringConverter;
 
-/** Table for editing list of {@link TitleDetail}
- *  @author Kay Kasemir
+/** Table for editing list of {@link TitleDetailDelay}
+ *
+ *  <p>Largely based of off {@link TitleDetailTable}
+ *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class TitleDetailTable extends BorderPane
+public class TitleDetailDelayTable extends BorderPane
 {
-    private final ObservableList<TitleDetail> items = FXCollections.observableArrayList();
+    private final ObservableList<TitleDetailDelay> items = FXCollections.observableArrayList();
 
-    private final TableView<TitleDetail> table = new TableView<>(items);
+    private final TableView<TitleDetailDelay> table = new TableView<>(items);
 
     private final Button add = new Button("", ImageCache.getImageView(ImageCache.class, "/icons/add.png")),
                          edit = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/edit.png")),
@@ -52,7 +56,7 @@ public class TitleDetailTable extends BorderPane
                          delete = new Button("", ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
 
     /** @param initial_items Initial items. Original list will remain unchanged */
-    public TitleDetailTable(final List<TitleDetail> initial_items)
+    public TitleDetailDelayTable(final List<TitleDetailDelay> initial_items)
     {
         items.setAll(initial_items);
 
@@ -67,7 +71,7 @@ public class TitleDetailTable extends BorderPane
     }
 
     /** @return Items in table */
-    public List<TitleDetail> getItems()
+    public List<TitleDetailDelay> getItems()
     {
         return items;
     }
@@ -79,13 +83,13 @@ public class TitleDetailTable extends BorderPane
         table.setEditable(true);
         table.setPlaceholder(new Label("none"));
 
-        TableColumn<TitleDetail, String> col = new TableColumn<>("Title");
+        TableColumn<TitleDetailDelay, String> col = new TableColumn<>("Title");
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().title));
         col.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()));
         col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
-            items.set(row, new TitleDetail(event.getNewValue(), items.get(row).detail));
+            items.set(row, new TitleDetailDelay(event.getNewValue(), items.get(row).detail, items.get(row).delay));
 
             // Trigger editing the detail
             UpdateThrottle.TIMER.schedule(() ->
@@ -105,10 +109,30 @@ public class TitleDetailTable extends BorderPane
         col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
-            items.set(row, new TitleDetail(items.get(row).title, event.getNewValue().replace("\\n", "\n")));
+            items.set(row, new TitleDetailDelay(items.get(row).title, event.getNewValue().replace("\\n", "\n"), items.get(row).delay));
+
+            // Trigger editing the delay.
+            UpdateThrottle.TIMER.schedule(() ->
+                Platform.runLater(() ->
+                {
+                    table.getSelectionModel().clearAndSelect(row);
+                    table.edit(row, table.getColumns().get(2));
+                }),
+                200, TimeUnit.MILLISECONDS);
         });
         col.setSortable(false);
         table.getColumns().add(col);
+
+        TableColumn<TitleDetailDelay, Integer> delayCol = new TableColumn<>("Delay");
+        delayCol.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().delay).asObject());
+        delayCol.setCellFactory(column -> new TextFieldTableCell<>(new IntegerStringConverter()));
+        delayCol.setOnEditCommit(event ->
+        {
+            final int row = event.getTablePosition().getRow();
+            items.set(row, new TitleDetailDelay(items.get(row).title, items.get(row).detail, event.getNewValue()));
+        });
+        delayCol.setSortable(false);
+        table.getColumns().add(delayCol);
     }
 
     private void createButtons()
@@ -116,7 +140,7 @@ public class TitleDetailTable extends BorderPane
         add.setTooltip(new Tooltip("Add a new table item."));
         add.setOnAction(event ->
         {
-            items.add(new TitleDetail("", ""));
+            items.add(new TitleDetailDelay("", "", 0));
 
             // Trigger editing the title of new item
             UpdateThrottle.TIMER.schedule(() ->
@@ -134,13 +158,13 @@ public class TitleDetailTable extends BorderPane
         {
             final int row = table.getSelectionModel().getSelectedIndex();
 
-            final TitleDetail value = items.get(row);
+            final TitleDetailDelay value = items.get(row);
             final MultiLineInputDialog dialog = new MultiLineInputDialog(value.detail);
             dialog.setTitle("Detail for '" + value.title + "'");
             DialogHelper.positionDialog(dialog, edit, -600, -100);
             dialog.showAndWait().ifPresent(details ->
             {
-                items.set(row,  new TitleDetail(value.title, details));
+                items.set(row,  new TitleDetailDelay(value.title, details, value.delay));
             });
         });
 
@@ -152,7 +176,7 @@ public class TitleDetailTable extends BorderPane
             // Starting at top, move each item 'up'
             for (int i : idx)
             {
-                final TitleDetail item = items.remove(i);
+                final TitleDetailDelay item = items.remove(i);
                 // Roll around, item from top moves 'up' by adding back to end
                 if (i > 0)
                 {
@@ -176,7 +200,7 @@ public class TitleDetailTable extends BorderPane
             // Starting at bottom, move each item 'down'
             for (int i : idx)
             {
-                final TitleDetail item = items.remove(i);
+                final TitleDetailDelay item = items.remove(i);
                 // Roll around, item from top moves 'up' by adding back to end
                 if (i < items.size())
                 {

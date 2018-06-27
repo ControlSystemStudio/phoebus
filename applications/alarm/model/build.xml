@@ -1,0 +1,19 @@
+<project default="module-alarm-model">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="module-alarm-model">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/alarm-model-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>
