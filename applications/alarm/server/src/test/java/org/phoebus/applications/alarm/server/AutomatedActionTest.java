@@ -76,12 +76,18 @@ public class AutomatedActionTest
         // Should now happen after the delay
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         final long passed = System.currentTimeMillis() - start;
-        System.out.println("Action performed after " + passed + " ms");
-        // Actual delay should be within 20% of the expected delay
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
+        checkActionDelay(passed);
 
         // When no longer needed, close to stop timers etc.
         auto_action.cancel();
+    }
+
+    /** @param passed Actual time delay, to be checked against expected DELAY_MS */
+    private void checkActionDelay(final long passed)
+    {
+        System.out.println("Action performed after " + passed + " ms");
+        // Very lenient, actual delay should be within 100% of the expected delay
+        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS);
     }
 
     @Test
@@ -103,8 +109,7 @@ public class AutomatedActionTest
         final long start = System.currentTimeMillis();
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         final long passed = System.currentTimeMillis() - start;
-        System.out.println("Action performed after " + passed + " ms");
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
+        checkActionDelay(passed);
 
         // When no longer needed, close to stop timers etc.
         auto_action.cancel();
@@ -130,9 +135,7 @@ public class AutomatedActionTest
         // This should _not_ change the start time for scheduling the action
         assertThat(action_performed.poll(DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         final long passed = System.currentTimeMillis() - start;
-        System.out.println("Action performed after " + passed + " ms");
-        // Actual delay should be within 20% of the expected delay
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
+        checkActionDelay(passed);
 
         // When no longer needed, close to stop timers etc.
         auto_action.cancel();
@@ -160,8 +163,7 @@ public class AutomatedActionTest
         final long start = System.currentTimeMillis();
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         final long passed = System.currentTimeMillis() - start;
-        System.out.println("Action performed after " + passed + " ms");
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS / 3);
+        checkActionDelay(passed);
 
         auto_action.cancel();
     }
