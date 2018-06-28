@@ -55,8 +55,7 @@ public class AttachmentImpl implements Attachment {
      * @return a {@link Attachment} based on the given uri
      */
     public static Attachment of(String uri) {
-        File fileToUpload = new File(uri);
-        return new AttachmentImpl(fileToUpload.getName(), null, null, null);
+        return new AttachmentImpl(uri.toString(), null, null, null);
     }
 
     /**
@@ -65,7 +64,7 @@ public class AttachmentImpl implements Attachment {
      * @return a {@link Attachment} based on the given file
      */
     public static Attachment of(File file) {
-        return new AttachmentImpl(file.getName(), null, null, null);
+        return new AttachmentImpl(file.toURI().toString(), null, null, null);
     }
 
 }
