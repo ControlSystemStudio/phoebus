@@ -2,19 +2,20 @@ package org.phoebus.logging;
 
 /**
  * A default implementation for {@link Tag}
+ * 
  * @author Kunal Shroff
  *
  */
-public class TagImpl implements Tag{
+public class TagImpl implements Tag {
     private final String name;
     private final String state;
 
-    public TagImpl(String name, String state) {
+    private TagImpl(String name, String state) {
         this.name = name;
         this.state = state;
     }
-    
-    public TagImpl(String name) {
+
+    private TagImpl(String name) {
         this.name = name;
         this.state = "";
     }
@@ -25,6 +26,27 @@ public class TagImpl implements Tag{
 
     public String getState() {
         return state;
+    }
+
+    /**
+     * Create a new instance of TagImpl with tagName name
+     * 
+     * @param name - tag name
+     * @return {@link Tag} with provided name
+     */
+    public static final Tag of(String name) {
+        return new TagImpl(name);
+    }
+
+    /**
+     * Create a new instance of the TagImpl with tagName name and tagState state
+     * 
+     * @param name - tag name
+     * @param state - tag state
+     * @return {@link Tag} with given name and state
+     */
+    public static final Tag of(String name, String state) {
+        return new TagImpl(name, state);
     }
 
     @Override
@@ -57,6 +79,5 @@ public class TagImpl implements Tag{
             return false;
         return true;
     }
-
 
 }

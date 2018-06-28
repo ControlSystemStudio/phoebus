@@ -21,12 +21,12 @@ public class InMemoryLogClient implements LogClient{
     private final AtomicInteger logIdCounter;
     private final Map<Long, LogEntry> LogEntries;
 
-    private final Collection<Logbook> logbooks = Arrays.asList( new LogbookImpl("Controls"),
-                                                                new LogbookImpl("Commissioning"),
-                                                                new LogbookImpl("test"));
-    private final Collection<Tag> tags = Arrays.asList( new TagImpl("Operations"),
-                                                        new TagImpl("Alarm"),
-                                                        new TagImpl("Example"));
+    private final Collection<Logbook> logbooks = Arrays.asList(LogbookImpl.of("Controls"),
+                                                               LogbookImpl.of("Commissioning"),
+                                                               LogbookImpl.of("test"));
+    private final Collection<Tag> tags = Arrays.asList(TagImpl.of("Operations"),
+                                                       TagImpl.of("Alarm"),
+                                                       TagImpl.of("Example"));
 
     public InMemoryLogClient() {
         LogEntries = new HashMap<Long, LogEntry>();
