@@ -67,10 +67,9 @@ public class DelayedAlarmUpdate
      */
     void schedule_update(final AlarmState new_state, final int seconds)
     {
-        // TODO Remove check when done debugging
         if (new_state == null)
         {
-            new NullPointerException("DelayedAlarmUpdate with null").printStackTrace();
+            logger.log(Level.SEVERE, "DelayedAlarmUpdate with null", new IllegalStateException());
             return;
         }
 

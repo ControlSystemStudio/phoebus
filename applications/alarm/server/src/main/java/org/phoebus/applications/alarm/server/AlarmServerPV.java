@@ -74,7 +74,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     private volatile ScheduledFuture<?> connection_timeout_task = null;
 
-    // TODO Add similar automated_actions to AlarmServerNode, updating in maximizeSeverity()
     private final AtomicReference<AutomatedActions> automated_actions = new AtomicReference<>();
 
     /** Filter that might be used to compute 'enabled' state;

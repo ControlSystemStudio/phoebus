@@ -7,12 +7,15 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.area;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -48,6 +51,7 @@ import javafx.scene.text.Font;
  *  Displays alarm status of all areas on a specified level.
  *  @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class AlarmAreaView extends GridPane implements AlarmClientListener
 {
     @SuppressWarnings("unused")
@@ -192,6 +196,11 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     private void updateItem(final String item_name)
     {
         final Label view_item = itemViewMap.get(item_name);
+        if (view_item == null)
+        {
+            logger.log(Level.WARNING, "Cannot update unknown alarm area item " + item_name);
+            return;
+        }
         final SeverityLevel severity = areaFilter.getSeverity(item_name);
         final Color color = AlarmUI.getColor(severity);
         view_item.setBackground(new Background(new BackgroundFill(color, radii, Insets.EMPTY)));

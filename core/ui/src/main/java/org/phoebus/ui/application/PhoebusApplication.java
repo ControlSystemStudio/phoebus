@@ -944,7 +944,14 @@ public class PhoebusApplication extends Application {
         for (AppDescriptor app : apps)
         {
             monitor.updateTaskName("Starting " + app.getDisplayName());
-            app.start();
+            try
+            {
+                app.start();
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.SEVERE, app.getDisplayName() + " startup failed", ex);
+            }
             monitor.worked(1);
         }
     }

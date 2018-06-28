@@ -30,6 +30,8 @@ import org.phoebus.util.shell.CommandShell;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+// TODO "Idle" message in the absence of state updates, with timeout in clients
+
 /** Alarm Server
  *  @author Kay Kasemir
  */
@@ -48,6 +50,7 @@ public class AlarmServerMain implements ServerModelListener
                         "\tls               - List all alarm tree items in the current directory.\n" +
                         "\tls -disconnected - List all the disconnected PVs in the entire alarm tree.\n" +
                         "\tls -all          - List all alarm tree PVs in the entire alarm tree.\n" +
+                        "\tls -alarm        - List all alarm tree PVs in the entire alarm tree which are in alarm.\n" +
                         "\tls dir           - List all alarm tree items in the specified directory contained in the current directory.\n" +
                         "\tls /path/to/dir  - List all alarm tree items in the specified directory at the specified path.\n" +
                         "\tcd               - Change to the root directory.\n" +
@@ -182,13 +185,11 @@ public class AlarmServerMain implements ServerModelListener
                 else if (args[0].equals("ls"))  // List the alarm tree items at the specified location.
                 {
                     if (args1.startsWith("-d")) // Print all disconnected PVs in tree.
-                    {
-                        listPVs(model.getRoot(), true);
-                    }
-                    else if (args1.equals("-a")) // Print all the PVs in the tree.
-                    {
-                        listPVs(model.getRoot(), false);
-                    }
+                        listPVs(model.getRoot(), PVMode.Disconnected);
+                    else if (args1.equals("-all")) // Print all the PVs in the tree.
+                        listPVs(model.getRoot(), PVMode.All);
+                    else if (args1.startsWith("-ala")) // Print all the PVs in the tree that are in alarm
+                        listPVs(model.getRoot(), PVMode.InAlarm);
                     else // List the PVs at the specified path.
                     {
                         String path = determinePath(args1);
@@ -301,12 +302,6 @@ public class AlarmServerMain implements ServerModelListener
      *      Quit
      *  </ul>
      *
-     *  TODO Alarm server console?
-     *  At this time, the alarm server has no console/shell/terminal interface.
-     *  It can only receive commands from a "..Command" topic,
-     *  and then print the result on the console.
-     *  Ideally, command and reply could be seen in a terminal.
-     *
      *  @param command Command received from the client
      *  @param detail Detail for the command, usually path to alarm tree node
      */
@@ -353,7 +348,7 @@ public class AlarmServerMain implements ServerModelListener
                 if (node == null)
                     throw new Exception("Unknown alarm tree node '" + path + "'");
                 System.out.println("PVs for " + node.getPathName() + ":");
-                listPVs(node, false);
+                listPVs(node, PVMode.All);
             }
             else if (command.equalsIgnoreCase("disconnected"))
             {
@@ -362,16 +357,16 @@ public class AlarmServerMain implements ServerModelListener
                 if (node == null)
                     throw new Exception("Unknown alarm tree node '" + path + "'");
                 System.out.println("PVs for " + node.getPathName() + ":");
-                listPVs(node, true);
+                listPVs(node, PVMode.Disconnected);
             }
             else if (command.equalsIgnoreCase("pv"))
             {
                 final AlarmServerPV pv = model.findPV(path);
                 if (pv == null)
                     throw new Exception("Unknown PV '" + path + "'");
-                listPVs(pv, false);
+                listPVs(pv, PVMode.All);
             }
-            else if (command.equalsIgnoreCase("shutdown"))
+            else if (command.startsWith("shut"))
             {
                 restart.offer(false);
             }
@@ -401,18 +396,26 @@ public class AlarmServerMain implements ServerModelListener
                 acknowledge(child, acknowledge);
     }
 
-    private void listPVs(final AlarmTreeItem<?> node, final boolean disconnected_only)
+    enum PVMode
+    {
+        All,
+        InAlarm,
+        Disconnected
+    };
+
+    private void listPVs(final AlarmTreeItem<?> node, final PVMode which)
     {
         if (node instanceof AlarmServerPV)
         {
             final AlarmServerPV pv_node = (AlarmServerPV) node;
-            if (disconnected_only  && pv_node.isConnected())
+            if (which == PVMode.Disconnected  && pv_node.isConnected()  ||
+                which == PVMode.InAlarm  &&  !pv_node.getState().severity.isActive())
                 return;
             System.out.println(pv_node);
         }
         else
             for (final AlarmTreeItem<?> child : node.getChildren())
-                listPVs(child, disconnected_only);
+                listPVs(child, which);
     }
 
     private static void help()

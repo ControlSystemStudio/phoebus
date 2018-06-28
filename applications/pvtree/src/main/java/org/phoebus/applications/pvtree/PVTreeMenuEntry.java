@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,17 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
-import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
+
+import javafx.scene.image.Image;
 
 /** Toolbar entry that starts PV Tree Application
  *  @author Kay Kasemir
  */
-public class PVTreeToolbarEntry implements ToolbarEntry
+@SuppressWarnings("nls")
+public class PVTreeMenuEntry implements MenuEntry
 {
     @Override
     public String getName()
@@ -22,8 +26,21 @@ public class PVTreeToolbarEntry implements ToolbarEntry
     }
 
     @Override
-    public void call() throws Exception
+    public String getMenuPath()
+    {
+        return "Display";
+    }
+
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(PVTree.class, "/icons/pvtree.png");
+    }
+
+    @Override
+    public Void call() throws Exception
     {
         ApplicationService.createInstance(PVTreeApplication.NAME);
+        return null;
     }
 }

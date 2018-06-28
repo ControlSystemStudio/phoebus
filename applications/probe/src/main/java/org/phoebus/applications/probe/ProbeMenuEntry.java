@@ -9,6 +9,9 @@ package org.phoebus.applications.probe;
 
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
+
+import javafx.scene.image.Image;
 
 /**
  * Menu entry that starts probe
@@ -22,10 +25,12 @@ public class ProbeMenuEntry implements MenuEntry {
         return Probe.DISPLAYNAME;
     }
 
-    /**
-     *
-     * @return
-     */
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(Probe.class, "/icons/probe.png");
+    }
+
     @Override
     public Void call() throws Exception {
         ApplicationService.createInstance(Probe.NAME);
@@ -34,6 +39,6 @@ public class ProbeMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Display.Utility";
+        return "Display";
     }
 }

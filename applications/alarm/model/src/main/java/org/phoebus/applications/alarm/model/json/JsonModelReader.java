@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.model.json;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -104,7 +107,7 @@ public class JsonModelReader
         if (jn == null)
             changed |= node.setDisplays(Collections.emptyList());
         else
-            changed |= node.setDisplays(parseTitleDetail(jn));
+            changed |= node.setDisplays(patchDisplays(parseTitleDetail(jn)));
 
         jn = json.get(JsonTags.COMMANDS);
         if (jn == null)
@@ -119,6 +122,31 @@ public class JsonModelReader
             changed |= node.setActions(parseTitleDetailDelay(jn));
 
         return changed;
+    }
+
+    /** Patch legacy display links
+     *
+     *  <p>Remove "opi:" prefix from web links.
+     *  Used to be necessary to force display runtime for http://...opi,
+     *  but file extension now sufficient.
+     *
+     *  @param displays Original displays
+     *  @return Displays where entries may be replaced
+     */
+    private static List<TitleDetail> patchDisplays(final List<TitleDetail> displays)
+    {
+        final int N = displays.size();
+        for (int i=0; i<N; ++i)
+        {
+            final TitleDetail orig = displays.get(i);
+            if (orig.detail.startsWith("opi:"))
+            {
+                final String update = orig.detail.substring(4);
+                displays.set(i, new TitleDetail(orig.title, update));
+                logger.log(Level.WARNING, "Removing 'opi:' prefix from display link '" + orig.detail + "'");
+            }
+        }
+        return displays;
     }
 
     private static List<TitleDetail> parseTitleDetail(final JsonNode array)
