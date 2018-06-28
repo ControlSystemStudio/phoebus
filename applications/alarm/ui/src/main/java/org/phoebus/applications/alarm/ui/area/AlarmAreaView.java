@@ -41,6 +41,7 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -52,10 +53,9 @@ import javafx.scene.text.Font;
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class AlarmAreaView extends GridPane implements AlarmClientListener
+public class AlarmAreaView extends StackPane implements AlarmClientListener
 {
-    @SuppressWarnings("unused")
-    private final AlarmClient model;
+    private final GridPane grid = new GridPane();
     private final AreaFilter areaFilter;
 
     /** Map item name to label in UI that represents the item */
@@ -90,11 +90,12 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         if (model.isRunning())
             throw new IllegalStateException();
 
-        setHgap(AlarmSystem.alarm_area_gap);
-        setVgap(AlarmSystem.alarm_area_gap);
-        setPadding(new Insets(AlarmSystem.alarm_area_gap));
+        grid.setHgap(AlarmSystem.alarm_area_gap);
+        grid.setVgap(AlarmSystem.alarm_area_gap);
+        grid.setPadding(new Insets(AlarmSystem.alarm_area_gap));
 
-        this.model = model;
+        getChildren().setAll(grid);
+
         areaFilter = new AreaFilter(AlarmSystem.alarm_area_level);
         model.addListener(this);
 
@@ -105,7 +106,13 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     @Override
     public void serverStateChanged(final boolean alive)
     {
-        // TODO Show timeout
+        Platform.runLater(() ->
+        {
+            if (alive)
+                getChildren().setAll(grid);
+            else
+                getChildren().setAll(AlarmUI.createNoServerLabel());
+        });
     }
 
     // From AlarmClientListener
@@ -171,7 +178,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
     {
         // Remove all labels from UI and forget their mapping
         itemViewMap.clear();
-        getChildren().clear();
+        grid.getChildren().clear();
 
         // (Re-)create Label for each item
         int index = 0;
@@ -182,7 +189,7 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             updateItem(item_name);
             final int column = index % AlarmSystem.alarm_area_column_count;
             final int row = index / AlarmSystem.alarm_area_column_count;
-            add(view_item, column, row);
+            grid.add(view_item, column, row);
             ++index;
         }
     }
@@ -194,8 +201,8 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         label.setAlignment(Pos.CENTER);
         label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         label.setFont(font);
-        setHgrow(label, Priority.ALWAYS);
-        setVgrow(label, Priority.ALWAYS);
+        GridPane.setHgrow(label, Priority.ALWAYS);
+        GridPane.setVgrow(label, Priority.ALWAYS);
         return label;
     }
 
@@ -217,8 +224,6 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
             view_item.setTextFill(Color.WHITE);
     }
 
-    // TODO: Implement and remove suppression.
-    @SuppressWarnings("all")
     private void createContextMenu()
     {
         final ContextMenu menu = new ContextMenu();

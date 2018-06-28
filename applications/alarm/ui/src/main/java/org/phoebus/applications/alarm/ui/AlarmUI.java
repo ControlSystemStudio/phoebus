@@ -11,7 +11,12 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.ui.authorization.AuthorizationService;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.geometry.Insets;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 
 /** Common alarm UI helpers
@@ -69,21 +74,28 @@ public class AlarmUI
         return severity_icons[severity.ordinal()];
     }
 
-    /**
-     * Verify acknowledge action through authorization service.
-     * @return <code>true</code> if the user has authorization to acknowledge.
+    /** Verify acknowledge action through authorization service.
+     *  @return <code>true</code> if the user has authorization to acknowledge.
      */
     public static boolean mayAcknowledge()
     {
         return AuthorizationService.hasAuthorization("alarm_ack");
     }
 
-    /**
-     * Verify configure action through authorization service.
-     * @return <code>true</code> if the user has authorization to configure.
+    /** Verify configure action through authorization service.
+     *  @return <code>true</code> if the user has authorization to configure.
      */
     public static boolean mayConfigure()
     {
         return AuthorizationService.hasAuthorization("alarm_config");
+    }
+
+    /** @return Label that indicates missing server connection */
+    public static Label createNoServerLabel()
+    {
+        final Label no_server = new Label("No Alarm Server Connection");
+        no_server.setTextFill(Color.WHITE);
+        no_server.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+        return no_server;
     }
 }

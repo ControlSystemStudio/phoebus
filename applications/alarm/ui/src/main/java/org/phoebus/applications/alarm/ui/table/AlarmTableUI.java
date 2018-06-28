@@ -66,8 +66,6 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTableUI extends BorderPane
 {
-    // TODO Alarm server 'heartbeat', indicate timeout
-    // TODO Share the AlarmClient for given configuration between table, tree, area
     // TODO Maintenance mode?
     // TODO Check that deleted alarm is removed from UI (tends to remain in table if it was in alarm before deleted)
 
@@ -97,6 +95,8 @@ public class AlarmTableUI extends BorderPane
     private final TableView<AlarmInfoRow> acknowledged = createTable(acknowledged_rows, false);
 
     final TextField search = new ClearingTextField();
+
+    private final Label no_server = AlarmUI.createNoServerLabel();
 
     private ToolBar toolbar = createToolbar();
 
@@ -202,6 +202,16 @@ public class AlarmTableUI extends BorderPane
         search.textProperty().addListener(prop -> selectRows());
 
         return new ToolBar(active_count, ToolbarHelper.createSpring(), acknowledge, unacknowledge, search);
+    }
+
+    /** Show if connected to server or not
+     *  @param alive Is server alive?
+     */
+    void setServerState(final boolean alive)
+    {
+        toolbar.getItems().remove(no_server);
+        if (! alive)
+            toolbar.getItems().add(1, no_server);
     }
 
     private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,

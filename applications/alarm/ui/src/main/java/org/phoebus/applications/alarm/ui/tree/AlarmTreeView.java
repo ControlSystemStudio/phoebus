@@ -47,7 +47,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
 
 /** Tree-based UI for alarm configuration
  *
@@ -60,7 +59,7 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTreeView extends BorderPane implements AlarmClientListener
 {
-    private final Label no_server = new Label("No server connection");
+    private final Label no_server = AlarmUI.createNoServerLabel();
     private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
 
     private final AlarmClient model;
@@ -101,8 +100,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setShowRoot(false);
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-        no_server.setTextFill(Color.RED);
 
         setTop(createToolbar());
         setCenter(tree_view);
@@ -162,7 +159,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     @Override
     public void serverStateChanged(final boolean alive)
     {
-        // TODO Show timeout
         Platform.runLater(() ->
         {
             final ToolBar toolbar = (ToolBar) getTop();

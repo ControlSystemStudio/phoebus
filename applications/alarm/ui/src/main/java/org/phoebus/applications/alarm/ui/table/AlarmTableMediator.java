@@ -42,7 +42,7 @@ public class AlarmTableMediator implements AlarmClientListener
     @Override
     public void serverStateChanged(final boolean alive)
     {
-        // TODO Show timeout
+        Platform.runLater(() -> ui.setServerState(alive));
     }
 
     // AlarmClientListener
