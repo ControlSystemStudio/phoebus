@@ -38,6 +38,7 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
@@ -46,6 +47,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 
 /** Tree-based UI for alarm configuration
  *
@@ -58,6 +60,7 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class AlarmTreeView extends BorderPane implements AlarmClientListener
 {
+    private final Label no_server = new Label("No server connection");
     private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
 
     private final AlarmClient model;
@@ -99,6 +102,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        no_server.setTextFill(Color.RED);
 
         setTop(createToolbar());
         setCenter(tree_view);
@@ -152,6 +156,20 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             view_item.getChildren().add(createViewItem(model_child));
 
         return view_item;
+    }
+
+    // AlarmClientModelListener
+    @Override
+    public void serverStateChanged(final boolean alive)
+    {
+        // TODO Show timeout
+        Platform.runLater(() ->
+        {
+            final ToolBar toolbar = (ToolBar) getTop();
+            toolbar.getItems().remove(no_server);
+            if (! alive)
+                toolbar.getItems().add(0, no_server);
+        });
     }
 
     // AlarmClientModelListener

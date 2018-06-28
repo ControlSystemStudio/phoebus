@@ -35,6 +35,12 @@ public class AlarmClientModelDemo
         client.addListener(new AlarmClientListener()
         {
             @Override
+            public void serverStateChanged(final boolean alive)
+            {
+                System.out.println("Server alive: " + alive);
+            }
+
+            @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {
                 System.out.println("Added " + item.getPathName());

@@ -48,6 +48,8 @@ public class AlarmClient
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
     private final Thread thread;
+    private long last_state_update = 0;
+    private boolean has_timed_out = false;
 
     /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
@@ -107,7 +109,10 @@ public class AlarmClient
         try
         {
             while (running.get())
+            {
                 checkUpdates();
+                checkServerState();
+            }
         }
         catch (final Throwable ex)
         {
@@ -152,9 +157,14 @@ public class AlarmClient
                     // Only update listeners if this is a new node or the config changed
                     if (node == null)
                         node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
-                    final boolean need_update = JsonModelReader.isStateUpdate(json)
-                        ? JsonModelReader.updateAlarmState(node, json)
-                        : JsonModelReader.updateAlarmItemConfig(node, json);
+                    final boolean need_update;
+                    if (JsonModelReader.isStateUpdate(json))
+                    {
+                        need_update = JsonModelReader.updateAlarmState(node, json);
+                        last_state_update = System.currentTimeMillis();
+                    }
+                    else
+                        need_update = JsonModelReader.updateAlarmItemConfig(node, json);
                     // If there were changes, notify listeners
                     if (need_update)
                         for (final AlarmClientListener listener : listeners)
@@ -376,6 +386,28 @@ public class AlarmClient
         {
             logger.log(Level.WARNING, "Cannot acknowledge component " + item, ex);
         }
+    }
+
+    /** Check if there have been any messages from server */
+    private void checkServerState()
+    {
+        final long now = System.currentTimeMillis();
+        if (now - last_state_update  >  AlarmSystem.idle_timeout_ms*3)
+        {
+            if (! has_timed_out)
+            {
+                has_timed_out = true;
+                for (final AlarmClientListener listener : listeners)
+                    listener.serverStateChanged(false);
+            }
+        }
+        else
+            if (has_timed_out)
+            {
+                has_timed_out = false;
+                for (final AlarmClientListener listener : listeners)
+                    listener.serverStateChanged(true);
+            }
     }
 
     /** Stop client */

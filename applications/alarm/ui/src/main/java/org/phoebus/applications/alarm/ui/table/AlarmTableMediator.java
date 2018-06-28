@@ -38,6 +38,13 @@ public class AlarmTableMediator implements AlarmClientListener
         this.ui = ui;
     }
 
+    // AlarmClientModelListener
+    @Override
+    public void serverStateChanged(final boolean alive)
+    {
+        // TODO Show timeout
+    }
+
     // AlarmClientListener
     @Override
     public void itemAdded(final AlarmTreeItem<?> item)

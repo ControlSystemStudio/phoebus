@@ -40,6 +40,12 @@ public class AlarmConfigTool
 	    private final AlarmClientListener updateListener = new AlarmClientListener()
         {
             @Override
+            public void serverStateChanged(final boolean alive)
+            {
+                //NOP
+            }
+
+            @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {
             	// Reset the timer when receiving update

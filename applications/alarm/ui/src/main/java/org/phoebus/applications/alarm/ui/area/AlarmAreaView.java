@@ -101,6 +101,13 @@ public class AlarmAreaView extends GridPane implements AlarmClientListener
         createContextMenu();
     }
 
+    // AlarmClientModelListener
+    @Override
+    public void serverStateChanged(final boolean alive)
+    {
+        // TODO Show timeout
+    }
+
     // From AlarmClientListener
     @Override
     public void itemAdded(final AlarmTreeItem<?> item)
