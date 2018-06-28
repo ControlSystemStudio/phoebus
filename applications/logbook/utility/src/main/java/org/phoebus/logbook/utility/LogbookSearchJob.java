@@ -1,6 +1,6 @@
 package org.phoebus.logbook.utility;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -20,16 +20,16 @@ import org.phoebus.logging.LogEntry;
 public class LogbookSearchJob implements JobRunnable {
     private final LogClient client;
     private final String pattern;
-    private final Consumer<Collection<LogEntry>> logentry_handler;
+    private final Consumer<List<LogEntry>> logentry_handler;
     private final BiConsumer<String, Exception> error_handler;
 
     public static Job submit(LogClient client, final String pattern,
-            final Consumer<Collection<LogEntry>> channel_handler, final BiConsumer<String, Exception> error_handler) {
+            final Consumer<List<LogEntry>> channel_handler, final BiConsumer<String, Exception> error_handler) {
         return JobManager.schedule("searching Channelfinder for : " + pattern,
                 new LogbookSearchJob(client, pattern, channel_handler, error_handler));
     }
 
-    private LogbookSearchJob(LogClient client, String pattern, Consumer<Collection<LogEntry>> channel_handler,
+    private LogbookSearchJob(LogClient client, String pattern, Consumer<List<LogEntry>> channel_handler,
             BiConsumer<String, Exception> error_handler) {
         super();
         this.client = client;
@@ -41,7 +41,7 @@ public class LogbookSearchJob implements JobRunnable {
     @Override
     public void run(JobMonitor monitor) throws Exception {
         monitor.beginTask("searching for log entires : " + pattern);
-        Collection<LogEntry> channels = client.findLogsBySearch(pattern);
+        List<LogEntry> channels = client.findLogsBySearch(pattern);
         logentry_handler.accept(channels);
     }
 }

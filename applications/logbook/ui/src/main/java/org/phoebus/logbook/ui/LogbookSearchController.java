@@ -1,6 +1,7 @@
 package org.phoebus.logbook.ui;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.logbook.utility.LogbookSearchJob;
@@ -38,5 +39,5 @@ public abstract class LogbookSearchController {
                 (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex));
     }
 
-    public abstract void setLogs(Collection<LogEntry> logs);
+    public abstract void setLogs(List<LogEntry> logs);
 }
