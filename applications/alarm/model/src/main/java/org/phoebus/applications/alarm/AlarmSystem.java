@@ -70,6 +70,11 @@ public class AlarmSystem
     /** Annunciator message retention count */
     public static final int annunciator_retention_count;
 
+    /** Timeout in milliseconds at which server sends idle state updates
+     *  for the 'root' element if there's no real traffic
+     */
+    public static final long idle_timeout_ms;
+
     /** Name of the sender, the 'from' field of automated email actions */
     public static final String automated_email_sender;
 
@@ -88,6 +93,7 @@ public class AlarmSystem
         command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
         annunciator_threshold = prefs.getInt("annunciator_threshold");
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
+        idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;
         automated_email_sender = prefs.get("automated_email_sender");
 
         IdentificationHelper.initialize();

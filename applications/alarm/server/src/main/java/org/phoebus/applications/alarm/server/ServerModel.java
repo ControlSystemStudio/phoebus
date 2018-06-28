@@ -63,6 +63,7 @@ class ServerModel
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
     private final Thread thread;
+    private long last_state_update = 0;
 
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
@@ -90,13 +91,13 @@ class ServerModel
                                                List.of(config_topic));
         producer = KafkaHelper.connectProducer(kafka_servers);
 
-        
-        
+
+
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
     }
 
-   
+
     /** Start client
      *  @see #shutdown()
      */
@@ -116,7 +117,10 @@ class ServerModel
         try
         {
             while (running.get())
+            {
                 checkUpdates();
+                checkIdle();
+            }
         }
         catch (Throwable ex)
         {
@@ -363,6 +367,7 @@ class ServerModel
             final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state));
             final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, path, json);
             producer.send(record);
+            last_state_update = System.currentTimeMillis();
         }
         catch (Throwable ex)
         {
@@ -382,13 +387,21 @@ class ServerModel
             logger.log(Level.WARNING, "Cannot send talk message for " + pathName, ex);
         }
     }
-    
+
+    /** Check if 'idle' message should be sent since there were no state updates */
+    private void checkIdle()
+    {
+        final long now = System.currentTimeMillis();
+        if (now - last_state_update  >  AlarmSystem.idle_timeout_ms)
+            sentStateUpdate(root.getPathName(), root.getState());
+    }
+
     /** Stop client */
     public void shutdown()
     {
         running.set(false);
         consumer.wakeup();
-        
+
         try
         {
             thread.join(2000);

@@ -41,7 +41,7 @@ import org.phoebus.applications.alarm.model.json.JsonModelReader;
 @SuppressWarnings("nls")
 public class AlarmStateInitializer
 {
-    private final ResettableTimer timer = new ResettableTimer(4);
+    private final ResettableTimeout timer = new ResettableTimeout(4);
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
     private final Thread thread;

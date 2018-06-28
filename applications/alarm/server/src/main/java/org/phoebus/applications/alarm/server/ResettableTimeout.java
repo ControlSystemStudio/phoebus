@@ -18,11 +18,16 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 
 /** Reset-able timeout
  *
- *  <p>Meant for one-time use.
+ *  <p>Meant for one-time use:
+ *  Timeout is started.
+ *  While running, it may be reset several times.
+ *  Eventually, if there are no more resets,
+ *  it will time out.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ResettableTimer
+public class ResettableTimeout
 {
     private final long timeout_secs;
 
@@ -32,7 +37,7 @@ public class ResettableTimer
     private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
 
     /** @param timeout_secs Seconds after which we time out */
-    public ResettableTimer(final long timeout_secs)
+    public ResettableTimeout(final long timeout_secs)
 	{
 	    this.timeout_secs = timeout_secs;
 		reset();
