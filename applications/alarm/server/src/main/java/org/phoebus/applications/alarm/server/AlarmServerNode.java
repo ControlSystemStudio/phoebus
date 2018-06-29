@@ -21,6 +21,8 @@ import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
 
+import com.google.common.base.Objects;
+
 /** Alarm tree node as used by server
  *
  *  <p>Is part of ServerModel, can maximize severity.
@@ -112,14 +114,18 @@ public class AlarmServerNode extends AlarmClientNode
                 {
                     final String pv_name = action.detail.substring(SEVRPV.length());
                     if (severity_pv_name != null)
-                        logger.log(Level.WARNING, "Multiple severity PVs for '" + getPathName() + "', '" +
-                                severity_pv_name + "' as well as '" + pv_name + "'");
+                        logger.log(Level.WARNING,
+                                   "Multiple severity PVs for '" + getPathName() + "', '" +
+                                   severity_pv_name + "' as well as '" + pv_name + "'");
                     severity_pv_name = pv_name;
-
-                    System.out.println(getPathName() + " has SEVRPV " + pv_name);
                 }
 
-            this.severity_pv_name = severity_pv_name;
+            if (! Objects.equal(this.severity_pv_name, severity_pv_name))
+            {
+                this.severity_pv_name = severity_pv_name;
+                if (severity_pv_name != null)
+                    SeverityPVHandler.update(severity_pv_name, getState().severity);
+            }
             return true;
         }
         return false;
