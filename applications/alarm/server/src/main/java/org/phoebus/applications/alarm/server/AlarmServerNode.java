@@ -7,8 +7,11 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -23,8 +26,12 @@ import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
  *  <p>Is part of ServerModel, can maximize severity.
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AlarmServerNode extends AlarmClientNode
 {
+    /** Automated action prefix for severity PV */
+    private static final String SEVRPV = "sevrpv:";
+
     private final ServerModel model;
 
     // Alarm _server_ doesn't read the old alarm state,
@@ -36,6 +43,8 @@ public class AlarmServerNode extends AlarmClientNode
     private volatile boolean never_updated = true;
 
     private final AtomicReference<AutomatedActions> automated_actions = new AtomicReference<>();
+
+    private volatile String severity_pv_name = null;
 
     public AlarmServerNode(final ServerModel model, final AlarmClientNode parent, final String name)
     {
@@ -76,6 +85,11 @@ public class AlarmServerNode extends AlarmClientNode
 
             // Update automated actions
             AutomatedActionsHelper.update(automated_actions, new_severity);
+
+            // Write optional severity PV
+            final String pv = severity_pv_name;
+            if (pv != null)
+                SeverityPVHandler.update(pv, new_severity);
         }
 
         // Percolate changes towards root
@@ -91,10 +105,23 @@ public class AlarmServerNode extends AlarmClientNode
             AutomatedActionsHelper.configure(automated_actions, this,
                                              getState().severity.isActive(),
                                              true, actions);
+
+            String severity_pv_name = null;
+            for (TitleDetailDelay action : actions)
+                if (action.detail.startsWith(SEVRPV))
+                {
+                    final String pv_name = action.detail.substring(SEVRPV.length());
+                    if (severity_pv_name != null)
+                        logger.log(Level.WARNING, "Multiple severity PVs for '" + getPathName() + "', '" +
+                                severity_pv_name + "' as well as '" + pv_name + "'");
+                    severity_pv_name = pv_name;
+
+                    System.out.println(getPathName() + " has SEVRPV " + pv_name);
+                }
+
+            this.severity_pv_name = severity_pv_name;
             return true;
         }
         return false;
     }
-
-    // TODO Port ServerTreeItem#updateSeverityPV()
 }

@@ -29,8 +29,6 @@ import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
-import org.phoebus.pv.PV;
-import org.phoebus.pv.PVPool;
 
 /** Server's model of the alarm configuration
  *
@@ -66,8 +64,6 @@ class ServerModel
     private final Producer<String, String> producer;
     private final Thread thread;
     private long last_state_update = 0;
-    private long last_heartbeat = 0;
-    private final PV heatbeat_pv;
 
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
@@ -95,11 +91,6 @@ class ServerModel
                                                List.of(config_topic));
         producer = KafkaHelper.connectProducer(kafka_servers);
 
-        if (AlarmSystem.heartbeat_pv.isEmpty())
-            heatbeat_pv = null;
-        else
-            heatbeat_pv = PVPool.getPV(AlarmSystem.heartbeat_pv);
-
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
     }
@@ -111,6 +102,7 @@ class ServerModel
     public void start()
     {
         thread.start();
+        SeverityPVHandler.initialize();
     }
 
     public AlarmServerNode getRoot()
@@ -128,7 +120,6 @@ class ServerModel
                 checkUpdates();
                 final long now = System.currentTimeMillis();
                 checkIdle(now);
-                checkHeatbeat(now);
             }
         }
         catch (Throwable ex)
@@ -306,11 +297,7 @@ class ServerModel
                 if (last &&  is_leaf)
                     return new AlarmServerPV(this, parent, name, initial_states.remove(path));
                 else
-                {
                     node = new AlarmServerNode(this, parent, name);
-                    // No listener interested in changes to node?
-                    // TODO Check for action to update 'severity PV'
-                }
             }
             // Reached desired node?
             if (last)
@@ -406,31 +393,10 @@ class ServerModel
             sentStateUpdate(root.getPathName(), root.getState());
     }
 
-    /** Check if heartbeat PV needs to be written
-     *  @param now Current millisec
-     */
-    private void checkHeatbeat(final long now)
-    {
-        if (heatbeat_pv != null  &&
-            now - last_heartbeat > AlarmSystem.heartbeat_ms)
-        {
-            try
-            {
-                heatbeat_pv.write(1);
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot write " + heatbeat_pv.getName(), ex);
-            }
-            last_heartbeat = now;
-        }
-    }
-
     /** Stop client */
     public void shutdown()
     {
-        if (heatbeat_pv != null)
-            PVPool.releasePV(heatbeat_pv);
+        SeverityPVHandler.stop();
         running.set(false);
         consumer.wakeup();
 
