@@ -17,6 +17,9 @@ import java.util.Objects;
 @SuppressWarnings("nls")
 public class TitleDetailDelay extends TitleDetail
 {
+    /** Automated action detail prefix for severity PV */
+    public static final String SEVRPV = "sevrpv:";
+
     public final int delay;
 
     public TitleDetailDelay(final String title, final String details, int delay)

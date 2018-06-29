@@ -31,9 +31,6 @@ import com.google.common.base.Objects;
 @SuppressWarnings("nls")
 public class AlarmServerNode extends AlarmClientNode
 {
-    /** Automated action prefix for severity PV */
-    private static final String SEVRPV = "sevrpv:";
-
     private final ServerModel model;
 
     // Alarm _server_ doesn't read the old alarm state,
@@ -110,9 +107,9 @@ public class AlarmServerNode extends AlarmClientNode
 
             String severity_pv_name = null;
             for (TitleDetailDelay action : actions)
-                if (action.detail.startsWith(SEVRPV))
+                if (action.detail.startsWith(TitleDetailDelay.SEVRPV))
                 {
-                    final String pv_name = action.detail.substring(SEVRPV.length());
+                    final String pv_name = action.detail.substring(TitleDetailDelay.SEVRPV.length());
                     if (severity_pv_name != null)
                         logger.log(Level.WARNING,
                                    "Multiple severity PVs for '" + getPathName() + "', '" +
@@ -123,6 +120,7 @@ public class AlarmServerNode extends AlarmClientNode
             if (! Objects.equal(this.severity_pv_name, severity_pv_name))
             {
                 this.severity_pv_name = severity_pv_name;
+                // Initial update, since severity may not change for a while
                 if (severity_pv_name != null)
                     SeverityPVHandler.update(severity_pv_name, getState().severity);
             }
