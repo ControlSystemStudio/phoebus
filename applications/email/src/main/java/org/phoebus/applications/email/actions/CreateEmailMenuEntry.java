@@ -35,6 +35,6 @@ public class CreateEmailMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Display.Utility";
+        return "Utility";
     }
 }
