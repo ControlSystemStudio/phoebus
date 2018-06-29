@@ -67,7 +67,7 @@ public class InstallExamplesMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Examples";
+        return "Display.Examples";
     }
 
     @Override
