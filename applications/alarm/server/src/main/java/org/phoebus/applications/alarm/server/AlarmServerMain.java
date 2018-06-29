@@ -134,7 +134,7 @@ public class AlarmServerMain implements ServerModelListener
             {
                 List<AlarmTreeItem<?>> children = model.findNode(current_path).getChildren();
                 for (final AlarmTreeItem<?> child : children)
-                    System.out.println(child.getName());
+                    System.out.println(child.getName() + " - " + child.getState());
             }
             else
                 return false;
@@ -192,9 +192,7 @@ public class AlarmServerMain implements ServerModelListener
 
                         final List<AlarmTreeItem<?>> children = node.getChildren();
                         for (final AlarmTreeItem<?> child : children)
-                        {
-                            System.out.println(child.getName());
-                        }
+                            System.out.println(child.getName() + " - " + child.getState());
                     }
                 }
                 else if (args[0].equals("pv")) // Print the specified PV.
