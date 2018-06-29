@@ -16,6 +16,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.util.IOUtils;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.beans.value.ObservableValue;
@@ -127,7 +128,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
             {
                 final InputStream input = ModelResourceUtil.openURL(url);
                 final OutputStream output = ModelResourceUtil.writeResource(file);
-                ModelResourceUtil.copyResource(input, output);
+                IOUtils.copy(input, output);
             }
             catch (Exception ex)
             {
@@ -148,7 +149,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         final Button foreButton = new Button();
         final Button stop = new Button();
         final Button refresh  = new Button();
-        final ComboBox<String> addressBar = new ComboBox<String>();
+        final ComboBox<String> addressBar = new ComboBox<>();
         final Button go = new Button();
         Control [] controls = new Control []
                 {backButton, foreButton, stop, refresh, addressBar, go};

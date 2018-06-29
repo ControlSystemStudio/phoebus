@@ -14,7 +14,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +35,7 @@ import javax.net.ssl.X509TrustManager;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Preferences;
+import org.phoebus.framework.util.IOUtils;
 import org.phoebus.framework.util.ResourceParser;
 
 /** Helper for handling resources: File, web link.
@@ -499,7 +499,7 @@ public class ModelResourceUtil
         // System.out.println("Actually reading " + url + ", not cached");
         final InputStream in = openURL(url, timeout_ms);
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        copyResource(in, buf);
+        IOUtils.copy(in, buf);
         return buf.toByteArray();
     }
 
@@ -577,39 +577,4 @@ public class ModelResourceUtil
         return new FileOutputStream(resource_name);
     }
 
-    /** Copy a resource
-     *
-     *  @param input Stream to read, will be closed
-     *  @param output Stream to write, will be closed
-     *  @throws IOException on error
-     */
-    public static void copyResource(final InputStream input, final OutputStream output) throws IOException
-    {
-        try
-        {
-            final byte[] section = new byte[4096];
-            int len;
-            while ( (len = input.read(section)) >= 0)
-                output.write(section, 0, len);
-        }
-        finally
-        {
-            try
-            {
-                input.close();
-            }
-            catch (IOException ex)
-            {
-                logger.log(Level.WARNING, "Error closing input", ex);
-            }
-            try
-            {
-                output.close();
-            }
-            catch (IOException ex)
-            {
-                logger.log(Level.WARNING, "Error closing output", ex);
-            }
-        }
-    }
 }
