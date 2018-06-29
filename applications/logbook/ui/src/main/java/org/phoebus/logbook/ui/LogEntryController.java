@@ -25,6 +25,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
@@ -34,6 +35,8 @@ public class LogEntryController {
 
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
+
+    String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
 
     @FXML
     Label logTime;
@@ -60,6 +63,8 @@ public class LogEntryController {
     @FXML
     public void initialize() {
 
+        logDescription.setBackground(Background.EMPTY);
+
         logTags.setCellFactory(listView -> new ListCell<String>() {
             @Override
             public void updateItem(String item, boolean empty) {
@@ -73,7 +78,7 @@ public class LogEntryController {
                 }
             }
         });
-        
+
         LogLogbooks.setCellFactory(listView -> new ListCell<String>() {
             @Override
             public void updateItem(String item, boolean empty) {
@@ -91,6 +96,10 @@ public class LogEntryController {
 
     public void refresh() {
         if (logEntry != null) {
+
+            // System.out.println("expand att: "+!logEntry.getAttachments().isEmpty()+ "
+            // tags: " + !logEntry.getTags().isEmpty() + "
+            // logbooks:"+!logEntry.getLogbooks().isEmpty());
 
             LogAttchments.setExpanded(!logEntry.getAttachments().isEmpty());
             LogLogbooksPane.setExpanded(!logEntry.getLogbooks().isEmpty());
@@ -127,8 +136,6 @@ public class LogEntryController {
         refresh();
     }
 
-    
-
     private ImageView createImageView(final File imageFile) {
 
         ImageView imageView = null;
@@ -141,9 +148,9 @@ public class LogEntryController {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
 
-                    if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                    if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
 
-                        if(mouseEvent.getClickCount() == 2){
+                        if (mouseEvent.getClickCount() == 2) {
                             try {
                                 BorderPane borderPane = new BorderPane();
                                 ImageView imageView = new ImageView();
@@ -160,7 +167,7 @@ public class LogEntryController {
                                 newStage.setWidth(image.getWidth());
                                 newStage.setHeight(image.getHeight());
                                 newStage.setTitle(imageFile.getName());
-                                Scene scene = new Scene(borderPane,Color.BLACK);
+                                Scene scene = new Scene(borderPane, Color.BLACK);
                                 newStage.setScene(scene);
                                 newStage.show();
                             } catch (FileNotFoundException e) {

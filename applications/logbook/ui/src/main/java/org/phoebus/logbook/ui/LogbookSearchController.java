@@ -1,6 +1,5 @@
 package org.phoebus.logbook.ui;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.phoebus.framework.jobs.Job;
