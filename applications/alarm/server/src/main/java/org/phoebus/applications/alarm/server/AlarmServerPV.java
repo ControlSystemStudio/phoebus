@@ -29,7 +29,6 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
-import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
 import org.phoebus.pv.PV;
@@ -107,7 +106,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                 final ClientState new_state = new ClientState(alarm,
                                                               current.severity,
                                                               current.message);
-                model.sentStateUpdate(getPathName(), new_state);
+                model.sendStateUpdate(getPathName(), new_state);
 
                 // Update automated actions
                 AutomatedActionsHelper.update(automated_actions, alarm.severity);
@@ -119,16 +118,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             @Override
             public void annunciateAlarm(final SeverityLevel severity)
             {
-                final String json;
-                try
-                {
-                    json = new String(JsonModelWriter.talkToBytes(severity, description));
-                } catch (Exception e)
-                {
-                    logger.log(Level.WARNING, "Unable to construct JSON for talk message", e);
-                    return;
-                }
-                model.sentAnnunciatorMessage(getPathName(), json);
+                model.sendAnnunciatorMessage(getPathName(), severity, description);
             }
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);

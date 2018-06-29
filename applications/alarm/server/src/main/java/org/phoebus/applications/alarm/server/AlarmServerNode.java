@@ -79,7 +79,7 @@ public class AlarmServerNode extends AlarmClientNode
             never_updated = false;
             final BasicState new_state = new BasicState(new_severity);
             setState(new_state);
-            model.sentStateUpdate(getPathName(), new_state);
+            model.sendStateUpdate(getPathName(), new_state);
 
             // Update automated actions
             AutomatedActionsHelper.update(automated_actions, new_severity);

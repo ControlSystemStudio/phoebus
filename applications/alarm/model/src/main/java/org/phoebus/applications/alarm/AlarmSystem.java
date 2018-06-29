@@ -8,10 +8,12 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.alarm.client.IdentificationHelper;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.util.time.SecondsParser;
 
 /** Common alarm system code
  *  @author Kay Kasemir
@@ -81,8 +83,11 @@ public class AlarmSystem
     /** Optional heartbeat PV */
     public static final String heartbeat_pv;
 
-    /** Heartbeat PV period in seconds */
+    /** Heartbeat PV period in milliseconds */
     public static final long heartbeat_ms;
+
+    /** Nag period in seconds */
+    public static final long nag_period_ms;
 
     static
     {
@@ -103,6 +108,17 @@ public class AlarmSystem
         automated_email_sender = prefs.get("automated_email_sender");
         heartbeat_pv = prefs.get("heartbeat_pv");
         heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
+
+        double secs = 0.0;
+        try
+        {
+            secs = SecondsParser.parseSeconds(prefs.get("nag_period"));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Invalid nag_period " + prefs.get("nag_period"), ex);
+        }
+        nag_period_ms = Math.round(Math.max(0, secs) * 1000.0);
 
         IdentificationHelper.initialize();
     }

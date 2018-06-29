@@ -188,7 +188,7 @@ public class JsonModelWriter
      * @return
      * @throws Exception
      */
-    public static byte[] talkToBytes(final SeverityLevel severity, final String description) throws Exception
+    public static String talkToString(final SeverityLevel severity, final String description) throws Exception
     {
         String message = description; // Message to be annunciated.
         boolean noSev = false;      // Message should include alarm severity.
@@ -229,7 +229,7 @@ public class JsonModelWriter
             jg.writeStringField(JsonTags.TALK, message);
             jg.writeEndObject();
         }
-        return buf.toByteArray();
+        return buf.toString();
     }
 
    /** Create a deletion message for identifying who is creating a kafka tombstone
