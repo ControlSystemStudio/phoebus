@@ -29,6 +29,8 @@ import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 
 /** Server's model of the alarm configuration
  *
@@ -64,6 +66,8 @@ class ServerModel
     private final Producer<String, String> producer;
     private final Thread thread;
     private long last_state_update = 0;
+    private long last_heartbeat = 0;
+    private final PV heatbeat_pv;
 
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
@@ -72,7 +76,7 @@ class ServerModel
      */
     public ServerModel(final String kafka_servers, final String config_name,
                        final ConcurrentHashMap<String, ClientState> initial_states,
-                       final ServerModelListener listener)
+                       final ServerModelListener listener) throws Exception
     {
         this.initial_states = initial_states;
         // initial_states.entrySet().forEach(state ->
@@ -91,7 +95,10 @@ class ServerModel
                                                List.of(config_topic));
         producer = KafkaHelper.connectProducer(kafka_servers);
 
-
+        if (AlarmSystem.heartbeat_pv.isEmpty())
+            heatbeat_pv = null;
+        else
+            heatbeat_pv = PVPool.getPV(AlarmSystem.heartbeat_pv);
 
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
@@ -119,7 +126,9 @@ class ServerModel
             while (running.get())
             {
                 checkUpdates();
-                checkIdle();
+                final long now = System.currentTimeMillis();
+                checkIdle(now);
+                checkHeatbeat(now);
             }
         }
         catch (Throwable ex)
@@ -388,17 +397,40 @@ class ServerModel
         }
     }
 
-    /** Check if 'idle' message should be sent since there were no state updates */
-    private void checkIdle()
+    /** Check if 'idle' message should be sent since there were no state updates
+     *  @param now Current millisec
+     */
+    private void checkIdle(final long now)
     {
-        final long now = System.currentTimeMillis();
         if (now - last_state_update  >  AlarmSystem.idle_timeout_ms)
             sentStateUpdate(root.getPathName(), root.getState());
+    }
+
+    /** Check if heartbeat PV needs to be written
+     *  @param now Current millisec
+     */
+    private void checkHeatbeat(final long now)
+    {
+        if (heatbeat_pv != null  &&
+            now - last_heartbeat > AlarmSystem.heartbeat_ms)
+        {
+            try
+            {
+                heatbeat_pv.write(1);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot write " + heatbeat_pv.getName(), ex);
+            }
+            last_heartbeat = now;
+        }
     }
 
     /** Stop client */
     public void shutdown()
     {
+        if (heatbeat_pv != null)
+            PVPool.releasePV(heatbeat_pv);
         running.set(false);
         consumer.wakeup();
 

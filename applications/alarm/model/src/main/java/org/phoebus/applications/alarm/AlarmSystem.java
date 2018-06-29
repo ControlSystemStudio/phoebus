@@ -78,6 +78,12 @@ public class AlarmSystem
     /** Name of the sender, the 'from' field of automated email actions */
     public static final String automated_email_sender;
 
+    /** Optional heartbeat PV */
+    public static final String heartbeat_pv;
+
+    /** Heartbeat PV period in seconds */
+    public static final long heartbeat_ms;
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
@@ -95,6 +101,8 @@ public class AlarmSystem
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
         idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;
         automated_email_sender = prefs.get("automated_email_sender");
+        heartbeat_pv = prefs.get("heartbeat_pv");
+        heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
 
         IdentificationHelper.initialize();
     }
