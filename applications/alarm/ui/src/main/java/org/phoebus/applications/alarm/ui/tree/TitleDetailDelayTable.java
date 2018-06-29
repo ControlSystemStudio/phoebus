@@ -34,6 +34,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
@@ -76,6 +77,38 @@ public class TitleDetailDelayTable extends BorderPane
         return items;
     }
 
+    /** Table cell for 'delay'
+     *  Disables for actions that don't use the delay
+     */
+    class DelayTableCell extends TextFieldTableCell<TitleDetailDelay, Integer>
+    {
+        public DelayTableCell()
+        {
+            super(new IntegerStringConverter());
+        }
+
+        @Override
+        public void updateItem(Integer item, boolean empty)
+        {
+            super.updateItem(item, empty);
+
+            if (empty ||
+                getTableRow() == null ||
+                getTableRow().getItem() == null)
+                return;
+            if (getTableRow().getItem().hasDelay())
+            {
+                setDisable(false);
+                setTextFill(Color.BLACK);
+            }
+            else
+            {
+                setDisable(true);
+                setTextFill(Color.LIGHTGRAY);
+            }
+        }
+    }
+
     private void createTable()
     {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -109,23 +142,25 @@ public class TitleDetailDelayTable extends BorderPane
         col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
-            items.set(row, new TitleDetailDelay(items.get(row).title, event.getNewValue().replace("\\n", "\n"), items.get(row).delay));
+            final TitleDetailDelay item = new TitleDetailDelay(items.get(row).title, event.getNewValue().replace("\\n", "\n"), items.get(row).delay);
+            items.set(row, item);
 
             // Trigger editing the delay.
-            UpdateThrottle.TIMER.schedule(() ->
-                Platform.runLater(() ->
-                {
-                    table.getSelectionModel().clearAndSelect(row);
-                    table.edit(row, table.getColumns().get(2));
-                }),
-                200, TimeUnit.MILLISECONDS);
+            if (item.hasDelay())
+                UpdateThrottle.TIMER.schedule(() ->
+                    Platform.runLater(() ->
+                    {
+                        table.getSelectionModel().clearAndSelect(row);
+                        table.edit(row, table.getColumns().get(2));
+                    }),
+                    200, TimeUnit.MILLISECONDS);
         });
         col.setSortable(false);
         table.getColumns().add(col);
 
         TableColumn<TitleDetailDelay, Integer> delayCol = new TableColumn<>("Delay");
         delayCol.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().delay).asObject());
-        delayCol.setCellFactory(column -> new TextFieldTableCell<>(new IntegerStringConverter()));
+        delayCol.setCellFactory(column -> new DelayTableCell());
         delayCol.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();

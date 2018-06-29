@@ -17,10 +17,10 @@ public class TitleDetail
 {
     public final String title, detail;
 
-    public TitleDetail(final String title, final String details)
+    public TitleDetail(final String title, final String detail)
     {
         this.title = Objects.requireNonNull(title);
-        this.detail = Objects.requireNonNull(details);
+        this.detail = Objects.requireNonNull(detail);
     }
 
     @Override
