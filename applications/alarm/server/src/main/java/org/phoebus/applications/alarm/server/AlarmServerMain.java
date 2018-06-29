@@ -419,22 +419,21 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                    - This text");
-        System.out.println("-server   localhost:9092 - Kafka server");
-        System.out.println("-config   Accelerator    - Alarm configuration");
-        System.out.println("-create_topics           - Create Kafka topics for alarm configuration?");
-        System.out.println("-settings settings.xml   - Import preferences (PV connectivity) from property format file");
-        System.out.println("-export   config.xml     - Export alarm configuration to file");
-        System.out.println("-import   config.xml     - Import alarm configruation from file");
+        System.out.println("-help                       - This text");
+        System.out.println("-server   localhost:9092    - Kafka server");
+        System.out.println("-config   Accelerator       - Alarm configuration");
+        System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
+        System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
+        System.out.println("-export   config.xml        - Export alarm configuration to file");
+        System.out.println("-import   config.xml        - Import alarm configruation from file");
+        System.out.println("-logging logging.properties -  Load log settings");
         System.out.println();
     }
 
 
     public static void main(final String[] original_args) throws Exception
     {
-        LogManager.getLogManager().readConfiguration(AlarmServerMain.class.getResourceAsStream("/logging.properties"));
-
-        logger.info("Alarm Server (PID " + ProcessHandle.current().pid() + ")");
+        LogManager.getLogManager().readConfiguration(AlarmServerMain.class.getResourceAsStream("/alarm_server_logging.properties"));
 
         String server = "localhost:9092";
         String config = "Accelerator";
@@ -467,6 +466,15 @@ public class AlarmServerMain implements ServerModelListener
                     iter.remove();
                     config = iter.next();
                     iter.remove();
+                }
+                else if (cmd.equals("-logging"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -logging file name");
+                    iter.remove();
+                    final String filename = iter.next();
+                    iter.remove();
+                    LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
                 else if (cmd.equals("-settings"))
                 {
@@ -520,6 +528,8 @@ public class AlarmServerMain implements ServerModelListener
             ex.printStackTrace();
             return;
         }
+
+        logger.info("Alarm Server (PID " + ProcessHandle.current().pid() + ")");
 
         new AlarmServerMain(server, config);
     }
