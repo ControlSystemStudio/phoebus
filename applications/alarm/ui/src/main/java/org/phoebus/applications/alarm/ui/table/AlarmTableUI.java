@@ -374,8 +374,8 @@ public class AlarmTableUI extends BorderPane
     public void update(final List<AlarmInfoRow> active,
                        final List<AlarmInfoRow> acknowledged)
     {
-        limitAlarmCount(active, active_count, "Active Alarms");
-        limitAlarmCount(acknowledged, acknowledged_count, "Acknowledged Alarms");
+        limitAlarmCount(active, active_count, "Active Alarms: ");
+        limitAlarmCount(acknowledged, acknowledged_count, "Acknowledged Alarms: ");
         update(active_rows, active);
         update(acknowledged_rows, acknowledged);
     }
@@ -390,7 +390,7 @@ public class AlarmTableUI extends BorderPane
     {
         final int N = alarms.size();
         final StringBuilder buf = new StringBuilder();
-        buf.append(N).append(' ').append(message);
+        buf.append(message).append(N);
         if (N > AlarmSystem.alarm_table_max_rows)
         {
             buf.append(" (").append(N - AlarmSystem.alarm_table_max_rows).append(" not shown)");
