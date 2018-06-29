@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -20,8 +21,6 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
-
-import com.google.common.base.Objects;
 
 /** Alarm tree node as used by server
  *
@@ -117,7 +116,7 @@ public class AlarmServerNode extends AlarmClientNode
                     severity_pv_name = pv_name;
                 }
 
-            if (! Objects.equal(this.severity_pv_name, severity_pv_name))
+            if (! Objects.equals(this.severity_pv_name, severity_pv_name))
             {
                 this.severity_pv_name = severity_pv_name;
                 // Initial update, since severity may not change for a while
