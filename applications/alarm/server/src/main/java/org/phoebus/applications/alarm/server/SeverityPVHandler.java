@@ -69,19 +69,25 @@ public class SeverityPVHandler
 
         while (true)
         {
-            try
+            if (next_heartbeat >= 0)
             {
-                if (next_heartbeat >= 0)
+                // Trigger optional 'heartbeat' PV
+                final long now = System.currentTimeMillis();
+                if (now >= next_heartbeat)
                 {
-                    // Trigger optional 'heartbeat' PV
-                    final long now = System.currentTimeMillis();
-                    if (now >= next_heartbeat)
+                    try
                     {
                         getConnectedPV(AlarmSystem.heartbeat_pv).write(1);
-                        next_heartbeat = now + AlarmSystem.heartbeat_ms;
                     }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Error sending heartbeat to " + AlarmSystem.heartbeat_pv, ex);
+                    }
+                    next_heartbeat = now + AlarmSystem.heartbeat_ms;
                 }
-
+            }
+            try
+            {
                 // Sleep if nothing else to do.
                 // This sleep determines the heartbeat accuracy.
                 if (updates.isEmpty())
@@ -105,15 +111,16 @@ public class SeverityPVHandler
             final Entry<String, SeverityLevel> entry = entries.next();
             final String pv_name = entry.getKey();
             final SeverityLevel severity = entry.getValue();
-            entries.remove();
 
             logger.log(Level.FINE, "Should update PV '" + pv_name + "' to " + severity.name());
-
             try
             {
                 final PV pv = getConnectedPV(pv_name);
                 if (pv != null)
                     pv.write(severity.ordinal());
+
+                // Remove request on success. Otherwise will try again
+                entries.remove();
             }
             catch (Exception ex)
             {
@@ -146,7 +153,7 @@ public class SeverityPVHandler
                 // Abort waiting for PV
                 return null;
             if (--timeout < 0)
-                throw new Exception("No connection");
+                throw new Exception("No connection to " + pv_name);
         }
         return pv;
     }
