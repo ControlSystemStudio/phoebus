@@ -38,7 +38,12 @@ public class JsonModelWriter
     // limited to this package
     public static final ObjectMapper mapper = new ObjectMapper();
 
-    public static byte[] toJsonBytes(final BasicState state) throws Exception
+    /** @param state {@link BasicState} or {@link ClientState}
+     *  @param maintenance_mode true if in maintenance mode
+     *  @return Byte array for JSON text
+     *  @throws Exception on error
+     */
+    public static byte[] toJsonBytes(final BasicState state, final boolean maintenance_mode) throws Exception
     {
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
@@ -61,6 +66,10 @@ public class JsonModelWriter
                 }
                 jg.writeStringField(JsonTags.CURRENT_SEVERITY, as.current_severity.name());
                 jg.writeStringField(JsonTags.CURRENT_MESSAGE, as.current_message);
+            }
+            if (maintenance_mode)
+            {
+                jg.writeStringField(JsonTags.MODE, JsonTags.MAINTENANCE);
             }
             jg.writeEndObject();
         }

@@ -244,15 +244,20 @@ The state topic JSON format for an alarm tree leaf:
                 },
         "current_severity": String,
         "current_message":  String
+        "mode":     String,
     }
 
 The state topic JSON format for an alarm tree node:
 
     {
         "severity": String
+        "mode":     String,
     }
 
 At minimum, state updates this always contain a "severity". 
+
+The "mode" will contain "maintenance" while the alarm server is in maintenance mode.
+For normal operational mode, the "mode" tag is omitted.
 
 An example message that could appear in a state topic:
 
