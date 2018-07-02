@@ -45,11 +45,7 @@ public class FileBrowserController {
 
     @FXML
     public void initialize() {
-        File file = Paths.get(System.getProperty("user.home")).toFile();
-        TreeItem<File> root = new FileTreeItem(file);
-        path.setText(file.getAbsolutePath());
         treeView.setCellFactory(f -> new FileTreeCell());
-        treeView.setRoot(root);
 
         // Create ContextMenu
         contextMenu = new ContextMenu();
