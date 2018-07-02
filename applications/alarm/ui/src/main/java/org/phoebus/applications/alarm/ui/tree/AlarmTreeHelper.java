@@ -18,14 +18,16 @@ import org.phoebus.ui.dialog.DialogHelper;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeView;
 
+/** @author Evan Smith
+ */
+@SuppressWarnings("nls")
 public class AlarmTreeHelper
 {
-	/**
-	 * <p> Rebuild the tree structure by recreating the parents' children at the new path location.
-	 * @param model AlarmClient used to communicate to the AlarmServer
-	 * @param parent AlarmTreeItem whose children will be re-linked to the new path location.
-	 * @param path Path that the parents' children will now be located at.
-	 * @throws Exception
+	/** Rebuild the tree structure by recreating the parents' children at the new path location.
+	 *  @param model AlarmClient used to communicate to the AlarmServer
+	 *  @param parent AlarmTreeItem whose children will be re-linked to the new path location.
+	 *  @param path Path that the parents' children will now be located at.
+	 *  @throws Exception
 	 */
 	public static void rebuildTree(AlarmClient model, AlarmTreeItem<?> parent, String path) throws Exception
 	{
@@ -48,36 +50,39 @@ public class AlarmTreeHelper
 		}
 	}
 
-	/**
-	 * <p> Prompt the screen with a dialog box.
-	 * @param title Title string of the dialog box.
-	 * @param header Header string of the dialog box.
-	 * @param node Node where the dialog box will be located.
-	 * @param default_text Default text contents of dialog box.
-	 * @return String The entered string or null if the entry was empty.
+	/** Prompt the screen with a dialog box.
+	 *  @param title Title string of the dialog box.
+	 *  @param header Header string of the dialog box.
+	 *  @param default_text Default text contents of dialog box.
+	 *  @param node Node where the dialog box will be located.
+	 *  @return String The entered string or null if the entry was empty.
 	 */
-	public static String prompt(String title, String header,  final String default_text, final TreeView<AlarmTreeItem<?>> node)
+    public static String prompt(String title, String header,  final String default_text, final TreeView<AlarmTreeItem<?>> node)
     {
     	// Prompt for new name
         final TextInputDialog prompt = new TextInputDialog(default_text);
         DialogHelper.positionDialog(prompt, node, -200, -100);
         prompt.setTitle(title);
         prompt.setHeaderText(header);
-        final String input = prompt.showAndWait().orElse(null);
-        if (input == null || input.isEmpty())
+        prompt.getDialogPane().setPrefWidth(500);
+        prompt.setResizable(true);
+        final String input = prompt.showAndWait().orElse("");
+        if (input.isEmpty())
             return null;
         return input;
     }
 
-	/**
-	 * <p> Validate the passed path string by checking if the path name is valid.
-	 * <p> A path name is considered valid if the path to the item's new location exists in the tree,
-	 * and if the items new location is not a PV.
-	 * <p> For example: If "top/middle/bottom/to_move" wanted to be moved to "top/middle/to_move".
-	 * The path "top/middle" must be in the tree and middle must not be a PV.
-	 * @param path The path to the new location.
-	 * @param root The root node of the AlarmTree
-	 * @return <code>true</code> if the pathname is valid, and if the path to the new location exists in the tree.
+	/** Validate the passed path string by checking if the path name is valid.
+	 *
+	 *  <p> A path name is considered valid if the path to the item's new location exists in the tree,
+	 *  and if the items new location is not a PV.
+	 *
+	 *  <p> For example: If "top/middle/bottom/to_move" wanted to be moved to "top/middle/to_move".
+	 *  The path "top/middle" must be in the tree and middle must not be a PV.
+	 *
+	 *  @param path The path to the new location.
+	 *  @param root The root node of the AlarmTree
+	 *  @return <code>true</code> if the pathname is valid, and if the path to the new location exists in the tree.
 	 */
 	public static boolean validateNewPath(String path, AlarmTreeItem<?> root)
 	{

@@ -39,12 +39,18 @@ public class MoveTreeItemAction extends MenuItem
 		setOnAction(event ->
     	{
     		//Prompt for new name
-        	String path = null;
-        	while (! AlarmTreeHelper.validateNewPath(path, node.getRoot().getValue()) )
+
+    	    String prompt = "Enter new path for item";
+
+        	String path = item.getPathName();
+        	while (true)
         	{
-    			path = AlarmTreeHelper.prompt(getText(), "Enter new path for item.", item.getPathName(), node);
-    			if (null == path)
-    				return;
+    			path = AlarmTreeHelper.prompt(getText(), prompt, path, node);
+    			if (path == null)
+    			    return;
+    			if (AlarmTreeHelper.validateNewPath(path, node.getRoot().getValue()) )
+    			    break;
+    			prompt = "Invalid path. Try again or cancel";
         	}
 
     		// Tree view keeps the selection indices, which will point to wrong content
