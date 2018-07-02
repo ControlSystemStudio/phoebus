@@ -11,7 +11,7 @@ public class FileBrowserMenuEntry implements MenuEntry
 {
     @Override
     public String getName() {
-        return FileBrowserApp.Name;
+        return FileBrowserApp.DisplayName;
     }
 
     @Override

@@ -28,7 +28,7 @@ import javafx.stage.Stage;
 
 /**
  * Controller for the file browser app
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -40,7 +40,7 @@ public class FileBrowserController {
     Button browse;
     @FXML
     TreeView<File> treeView;
-    
+
     private ContextMenu contextMenu;
 
     @FXML
@@ -114,7 +114,7 @@ public class FileBrowserController {
         public boolean isLeaf() {
             if (isFirstTimeLeaf) {
                 isFirstTimeLeaf = false;
-                File f = (File) getValue();
+                File f = getValue();
                 isLeaf = f.isFile();
             }
             return isLeaf;
@@ -198,6 +198,19 @@ public class FileBrowserController {
         Path p = Paths.get(path.getText());
         File newRootFile = p.toFile();
         treeView.setRoot(new FileTreeItem(newRootFile));
+    }
+
+    /** @param directory Desired root directory */
+    public void setRoot(final File directory)
+    {
+        path.setText(directory.toString());
+        treeView.setRoot(new FileTreeItem(directory));
+    }
+
+    /** @return Root directory */
+    public File getRoot()
+    {
+        return treeView.getRoot().getValue();
     }
 
     @FXML

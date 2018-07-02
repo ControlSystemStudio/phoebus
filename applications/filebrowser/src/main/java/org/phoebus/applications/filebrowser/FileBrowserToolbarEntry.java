@@ -7,7 +7,7 @@ public class FileBrowserToolbarEntry implements ToolbarEntry {
 
     @Override
     public String getName() {
-        return FileBrowserApp.Name;
+        return FileBrowserApp.DisplayName;
     }
 
     @Override
