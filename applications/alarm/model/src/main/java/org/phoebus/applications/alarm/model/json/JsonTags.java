@@ -42,6 +42,7 @@ public interface JsonTags
     public static final String MESSAGE = "message";
     public static final String MODE = "mode";
     public static final String NANO = "nano";
+    public static final String NORMAL = "normal";
     public static final String SECONDS = "seconds";
     public static final String SEVERITY = "severity";
     public static final String STANDOUT = "standout";

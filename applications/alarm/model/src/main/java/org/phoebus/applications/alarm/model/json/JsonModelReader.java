@@ -219,6 +219,20 @@ public class JsonModelReader
         return changed;
     }
 
+    /** Check for 'maintenance' mode indicator,
+     *  included in alarm state updates
+     *  @param json
+     *  @return <code>true</code> if in maintenance mode
+     */
+    public static boolean isMaintenanceMode(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        JsonNode jn = actual.get(JsonTags.MODE);
+        if (jn != null)
+            return JsonTags.MAINTENANCE.equals(jn.asText());
+        return false;
+    }
+
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {
         final JsonNode actual = (JsonNode) json;

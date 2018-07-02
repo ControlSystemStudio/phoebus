@@ -115,6 +115,13 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
         });
     }
 
+    // AlarmClientModelListener
+    @Override
+    public void serverModeChanged(final boolean maintenance_mode)
+    {
+        // NOP
+    }
+
     // From AlarmClientListener
     @Override
     public void itemAdded(final AlarmTreeItem<?> item)

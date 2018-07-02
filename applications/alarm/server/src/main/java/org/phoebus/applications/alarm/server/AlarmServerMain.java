@@ -304,20 +304,18 @@ public class AlarmServerMain implements ServerModelListener
      *      Quit
      *  </ul>
      *
-     *  @param command Command received from the client
-     *  @param detail Detail for the command, usually path to alarm tree node
+     *  @param path Alarm tree path
+     *  @param json Command
      */
     @Override
     public void handleCommand(final String path, final String json)
     {
         try
         {
-            JsonNode jsonNode = (JsonNode) JsonModelReader.parseJsonText(json);
-            JsonNode commandNode = jsonNode.get(JsonTags.COMMAND);
+            final JsonNode jsonNode = (JsonNode) JsonModelReader.parseJsonText(json);
+            final JsonNode commandNode = jsonNode.get(JsonTags.COMMAND);
             if (null == commandNode)
-            {
                 throw new Exception("Command parsing failed.");
-            }
 
             final String command = commandNode.asText();
             if (command.startsWith("ack"))
@@ -334,8 +332,10 @@ public class AlarmServerMain implements ServerModelListener
                     throw new Exception("Unknown alarm tree node '" + path + "'");
                 acknowledge(node, false);
             }
-            else if (command.startsWith("mode"))
-                setMaintenanceMode(path.startsWith("maint"));
+            else if (JsonTags.MAINTENANCE.equals(command))
+                setMaintenanceMode(true);
+            else if (JsonTags.NORMAL.equals(command))
+                setMaintenanceMode(false);
             else if (command.equalsIgnoreCase("dump"))
             {
                 final AlarmTreeItem<?> node;
@@ -398,6 +398,9 @@ public class AlarmServerMain implements ServerModelListener
         // Entering maintenance mode: Ack' all INVALID alarms
         if (maintenance_mode)
             acknowledgeInvalidUndefined(model.getRoot());
+
+        // Force state update of root to publish the updated server mode
+        model.sendStateUpdate(model.getRoot().getPathName(), model.getRoot().getState());
     }
 
     /** @param node Node where to start ack'ing all INVALID or UNDEFINED alarms */

@@ -12,8 +12,8 @@ package org.phoebus.applications.alarm.server;
  */
 public interface ServerModelListener
 {
-    /** @param command Command received from the client
-     *  @param detail Detail for the command, usually path to alarm tree node
+    /** @param path Alarm tree node
+     *  @param json Content of the command
      */
     public void handleCommand(String path, String json);
 }

@@ -25,6 +25,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
+import org.phoebus.applications.alarm.model.json.JsonTags;
 
 /** Alarm client model
  *
@@ -45,6 +46,7 @@ public class AlarmClient
     private final CopyOnWriteArrayList<AlarmClientListener> listeners = new CopyOnWriteArrayList<>();
     private final AlarmClientNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
+    private final AtomicBoolean maintenance_mode = new AtomicBoolean(false);
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
     private final Thread thread;
@@ -98,9 +100,32 @@ public class AlarmClient
         return thread.isAlive();
     }
 
+    /** @return Root of alarm configuration */
     public AlarmClientNode getRoot()
     {
         return root;
+    }
+
+    /** @return Is alarm server in maintenance mode? */
+    public boolean isMaintenanceMode()
+    {
+        return maintenance_mode.get();
+    }
+
+    /** @param maintenance Select maintenance mode? */
+    public void setMode(final boolean maintenance)
+    {
+        final String cmd = maintenance ? JsonTags.MAINTENANCE : JsonTags.NORMAL;
+        try
+        {
+            final String json = new String (JsonModelWriter.commandToBytes(cmd));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, root.getPathName(), json);
+            producer.send(record);
+        }
+        catch (final Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot set mode for " + root + " to " + cmd, ex);
+        }
     }
 
     /** Background thread loop that checks for alarm tree updates */
@@ -160,6 +185,11 @@ public class AlarmClient
                     final boolean need_update;
                     if (JsonModelReader.isStateUpdate(json))
                     {
+                        final boolean maint = JsonModelReader.isMaintenanceMode(json);
+                        if (maintenance_mode.getAndSet(maint) != maint)
+                            for (final AlarmClientListener listener : listeners)
+                                listener.serverModeChanged(maint);
+
                         need_update = JsonModelReader.updateAlarmState(node, json);
                         last_state_update = System.currentTimeMillis();
                     }
