@@ -143,7 +143,7 @@ public class JsonModelReader
             {
                 final String update = orig.detail.substring(4);
                 displays.set(i, new TitleDetail(orig.title, update));
-                logger.log(Level.WARNING, "Removing 'opi:' prefix from display link '" + orig.detail + "'");
+                logger.log(Level.FINE, "Removing 'opi:' prefix from display link '" + orig.detail + "'");
             }
         }
         return displays;
