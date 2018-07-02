@@ -246,7 +246,7 @@ public class JsonModelWriter
         {
             final String user = IdentificationHelper.getUser();
             final String host = IdentificationHelper.getHost();
-            // TODO: Why a delete occurred can be important. Perhaps in the future allow for this to be user set through some type of dialog.
+            // Why a delete occurred can be important. Perhaps in the future allow for this to be user set through some type of dialog.
             final String msg  = "Deleting";
 
             jg.writeStartObject();
