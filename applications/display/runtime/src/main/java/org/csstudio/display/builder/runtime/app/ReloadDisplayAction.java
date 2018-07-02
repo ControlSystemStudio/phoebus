@@ -23,7 +23,7 @@ public class ReloadDisplayAction extends MenuItem
 {
     private static final Image icon = ImageCache.getImage(DockStage.class, "/icons/refresh.png");
 
-    ReloadDisplayAction(DisplayRuntimeInstance instance)
+    ReloadDisplayAction(final DisplayRuntimeInstance instance)
     {
         super(Messages.ReloadDisplay, new ImageView(icon));
         setOnAction(event -> instance.reload());

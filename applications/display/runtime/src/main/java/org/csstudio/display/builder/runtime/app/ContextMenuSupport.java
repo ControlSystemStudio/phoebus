@@ -146,6 +146,7 @@ class ContextMenuSupport
 
         items.add(new SeparatorMenuItem());
 
+        items.add(new DisplayToolbarAction(instance));
         items.add(new FullScreenAction(scene));
 
         // If the editor is available, add "Open in Editor"
