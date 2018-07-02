@@ -17,10 +17,14 @@ public class FileBrowserApp implements AppResourceDescriptor {
     /** Initial root directory for newly opened file browser */
     public static final File default_root;
 
+    /** Show hidden files (File.isHidden)? */
+    public static final boolean show_hidden;
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(FileBrowserApp.class, "/filebrowser_preferences.properties");
         default_root = new File(PreferencesReader.replaceProperties(prefs.get("default_root")));
+        show_hidden = prefs.getBoolean("show_hidden");
     }
 
     @Override

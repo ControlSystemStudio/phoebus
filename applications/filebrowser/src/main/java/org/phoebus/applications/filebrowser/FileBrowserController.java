@@ -124,6 +124,9 @@ public class FileBrowserController {
                     ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
 
                     for (File childFile : files) {
+                        // Keep hidden files hidden?
+                        if (childFile.isHidden()  &&  !FileBrowserApp.show_hidden)
+                            continue;
                         children.add(new FileTreeItem(childFile));
                     }
 
