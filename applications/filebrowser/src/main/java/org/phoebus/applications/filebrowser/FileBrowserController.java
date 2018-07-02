@@ -186,8 +186,9 @@ public class FileBrowserController {
             selectedItems.forEach(s -> {
                 File selection = s.getValue();
                 if (selection.isFile()) {
-                    ApplicationLauncherService.openFile(selection, true,
-                            (Stage) treeView.getParent().getScene().getWindow());
+                    // Open in 'default' application, no prompt.
+                    // Use context menu "Open With" if need to pick app.
+                    ApplicationLauncherService.openFile(selection, false, null);
                 }
             });
         }
