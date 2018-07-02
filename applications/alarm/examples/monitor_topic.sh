@@ -8,5 +8,5 @@ fi
 
 topic=$1
 
-kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --property print.key=true --property key.separator=": " --topic $topic --from-beginning  
+kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --property print.timestamp=true --property print.key=true --property key.separator=": " --topic $topic --from-beginning  
 
