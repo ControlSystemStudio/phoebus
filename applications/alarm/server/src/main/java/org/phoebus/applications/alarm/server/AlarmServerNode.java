@@ -7,8 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -23,6 +27,7 @@ import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
  *  <p>Is part of ServerModel, can maximize severity.
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AlarmServerNode extends AlarmClientNode
 {
     private final ServerModel model;
@@ -36,6 +41,8 @@ public class AlarmServerNode extends AlarmClientNode
     private volatile boolean never_updated = true;
 
     private final AtomicReference<AutomatedActions> automated_actions = new AtomicReference<>();
+
+    private volatile String severity_pv_name = null;
 
     public AlarmServerNode(final ServerModel model, final AlarmClientNode parent, final String name)
     {
@@ -72,10 +79,15 @@ public class AlarmServerNode extends AlarmClientNode
             never_updated = false;
             final BasicState new_state = new BasicState(new_severity);
             setState(new_state);
-            model.sentStateUpdate(getPathName(), new_state);
+            model.sendStateUpdate(getPathName(), new_state);
 
             // Update automated actions
             AutomatedActionsHelper.update(automated_actions, new_severity);
+
+            // Write optional severity PV
+            final String pv = severity_pv_name;
+            if (pv != null)
+                SeverityPVHandler.update(pv, new_severity);
         }
 
         // Percolate changes towards root
@@ -91,10 +103,28 @@ public class AlarmServerNode extends AlarmClientNode
             AutomatedActionsHelper.configure(automated_actions, this,
                                              getState().severity.isActive(),
                                              true, actions);
+
+            String severity_pv_name = null;
+            for (TitleDetailDelay action : actions)
+                if (action.detail.startsWith(TitleDetailDelay.SEVRPV))
+                {
+                    final String pv_name = action.detail.substring(TitleDetailDelay.SEVRPV.length());
+                    if (severity_pv_name != null)
+                        logger.log(Level.WARNING,
+                                   "Multiple severity PVs for '" + getPathName() + "', '" +
+                                   severity_pv_name + "' as well as '" + pv_name + "'");
+                    severity_pv_name = pv_name;
+                }
+
+            if (! Objects.equals(this.severity_pv_name, severity_pv_name))
+            {
+                this.severity_pv_name = severity_pv_name;
+                // Initial update, since severity may not change for a while
+                if (severity_pv_name != null)
+                    SeverityPVHandler.update(severity_pv_name, getState().severity);
+            }
             return true;
         }
         return false;
     }
-
-    // TODO Port ServerTreeItem#updateSeverityPV()
 }

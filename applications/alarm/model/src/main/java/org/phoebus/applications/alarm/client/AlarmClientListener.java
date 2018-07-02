@@ -14,6 +14,9 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
  */
 public interface AlarmClientListener
 {
+    /** @param alive Is server alive, or has it timed out? */
+    void serverStateChanged(boolean alive);
+
     /** @param item Item that has been added */
     void itemAdded(AlarmTreeItem<?> item);
 

@@ -30,8 +30,6 @@ import org.phoebus.util.shell.CommandShell;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-// TODO "Idle" message in the absence of state updates, with timeout in clients
-
 /** Alarm Server
  *  @author Kay Kasemir
  */
@@ -120,19 +118,13 @@ public class AlarmServerMain implements ServerModelListener
     {
         if (args.length == 1)
         {
-            if (args[0].equals("shutdown"))
-            {
+            if (args[0].startsWith("shut"))
                 restart.offer(false);
-            }
             else if (args[0].equals("restart"))
-            {
                 restart.offer(true);
-            }
             else if (args[0].startsWith("h"))
-            {
                 // Return false will print the commands message.
                 return false;
-            }
             else if (args[0].equals("cd")) // cd with no argument goes to root directory.
             {
                 current_path = model.getRoot().getPathName();
@@ -142,7 +134,7 @@ public class AlarmServerMain implements ServerModelListener
             {
                 List<AlarmTreeItem<?>> children = model.findNode(current_path).getChildren();
                 for (final AlarmTreeItem<?> child : children)
-                    System.out.println(child.getName());
+                    System.out.println(child.getName() + " - " + child.getState());
             }
             else
                 return false;
@@ -160,11 +152,8 @@ public class AlarmServerMain implements ServerModelListener
             {
                 if (args[0].equals("cd")) // Change directory to specified location.
                 {
-                    AlarmTreeItem<?> new_loc = null;
-
-                    String new_path = determinePath(args1);
-
-                    new_loc = model.findNode(new_path);
+                    final String new_path = determinePath(args1);
+                    final AlarmTreeItem<?> new_loc = model.findNode(new_path);
 
                     if (null == new_loc)
                     {
@@ -192,9 +181,8 @@ public class AlarmServerMain implements ServerModelListener
                         listPVs(model.getRoot(), PVMode.InAlarm);
                     else // List the PVs at the specified path.
                     {
-                        String path = determinePath(args1);
-
-                        AlarmTreeItem<?> node = model.findNode(path);
+                        final String path = determinePath(args1);
+                        final AlarmTreeItem<?> node = model.findNode(path);
 
                         if (null == node)
                         {
@@ -202,24 +190,21 @@ public class AlarmServerMain implements ServerModelListener
                             return false;
                         }
 
-                        List<AlarmTreeItem<?>> children = node.getChildren();
-
+                        final List<AlarmTreeItem<?>> children = node.getChildren();
                         for (final AlarmTreeItem<?> child : children)
-                        {
-                            System.out.println(child.getName());
-                        }
+                            System.out.println(child.getName() + " - " + child.getState());
                     }
                 }
                 else if (args[0].equals("pv")) // Print the specified PV.
                 {
                     final String pvPath = determinePath(args1);
-                    AlarmTreeItem<?> node = model.findNode(pvPath);
+                    final AlarmTreeItem<?> node = model.findNode(pvPath);
                     if (node instanceof AlarmServerNode)
                     {
                         System.out.println("Specified alarm tree item is not a PV: " + pvPath);
                         return false;
                     }
-                    AlarmServerPV pv = (AlarmServerPV) node;
+                    final AlarmServerPV pv = (AlarmServerPV) node;
                     System.out.println(pv);
                 }
             } // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
@@ -366,7 +351,7 @@ public class AlarmServerMain implements ServerModelListener
                     throw new Exception("Unknown PV '" + path + "'");
                 listPVs(pv, PVMode.All);
             }
-            else if (command.startsWith("shut"))
+            else if (command.equals("shutdown"))
             {
                 restart.offer(false);
             }
@@ -432,22 +417,21 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                    - This text");
-        System.out.println("-server   localhost:9092 - Kafka server");
-        System.out.println("-config   Accelerator    - Alarm configuration");
-        System.out.println("-create_topics           - Create Kafka topics for alarm configuration?");
-        System.out.println("-settings settings.xml   - Import preferences (PV connectivity) from property format file");
-        System.out.println("-export   config.xml     - Export alarm configuration to file");
-        System.out.println("-import   config.xml     - Import alarm configruation from file");
+        System.out.println("-help                       - This text");
+        System.out.println("-server   localhost:9092    - Kafka server");
+        System.out.println("-config   Accelerator       - Alarm configuration");
+        System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
+        System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
+        System.out.println("-export   config.xml        - Export alarm configuration to file");
+        System.out.println("-import   config.xml        - Import alarm configruation from file");
+        System.out.println("-logging logging.properties -  Load log settings");
         System.out.println();
     }
 
 
     public static void main(final String[] original_args) throws Exception
     {
-        LogManager.getLogManager().readConfiguration(AlarmServerMain.class.getResourceAsStream("/logging.properties"));
-
-        logger.info("Alarm Server (PID " + ProcessHandle.current().pid() + ")");
+        LogManager.getLogManager().readConfiguration(AlarmServerMain.class.getResourceAsStream("/alarm_server_logging.properties"));
 
         String server = "localhost:9092";
         String config = "Accelerator";
@@ -480,6 +464,15 @@ public class AlarmServerMain implements ServerModelListener
                     iter.remove();
                     config = iter.next();
                     iter.remove();
+                }
+                else if (cmd.equals("-logging"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -logging file name");
+                    iter.remove();
+                    final String filename = iter.next();
+                    iter.remove();
+                    LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
                 else if (cmd.equals("-settings"))
                 {
@@ -533,6 +526,8 @@ public class AlarmServerMain implements ServerModelListener
             ex.printStackTrace();
             return;
         }
+
+        logger.info("Alarm Server (PID " + ProcessHandle.current().pid() + ")");
 
         new AlarmServerMain(server, config);
     }

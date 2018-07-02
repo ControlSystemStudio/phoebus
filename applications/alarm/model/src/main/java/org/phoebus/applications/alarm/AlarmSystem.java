@@ -8,10 +8,12 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.alarm.client.IdentificationHelper;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.util.time.SecondsParser;
 
 /** Common alarm system code
  *  @author Kay Kasemir
@@ -70,8 +72,22 @@ public class AlarmSystem
     /** Annunciator message retention count */
     public static final int annunciator_retention_count;
 
+    /** Timeout in milliseconds at which server sends idle state updates
+     *  for the 'root' element if there's no real traffic
+     */
+    public static final long idle_timeout_ms;
+
     /** Name of the sender, the 'from' field of automated email actions */
     public static final String automated_email_sender;
+
+    /** Optional heartbeat PV */
+    public static final String heartbeat_pv;
+
+    /** Heartbeat PV period in milliseconds */
+    public static final long heartbeat_ms;
+
+    /** Nag period in seconds */
+    public static final long nag_period_ms;
 
     static
     {
@@ -88,7 +104,21 @@ public class AlarmSystem
         command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
         annunciator_threshold = prefs.getInt("annunciator_threshold");
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
+        idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;
         automated_email_sender = prefs.get("automated_email_sender");
+        heartbeat_pv = prefs.get("heartbeat_pv");
+        heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
+
+        double secs = 0.0;
+        try
+        {
+            secs = SecondsParser.parseSeconds(prefs.get("nag_period"));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Invalid nag_period " + prefs.get("nag_period"), ex);
+        }
+        nag_period_ms = Math.round(Math.max(0, secs) * 1000.0);
 
         IdentificationHelper.initialize();
     }

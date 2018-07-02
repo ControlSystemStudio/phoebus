@@ -34,11 +34,17 @@ public class AlarmConfigTool
 
     private class UpdateMonitor
 	{
-		private final ResettableTimer timer = new ResettableTimer(STABILIZATION_SECS);
+		private final ResettableTimeout timer = new ResettableTimeout(STABILIZATION_SECS);
         private final AtomicInteger updates = new AtomicInteger();
 
 	    private final AlarmClientListener updateListener = new AlarmClientListener()
         {
+            @Override
+            public void serverStateChanged(final boolean alive)
+            {
+                //NOP
+            }
+
             @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {

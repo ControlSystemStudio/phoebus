@@ -82,9 +82,10 @@ public class ScanServerInstance
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                    - This text");
-        System.out.println("-config scan_config.xml  - Scan config (REST port, jython paths, simulation settings");
-        System.out.println("-settings settings.xml   - Import preferences (PV connectivity) from property format file");
+        System.out.println("-help                       - This text");
+        System.out.println("-config scan_config.xml     - Scan config (REST port, jython paths, simulation settings");
+        System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
+        System.out.println("-logging logging.properties -  Load log settings");
         System.out.println();
     }
 
@@ -165,9 +166,7 @@ public class ScanServerInstance
 
     public static void main(final String[] original_args) throws Exception
     {
-        LogManager.getLogManager().readConfiguration(ScanServerInstance.class.getResourceAsStream("/logging.properties"));
-
-        logger.info("Scan Server (PID " + ProcessHandle.current().pid() + ")");
+        LogManager.getLogManager().readConfiguration(ScanServerInstance.class.getResourceAsStream("/scan_server_logging.properties"));
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
@@ -200,6 +199,15 @@ public class ScanServerInstance
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-logging"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -logging file name");
+                    iter.remove();
+                    final String filename = iter.next();
+                    iter.remove();
+                    LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
+                }
                 else
                     throw new Exception("Unknown option " + cmd);
             }
@@ -211,6 +219,8 @@ public class ScanServerInstance
             ex.printStackTrace();
             return;
         }
+
+        logger.info("Scan Server (PID " + ProcessHandle.current().pid() + ")");
 
         logger.info("Configuration: " + scan_config_file);
         scan_config = new ScanConfig(scan_config_file.openStream());

@@ -29,8 +29,6 @@ public class Launcher
     {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
 
-        logger.info("Phoebus (PID " + ProcessHandle.current().pid() + ")");
-
         // Handle arguments, potentially not even starting the UI
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
@@ -57,6 +55,15 @@ public class Launcher
                     iter.remove();
                     Preferences.userNodeForPackage(org.phoebus.ui.Preferences.class)
                                .putBoolean(org.phoebus.ui.Preferences.SPLASH, false);
+                }
+                else if (cmd.equals("-logging"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -logging file name");
+                    iter.remove();
+                    final String filename = iter.next();
+                    iter.remove();
+                    LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
                 else if (cmd.equals("-settings"))
                 {
@@ -121,6 +128,8 @@ public class Launcher
             return;
         }
 
+        logger.info("Phoebus (PID " + ProcessHandle.current().pid() + ")");
+
         // Check for an existing instance
         // If found, pass remaining arguments to it,
         // instead of starting a new application
@@ -156,10 +165,11 @@ public class Launcher
         System.out.println("-nosplash                               -  Suppress the splash screen");
         System.out.println("-settings settings.xml                  -  Import settings from file, either exported XML or property file format");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
+        System.out.println("-logging logging.properties             -  Load log settings");
         System.out.println("-list                                   -  List available application features");
+        System.out.println("-server port                            -  Create instance server on given TCP port");
         System.out.println("-app probe                              -  Launch an application with input arguments");
         System.out.println("-resource  /tmp/example.plt             -  Open an application configuration file with the default application");
-        System.out.println("-server port                            -  Create instance server on given TCP port");
         System.out.println();
         System.out.println("In 'server' mode, first instance opens UI.");
         System.out.println("Additional calls to open resources are then forwarded to the initial instance.");

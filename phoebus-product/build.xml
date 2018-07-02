@@ -21,9 +21,13 @@
     <copy todir="${build}/lib" flatten="true">
       <!-- Copy all application dependencies -->
       <path refid="app-classpath" />
-      <!-- Copy all applications -->
+      <!-- Copy applications -->
       <fileset dir="..">
         <include name="applications/**/*.jar"/>
+      	<!-- Exclude what's not part of the UI product -->
+      	<!-- Site-specific build might remove more     -->
+      	<exclude name="applications/**/alarm-server*.jar"/>
+      	<exclude name="applications/**/scan-server*.jar"/>
       </fileset>
     </copy>
 

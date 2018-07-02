@@ -10,7 +10,6 @@ package org.csstudio.scan.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /** I/O utils, using some method names from Apache commons-io
  *  in case that's used later.
@@ -36,23 +35,7 @@ public class IOUtils
     public static byte[] toByteArray(final InputStream stream) throws IOException
     {
         final ByteArrayOutputStream result = new ByteArrayOutputStream();
-        copy(stream, result);
+        org.phoebus.framework.util.IOUtils.copy(stream, result);
         return result.toByteArray();
-    }
-
-    /** Copy from one stream to another
-     *  @param input Where to read
-     *  @param output Where to write
-     *  @throws IOException on error
-     */
-    public static void copy(final InputStream input,
-            final OutputStream output) throws IOException
-    {
-        final byte[] buf = new byte[2048];
-        int len;
-        while ((len = input.read(buf)) >= 0)
-            output.write(buf, 0, len);
-        output.flush();
-        input.close();
     }
 }

@@ -17,12 +17,21 @@ import java.util.Objects;
 @SuppressWarnings("nls")
 public class TitleDetailDelay extends TitleDetail
 {
+    /** Automated action detail prefix for severity PV */
+    public static final String SEVRPV = "sevrpv:";
+
     public final int delay;
 
-    public TitleDetailDelay(final String title, final String details, int delay)
+    public TitleDetailDelay(final String title, final String detail, int delay)
     {
-        super(title, details);
+        super(title, detail);
         this.delay = Objects.requireNonNull(delay);
+    }
+
+    /** @return Does this action use the delay? sevrpv:.. actions don't. */
+    public boolean hasDelay()
+    {
+        return ! detail.startsWith(SEVRPV);
     }
 
     @Override

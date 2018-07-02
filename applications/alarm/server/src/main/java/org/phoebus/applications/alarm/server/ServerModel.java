@@ -27,6 +27,7 @@ import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 
@@ -63,6 +64,8 @@ class ServerModel
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
     private final Thread thread;
+    private long last_state_update = 0;
+    private long last_annunciation = 0;
 
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
@@ -71,7 +74,7 @@ class ServerModel
      */
     public ServerModel(final String kafka_servers, final String config_name,
                        final ConcurrentHashMap<String, ClientState> initial_states,
-                       final ServerModelListener listener)
+                       final ServerModelListener listener) throws Exception
     {
         this.initial_states = initial_states;
         // initial_states.entrySet().forEach(state ->
@@ -90,19 +93,21 @@ class ServerModel
                                                List.of(config_topic));
         producer = KafkaHelper.connectProducer(kafka_servers);
 
-        
-        
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
     }
 
-   
+
     /** Start client
      *  @see #shutdown()
      */
     public void start()
     {
         thread.start();
+        SeverityPVHandler.initialize();
+
+        // Alarm server startup message 
+        sendAnnunciatorMessage(root.getPathName(), SeverityLevel.OK, "* Alarm server started. Everything is going to be all right.");
     }
 
     public AlarmServerNode getRoot()
@@ -116,7 +121,12 @@ class ServerModel
         try
         {
             while (running.get())
+            {
                 checkUpdates();
+                final long now = System.currentTimeMillis();
+                checkIdle(now);
+                checkNag(now);
+            }
         }
         catch (Throwable ex)
         {
@@ -160,7 +170,7 @@ class ServerModel
                         // Otherwise, if there ever was a state update,
                         // that last state update would add the item back into the client alarm tree
                         if (record.topic().equals(config_topic))
-                            sentStateUpdate(path, null);
+                            sendStateUpdate(path, null);
                     }
                     else
                     {
@@ -293,11 +303,7 @@ class ServerModel
                 if (last &&  is_leaf)
                     return new AlarmServerPV(this, parent, name, initial_states.remove(path));
                 else
-                {
                     node = new AlarmServerNode(this, parent, name);
-                    // No listener interested in changes to node?
-                    // TODO Check for action to update 'severity PV'
-                }
             }
             // Reached desired node?
             if (last)
@@ -351,18 +357,18 @@ class ServerModel
                 stopPVs(child);
     }
 
-    /** Send alarm state update
-     *
+    /** Send alarm update to 'state' topic
      *  @param path Path of item that has a new state
      *  @param new_state That new state
      */
-    public void sentStateUpdate(final String path, final BasicState new_state)
+    public void sendStateUpdate(final String path, final BasicState new_state)
     {
         try
         {
             final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state));
             final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, path, json);
             producer.send(record);
+            last_state_update = System.currentTimeMillis();
         }
         catch (Throwable ex)
         {
@@ -370,25 +376,75 @@ class ServerModel
         }
     }
 
-    public void sentAnnunciatorMessage(final String pathName, final String payload)
+    /** Send annunciation message to 'talk' topic
+     *  @param path Path of item that has a new state
+     *  @param severity Severity
+     *  @param message Message
+     */
+    public void sendAnnunciatorMessage(final String path, final SeverityLevel severity, final String message)
     {
         try
         {
-            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, pathName, payload);
+            last_annunciation = System.currentTimeMillis();
+
+            final String json = JsonModelWriter.talkToString(severity, message);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, path, json);
             producer.send(record);
         }
         catch (Throwable ex)
         {
-            logger.log(Level.WARNING, "Cannot send talk message for " + pathName, ex);
+            logger.log(Level.WARNING, "Cannot send talk message for " + path, ex);
         }
     }
-    
+
+    /** Check if 'idle' message should be sent since there were no state updates
+     *  @param now Current millisec
+     */
+    private void checkIdle(final long now)
+    {
+        if (now - last_state_update  >  AlarmSystem.idle_timeout_ms)
+            sendStateUpdate(root.getPathName(), root.getState());
+    }
+
+    /** Check if 'idle' message should be sent since there were no state updates
+     *  @param now Current millisec
+     */
+    private void checkNag(final long now)
+    {
+        if (AlarmSystem.nag_period_ms > 0  &&
+            now - last_annunciation  >  AlarmSystem.nag_period_ms)
+        {
+            final int active = countAlarmPVs(root);
+            if (active == 1)
+                sendAnnunciatorMessage(root.getPathName(), root.getState().severity, "* There is 1 active alarm");
+            else if (active > 1)
+                sendAnnunciatorMessage(root.getPathName(), root.getState().severity, "* There are " + active + " active alarms");
+        }
+    }
+
+    /** There is at this time no caching of AlarmTreePVs,
+     *  to recurse the alarm tree for PVs in active alarm
+     *  @param item Item where to start recursion
+     *  @return PVs found with active alarm
+     */
+    private int countAlarmPVs(final AlarmTreeItem<?> item)
+    {
+        if (item instanceof AlarmServerPV)
+            return item.getState().severity.isActive() ? 1 : 0;
+        int active = 0;
+        for (AlarmTreeItem<?> child : item.getChildren())
+            if (child.getState().severity.isActive())
+                ++active;
+        return active;
+    }
+
     /** Stop client */
     public void shutdown()
     {
+        SeverityPVHandler.stop();
         running.set(false);
         consumer.wakeup();
-        
+
         try
         {
             thread.join(2000);

@@ -16,23 +16,23 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-/** JUnit test of the {@link ResettableTimer}
+/** JUnit test of the {@link ResettableTimeout}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ResettableTimerTest
+public class ResettableTimeoutTest
 {
     @Test
     public void testTimer() throws Exception
     {
         System.out.println("Check for no timeout ...");
-        ResettableTimer timer = new ResettableTimer(5);
+        ResettableTimeout timer = new ResettableTimeout(5);
         // Has not timed out after 2 seconds
         assertThat(timer.awaitTimeout(2), equalTo(false));
         timer.shutdown();
 
         System.out.println("Check for timeout ...");
-        timer = new ResettableTimer(2);
+        timer = new ResettableTimeout(2);
         // Has certainly timed out after 4 seconds.
         // await..() should actually already return after 2 secs
         assertThat(timer.awaitTimeout(4), equalTo(true));
@@ -43,7 +43,7 @@ public class ResettableTimerTest
     public void testReset() throws Exception
     {
         System.out.println("Timeout in 4 secs?");
-        final ResettableTimer timer = new ResettableTimer(4);
+        final ResettableTimeout timer = new ResettableTimeout(4);
         final ScheduledExecutorService resetter = Executors.newSingleThreadScheduledExecutor();
         resetter.scheduleAtFixedRate(() ->
         {

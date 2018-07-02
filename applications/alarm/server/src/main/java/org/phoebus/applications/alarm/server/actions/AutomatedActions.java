@@ -82,6 +82,9 @@ public class AutomatedActions
             {
                 for (TitleDetailDelay action : item.getActions())
                 {
+                    if (action.detail.startsWith(TitleDetailDelay.SEVRPV))
+                        continue;
+
                     // Schedule action to be executed unless already scheduled
                     scheduled_actions.computeIfAbsent(action, a ->
                     {
