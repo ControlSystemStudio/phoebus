@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -353,7 +352,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     menu_items.add(new RenameTreeItemAction(tree_view, model, item));
 
                     if (item instanceof AlarmClientLeaf)
-                        menu_items.add(new MenuItem("Duplicate PV", ImageCache.getImageView(AlarmSystem.class, "/icons/move.png")));
+                        menu_items.add(new DuplicatePVAction(tree_view, model, (AlarmClientLeaf) item));
 
                     menu_items.add(new MoveTreeItemAction(tree_view, model, item));
                 }

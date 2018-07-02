@@ -22,7 +22,6 @@ import javafx.scene.control.TreeView;
 @SuppressWarnings("nls")
 public class MoveTreeItemAction extends MenuItem
 {
-
 	/** Constructor for MoveTreeItemAction
 	 *
 	 *  <p>Sets onAction to move the passed item within the passed tree view.
