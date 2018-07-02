@@ -86,10 +86,12 @@ public class AlarmContextMenuHelper
         if (acked.size() == 1  &&  acked.get(0) instanceof AlarmClientLeaf)
             menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) acked.get(0)));
 
-        // TODO Somehow indicate the origin of guidance, display, command.
+        // Somehow indicate the origin of guidance, display, command?
         // On one hand it's nice that the context menu inherits all the entries
         // up the alarm tree, but when trying to edit an entry,
         // this means it takes some time to figure out on which item contributed the entry.
+        //
+        // Considered tool tip, but unclear how to attach TT to menu item.
         final AtomicInteger count = new AtomicInteger();
         for (AlarmTreeItem<?> item : selection)
         {

@@ -60,6 +60,25 @@ public class AlarmTableModel
         return changes;
     }
 
+    /** @param item Item for which removal has been received
+     *  @return <code>true</code> If this changed the alarm table
+     */
+    public boolean remove(final AlarmTreeItem<?> item)
+    {
+        if (! (item instanceof AlarmClientLeaf))
+            return false;
+        final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
+
+        boolean changes = false;
+        // Following depends on "|=" NOT being short-cutting,
+        // i.e. skipping the right-side evaluation when changes is already true.
+        // Remove alarm from both active and ack'ed list
+        changes |= active.remove(leaf) != null;
+        changes |= acknowledged.remove(leaf) != null;
+
+        return changes;
+    }
+
     /** @return Active alarms */
     public Set<AlarmClientLeaf> getActiveAlarms()
     {

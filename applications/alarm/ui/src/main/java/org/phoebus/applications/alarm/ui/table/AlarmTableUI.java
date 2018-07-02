@@ -66,9 +66,6 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTableUI extends BorderPane
 {
-    // TODO Maintenance mode?
-    // TODO Check that deleted alarm is removed from UI (tends to remain in table if it was in alarm before deleted)
-
     private final AlarmClient client;
 
     // Sorting:
@@ -97,6 +94,8 @@ public class AlarmTableUI extends BorderPane
     final TextField search = new ClearingTextField();
 
     private final Label no_server = AlarmUI.createNoServerLabel();
+
+    private final Button server_mode = new Button();
 
     private ToolBar toolbar = createToolbar();
 
@@ -182,6 +181,9 @@ public class AlarmTableUI extends BorderPane
 
     private ToolBar createToolbar()
     {
+        setMaintenanceMode(false);
+        server_mode.setOnAction(event ->  client.setMode(! client.isMaintenanceMode()));
+
         final Button acknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
         acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
         acknowledge.setOnAction(event ->
@@ -201,7 +203,7 @@ public class AlarmTableUI extends BorderPane
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
-        return new ToolBar(active_count, ToolbarHelper.createSpring(), acknowledge, unacknowledge, search);
+        return new ToolBar(active_count, ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
     }
 
     /** Show if connected to server or not
@@ -212,6 +214,21 @@ public class AlarmTableUI extends BorderPane
         toolbar.getItems().remove(no_server);
         if (! alive)
             toolbar.getItems().add(1, no_server);
+    }
+
+    void setMaintenanceMode(final boolean maintenance_mode)
+    {
+        if (maintenance_mode)
+        {
+            server_mode.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/maintenance_mode.png"));
+            server_mode.setTooltip(new Tooltip("Maintenance Mode\nINVALID alarms are not annunciated and automatically acknowledged.\nPress to return to Normal Mode"));
+        }
+        else
+        {
+            server_mode.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/normal_mode.png"));
+            server_mode.setTooltip(new Tooltip("Enable maintenance mode?\n\nIn maintenance mode, INVALID alarms are not annunciated;\nthey are automatically acknowledged.\nThis is meant to reduce the impact of alarm from IOC reboots\nor systems that are turned off for maintenance."));
+
+        }
     }
 
     private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,

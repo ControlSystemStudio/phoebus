@@ -143,7 +143,7 @@ public class JsonModelReader
             {
                 final String update = orig.detail.substring(4);
                 displays.set(i, new TitleDetail(orig.title, update));
-                logger.log(Level.WARNING, "Removing 'opi:' prefix from display link '" + orig.detail + "'");
+                logger.log(Level.FINE, "Removing 'opi:' prefix from display link '" + orig.detail + "'");
             }
         }
         return displays;
@@ -217,6 +217,20 @@ public class JsonModelReader
         changed |= node.setFilter(jn == null ? "" : jn.asText());
 
         return changed;
+    }
+
+    /** Check for 'maintenance' mode indicator,
+     *  included in alarm state updates
+     *  @param json
+     *  @return <code>true</code> if in maintenance mode
+     */
+    public static boolean isMaintenanceMode(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        JsonNode jn = actual.get(JsonTags.MODE);
+        if (jn != null)
+            return JsonTags.MAINTENANCE.equals(jn.asText());
+        return false;
     }
 
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)

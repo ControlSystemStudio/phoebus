@@ -74,6 +74,8 @@ public class TitleDetailDelayTable extends BorderPane
     /** @return Items in table */
     public List<TitleDetailDelay> getItems()
     {
+        // Delete empty items (delay ignored)
+        items.removeIf(item -> item.title.isEmpty()  &&  item.detail.isEmpty());
         return items;
     }
 

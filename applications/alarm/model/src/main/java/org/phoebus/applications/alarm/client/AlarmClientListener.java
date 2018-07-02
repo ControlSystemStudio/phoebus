@@ -17,6 +17,9 @@ public interface AlarmClientListener
     /** @param alive Is server alive, or has it timed out? */
     void serverStateChanged(boolean alive);
 
+    /** @param maintenance_mode Is the server in 'maintenance' mode? Else 'normal' */
+    void serverModeChanged(boolean maintenance_mode);
+
     /** @param item Item that has been added */
     void itemAdded(AlarmTreeItem<?> item);
 

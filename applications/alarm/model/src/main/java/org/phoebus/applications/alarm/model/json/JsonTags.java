@@ -38,8 +38,11 @@ public interface JsonTags
     public static final String GUIDANCE = "guidance";
     public static final String HOST = "host";
     public static final String LATCHING = "latching";
+    public static final String MAINTENANCE = "maintenance";
     public static final String MESSAGE = "message";
+    public static final String MODE = "mode";
     public static final String NANO = "nano";
+    public static final String NORMAL = "normal";
     public static final String SECONDS = "seconds";
     public static final String SEVERITY = "severity";
     public static final String STANDOUT = "standout";

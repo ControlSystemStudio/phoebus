@@ -14,6 +14,8 @@ import org.phoebus.applications.alarm.ui.tree.TitleDetailTable;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 /** Demo of {@link TitleDetailTable}
@@ -32,10 +34,24 @@ public class TitleDetailTableDemo extends Application
 
         final TitleDetailTable table = new TitleDetailTable(items);
 
-        final Scene scene = new Scene(table, 600, 800);
+        final BorderPane layout = new BorderPane(table);
+
+        final Button dump = new Button("Dump Items");
+        dump.setOnAction(event ->
+        {
+            System.out.println("Items:");
+            for (TitleDetail item : table.getItems())
+                System.out.println(item);
+            System.out.println();
+        });
+        layout.setBottom(dump);
+
+        final Scene scene = new Scene(layout, 600, 800);
         stage.setTitle("TitleDetailTable Demo");
         stage.setScene(scene);
         stage.show();
+
+
     }
 
     public static void main(final String[] args)

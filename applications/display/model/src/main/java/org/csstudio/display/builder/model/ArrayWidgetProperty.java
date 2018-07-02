@@ -87,7 +87,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
         public ArrayWidgetProperty<WPE> createProperty(
                 final Widget widget, final List<WPE> elements)
         {
-            return new ArrayWidgetProperty<WPE>(this, widget, elements);
+            return new ArrayWidgetProperty<>(this, widget, elements);
         }
     };
 
@@ -217,6 +217,9 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
             final Iterator<?> iter = items.iterator();
             for (int i=0; i<N; ++i)
                 getElement(i).setValueFromObject(iter.next());
+
+            // Notify listeners of the whole array
+            firePropertyChange(this, null, this.value);
         }
         catch (Throwable ex)
         {

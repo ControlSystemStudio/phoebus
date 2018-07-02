@@ -114,8 +114,8 @@ public class AlarmModelWriterTest
 
         System.out.println(xml);
 
-        // TODO: For asserts that look for non unique substrings, implement a check that counts the frequency of the substring
-        // 		 and tests against the susbtring's true total frequency.
+        // For asserts that look for non unique substrings, implement a check that counts the frequency of the substring
+        // and tests against the susbtring's true total frequency?
 
         // Check for config
         assertTrue(xml.contains("<config name=\"Test\">"));

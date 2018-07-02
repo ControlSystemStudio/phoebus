@@ -20,7 +20,6 @@ public class AlarmTreeItemWithState<STATE extends BasicState> extends AlarmTreeI
                                      final List<AlarmTreeItem<?>> children)
     {
         super(parent, name, children);
-        // TODO Auto-generated constructor stub
     }
 
     protected volatile STATE state;

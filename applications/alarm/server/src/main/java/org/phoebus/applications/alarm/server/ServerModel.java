@@ -106,7 +106,7 @@ class ServerModel
         thread.start();
         SeverityPVHandler.initialize();
 
-        // Alarm server startup message 
+        // Alarm server startup message
         sendAnnunciatorMessage(root.getPathName(), SeverityLevel.OK, "* Alarm server started. Everything is going to be all right.");
     }
 
@@ -365,7 +365,7 @@ class ServerModel
     {
         try
         {
-            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state));
+            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode()));
             final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, path, json);
             producer.send(record);
             last_state_update = System.currentTimeMillis();

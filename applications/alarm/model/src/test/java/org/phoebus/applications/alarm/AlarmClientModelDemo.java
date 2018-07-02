@@ -41,6 +41,12 @@ public class AlarmClientModelDemo
             }
 
             @Override
+            public void serverModeChanged(final boolean maintenance_mode)
+            {
+                System.out.println(maintenance_mode ? "MAINTENANCE mode" : "NORMAL mode");
+            }
+
+            @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {
                 System.out.println("Added " + item.getPathName());

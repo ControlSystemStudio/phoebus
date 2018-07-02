@@ -46,6 +46,12 @@ public class AlarmConfigTool
             }
 
             @Override
+            public void serverModeChanged(boolean maintenance_mode)
+            {
+                //NOP
+            }
+
+            @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {
             	// Reset the timer when receiving update

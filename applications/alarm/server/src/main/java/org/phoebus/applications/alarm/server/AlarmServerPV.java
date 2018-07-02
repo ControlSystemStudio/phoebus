@@ -96,8 +96,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         }
         final AlarmLogicListener listener = new AlarmLogicListener()
         {
-            // TODO public void alarmEnablementChanged(boolean is_enabled) { update automated_actions? }
-
             @Override
             public void alarmStateChanged(final AlarmState current, final AlarmState alarm)
             {

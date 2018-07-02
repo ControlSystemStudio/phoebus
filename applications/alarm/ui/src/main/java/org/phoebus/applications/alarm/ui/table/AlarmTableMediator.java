@@ -45,6 +45,13 @@ public class AlarmTableMediator implements AlarmClientListener
         Platform.runLater(() -> ui.setServerState(alive));
     }
 
+    // AlarmClientModelListener
+    @Override
+    public void serverModeChanged(final boolean maintenance_mode)
+    {
+        Platform.runLater(() -> ui.setMaintenanceMode(maintenance_mode));
+    }
+
     // AlarmClientListener
     @Override
     public void itemAdded(final AlarmTreeItem<?> item)
@@ -54,16 +61,17 @@ public class AlarmTableMediator implements AlarmClientListener
 
     // AlarmClientListener
     @Override
-    public void itemRemoved(final AlarmTreeItem<?> item)
+    public void itemUpdated(final AlarmTreeItem<?> item)
     {
-        // TODO Just in case, remove
+        if (model.handleUpdate(item))
+            throttle.trigger();
     }
 
     // AlarmClientListener
     @Override
-    public void itemUpdated(final AlarmTreeItem<?> item)
+    public void itemRemoved(final AlarmTreeItem<?> item)
     {
-        if (model.handleUpdate(item))
+        if (model.remove(item))
             throttle.trigger();
     }
 

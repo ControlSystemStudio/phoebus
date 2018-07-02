@@ -7,16 +7,20 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import java.util.Objects;
+
 import org.csstudio.display.builder.runtime.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.application.Platform;
 import javafx.print.PageLayout;
 import javafx.print.PageOrientation;
 import javafx.print.Paper;
 import javafx.print.Printer;
 import javafx.print.PrinterJob;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -34,14 +38,16 @@ public class PrintAction extends MenuItem
     public PrintAction(final Parent model_parent)
     {
         super(Messages.Print, new ImageView(icon));
-        setOnAction(event -> print(model_parent));
+        setOnAction(event -> Platform.runLater(() -> print(model_parent)));
     }
 
     private void print(final Parent model_parent)
     {
         // Select printer
-        final PrinterJob job = PrinterJob.createPrinterJob();
-        if (! job.showPrintDialog(model_parent.getScene().getWindow()))
+        final PrinterJob job = Objects.requireNonNull(PrinterJob.createPrinterJob(), "Cannot create printer job");
+        final Scene scene = Objects.requireNonNull(model_parent.getScene(), "Missing Scene");
+
+        if (! job.showPrintDialog(scene.getWindow()))
             return;
 
         // Get Screenshot
