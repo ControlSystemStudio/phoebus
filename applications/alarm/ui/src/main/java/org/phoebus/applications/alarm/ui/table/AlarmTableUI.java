@@ -67,8 +67,6 @@ import javafx.scene.paint.Color;
 public class AlarmTableUI extends BorderPane
 {
     // TODO Maintenance mode?
-    // TODO Check that deleted alarm is removed from UI (tends to remain in table if it was in alarm before deleted)
-
     private final AlarmClient client;
 
     // Sorting:
