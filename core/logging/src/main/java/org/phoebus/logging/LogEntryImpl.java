@@ -225,6 +225,16 @@ public class LogEntryImpl implements LogEntry {
             this.owner = owner;
             return this;
         }
+        
+        public LogEntryBuilder createdDate(Instant createdDate) {
+            this.createdDate = createdDate;
+            return this;
+        }
+        
+        public LogEntryBuilder modifiedDate(Instant modifiedDate) {
+            this.modifiedDate = modifiedDate;
+            return this;
+        }
 
         public LogEntryBuilder level(String level) {
             this.level = level;

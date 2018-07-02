@@ -37,37 +37,34 @@ public class AttachmentImpl implements Attachment {
         return fileSize;
     }
 
-    public static class AttachmentBuilder {
-        private String fileName;
-        private String contentType;
-        private Boolean thumbnail;
-        private Long fileSize;
-
-        public static AttachmentBuilder attachment(Attachment attach) {
-            AttachmentBuilder builder = new AttachmentBuilder();
-            builder.fileName = attach.getFileName();
-            builder.contentType = attach.getContentType();
-            builder.thumbnail = attach.getThumbnail();
-            builder.fileSize = attach.getFileSize();
-            return builder;
-        }
-
-        public static AttachmentBuilder attachment(String uri) {
-            AttachmentBuilder builder = new AttachmentBuilder();
-            File fileToUpload = new File(uri);
-            builder.fileName = fileToUpload.getName();
-            return builder;
-        }
-
-        public static AttachmentBuilder attachment(File file) {
-            AttachmentBuilder builder = new AttachmentBuilder();
-            builder.fileName = file.getName();
-            return builder;
-        }
-
-        public Attachment build() {
-            return new AttachmentImpl(fileName, contentType, thumbnail, fileSize);
-        }
-
+    /**
+     * Create a new instance of a default implementation of the {@link Attachment} interface using the given attachement
+     * @param attach 
+     * @return a {@link Attachment} based on the given attachment
+     */
+    public static Attachment of(Attachment attach) {
+        return new AttachmentImpl(  attach.getFileName(),
+                                    attach.getContentType(),
+                                    attach.getThumbnail(),
+                                    attach.getFileSize());
     }
+
+    /**
+     * Create a new instance of a default implementation of the {@link Attachment} interface using the given uri
+     * @param uri - the attachment resource
+     * @return a {@link Attachment} based on the given uri
+     */
+    public static Attachment of(String uri) {
+        return new AttachmentImpl(uri.toString(), null, null, null);
+    }
+
+    /**
+     * Create a new instance of a default implementation of the {@link Attachment} interface using the given file
+     * @param file - the attachment file
+     * @return a {@link Attachment} based on the given file
+     */
+    public static Attachment of(File file) {
+        return new AttachmentImpl(file.toURI().toString(), null, null, null);
+    }
+
 }

@@ -8,20 +8,20 @@ package org.phoebus.logging;
 import java.util.Map;
 
 /**
- * 
+ * An interface representing a property associated with a {@link LogEntry}
  * @author berryman
  */
 public interface Property {
 
     /**
-     * 
-     * @return
+     * Get property name
+     * @return property name
      */
     public String getName();
 
     /**
-     * 
-     * @return
+     * Get attribute map
+     * @return attribute map
      */
     public Map<String, String> getAttributes();
 

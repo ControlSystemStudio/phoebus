@@ -11,13 +11,13 @@ public class LogbookImpl implements Logbook {
     private final String name;
     private final String owner;
 
-    public LogbookImpl(String name, String owner) {
+    private LogbookImpl(String name, String owner) {
         super();
         this.name = name;
         this.owner = owner;
     }
-    
-    public LogbookImpl(String name) {
+
+    private LogbookImpl(String name) {
         super();
         this.name = name;
         this.owner = "";
@@ -29,6 +29,26 @@ public class LogbookImpl implements Logbook {
 
     public String getOwner() {
         return owner;
+    }
+
+    /**
+     * Create a new instance of the default implementation of the {@link Logbook} interface with the given name
+     * 
+     * @param name - logbook name
+     * @return {@link Logbook} with the given name
+     */
+    public static Logbook of(String name) {
+        return new LogbookImpl(name);
+    }
+
+    /**
+     * Create a new instance of the default implementation of the {@link Logbook} interface with the given name and owner
+     * @param name - logbook name
+     * @param owner - logbook owner
+     * @return {@link Logbook} with given name and owner
+     */
+    public static Logbook of(String name, String owner) {
+        return new LogbookImpl(name, owner);
     }
 
     @Override
@@ -55,7 +75,5 @@ public class LogbookImpl implements Logbook {
             return false;
         return true;
     }
-    
-    
 
 }

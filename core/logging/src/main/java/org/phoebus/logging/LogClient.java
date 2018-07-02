@@ -3,6 +3,7 @@ package org.phoebus.logging;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -283,7 +284,7 @@ public interface LogClient {
      * @return collection of LogEntry objects
 
      */
-    public Collection<LogEntry> findLogsBySearch(String pattern);
+    public List<LogEntry> findLogsBySearch(String pattern);
 
     /**
      * 
@@ -291,7 +292,7 @@ public interface LogClient {
      * @return collection of LogEntry objects
 
      */
-    public Collection<LogEntry> findLogsByTag(String pattern);
+    public List<LogEntry> findLogsByTag(String pattern);
 
     /**
      * This function is a subset of queryLogs - should it be removed??
@@ -304,7 +305,7 @@ public interface LogClient {
      * @return collection of LogEntry objects
 
      */
-    public Collection<LogEntry> findLogsByLogbook(String logbook);
+    public List<LogEntry> findLogsByLogbook(String logbook);
 
     /**
      * This function is a subset of queryLogs should it be removed??
@@ -316,14 +317,14 @@ public interface LogClient {
      * @return
 
      */
-    public Collection<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue);
+    public List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue);
 
     /**
      * 
      * @param propertyName
      * @return
      */
-    public Collection<LogEntry> findLogsByProperty(String propertyName);
+    public List<LogEntry> findLogsByProperty(String propertyName);
 
     /**
      * Query for logs based on the criteria specified in the map
@@ -331,7 +332,7 @@ public interface LogClient {
      * @param map
      * @return collection of LogEntry objects
      */
-    public Collection<LogEntry> findLogs(Map<String, String> map);
+    public List<LogEntry> findLogs(Map<String, String> map);
 
     /**
      * Remove {tag} from all logs

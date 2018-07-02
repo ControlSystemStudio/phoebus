@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,12 +22,12 @@ public class InMemoryLogClient implements LogClient{
     private final AtomicInteger logIdCounter;
     private final Map<Long, LogEntry> LogEntries;
 
-    private final Collection<Logbook> logbooks = Arrays.asList( new LogbookImpl("Controls"),
-                                                                new LogbookImpl("Commissioning"),
-                                                                new LogbookImpl("test"));
-    private final Collection<Tag> tags = Arrays.asList( new TagImpl("Operations"),
-                                                        new TagImpl("Alarm"),
-                                                        new TagImpl("Example"));
+    private final Collection<Logbook> logbooks = Arrays.asList(LogbookImpl.of("Controls"),
+                                                               LogbookImpl.of("Commissioning"),
+                                                               LogbookImpl.of("test"));
+    private final Collection<Tag> tags = Arrays.asList(TagImpl.of("Operations"),
+                                                       TagImpl.of("Alarm"),
+                                                       TagImpl.of("Example"));
 
     public InMemoryLogClient() {
         LogEntries = new HashMap<Long, LogEntry>();
@@ -193,37 +194,37 @@ public class InMemoryLogClient implements LogClient{
     }
 
     @Override
-    public Collection<LogEntry> findLogsBySearch(String pattern) {
+    public List<LogEntry> findLogsBySearch(String pattern) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Collection<LogEntry> findLogsByTag(String pattern) {
+    public List<LogEntry> findLogsByTag(String pattern) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Collection<LogEntry> findLogsByLogbook(String logbook) {
+    public List<LogEntry> findLogsByLogbook(String logbook) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Collection<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) {
+    public List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Collection<LogEntry> findLogsByProperty(String propertyName) {
+    public List<LogEntry> findLogsByProperty(String propertyName) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public Collection<LogEntry> findLogs(Map<String, String> map) {
+    public List<LogEntry> findLogs(Map<String, String> map) {
         // TODO Auto-generated method stub
         return null;
     }
