@@ -34,8 +34,11 @@ import org.phoebus.ui.javafx.ToolbarHelper;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 
 /** PV Table Application
@@ -48,6 +51,12 @@ public class DisplayRuntimeInstance implements AppInstance
 
     /** Memento tags */
     private static final String TAG_ZOOM = "ZOOM";
+    private static final String TAG_TOOLBAR = "toolbar";
+
+    /** Global tracker of last user's decision to show toolbar.
+     *  Used when opening new display
+     */
+    private static boolean last_toolbar_visible = true;
 
     private final AppDescriptor app;
     private final BorderPane layout = new BorderPane();
@@ -69,6 +78,9 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Toolbar button for zoom */
     private ZoomAction zoom_action;
 
+    /** Toolbar button for navigation */
+    private ButtonBase navigate_backward, navigate_forward;
+
     DisplayRuntimeInstance(final AppDescriptor app)
     {
         this.app = app;
@@ -83,7 +95,9 @@ public class DisplayRuntimeInstance implements AppInstance
 
         new ContextMenuSupport(this);
 
-        layout.setTop(toolbar);
+        if (last_toolbar_visible)
+            layout.setTop(toolbar);
+
         layout.setCenter(representation.createModelRoot());
         dock_item = new DockItemWithInput(this, layout, null, null, null);
         dock_pane.addTab(dock_item);
@@ -98,6 +112,8 @@ public class DisplayRuntimeInstance implements AppInstance
                 representation.fireContextMenu(model, (int)event.getScreenX(), (int)event.getScreenY());
             }
         });
+
+        layout.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeys);
 
         dock_item.addClosedNotification(this::onClosed);
     }
@@ -123,11 +139,32 @@ public class DisplayRuntimeInstance implements AppInstance
     private Node createToolbar()
     {
         zoom_action = new ZoomAction(this);
+        navigate_backward = NavigationAction.createBackAction(this, navigation);
+        navigate_forward = NavigationAction.createForewardAction(this, navigation);
         return new ToolBar(ToolbarHelper.createSpring(),
                            zoom_action,
-                           NavigationAction.createBackAction(this, navigation),
-                           NavigationAction.createForewardAction(this, navigation)
+                           navigate_backward,
+                           navigate_forward
                            );
+    }
+
+    /** @return <code>true</code> if toolbar is visible */
+    boolean isToolbarVisible()
+    {
+        return layout.getTop() == toolbar;
+    }
+
+    /** @param show Should the toolbar be shown? */
+    void showToolbar(final boolean show)
+    {
+        if (show)
+        {
+            if (! isToolbarVisible())
+                layout.setTop(toolbar);
+        }
+        else
+            layout.setTop(null);
+        last_toolbar_visible = show;
     }
 
     @Override
@@ -139,6 +176,7 @@ public class DisplayRuntimeInstance implements AppInstance
             zoom_action.setValue(level);
             zoom_action.getOnAction().handle(null);
         });
+        memento.getBoolean(TAG_TOOLBAR).ifPresent(this::showToolbar);
     }
 
     @Override
@@ -147,6 +185,19 @@ public class DisplayRuntimeInstance implements AppInstance
         final String zoom = representation.getZoomLevelSpec();
         if (! JFXRepresentation.DEFAULT_ZOOM_LEVEL.equals(zoom))
             memento.setString(TAG_ZOOM, zoom);
+        memento.setBoolean(TAG_TOOLBAR, isToolbarVisible());
+    }
+
+    /** Handle Alt-left & right as navigation keys */
+    private void handleKeys(final KeyEvent event)
+    {
+        if (event.isAltDown())
+        {
+            if (event.getCode() == KeyCode.LEFT  &&  !navigate_backward.isDisabled())
+                navigate_backward.getOnAction().handle(null);
+            else if (event.getCode() == KeyCode.RIGHT  &&  !navigate_forward.isDisabled())
+                navigate_forward.getOnAction().handle(null);
+        }
     }
 
     /** Select dock item, make visible */
