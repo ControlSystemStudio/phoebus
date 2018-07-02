@@ -22,6 +22,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonTags;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
@@ -56,6 +57,9 @@ public class AlarmServerMain implements ServerModelListener
                         "\tcd /path/to/dir  - Change to the specified directory at the specified path.\n" +
                         "\tpv pv            - Print the specified PV in the current directory.\n" +
                         "\tpv /path/to/pv   - Print the specified PV at the specified path.\n" +
+                        "\tmode             - Show mode.\n" +
+                        "\tmode normal      - Select normal mode.\n" +
+                        "\tmode maintenance - Select maintenance mode.\n" +
                         "\trestart          - Re-load alarm configuration and restart.\n" +
                         "\tshutdown         - Shut alarm server down and exit.\n";
 
@@ -122,6 +126,8 @@ public class AlarmServerMain implements ServerModelListener
                 restart.offer(false);
             else if (args[0].equals("restart"))
                 restart.offer(true);
+            else if (args[0].equals("mode"))
+                System.out.println(AlarmLogic.getMaintenanceMode() ? "Maintenance mode" : "Normal mode");
             else if (args[0].startsWith("h"))
                 // Return false will print the commands message.
                 return false;
@@ -207,6 +213,8 @@ public class AlarmServerMain implements ServerModelListener
                     final AlarmServerPV pv = (AlarmServerPV) node;
                     System.out.println(pv);
                 }
+                else if (args[0].equals("mode"))
+                    setMaintenanceMode(args1.startsWith("maint"));
             } // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
             catch (Exception ex)
             {
@@ -269,9 +277,15 @@ public class AlarmServerMain implements ServerModelListener
     /** Handle commands
      *
      *  <ul>
+     *  <li>acknowledge /some/path -
+     *      Acknowledge alarms in subtree
+     *  <li>unacknowledge /some/path -
+     *      Un-Acknowledge alarms in subtree
+     *  <li>mode [normal|maintenance] -
+     *      Select normal or maintenance mode
      *  <li>dump -
      *      Dumps complete alarm tree
-     *  <li>dump some/path -
+     *  <li>dump /some/path -
      *      Dumps subtree
      *  <li>pvs -
      *      Prints all PVs
@@ -317,6 +331,8 @@ public class AlarmServerMain implements ServerModelListener
                     throw new Exception("Unknown alarm tree node '" + path + "'");
                 acknowledge(node, false);
             }
+            else if (command.startsWith("mode"))
+                setMaintenanceMode(path.startsWith("maint"));
             else if (command.equalsIgnoreCase("dump"))
             {
                 final AlarmTreeItem<?> node;
@@ -367,6 +383,32 @@ public class AlarmServerMain implements ServerModelListener
         {
             logger.log(Level.WARNING, "Error for command. path: '" + path + "', JSON: '" + json + "'", ex);
         }
+    }
+
+    private void setMaintenanceMode(final boolean maintenance_mode)
+    {
+        // Any change?
+        if (maintenance_mode == AlarmLogic.getMaintenanceMode())
+            return;
+        // Configure alarm logic
+        AlarmLogic.setMaintenanceMode(maintenance_mode);
+        // Entering maintenance mode: Ack' all INVALID alarms
+        if (maintenance_mode)
+            acknowledgeInvalidUndefined(model.getRoot());
+    }
+
+    /** @param node Node where to start ack'ing all INVALID or UNDEFINED alarms */
+    private void acknowledgeInvalidUndefined(final AlarmTreeItem<?> node)
+    {
+        if (node instanceof AlarmServerPV)
+        {
+            final AlarmServerPV pv_node = (AlarmServerPV) node;
+            if (pv_node.getState().severity.ordinal() >= SeverityLevel.INVALID.ordinal())
+                pv_node.acknowledge(true);
+        }
+        else
+            for (final AlarmTreeItem<?> child : node.getChildren())
+                acknowledgeInvalidUndefined(child);
     }
 
     private void acknowledge(final AlarmTreeItem<?> node, final boolean acknowledge)
