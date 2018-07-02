@@ -214,7 +214,10 @@ public class AlarmServerMain implements ServerModelListener
                     System.out.println(pv);
                 }
                 else if (args[0].equals("mode"))
+                {
                     setMaintenanceMode(args1.startsWith("maint"));
+                    System.out.println(AlarmLogic.getMaintenanceMode() ? "Maintenance mode" : "Normal mode");
+                }
             } // Catch the exceptions caused by findNode searching a path that doesn't start with the root directory.
             catch (Exception ex)
             {
