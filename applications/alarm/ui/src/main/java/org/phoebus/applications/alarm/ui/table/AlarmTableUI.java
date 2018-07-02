@@ -66,7 +66,6 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTableUI extends BorderPane
 {
-    // TODO Maintenance mode?
     private final AlarmClient client;
 
     // Sorting:
