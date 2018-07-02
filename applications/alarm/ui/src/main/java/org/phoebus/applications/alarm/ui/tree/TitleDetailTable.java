@@ -69,6 +69,8 @@ public class TitleDetailTable extends BorderPane
     /** @return Items in table */
     public List<TitleDetail> getItems()
     {
+        // Delete empty items
+        items.removeIf(item -> item.title.isEmpty()  &&  item.detail.isEmpty());
         return items;
     }
 

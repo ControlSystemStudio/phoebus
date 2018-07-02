@@ -133,7 +133,6 @@ public class XmlModelWriter implements Closeable
     {
         for (final TitleDetail td : tdList)
         {
-            // TODO: would a title element ever have empty or null title/detail?
             writer.writeStartElement(itemSubType);
 
             writer.writeStartElement(XmlModelReader.TAG_TITLE);
