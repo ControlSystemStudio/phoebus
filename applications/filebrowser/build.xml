@@ -4,7 +4,6 @@
   <target name="module-filebrowser" depends="compile-app">
     <jar destfile="${build}/filebrowser-${version}.jar">
       <fileset dir="${classes}"/>
-      <fileset dir="${src}" includes="**/*.fxml"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>

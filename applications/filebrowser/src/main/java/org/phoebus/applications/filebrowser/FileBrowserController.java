@@ -28,7 +28,7 @@ import javafx.stage.Stage;
 
 /**
  * Controller for the file browser app
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -40,16 +40,12 @@ public class FileBrowserController {
     Button browse;
     @FXML
     TreeView<File> treeView;
-    
+
     private ContextMenu contextMenu;
 
     @FXML
     public void initialize() {
-        File file = Paths.get(System.getProperty("user.home")).toFile();
-        TreeItem<File> root = new FileTreeItem(file);
-        path.setText(file.getAbsolutePath());
         treeView.setCellFactory(f -> new FileTreeCell());
-        treeView.setRoot(root);
 
         // Create ContextMenu
         contextMenu = new ContextMenu();
@@ -114,7 +110,7 @@ public class FileBrowserController {
         public boolean isLeaf() {
             if (isFirstTimeLeaf) {
                 isFirstTimeLeaf = false;
-                File f = (File) getValue();
+                File f = getValue();
                 isLeaf = f.isFile();
             }
             return isLeaf;
@@ -128,6 +124,9 @@ public class FileBrowserController {
                     ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
 
                     for (File childFile : files) {
+                        // Keep hidden files hidden?
+                        if (childFile.isHidden()  &&  !FileBrowserApp.show_hidden)
+                            continue;
                         children.add(new FileTreeItem(childFile));
                     }
 
@@ -186,8 +185,9 @@ public class FileBrowserController {
             selectedItems.forEach(s -> {
                 File selection = s.getValue();
                 if (selection.isFile()) {
-                    ApplicationLauncherService.openFile(selection, true,
-                            (Stage) treeView.getParent().getScene().getWindow());
+                    // Open in 'default' application, no prompt.
+                    // Use context menu "Open With" if need to pick app.
+                    ApplicationLauncherService.openFile(selection, false, null);
                 }
             });
         }
@@ -198,6 +198,19 @@ public class FileBrowserController {
         Path p = Paths.get(path.getText());
         File newRootFile = p.toFile();
         treeView.setRoot(new FileTreeItem(newRootFile));
+    }
+
+    /** @param directory Desired root directory */
+    public void setRoot(final File directory)
+    {
+        path.setText(directory.toString());
+        treeView.setRoot(new FileTreeItem(directory));
+    }
+
+    /** @return Root directory */
+    public File getRoot()
+    {
+        return treeView.getRoot().getValue();
     }
 
     @FXML
