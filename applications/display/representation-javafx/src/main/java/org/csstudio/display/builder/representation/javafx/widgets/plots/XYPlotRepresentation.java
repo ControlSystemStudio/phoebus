@@ -39,6 +39,7 @@ import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.YAxis;
+import org.csstudio.javafx.rtplot.internal.NumericAxis;
 import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.array.ListNumber;
 import org.phoebus.vtype.VNumberArray;
@@ -81,7 +82,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
     private volatile boolean changing_marker = false;
 
-    private final RTPlotListener<Double> plot_listener = new RTPlotListener<Double>()
+    private final RTPlotListener<Double> plot_listener = new RTPlotListener<>()
     {
         @Override
         public void changedPlotMarker(final int index)
@@ -393,6 +394,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         axis.title().addUntypedPropertyListener(config_listener);
         axis.autoscale().addUntypedPropertyListener(range_listener);
+        axis.logscale().addUntypedPropertyListener(config_listener);
         axis.minimum().addUntypedPropertyListener(range_listener);
         axis.maximum().addUntypedPropertyListener(range_listener);
         axis.grid().addUntypedPropertyListener(config_listener);
@@ -401,7 +403,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         if (axis instanceof YAxisWidgetProperty)
         {
             final YAxisWidgetProperty yaxis = (YAxisWidgetProperty) axis;
-            yaxis.logscale().addUntypedPropertyListener(config_listener);
             yaxis.visible().addUntypedPropertyListener(config_listener);
         }
     }
@@ -413,13 +414,12 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         axis.title().removePropertyListener(config_listener);
         axis.autoscale().removePropertyListener(range_listener);
+        axis.logscale().removePropertyListener(config_listener);
         axis.minimum().removePropertyListener(range_listener);
         axis.maximum().removePropertyListener(range_listener);
         axis.grid().removePropertyListener(config_listener);
         axis.titleFont().removePropertyListener(config_listener);
         axis.scaleFont().removePropertyListener(config_listener);
-        if (axis instanceof YAxisWidgetProperty)
-            ((YAxisWidgetProperty)axis).logscale().removePropertyListener(config_listener);
     }
 
     private void yAxesChanged(final WidgetProperty<List<YAxisWidgetProperty>> property,
@@ -522,7 +522,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         final YAxis<Double> plot_axis = plot.getYAxes().get(index);
         updateAxisConfig(plot_axis, model_axis);
-        plot_axis.setLogarithmic(model_axis.logscale().getValue());
 
         // Make axis and all its traces visible resp. not
         final Boolean visible = model_axis.visible().getValue();
@@ -537,6 +536,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     private void updateAxisConfig(final Axis<Double> plot_axis, final AxisWidgetProperty model_axis)
     {
         plot_axis.setName(model_axis.title().getValue());
+        if (plot_axis instanceof NumericAxis)
+            ((NumericAxis)plot_axis).setLogarithmic(model_axis.logscale().getValue());
         plot_axis.setGridVisible(model_axis.grid().getValue());
         plot_axis.setLabelFont(JFXUtil.convert(model_axis.titleFont().getValue()));
         plot_axis.setScaleFont(JFXUtil.convert(model_axis.scaleFont().getValue()));
