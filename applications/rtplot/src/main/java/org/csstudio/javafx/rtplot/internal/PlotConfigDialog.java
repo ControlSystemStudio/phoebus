@@ -29,6 +29,7 @@ import javafx.stage.Modality;
 /** Dialog for runtime changes to a plot
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<Void>
 {
     private final RTPlot<XTYPE> plot;
@@ -155,17 +156,14 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
             });
             layout.add(autoscale, 2, row++);
 
-            if (axis instanceof YAxis)
+            final CheckBox logscale = new CheckBox("log scale");
+            logscale.setSelected(num_axis.isLogarithmic());
+            logscale.setOnAction(event ->
             {
-                final CheckBox logscale = new CheckBox("log scale");
-                logscale.setSelected(num_axis.isLogarithmic());
-                logscale.setOnAction(event ->
-                {
-                    num_axis.setLogarithmic(logscale.isSelected());
-                    plot.internalGetPlot().fireLogarithmicChange((YAxis<?>)num_axis);
-                });
-                layout.add(logscale, 2, row++);
-            }
+                num_axis.setLogarithmic(logscale.isSelected());
+                plot.internalGetPlot().fireLogarithmicChange((YAxis<?>)num_axis);
+            });
+            layout.add(logscale, 2, row++);
         }
 
         final CheckBox grid = new CheckBox("grid");
