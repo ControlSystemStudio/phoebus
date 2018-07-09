@@ -12,9 +12,11 @@ import static org.csstudio.javafx.rtplot.Activator.logger;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -29,6 +31,12 @@ import org.csstudio.javafx.rtplot.internal.util.Log10;
 @SuppressWarnings("nls")
 public class LinearTicks extends Ticks<Double>
 {
+    /** Neutral locale */
+    private static final Locale LOCALE = Locale.ROOT;
+
+    /** Use 'E' for exponential notation, not 'x10' */
+    private static final DecimalFormatSymbols SYMBOLS = DecimalFormatSymbols.getInstance(LOCALE);
+
     /** Numbers smaller than this are considered "0"
      *
      *  <p>Avoids labels "-0.0" or "0.0000000001" for "0"
@@ -151,7 +159,7 @@ public class LinearTicks extends Ticks<Double>
         	{
         	    // Compute major tick marks
         	    if (value >= low  &&  value <= high)
-        	        major_ticks.add(new MajorTick<Double>(value, format(value)));
+        	        major_ticks.add(new MajorTick<>(value, format(value)));
 
         	    // Fill major tick marks with minor ticks
         	    for (int i=1; i<minor; ++i)
@@ -159,7 +167,7 @@ public class LinearTicks extends Ticks<Double>
         	        final double min_val = prev + ((value - prev)*i)/minor;
         	        if (min_val <= low || min_val >= high)
         	            continue;
-        	        minor_ticks.add(new MinorTick<Double>(min_val));
+        	        minor_ticks.add(new MinorTick<>(min_val));
         	    }
         	    prev = value;
         	}
@@ -174,7 +182,7 @@ public class LinearTicks extends Ticks<Double>
             {
                 // Compute major tick marks
                 if (value <= low  &&  value >= high)
-                    major_ticks.add(new MajorTick<Double>(value, format(value)));
+                    major_ticks.add(new MajorTick<>(value, format(value)));
 
                 // Fill major tick marks with minor ticks
                 for (int i=1; i<minor; ++i)
@@ -182,7 +190,7 @@ public class LinearTicks extends Ticks<Double>
                     final double min_val = prev + ((value - prev)*i)/minor;
                     if (min_val >= low || min_val <= high)
                         continue;
-                    minor_ticks.add(new MinorTick<Double>(min_val));
+                    minor_ticks.add(new MinorTick<>(min_val));
                 }
                 prev = value;
             }
@@ -192,8 +200,8 @@ public class LinearTicks extends Ticks<Double>
         {   // If the best-laid plans of mice and men fail
             // and we end up with just one or no tick,
             // add the low and high markers
-            major_ticks.add(0, new MajorTick<Double>(low, format(low)));
-            major_ticks.add(new MajorTick<Double>(high, format(high)));
+            major_ticks.add(0, new MajorTick<>(low, format(low)));
+            major_ticks.add(new MajorTick<>(high, format(high)));
         }
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
@@ -256,7 +264,7 @@ public class LinearTicks extends Ticks<Double>
      */
     protected static NumberFormat createDecimalFormat(final int precision)
     {
-        final NumberFormat fmt = NumberFormat.getNumberInstance();
+        final NumberFormat fmt = NumberFormat.getNumberInstance(LOCALE);
         fmt.setGroupingUsed(false);
         fmt.setMinimumFractionDigits(precision);
         fmt.setMaximumFractionDigits(precision);
@@ -281,7 +289,7 @@ public class LinearTicks extends Ticks<Double>
             for (int i=0; i<prec; ++i)
                 pattern.append('0');
             pattern.append("E0");
-            return new DecimalFormat(pattern.toString());
+            return new DecimalFormat(pattern.toString(), SYMBOLS);
         });
     }
 
