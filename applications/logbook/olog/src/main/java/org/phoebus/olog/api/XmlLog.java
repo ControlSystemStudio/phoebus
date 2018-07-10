@@ -129,6 +129,12 @@ public class XmlLog implements LogEntry {
         this.version = version;
     }
 
+    @Override
+    public String getTitle() {
+        // Not supported
+        return null;
+    }
+
     /**
      * Getter for log owner.
      *

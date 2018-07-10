@@ -9,6 +9,8 @@ public interface LogEntry {
 
     public String getOwner();
 
+    public String getTitle();
+
     public String getDescription();
 
     public String getLevel();

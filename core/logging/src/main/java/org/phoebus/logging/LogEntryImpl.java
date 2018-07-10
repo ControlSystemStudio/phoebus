@@ -11,6 +11,7 @@ public class LogEntryImpl implements LogEntry {
 
     private final Long id;
     private final String owner;
+    private final String title;
     private final String description;
     private final String level;
     private final Instant createdDate;
@@ -22,12 +23,13 @@ public class LogEntryImpl implements LogEntry {
     private final Map<String, Attachment> attachments;
     private final Map<String, Property> properties;
 
-    private LogEntryImpl(Long id, String owner, String description, String level, Instant createdDate,
+    private LogEntryImpl(Long id, String owner, String title, String description, String level, Instant createdDate,
             Instant modifiedDate, int version, Set<Tag> tags, Set<Logbook> logbooks,
             Set<Attachment> attachments, Set<Property> properties) {
         super();
         this.id = id;
         this.owner = owner;
+        this.title = title;
         this.description = description;
         this.level = level;
         this.createdDate = createdDate;
@@ -46,6 +48,10 @@ public class LogEntryImpl implements LogEntry {
 
     public String getOwner() {
         return owner;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     public String getDescription() {
@@ -169,6 +175,7 @@ public class LogEntryImpl implements LogEntry {
     public static class LogEntryBuilder {
         private Long id;
         private String owner;
+        private String title;
         private StringBuilder description;
         private String level;
         private Instant createdDate;
@@ -183,6 +190,7 @@ public class LogEntryImpl implements LogEntry {
             LogEntryBuilder logentryBuilder = new LogEntryBuilder();
             logentryBuilder.id = log.getId();
             logentryBuilder.owner = log.getOwner();
+            logentryBuilder.title = log.getTitle();
             logentryBuilder.description = new StringBuilder(log.getDescription());
             logentryBuilder.level = log.getLevel();
             logentryBuilder.createdDate = log.getCreatedDate();
@@ -225,7 +233,12 @@ public class LogEntryImpl implements LogEntry {
             this.owner = owner;
             return this;
         }
-        
+
+        public LogEntryBuilder title(String title) {
+            this.title = title;
+            return this;
+        }
+
         public LogEntryBuilder createdDate(Instant createdDate) {
             this.createdDate = createdDate;
             return this;
@@ -282,7 +295,7 @@ public class LogEntryImpl implements LogEntry {
         }
 
         public LogEntry build() {
-            return new LogEntryImpl(id, owner, description.toString(), level, createdDate, modifiedDate, version, tags, logbooks,
+            return new LogEntryImpl(id, owner, title, description.toString(), level, createdDate, modifiedDate, version, tags, logbooks,
                     attachments, properties);
         }
     }
