@@ -22,6 +22,7 @@ public class Messages
     public static String ReloadDisplay;
     public static String SaveSnapshot;
     public static String SaveSnapshotSelectFilename;
+    public static String SendToLogbook;
     public static String Toolbar_Hide;
     public static String Toolbar_Show;
 
