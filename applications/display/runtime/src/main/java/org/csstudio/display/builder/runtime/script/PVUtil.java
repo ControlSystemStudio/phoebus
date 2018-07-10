@@ -31,7 +31,7 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class PVUtil
 {
-    private static VType getVType(final RuntimePV pv) throws NullPointerException
+    public static VType getVType(final RuntimePV pv) throws NullPointerException
     {
         return Objects.requireNonNull(pv.read(), () -> "PV " + pv.getName() + " has no value");
     }
