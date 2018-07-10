@@ -15,6 +15,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -29,6 +30,7 @@ import javafx.stage.Stage;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("nls")
 public class FileBrowserController {
 
     @FXML
@@ -44,6 +46,7 @@ public class FileBrowserController {
 
     @FXML
     public void initialize() {
+        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.setCellFactory(f -> new FileTreeCell());
 
         // Prepare ContextMenu items
@@ -88,6 +91,8 @@ public class FileBrowserController {
         if (selectedItems.stream().allMatch(item -> item.getValue().isFile()))
             contextMenu.getItems().addAll(open, openWith);
 
+        if (! selectedItems.isEmpty())
+            contextMenu.getItems().add(new CopyPath(selectedItems));
         if (selectedItems.size() == 1)
             contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)),
                                           new DeleteAction(treeView, selectedItems.get(0)));
