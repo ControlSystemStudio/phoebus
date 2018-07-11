@@ -5,7 +5,7 @@
   <modules>
     <module>framework</module>
     <module>types</module>
-    <module>logging</module>
+    <module>logbook</module>
     <module>mail</module>
     <module>pv</module>
     <module>ui</module>
