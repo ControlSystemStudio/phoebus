@@ -88,15 +88,15 @@ final class FileTreeCell extends TreeCell<File> {
         // A file has been dropped into this dir, or this file's directory
         setOnDragDropped(event ->
         {
-            File dir = getItem();
-            if (dir != null)
+            TreeItem<File> target_item = getTreeItem();
+            if (target_item.getValue() != null  && !target_item.getValue().isDirectory())
+                target_item = target_item.getParent();
+            if (target_item.getValue() != null)
             {
-                if (! dir.isDirectory())
-                    dir = dir.getParentFile();
                 final Dragboard db = event.getDragboard();
                 if (db.hasFiles())
                     for (File file : db.getFiles())
-                        move(file, dir);
+                        move(file, target_item);
             }
             event.setDropCompleted(true);
             event.consume();
@@ -104,10 +104,11 @@ final class FileTreeCell extends TreeCell<File> {
     }
 
     /** @param file File to move
-     *  @param dir Destination directory
+     *  @param target_item Destination directory's tree item
      */
-    private void move(final File file, final File dir)
+    private void move(final File file, final TreeItem<File> target_item)
     {
+        final File dir = target_item.getValue();
         // Ignore NOP move
         if (file.getParentFile().equals(dir))
             return;
@@ -121,15 +122,15 @@ final class FileTreeCell extends TreeCell<File> {
             {
                 if (success)
                 {
-                    // System.out.println("Add tree item for " + new_name);
-                    final ObservableList<TreeItem<File>> siblings = getTreeItem().getParent().getChildren();
-                    siblings.sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
+                    // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
+                    final ObservableList<TreeItem<File>> siblings = target_item.getChildren();
                     siblings.add(new FileTreeItem(new_name));
+                    siblings.sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
                 }
                 else
                 {
                     final TreeView<File> tree = getTreeView();
-                    ExceptionDetailsErrorDialog.openError(tree, "Error", "Failed to move\n" + file + " to " + dir, null);
+                    ExceptionDetailsErrorDialog.openError(tree, "Error", "Failed to move\n" + file + " to " + target_item, null);
                     // Force full refresh
                     tree.setRoot(new FileTreeItem(tree.getRoot().getValue()));
                 }
