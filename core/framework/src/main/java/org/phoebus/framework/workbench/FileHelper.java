@@ -15,10 +15,11 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-/** Helper for deleting directory tree
+/** Helper for deleting whole directory tree, move file across file systems
  *  @author Kay Kasemir
  */
-public class DirectoryDeleter
+@SuppressWarnings("nls")
+public class FileHelper
 {
     /** Delete directory tree
      *
@@ -51,5 +52,37 @@ public class DirectoryDeleter
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+
+    /** Move a file or directory into another directory
+     *
+     *  <p>Moves a single file into a new directory,
+     *  or moves a whole source directory into a new target directory.
+     *
+     *  @param original File or directory
+     *  @param directory Target directory
+     *  @throws Exception on error
+     */
+    public static void move(final File original, final File directory) throws Exception
+    {
+        if (original.isDirectory())
+        {
+            final File subdir = new File(directory, original.getName());
+            if (! subdir.exists())
+                subdir.mkdirs();
+            else
+                throw new Exception("Cannot move " + original + " into " + directory +
+                                    ": Target exists");
+
+            for (File file : original.listFiles())
+                move(file, subdir);
+
+            original.delete();
+        }
+        else
+        {
+            final File new_file = new File(directory, original.getName());
+            Files.move(original.toPath(), new_file.toPath());
+        }
     }
 }

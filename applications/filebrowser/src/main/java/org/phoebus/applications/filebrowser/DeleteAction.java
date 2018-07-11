@@ -10,7 +10,7 @@ package org.phoebus.applications.filebrowser;
 import java.io.File;
 
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.workbench.DirectoryDeleter;
+import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -50,7 +50,7 @@ public class DeleteAction extends MenuItem
                 if (file.isFile())
                     file.delete();
                 else if (file.isDirectory())
-                    DirectoryDeleter.delete(file);
+                    FileHelper.delete(file);
 
                 final FileTreeItem parent = (FileTreeItem)item.getParent();
                 Platform.runLater(() ->  parent.forceRefresh());

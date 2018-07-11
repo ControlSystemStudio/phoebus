@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -58,13 +59,18 @@ final class FileTreeCell extends TreeCell<File> {
         setOnDragDone(event ->
         {
             final File file = getItem();
+
             if (event.getTransferMode() == TransferMode.MOVE  &&
-                file != null  &&   ! file.exists())
+                file != null)
             {
                 // System.out.println("Delete tree item for removed " + file);
+                // Might want to check if file.exists() in case move failed,
+                // but actual move is performed in background, so right now file
+                // might still be present...
                 final TreeItem<File> deleted_item = getTreeItem();
                 deleted_item.getParent().getChildren().remove(deleted_item);
             }
+
             event.consume();
         });
 
@@ -117,24 +123,26 @@ final class FileTreeCell extends TreeCell<File> {
         {
             // System.out.println("Move " + file + " into " + dir);
             final File new_name = new File(dir, file.getName());
-            final boolean success = file.renameTo(new_name);
-            Platform.runLater(() ->
+
+            try
             {
-                if (success)
+                FileHelper.move(file, dir);
+                Platform.runLater(() ->
                 {
                     // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
                     final ObservableList<TreeItem<File>> siblings = target_item.getChildren();
                     siblings.add(new FileTreeItem(new_name));
                     siblings.sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
-                }
-                else
-                {
-                    final TreeView<File> tree = getTreeView();
-                    ExceptionDetailsErrorDialog.openError(tree, "Error", "Failed to move\n" + file + " to " + target_item, null);
-                    // Force full refresh
-                    tree.setRoot(new FileTreeItem(tree.getRoot().getValue()));
-                }
-            });
+                });
+            }
+            catch (Exception ex)
+            {
+                final TreeView<File> tree = getTreeView();
+                ExceptionDetailsErrorDialog.openError(tree, "Error", "Failed to move\n" + file + " to " + target_item, ex);
+                // Force full refresh
+                Platform.runLater(() ->
+                    tree.setRoot(new FileTreeItem(tree.getRoot().getValue())) );
+            }
         });
     }
 
