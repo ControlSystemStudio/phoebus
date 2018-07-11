@@ -21,12 +21,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
-import org.phoebus.logging.Attachment;
-import org.phoebus.logging.LogClient;
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.Logbook;
-import org.phoebus.logging.Property;
-import org.phoebus.logging.Tag;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.Tag;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -226,7 +226,7 @@ public class OlogClient implements LogClient {
     }
     
     @Override
-    public org.phoebus.logging.Attachment add(File arg0, Long arg1) {
+    public org.phoebus.logbook.Attachment add(File arg0, Long arg1) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -281,7 +281,7 @@ public class OlogClient implements LogClient {
 
 
     @Override
-    public InputStream getAttachment(Long arg0, org.phoebus.logging.Attachment arg1) {
+    public InputStream getAttachment(Long arg0, org.phoebus.logbook.Attachment arg1) {
         // TODO Auto-generated method stub
         return null;
     }

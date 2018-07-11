@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.phoebus.logging.Attachment;
-import org.phoebus.logging.LogClient;
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.Logbook;
-import org.phoebus.logging.LogbookImpl;
-import org.phoebus.logging.Property;
-import org.phoebus.logging.Tag;
-import org.phoebus.logging.TagImpl;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.TagImpl;
 
 public class InMemoryLogClient implements LogClient{
     private final AtomicInteger logIdCounter;

@@ -6,13 +6,12 @@
 package org.phoebus.olog.api;
 
 import java.io.File;
-import java.io.InputStream;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import org.phoebus.logging.Attachment;
+import org.phoebus.logbook.Attachment;
 
 /**
  * Attachment object that can be represented as XML/JSON in payload data. TODO:

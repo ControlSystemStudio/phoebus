@@ -7,14 +7,11 @@ package org.phoebus.olog.api;
 
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
-import org.phoebus.logging.Property;
+import org.phoebus.logbook.Property;
 
 /**
  * Property object that can be represented as XML/JSON in payload data.

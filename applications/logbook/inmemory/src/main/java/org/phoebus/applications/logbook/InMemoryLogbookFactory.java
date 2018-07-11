@@ -1,7 +1,7 @@
 package org.phoebus.applications.logbook;
 
-import org.phoebus.logging.LogClient;
-import org.phoebus.logging.LogFactory;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogFactory;
 
 public class InMemoryLogbookFactory implements LogFactory {
 

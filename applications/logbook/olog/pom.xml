@@ -10,7 +10,7 @@
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>logging</artifactId>
+      <artifactId>core-logbook</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-core -->

@@ -3,8 +3,8 @@ package org.phoebus.applications.logbook;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.logging.LogClient;
-import org.phoebus.logging.LogFactory;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogFactory;
 import org.phoebus.olog.api.OlogClient;
 import org.phoebus.olog.api.OlogClient.OlogClientBuilder;
 
