@@ -18,4 +18,9 @@ public class InMemoryLogbookFactory implements LogFactory {
         return inMemoryLogClient;
     }
 
+    @Override
+    public LogClient getLogClient(Object authToken) {
+        return inMemoryLogClient;
+    }
+
 }

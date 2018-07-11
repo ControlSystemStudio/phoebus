@@ -13,4 +13,6 @@ public interface LogFactory {
 
     public LogClient getLogClient();
 
+    public LogClient getLogClient(Object authToken);
+
 }

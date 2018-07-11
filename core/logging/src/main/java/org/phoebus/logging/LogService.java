@@ -41,6 +41,10 @@ public class LogService {
         });
     }
 
+    /**
+     * Returns the instance logbook service instance
+     * @return
+     */
     public static LogService getInstance() {
         if (logService == null) {
             logService = new LogService();

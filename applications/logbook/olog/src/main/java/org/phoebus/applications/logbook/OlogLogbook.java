@@ -31,5 +31,17 @@ public class OlogLogbook implements LogFactory {
         return oLogClient;
     }
 
+    @Override
+    public LogClient getLogClient(Object authToken) {
+        if(oLogClient != null) {
+            try {
+                oLogClient = OlogClientBuilder.serviceURL().create();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Failed to create olog client", e);
+            }
+        }
+        return oLogClient;
+    }
+
 
 }
