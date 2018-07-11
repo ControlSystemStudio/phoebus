@@ -9,13 +9,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.phoebus.logging.AttachmentImpl;
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.LogEntryImpl.LogEntryBuilder;
-import org.phoebus.logging.Logbook;
-import org.phoebus.logging.LogbookImpl;
-import org.phoebus.logging.Tag;
-import org.phoebus.logging.TagImpl;
+import org.phoebus.logbook.AttachmentImpl;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.TagImpl;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

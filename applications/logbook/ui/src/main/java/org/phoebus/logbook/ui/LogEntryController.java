@@ -3,12 +3,11 @@ package org.phoebus.logbook.ui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.URI;
 import java.util.stream.Collectors;
 
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.Logbook;
-import org.phoebus.logging.Tag;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.Tag;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.FXCollections;

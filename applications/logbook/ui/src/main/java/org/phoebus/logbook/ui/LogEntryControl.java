@@ -2,7 +2,7 @@ package org.phoebus.logbook.ui;
 
 import java.io.IOException;
 
-import org.phoebus.logging.LogEntry;
+import org.phoebus.logbook.LogEntry;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.VBox;
