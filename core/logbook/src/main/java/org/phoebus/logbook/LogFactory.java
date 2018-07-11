@@ -1,4 +1,4 @@
-package org.phoebus.logging;
+package org.phoebus.logbook;
 
 /**
  * An interface for registering log factories, each factory returns and instance

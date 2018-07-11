@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.phoebus.logging;
+package org.phoebus.logbook;
 
 /**
  * An interface describing a logbook associated with {@link LogEntry}s

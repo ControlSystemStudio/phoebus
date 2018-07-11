@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.phoebus.logging;
+package org.phoebus.logbook;
 
 import java.util.Map;
 

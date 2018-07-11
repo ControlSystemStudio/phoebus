@@ -1,4 +1,4 @@
-package org.phoebus.logging;
+package org.phoebus.logbook;
 
 /**
  * A default implementation of {@link Logbook}

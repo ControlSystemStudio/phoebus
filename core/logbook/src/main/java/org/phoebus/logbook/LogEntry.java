@@ -1,4 +1,4 @@
-package org.phoebus.logging;
+package org.phoebus.logbook;
 
 import java.time.Instant;
 import java.util.Collection;

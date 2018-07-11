@@ -1,5 +1,5 @@
 
-package org.phoebus.logging;
+package org.phoebus.logbook;
 
 import java.io.File;
 

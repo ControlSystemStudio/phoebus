@@ -1,4 +1,4 @@
-package org.phoebus.logging;
+package org.phoebus.logbook;
 
 import java.util.Collections;
 import java.util.HashMap;

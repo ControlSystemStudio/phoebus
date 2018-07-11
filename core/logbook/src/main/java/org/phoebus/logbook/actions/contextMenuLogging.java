@@ -1,4 +1,4 @@
-package org.phoebus.logging.actions;
+package org.phoebus.logbook.actions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.LogService;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
