@@ -1,6 +1,8 @@
 
 package org.phoebus.logging;
 
+import java.io.InputStream;
+
 /**
  * An interface describing the attachments associated with a {@link LogEntry}
  * @author Eric Berryman
@@ -8,6 +10,8 @@ package org.phoebus.logging;
 public interface Attachment {
 
     public String getFileName();
+
+    public InputStream getFileInputStream();
 
     public String getContentType();
 
