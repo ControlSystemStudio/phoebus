@@ -44,7 +44,7 @@ public class PlotWidgetProperties
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "title", Messages.PlotWidget_Title);
 
     public static final WidgetPropertyDescriptor<WidgetFont> propTitleFont =
-            new WidgetPropertyDescriptor<WidgetFont>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "title_font", Messages.PlotWidget_TitleFont)
     {
         @Override
@@ -63,7 +63,7 @@ public class PlotWidgetProperties
         CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "log_scale", Messages.PlotWidget_LogScale);
 
     public static final WidgetPropertyDescriptor<WidgetFont> propScaleFont =
-        new WidgetPropertyDescriptor<WidgetFont>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "scale_font", Messages.PlotWidget_ScaleFont)
     {
         @Override
@@ -97,6 +97,7 @@ public class PlotWidgetProperties
             return new AxisWidgetProperty(propXAxis, widget,
                   Arrays.asList(propTitle.createProperty(widget, title_text),
                                 propAutoscale.createProperty(widget, false),
+                                propLogscale.createProperty(widget, false),
                                 CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
                                 CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
                                 propGrid.createProperty(widget, false),
@@ -112,11 +113,12 @@ public class PlotWidgetProperties
 
         public WidgetProperty<String> title()           { return getElement(0); }
         public WidgetProperty<Boolean> autoscale()      { return getElement(1); }
-        public WidgetProperty<Double> minimum()         { return getElement(2); }
-        public WidgetProperty<Double> maximum()         { return getElement(3); }
-        public WidgetProperty<Boolean> grid()           { return getElement(4); }
-        public WidgetProperty<WidgetFont> titleFont()   { return getElement(5); }
-        public WidgetProperty<WidgetFont> scaleFont()   { return getElement(6); }
+        public WidgetProperty<Boolean> logscale()       { return getElement(2); }
+        public WidgetProperty<Double> minimum()         { return getElement(3); }
+        public WidgetProperty<Double> maximum()         { return getElement(4); }
+        public WidgetProperty<Boolean> grid()           { return getElement(5); }
+        public WidgetProperty<WidgetFont> titleFont()   { return getElement(6); }
+        public WidgetProperty<WidgetFont> scaleFont()   { return getElement(7); }
     };
 
     /** Structure for Y axis */
@@ -145,17 +147,6 @@ public class PlotWidgetProperties
             super(axis_descriptor, widget, elements);
         }
 
-        public WidgetProperty<Boolean> logscale()       { return getElement(2); }
-        @Override
-        public WidgetProperty<Double> minimum()         { return getElement(3); }
-        @Override
-        public WidgetProperty<Double> maximum()         { return getElement(4); }
-        @Override
-        public WidgetProperty<Boolean> grid()           { return getElement(5); }
-        @Override
-        public WidgetProperty<WidgetFont> titleFont()   { return getElement(6); }
-        @Override
-        public WidgetProperty<WidgetFont> scaleFont()   { return getElement(7); }
         public WidgetProperty<Boolean> visible()        { return getElement(8); }
     };
 
@@ -180,25 +171,25 @@ public class PlotWidgetProperties
     private static final WidgetPropertyDescriptor<WidgetColor> traceColor =
         CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "color", Messages.PlotWidget_Color);
     private static final WidgetPropertyDescriptor<PlotWidgetTraceType> traceType =
-        new WidgetPropertyDescriptor<PlotWidgetTraceType>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "trace_type", Messages.PlotWidget_TraceType)
         {
             @Override
             public WidgetProperty<PlotWidgetTraceType> createProperty(final Widget widget,
                                                                       final PlotWidgetTraceType default_value)
             {
-                return new EnumWidgetProperty<PlotWidgetTraceType>(this, widget, default_value);
+                return new EnumWidgetProperty<>(this, widget, default_value);
             }
         };
     private static final WidgetPropertyDescriptor<PlotWidgetPointType> tracePointType =
-        new WidgetPropertyDescriptor<PlotWidgetPointType>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "point_type", Messages.PlotWidget_PointType)
         {
             @Override
             public WidgetProperty<PlotWidgetPointType> createProperty(final Widget widget,
                                                                       final PlotWidgetPointType default_value)
             {
-                return new EnumWidgetProperty<PlotWidgetPointType>(this, widget, default_value);
+                return new EnumWidgetProperty<>(this, widget, default_value);
             }
         };
     private static final WidgetPropertyDescriptor<Integer> tracePointSize =

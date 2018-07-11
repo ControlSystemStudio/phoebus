@@ -8,7 +8,6 @@ import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -16,11 +15,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
@@ -32,6 +30,7 @@ import javafx.stage.Stage;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("nls")
 public class FileBrowserController {
 
     @FXML
@@ -41,17 +40,16 @@ public class FileBrowserController {
     @FXML
     TreeView<File> treeView;
 
-    private ContextMenu contextMenu;
+    private final MenuItem open = new MenuItem("Open", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final MenuItem openWith = new MenuItem("Open With", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final ContextMenu contextMenu = new ContextMenu();
 
     @FXML
     public void initialize() {
+        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.setCellFactory(f -> new FileTreeCell());
 
-        // Create ContextMenu
-        contextMenu = new ContextMenu();
-
-        MenuItem open = new MenuItem("Open");
-        open.setGraphic(ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+        // Prepare ContextMenu items
         open.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
@@ -66,8 +64,6 @@ public class FileBrowserController {
                 });
             }
         });
-        MenuItem openWith = new MenuItem("Open With");
-        openWith.setGraphic(ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
         openWith.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
@@ -86,95 +82,22 @@ public class FileBrowserController {
         contextMenu.getItems().addAll(open, openWith);
     }
 
-    private final class FileTreeItem extends TreeItem<File> {
-
-        private boolean isFirstTimeLeaf = true;
-        private boolean isFirstTimeChildren = true;
-        private boolean isLeaf;
-
-        public FileTreeItem(File childFile) {
-            super(childFile);
-        }
-
-        @Override
-        public ObservableList<TreeItem<File>> getChildren() {
-
-            if (isFirstTimeChildren) {
-                isFirstTimeChildren = false;
-                super.getChildren().setAll(buildChildren(this));
-            }
-            return super.getChildren();
-        }
-
-        @Override
-        public boolean isLeaf() {
-            if (isFirstTimeLeaf) {
-                isFirstTimeLeaf = false;
-                File f = getValue();
-                isLeaf = f.isFile();
-            }
-            return isLeaf;
-        }
-
-        private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> TreeItem) {
-            File f = TreeItem.getValue();
-            if (f != null && f.isDirectory()) {
-                File[] files = f.listFiles();
-                if (files != null) {
-                    ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
-
-                    for (File childFile : files) {
-                        // Keep hidden files hidden?
-                        if (childFile.isHidden()  &&  !FileBrowserApp.show_hidden)
-                            continue;
-                        children.add(new FileTreeItem(childFile));
-                    }
-
-                    return children;
-                }
-            }
-
-            return FXCollections.emptyObservableList();
-        }
-    }
-
-
-    private final class FileTreeCell extends TreeCell<File> {
-        public FileTreeCell() {
-            super();
-        }
-
-        ImageView image = ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png");
-        @Override
-        protected void updateItem(File file, boolean empty) {
-            super.updateItem(file, empty);
-
-            if (empty || file == null) {
-                setText(null);
-                setGraphic(null);
-            } else {
-                if (getTreeItem().getParent() == null) {
-                    setText(file.getAbsolutePath());
-                } else {
-                    if (file.isDirectory()) {
-                        setGraphic(image);
-                    }
-                    setText(file.getName());
-                }
-            }
-
-        }
-    }
-
     @FXML
     public void createContextMenu(ContextMenuEvent e) {
-        treeView.setContextMenu(null);
-        ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue().getSelectedItems();
-        if (selectedItems.stream().allMatch(item -> {
-            return item.getValue().isFile();
-        })) {
-            treeView.setContextMenu(contextMenu);
-        }
+        final ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue().getSelectedItems();
+
+        contextMenu.getItems().clear();
+
+        if (selectedItems.stream().allMatch(item -> item.getValue().isFile()))
+            contextMenu.getItems().addAll(open, openWith);
+
+        if (! selectedItems.isEmpty())
+            contextMenu.getItems().add(new CopyPath(selectedItems));
+        if (selectedItems.size() == 1)
+            contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)),
+                                          new DeleteAction(treeView, selectedItems.get(0)));
+
+        contextMenu.show(treeView.getScene().getWindow(), e.getScreenX(), e.getScreenY());
     }
 
     @FXML
