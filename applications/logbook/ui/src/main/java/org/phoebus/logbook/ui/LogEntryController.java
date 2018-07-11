@@ -3,12 +3,11 @@ package org.phoebus.logbook.ui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.URI;
 import java.util.stream.Collectors;
 
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.Logbook;
-import org.phoebus.logging.Tag;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.Tag;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.FXCollections;
@@ -108,7 +107,12 @@ public class LogEntryController {
             logDescription.setWrapText(true);
             logDescription.setText(logEntry.getDescription());
 
-            logTime.setText(logEntry.getCreatedDate().toString());
+            if(logEntry.getTitle()!= null) {
+                logTime.setText(logEntry.getCreatedDate().toString() +
+                        System.lineSeparator() + logEntry.getTitle());
+            } else {
+                logTime.setText(logEntry.getCreatedDate().toString());
+            }
 
             ObservableList<String> logbookList = FXCollections.observableArrayList();
             logbookList.addAll(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList()));
@@ -121,7 +125,7 @@ public class LogEntryController {
             imageGallery.getChildren().clear();
             logEntry.getAttachments().forEach(attachment -> {
                 ImageView imageView;
-                imageView = createImageView(new File(URI.create(attachment.getFileName())));
+                imageView = createImageView(attachment.getFile());
                 imageGallery.getChildren().addAll(imageView);
             });
         }

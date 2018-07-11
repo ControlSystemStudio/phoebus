@@ -1,6 +1,6 @@
 package org.phoebus.core.types.adapters;
 
-import static org.phoebus.logging.LogEntryImpl.LogEntryBuilder.log;
+import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,8 +8,8 @@ import java.util.Optional;
 
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.adapter.AdapterFactory;
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.LogService;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
 
 /**
  * Provides a factory for converting a {@link TimeStampedProcessVariable} to either a {@link LogEntry} or {@link String}

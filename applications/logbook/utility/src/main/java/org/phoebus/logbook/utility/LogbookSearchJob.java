@@ -8,8 +8,8 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
-import org.phoebus.logging.LogClient;
-import org.phoebus.logging.LogEntry;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
 
 /**
  * Background job for searching channels from the channelfinder directory

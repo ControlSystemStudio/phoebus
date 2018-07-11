@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.phoebus.logging.Attachment;
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.Logbook;
-import org.phoebus.logging.Property;
-import org.phoebus.logging.Tag;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.Tag;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -127,6 +127,12 @@ public class XmlLog implements LogEntry {
      */
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    @Override
+    public String getTitle() {
+        // Not supported
+        return null;
     }
 
     /**
@@ -413,7 +419,7 @@ public class XmlLog implements LogEntry {
      * @param attachments XmlAttachments
      */
     public void setXmlAttachments(XmlAttachments attachments) {
-        this.attachments = attachments.getAttachments().stream().collect(Collectors.toMap(Attachment::getFileName, (Attachment a) -> {return a;}));
+        this.attachments = attachments.getAttachments().stream().collect(Collectors.toMap((a)->{return a.getFile().getName();}, (a) -> {return a;}));
     }
 
     /**
