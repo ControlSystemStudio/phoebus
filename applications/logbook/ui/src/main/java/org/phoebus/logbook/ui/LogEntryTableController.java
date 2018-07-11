@@ -3,7 +3,7 @@ package org.phoebus.logbook.ui;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.phoebus.logging.LogEntry;
+import org.phoebus.logbook.LogEntry;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

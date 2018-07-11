@@ -1,6 +1,6 @@
 package org.phoebus.core.types.adapters;
 
-import static org.phoebus.logging.LogEntryImpl.LogEntryBuilder.*;
+import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,8 +8,8 @@ import java.util.Optional;
 
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.adapter.AdapterFactory;
-import org.phoebus.logging.LogEntry;
-import org.phoebus.logging.LogService;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
 
 /**
  * Provide a factory to adapt a {@link ProcessVariable} to {@link LogEntry} or {@link String}

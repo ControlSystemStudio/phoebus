@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.phoebus.logging.Logbook;
+import org.phoebus.logbook.Logbook;
 
 /**
  * Logbook object that can be represented as XML/JSON in payload data.
