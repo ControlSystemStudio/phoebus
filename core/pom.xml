@@ -12,6 +12,7 @@
     <module>vtype</module>
     <module>util</module>
     <module>formula</module>
+    <module>security</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
