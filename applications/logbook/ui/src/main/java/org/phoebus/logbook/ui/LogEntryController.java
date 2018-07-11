@@ -108,7 +108,12 @@ public class LogEntryController {
             logDescription.setWrapText(true);
             logDescription.setText(logEntry.getDescription());
 
-            logTime.setText(logEntry.getCreatedDate().toString());
+            if(logEntry.getTitle()!= null) {
+                logTime.setText(logEntry.getCreatedDate().toString() +
+                        System.lineSeparator() + logEntry.getTitle());
+            } else {
+                logTime.setText(logEntry.getCreatedDate().toString());
+            }
 
             ObservableList<String> logbookList = FXCollections.observableArrayList();
             logbookList.addAll(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList()));
@@ -121,7 +126,7 @@ public class LogEntryController {
             imageGallery.getChildren().clear();
             logEntry.getAttachments().forEach(attachment -> {
                 ImageView imageView;
-                imageView = createImageView(new File(URI.create(attachment.getFileName())));
+                imageView = createImageView(attachment.getFile());
                 imageGallery.getChildren().addAll(imageView);
             });
         }
