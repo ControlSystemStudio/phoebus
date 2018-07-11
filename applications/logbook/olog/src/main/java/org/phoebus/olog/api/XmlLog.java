@@ -419,7 +419,7 @@ public class XmlLog implements LogEntry {
      * @param attachments XmlAttachments
      */
     public void setXmlAttachments(XmlAttachments attachments) {
-        this.attachments = attachments.getAttachments().stream().collect(Collectors.toMap(Attachment::getFileName, (Attachment a) -> {return a;}));
+        this.attachments = attachments.getAttachments().stream().collect(Collectors.toMap((a)->{return a.getFile().getName();}, (a) -> {return a;}));
     }
 
     /**

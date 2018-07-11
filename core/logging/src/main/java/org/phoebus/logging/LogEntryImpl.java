@@ -38,7 +38,7 @@ public class LogEntryImpl implements LogEntry {
 
         this.tags = tags.stream().collect(Collectors.toMap(Tag::getName, (Tag t) -> {return t;}));
         this.logbooks = logbooks.stream().collect(Collectors.toMap(Logbook::getName, (Logbook l) -> {return l;}));
-        this.attachments = attachments.stream().collect(Collectors.toMap(Attachment::getFileName, (Attachment a) -> {return a;}));
+        this.attachments = attachments.stream().collect(Collectors.toMap((a)-> {return a.getFile().getName();}, (a) -> {return a;}));
         this.properties = properties.stream().collect(Collectors.toMap(Property::getName, (Property p) -> {return p;}));
     }
 

@@ -1,7 +1,7 @@
 
 package org.phoebus.logging;
 
-import java.io.InputStream;
+import java.io.File;
 
 /**
  * An interface describing the attachments associated with a {@link LogEntry}
@@ -9,14 +9,10 @@ import java.io.InputStream;
  */
 public interface Attachment {
 
-    public String getFileName();
-
-    public InputStream getFileInputStream();
+    public File getFile();
 
     public String getContentType();
 
     public Boolean getThumbnail();
-
-    public Long getFileSize();
 
 }

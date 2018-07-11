@@ -1,12 +1,8 @@
 package org.phoebus.logging;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * A default implementation of {@link Attachment}
@@ -14,40 +10,30 @@ import java.nio.file.Paths;
  *
  */
 public class AttachmentImpl implements Attachment {
-    private final String fileName;
-    private InputStream fileInputStream;
+    private final File file;
     private final String contentType;
     private final Boolean thumbnail;
-    private final Long fileSize;
 
-    private AttachmentImpl(String fileName, InputStream fileInputStream, String contentType, Boolean thumbnail, Long fileSize) {
+    private AttachmentImpl(File file, String contentType, Boolean thumbnail) {
         super();
-        this.fileName = fileName;
-        this.fileInputStream = fileInputStream;
+        this.file = file;
         this.contentType = contentType;
         this.thumbnail = thumbnail;
-        this.fileSize = fileSize;
     }
 
-    public String getFileName() {
-        return fileName;
+    @Override
+    public File getFile() {
+        return file;
     }
 
+    @Override
     public String getContentType() {
         return contentType;
     }
 
+    @Override
     public Boolean getThumbnail() {
         return thumbnail;
-    }
-
-    public Long getFileSize() {
-        return fileSize;
-    }
-
-    @Override
-    public InputStream getFileInputStream() {
-        return fileInputStream;
     }
 
     /**
@@ -56,11 +42,9 @@ public class AttachmentImpl implements Attachment {
      * @return a {@link Attachment} based on the given attachment
      */
     public static Attachment of(Attachment attach) {
-        return new AttachmentImpl(  attach.getFileName(),
-                                    attach.getFileInputStream(),
+        return new AttachmentImpl(  attach.getFile(),
                                     attach.getContentType(),
-                                    attach.getThumbnail(),
-                                    attach.getFileSize());
+                                    attach.getThumbnail());
     }
 
     /**
@@ -70,7 +54,7 @@ public class AttachmentImpl implements Attachment {
      * @throws IOException 
      */
     public static Attachment of(String uri) throws IOException {
-        return new AttachmentImpl(uri.toString(), Files.newInputStream(Paths.get(uri)), null, null, null);
+        return new AttachmentImpl(new File(uri), null, null);
     }
 
     /**
@@ -80,8 +64,7 @@ public class AttachmentImpl implements Attachment {
      * @throws FileNotFoundException 
      */
     public static Attachment of(File file) throws FileNotFoundException {
-        return new AttachmentImpl(file.toURI().toString(), new FileInputStream(file), null, null, null);
+        return new AttachmentImpl(file, null, null);
     }
-
 
 }
