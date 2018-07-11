@@ -6,7 +6,7 @@
     <artifactId>core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>logging</artifactId>
+  <artifactId>core-logbook</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
