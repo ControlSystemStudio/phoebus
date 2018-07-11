@@ -5,6 +5,8 @@
 
 package org.phoebus.olog.api;
 
+import java.io.InputStream;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -33,6 +35,8 @@ public class XmlAttachment implements Attachment{
     @XmlTransient
     protected Long fileSize;
 
+    private InputStream fileInputStream;
+
     /**
      * Creates a new instance of XmlAttachment
      */
@@ -55,6 +59,16 @@ public class XmlAttachment implements Attachment{
     	this.fileName = fileName;
     }
     
+
+    @Override
+    public InputStream getFileInputStream() {
+        return null;
+    }
+    
+
+    public void setFileInputStream(InputStream fileInputStream) {
+        this.fileInputStream = fileInputStream;
+    }
         /**
      * @return the fileSize
      */
@@ -109,4 +123,5 @@ public class XmlAttachment implements Attachment{
     public static String toLog(XmlAttachment data) {
         return data.getFileName() + "(" + data.getContentType() + ")";
     }
+
 }
