@@ -8,6 +8,7 @@
 package org.phoebus.applications.filebrowser;
 
 import java.io.File;
+import java.util.List;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.FileHelper;
@@ -31,29 +32,41 @@ public class DeleteAction extends MenuItem
     /** @param node Node used to position confirmation dialog
      *  @param item Item to delete
      */
-    public DeleteAction(final Node node, final TreeItem<File> item)
+    public DeleteAction(final Node node, final List<TreeItem<File>> items)
     {
         super("Delete", ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
 
         setOnAction(event ->
         {
-            final File file = item.getValue();
             final Alert prompt = new Alert(AlertType.CONFIRMATION);
             prompt.setTitle("Delete");
-            prompt.setHeaderText("Delete " + file.getName() + "?");
+
+            final StringBuilder buf = new StringBuilder();
+            for (TreeItem<File> item : items)
+            {
+                if (buf.length() > 0)
+                    buf.append(", ");
+                buf.append(item.getValue().getName());
+            }
+
+            prompt.setHeaderText("Delete " + buf.toString() + "?");
             DialogHelper.positionDialog(prompt, node, 0, 0);
             if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return;
 
-            JobManager.schedule("Delete " + item.getValue(), monitor ->
+            JobManager.schedule("Delete " + buf.toString(), monitor ->
             {
-                if (file.isFile())
-                    file.delete();
-                else if (file.isDirectory())
-                    FileHelper.delete(file);
+                for (TreeItem<File> item : items)
+                {
+                    final File file = item.getValue();
+                    if (file.isFile())
+                        file.delete();
+                    else if (file.isDirectory())
+                        FileHelper.delete(file);
 
-                final FileTreeItem parent = (FileTreeItem)item.getParent();
-                Platform.runLater(() ->  parent.forceRefresh());
+                    final FileTreeItem parent = (FileTreeItem)item.getParent();
+                    Platform.runLater(() ->  parent.forceRefresh());
+                }
             });
         });
     }
