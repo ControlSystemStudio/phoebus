@@ -93,7 +93,7 @@ public class Screenshot
      * <p> Returns null if no image is on the clip board.
      * @return Image
      */
-    public static Image getImageFromClipBoard()
+    public static Image getImageFromClipboard()
     {
         Clipboard clipboard = Clipboard.getSystemClipboard();
         return clipboard.getImage();
