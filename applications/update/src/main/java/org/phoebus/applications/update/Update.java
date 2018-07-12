@@ -23,7 +23,7 @@ import java.util.zip.ZipFile;
 
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.framework.workbench.DirectoryDeleter;
+import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -105,7 +105,7 @@ public class Update
             throw new Exception("Cannot write " + install_location);
 
         logger.info("Deleting " + install_location);
-        DirectoryDeleter.delete(install_location);
+        FileHelper.delete(install_location);
 
         // Un-zip new distribution
         try

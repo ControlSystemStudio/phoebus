@@ -28,7 +28,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.framework.workbench.DirectoryDeleter;
+import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
@@ -105,7 +105,7 @@ public class InstallExamplesMenuEntry implements MenuEntry
             if (examples.exists())
             {   // Delete existing directory
                 monitor.beginTask("Delete " + examples);
-                DirectoryDeleter.delete(examples);
+                FileHelper.delete(examples);
             }
 
             // Install examples, which may be in local file system or JAR
