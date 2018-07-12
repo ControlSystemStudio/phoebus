@@ -17,6 +17,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import org.phoebus.framework.workbench.Locations;
+
 /** Secure Store
  *
  *  <p>Writes tag/value pairs into an encrypted file.
@@ -33,6 +35,12 @@ public class SecureStore
     private final File secure_file;
     private final char[] store_pass;
     private final ProtectionParameter pp;
+
+    /** Create with default file in 'user' location */
+    public SecureStore() throws Exception
+    {
+        this(new File(Locations.user(), "secure_store.dat"));
+    }
 
     /** Create with default password.
      *
@@ -99,7 +107,9 @@ public class SecureStore
 
 //    public static void main(String[] args) throws Exception
 //    {
-//        final SecureStore store = new SecureStore(new File("/tmp/secure.dat"));
+//        // Standalone test needs to initialize locations
+//        Locations.initialize();
+//        final SecureStore store = new SecureStore();
 //        final String value = store.get("test");
 //        System.out.println(value);
 //        if (value == null)
