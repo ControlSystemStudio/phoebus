@@ -15,6 +15,7 @@
     </javac>
     <jar destfile="${build}/core-security-${version}.jar">
       <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
     </jar>
   </target>
 </project>
