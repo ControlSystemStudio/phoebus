@@ -1,7 +1,7 @@
-<project default="module-display-model">
+<project default="app-display-model">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="module-display-model">
+  <target name="app-display-model">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
@@ -11,20 +11,20 @@
       </classpath>
     </javac>
   	
-    <jar destfile="${build}/display-model-${version}.jar">
+    <jar destfile="${build}/app-display-model-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
 
-  <target name="test-display-model" depends="module-display-model">
+  <target name="test-display-model" depends="app-display-model">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="${build}/display-model-${version}.jar"/>
+        <pathelement path="${build}/app-display-model-${version}.jar"/>
       </classpath>
       <batchtest>
-        <zipfileset src="${build}/display-model-${version}.jar" includes="**/*Test.class"/>
+        <zipfileset src="${build}/app-display-model-${version}.jar" includes="**/*Test.class"/>
       </batchtest>
       <formatter type="plain" usefile="false"/>
     </junit>

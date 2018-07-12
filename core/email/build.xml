@@ -1,14 +1,14 @@
-<project default="module-mail">
+<project default="core-email">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-mail">
+  <target name="core-email">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}">
       <classpath>
-        <pathelement path="../framework/${build}/framework-${version}.jar"/>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
       </classpath>
     </javac>
-    <jar destfile="${build}/mail-${version}.jar">
+    <jar destfile="${build}/core-email-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>

@@ -1,12 +1,11 @@
-<project default="core-framework">
+<project default="core-security">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="core-framework">
+  <target name="core-security">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}"/>
-  	<jar destfile="${build}/core-framework-${version}.jar">
+  	<jar destfile="${build}/core-security-${version}.jar">
       <fileset dir="${classes}"/>
-      <fileset dir="${resources}"/>
     </jar>
   </target>
 </project>

@@ -1,21 +1,18 @@
-<project default="app-scan-server">
+<project default="app-logbook-ui">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="app-scan-server">
+  <target name="app-logbook-ui">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
-      <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../model/${build}/app-scan-model-${version}.jar"/>
+        <pathelement path="../utility/${build}/app-logbook-utility-${version}.jar"/>
       </classpath>
     </javac>
-  	
-    <jar destfile="${build}/app-scan-server-${version}.jar">
+
+    <jar destfile="${build}/app-logbook-ui-${version}.jar">
       <fileset dir="${classes}"/>
-      <fileset dir="${resources}"/>
     </jar>
   </target>
-	
 </project>

@@ -1,49 +1,49 @@
-<project default="module-display-editor">
+<project default="app-display-editor">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="module-display-editor">
+  <target name="app-display-editor">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
       <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../model/${build}/display-model-${version}.jar"/>
-        <pathelement path="../representation/${build}/display-representation-${version}.jar"/>
-        <pathelement path="../representation-javafx/${build}/display-representation-javafx-${version}.jar"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
+        <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
       </classpath>
     </javac>
   	
-    <jar destfile="${build}/display-editor-${version}.jar">
+    <jar destfile="${build}/app-display-editor-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
 
-  <target name="test-display-editor" depends="module-display-editor">
+  <target name="test-display-editor" depends="app-display-editor">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../model/${build}/display-model-${version}.jar"/>
-        <pathelement path="../representation/${build}/display-representation-${version}.jar"/>
-        <pathelement path="${build}/display-editor-${version}.jar"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
+        <pathelement path="${build}/app-display-editor-${version}.jar"/>
       </classpath>
       <batchtest>
-        <zipfileset src="${build}/display-editor-${version}.jar" includes="**/*Test.class"/>
+        <zipfileset src="${build}/app-display-editor-${version}.jar" includes="**/*Test.class"/>
       </batchtest>
       <formatter type="plain" usefile="false"/>
     </junit>
   </target>
 	
-  <target name="demo" depends="module-display-editor" description="Run the demo">
+  <target name="demo" depends="app-display-editor" description="Run the demo">
     <java classname="org.csstudio.display.builder.editor.EditorDemo" fork="true">
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../rtplot/${build}/display-rtplot-${version}.jar"/>
-        <pathelement path="../model/${build}/display-model-${version}.jar"/>
-        <pathelement path="../representation/${build}/display-representation-${version}.jar"/>
-        <pathelement path="../representation-javafx/${build}/display-representation-javafx-${version}.jar"/>
-        <pathelement path="${build}/display-editor-${version}.jar"/>
+        <pathelement path="../../rtplot/${build}/app-rtplot-${version}.jar"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
+        <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+        <pathelement path="${build}/app-display-editor-${version}.jar"/>
       </classpath>
     </java>
   </target>

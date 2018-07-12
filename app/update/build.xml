@@ -1,8 +1,8 @@
-<project default="module-update">
+<project default="app-update">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-update" depends="compile-app">
-    <jar destfile="${build}/update-${version}.jar">
+  <target name="app-update" depends="compile-app">
+    <jar destfile="${build}/app-update-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>

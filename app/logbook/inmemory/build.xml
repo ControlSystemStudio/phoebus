@@ -1,8 +1,8 @@
-<project default="module-inmemory">
+<project default="app-logbook-inmemory">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="module-inmemory" depends="compile-app">
-    <jar destfile="${build}/inmemory-${version}.jar">
+  <target name="app-logbook-inmemory" depends="compile-app">
+    <jar destfile="${build}/app-logbook-inmemory-${version}.jar">
       <fileset dir="${classes}"/>
     </jar>
   </target>

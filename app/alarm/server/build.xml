@@ -1,17 +1,17 @@
-<project default="module-alarm-server">
+<project default="app-alarm-server">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="module-alarm-server">
+  <target name="app-alarm-server">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../model/${build}/alarm-model-${version}.jar"/>
+        <pathelement path="../model/${build}/app-alarm-model-${version}.jar"/>
       </classpath>
     </javac>
   	
-    <jar destfile="${build}/alarm-server-${version}.jar">
+    <jar destfile="${build}/app-alarm-server-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>

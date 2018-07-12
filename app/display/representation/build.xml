@@ -1,32 +1,32 @@
-<project default="module-display-representation">
+<project default="app-display-representation">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="module-display-representation">
+  <target name="app-display-representation">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
       <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../model/${build}/display-model-${version}.jar"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
       </classpath>
     </javac>
   	
-    <jar destfile="${build}/display-representation-${version}.jar">
+    <jar destfile="${build}/app-display-representation-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
 
-  <target name="test-display-representation" depends="module-display-representation">
+  <target name="test-display-representation" depends="app-display-representation">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../model/${build}/display.model-${version}.jar"/>
-        <pathelement path="${build}/display-representation-${version}.jar"/>
+        <pathelement path="../model/${build}/app-display.model-${version}.jar"/>
+        <pathelement path="${build}/app-display-representation-${version}.jar"/>
       </classpath>
       <batchtest>
-        <zipfileset src="${build}/display-representation-${version}.jar" includes="**/*Test.class"/>
+        <zipfileset src="${build}/app-display-representation-${version}.jar" includes="**/*Test.class"/>
       </batchtest>
       <formatter type="plain" usefile="false"/>
     </junit>

@@ -1,8 +1,8 @@
-<project default="module-logConfiguration">
+<project default="app-logConfiguration">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-logConfiguration" depends="compile-app">
-    <jar destfile="${build}/logConfiguration-${version}.jar">
+  <target name="app-logConfiguration" depends="compile-app">
+    <jar destfile="${build}/app-logConfiguration-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>

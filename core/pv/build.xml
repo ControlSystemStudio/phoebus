@@ -1,7 +1,7 @@
-<project default="module-pv">
+<project default="core-pv">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-pv">
+  <target name="core-pv">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
@@ -10,27 +10,27 @@
         <fileset dir="../../dependencies/target/lib">
           <include name="*.jar"/>
         </fileset>
-        <pathelement path="../framework/${build}/framework-${version}.jar"/>
-        <pathelement path="../util/${build}/util-${version}.jar"/>
-        <pathelement path="../vtype/${build}/vtype-${version}.jar"/>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../util/${build}/core-util-${version}.jar"/>
+        <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>
       </classpath>
     </javac>
-  	<jar destfile="${build}/pv-${version}.jar">
+  	<jar destfile="${build}/core-pv-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
 	
-  <target name="test-pv" depends="module-pv">
+  <target name="test-pv" depends="core-pv">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
         <fileset dir="../../dependencies/target/lib">
           <include name="*.jar"/>
         </fileset>
-        <pathelement path="${build}/pv-${version}.jar"/>
+        <pathelement path="${build}/core-pv-${version}.jar"/>
       </classpath>
       <batchtest>
-        <zipfileset src="${build}/pv-${version}.jar" includes="**/*Test.class"/>
+        <zipfileset src="${build}/core-pv-${version}.jar" includes="**/*Test.class"/>
       </batchtest>
     </junit>
   </target>

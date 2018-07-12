@@ -1,20 +1,20 @@
-<project default="module-scan-ui">
+<project default="app-scan-ui">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="module-scan-ui">
+  <target name="app-scan-ui">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
       <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../model/${build}/scan-model-${version}.jar"/>
-        <pathelement path="../client/${build}/scan-client-${version}.jar"/>
-        <pathelement path="../../rtplot/${build}/rtplot-${version}.jar"/>
+        <pathelement path="../model/${build}/app-scan-model-${version}.jar"/>
+        <pathelement path="../client/${build}/app-scan-client-${version}.jar"/>
+        <pathelement path="../../rtplot/${build}/app-rtplot-${version}.jar"/>
       </classpath>
     </javac>
   	
-    <jar destfile="${build}/scan-ui-${version}.jar">
+    <jar destfile="${build}/app-scan-ui-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
