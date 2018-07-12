@@ -56,14 +56,16 @@ public class ApplicationLauncherService {
     /**
      * @param resource Resource received as command line argument
      * @param prompt Prompt if there are multiple applications, or use first one?
+     * @return <code>true</code> if file could be opened
      */
-    public static void openResource(final URI resource, final boolean prompt, final Stage stage)
+    public static boolean openResource(final URI resource, final boolean prompt, final Stage stage)
     {
         final AppResourceDescriptor application = findApplication(resource, prompt, stage);
         if (application == null)
-            return;
+            return false;
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
         application.create(resource);
+        return true;
     }
 
     /**
@@ -78,9 +80,10 @@ public class ApplicationLauncherService {
      *            If prompt is enabled, a selection dialog will be launched
      *            positioned next to the provided stage. If null then the
      *            default or first application will be used
+     * @return <code>true</code> if file could be opened
      */
-    public static void openFile(File file, final boolean prompt, final Stage stage) {
-        openResource(ResourceParser.getURI(file), prompt, stage);
+    public static boolean openFile(File file, final boolean prompt, final Stage stage) {
+        return openResource(ResourceParser.getURI(file), prompt, stage);
     }
 
     /**
