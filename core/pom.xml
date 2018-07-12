@@ -5,14 +5,14 @@
   <modules>
     <module>framework</module>
     <module>types</module>
-    <module>logbook</module>
-    <module>mail</module>
-    <module>pv</module>
-    <module>ui</module>
-    <module>vtype</module>
     <module>util</module>
-    <module>formula</module>
+    <module>vtype</module>
+    <module>pv</module>
     <module>security</module>
+    <module>formula</module>
+    <module>ui</module>
+    <module>logbook</module>
+    <module>email</module>
   </modules>
   <parent>
   	<groupId>org.phoebus</groupId>
