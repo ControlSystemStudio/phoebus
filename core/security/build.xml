@@ -3,8 +3,17 @@
 
   <target name="core-security">
     <mkdir dir="${classes}"/>
-    <javac srcdir="${src}" destdir="${classes}"/>
-  	<jar destfile="${build}/core-security-${version}.jar">
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+    <jar destfile="${build}/core-security-${version}.jar">
       <fileset dir="${classes}"/>
     </jar>
   </target>

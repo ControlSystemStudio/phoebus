@@ -9,6 +9,7 @@
       <classpath>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
         <pathelement path="../util/${build}/core-util-${version}.jar"/>
+        <pathelement path="../security/${build}/core-security-${version}.jar"/>
         <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>
       	<pathelement path="../pv/${build}/core-pv-${version}.jar"/>
         <fileset dir="../../dependencies/target/lib">

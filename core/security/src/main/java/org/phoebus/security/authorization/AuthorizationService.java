@@ -5,18 +5,19 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.ui.authorization;
+package org.phoebus.security.authorization;
+
+import static org.phoebus.security.PhoebusSecurity.logger;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
-import org.phoebus.ui.Preferences;
+import org.phoebus.security.PhoebusSecurity;
 
 /** Authorization Service
  *  @author Evan Smith
@@ -24,8 +25,6 @@ import org.phoebus.ui.Preferences;
 @SuppressWarnings("nls")
 public class AuthorizationService
 {
-    public static final Logger logger = Logger.getLogger(AuthorizationService.class.getPackageName());
-
     private static final String USER_PROPERTY = "user.name";
 
     private static final AtomicReference<Authorization> instance = new AtomicReference<>();
@@ -36,11 +35,11 @@ public class AuthorizationService
         {
             final InputStream stream;
 
-            final String filename = Preferences.authorization_file;
+            final String filename = PhoebusSecurity.authorization_file;
             if (filename.isEmpty())
             {
-                logger.log(Level.CONFIG, "Using " + AuthorizationService.class.getResource("/authorization.conf"));
-                stream = AuthorizationService.class.getResourceAsStream("/authorization.conf");
+                logger.log(Level.CONFIG, "Using " + PhoebusSecurity.class.getResource("/authorization.conf"));
+                stream = PhoebusSecurity.class.getResourceAsStream("/authorization.conf");
             }
             else
             {

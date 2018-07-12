@@ -8,7 +8,7 @@
 package org.phoebus.applications.alarm.ui;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.ui.authorization.AuthorizationService;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Insets;

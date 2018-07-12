@@ -5,9 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.ui.authorization;
+package org.phoebus.security.authorization;
 
-import static org.phoebus.ui.application.PhoebusApplication.logger;
+import static org.phoebus.security.PhoebusSecurity.logger;
 
 import java.io.InputStream;
 import java.util.ArrayList;
