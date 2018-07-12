@@ -1,7 +1,7 @@
-<project default="module-util">
+<project default="core-util">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-util">
+  <target name="core-util">
     <mkdir dir="${classes}"/>
   	<javac destdir="${classes}">
       <src path="${src}"/>
@@ -12,13 +12,13 @@
         </fileset>
       </classpath>
     </javac>
-  	<jar destfile="${build}/util-${version}.jar">
+  	<jar destfile="${build}/core-util-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="src/test/resources"/>
     </jar>
   </target>
 	
-  <target name="test-util" depends="module-util">
+  <target name="test-util" depends="core-util">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
         <fileset dir="../../dependencies/target/lib">

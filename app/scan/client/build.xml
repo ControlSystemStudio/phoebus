@@ -1,0 +1,21 @@
+<project default="app-scan-client">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-scan-client">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../model/${build}/app-scan-model-${version}.jar"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-scan-client-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

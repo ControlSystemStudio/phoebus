@@ -9,35 +9,38 @@
     <ant target="clean" dir="core/framework"/>
     <ant target="clean" dir="core/util"/>
     <ant target="clean" dir="core/vtype"/>
-    <ant target="clean" dir="core/mail"/>
+    <ant target="clean" dir="core/email"/>
     <ant target="clean" dir="core/pv"/>
+    <ant target="clean" dir="core/security"/>
     <ant target="clean" dir="core/ui"/>
-    <ant target="clean" dir="core/logging"/>
+    <ant target="clean" dir="core/logbook"/>
     <ant target="clean" dir="core/types"/>
     <ant target="clean" dir="core/formula"/>
-    <ant target="clean" dir="applications/greetings"/>
-    <ant target="clean" dir="applications/email"/>
-    <ant target="clean" dir="applications/filebrowser"/>
-    <ant target="clean" dir="applications/probe"/>
-    <ant target="clean" dir="applications/logbook/inmemory"/>
-    <ant target="clean" dir="applications/logConfiguration"/>
-    <ant target="clean" dir="applications/pvtree"/>
-    <ant target="clean" dir="applications/pvtable"/>
-    <ant target="clean" dir="applications/rtplot"/>
-    <ant target="clean" dir="applications/databrowser"/>
-    <ant target="clean" dir="applications/display/model"/>
-    <ant target="clean" dir="applications/display/representation"/>
-    <ant target="clean" dir="applications/display/representation-javafx"/>
-    <ant target="clean" dir="applications/display/runtime"/>
-    <ant target="clean" dir="applications/display/editor"/>
-    <ant target="clean" dir="applications/scan/model"/>
-    <ant target="clean" dir="applications/scan/client"/>
-    <ant target="clean" dir="applications/scan/ui"/>
-    <ant target="clean" dir="applications/scan/server"/>
-    <ant target="clean" dir="applications/alarm/model"/>
-    <ant target="clean" dir="applications/alarm/server"/>
-    <ant target="clean" dir="applications/alarm/ui"/>
-    <ant target="clean" dir="applications/update"/>
+    <ant target="clean" dir="app/greetings"/>
+    <ant target="clean" dir="app/email"/>
+    <ant target="clean" dir="app/filebrowser"/>
+    <ant target="clean" dir="app/probe"/>
+    <ant target="clean" dir="app/logbook/inmemory"/>
+    <ant target="clean" dir="app/logbook/utility"/>
+    <ant target="clean" dir="app/logbook/ui"/>
+    <ant target="clean" dir="app/logConfiguration"/>
+    <ant target="clean" dir="app/pvtree"/>
+    <ant target="clean" dir="app/pvtable"/>
+    <ant target="clean" dir="app/rtplot"/>
+    <ant target="clean" dir="app/databrowser"/>
+    <ant target="clean" dir="app/display/model"/>
+    <ant target="clean" dir="app/display/representation"/>
+    <ant target="clean" dir="app/display/representation-javafx"/>
+    <ant target="clean" dir="app/display/runtime"/>
+    <ant target="clean" dir="app/display/editor"/>
+    <ant target="clean" dir="app/scan/model"/>
+    <ant target="clean" dir="app/scan/client"/>
+    <ant target="clean" dir="app/scan/ui"/>
+    <ant target="clean" dir="app/scan/server"/>
+    <ant target="clean" dir="app/alarm/model"/>
+    <ant target="clean" dir="app/alarm/server"/>
+    <ant target="clean" dir="app/alarm/ui"/>
+    <ant target="clean" dir="app/update"/>
     <ant target="clean" dir="phoebus-product"/>
     <ant target="clean" dir="scan-server-product"/>
     <ant target="clean" dir="alarm-server-product"/>
@@ -48,7 +51,7 @@
       -->
     <delete includeEmptyDirs="true">
       <fileset dir="core" includes="**/target/**"/>
-      <fileset dir="applications" includes="**/target/**"/>
+      <fileset dir="app" includes="**/target/**"/>
     </delete>
   </target>
 
@@ -61,41 +64,44 @@
     <ant dir="core/framework"/>
     <ant dir="core/util"/>
     <ant dir="core/vtype"/>
-    <ant dir="core/mail"/>
+    <ant dir="core/email"/>
     <ant dir="core/pv"/>
+    <ant dir="core/security"/>
     <ant dir="core/ui"/>
-    <ant dir="core/logging"/>
+    <ant dir="core/logbook"/>
     <ant dir="core/types"/>
     <ant dir="core/formula"/>
   </target>
 
-  <target name="applications" depends="core" description="Build application modules">
-    <ant dir="applications/greetings"/>
-    <ant dir="applications/email"/>
-    <ant dir="applications/filebrowser"/>
-    <ant dir="applications/probe"/>
-    <ant dir="applications/logbook/inmemory"/>
-    <ant dir="applications/logConfiguration"/>
-    <ant dir="applications/pvtree"/>
-    <ant dir="applications/pvtable"/>
-    <ant dir="applications/rtplot"/>
-    <ant dir="applications/databrowser"/>
-    <ant dir="applications/display/model"/>
-    <ant dir="applications/display/representation"/>
-    <ant dir="applications/display/representation-javafx"/>
-    <ant dir="applications/display/runtime"/>
-    <ant dir="applications/display/editor"/>
-    <ant dir="applications/scan/model"/>
-    <ant dir="applications/scan/client"/>
-    <ant dir="applications/scan/ui"/>
-    <ant dir="applications/scan/server"/>
-    <ant dir="applications/alarm/model"/>
-    <ant dir="applications/alarm/server"/>
-    <ant dir="applications/alarm/ui"/>
-    <ant dir="applications/update"/>
+  <target name="app" depends="core" description="Build app modules">
+    <ant dir="app/greetings"/>
+    <ant dir="app/email"/>
+    <ant dir="app/filebrowser"/>
+    <ant dir="app/probe"/>
+    <ant dir="app/logbook/inmemory"/>
+    <ant dir="app/logbook/utility"/>
+    <ant dir="app/logbook/ui"/>
+    <ant dir="app/logConfiguration"/>
+    <ant dir="app/pvtree"/>
+    <ant dir="app/pvtable"/>
+    <ant dir="app/rtplot"/>
+    <ant dir="app/databrowser"/>
+    <ant dir="app/display/model"/>
+    <ant dir="app/display/representation"/>
+    <ant dir="app/display/representation-javafx"/>
+    <ant dir="app/display/runtime"/>
+    <ant dir="app/display/editor"/>
+    <ant dir="app/scan/model"/>
+    <ant dir="app/scan/client"/>
+    <ant dir="app/scan/ui"/>
+    <ant dir="app/scan/server"/>
+    <ant dir="app/alarm/model"/>
+    <ant dir="app/alarm/server"/>
+    <ant dir="app/alarm/ui"/>
+    <ant dir="app/update"/>
   </target>
 
-  <target name="product" depends="applications" description="Assemble product">
+  <target name="product" depends="app" description="Assemble product">
     <ant target="product" dir="phoebus-product"/>
     <ant target="product" dir="scan-server-product"/>
     <ant target="product" dir="alarm-server-product"/>

@@ -1,0 +1,10 @@
+<project default="app-filebrowser">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-filebrowser" depends="compile-app">
+    <jar destfile="${build}/app-filebrowser-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

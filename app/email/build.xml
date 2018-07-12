@@ -1,0 +1,11 @@
+<project default="app-email">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-email" depends="compile-app">
+    <jar destfile="${build}/app-email-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${src}" includes="**/*.fxml"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

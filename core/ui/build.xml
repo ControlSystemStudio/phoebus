@@ -1,33 +1,34 @@
-<project default="module-ui">
+<project default="core-ui">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-ui">
+  <target name="core-ui">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
       <src path="${test}"/>
       <classpath>
-        <pathelement path="../framework/${build}/framework-${version}.jar"/>
-        <pathelement path="../util/${build}/util-${version}.jar"/>
-        <pathelement path="../vtype/${build}/vtype-${version}.jar"/>
-      	<pathelement path="../pv/${build}/pv-${version}.jar"/>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../util/${build}/core-util-${version}.jar"/>
+        <pathelement path="../security/${build}/core-security-${version}.jar"/>
+        <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>
+      	<pathelement path="../pv/${build}/core-pv-${version}.jar"/>
         <fileset dir="../../dependencies/target/lib">
           <include name="*.jar"/>
         </fileset>
       </classpath>
     </javac>
-  	<jar destfile="${build}/ui-${version}.jar">
+  	<jar destfile="${build}/core-ui-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
 
-  <target name="test" depends="module-ui">
+  <target name="test" depends="core-ui">
     <junit printsummary="withOutAndErr" haltonfailure="yes" fork="yes">
      <formatter type="plain"/>
       <classpath>
-        <pathelement path="../framework/${build}/framework-${version}.jar"/>
-        <pathelement path="../pv/${build}/pv-${version}.jar"/>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../pv/${build}/core-pv-${version}.jar"/>
         <fileset dir="../../dependencies/target/lib">
           <include name="*.jar"/>
         </fileset>
@@ -39,11 +40,11 @@
     </junit>
   </target>
 
-  <target name="demo" depends="module-ui">
+  <target name="demo" depends="core-ui">
     <java classname="org.phoebus.ui.docking.DockingDemo"
           fork="true">
       <classpath>
-        <pathelement path="${build}/ui-${version}.jar"/>
+        <pathelement path="${build}/core-ui-${version}.jar"/>
       </classpath>
     </java>
   </target>	

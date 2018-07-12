@@ -1,15 +1,15 @@
-<project default="module-logging">
+<project default="core-logbook">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-logging">
+  <target name="core-logbook">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}">
       <classpath>
-        <pathelement path="../framework/${build}/framework-${version}.jar"/>
-        <pathelement path="../ui/${build}/ui-${version}.jar"/>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../ui/${build}/core-ui-${version}.jar"/>
       </classpath>
     </javac>
-  	<jar destfile="${build}/logging-${version}.jar">
+  	<jar destfile="${build}/core-logbook-${version}.jar">
       <fileset dir="${classes}"/>
     </jar>
   </target>

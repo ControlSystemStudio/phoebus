@@ -5,11 +5,11 @@
     <artifactId>core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>vtype</artifactId>
+  <artifactId>core-vtype</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>util</artifactId>
+      <artifactId>core-util</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>

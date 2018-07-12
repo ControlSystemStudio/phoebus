@@ -1,0 +1,11 @@
+<project default="app-alarm-model">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-alarm-model" depends="compile-app">
+    <jar destfile="${build}/app-alarm-model-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

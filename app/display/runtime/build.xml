@@ -1,0 +1,51 @@
+<project default="app-display-runtime">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-display-runtime">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
+        <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-display-runtime-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+  <target name="test-display-runtime" depends="app-display-runtime">
+    <junit printsummary="withOutAndErr" haltonfailure="yes">
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
+        <pathelement path="${build}/app-display-runtime-${version}.jar"/>
+      </classpath>
+      <batchtest>
+        <zipfileset src="${build}/app-display-runtime-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+      <formatter type="plain" usefile="false"/>
+    </junit>
+  </target>
+	
+  <target name="demo" depends="app-display-runtime" description="Run the demo">
+    <java classname="org.csstudio.display.builder.runtime.test.RuntimeDemoJavaFX" fork="true">
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../../rtplot/${build}/app-rtplot-${version}.jar"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
+        <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+        <pathelement path="${build}/app-display-runtime-${version}.jar"/>
+      </classpath>
+    </java>
+  </target>
+	
+</project>

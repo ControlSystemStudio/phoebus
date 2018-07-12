@@ -1,0 +1,20 @@
+<project default="app-databrowser">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-databrowser">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../rtplot/${build}/app-rtplot-${version}.jar"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-databrowser-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

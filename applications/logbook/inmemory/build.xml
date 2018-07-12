@@ -1,9 +1,0 @@
-<project default="module-inmemory">
-  <import file="../../../dependencies/ant_settings.xml"/>
-
-  <target name="module-inmemory" depends="compile-app">
-    <jar destfile="${build}/inmemory-${version}.jar">
-      <fileset dir="${classes}"/>
-    </jar>
-  </target>
-</project>

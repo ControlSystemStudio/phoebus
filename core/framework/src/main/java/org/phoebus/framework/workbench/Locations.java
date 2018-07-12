@@ -87,7 +87,7 @@ public class Locations
      *
      *  <p>Can be set via "phoenix.user".
      *
-     *  <p>Defaults to "user.home".
+     *  <p>Defaults to ".phoebus" in "user.home".
      *
      *  @return Phoenix user location
      */

@@ -10,12 +10,12 @@
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>framework</artifactId>
+      <artifactId>core-framework</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>ui</artifactId>
+      <artifactId>core-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>

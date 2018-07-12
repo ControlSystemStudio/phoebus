@@ -1,0 +1,11 @@
+<project default="app-scan-model">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-scan-model" depends="compile-app">
+    <jar destfile="${build}/app-scan-model-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

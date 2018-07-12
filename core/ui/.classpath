@@ -5,8 +5,9 @@
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/resources"/>
 	<classpathentry kind="src" output="target/classes" path="src/test/java"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-security"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
