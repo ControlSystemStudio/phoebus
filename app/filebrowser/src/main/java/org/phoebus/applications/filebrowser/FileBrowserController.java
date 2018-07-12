@@ -6,12 +6,15 @@ import java.nio.file.Paths;
 
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -44,6 +47,22 @@ public class FileBrowserController {
     private final MenuItem openWith = new MenuItem("Open With", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
+    /** Try to open resource, show error dialog on failure
+     *  @param file Resource to open
+     *  @param stage Stage to use to prompt for specific app.
+     *               Otherwise <code>null</code> to use default app.
+     */
+    private void openResource(final File file, final Stage stage)
+    {
+        if (! ApplicationLauncherService.openFile(file, stage != null, stage))
+        {
+            final Alert alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText("Cannot open\n  " + file + ",\nsee log for details");
+            DialogHelper.positionDialog(alert, treeView, -300, -200);
+            alert.showAndWait();
+        }
+    }
+
     @FXML
     public void initialize() {
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -59,7 +78,7 @@ public class FileBrowserController {
                 selectedItems.forEach(s -> {
                     File selection = s.getValue();
                     if (selection.isFile()) {
-                        ApplicationLauncherService.openFile(selection, false, null);
+                        openResource(selection, null);
                     }
                 });
             }
@@ -73,8 +92,7 @@ public class FileBrowserController {
                 selectedItems.forEach(s -> {
                     File selection = s.getValue();
                     if (selection.isFile()) {
-                        ApplicationLauncherService.openFile(selection, true,
-                                (Stage) treeView.getParent().getScene().getWindow());
+                        openResource(selection, (Stage) treeView.getParent().getScene().getWindow());
                     }
                 });
             }
@@ -95,11 +113,19 @@ public class FileBrowserController {
             contextMenu.getItems().add(new CopyPath(selectedItems));
         if (selectedItems.size() == 1)
         {
-            contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)),
-                                          new DeleteAction(treeView, selectedItems.get(0)));
+            if (selectedItems.get(0).getValue().isFile())
+                contextMenu.getItems().add(new DuplicateAction(treeView, selectedItems.get(0)));
+            contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)));
+        }
+        if (selectedItems.size() >= 1)
+        {
+            contextMenu.getItems().add(new DeleteAction(treeView, selectedItems));
             if (selectedItems.get(0).getValue().isDirectory())
                 contextMenu.getItems().add(new RefreshAction(treeView,  selectedItems.get(0)));
         }
+
+        if (selectedItems.size() == 1)
+            contextMenu.getItems().addAll(new PropertiesAction(treeView,  selectedItems.get(0)));
 
         contextMenu.show(treeView.getScene().getWindow(), e.getScreenX(), e.getScreenY());
     }
@@ -114,7 +140,7 @@ public class FileBrowserController {
                 if (selection.isFile()) {
                     // Open in 'default' application, no prompt.
                     // Use context menu "Open With" if need to pick app.
-                    ApplicationLauncherService.openFile(selection, false, null);
+                    openResource(selection, null);
                 }
             });
         }

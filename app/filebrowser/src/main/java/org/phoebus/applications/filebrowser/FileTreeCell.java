@@ -132,7 +132,7 @@ final class FileTreeCell extends TreeCell<File> {
                     // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
                     final ObservableList<TreeItem<File>> siblings = target_item.getChildren();
                     siblings.add(new FileTreeItem(new_name));
-                    siblings.sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
+                    FileTreeItem.sortSiblings(siblings);
                 });
             }
             catch (Exception ex)
