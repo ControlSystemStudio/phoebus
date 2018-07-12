@@ -94,7 +94,11 @@ public class FileBrowserController {
         if (! selectedItems.isEmpty())
             contextMenu.getItems().add(new CopyPath(selectedItems));
         if (selectedItems.size() == 1)
-            contextMenu.getItems().add(new RenameAction(treeView,  selectedItems.get(0)));
+        {
+            if (selectedItems.get(0).getValue().isFile())
+                contextMenu.getItems().add(new DuplicateAction(treeView, selectedItems.get(0)));
+            contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)));
+        }
         if (selectedItems.size() >= 1)
         {
             contextMenu.getItems().add(new DeleteAction(treeView, selectedItems));
