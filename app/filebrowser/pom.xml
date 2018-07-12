@@ -15,6 +15,11 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>core-util</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
