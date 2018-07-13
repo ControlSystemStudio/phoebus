@@ -7,11 +7,20 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.time.Instant;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.runtime.Messages;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.AttachmentImpl;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.ui.write.LogEntryDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
 
@@ -53,9 +62,23 @@ public class SendLogbookAction extends MenuItem
 
     private void submitLogentry(final Parent model_parent, final File image_file)
     {
-        // TODO Open Logbook entry dialog with image_file
-        ExceptionDetailsErrorDialog.openError(model_parent, Messages.SendToLogbook, "Not implemented",
-                new Exception("TODO: Create log entry for display screenshot"));
+        Attachment attachment = null;
+        try
+        {
+            attachment = AttachmentImpl.of(image_file);
+        } catch (FileNotFoundException ex)
+        {
+            logger.log(Level.WARNING, "xxx", ex);
+        }
+        LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
+        LogEntry template = logEntryBuilder.appendDescription("Log entry from " + getText())
+                       .attach(attachment)
+                       .createdDate(Instant.now())
+                       .build();
+        
+        LogEntryDialog logEntryDialog = new LogEntryDialog(model_parent, template);
+        
+        logEntryDialog.showAndWait();
 
         JobManager.schedule(Messages.SendToLogbook, monitor ->
         {
