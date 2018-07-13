@@ -66,16 +66,19 @@ class ExternalApplication implements AppResourceDescriptor
     @Override
     public AppInstance create(final URI resource)
     {
-        // If resource is a file, provide the plain file path because external command
-        // is unlikely to understand "file://..".
-        // Otherwise pass the URI, expecting command to understand "http://.."
-        final File file = ResourceParser.getFile(resource);
-        final String cmd = (file == null)
-            ? command + " \"" + resource + "\""
-            : command + " \"" + file.getAbsolutePath() + "\"";
+        JobManager.schedule(command, monitor ->
+        {
+            // If resource is a file, provide the plain file path because external command
+            // is unlikely to understand "file://..".
+            // Otherwise pass the URI, expecting command to understand "http://.."
+            final File file = ResourceParser.getFile(resource);
+            final String cmd = (file == null)
+                    ? command + " \"" + resource + "\""
+                            : command + " \"" + file.getAbsolutePath() + "\"";
 
-        final CommandExecutor executor = new CommandExecutor(cmd, WorkbenchPreferences.external_apps_directory);
-        JobManager.schedule(cmd, monitor -> executor.call());
+            final CommandExecutor executor = new CommandExecutor(cmd, WorkbenchPreferences.external_apps_directory);
+            executor.call();
+        });
 
         return null;
     }
