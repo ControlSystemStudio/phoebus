@@ -140,10 +140,11 @@ public class ImagesTab extends Tab
     
     private void formatImageViewBox()
     {
-        imageView.fitHeightProperty().bind(imageBox.heightProperty());
+        imageView.fitWidthProperty().bind(imageViewBox.widthProperty());
+        imageView.fitHeightProperty().bind(imageViewBox.heightProperty());
         imageView.setPreserveRatio(true);
         imageView.imageProperty().bind(imageList.getSelectionModel().selectedItemProperty());
-        HBox.setHgrow(imageViewBox, Priority.ALWAYS);
+        HBox.setHgrow(imageViewBox, Priority.SOMETIMES);
         imageViewBox.prefWidthProperty().bind(imageBox.widthProperty().divide(3));
         imageViewBox.setAlignment(Pos.CENTER);
         imageViewBox.getChildren().add(imageView);
