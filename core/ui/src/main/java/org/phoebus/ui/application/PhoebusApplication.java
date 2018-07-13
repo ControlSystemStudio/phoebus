@@ -30,9 +30,8 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
-import org.phoebus.security.authorization.AuthorizationService;
-import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ListPickerDialog;
@@ -678,7 +677,7 @@ public class PhoebusApplication extends Application {
         }
 
         // Check all applications
-        final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+        final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
         if (applications.isEmpty())
         {
             logger.log(Level.WARNING, "No application found for opening " + resource);

@@ -12,7 +12,6 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.ListPickerDialog;
 
@@ -122,7 +121,7 @@ public class ApplicationLauncherService {
         }
 
         // Check all applications
-        final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+        final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
         if (applications.isEmpty())
         {
             logger.log(Level.WARNING, "No application found for opening " + resource);
