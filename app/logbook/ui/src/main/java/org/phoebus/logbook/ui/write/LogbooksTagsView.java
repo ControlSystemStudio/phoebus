@@ -45,7 +45,7 @@ public class LogbooksTagsView extends VBox
     
     private static final Image tag_icon = ImageCache.getImage(LogbooksTagsView.class, "/icons/add_tag.png");
     private static final Image logbook_icon = ImageCache.getImage(LogbooksTagsView.class, "/icons/logbook-16.png");
-    private static final Image down_icon = ImageCache.getImage(LogbooksTagsView.class, "/icons/down.png");
+    private static final Image down_icon = ImageCache.getImage(LogbooksTagsView.class, "/icons/down_triangle.png");
 
     private final HBox         logbookBox, tagBox;
     private final Label        logbookLabel, tagLabel;
