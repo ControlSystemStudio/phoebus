@@ -303,7 +303,9 @@ public class PhoebusApplication extends Application {
         // start the responsiveness check.
         // During startup, it would trigger
         // as the UI loads style sheets etc.
-        freezeup_check = new ResponsivenessMonitor(2500, 500, TimeUnit.MILLISECONDS);
+        if (Preferences.ui_monitor_period > 0)
+            freezeup_check = new ResponsivenessMonitor(3 * Preferences.ui_monitor_period,
+                                                       Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
     }
 
     /** Handle parameters from clients, logging errors
