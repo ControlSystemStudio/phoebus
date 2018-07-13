@@ -71,8 +71,8 @@ class ExternalApplication implements AppResourceDescriptor
         // Otherwise pass the URI, expecting command to understand "http://.."
         final File file = ResourceParser.getFile(resource);
         final String cmd = (file == null)
-            ? command + " " + resource
-            : command + " " + file.getAbsolutePath();
+            ? command + " \"" + resource + "\""
+            : command + " \"" + file.getAbsolutePath() + "\"";
 
         final CommandExecutor executor = new CommandExecutor(cmd, WorkbenchPreferences.external_apps_directory);
         JobManager.schedule(cmd, monitor -> executor.call());
