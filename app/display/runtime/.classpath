@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-vtype"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/app-display-representation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-display-representation-javafx"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-display-representation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-vtype"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-logbook-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
