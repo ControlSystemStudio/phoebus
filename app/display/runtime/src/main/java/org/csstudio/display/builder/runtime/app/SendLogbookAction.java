@@ -65,11 +65,13 @@ public class SendLogbookAction extends MenuItem
         Attachment attachment = null;
         try
         {
+            // TODO Somehow set the attachment content type indicating this is an image.
             attachment = AttachmentImpl.of(image_file);
         } catch (FileNotFoundException ex)
         {
-            logger.log(Level.WARNING, "xxx", ex);
+            logger.log(Level.WARNING, "Default log entry attachment creation failed.", ex);
         }
+        
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
         LogEntry template = logEntryBuilder.appendDescription("Log entry from " + getText())
                        .attach(attachment)
@@ -77,14 +79,8 @@ public class SendLogbookAction extends MenuItem
                        .build();
         
         LogEntryDialog logEntryDialog = new LogEntryDialog(model_parent, template);
-        
+        // Set the on submit action to clean up the temporary file after log entry submission.
+        logEntryDialog.setOnSubmitAction(() -> image_file.delete());
         logEntryDialog.showAndWait();
-
-        JobManager.schedule(Messages.SendToLogbook, monitor ->
-        {
-            // TODO Create log entry,
-            // then delete the file
-            image_file.delete();
-        });
     }
 }

@@ -8,11 +8,17 @@
 package org.phoebus.logbook.ui.write;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
@@ -22,11 +28,13 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -49,6 +57,9 @@ public class LogEntryModel
     private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
+    
+    /** onSubmitAction runnable - runnable to executed after the submit action completes.*/
+    private Runnable onSubmitAction;
     
     public LogEntryModel(final Node callingNode)
     {   
@@ -354,8 +365,9 @@ public class LogEntryModel
     
     /**
      * Create and return a log entry with the current data in the log entry form.
+     * @throws IOException 
      */
-    public LogEntry submitEntry()
+    public LogEntry submitEntry() throws IOException
     {    
         // Create a log entry with the form data.
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
@@ -369,19 +381,40 @@ public class LogEntryModel
             logEntryBuilder.appendToLogbook(LogbookImpl.of(selectedLogbook));
         for (String selectedTag : selectedTags)
             logEntryBuilder.appendTag(TagImpl.of(selectedTag));
-                
+        
+        // List of temporary image files to delete.
+        List<File> toDelete = new ArrayList<File>();
+        
         // Add Images
+        for (Image image : images)
+        {
+            File imageFile = File.createTempFile("log_entry_image", null);
+            toDelete.add(imageFile);
+            imageFile.deleteOnExit();
+            ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
+            logEntryBuilder.attach(AttachmentImpl.of(imageFile));
+        }
+        
         // Add Files
+        for (File file : files)
+        {
+            logEntryBuilder.attach(AttachmentImpl.of(file));
+        }
         
         LogEntry logEntry = logEntryBuilder.build();
 
-        /*
         JobManager.schedule("Submit Log Entry", monitor ->
         {
             LogClient client = logFactory.getLogClient(new SimpleAuthenticationToken(username, password));
-            client.set(logEnty);
+            client.set(logEntry);
+            
+            // Delete the temporary files.
+            for (File file : toDelete)
+                file.delete();
+            // Run the onSubmitAction runnable
+            if (null != onSubmitAction)
+                onSubmitAction.run();
         });
-        */
         
         return logEntry;
     }
@@ -410,5 +443,10 @@ public class LogEntryModel
     public void addLogbookListener(ListChangeListener<String> changeListener)
     {
         logbooks.addListener(changeListener);
+    }
+
+    public void setRunnable(Runnable runnable)
+    {
+        onSubmitAction = runnable;
     }
 }
