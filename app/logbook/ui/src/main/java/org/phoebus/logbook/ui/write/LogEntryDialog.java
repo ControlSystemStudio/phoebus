@@ -106,7 +106,16 @@ public class LogEntryDialog extends Dialog<LogEntry>
         
         setResultConverter(button ->
         {
-            return button == submit ? model.submitEntry() : null;
+            /*try
+            {*/
+                return button == submit ? null /* model.submitEntry() */ : null;
+            /*} 
+            
+            catch (IOException ex)
+            {
+                logger.log(Level.WARNING, "Log Entry Submission Failed!", ex);
+                return null;
+            }*/
         });
     }
 
@@ -142,21 +151,28 @@ public class LogEntryDialog extends Dialog<LogEntry>
             }
         });
         
+        // TODO Currently assuming all attachments are images. Update to handle standard files as well.
         for (Attachment attachment : template.getAttachments())
         {
             File file = attachment.getFile();
-            // Once the API is updated to allow the Attachment.contentType to be set, check the content type to differentiate from files and images.
+            // TODO Once the API is updated to allow the Attachment.contentType to be set, check the content type to differentiate from files and images.
             Image image = null;
             try
             {
                 image = new Image(new FileInputStream(file));
             } 
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException ex)
             {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + '"', ex);
             }
+            
             model.addImage(image);
         }
+    }
+
+    /** Set a runnable to be executed <b>after</b> the log entry submission occurs. */
+    public void setOnSubmitAction(Runnable runnable)
+    {
+        model.setRunnable(runnable);
     }
 }
