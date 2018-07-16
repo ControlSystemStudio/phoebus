@@ -1,5 +1,8 @@
 package org.phoebus.alarm.logging;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  *
  * A bean representing an alarm command message
@@ -7,6 +10,7 @@ package org.phoebus.alarm.logging;
  * @author Kunal Shroff
  *
  */
+@JsonInclude(Include.NON_NULL)
 public class AlarmCommandMessage {
 
     private String user;
