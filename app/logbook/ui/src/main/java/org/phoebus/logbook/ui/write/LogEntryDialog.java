@@ -12,6 +12,7 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Level;
 
@@ -106,16 +107,16 @@ public class LogEntryDialog extends Dialog<LogEntry>
         
         setResultConverter(button ->
         {
-            /*try
-            {*/
-                return button == submit ? null /* model.submitEntry() */ : null;
-            /*} 
+            try
+            {
+                return button == submit ? model.submitEntry() : null;
+            } 
             
             catch (IOException ex)
             {
                 logger.log(Level.WARNING, "Log Entry Submission Failed!", ex);
                 return null;
-            }*/
+            }
         });
     }
 

@@ -60,6 +60,7 @@ public class DateLevelView extends HBox
         dateField.setTooltip(new Tooltip("Current Date"));
         dateLabel.setPrefWidth(LogEntryDialog.labelWidth);
         levelLabel.setAlignment(Pos.CENTER_RIGHT);
+        levelSelector.setMinHeight(26); // When opened from phoebus, not the demo, the selector gets squeezed down to 10 pixels tall.
         levelSelector.setTooltip(new Tooltip("Select the log entry level."));
         // Put log level label and selector in HBox so that they can be right justified.
         HBox levelBox  = new HBox();
