@@ -445,7 +445,7 @@ public class LogEntryModel
         logbooks.addListener(changeListener);
     }
 
-    public void setRunnable(Runnable runnable)
+    public void setOnSubmitAction(Runnable runnable)
     {
         onSubmitAction = runnable;
     }

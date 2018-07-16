@@ -173,6 +173,6 @@ public class LogEntryDialog extends Dialog<LogEntry>
     /** Set a runnable to be executed <b>after</b> the log entry submission occurs. */
     public void setOnSubmitAction(Runnable runnable)
     {
-        model.setRunnable(runnable);
+        model.setOnSubmitAction(runnable);
     }
 }
