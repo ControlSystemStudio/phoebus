@@ -1,6 +1,10 @@
 package org.phoebus.alarm.logging;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -9,22 +13,42 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * A bean representing a alarm state message
+ * 
  * @author Kunal Shroff
  *
  */
 @JsonInclude(Include.NON_NULL)
 public class AlarmStateMessage {
 
-    public String severity;
-    public String message;
-    public String value;
-    public Map<String, String> time;
-    public String current_severity;
-    public String current_message;
-    public String mode;
+    private String key;
+    private String pv;
+
+    private String severity;
+    private String message;
+    private String value;
+    private Map<String, String> time;
+    private String current_severity;
+    private String current_message;
+    private String mode;
 
     public AlarmStateMessage() {
         super();
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getPv() {
+        return pv;
+    }
+
+    public void setPv(String pv) {
+        this.pv = pv;
     }
 
     public String getSeverity() {
@@ -92,6 +116,25 @@ public class AlarmStateMessage {
     public boolean isLeaf() {
         return value != null && message != null && time != null && current_severity != null && current_message != null;
     }
+
+    @JsonIgnore
+    public Map<String, String> sourceMap() {
+        Map<String, String> map = new HashMap<>();
+        map.put("config", getKey());
+        map.put("pv", getPv());
+        map.put("severity", getSeverity());
+        map.put("message", getMessage());
+        map.put("value", getValue());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+                .withZone(ZoneId.systemDefault());
+
+        map.put("time", formatter.format(getInstant()));
+        map.put("current_severity", getCurrent_severity());
+        map.put("current_message", getCurrent_message());
+        map.put("mode", getMode());
+        return map;
+    }
+
     @Override
     public String toString() {
         return "AlarmStateMessage [severity=" + severity + ", message=" + message + ", value=" + value + ", time="
@@ -160,5 +203,4 @@ public class AlarmStateMessage {
         return true;
     }
 
-    
 }
