@@ -19,45 +19,38 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
           "APPLICATION-ID" : {
             "type" : "text"
           },
-          "CONFIG" : {
+          "config" : {
             "type" : "text"
           },
-          "CURRENT_SEVERITY" : {
-            "type" : "text"
-          },
-          "CURRENT_STATUS" : {
-            "type" : "text"
-          },
-          "EVENTTIME" : {
-            "type" : "date",
-            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
-          },
-          "HOST" : {
-            "type" : "text"
-          },
-          "NAME" : {
+          "pv" : {
             "type" : "text",
             "analyzer" : "keyword"
           },
-          "SEVERITY" : {
+          "severity" : {
             "type" : "text"
           },
-          "STATUS" : {
+          "message" : {
             "type" : "text"
           },
-          "TEXT" : {
+          "value" : {
             "type" : "text"
           },
-          "TYPE" : {
+          "time" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "current_severity" : {
             "type" : "text"
           },
-          "USER" : {
+          "current_message" : {
             "type" : "text"
           },
-          "VALUE" : {
+          "mode" : {
             "type" : "text"
           }
         }
       }
   }
-}'
+}
+'
+
