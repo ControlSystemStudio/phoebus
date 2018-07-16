@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <!-- Ant file for generating javadoc for API
 
-     Will be invoked by pom.xml as well as build.xml.
-
      Execute manually as
 
        ant -f javadoc.xml clean all
@@ -19,7 +17,7 @@
   -->
 <project name="api" default="all">
   <!-- Output directory -->
-  <property name="out" value="doc/java"/>
+  <property name="out" value="doc/html/generated"/>
   <path id="classpath">
     <!--
         <fileset dir="/Kram/Eclipse/3_7_2/rcp/eclipse/plugins/org.junit_4.8.2.v4_8_2_v20110321-1705">
