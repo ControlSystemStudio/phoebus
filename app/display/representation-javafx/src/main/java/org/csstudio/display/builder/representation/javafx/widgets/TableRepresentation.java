@@ -217,6 +217,9 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
     {
         if (updating_table)
             return;
+        // new_value == model_widget.runtimeValue().getValue() might be
+        // a List<List<String>> or a VTable.
+        // getValue() fetches either one as deep-copied List<List<String>>
         data = model_widget.getValue();
         if (new_value instanceof VTable)
         {   // Use table's column headers
