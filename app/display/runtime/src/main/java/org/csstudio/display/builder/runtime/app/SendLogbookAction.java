@@ -38,11 +38,14 @@ public class SendLogbookAction extends MenuItem
 {
     // TODO Use some icon from logbook UI
     private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
-
+    private String default_text;
+    private Runnable default_runnable;
+    
     public SendLogbookAction(final Parent model_parent)
     {
         super(Messages.SendToLogbook, new ImageView(icon));
         setOnAction(event -> save(model_parent));
+        default_text = "Log Entry from " + getText();
     }
 
     private void save(final Parent model_parent)
@@ -62,6 +65,9 @@ public class SendLogbookAction extends MenuItem
 
     private void submitLogEntry(final Parent model_parent, final File image_file)
     {
+        if (null != default_runnable)
+            default_runnable.run();
+        
         Attachment attachment = null;
         try
         {
@@ -73,7 +79,7 @@ public class SendLogbookAction extends MenuItem
         }
         
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
-        LogEntry template = logEntryBuilder.appendDescription("Log entry from " + getText())
+        LogEntry template = logEntryBuilder.appendDescription(default_text)
                        .attach(attachment)
                        .createdDate(Instant.now())
                        .build();
@@ -82,5 +88,38 @@ public class SendLogbookAction extends MenuItem
         // Set the on submit action to clean up the temporary file after log entry submission.
         logEntryDialog.setOnSubmitAction(() -> image_file.delete());
         logEntryDialog.showAndWait();
+    }
+    
+    /**  Set the default text for log book entry. */
+    public void setDefaultText(String text)
+    {
+        default_text = text;
+    }
+    
+    /** 
+     * The idea here is to call setDefaultText from inside this runnable. 
+     * The code to generate any default text based on application state can go in here.
+     * onAction is used internally so setting that will prevent the dialog from being opened on an action event.
+     * <p> So long as it is not null, the runnable will be called before the submission action takes place. 
+     * <p> <b>NOTE:</b> &ensp; <code>setDefaultText()</code> must still be called in the runnable for the text to be set.
+     * <p> For example:
+     *  <code>
+     *  <pre>
+     *  SendLogbookAction sendLogbookAction ....
+     *  sendLogBookAction.setDefaultRunnable(() -> 
+     *  {
+     *      StringBuilder builder = ...
+     *      builder.append("Stuff")
+     *             .append(.....
+     *             
+     *      setDefaultText(builder.toString);
+     *  });
+     *  </pre>
+     *  </code>
+     *  @author Evan Smith
+     * */
+    public void setDefaultRunnable(Runnable runnable)
+    {
+        default_runnable = runnable;
     }
 }
