@@ -40,11 +40,12 @@ public class DateLevelView extends HBox
     {
         this.model = model;
         
+        Instant now = Instant.now();
         dateLabel = new Label("Date:");
-        dateField = new TextField(TimestampFormats.DATE_FORMAT.format(Instant.now()));
+        dateField = new TextField(TimestampFormats.DATE_FORMAT.format(now));
         dateField.setPrefWidth(100);
 
-        this.model.setDate(dateField.getText());
+        this.model.setDate(now);
         levelLabel = new Label("Level:");
         levelSelector = new ComboBox<String>(levels);
         

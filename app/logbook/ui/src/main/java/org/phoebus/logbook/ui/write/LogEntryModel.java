@@ -49,10 +49,11 @@ public class LogEntryModel
     private final LogService logService;
     private final LogFactory logFactory;
     
-    private Node   node;
-    private String username, password;
-    private String date, level;
-    private String title, text;
+    private Node    node;
+    private String  username, password;
+    private Instant date;
+    private String  level;
+    private String  title, text;
     
     private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
     private final ObservableList<Image>  images;
@@ -108,7 +109,7 @@ public class LogEntryModel
      * Set the date.
      * @param date
      */
-    public void setDate(final String date)
+    public void setDate(final Instant date)
     {
         this.date = date;
     }
@@ -373,8 +374,8 @@ public class LogEntryModel
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
         logEntryBuilder.title(title)
             .description(text)
-            .createdDate(Instant.parse(date))
-            .modifiedDate(Instant.parse(date))
+            .createdDate(date)
+            .modifiedDate(date)
             .level(level);
         
         for (String selectedLogbook : selectedLogbooks)
@@ -388,7 +389,7 @@ public class LogEntryModel
         // Add Images
         for (Image image : images)
         {
-            File imageFile = File.createTempFile("log_entry_image", null);
+            File imageFile = File.createTempFile("log_entry_image", ".png");
             toDelete.add(imageFile);
             imageFile.deleteOnExit();
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
