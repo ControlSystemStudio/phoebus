@@ -20,9 +20,10 @@ public class Preferences
     public static final String TOP_RESOURCES = "top_resources";
     public static final String SPLASH = "splash";
 
-    public static String[] default_apps;
-    public static String top_resources;
-    public static boolean splash;
+    public static final String[] default_apps;
+    public static final String top_resources;
+    public static final boolean splash;
+    public static final int ui_monitor_period;
 
     static
     {
@@ -30,5 +31,6 @@ public class Preferences
         default_apps = prefs.get(DEFAULT_APPS).split("\\s*,\\s*");
         top_resources = prefs.get(TOP_RESOURCES);
         splash = prefs.getBoolean(SPLASH);
+        ui_monitor_period = prefs.getInt("ui_monitor_period");
     }
 }
