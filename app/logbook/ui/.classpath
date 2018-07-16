@@ -8,5 +8,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-logbook-utility"/>
+	<classpathentry kind="src" path="/core-security"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
