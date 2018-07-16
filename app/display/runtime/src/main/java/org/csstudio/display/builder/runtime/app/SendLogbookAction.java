@@ -56,11 +56,11 @@ public class SendLogbookAction extends MenuItem
             final File image_file = screenshot.writeToTempfile("display");
 
             // Create log entry via dialog on UI thread
-            Platform.runLater(() ->  submitLogentry(model_parent, image_file));
+            Platform.runLater(() ->  submitLogEntry(model_parent, image_file));
         });
     }
 
-    private void submitLogentry(final Parent model_parent, final File image_file)
+    private void submitLogEntry(final Parent model_parent, final File image_file)
     {
         Attachment attachment = null;
         try
