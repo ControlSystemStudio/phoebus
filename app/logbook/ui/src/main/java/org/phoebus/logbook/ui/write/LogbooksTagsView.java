@@ -53,7 +53,7 @@ public class LogbooksTagsView extends VBox
     
     /**
      * Constructor.
-     * @param model
+     * @param model - Log Entry Application Model
      */
     public LogbooksTagsView(LogEntryModel model)
     {
@@ -82,7 +82,7 @@ public class LogbooksTagsView extends VBox
         getChildren().addAll(logbookBox, tagBox);
     }
     
-    /** Format log books HBox  */
+    /** Format log books HBox */
     private void formatLogbooks()
     {
         Tooltip tooltip = new Tooltip("Add logbook to the log entry.");
@@ -130,7 +130,7 @@ public class LogbooksTagsView extends VBox
         logbookBox.setAlignment(Pos.CENTER);
     }
     
-    /** Format tags HBox  */
+    /** Format tags HBox */
     private void formatTags()
     {
         Tooltip tooltip = new Tooltip("Add tag to the log entry.");
@@ -258,7 +258,7 @@ public class LogbooksTagsView extends VBox
         tagDropDown.getItems().add(newTag);        
     }
     
-    /** Sets the field's text based on the selected items list.*/
+    /** Sets the field's text based on the selected items list. */
     private void setFieldText(ContextMenu dropDown, List<String> selectedItems, TextField field)
     {
         // Handle drop down menu item checking.
