@@ -568,7 +568,18 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     public void representModel(final Parent root, final DisplayModel model) throws Exception
     {
         root.getProperties().put(ACTIVE_MODEL, model);
+
+        // Add Nodes to the overall scene graph
         super.representModel(root, model);
+
+        // Alternatively, could first add nodes to an off-scene parent,
+        //   final Pane tmp_parent = new Pane();
+        //   super.representModel(root, model);
+        // and then add to the overall scene graph, to avoid parent/child
+        // updates as each widget is represented.
+        //   JFXRepresentation.getChildren(root).addAll(tmp_parent.getChildren());
+        // No discernable performance gain, and in either case large displays
+        // end with JFX spending time in Node.processCSS when first shown.
 
         // In edit mode, indicate overall bounds of the top-level model
         if (model.isTopDisplayModel())

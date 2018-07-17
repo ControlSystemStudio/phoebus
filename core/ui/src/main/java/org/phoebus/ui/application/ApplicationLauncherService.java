@@ -12,7 +12,6 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.ListPickerDialog;
 
@@ -56,14 +55,16 @@ public class ApplicationLauncherService {
     /**
      * @param resource Resource received as command line argument
      * @param prompt Prompt if there are multiple applications, or use first one?
+     * @return <code>true</code> if file could be opened
      */
-    public static void openResource(final URI resource, final boolean prompt, final Stage stage)
+    public static boolean openResource(final URI resource, final boolean prompt, final Stage stage)
     {
         final AppResourceDescriptor application = findApplication(resource, prompt, stage);
         if (application == null)
-            return;
+            return false;
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
         application.create(resource);
+        return true;
     }
 
     /**
@@ -78,9 +79,10 @@ public class ApplicationLauncherService {
      *            If prompt is enabled, a selection dialog will be launched
      *            positioned next to the provided stage. If null then the
      *            default or first application will be used
+     * @return <code>true</code> if file could be opened
      */
-    public static void openFile(File file, final boolean prompt, final Stage stage) {
-        openResource(ResourceParser.getURI(file), prompt, stage);
+    public static boolean openFile(File file, final boolean prompt, final Stage stage) {
+        return openResource(ResourceParser.getURI(file), prompt, stage);
     }
 
     /**
@@ -119,7 +121,7 @@ public class ApplicationLauncherService {
         }
 
         // Check all applications
-        final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+        final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
         if (applications.isEmpty())
         {
             logger.log(Level.WARNING, "No application found for opening " + resource);

@@ -2,6 +2,7 @@ package org.phoebus.applications.filebrowser;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import org.phoebus.ui.javafx.TreeHelper;
 
@@ -27,6 +28,12 @@ class FileTreeItem extends TreeItem<File> {
         TreeHelper.triggerTreeItemRefresh(this);
         setExpanded(false);
         setExpanded(true);
+    }
+
+    /** @param siblings List of FileTreeItem to sort by file name */
+    static void sortSiblings(final List<TreeItem<File>> siblings)
+    {
+        siblings.sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
     }
 
     @Override

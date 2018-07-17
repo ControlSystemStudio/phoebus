@@ -30,9 +30,8 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.framework.workbench.MenuEntryService;
 import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
-import org.phoebus.security.authorization.AuthorizationService;
-import org.phoebus.framework.workbench.ResourceHandlerService;
 import org.phoebus.framework.workbench.ToolbarEntryService;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ListPickerDialog;
@@ -304,7 +303,9 @@ public class PhoebusApplication extends Application {
         // start the responsiveness check.
         // During startup, it would trigger
         // as the UI loads style sheets etc.
-        freezeup_check = new ResponsivenessMonitor(2500, 500, TimeUnit.MILLISECONDS);
+        if (Preferences.ui_monitor_period > 0)
+            freezeup_check = new ResponsivenessMonitor(3 * Preferences.ui_monitor_period,
+                                                       Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
     }
 
     /** Handle parameters from clients, logging errors
@@ -678,7 +679,7 @@ public class PhoebusApplication extends Application {
         }
 
         // Check all applications
-        final List<AppResourceDescriptor> applications = ResourceHandlerService.getApplications(resource);
+        final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
         if (applications.isEmpty())
         {
             logger.log(Level.WARNING, "No application found for opening " + resource);
