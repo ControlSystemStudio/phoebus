@@ -43,7 +43,7 @@ public class SendLogbookAction extends MenuItem
     // TODO Use some icon from logbook UI
     private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
     private String default_text;
-    private List<AlarmTreeItem<?>> selection;
+    private final List<AlarmTreeItem<?>> selection;
     
     /**
      * Constructor.

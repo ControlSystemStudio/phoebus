@@ -8,7 +8,7 @@ public class SendToLogBookApp implements AppDescriptor
 {
 
     public static final String DISPLAY_NAME = "Send To Log Book";
-    public static final String NAME = "sendToLogBook";
+    public static final String NAME = "logbook";
     
     public String getDisplayName()
     {
