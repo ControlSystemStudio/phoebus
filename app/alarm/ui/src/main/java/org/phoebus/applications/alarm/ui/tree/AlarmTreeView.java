@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.csstudio.display.builder.runtime.app.SendLogbookAction;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -363,6 +364,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     menu_items.add(new RemoveComponentAction(tree_view, model, selection));
                 }
             }
+            
+            // Send to log book ...
+            SendLogbookAction sendToLogbook = new SendLogbookAction(tree_view, selection);
+            
+            menu_items.add(sendToLogbook);
 
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
