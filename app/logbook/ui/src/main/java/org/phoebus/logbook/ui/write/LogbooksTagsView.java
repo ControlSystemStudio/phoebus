@@ -7,11 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
-import static org.phoebus.ui.application.PhoebusApplication.logger;
-
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
 
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -54,6 +51,10 @@ public class LogbooksTagsView extends VBox
     private final ToggleButton logbookSelector, tagSelector; // Opens context menu (dropDown).
     private final Button       addLogbook, addTag;
     
+    /**
+     * Constructor.
+     * @param model
+     */
     public LogbooksTagsView(LogEntryModel model)
     {
         this.model = model;
@@ -115,32 +116,7 @@ public class LogbooksTagsView extends VBox
         final String title = "Select Logbooks";
         addLogbook.setOnAction(event ->
         {
-            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), title, model::getLogbooks, model::getSelectedLogbooks,
-                logbook ->
-                {
-                    try
-                    {
-                        return model.addSelectedLogbook(logbook);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal log selection failed.", ex);
-                    }
-                    return false;
-                }, 
-                // Function throws Exception on internal error so use lambda to catch.
-                logbook ->
-                {
-                    try
-                    {
-                        return model.removeSelectedLogbook(logbook);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal log selection failed.", ex);
-                    }
-                    return false;
-                });
+            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), title, model::getLogbooks, model::getSelectedLogbooks, model::addSelectedLogbook, model::removeSelectedLogbook);
             
             Optional<Boolean> result = select.showAndWait();
             if (result.isPresent() && result.get())
@@ -188,32 +164,7 @@ public class LogbooksTagsView extends VBox
         final String title = "Select Tags";
         addTag.setOnAction(event ->
         {
-            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), title, model::getTags, model::getSelectedTags,
-                tag ->
-                {
-                    try
-                    {
-                        return model.addSelectedTag(tag);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal tag selection failed.", ex);
-                    }
-                    return false;
-                }, 
-                // Function throws Exception on internal error so use lambda to catch.
-                tag ->
-                {
-                    try
-                    {
-                        return model.removeSelectedTag(tag);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal tag selection failed.", ex);
-                    }
-                    return false;
-                });
+            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), title, model::getTags, model::getSelectedTags, model::addSelectedTag, model::removeSelectedTag);
             
             Optional<Boolean> result = select.showAndWait();
             if (result.isPresent() && result.get())
@@ -242,7 +193,8 @@ public class LogbooksTagsView extends VBox
         });
         
         // Once the listeners are added ask the model to fetch the lists.
-        // This is done on a separate thread so only start it once the listeners are in place.
+        // This is done on a separate thread since network I/O can take some time or not ever return.
+        // Only start it once the listeners are in place or else the drop down's won't have all the items.
         model.fetchLists();
     }
     
@@ -263,29 +215,14 @@ public class LogbooksTagsView extends VBox
                 String text = source.getText();
                 if (model.getSelectedLogbooks().contains(text))
                 {
-                    try
-                    {
-                        model.removeSelectedLogbook(text);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal logbook selection failed.", ex);
-                    }
+                    model.removeSelectedLogbook(text);
                     setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
                 }
                 else
                 {
-                    try
-                    {
-                        model.addSelectedLogbook(text);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal logbook selection failed.", ex);
-                    }
+                    model.addSelectedLogbook(text);
                     setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
-                }
-                
+                } 
             }
         });
         logbookDropDown.getItems().add(newLogbook);
@@ -308,29 +245,14 @@ public class LogbooksTagsView extends VBox
                 String text = source.getText();
                 if (model.getSelectedTags().contains(text))
                 {
-                    try
-                    {
-                        model.removeSelectedTag(text);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal tag selection failed.", ex);
-                    }
+                    model.removeSelectedTag(text);
                     setFieldText(tagDropDown, model.getSelectedTags(), tagField);
                 }
                 else
                 {
-                    try
-                    {
-                        model.addSelectedTag(text);
-                    } 
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.SEVERE, "Internal tag selection failed.", ex);
-                    }
+                    model.addSelectedTag(text);
                     setFieldText(tagDropDown, model.getSelectedTags(), tagField);
                 }
-                
             }
         });
         tagDropDown.getItems().add(newTag);        

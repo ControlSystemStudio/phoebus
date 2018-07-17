@@ -201,12 +201,11 @@ public class LogEntryModel
      * Add a log book to the model's selected log books list.
      * @param logbook
      * @return
-     * @throws Exception If the selected log book does not exist.
      */
-    public boolean addSelectedLogbook(final String logbook) throws Exception
+    public boolean addSelectedLogbook(final String logbook)
     {
         if (! logbooks.contains(logbook))
-            throw new Exception("The selected logbook '" + logbook + "' does not exist.");
+            return false;
         boolean result = selectedLogbooks.add(logbook);
         selectedLogbooks.sort(Comparator.naturalOrder());
         return result;
@@ -216,12 +215,11 @@ public class LogEntryModel
      * Remove a log book from the model's selected log book list.
      * @param logbook
      * @return
-     * @throws Exception If the selected log book does not exist.
      */
-    public boolean removeSelectedLogbook(final String logbook) throws Exception
+    public boolean removeSelectedLogbook(final String logbook)
     {
         if (! logbooks.contains(logbook))
-            throw new Exception("The selected logbook '" + logbook + "' does not exist.");
+            return false;
         boolean result = selectedLogbooks.remove(logbook);
         return result;    
     }
@@ -268,12 +266,11 @@ public class LogEntryModel
      * Adds the passed tag name to the model's selected tag list.
      * @param tag
      * @return
-     * @throws Exception If the selected tag does not exist.
      */
-    public boolean addSelectedTag(final String tag) throws Exception
+    public boolean addSelectedTag(final String tag)
     {
         if (! tags.contains(tag))
-            throw new Exception("The selected tag '" + tag + "' does not exist.");
+            return false;
         boolean result = selectedTags.add(tag);
         selectedTags.sort(Comparator.naturalOrder());
         return result;    
@@ -283,12 +280,11 @@ public class LogEntryModel
      * Removes the passed tag name from the model's selected tag list.
      * @param tag
      * @return
-     * @throws Exception Exception If the selected tag does not exist.
      */
-    public boolean removeSelectedTag(final String tag) throws Exception
+    public boolean removeSelectedTag(final String tag)
     {
         if (! tags.contains(tag))
-            throw new Exception("The selected tag '" + tag + "' does not exist.");
+            return false;
         boolean result = selectedTags.remove(tag);
         return result;        
     }
@@ -404,6 +400,7 @@ public class LogEntryModel
         
         LogEntry logEntry = logEntryBuilder.build();
 
+        // Submit the entry on a separate thread.
         JobManager.schedule("Submit Log Entry", monitor ->
         {
             LogClient client = logFactory.getLogClient(new SimpleAuthenticationToken(username, password));
@@ -420,7 +417,8 @@ public class LogEntryModel
         return logEntry;
     }
 
-    /** Fetch the log book and tag lists on a separate thread. */
+    /** Fetch the available log book and tag lists on a separate thread.
+     */
     public void fetchLists()
     {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
@@ -428,6 +426,7 @@ public class LogEntryModel
             LogClient initClient = logFactory.getLogClient();
             Collection<Logbook> logList = initClient.listLogbooks();
             Collection<Tag> tagList = initClient.listTags();
+            // Certain views have listeners to these observable lists. So when they change the call backs need to execute on the FX Application thread.
             Platform.runLater(() ->
             {
                 logList.forEach(logbook -> logbooks.add(logbook.getName()));
@@ -436,16 +435,29 @@ public class LogEntryModel
         });
     }
 
+    /**
+     * Add a change listener to the available tags list.
+     * @param changeListener
+     */
     public void addTagListener(ListChangeListener<String> changeListener)
     {
         tags.addListener(changeListener);
     }
 
+    /**
+     * Add a change listener to the available log books list.
+     * @param changeListener
+     */
     public void addLogbookListener(ListChangeListener<String> changeListener)
     {
         logbooks.addListener(changeListener);
     }
 
+    /**
+     * Set the runnable to be executed after the submit action completes.
+     * <p>This runnable will be executed on another thread so everything it does should be thread safe.
+     * @param runnable
+     */
     public void setOnSubmitAction(Runnable runnable)
     {
         onSubmitAction = runnable;
