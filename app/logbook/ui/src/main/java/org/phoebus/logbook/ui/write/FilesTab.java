@@ -7,15 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
-import static org.phoebus.ui.application.PhoebusApplication.logger;
-
-import java.awt.Desktop;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-
-import org.phoebus.framework.jobs.JobManager;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -50,22 +43,7 @@ public class FilesTab extends Tab
             hyperlink = new Hyperlink();
             hyperlink.setOnAction(event -> 
             {
-                JobManager.schedule("Open Attached File", monitor ->
-                {
-                    // Open the file in the default editor.
-                    if (Desktop.isDesktopSupported())
-                    {
-                        Desktop desktop = Desktop.getDesktop();
-                        try
-                        {
-                            desktop.open(file);
-                        } 
-                        catch (IOException ex)
-                        {
-                            logger.log(Level.WARNING, "Could not open file in default editor.", ex);
-                        }
-                    }
-                });
+                // TODO Open file in default editors as defined by core-framework workbench_prefences.properties
             });
         }
         
