@@ -1,0 +1,18 @@
+<project default="app-logbook-ui">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-logbook-ui">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../utility/${build}/app-logbook-utility-${version}.jar"/>
+      </classpath>
+    </javac>
+
+    <jar destfile="${build}/app-logbook-ui-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+</project>

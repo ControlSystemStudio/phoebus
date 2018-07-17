@@ -1,0 +1,11 @@
+<project default="app-probe">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-probe" depends="compile-app">
+    <jar destfile="${build}/app-probe-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${src}" includes="**/*.fxml"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

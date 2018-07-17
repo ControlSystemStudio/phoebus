@@ -14,12 +14,12 @@
         <include name="dependencies/**/jython-standalone*.jar"/>
         <include name="dependencies/**/reactive-streams*.jar"/>
         <include name="dependencies/**/rxjava*.jar"/>
-        <include name="core/vtype/target/vtype*.jar"/>
-        <include name="core/util/target/util*.jar"/>
-        <include name="core/framework/target/framework*.jar"/>
-        <include name="core/pv/target/pv*.jar"/>
-        <include name="applications/scan/model/target/scan-model*.jar"/>
-        <include name="applications/scan/server/target/scan-server*.jar"/>
+        <include name="core/vtype/target/core-vtype*.jar"/>
+        <include name="core/util/target/core-util*.jar"/>
+        <include name="core/framework/target/core-framework*.jar"/>
+        <include name="core/pv/target/core-pv*.jar"/>
+        <include name="app/scan/model/target/app-scan-model*.jar"/>
+        <include name="app/scan/server/target/app-scan-server*.jar"/>
       </fileset>
     </copy>
 

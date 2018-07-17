@@ -1,10 +1,10 @@
-<project default="module-framework">
+<project default="core-framework">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-framework">
+  <target name="core-framework">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}"/>
-  	<jar destfile="${build}/framework-${version}.jar">
+  	<jar destfile="${build}/core-framework-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>

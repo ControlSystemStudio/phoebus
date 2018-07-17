@@ -1,7 +1,7 @@
-<project default="module-formula">
+<project default="core-formula">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-formula">
+  <target name="core-formula">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
@@ -12,21 +12,21 @@
         </fileset>
       </classpath>
     </javac>
-  	<jar destfile="${build}/formula-${version}.jar">
+  	<jar destfile="${build}/core-formula-${version}.jar">
       <fileset dir="${classes}"/>
     </jar>
   </target>
 	
-  <target name="test-formula" depends="module-formula">
+  <target name="test-formula" depends="core-formula">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
         <fileset dir="../../dependencies/target/lib">
           <include name="*.jar"/>
         </fileset>
-        <pathelement path="${build}/formula-${version}.jar"/>
+        <pathelement path="${build}/core-formula-${version}.jar"/>
       </classpath>
       <batchtest>
-        <zipfileset src="${build}/formula-${version}.jar" includes="**/*Test.class"/>
+        <zipfileset src="${build}/core-formula-${version}.jar" includes="**/*Test.class"/>
       </batchtest>
     </junit>
   </target>

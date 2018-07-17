@@ -10,82 +10,82 @@
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>greeting-app</artifactId>
+      <artifactId>app-greetings</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>file-browser</artifactId>
+      <artifactId>app-filebrowser</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>probe</artifactId>
+      <artifactId>app-probe</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>inmemory</artifactId>
+      <artifactId>app-logbook-inmemory</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>pvtable</artifactId>
+      <artifactId>app-pvtable</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>pvtree</artifactId>
+      <artifactId>app-pvtree</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>logConfiguration</artifactId>
+      <artifactId>app-logConfiguration</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>email</artifactId>
+      <artifactId>app-email</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>rtplot</artifactId>
+      <artifactId>app-rtplot</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>databrowser</artifactId>
+      <artifactId>app-databrowser</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>display-representation-javafx</artifactId>
+      <artifactId>app-display-representation-javafx</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>display-runtime</artifactId>
+      <artifactId>app-display-runtime</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>display-editor</artifactId>
+      <artifactId>app-display-editor</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>scan-ui</artifactId>
+      <artifactId>app-scan-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>alarm-ui</artifactId>
+      <artifactId>app-alarm-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>update</artifactId>
+      <artifactId>app-update</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     
@@ -118,12 +118,12 @@
       -->
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>channel-views</artifactId>
+      <artifactId>app-channel-views</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>channelfinder</artifactId>
+      <artifactId>app-channel-channelfinder</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>

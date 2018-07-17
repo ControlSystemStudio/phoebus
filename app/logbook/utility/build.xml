@@ -1,0 +1,9 @@
+<project default="app-logbook-utility">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-logbook-utility" depends="compile-app">
+    <jar destfile="${build}/app-logbook-utility-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+</project>

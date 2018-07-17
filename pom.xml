@@ -5,7 +5,7 @@
   <artifactId>parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>phoebus</name>
+  <name>phoebus (parent)</name>
 
   <properties>
     <maven.repo.local>${project.build.directory}/.m2</maven.repo.local>
@@ -42,7 +42,7 @@
   <modules>
     <module>dependencies</module>
     <module>core</module>
-    <module>applications</module>
+    <module>app</module>
     <module>phoebus-product</module>
     <module>scan-server-product</module>
     <module>alarm-server-product</module>

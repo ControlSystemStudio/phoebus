@@ -17,14 +17,14 @@
         <include name="dependencies/**/rxjava*.jar"/>
         <include name="dependencies/**/javax.activation*.jar"/>
         <include name="dependencies/**/javax.mail*.jar"/>
-        <include name="core/vtype/target/vtype*.jar"/>
-      	<include name="core/util/target/util*.jar"/>
-        <include name="core/framework/target/framework*.jar"/>
-        <include name="core/mail/target/mail*.jar"/>
-        <include name="core/formula/target/formula*.jar"/>
-        <include name="core/pv/target/pv*.jar"/>
-        <include name="applications/alarm/model/target/alarm-model*.jar"/>
-        <include name="applications/alarm/server/target/alarm-server*.jar"/>
+        <include name="core/vtype/target/core-vtype*.jar"/>
+      	<include name="core/util/target/core-util*.jar"/>
+        <include name="core/framework/target/core-framework*.jar"/>
+        <include name="core/email/target/core-email*.jar"/>
+        <include name="core/formula/target/core-formula*.jar"/>
+        <include name="core/pv/target/core-pv*.jar"/>
+        <include name="app/alarm/model/target/app-alarm-model*.jar"/>
+        <include name="app/alarm/server/target/app-alarm-server*.jar"/>
       </fileset>
     </copy>
 

@@ -23,11 +23,11 @@
       <path refid="app-classpath" />
       <!-- Copy applications -->
       <fileset dir="..">
-        <include name="applications/**/*.jar"/>
+        <include name="app/**/*.jar"/>
       	<!-- Exclude what's not part of the UI product -->
       	<!-- Site-specific build might remove more     -->
-      	<exclude name="applications/**/alarm-server*.jar"/>
-      	<exclude name="applications/**/scan-server*.jar"/>
+      	<exclude name="app/**/app-alarm-server*.jar"/>
+      	<exclude name="app/**/app-scan-server*.jar"/>
       </fileset>
     </copy>
 

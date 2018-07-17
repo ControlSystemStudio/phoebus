@@ -1,15 +1,15 @@
-<project default="module-vtype">
+<project default="core-vtype">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="module-vtype">
+  <target name="core-vtype">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
       <classpath>
-        <pathelement path="../util/${build}/util-${version}.jar"/>
+        <pathelement path="../util/${build}/core-util-${version}.jar"/>
       </classpath>
     </javac>
-    <jar destfile="${build}/vtype-${version}.jar">
+    <jar destfile="${build}/core-vtype-${version}.jar">
       <fileset dir="${classes}"/>
     </jar>
   </target>

@@ -20,7 +20,7 @@ import java.util.logging.Level;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.ui.authorization.AuthorizationService;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;

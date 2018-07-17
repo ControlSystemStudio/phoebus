@@ -1,0 +1,21 @@
+<project default="core-security">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="core-security">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <fileset dir="../../dependencies/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+    <jar destfile="${build}/core-security-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>
