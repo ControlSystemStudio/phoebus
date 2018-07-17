@@ -134,7 +134,8 @@ public class LogEntryDialog extends Dialog<LogEntry>
             try
             {
                 model.addSelectedLogbook(logbook.getName());
-            } catch (Exception ex)
+            } 
+            catch (Exception ex)
             {
                 logger.log(Level.WARNING, "Selected logbook initialization failed.", ex);
             }
@@ -146,7 +147,8 @@ public class LogEntryDialog extends Dialog<LogEntry>
             try
             {
                 model.addSelectedTag(tag.getName());
-            } catch (Exception ex)
+            } 
+            catch (Exception ex)
             {
                 logger.log(Level.WARNING, "Selected tag initialization failed.", ex);
             }

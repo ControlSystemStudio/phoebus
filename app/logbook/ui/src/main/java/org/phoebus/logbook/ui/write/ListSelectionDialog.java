@@ -23,6 +23,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -93,7 +94,9 @@ public class ListSelectionDialog extends Dialog<Boolean>
         
         formatContent();
         
-        getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.APPLY);
+        ButtonType apply = new ButtonType("Apply", ButtonBar.ButtonData.OK_DONE);
+        
+        getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, apply);
         getDialogPane().setContent(content);
         
         setResizable(true);
@@ -104,7 +107,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
                
         setResultConverter(button ->
         {
-            return button == ButtonType.APPLY;
+            return button == apply;
         });
     }
 
