@@ -1,6 +1,7 @@
 package org.phoebus.alarm.logging;
 
-import java.io.IOException;
+import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
+
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -14,16 +15,13 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.apache.kafka.streams.kstream.ValueMapper;
-import org.apache.kafka.streams.kstream.ValueTransformerWithKey;
-import org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier;
+import org.phoebus.alarm.logging.messages.AlarmStateMessage;
+import org.phoebus.alarm.logging.messages.MessageParser;
 
 public class AlarmStateLogger implements Runnable {
 
     private final String topic;
     Map<String, Object> serdeProps;
-    // final Serializer<AlarmStateMessage> alarmStateMessageSerializer;
-    // final Deserializer<AlarmStateMessage> alarmStateMessageDeserializer;
     final Serde<AlarmStateMessage> alarmStateMessageSerde;
 
     public AlarmStateLogger(String topic) {
@@ -35,24 +33,21 @@ public class AlarmStateLogger implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Starting the stream consumer");
+        logger.info("Starting the stream consumer");
 
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-alarm-state");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "130.199.219.152:9092");
+        Properties props = PropertiesHelper.getProperties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-state");
+        if (!props.contains(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
+            props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        }
 
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, AlarmStateMessage> alarms = builder.stream("AcceleratorState",
                 Consumed.with(Serdes.String(), alarmStateMessageSerde));
-        alarms.foreach((k, v) -> {
-            System.out.println("RAW Key: " + k + " Value: " + v);
-        });
+
         // Filter the alarms to only
         KStream<String, AlarmStateMessage> filteredAlarms = alarms.filter((k, v) -> {
             return v != null ? v.isLeaf() : false;
-        });
-        filteredAlarms.foreach((k, v) -> {
-            System.out.println("Filtered Key: " + k + " Value: " + v);
         });
 
         // transform the alarm messages, include the pv and config path
@@ -74,7 +69,7 @@ public class AlarmStateLogger implements Runnable {
         final CountDownLatch latch = new CountDownLatch(1);
 
         // attach shutdown handler to catch control-c
-        Runtime.getRuntime().addShutdownHook(new Thread("streams-alarm-shutdown-hook") {
+        Runtime.getRuntime().addShutdownHook(new Thread("streams-"+topic+"-alarm-shutdown-hook") {
             @Override
             public void run() {
                 streams.close();
