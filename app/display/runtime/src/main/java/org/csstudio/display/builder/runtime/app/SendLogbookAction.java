@@ -12,9 +12,12 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.runtime.Messages;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
@@ -23,6 +26,7 @@ import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.ui.write.LogEntryDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -39,11 +43,17 @@ public class SendLogbookAction extends MenuItem
     // TODO Use some icon from logbook UI
     private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
     private String default_text;
-    private Runnable default_runnable;
+    private List<AlarmTreeItem<?>> selection;
     
-    public SendLogbookAction(final Parent model_parent)
+    /**
+     * Constructor.
+     * @param model_parent JavaFX parent node that context menu is called from.
+     * @param selection Selection of items that default text will be derived from. For no default text, pass null.
+     */
+    public SendLogbookAction(final Parent model_parent, List<AlarmTreeItem<?>> selection)
     {
         super(Messages.SendToLogbook, new ImageView(icon));
+        this.selection = selection;
         setOnAction(event -> save(model_parent));
         default_text = "Log Entry from " + getText();
     }
@@ -65,8 +75,26 @@ public class SendLogbookAction extends MenuItem
 
     private void submitLogEntry(final Parent model_parent, final File image_file)
     {
-        if (null != default_runnable)
-            default_runnable.run();
+        if (null != selection && selection.size() > 0)
+        {
+            StringBuilder strBuilder = new StringBuilder();
+            
+            for (AlarmTreeItem<?> item : selection)
+            {
+                // Append descriptions of all the selected alarms
+                if (item instanceof AlarmClientLeaf)
+                {
+                    AlarmClientLeaf leaf = (AlarmClientLeaf) item;
+                    strBuilder.append(item.getPathName()).append("\n\n")
+                    .append("\tDescription: ").append(leaf.getDescription()).append("\n\n")
+                    .append("\tIn alarm since ")
+                    .append(TimestampFormats.MILLI_FORMAT.format(leaf.getState().getTime()))
+                    .append(", that is ").append(leaf.getState().getDuration()).append(" HH:MM:SS").append("\n\n");
+                }
+            }
+            
+            default_text = strBuilder.toString();
+        }
         
         Attachment attachment = null;
         try
@@ -88,38 +116,5 @@ public class SendLogbookAction extends MenuItem
         // Set the on submit action to clean up the temporary file after log entry submission.
         logEntryDialog.setOnSubmitAction(() -> image_file.delete());
         logEntryDialog.showAndWait();
-    }
-    
-    /**  Set the default text for log book entry. */
-    public void setDefaultText(String text)
-    {
-        default_text = text;
-    }
-    
-    /** 
-     * The idea here is to call setDefaultText from inside this runnable. 
-     * The code to generate any default text based on application state can go in here.
-     * onAction is used internally so setting that will prevent the dialog from being opened on an action event.
-     * <p> So long as it is not null, the runnable will be called before the submission action takes place. 
-     * <p> <b>NOTE:</b> &ensp; <code>setDefaultText()</code> must still be called in the runnable for the text to be set.
-     * <p> For example:
-     *  <code>
-     *  <pre>
-     *  SendLogbookAction sendLogbookAction ....
-     *  sendLogBookAction.setDefaultRunnable(() -> 
-     *  {
-     *      StringBuilder builder = ...
-     *      builder.append("Stuff")
-     *             .append(.....
-     *             
-     *      setDefaultText(builder.toString);
-     *  });
-     *  </pre>
-     *  </code>
-     *  @author Evan Smith
-     * */
-    public void setDefaultRunnable(Runnable runnable)
-    {
-        default_runnable = runnable;
     }
 }
