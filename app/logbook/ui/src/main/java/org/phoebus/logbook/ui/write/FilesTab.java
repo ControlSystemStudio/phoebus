@@ -8,6 +8,7 @@
 package org.phoebus.logbook.ui.write;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.geometry.Insets;
@@ -36,17 +37,17 @@ public class FilesTab extends Tab
     {
         private Hyperlink hyperlink;
         private File file;
-        
+
         public FileCell()
         {
             super();
             hyperlink = new Hyperlink();
-            hyperlink.setOnAction(event -> 
+            hyperlink.setOnAction(event ->
             {
                 // TODO Open file in default editors as defined by core-framework workbench_prefences.properties
             });
         }
-        
+
         @Override
         public void updateItem(File file, boolean empty)
         {
@@ -60,36 +61,36 @@ public class FilesTab extends Tab
                 this.file = file;
                 hyperlink.setText(file.getName());
                 setGraphic(hyperlink);
-            }   
+            }
         }
     }
-    
+
     private final LogEntryModel  model;
-    
+
     private final VBox           content;
     private final Label          label;
     private final ListView<File> listView;
     private final HBox           listBox, buttonBox;
     private final Button         attachContext, attachFile, removeSelected;
-    
-    private final FileChooser    addFileDialog;  
-    
-    public FilesTab(final LogEntryModel model) 
+
+    private final FileChooser    addFileDialog;
+
+    public FilesTab(final LogEntryModel model)
     {
         super();
         this.model = model;
-        
+
         content   = new VBox();
         label     = new Label("Attached Files");
-        listView  = new ListView<File>(model.getFiles());
+        listView  = new ListView<>(model.getFiles());
         listBox   = new HBox();
         buttonBox = new HBox();
         attachContext  = new Button("Attach Context");
         attachFile     = new Button("Attach File");
         removeSelected = new Button("Remove Selected");
-        
+
         addFileDialog = new FileChooser();
-        
+
         formatTab();
     }
 
@@ -98,9 +99,9 @@ public class FilesTab extends Tab
         setText("Files");
         setClosable(false);
         setTooltip(new Tooltip("Add files to log entry."));
-        
+
         addFileDialog.setInitialDirectory(new File(System.getProperty("user.home")));
-        
+
         formatContent();
         setOnActions();
 
@@ -110,15 +111,15 @@ public class FilesTab extends Tab
     private void formatContent()
     {
         VBox.setMargin(label, new Insets(10, 0, 0, 10));
-        
+
         formatListBox();
         formatButtonBox();
-        
+
         content.setSpacing(10);
         content.getChildren().addAll(label, listBox, buttonBox);
     }
 
-    
+
     private void formatListBox()
     {
         listView.setCellFactory(cell -> new FileCell());
@@ -138,22 +139,22 @@ public class FilesTab extends Tab
         // TODO Add an addContext tool tip when addContext is implemented.
         attachFile.setTooltip(new Tooltip("Attach a file to the log entry."));
         removeSelected.setTooltip(new Tooltip("Remove the selected file(s)."));
-        
+
         buttonBox.setSpacing(10);
         VBox.setMargin(buttonBox, new Insets(0, 10, 10, 10));
-        
+
         attachContext.prefWidthProperty().bind(buttonBox.widthProperty().divide(3));
         attachFile.prefWidthProperty().bind(buttonBox.widthProperty().divide(3));
         removeSelected.prefWidthProperty().bind(buttonBox.widthProperty().divide(3));
 
         buttonBox.getChildren().addAll(attachContext, attachFile, removeSelected);
     }
-    
+
     private void setOnActions()
     {
         // TODO : Implement attach context
-        
-        attachFile.setOnAction(event -> 
+
+        attachFile.setOnAction(event ->
         {
             Window ownerWindow = this.getTabPane().getParent().getScene().getWindow();
             List<File> files = addFileDialog.showOpenMultipleDialog(ownerWindow);
@@ -165,11 +166,11 @@ public class FilesTab extends Tab
                 }
             }
         });
-        
+
         removeSelected.setOnAction(event ->
         {
             // We can't alter a list that we are iterating over, so we iterate over a copy of the selected files list.
-            List<File> files = List.copyOf(listView.getSelectionModel().getSelectedItems());
+            List<File> files = new ArrayList<>(listView.getSelectionModel().getSelectedItems());
             for (File file : files)
             {
                 model.removeFile(file);
