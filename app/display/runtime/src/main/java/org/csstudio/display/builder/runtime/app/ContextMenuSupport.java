@@ -142,7 +142,7 @@ class ContextMenuSupport
         items.add(new SaveSnapshotAction(model_parent));
         items.add(new PrintAction(model_parent));
         // TODO SendEmail
-        items.add(new SendLogbookAction(model_parent));
+        items.add(new SendLogbookAction(model_parent, null));
 
         items.add(new SeparatorMenuItem());
 

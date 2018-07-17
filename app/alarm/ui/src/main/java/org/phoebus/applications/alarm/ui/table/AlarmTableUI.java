@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import org.csstudio.display.builder.runtime.app.SendLogbookAction;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
@@ -343,29 +342,7 @@ public class AlarmTableUI extends BorderPane
             if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
                 menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
 
-            SendLogbookAction sendToLogbook = new SendLogbookAction(table);
-
-            sendToLogbook.setDefaultRunnable(() ->
-            {
-                StringBuilder strBuilder = new StringBuilder();
-                
-                for (AlarmTreeItem<?> item : selection)
-                {
-                    // Append descriptions of all the selected alarms
-                    if (item instanceof AlarmClientLeaf)
-                    {
-                        AlarmClientLeaf leaf = (AlarmClientLeaf) item;
-                        strBuilder.append(item.getPathName()).append("\n\n")
-                        .append("\tDescription: ").append(leaf.getDescription()).append("\n\n")
-                        .append("\tIn alarm since ")
-                        .append(TimestampFormats.MILLI_FORMAT.format(leaf.getState().getTime()))
-                        .append(", that is ").append(leaf.getState().getDuration()).append(" HH:MM:SS").append("\n\n");
-                    }
-                }
-                
-                // Set the default text to the selection description.
-                sendToLogbook.setDefaultText(strBuilder.toString());
-            });
+            SendLogbookAction sendToLogbook = new SendLogbookAction(table, selection);
             
             menu_items.add(sendToLogbook);
             
