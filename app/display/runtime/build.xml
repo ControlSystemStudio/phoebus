@@ -11,6 +11,7 @@
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
         <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+        <pathelement path="../../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
       </classpath>
     </javac>
   	
