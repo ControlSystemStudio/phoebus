@@ -137,8 +137,20 @@ public class RuleToScript
                 result.append(" or ");
                 i += 1;
             }
-            else if (text.charAt(i) == '!'  &&  ! matches(text, i, "!="))
+            else if (matches(text, i, "!="))
+            {
+                result.append("!=");
+                i += 1;
+            }
+            else if (text.charAt(i) == '!')  // and not "!=" since we just checked for that
                 result.append(" not ");
+            else if (matches(text, i, "==")) // and not "!="
+            {
+                result.append("==");
+                i += 1;
+            }
+            else if (text.charAt(i) == '=') // and neither "==" nor "!="
+                result.append("==");
             else
                 result.append(text.charAt(i));
         }

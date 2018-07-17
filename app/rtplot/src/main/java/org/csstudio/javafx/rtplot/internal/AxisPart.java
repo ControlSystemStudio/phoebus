@@ -105,7 +105,7 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
         super(name, listener);
         this.horizontal = horizontal;
         this.transform = Objects.requireNonNull(transform);
-        this.range = new AxisRange<T>(low_value, high_value);
+        this.range = new AxisRange<>(low_value, high_value);
         this.ticks = Objects.requireNonNull(ticks);
     }
 
@@ -270,11 +270,11 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
             // Can axis handle this range?
             if (! ticks.isSupportedRange(low, high))
             {
-                logger.log(Level.WARNING, "Axis {0}: Bad value range {1} ... {2}",
-                                          new Object[] { getName(), low, high });
+                logger.log(Level.CONFIG, "Axis {0}: Bad value range {1} ... {2}",
+                                         new Object[] { getName(), low, high });
                 return false;
             }
-            range = new AxisRange<T>(low, high);
+            range = new AxisRange<>(low, high);
             transform.config(low, high, low_screen, high_screen);
         }
         dirty_ticks = true;
@@ -345,7 +345,7 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
     /** @return Pixel range on screen */
     public AxisRange<Integer> getScreenRange()
     {
-        return new AxisRange<Integer>(low_screen, high_screen);
+        return new AxisRange<>(low_screen, high_screen);
     }
 
     /** @return Tick mark information. */

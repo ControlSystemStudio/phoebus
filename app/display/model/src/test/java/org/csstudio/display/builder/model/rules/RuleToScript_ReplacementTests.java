@@ -10,7 +10,6 @@ package org.csstudio.display.builder.model.rules;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import org.csstudio.display.builder.model.rules.RuleToScript;
 import org.junit.Test;
 
 /** Test replacement of logical operators in RuleToScript.
@@ -25,6 +24,13 @@ public class RuleToScript_ReplacementTests
         assertThat(RuleToScript.javascriptToPythonLogic(" true "), equalTo(" True "));
         assertThat(RuleToScript.javascriptToPythonLogic(" ! false "), equalTo("  not  False "));
         assertThat(RuleToScript.javascriptToPythonLogic("  \"false\"  "), equalTo("  \"false\"  "));
+    }
+
+    @Test
+    public void testEqual()
+    {
+        assertThat(RuleToScript.javascriptToPythonLogic("pv0!=3"), equalTo("pv0!=3"));
+        assertThat(RuleToScript.javascriptToPythonLogic("pv0=3"), equalTo("pv0==3"));
     }
 
     @Test
