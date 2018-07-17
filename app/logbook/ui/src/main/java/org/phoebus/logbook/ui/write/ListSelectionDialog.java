@@ -63,6 +63,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
                               Function<String, Boolean> addSelected,
                               Function<String, Boolean> removeSelected)
     {   
+        super();
         this.addSelected    = addSelected;
         this.removeSelected = removeSelected;
         
@@ -96,11 +97,11 @@ public class ListSelectionDialog extends Dialog<Boolean>
         getDialogPane().setContent(content);
         
         setResizable(true);
-        
+
         DialogHelper.positionAndSize(this, root,
                 PhoebusPreferenceService.userNodeForClass(ListSelectionDialog.class),
-                400, 600);
-        
+                500, 600);
+               
         setResultConverter(button ->
         {
             return button == ButtonType.APPLY;
@@ -113,7 +114,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         availableItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         selectedItems.setStyle("-fx-control-inner-background-alt: white");
         availableItems.setStyle("-fx-control-inner-background-alt: white");
-
+        
         add.setTooltip(new Tooltip("Add the selected items."));
         add.setOnAction(event ->
         {
@@ -177,6 +178,9 @@ public class ListSelectionDialog extends Dialog<Boolean>
         
         selectedBox.getChildren().addAll(selectedLabel, selectedItems);
 
+        HBox.setHgrow(availableBox, Priority.ALWAYS);
+        HBox.setHgrow(selectedBox, Priority.ALWAYS);
+        
         HBox.setMargin(availableBox, new Insets(5,  0, 10, 10));
         HBox.setMargin(buttonsBox,   new Insets(5,  0, 10,  0));
         HBox.setMargin(selectedBox,  new Insets(5, 10, 10,  0));
