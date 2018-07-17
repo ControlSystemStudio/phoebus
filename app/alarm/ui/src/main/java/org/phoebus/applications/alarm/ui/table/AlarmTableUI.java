@@ -351,6 +351,7 @@ public class AlarmTableUI extends BorderPane
                 
                 for (AlarmTreeItem<?> item : selection)
                 {
+                    // Append descriptions of all the selected alarms
                     if (item instanceof AlarmClientLeaf)
                     {
                         AlarmClientLeaf leaf = (AlarmClientLeaf) item;
@@ -362,6 +363,7 @@ public class AlarmTableUI extends BorderPane
                     }
                 }
                 
+                // Set the default text to the selection description.
                 sendToLogbook.setDefaultText(strBuilder.toString());
             });
             
