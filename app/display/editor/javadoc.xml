@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!-- Ant file for generating javadoc for API
+
+     Execute manually as
+
+       ant -f javadoc.xml clean all
+
+     to re-create the doc/java files.
+
+     The documentation is on purpose incomplete.
+     Instead of covering all the source code, it only includes
+     the essential Widget and script classes that are likely to
+     remain accessible from scripts, while everything beyond that API
+     is open to changes.
+     Since Java 9, the '-Xold' option is required because otherwise
+     the errors about missing packages abort the javadoc generation.
+  -->
+<project name="api" default="all">
+  <!-- Output directory -->
+  <property name="out" value="doc/html/generated"/>
+  <path id="classpath">
+    <!--
+        <fileset dir="/Kram/Eclipse/3_7_2/rcp/eclipse/plugins/org.junit_4.8.2.v4_8_2_v20110321-1705">
+            <include name="**/*.jar"/>
+        </fileset>
+        -->
+  </path>
+  <!-- Remove all that might have been created -->
+  <target name="clean">
+    <delete dir="${out}"/>
+  </target>
+  <!-- Create Javadoc -->
+  <target name="javadoc">
+    <!-- Capture the path as a delimited property using the refid attribute -->
+    <property name="myclasspath" refid="classpath"/>
+    <!-- Emit the property to the ant console -->
+    <echo message="Classpath: ${myclasspath}"/>
+    <javadoc additionalparam="-Xold -notimestamp"
+             classpathref="classpath" destdir="${out}" author="false" access="public"
+             version="true" use="false" windowtitle="Display Builder API"
+             overview="doc/javadoc_overview.html"
+             useexternalfile="yes">
+      <doctitle><![CDATA[<h1>Display Builder API</h1>]]></doctitle>
+      <fileset dir="../../..">
+        <include name="core/framework/src/main/java/org/phoebus/framework/macros/Macros.java"/>
+        <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/Widget.java"/>
+        <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/DisplayModel.java"/>
+        <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/WidgetProperty.java"/>
+        <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/DisplayModel.java"/>
+        <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/**/*Widget.java"/>
+        <include name="app/display/runtime/src/main/java/org/csstudio/display/builder/runtime/script/*.java"/>
+        <include name="app/display/runtime/src/main/java/org/csstudio/display/builder/runtime/pv/RuntimePV.java"/>
+        <exclude name="**/WhateverThing.java"/>
+      </fileset>
+      <group title="Script API" packages="org.csstudio.display.builder.*"/>
+    </javadoc>
+  </target>
+  <!-- Run the whole chain -->
+  <target name="all" depends="javadoc">
+    <echo>=== Completed ${ant.project.name} ===</echo>
+  </target>
+</project>

@@ -379,12 +379,24 @@ public class TableWidget extends VisibleWidget
         columns.setValue(new_columns);
     }
 
-    /** Set width of a column
+    /** Set column to be editable (default) or not
      *
-     *  <p>Convenience routines for <code>propColumns()</code>
+     *  <p>Convenience routine for <code>propColumns()</code>
      *
      *  @param column Column index, must be 0 .. <code>propColumns().size()-1</code>
-     *  @param options Options to present in combo editor for the cells in that column
+     *  @param editable Should column be editable?
+     */
+    public void setEditable(final int column, final boolean editable)
+    {
+        columns.getElement(column).editable().setValue(editable);
+    }
+
+    /** Set width of a column
+     *
+     *  <p>Convenience routine for <code>propColumns()</code>
+     *
+     *  @param column Column index, must be 0 .. <code>propColumns().size()-1</code>
+     *  @param width Column width
      */
     public void setColumnWidth(final int column, final int width)
     {
@@ -393,7 +405,7 @@ public class TableWidget extends VisibleWidget
 
     /** Get options for a column's values
      *
-     *  <p>Convenience routines for <code>propColumns()</code>
+     *  <p>Convenience routine for <code>propColumns()</code>
      *
      *  @param column Column index, must be 0 .. <code>propColumns().size()-1</code>
      *  @return Options that combo editor will present for the cells in that column
@@ -411,7 +423,7 @@ public class TableWidget extends VisibleWidget
 
     /** Set options for a column's values
      *
-     *  <p>Convenience routines for <code>propColumns()</code>
+     *  <p>Convenience routine for <code>propColumns()</code>
      *
      *  @param column Column index, must be 0 .. <code>propColumns().size()-1</code>
      *  @param options Options to present in combo editor for the cells in that column

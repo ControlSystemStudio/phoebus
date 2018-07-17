@@ -819,7 +819,7 @@ public class ImagePlot extends PlotCanvasBase
 
         if (!  (min < max))  // Implies min and max being finite, not-NaN
         {
-            logger.log(Level.WARNING, "Invalid value range {0} .. {1}", new Object[] { min, max });
+            logger.log(Level.CONFIG, "Invalid value range {0} .. {1}", new Object[] { min, max });
             min = 0.0;
             max = 1.0;
         }
@@ -1417,9 +1417,9 @@ public class ImagePlot extends PlotCanvasBase
     private static AxisRange<Double> getRestrictedRange(final double low, final double high, final double min, final double max)
     {
         if (min <= max)
-            return new AxisRange<Double>(Math.max(min, low), Math.min(max, high));
+            return new AxisRange<>(Math.max(min, low), Math.min(max, high));
         else
-            return new AxisRange<Double>(Math.min(min, low), Math.max(max, high));
+            return new AxisRange<>(Math.min(min, low), Math.max(max, high));
     }
 
     void fireChangedAxisRange(final Axis<Double> axis)
