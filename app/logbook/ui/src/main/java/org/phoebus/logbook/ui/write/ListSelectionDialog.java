@@ -34,18 +34,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-/**
+/** Dialog to select items from a list of available items and build a list of selected items.
  * @author Evan Smith
  */
 public class ListSelectionDialog extends Dialog<Boolean>
 {
     private final HBox content;
-    
-    @SuppressWarnings("unused") // Used to initialize list views.
-    private final Supplier<ObservableList<String>> available;
-    @SuppressWarnings("unused") // Used to initialize list views.
-    private final Supplier<ObservableList<String>> selected;
-    
+
     private final Function<String, Boolean> addSelected, removeSelected;
     
     private final Font labelFont;
@@ -68,8 +63,6 @@ public class ListSelectionDialog extends Dialog<Boolean>
                               Function<String, Boolean> addSelected,
                               Function<String, Boolean> removeSelected)
     {   
-        this.available      = available;
-        this.selected       = selected;
         this.addSelected    = addSelected;
         this.removeSelected = removeSelected;
         
