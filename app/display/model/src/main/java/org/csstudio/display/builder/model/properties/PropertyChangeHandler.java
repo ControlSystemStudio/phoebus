@@ -150,8 +150,8 @@ public abstract class PropertyChangeHandler<T extends Object>
        final int recursion_level = recursions.incrementAndGet();
        if (recursion_level > 1)
            logger.log(Level.WARNING,
-                      "Recursive update of property " + property.getName() + ", " +
-                      recursion_level + " deep");
+                      "Recursive update of property " + property.getWidget() + " " + property.getName() + ", " +
+                      recursion_level + " deep", new Exception("Recursive update of " + property));
        // Notify listeners
        for (BaseWidgetPropertyListener listener : safe_copy)
        {

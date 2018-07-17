@@ -192,6 +192,8 @@ public class StringTable extends BorderPane
                 {
                     setText(null);
                     setGraphic(checkbox);
+                    // Enable checkbox for editable column
+                    checkbox.setDisable(! getTableColumn().isEditable());
                     checkbox.setSelected(item.equalsIgnoreCase("true"));
                     final int col = getTableView().getColumns().indexOf(getTableColumn());
                     setCellStyle(this, row, col);
@@ -573,7 +575,8 @@ public class StringTable extends BorderPane
             if (row.size() < columns)
             {
                 logger.log(Level.WARNING, "Table needs " + columns +
-                           " columns but got row with just " + row.size());
+                           " columns " + getHeaders() +
+                           " but got row with just " + row.size() + ": " + row);
                 for (int i=row.size(); i<columns; ++i)
                     row.add("");
             }
