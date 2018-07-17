@@ -9,7 +9,7 @@ http://phoebus-doc.readthedocs.io
 
 
 ## Requirements
- - [JDK9](http://jdk.java.net/9/)
+ - [JDK9 or later](http://jdk.java.net/9/)
  - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -114,27 +114,34 @@ To run the Phoebus application:
 
 ## Complete Distribution, including manual
 
-    # Obtain sources for documentation and product
+    # Obtain sources for Documentation and Product
     git clone https://github.com/kasemir/phoebus-doc.git
     git clone https://github.com/shroffk/phoebus.git
 
+    # Build the Javadoc, i.e. html files to be included in the manual
+    cd phoebus/app/display/editor/
+    ant -f javadoc.xml clean all
+    cd ../../../..
+    
     cd phoebus-doc
     # Building the manual will locate and include
-    # all ../phoebus/applications/**/doc/index.rst
-    make html
+    # all ../phoebus/**/doc/index.rst and ../phoebus/**/doc/html
+    make clean html
     # Windows: Use make.bat html
+    cd ..
 
-    cd ../phoebus
+    # Build Product
+
+    cd phoebus
     # Fetch dependencies
     mvn clean verify -f dependencies/pom.xml
 
-    # Building the product will bundle
-    # ../phoebus-doc/build/html
-    # as phoebus-product/target/doc
-    ant
-    # or mvn clean install
+    # Build product & bundle for distribution, including the documentation
+    ant clean dist
     
     # Could now run the product via phoebus-product/phoebus.sh,
     # or ZIP for distribution
     ant dist
+    
+    # The files *product/target/*.zip can now be distributed, unzipped, run
 
