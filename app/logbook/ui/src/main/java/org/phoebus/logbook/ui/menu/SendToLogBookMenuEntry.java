@@ -8,7 +8,6 @@ import javafx.scene.image.Image;
 
 public class SendToLogBookMenuEntry implements MenuEntry
 {
-
     @Override
     public Void call() throws Exception
     {
