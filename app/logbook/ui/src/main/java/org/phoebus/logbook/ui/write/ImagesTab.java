@@ -29,7 +29,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-/**
+/** Tab that allows the viewing and selection of images and screen shots from the file system, application, or system clip board.
  * @author Evan Smith
  */
 public class ImagesTab extends Tab
