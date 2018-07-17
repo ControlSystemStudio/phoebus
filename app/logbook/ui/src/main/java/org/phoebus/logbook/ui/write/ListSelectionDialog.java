@@ -43,7 +43,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
     private final HBox content;
 
     private final Function<String, Boolean> addSelected, removeSelected;
-    
+
     private final Font labelFont;
     private final VBox selectedBox, buttonsBox, availableBox;
     private final Label selectedLabel, itemsLabel;
@@ -53,58 +53,58 @@ public class ListSelectionDialog extends Dialog<Boolean>
     private final static ImageView addIcon = ImageCache.getImageView(ImageCache.class, "/icons/add.png");
     private final static ImageView removeIcon = ImageCache.getImageView(ImageCache.class, "/icons/delete.png");
     private final static ImageView clearIcon = ImageCache.getImageView(ImageCache.class, "/icons/remove_multiple.png");
-    
+
     private final int buttonWidth = 130, spacing = 10;
     private final Button add, remove, clear;
 
     public ListSelectionDialog(Node root,
                               String title,
-                              Supplier<ObservableList<String>>    available, 
+                              Supplier<ObservableList<String>>    available,
                               Supplier<ObservableList<String>>    selected,
                               Function<String, Boolean> addSelected,
                               Function<String, Boolean> removeSelected)
-    {   
+    {
         super();
         this.addSelected    = addSelected;
         this.removeSelected = removeSelected;
-        
+
         content      = new HBox();
         selectedBox  = new VBox();
         buttonsBox   = new VBox();
         availableBox = new VBox();
-        
+
         add    = new Button("Add", addIcon);
         remove = new Button("Remove", removeIcon);
         clear  = new Button("Clear", clearIcon);
-        
+
         labelFont     = new Font(16);
         selectedLabel = new Label("Selected");
         itemsLabel    = new Label("Available");
-        
-        selectedItems  = new ListView<String>(selected.get());
-        // We wan't to remove items from the available list as they're selected, and add them back as they are unselected. 
+
+        selectedItems  = new ListView<>(selected.get());
+        // We wan't to remove items from the available list as they're selected, and add them back as they are unselected.
         // Due to this we need a copy as available.get() returns an immutable list.
-        availableItems = new ListView<String>(
-                FXCollections.observableArrayList(List.copyOf(available.get())));
-        
+        availableItems = new ListView<>(
+                FXCollections.observableArrayList(new ArrayList<>(available.get())));
+
         for (String item : selectedItems.getItems())
             availableItems.getItems().remove(item);
-        
+
         setTitle(title);
-        
+
         formatContent();
-        
+
         ButtonType apply = new ButtonType("Apply", ButtonBar.ButtonData.OK_DONE);
-        
+
         getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, apply);
         getDialogPane().setContent(content);
-        
+
         setResizable(true);
 
         DialogHelper.positionAndSize(this, root,
                 PhoebusPreferenceService.userNodeForClass(ListSelectionDialog.class),
                 500, 600);
-               
+
         setResultConverter(button ->
         {
             return button == apply;
@@ -117,12 +117,12 @@ public class ListSelectionDialog extends Dialog<Boolean>
         availableItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         selectedItems.setStyle("-fx-control-inner-background-alt: white");
         availableItems.setStyle("-fx-control-inner-background-alt: white");
-        
+
         add.setTooltip(new Tooltip("Add the selected items."));
         add.setOnAction(event ->
         {
             // Can't modify list we're iterating over, so make a copy to iterate over.
-            List<String> toAdd = new ArrayList<String>(availableItems.getSelectionModel().getSelectedItems());
+            List<String> toAdd = new ArrayList<>(availableItems.getSelectionModel().getSelectedItems());
             for (String item : toAdd)
             {
                 addSelected.apply(item);
@@ -135,7 +135,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         remove.setOnAction(event ->
         {
             // Can't modify list we're iterating over, so make a copy to iterate over.
-            List<String> toRemove = new ArrayList<String>(selectedItems.getSelectionModel().getSelectedItems());
+            List<String> toRemove = new ArrayList<>(selectedItems.getSelectionModel().getSelectedItems());
             for (String item : toRemove)
             {
                 removeSelected.apply(item);
@@ -144,12 +144,12 @@ public class ListSelectionDialog extends Dialog<Boolean>
             Collections.sort(availableItems.getItems());
             clearSelections();
         });
-        
+
         clear.setTooltip(new Tooltip("Clear the selected items list."));
         clear.setOnAction(event ->
         {
             // Can't modify list we're iterating over, so make a copy to iterate over.
-            List<String> toRemove = new ArrayList<String>(selectedItems.getItems());
+            List<String> toRemove = new ArrayList<>(selectedItems.getItems());
             for (String item : toRemove)
             {
                 removeSelected.apply(item);
@@ -161,11 +161,11 @@ public class ListSelectionDialog extends Dialog<Boolean>
 
         content.setAlignment(Pos.CENTER);
         content.setSpacing(spacing);
-        
+
         add.setPrefWidth(buttonWidth);
         remove.setPrefWidth(buttonWidth);
         clear.setPrefWidth(buttonWidth);
-        
+
         buttonsBox.setSpacing(10);
         buttonsBox.setAlignment(Pos.CENTER);
         buttonsBox.getChildren().addAll(add, remove, clear);
@@ -174,20 +174,20 @@ public class ListSelectionDialog extends Dialog<Boolean>
         VBox.setVgrow(availableItems, Priority.ALWAYS);
         availableBox.setSpacing(spacing);
         availableBox.getChildren().addAll(itemsLabel, availableItems);
-        
+
         selectedLabel.setFont(labelFont);
         VBox.setVgrow(selectedItems, Priority.ALWAYS);
         selectedBox.setSpacing(spacing);
-        
+
         selectedBox.getChildren().addAll(selectedLabel, selectedItems);
 
         HBox.setHgrow(availableBox, Priority.ALWAYS);
         HBox.setHgrow(selectedBox, Priority.ALWAYS);
-        
+
         HBox.setMargin(availableBox, new Insets(5,  0, 10, 10));
         HBox.setMargin(buttonsBox,   new Insets(5,  0, 10,  0));
         HBox.setMargin(selectedBox,  new Insets(5, 10, 10,  0));
-        
+
         content.getChildren().addAll(availableBox, buttonsBox, selectedBox);
     }
 
