@@ -119,29 +119,20 @@ To run the Phoebus application:
     git clone https://github.com/shroffk/phoebus.git
 
     # Build the Javadoc, i.e. html files to be included in the manual
-    cd phoebus/app/display/editor/
-    ant -f javadoc.xml clean all
-    cd ../../../..
+    ( cd phoebus/app/display/editor; ant -f javadoc.xml clean all )
     
-    cd phoebus-doc
     # Building the manual will locate and include
     # all ../phoebus/**/doc/index.rst and ../phoebus/**/doc/html
-    make clean html
+	( cd phoebus-doc; make clean html )
     # Windows: Use make.bat html
-    cd ..
 
     # Build Product
 
-    cd phoebus
     # Fetch dependencies
-    mvn clean verify -f dependencies/pom.xml
+	( cd phoebus; mvn clean verify -f dependencies/pom.xml )
 
     # Build product & bundle for distribution, including the documentation
-    ant clean dist
-    
-    # Could now run the product via phoebus-product/phoebus.sh,
-    # or ZIP for distribution
-    ant dist
-    
-    # The files *product/target/*.zip can now be distributed, unzipped, run
-
+    ( cd phoebus; ant clean dist )
+   
+    # The files phoebus/*product/target/*.zip can now be distributed,
+    # unzipped, launched
