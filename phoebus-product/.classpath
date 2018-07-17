@@ -38,7 +38,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/app-logConfiguration"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-pvtree"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-probe"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/app-logbook-inmemory"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-logbook-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-filebrowser"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-greetings"/>
 	<classpathentry kind="output" path="target/classes"/>
