@@ -40,6 +40,7 @@ public class SendLogbookAction extends MenuItem
     private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
     private String default_text;
     private Supplier<String> defaultSupplier;
+    // TODO Create a messages class for the log book ui.
     private static final String MESSAGE = "Send To Log Book...";
     /**
      * Constructor.
