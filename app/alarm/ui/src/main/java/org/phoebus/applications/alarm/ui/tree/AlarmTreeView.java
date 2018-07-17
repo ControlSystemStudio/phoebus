@@ -33,6 +33,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -365,8 +366,32 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 }
             }
             
-            // Send to log book ...
-            SendLogbookAction sendToLogbook = new SendLogbookAction(tree_view, selection);
+            SendLogbookAction sendToLogbook = new SendLogbookAction(tree_view, () -> 
+            {
+                
+                if (null != selection && selection.size() > 0)
+                {
+                    StringBuilder strBuilder = new StringBuilder();
+                    
+                    for (AlarmTreeItem<?> item : selection)
+                    {
+                        // Append descriptions of all the selected alarms
+                        if (item instanceof AlarmClientLeaf)
+                        {
+                            AlarmClientLeaf leaf = (AlarmClientLeaf) item;
+                            strBuilder.append(item.getPathName()).append("\n\n")
+                            .append("\tDescription: ").append(leaf.getDescription()).append("\n\n")
+                            .append("\tIn alarm since ")
+                            .append(TimestampFormats.MILLI_FORMAT.format(leaf.getState().getTime()))
+                            .append(", that is ").append(leaf.getState().getDuration()).append(" HH:MM:SS").append("\n\n");
+                        }
+                    }
+                    
+                    return strBuilder.toString();
+                }
+                
+                return null;
+            });
             
             menu_items.add(sendToLogbook);
 

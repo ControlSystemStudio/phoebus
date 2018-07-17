@@ -12,12 +12,10 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
-import java.util.List;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.runtime.Messages;
-import org.phoebus.applications.alarm.client.AlarmClientLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
@@ -26,7 +24,6 @@ import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.ui.write.LogEntryDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
-import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -43,17 +40,17 @@ public class SendLogbookAction extends MenuItem
     // TODO Use some icon from logbook UI
     private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
     private String default_text;
-    private final List<AlarmTreeItem<?>> selection;
+    private Supplier<String> defaultSupplier;
     
     /**
      * Constructor.
      * @param model_parent JavaFX parent that context menu is called from.
      * @param selection Selection of items that default text will be derived from. For no default text, pass null.
      */
-    public SendLogbookAction(final Parent model_parent, List<AlarmTreeItem<?>> selection)
+    public SendLogbookAction(final Parent model_parent, Supplier<String> defaultSupplier)
     {
         super(Messages.SendToLogbook, new ImageView(icon));
-        this.selection = selection;
+        this.defaultSupplier = defaultSupplier;
         setOnAction(event -> save(model_parent));
         default_text = "Log Entry from " + getText();
     }
@@ -75,26 +72,8 @@ public class SendLogbookAction extends MenuItem
 
     private void submitLogEntry(final Parent model_parent, final File image_file)
     {
-        if (null != selection && selection.size() > 0)
-        {
-            StringBuilder strBuilder = new StringBuilder();
-            
-            for (AlarmTreeItem<?> item : selection)
-            {
-                // Append descriptions of all the selected alarms
-                if (item instanceof AlarmClientLeaf)
-                {
-                    AlarmClientLeaf leaf = (AlarmClientLeaf) item;
-                    strBuilder.append(item.getPathName()).append("\n\n")
-                    .append("\tDescription: ").append(leaf.getDescription()).append("\n\n")
-                    .append("\tIn alarm since ")
-                    .append(TimestampFormats.MILLI_FORMAT.format(leaf.getState().getTime()))
-                    .append(", that is ").append(leaf.getState().getDuration()).append(" HH:MM:SS").append("\n\n");
-                }
-            }
-            
-            default_text = strBuilder.toString();
-        }
+        if (null != defaultSupplier)
+            default_text = defaultSupplier.get();
         
         Attachment attachment = null;
         try
