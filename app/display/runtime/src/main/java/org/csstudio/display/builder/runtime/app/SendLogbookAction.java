@@ -47,7 +47,7 @@ public class SendLogbookAction extends MenuItem
     
     /**
      * Constructor.
-     * @param model_parent JavaFX parent node that context menu is called from.
+     * @param model_parent JavaFX parent that context menu is called from.
      * @param selection Selection of items that default text will be derived from. For no default text, pass null.
      */
     public SendLogbookAction(final Parent model_parent, List<AlarmTreeItem<?>> selection)
