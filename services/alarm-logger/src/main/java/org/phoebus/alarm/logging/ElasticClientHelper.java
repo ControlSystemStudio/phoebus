@@ -7,16 +7,16 @@ import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 import static org.phoebus.alarm.logging.PropertiesHelper.getProperties;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.logging.Level;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.DocWriteResponse.Result;
 import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.phoebus.alarm.logging.messages.AlarmStateMessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -91,12 +91,10 @@ public class ElasticClientHelper {
     public boolean indexAlarmStateDocument(String indexName, AlarmStateMessage alarmStateMessage) {
         IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm");
         try {
-            System.out.println(Arrays.toString(alarmStateMessage.sourceMap().entrySet().toArray()));
             indexRequest.source(alarmStateMessage.sourceMap());
             IndexResponse indexResponse = client.index(indexRequest);
-            return true;
+            return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
         }
     }

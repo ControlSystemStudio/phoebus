@@ -1,4 +1,4 @@
-package org.phoebus.alarm.logging;
+package org.phoebus.alarm.logging.messages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

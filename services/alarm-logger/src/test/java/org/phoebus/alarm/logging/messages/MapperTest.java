@@ -1,4 +1,4 @@
-package org.phoebus.alarm.logging;
+package org.phoebus.alarm.logging.messages;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.junit.Test;
+import org.phoebus.alarm.logging.messages.AlarmStateMessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

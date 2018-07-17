@@ -1,4 +1,4 @@
-package org.phoebus.alarm.logging;
+package org.phoebus.alarm.logging.messages;
 
 import java.util.Map;
 
