@@ -27,6 +27,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
 

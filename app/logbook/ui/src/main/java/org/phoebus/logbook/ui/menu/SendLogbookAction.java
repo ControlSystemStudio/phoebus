@@ -5,9 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.runtime.app;
+package org.phoebus.logbook.ui.menu;
 
-import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
+import static org.phoebus.logbook.LogService.logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import org.csstudio.display.builder.runtime.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
@@ -41,7 +40,7 @@ public class SendLogbookAction extends MenuItem
     private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
     private String default_text;
     private Supplier<String> defaultSupplier;
-    
+    private static final String MESSAGE = "Send To Log Book...";
     /**
      * Constructor.
      * @param model_parent JavaFX parent that context menu is called from.
@@ -49,7 +48,7 @@ public class SendLogbookAction extends MenuItem
      */
     public SendLogbookAction(final Parent model_parent, Supplier<String> defaultSupplier)
     {
-        super(Messages.SendToLogbook, new ImageView(icon));
+        super(MESSAGE, new ImageView(icon));
         this.defaultSupplier = defaultSupplier;
         setOnAction(event -> save(model_parent));
         default_text = "Log Entry from " + getText();
@@ -61,7 +60,7 @@ public class SendLogbookAction extends MenuItem
         final Screenshot screenshot = new Screenshot(model_parent);
 
         // Save to file in background thread
-        JobManager.schedule(Messages.SendToLogbook, monitor ->
+        JobManager.schedule(MESSAGE, monitor ->
         {
             final File image_file = screenshot.writeToTempfile("display");
 

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * A service for creating log entries into the registered log clients.
@@ -20,6 +21,9 @@ import java.util.concurrent.Executors;
  */
 public class LogService {
 
+    /** Suggested logger for all log book related code. */
+    public static final Logger logger = Logger.getLogger(LogService.class.getPackageName());
+    
     static final java.lang.String SERVICE_NAME = "LoggingService";
 
     private static LogService logService;

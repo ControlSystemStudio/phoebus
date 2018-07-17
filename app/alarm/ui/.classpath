@@ -19,5 +19,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-alarm-model"/>
 	<classpathentry kind="src" path="/app-display-runtime"/>
+	<classpathentry kind="src" path="/app-logbook-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
