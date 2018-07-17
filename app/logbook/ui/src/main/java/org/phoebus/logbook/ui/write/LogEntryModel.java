@@ -417,8 +417,7 @@ public class LogEntryModel
         return logEntry;
     }
 
-    /** Fetch the available log book and tag lists on a separate thread.
-     */
+    /** Fetch the available log book and tag lists on a separate thread. */
     public void fetchLists()
     {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
