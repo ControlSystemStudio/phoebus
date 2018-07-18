@@ -65,6 +65,7 @@ public class Launcher
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
+                
                 else if (cmd.equals("-settings"))
                 {
                     if (! iter.hasNext())
@@ -79,6 +80,7 @@ public class Launcher
                     else
                         PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
+                
                 else if (cmd.equals("-export_settings"))
                 {
                     if (! iter.hasNext())
