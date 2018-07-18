@@ -59,13 +59,14 @@ public class LogEntryModel
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
     
-    /** onSubmitAction runnable - runnable to executed after the submit action completes.*/
+    /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
     
     public LogEntryModel(final Node callingNode)
     {   
         logService = LogService.getInstance();
         logFactory = logService.getLogFactories().get("org.phoebus.sns.logbook");
+        
         tags     = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
  
