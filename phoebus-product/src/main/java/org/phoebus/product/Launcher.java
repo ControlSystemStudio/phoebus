@@ -33,16 +33,14 @@ public class Launcher
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
 
         Locations.initialize();
-        // Check for bundled product setting before potentially adding command-line settings
         // Check for site-specific settings.ini bundled into distribution
-
+        // before potentially adding command-line settings.
         final File site_settings = new File(Locations.install(), "settings.ini");
         if (site_settings.canRead())
         {
             logger.log(Level.CONFIG, "Loading settings from " + site_settings);
             PropertyPreferenceLoader.load(new FileInputStream(site_settings));
         }
-
 
         // Handle arguments, potentially not even starting the UI
         final List<String> args = new ArrayList<>(List.of(original_args));
