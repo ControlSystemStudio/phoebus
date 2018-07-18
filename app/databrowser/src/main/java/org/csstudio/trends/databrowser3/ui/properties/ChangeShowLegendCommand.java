@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,38 +12,38 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
-/** Undo-able command to change save-on-change behavior
+/** Undo-able command to show/hide legend
  *  @author Kay Kasemir
  */
-public class ChangeSaveChangesCommand extends UndoableAction
+public class ChangeShowLegendCommand extends UndoableAction
 {
     final private Model model;
-    final private boolean save_changes;
+    final private boolean show_legend;
 
     /** Register and perform the command
      *  @param model Model
      *  @param operations_manager OperationsManager where command will be reg'ed
-     *  @param save_changes Save changes?
+     *  @param show_legend Show legend?
      */
-    public ChangeSaveChangesCommand(final Model model,
+    public ChangeShowLegendCommand(final Model model,
             final UndoableActionManager operations_manager,
-            final boolean save_changes)
+            final boolean show_legend)
     {
-        super(Messages.SaveChangesLbl);
+        super(Messages.LegendLbl);
         this.model = model;
-        this.save_changes = save_changes;
+        this.show_legend = show_legend;
         operations_manager.execute(this);
     }
 
     @Override
     public void run()
     {
-        model.setSaveChanges(save_changes);
+        model.setLegendVisible(show_legend);
     }
 
     @Override
     public void undo()
     {
-        model.setSaveChanges(! save_changes);
+        model.setLegendVisible(! show_legend);
     }
 }

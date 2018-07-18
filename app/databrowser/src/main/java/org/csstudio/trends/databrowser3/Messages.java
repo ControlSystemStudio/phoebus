@@ -160,6 +160,7 @@ public class Messages
     public static String ItemName;
     public static String ItemNameTT;
     public static String LabelFontLbl;
+    public static String LegendLbl;
     public static String LegendFontLbl;
     public static String LiveBufferSizeInfoFmt;
     public static String LiveData;

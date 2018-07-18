@@ -61,6 +61,7 @@ public class ModelBasedPlot
     {
         plot = new RTTimePlot(active);
         plot.setOpacity(Preferences.opacity);
+        plot.showLegend(false);
 
         final Button time_config_button =
             plot.addToolItem(Activator.getIcon("time_range"), Messages.StartEndDialogTT);
@@ -365,12 +366,12 @@ public class ModelBasedPlot
 
         // Set new annotations in plot
         for (AnnotationInfo annotation : newAnnotations)
-            plot.addAnnotation(new Annotation<Instant>(annotation.isInternal(),
-                                                       traces.get(annotation.getItemIndex()),
-                                                       annotation.getTime(),
-                                                       annotation.getValue(),
-                                                       annotation.getOffset(),
-                                                       annotation.getText()));
+            plot.addAnnotation(new Annotation<>(annotation.isInternal(),
+                                                traces.get(annotation.getItemIndex()),
+                                                annotation.getTime(),
+                                                annotation.getValue(),
+                                                annotation.getOffset(),
+                                                annotation.getText()));
     }
 
     /** Refresh the plot because the data has changed */
