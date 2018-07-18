@@ -26,4 +26,3 @@ Internals
 .. raw:: html
 
    <a href="html/generated/index.html">Java Doc for scripts</a>
-   
