@@ -84,9 +84,11 @@ public class SendLogbookAction extends MenuItem
             logger.log(Level.WARNING, "Default log entry attachment creation failed.", ex);
         }
         
+        // TODO Get the default log books
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
         LogEntry template = logEntryBuilder.appendDescription(default_text)
                        .attach(attachment)
+                       //.appendToLogbook(default_logbook)
                        .createdDate(Instant.now())
                        .build();
         
