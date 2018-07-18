@@ -200,9 +200,7 @@ public class LogEntryModel
      */
     public boolean hasSelectedLogbook (final String logbook)
     {
-        boolean result = selectedLogbooks.contains(logbook);
-        System.out.println(logbook + " : " + result);
-        return result;
+        return selectedLogbooks.contains(logbook);
     }
 
     /**
