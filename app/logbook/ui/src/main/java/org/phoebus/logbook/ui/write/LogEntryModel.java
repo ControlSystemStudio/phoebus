@@ -19,6 +19,7 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -76,8 +77,23 @@ public class LogEntryModel
         files  = FXCollections.observableArrayList();
         
         node = callingNode;
+        
+        getDefaults();
     }
 
+    private void getDefaults()
+    {
+        PreferencesReader prefs = new PreferencesReader(LogEntryModel.class, "/log_ui_preferences.properties");
+        String defaults = prefs.get("default_logbooks");
+        // Split the comma separated list.
+        String[] default_logbooks = defaults.split("(\\s)*,(\\s)*");
+        // Get rid of leading and trailing whitespace and add the default to the selected list.
+        for (String logbook : default_logbooks)
+        {
+            addSelectedLogbook(logbook.trim());
+        }
+    }
+    
     /**
      * Gets the JavaFX Scene graph.
      * @return Scene
@@ -194,7 +210,9 @@ public class LogEntryModel
      */
     public boolean hasSelectedLogbook (final String logbook)
     {
-        return selectedLogbooks.contains(logbook);
+        boolean result = selectedLogbooks.contains(logbook);
+        System.out.println(logbook + " : " + result);
+        return result;
     }
     
     /**

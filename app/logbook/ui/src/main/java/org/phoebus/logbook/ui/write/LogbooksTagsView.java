@@ -224,18 +224,24 @@ public class LogbooksTagsView extends VBox
             {
                 CheckBox source = (CheckBox) e.getSource();
                 String text = source.getText();
-                if (model.getSelectedLogbooks().contains(text))
+                if (source.isSelected())
                 {
-                    model.removeSelectedLogbook(text);
+                    if (! model.hasSelectedLogbook(text))
+                    {
+                        System.out.println("Adding selected log book : " + text);
+                        model.addSelectedLogbook(text);
+                    }
                     setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
                 }
                 else
                 {
-                    model.addSelectedLogbook(text);
+                    model.removeSelectedLogbook(text);
                     setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
-                } 
+                }
             }
         });
+        if (model.hasSelectedLogbook(item))
+            checkBox.fire();
         logbookDropDown.getItems().add(newLogbook);
     }
     
@@ -254,18 +260,23 @@ public class LogbooksTagsView extends VBox
             {
                 CheckBox source = (CheckBox) e.getSource();
                 String text = source.getText();
-                if (model.getSelectedTags().contains(text))
+                if (source.isSelected())
                 {
-                    model.removeSelectedTag(text);
+                    if (! model.hasSelectedTag(text))
+                    {
+                        model.addSelectedTag(text);
+                    }
                     setFieldText(tagDropDown, model.getSelectedTags(), tagField);
                 }
                 else
                 {
-                    model.addSelectedTag(text);
+                    model.removeSelectedTag(text);
                     setFieldText(tagDropDown, model.getSelectedTags(), tagField);
                 }
             }
         });
+        if (model.hasSelectedTag(item))
+            checkBox.fire();
         tagDropDown.getItems().add(newTag);   
     }
     
@@ -278,6 +289,7 @@ public class LogbooksTagsView extends VBox
             CustomMenuItem custom = (CustomMenuItem) menuItem;
             CheckBox check = (CheckBox) custom.getContent();
             // If the item is selected make sure it is checked.
+            
             if (selectedItems.contains(check.getText()))
             {
                 if (! check.isSelected()) 
