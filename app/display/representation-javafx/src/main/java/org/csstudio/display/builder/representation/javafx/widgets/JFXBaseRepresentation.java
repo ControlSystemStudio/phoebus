@@ -150,12 +150,9 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     {
         if (widget instanceof DisplayModel)
         {   // Display doesn't have a representation.
-            // Find one of its widgets, then use its parent node
+            // Use its container.
             final DisplayModel model = (DisplayModel) widget;
-            final List<Widget> children = model.getChildren();
-            if (children.isEmpty())
-                return null;
-            return getJFXNode(children.get(0)).getParent();
+            return model.getUserData(Widget.USER_DATA_TOOLKIT_PARENT);
         }
         final JFXBaseRepresentation<Node, Widget> representation =
                 widget.getUserData(Widget.USER_DATA_REPRESENTATION);

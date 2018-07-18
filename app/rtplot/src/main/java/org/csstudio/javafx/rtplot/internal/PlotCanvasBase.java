@@ -126,6 +126,8 @@ abstract class PlotCanvasBase extends ImageView
      */
     private final AtomicBoolean pending_redraw = new AtomicBoolean();
 
+    private WritableImage awt_jfx_convert_buffer = null;
+
     /** Redraw the plot on UI thread by painting the 'plot_image' */
     private final Runnable redraw_runnable = () ->
     {
@@ -152,11 +154,14 @@ abstract class PlotCanvasBase extends ImageView
             drawMouseModeFeedback(gc);
 
             // Convert to JFX image and show
-            final WritableImage image = new WritableImage(width, height);
+            if (awt_jfx_convert_buffer == null  ||
+                awt_jfx_convert_buffer.getWidth() != width ||
+                awt_jfx_convert_buffer.getHeight() != height)
+                awt_jfx_convert_buffer = new WritableImage(width, height);
             // SwingFXUtils.toFXImage(combined, image);
-            image.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), dest, 0, width);
+            awt_jfx_convert_buffer.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), dest, 0, width);
 
-            setImage(image);
+            setImage(awt_jfx_convert_buffer);
         }
     };
 
