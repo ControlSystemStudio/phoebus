@@ -3,10 +3,10 @@ package org.phoebus.alarm.logging.messages;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -113,6 +113,13 @@ public class AlarmStateMessage {
     }
 
     @JsonIgnore
+    public void setInstant(Instant instant) {
+        this.time = new HashMap<String, String>();
+        this.time.put("seconds", String.valueOf(instant.getEpochSecond()));
+        this.time.put("nano", String.valueOf(instant.getNano()));
+    }
+
+    @JsonIgnore
     public boolean isLeaf() {
         return value != null && message != null && time != null && current_severity != null && current_message != null;
     }
@@ -127,7 +134,6 @@ public class AlarmStateMessage {
         map.put("value", getValue());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
                 .withZone(ZoneId.systemDefault());
-
         map.put("time", formatter.format(getInstant()));
         map.put("current_severity", getCurrent_severity());
         map.put("current_message", getCurrent_message());
