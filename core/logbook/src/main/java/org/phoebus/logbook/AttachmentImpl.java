@@ -66,5 +66,17 @@ public class AttachmentImpl implements Attachment {
     public static Attachment of(File file) throws FileNotFoundException {
         return new AttachmentImpl(file, null, null);
     }
+    
+    /**
+     * Create a new instance of a default implementation of the {@link Attachment} interface using the given file
+     * @param file - the attachment file
+     * @param contentType - the type of the attached content ("image", "file", etc...)
+     * @param thumbnail - Whether the attachment has a thumbnail.
+     * @return a {@link Attachment} based on the given file
+     * @throws FileNotFoundException 
+     */
+    public static Attachment of(File file, String contentType, boolean thumbnail) throws FileNotFoundException {
+        return new AttachmentImpl(file, contentType, thumbnail);
+    }
 
 }

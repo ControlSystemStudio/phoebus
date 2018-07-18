@@ -27,6 +27,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -142,7 +143,7 @@ class ContextMenuSupport
         items.add(new SaveSnapshotAction(model_parent));
         items.add(new PrintAction(model_parent));
         // TODO SendEmail
-        items.add(new SendLogbookAction(model_parent));
+        items.add(new SendLogbookAction(model_parent, null));
 
         items.add(new SeparatorMenuItem());
 
