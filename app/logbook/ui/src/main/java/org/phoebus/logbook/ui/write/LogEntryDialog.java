@@ -154,22 +154,30 @@ public class LogEntryDialog extends Dialog<LogEntry>
             }
         });
         
-        // TODO Currently assuming all attachments are images. Update to handle standard files as well.
         for (Attachment attachment : template.getAttachments())
         {
             File file = attachment.getFile();
-            // TODO Once the API is updated to allow the Attachment.contentType to be set, check the content type to differentiate from files and images.
-            Image image = null;
-            try
-            {
-                image = new Image(new FileInputStream(file));
-            } 
-            catch (FileNotFoundException ex)
-            {
-                logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + '"', ex);
-            }
             
-            model.addImage(image);
+            // Add image to model if attachment is image.
+            if (attachment.getContentType().equals("image"))
+            {
+                Image image = null;
+                try
+                {
+                    image = new Image(new FileInputStream(file));
+                } 
+                catch (FileNotFoundException ex)
+                {
+                    logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + '"', ex);
+                }
+                
+                model.addImage(image);
+            }
+            // Add file to model if attachment is file.
+            else if (attachment.getContentType().equals("file"))
+            {
+                model.addFile(file);
+            }
         }
     }
 

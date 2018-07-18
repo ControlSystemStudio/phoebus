@@ -78,8 +78,7 @@ public class SendLogbookAction extends MenuItem
         Attachment attachment = null;
         try
         {
-            // TODO Somehow set the attachment content type indicating this is an image.
-            attachment = AttachmentImpl.of(image_file);
+            attachment = AttachmentImpl.of(image_file, "image", false);
         } catch (FileNotFoundException ex)
         {
             logger.log(Level.WARNING, "Default log entry attachment creation failed.", ex);

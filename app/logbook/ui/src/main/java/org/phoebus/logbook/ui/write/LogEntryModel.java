@@ -389,13 +389,13 @@ public class LogEntryModel
             toDelete.add(imageFile);
             imageFile.deleteOnExit();
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
-            logEntryBuilder.attach(AttachmentImpl.of(imageFile));
+            logEntryBuilder.attach(AttachmentImpl.of(imageFile, "image", false));
         }
         
         // Add Files
         for (File file : files)
         {
-            logEntryBuilder.attach(AttachmentImpl.of(file));
+            logEntryBuilder.attach(AttachmentImpl.of(file, "file", false));
         }
         
         LogEntry logEntry = logEntryBuilder.build();
