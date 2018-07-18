@@ -11,9 +11,10 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -47,7 +48,6 @@ import javafx.scene.image.Image;
 public class LogEntryModel
 {
     private final LogService logService;
-    private final LogFactory logFactory;
     
     private Node    node;
     private String  username, password;
@@ -65,7 +65,6 @@ public class LogEntryModel
     public LogEntryModel(final Node callingNode)
     {   
         logService = LogService.getInstance();
-        logFactory = logService.getLogFactories().get("org.phoebus.sns.logbook");
         
         tags     = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
@@ -205,8 +204,6 @@ public class LogEntryModel
      */
     public boolean addSelectedLogbook(final String logbook)
     {
-        if (! logbooks.contains(logbook))
-            return false;
         boolean result = selectedLogbooks.add(logbook);
         selectedLogbooks.sort(Comparator.naturalOrder());
         return result;
@@ -219,10 +216,7 @@ public class LogEntryModel
      */
     public boolean removeSelectedLogbook(final String logbook)
     {
-        if (! logbooks.contains(logbook))
-            return false;
-        boolean result = selectedLogbooks.remove(logbook);
-        return result;    
+        return selectedLogbooks.remove(logbook);
     }
     
     /**
@@ -270,8 +264,6 @@ public class LogEntryModel
      */
     public boolean addSelectedTag(final String tag)
     {
-        if (! tags.contains(tag))
-            return false;
         boolean result = selectedTags.add(tag);
         selectedTags.sort(Comparator.naturalOrder());
         return result;    
@@ -284,10 +276,7 @@ public class LogEntryModel
      */
     public boolean removeSelectedTag(final String tag)
     {
-        if (! tags.contains(tag))
-            return false;
-        boolean result = selectedTags.remove(tag);
-        return result;        
+        return selectedTags.remove(tag);    
     }
     
     /**
@@ -404,8 +393,7 @@ public class LogEntryModel
         // Submit the entry on a separate thread.
         JobManager.schedule("Submit Log Entry", monitor ->
         {
-            LogClient client = logFactory.getLogClient(new SimpleAuthenticationToken(username, password));
-            client.set(logEntry);
+            logService.createLogEntry(logEntry, new SimpleAuthenticationToken(username, password));
             
             // Delete the temporary files.
             for (File file : toDelete)
@@ -423,14 +411,26 @@ public class LogEntryModel
     {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
         {
-            LogClient initClient = logFactory.getLogClient();
-            Collection<Logbook> logList = initClient.listLogbooks();
-            Collection<Tag> tagList = initClient.listTags();
-            // Certain views have listeners to these observable lists. So when they change the call backs need to execute on the FX Application thread.
+            Map<String, LogFactory> factories = logService.getLogFactories();
+            
+            List<Logbook> logList = new ArrayList<Logbook>();
+            List<Tag> tagList = new ArrayList<Tag>();
+            
+            // For each registered LogFactory fetch all log books and tags.
+            for (LogFactory logFactory : factories.values())
+            {
+                LogClient logClient = logFactory.getLogClient();
+                logClient.listLogbooks().forEach(logbook -> logList.add(logbook));
+                logClient.listTags().forEach(tag -> tagList.add(tag));
+            }
+            // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
             Platform.runLater(() ->
             {
                 logList.forEach(logbook -> logbooks.add(logbook.getName()));
                 tagList.forEach(tag -> tags.add(tag.getName()));
+                
+                Collections.sort(logbooks);
+                Collections.sort(tags);
             });
         });
     }

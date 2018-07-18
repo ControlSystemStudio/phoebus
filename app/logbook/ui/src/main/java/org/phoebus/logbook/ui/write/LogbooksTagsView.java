@@ -7,11 +7,13 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -180,16 +182,25 @@ public class LogbooksTagsView extends VBox
     /** Initialize the drop down context menus by adding listeners to their content lists. */
     private void initializeSelectors()
     {
+        Comparator<MenuItem> comp = (a, b) -> 
+        {
+            CheckBox checkA = (CheckBox)((CustomMenuItem) a).getContent();
+            CheckBox checkB = (CheckBox)((CustomMenuItem) b).getContent();
+
+            return checkA.getText().compareTo(checkB.getText());
+        };
         model.addLogbookListener((ListChangeListener.Change<? extends String> c) -> 
         {
             if (c.next())
                 c.getAddedSubList().forEach(newLogbook -> addToLogbookDropDown(newLogbook));
+            FXCollections.sort(logbookDropDown.getItems(), comp);
         });
 
         model.addTagListener((ListChangeListener.Change<? extends String> c) -> 
         {
             if (c.next())
                 c.getAddedSubList().forEach(newTag -> addToTagDropDown(newTag));
+            FXCollections.sort(tagDropDown.getItems(), comp);
         });
         
         // Once the listeners are added ask the model to fetch the lists.
@@ -255,7 +266,7 @@ public class LogbooksTagsView extends VBox
                 }
             }
         });
-        tagDropDown.getItems().add(newTag);        
+        tagDropDown.getItems().add(newTag);   
     }
     
     /** Sets the field's text based on the selected items list. */
