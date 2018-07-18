@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -65,22 +64,6 @@ public class Launcher
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
-                
-                else if (cmd.equals("-settings"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -settings file name");
-                    iter.remove();
-                    final String filename = iter.next();
-                    iter.remove();
-
-                    logger.info("Loading settings from " + filename);
-                    if (filename.endsWith(".xml"))
-                        Preferences.importPreferences(new FileInputStream(filename));
-                    else
-                        PropertyPreferenceLoader.load(new FileInputStream(filename));
-                }
-                
                 else if (cmd.equals("-export_settings"))
                 {
                     if (! iter.hasNext())
