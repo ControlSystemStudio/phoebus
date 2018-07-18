@@ -1,19 +1,23 @@
 package org.phoebus.product;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.ApplicationServer;
 import org.phoebus.ui.application.PhoebusApplication;
 
@@ -27,6 +31,18 @@ public class Launcher
     public static void main(final String[] original_args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
+
+        Locations.initialize();
+        // Check for bundled product setting before potentially adding command-line settings
+        // Check for site-specific settings.ini bundled into distribution
+
+        final File site_settings = new File(Locations.install(), "settings.ini");
+        if (site_settings.canRead())
+        {
+            logger.log(Level.CONFIG, "Loading settings from " + site_settings);
+            PropertyPreferenceLoader.load(new FileInputStream(site_settings));
+        }
+
 
         // Handle arguments, potentially not even starting the UI
         final List<String> args = new ArrayList<>(List.of(original_args));
@@ -63,6 +79,20 @@ public class Launcher
                     final String filename = iter.next();
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
+                }
+                else if (cmd.equals("-settings"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -settings file name");
+                    iter.remove();
+                    final String filename = iter.next();
+                    iter.remove();
+
+                    logger.info("Loading settings from " + filename);
+                    if (filename.endsWith(".xml"))
+                        Preferences.importPreferences(new FileInputStream(filename));
+                    else
+                        PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
                 else if (cmd.equals("-export_settings"))
                 {

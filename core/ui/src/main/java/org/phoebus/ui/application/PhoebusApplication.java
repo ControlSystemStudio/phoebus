@@ -2,7 +2,6 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
@@ -22,7 +21,6 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
-import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.spi.MenuEntry;
@@ -195,11 +193,6 @@ public class PhoebusApplication extends Application {
         // not knowing, yet, how many applications to start etc.
         monitor.beginTask("Start Applications", 100);
 
-        Locations.initialize();
-
-        // Handle site specific settings and any settings files passed on command line.
-        handleSettings(getParameters().getRaw());
-        
         // Locate registered applications and start them, allocating 30% to that
         startApplications(new SubJobMonitor(monitor, 30));
 
@@ -227,46 +220,7 @@ public class PhoebusApplication extends Application {
                 splash.close();
         });
     }
-    
-    /**
-     * Handle settings from preferences.
-     * <p>Site settings loaded first, command line settings take precedence and will over write site settings.
-     * @param params - List of raw application parameters
-     * @throws Exception 
-     * @throws FileNotFoundException 
-     */
-    private void handleSettings(List<String> params) throws Exception
-    {
-        // Check for site-specific settings.ini bundled into distribution
-        final File site_settings = new File(Locations.install(), "settings.ini");
-        if (site_settings.canRead())
-        {
-            logger.log(Level.CONFIG, "Loading settings from " + site_settings);
-            PropertyPreferenceLoader.load(new FileInputStream(site_settings));
-        }
-        
-        // Check for -settings parameter.
-        final Iterator<String> paramIterator = params.iterator();
-        
-        while (paramIterator.hasNext())
-        {
-            final String cmd = paramIterator.next();
-            if (cmd.equals("-settings"))
-            {
-                if (!paramIterator.hasNext())
-                    throw new Exception("Missing -settings settings file name");
-                final String settingsFileName = paramIterator.next();
-                
-                // Settings from "-settings ..." takes precedence over site-specific settings.
-                logger.info("Loading settings from " + settingsFileName);
-                if (settingsFileName.endsWith(".xml"))
-                    java.util.prefs.Preferences.importPreferences(new FileInputStream(settingsFileName));
-                else
-                    PropertyPreferenceLoader.load(new FileInputStream(settingsFileName));
-            }
-        }
-    }
-    
+
     private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception
     {
         monitor.beginTask("Start UI", 4);
