@@ -29,8 +29,6 @@ public class ElasticClientHelper {
     private static RestHighLevelClient client;
     private static ElasticClientHelper instance;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     private ElasticClientHelper() {
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
