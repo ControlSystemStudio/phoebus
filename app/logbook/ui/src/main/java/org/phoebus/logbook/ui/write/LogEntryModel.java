@@ -86,10 +86,7 @@ public class LogEntryModel
         title    = "";
         text     = "";
         
-        if (LogbookUiPreferences.save_credentials)
-        {
-            fetchStoredUserCredentials();
-        }
+        
         
         updateCredentials = new SimpleBooleanProperty();
         updateCredentialsProperty = updateCredentials;
@@ -118,7 +115,7 @@ public class LogEntryModel
             addSelectedLogbook(logbook.trim());
     }
 
-    private void fetchStoredUserCredentials()
+    public void fetchStoredUserCredentials()
     {
         // Perform file IO on background thread.
         JobManager.schedule("Access Secure Store", monitor ->

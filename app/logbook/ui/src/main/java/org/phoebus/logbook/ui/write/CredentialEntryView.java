@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
+import org.phoebus.logbook.ui.LogbookUiPreferences;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -72,7 +74,11 @@ public class CredentialEntryView extends HBox
             userField.setText(model.getUsername());
             passwordField.setText(model.getPassword());
         });
-
+        
+        if (LogbookUiPreferences.save_credentials)
+        {
+            model.fetchStoredUserCredentials();
+        }
         formatView();
     }
     
