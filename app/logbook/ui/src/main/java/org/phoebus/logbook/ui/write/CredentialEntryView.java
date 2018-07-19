@@ -46,7 +46,7 @@ public class CredentialEntryView extends HBox
         // Update the username entered property when appropriate.
         userField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
-            if (newVal.isEmpty() || newVal.trim().isEmpty())
+            if (newVal.trim().isEmpty())
                 userFieldLabel.setTextFill(Color.RED);
             else
                 userFieldLabel.setTextFill(Color.BLACK);
@@ -61,7 +61,7 @@ public class CredentialEntryView extends HBox
         // Update the password entered property when appropriate.
         passwordField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
-            if (newVal.isEmpty() || newVal.trim().isEmpty())
+            if (newVal.trim().isEmpty())
                 passwordFieldLabel.setTextFill(Color.RED);
             else
                 passwordFieldLabel.setTextFill(Color.BLACK);
