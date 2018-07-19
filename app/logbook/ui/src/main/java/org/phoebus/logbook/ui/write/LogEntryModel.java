@@ -33,6 +33,8 @@ import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -60,11 +62,20 @@ public class LogEntryModel
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
 
+    private ReadOnlyBooleanProperty readyToSubmitProperty;
+    private SimpleBooleanProperty   readyToSubmit;
+    
     /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
 
     public LogEntryModel(final Node callingNode)
     {
+        username = "";
+        password = "";
+        level    = "";
+        title    = "";
+        text     = "";
+        
         logService = LogService.getInstance();
 
         tags     = FXCollections.observableArrayList();
@@ -78,6 +89,9 @@ public class LogEntryModel
 
         node = callingNode;
 
+        readyToSubmit = new SimpleBooleanProperty(false);
+        readyToSubmitProperty = readyToSubmit;
+        
         // Set default logbooks
         // Get rid of leading and trailing whitespace and add the default to the selected list.
         for (String logbook : LogbookUiPreferences.default_logbooks)
@@ -100,6 +114,7 @@ public class LogEntryModel
     public void setUser(final String username)
     {
         this.username = username;
+        checkIfReadyToSubmit();
     }
 
     /**
@@ -109,8 +124,9 @@ public class LogEntryModel
     public void setPassword(final String password)
     {
         this.password = password;
+        checkIfReadyToSubmit();
     }
-
+  
     /**
      * Set the date.
      * @param date
@@ -145,8 +161,9 @@ public class LogEntryModel
     public void setTitle(final String title)
     {
         this.title = title;
+        checkIfReadyToSubmit();
     }
-
+  
     /**
      * Get the text.
      * @param text
@@ -212,6 +229,7 @@ public class LogEntryModel
     {
         boolean result = selectedLogbooks.add(logbook);
         selectedLogbooks.sort(Comparator.naturalOrder());
+        checkIfReadyToSubmit();
         return result;
     }
 
@@ -222,7 +240,9 @@ public class LogEntryModel
      */
     public boolean removeSelectedLogbook(final String logbook)
     {
-        return selectedLogbooks.remove(logbook);
+        boolean result = selectedLogbooks.remove(logbook);
+        checkIfReadyToSubmit();
+        return result;
     }
 
     /**
@@ -356,6 +376,30 @@ public class LogEntryModel
         return files.remove(file);
     }
 
+    /** Check if ready to submit and update readyToSubmitProperty appropriately. */
+    private void checkIfReadyToSubmit()
+    {
+        if (
+            username.trim().isEmpty() ||
+            password.trim().isEmpty() ||
+            title.trim().isEmpty()    ||
+            selectedLogbooks.isEmpty()
+           )
+        {
+            readyToSubmit.set(false);
+        }
+        else
+        {
+            readyToSubmit.set(true);
+        }
+    }
+    
+    /** Get the ready to submit property. True when all required fields have been filled. */
+    public ReadOnlyBooleanProperty getReadyToSubmitProperty()
+    {
+        return readyToSubmitProperty;
+    }
+    
     /**
      * Create and return a log entry with the current data in the log entry form.
      * @throws IOException
@@ -376,13 +420,13 @@ public class LogEntryModel
             logEntryBuilder.appendTag(TagImpl.of(selectedTag));
 
         // List of temporary image files to delete.
-        List<File> toDelete = new ArrayList<>();
+        // List<File> toDelete = new ArrayList<>();
 
         // Add Images
         for (Image image : images)
         {
-            File imageFile = File.createTempFile("log_entry_image", ".png");
-            toDelete.add(imageFile);
+            File imageFile = File.createTempFile("log_entry_image_", ".png");
+            // toDelete.add(imageFile);
             imageFile.deleteOnExit();
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
             logEntryBuilder.attach(AttachmentImpl.of(imageFile, "image", false));
@@ -402,8 +446,8 @@ public class LogEntryModel
             logService.createLogEntry(logEntry, new SimpleAuthenticationToken(username, password));
 
             // Delete the temporary files.
-            for (File file : toDelete)
-                file.delete();
+            //for (File file : toDelete)
+            //    file.delete();
             // Run the onSubmitAction runnable
             if (null != onSubmitAction)
                 onSubmitAction.run();

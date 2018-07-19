@@ -25,12 +25,15 @@ import org.phoebus.ui.dialog.DialogHelper;
 
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
 /**
  * Dialog for making an entry into a log book.
  * @author Evan Smith
@@ -57,9 +60,9 @@ public class LogEntryDialog extends Dialog<LogEntry>
         
     /** View handles addition of log entry attachments. */
     private final AttachmentsView attachmentsView;
-    
+        
     /** Button type for submitting log entry. */
-    private final ButtonType submit;
+    private final ButtonType submitType;
 
     public LogEntryDialog(final Node parent, LogEntry template)
     {         
@@ -95,7 +98,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
         
         getDialogPane().setContent(content);
         
-        submit = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+        submitType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
         
         setResizable(true);
         
@@ -103,13 +106,18 @@ public class LogEntryDialog extends Dialog<LogEntry>
                 PhoebusPreferenceService.userNodeForClass(LogEntryDialog.class),
                 800, 1000);
 
-        getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, submit);
+        getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, submitType);
+                
+        Button submitButton = (Button) getDialogPane().lookupButton(submitType);
+        // Bind the submit button's disable property to the inverse of the model's ready to submit property.
+        submitButton.disableProperty().bind(model.getReadyToSubmitProperty().not());
+        submitButton.setTooltip(new Tooltip("Submit Log Entry"));
         
-        setResultConverter(button ->
+        setResultConverter(buttonType ->
         {
             try
             {
-                return button == submit ? model.submitEntry() : null;
+                return buttonType == submitType ? model.submitEntry() : null;
             } 
             catch (IOException ex)
             {

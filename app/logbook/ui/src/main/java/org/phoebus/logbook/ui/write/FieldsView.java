@@ -14,9 +14,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 public class FieldsView extends VBox
-{
+{   
     private final LogEntryModel    model;
     private final Label            titleLabel, textLabel;
     private final TextField        titleField;
@@ -26,8 +27,16 @@ public class FieldsView extends VBox
     public FieldsView(LogEntryModel model)
     {
         this.model = model;
+        
         titleLabel = new Label("Title:");
         titleField = new TextField(model.getTitle());
+        titleField.textProperty().addListener((changeListener, oldVal, newVal) ->
+        {
+            if (newVal.trim().isEmpty())
+                titleLabel.setTextFill(Color.RED);
+            else
+                titleLabel.setTextFill(Color.BLACK);
+        });
         
         // log books and tags text field, selector, and addition view button
         logbooksAndTags =  new LogbooksTagsView(model);
@@ -49,6 +58,8 @@ public class FieldsView extends VBox
         titleLabel.setPrefWidth(LogEntryDialog.labelWidth);
         textLabel.setPrefWidth(LogEntryDialog.labelWidth);
         
+        titleLabel.setTextFill(Color.RED);
+
         titleField.setPrefWidth(0);
         HBox.setHgrow(titleField, Priority.ALWAYS);
 

@@ -14,6 +14,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.paint.Color;
 
 /**
  * View to facilitate user credential entry.
@@ -29,11 +30,29 @@ public class CredentialEntryView extends HBox
     public CredentialEntryView(LogEntryModel model)
     {
         this.model = model;
+        
         userFieldLabel     = new Label("User Name:");       
         passwordFieldLabel = new Label("Password:");
 
         userField     = new TextField();
+        // Update the username entered property when appropriate.
+        userField.textProperty().addListener((changeListener, oldVal, newVal) -> 
+        {
+            if (newVal.isEmpty() || newVal.trim().isEmpty())
+                userFieldLabel.setTextFill(Color.RED);
+            else
+                userFieldLabel.setTextFill(Color.BLACK);
+        });
+        
         passwordField = new PasswordField();
+        // Update the password entered property when appropriate.
+        passwordField.textProperty().addListener((changeListener, oldVal, newVal) -> 
+        {
+            if (newVal.isEmpty() || newVal.trim().isEmpty())
+                passwordFieldLabel.setTextFill(Color.RED);
+            else
+                passwordFieldLabel.setTextFill(Color.BLACK);
+        });
         
         formatView();
     }
@@ -43,7 +62,10 @@ public class CredentialEntryView extends HBox
         setFieldActions();
         
         userFieldLabel.setPrefWidth(LogEntryDialog.labelWidth);
-
+        
+        userFieldLabel.setTextFill(Color.RED);
+        passwordFieldLabel.setTextFill(Color.RED);
+        
         // The preferred width is set to zero so that the labels don't minimize themselves to let the fields have their preferred widths.
         userField.setPrefWidth(0);
         passwordField.setPrefWidth(0);
