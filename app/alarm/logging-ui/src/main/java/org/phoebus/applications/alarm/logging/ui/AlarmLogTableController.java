@@ -9,7 +9,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.client.RestHighLevelClient;
-import org.phoebus.alarm.logging.messages.AlarmStateMessage;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 

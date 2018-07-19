@@ -1,4 +1,4 @@
-package org.phoebus.alarm.logging.messages;
+package org.phoebus.applications.alarm.messages;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class AlarmStateMessage {
 
-    private String key;
+    private String config;
     private String pv;
 
     private String severity;
@@ -35,12 +35,12 @@ public class AlarmStateMessage {
         super();
     }
 
-    public String getKey() {
-        return key;
+    public String getConfig() {
+        return config;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setConfig(String config) {
+        this.config = config;
     }
 
     public String getPv() {
@@ -127,7 +127,7 @@ public class AlarmStateMessage {
     @JsonIgnore
     public Map<String, String> sourceMap() {
         Map<String, String> map = new HashMap<>();
-        map.put("config", getKey());
+        map.put("config", getConfig());
         map.put("pv", getPv());
         map.put("severity", getSeverity());
         map.put("message", getMessage());
