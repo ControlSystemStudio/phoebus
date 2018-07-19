@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.junit.Test;
-import org.phoebus.alarm.logging.messages.AlarmStateMessage;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 public class MapperTest {
 
@@ -31,16 +34,20 @@ public class MapperTest {
         message.setMode(null);
 
         ObjectMapper objectMapper = new ObjectMapper();
+
+        SimpleBeanPropertyFilter emptyFilter = SimpleBeanPropertyFilter.serializeAll();
+        FilterProvider filters = new SimpleFilterProvider().addFilter("timeFilter", emptyFilter);
+
         try {
             // Parsing object to json string
             assertEquals("Failed to map the AlarmStateMessage", expectedJsonString,
-                    objectMapper.writeValueAsString(message));
+                    objectMapper.writer(filters).writeValueAsString(message));
             // Serializing object to byte[]
             assertArrayEquals("Failed to parse AlarmStateMessage to byte[] ", expectedJsonString.getBytes(),
-                    objectMapper.writeValueAsBytes(message));
+                    objectMapper.writer(filters).writeValueAsBytes(message));
 
             // Check the pasrsing json string to object
-            //bjectMapper.
+            // bjectMapper.
             AlarmStateMessage state = objectMapper.readValue(expectedJsonString, AlarmStateMessage.class);
             assertEquals("Failed to map the AlarmStateMessage", message,
                     objectMapper.readValue(expectedJsonString, AlarmStateMessage.class));
@@ -54,4 +61,5 @@ public class MapperTest {
         }
 
     }
+
 }

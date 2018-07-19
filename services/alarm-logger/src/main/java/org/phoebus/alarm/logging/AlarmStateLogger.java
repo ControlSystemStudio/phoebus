@@ -15,8 +15,8 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.phoebus.alarm.logging.messages.AlarmStateMessage;
-import org.phoebus.alarm.logging.messages.MessageParser;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
+import org.phoebus.applications.alarm.messages.MessageParser;
 
 public class AlarmStateLogger implements Runnable {
 
@@ -56,7 +56,7 @@ public class AlarmStateLogger implements Runnable {
 
                     @Override
                     public KeyValue<String, AlarmStateMessage> apply(String key, AlarmStateMessage value) {
-                        value.setKey(key);
+                        value.setConfig(key);
                         value.setPv(key);
                         return new KeyValue<String, AlarmStateMessage>(key, value);
                     }

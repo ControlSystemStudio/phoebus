@@ -16,9 +16,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.phoebus.alarm.logging.messages.AlarmStateMessage;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 
 /**
  * @author Kunal Shroff {@literal <kunalshroff9@gmail.gov>}

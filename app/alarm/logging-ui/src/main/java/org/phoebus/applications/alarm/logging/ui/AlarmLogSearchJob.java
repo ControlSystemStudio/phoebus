@@ -18,7 +18,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.phoebus.alarm.logging.messages.AlarmStateMessage;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -39,7 +39,8 @@ public class AlarmLogSearchJob implements JobRunnable {
     private final ObjectMapper objectMapper;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
             .withZone(ZoneId.systemDefault());
-    private final PreferencesReader prefs = new PreferencesReader(AlarmLogTableApp.class, "/alarm_logging_preferences.properties");
+    private final PreferencesReader prefs = new PreferencesReader(AlarmLogTableApp.class,
+            "/alarm_logging_preferences.properties");
 
     public static Job submit(RestHighLevelClient client, final String pattern,
             final Consumer<List<AlarmStateMessage>> alarmMessageHandler,
