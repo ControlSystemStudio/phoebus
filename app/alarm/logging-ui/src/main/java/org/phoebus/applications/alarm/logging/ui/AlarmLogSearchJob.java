@@ -23,6 +23,7 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
+import org.phoebus.framework.preferences.PreferencesReader;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,6 +39,7 @@ public class AlarmLogSearchJob implements JobRunnable {
     private final ObjectMapper objectMapper;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
             .withZone(ZoneId.systemDefault());
+    private final PreferencesReader prefs = new PreferencesReader(AlarmLogTableApp.class, "/alarm_logging_preferences.properties");
 
     public static Job submit(RestHighLevelClient client, final String pattern,
             final Consumer<List<AlarmStateMessage>> alarmMessageHandler,
@@ -65,6 +67,7 @@ public class AlarmLogSearchJob implements JobRunnable {
         QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("pv", "*");
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder = sourceBuilder.query(matchQueryBuilder);
+        sourceBuilder.size(prefs.getInt("es_max_size"));
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.source(sourceBuilder);
         List<AlarmStateMessage> result;
