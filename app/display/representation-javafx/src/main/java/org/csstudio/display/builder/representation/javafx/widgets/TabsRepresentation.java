@@ -289,4 +289,14 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         };
         toolkit.schedule(twiddle, 500, TimeUnit.MILLISECONDS);
     }
+
+    @Override
+    public void dispose()
+    {
+        for (TabItemProperty tab : model_widget.propTabs().getValue())
+            for (Widget child : tab.children().getValue())
+                toolkit.execute(() -> toolkit.disposeWidget(child));
+
+        super.dispose();
+    }
 }
