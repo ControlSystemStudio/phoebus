@@ -84,5 +84,6 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-extras-7.3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial3d-7.3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/rank-eval-client-6.3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
