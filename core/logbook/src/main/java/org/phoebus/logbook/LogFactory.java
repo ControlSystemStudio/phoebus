@@ -11,8 +11,10 @@ public interface LogFactory {
 
     public String getId();
 
+    /** Retrieve a read only log client */
     public LogClient getLogClient();
 
+    /** Retrieve a log client with authentication token */
     public LogClient getLogClient(Object authToken);
 
 }

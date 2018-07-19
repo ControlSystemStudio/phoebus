@@ -28,7 +28,7 @@ public class TimeStampedProcessVariableAdapterFactory implements AdapterFactory 
         if (adapterType.isAssignableFrom(LogEntry.class)) {
             TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);
             LogEntry log = log().description("PV name: " + tpv.getName() + " " + tpv.getTime()).build();
-            LogService.getInstance().createLogEntry(log);
+            LogService.getInstance().createLogEntry(log, null);
             return Optional.of(log);
         } else if (adapterType.isAssignableFrom(String.class)) {
             TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);

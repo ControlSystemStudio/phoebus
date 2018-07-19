@@ -1,11 +1,13 @@
 package org.phoebus.product;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -15,6 +17,7 @@ import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.ApplicationServer;
 import org.phoebus.ui.application.PhoebusApplication;
 
@@ -28,6 +31,16 @@ public class Launcher
     public static void main(final String[] original_args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
+
+        Locations.initialize();
+        // Check for site-specific settings.ini bundled into distribution
+        // before potentially adding command-line settings.
+        final File site_settings = new File(Locations.install(), "settings.ini");
+        if (site_settings.canRead())
+        {
+            logger.log(Level.CONFIG, "Loading settings from " + site_settings);
+            PropertyPreferenceLoader.load(new FileInputStream(site_settings));
+        }
 
         // Handle arguments, potentially not even starting the UI
         final List<String> args = new ArrayList<>(List.of(original_args));

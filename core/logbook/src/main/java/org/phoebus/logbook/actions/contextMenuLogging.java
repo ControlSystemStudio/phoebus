@@ -41,7 +41,7 @@ public class contextMenuLogging implements ContextMenuEntry {
                 });
             });
         });
-        LogService.getInstance().createLogEntry(adaptedSelections);
+        LogService.getInstance().createLogEntry(adaptedSelections, null);
         return null;
     }
 
