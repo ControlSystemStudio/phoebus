@@ -126,11 +126,13 @@ public class LogEntryModel
                 SecureStore store = new SecureStore();
                 synchronized(username)
                 {
-                    username = store.get(LogEntryModel.USERNAME_TAG);
+                    String result = store.get(LogEntryModel.USERNAME_TAG);
+                    username = (null == result) ? "" : result;
                 }
                 synchronized(password)
                 {
-                    password = store.get(LogEntryModel.PASSWORD_TAG);
+                    String result = store.get(LogEntryModel.PASSWORD_TAG);
+                    password = (null == result) ? "" : result;
                 }
                 // Let anyone listening know that their credentials are now out of date.
                 updateCredentials.set(true);
