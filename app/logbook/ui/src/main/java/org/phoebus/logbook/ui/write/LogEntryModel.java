@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -14,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
@@ -51,7 +53,8 @@ import javafx.scene.image.Image;
 public class LogEntryModel
 {
     private final LogService logService;
-
+    private final LogFactory logFactory;
+    
     private Node    node;
     private String  username, password;
     private Instant date;
@@ -77,7 +80,9 @@ public class LogEntryModel
         text     = "";
         
         logService = LogService.getInstance();
-
+        
+        logFactory = logService.getLogFactories().get(LogbookUiPreferences.logbook_factory);
+        
         tags     = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
 
@@ -420,14 +425,14 @@ public class LogEntryModel
             logEntryBuilder.appendTag(TagImpl.of(selectedTag));
 
         // List of temporary image files to delete.
-        // List<File> toDelete = new ArrayList<>();
+        List<File> toDelete = new ArrayList<>();
 
         // Add Images
         for (Image image : images)
         {
             File imageFile = File.createTempFile("log_entry_image_", ".png");
-            // toDelete.add(imageFile);
             imageFile.deleteOnExit();
+            toDelete.add(imageFile);
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
             logEntryBuilder.attach(AttachmentImpl.of(imageFile, "image", false));
         }
@@ -443,11 +448,16 @@ public class LogEntryModel
         // Submit the entry on a separate thread.
         JobManager.schedule("Submit Log Entry", monitor ->
         {
-            logService.createLogEntry(logEntry, new SimpleAuthenticationToken(username, password));
+            if (null == logFactory) 
+            {
+                logger.log(Level.WARNING, "Logbook Factory undefined.");
+            }
+            else
+                logFactory.getLogClient(new SimpleAuthenticationToken(username, password)).set(logEntry);
 
             // Delete the temporary files.
-            //for (File file : toDelete)
-            //    file.delete();
+            for (File file : toDelete)
+                file.delete();
             // Run the onSubmitAction runnable
             if (null != onSubmitAction)
                 onSubmitAction.run();
@@ -461,18 +471,19 @@ public class LogEntryModel
     {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
         {
-            Map<String, LogFactory> factories = logService.getLogFactories();
-
+            LogClient logClient = (null == logFactory) ? null : logFactory.getLogClient();
+            if (null == logClient) 
+            {
+                logger.log(Level.WARNING, "Logbook Factory undefined.");
+                return;
+            }
+            
             List<Logbook> logList = new ArrayList<>();
             List<Tag> tagList = new ArrayList<>();
-
-            // For each registered LogFactory fetch all log books and tags.
-            for (LogFactory logFactory : factories.values())
-            {
-                LogClient logClient = logFactory.getLogClient();
-                logClient.listLogbooks().forEach(logbook -> logList.add(logbook));
-                logClient.listTags().forEach(tag -> tagList.add(tag));
-            }
+            
+            logClient.listLogbooks().forEach(logbook -> logList.add(logbook));
+            logClient.listTags().forEach(tag -> tagList.add(tag));
+            
             // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
             Platform.runLater(() ->
             {
