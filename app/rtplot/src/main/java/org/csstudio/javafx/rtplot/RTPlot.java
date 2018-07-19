@@ -534,12 +534,14 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         plot.setUpdateThrottle(dormant_time, unit);
     }
 
-    /** Request a complete redraw of the plot with new layout */
-    @Override
-    public void requestLayout()
-    {
-        plot.requestLayout();
-    }
+    // Used to request a complete redraw of the plot with new layout of node,
+    // but that creates loops:
+    // layout -> compute new image -> set image -> trigger another layout
+    // @Override
+    // public void requestLayout()
+    // {
+    //     plot.requestLayout();
+    // }
 
     /** Request a complete redraw of the plot */
     public void requestUpdate()
