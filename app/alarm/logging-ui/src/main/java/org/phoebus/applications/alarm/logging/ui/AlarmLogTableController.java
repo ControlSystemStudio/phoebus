@@ -29,7 +29,7 @@ public class AlarmLogTableController {
     TableView<AlarmStateMessage> tableView;
 
     @FXML
-    TableColumn<AlarmStateMessage, String> keyCol;
+    TableColumn<AlarmStateMessage, String> configCol;
     @FXML
     TableColumn<AlarmStateMessage, String> pvCol;
     @FXML
@@ -59,15 +59,15 @@ public class AlarmLogTableController {
     @FXML
     public void initialize() {
         tableView.getColumns().clear();
-        keyCol = new TableColumn<>("Key");
-        keyCol.setCellValueFactory(
+        configCol = new TableColumn<>("Config");
+        configCol.setCellValueFactory(
                 new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
                     @Override
                     public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        return new SimpleStringProperty(alarmStateMessage.getValue().getKey());
+                        return new SimpleStringProperty(alarmStateMessage.getValue().getConfig());
                     }
                 });
-        tableView.getColumns().add(keyCol);
+        tableView.getColumns().add(configCol);
 
         pvCol = new TableColumn<>("PV");
         pvCol.setCellValueFactory(new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {

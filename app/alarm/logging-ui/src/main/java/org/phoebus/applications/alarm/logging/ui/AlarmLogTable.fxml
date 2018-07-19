@@ -8,7 +8,7 @@
    <children>
       <TableView fx:id="tableView" prefHeight="250.0" prefWidth="450.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <columns>
-          <TableColumn fx:id="keyCol" minWidth="50.0" prefWidth="75.0" text="Key" />
+          <TableColumn fx:id="configCol" minWidth="50.0" prefWidth="75.0" text="Config" />
           <TableColumn fx:id="pvCol" minWidth="50.0" prefWidth="75.0" text="Pv" />
             <TableColumn fx:id="severityCol" minWidth="50.0" prefWidth="75.0" text="Severity" />
             <TableColumn fx:id="messageCol" minWidth="50.0" prefWidth="75.0" text="Message" />
