@@ -1,6 +1,6 @@
 package org.phoebus.core.types.adapters;
 
-import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.*;
+import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,7 @@ public class ProcessVariablesAdapterFactory implements AdapterFactory {
         if (adapterType.isAssignableFrom(LogEntry.class)) {
             ProcessVariable tpv = ((ProcessVariable) adaptableObject);
             LogEntry log = log().description("PV name : " + tpv.getName()).build();
-            LogService.getInstance().createLogEntry(log);
+            LogService.getInstance().createLogEntry(log, null);
             return Optional.of(log);
         } else if (adapterType.isAssignableFrom(String.class)) {
             ProcessVariable tpv = ((ProcessVariable) adaptableObject);

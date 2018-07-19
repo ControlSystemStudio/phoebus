@@ -85,8 +85,8 @@ public class LogEntryDialog extends Dialog<LogEntry>
         // Let the Text Area grow to the bottom.
         VBox.setVgrow(logEntryFields,  Priority.ALWAYS);
 
-        VBox.setMargin(credentialEntry,       new Insets(10, 0,  0, 0));
-        VBox.setMargin(logEntryFields,        new Insets( 0, 0, 10, 0));
+        VBox.setMargin(credentialEntry, new Insets(10, 0,  0, 0));
+        VBox.setMargin(logEntryFields,  new Insets( 0, 0, 10, 0));
         
         content.setSpacing(10);
         content.getChildren().addAll(credentialEntry, dateAndLevel, logEntryFields, attachmentsView);
@@ -111,7 +111,6 @@ public class LogEntryDialog extends Dialog<LogEntry>
             {
                 return button == submit ? model.submitEntry() : null;
             } 
-            
             catch (IOException ex)
             {
                 logger.log(Level.WARNING, "Log Entry Submission Failed!", ex);
@@ -131,27 +130,13 @@ public class LogEntryDialog extends Dialog<LogEntry>
         Collection<Logbook> logbooks = template.getLogbooks();
         logbooks.forEach(logbook-> 
         {
-            try
-            {
-                model.addSelectedLogbook(logbook.getName());
-            } 
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Selected logbook initialization failed.", ex);
-            }
+            model.addSelectedLogbook(logbook.getName());
         });  
         
         Collection<Tag> tags = template.getTags();
         tags.forEach(tag-> 
         {
-            try
-            {
-                model.addSelectedTag(tag.getName());
-            } 
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Selected tag initialization failed.", ex);
-            }
+            model.addSelectedTag(tag.getName());
         });
         
         for (Attachment attachment : template.getAttachments())
@@ -168,7 +153,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
                 } 
                 catch (FileNotFoundException ex)
                 {
-                    logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + '"', ex);
+                    logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + "'", ex);
                 }
                 
                 model.addImage(image);

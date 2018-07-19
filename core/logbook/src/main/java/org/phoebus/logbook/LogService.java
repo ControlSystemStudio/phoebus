@@ -61,28 +61,29 @@ public class LogService {
     }
 
     /**
-     * Create a log entry in all register LogFactory
+     * Create a log entry in all registered LogFactory
      * 
      * @param adaptedSelections
+     * @param authToken - Authentication Token
      */
-    public void createLogEntry(LogEntry logEntry) {
+    public void createLogEntry(LogEntry logEntry, Object authToken) {
         executor.submit(() -> {
             logFactories.values().stream().forEach(logFactory -> {
-                logFactory.getLogClient().set(logEntry);
+                logFactory.getLogClient(authToken).set(logEntry);
             });
         });
     }
-
+    
     /**
-     * Create a log entry in all register LogFactory TODO change to Log type
+     * Create a log entry in all registered LogFactory TODO change to Log type
      * 
      * @param adaptedSelections
      */
-    public void createLogEntry(List<LogEntry> logEntries) {
+    public void createLogEntry(List<LogEntry> logEntries,  Object authToken) {
         executor.submit(() -> {
             logFactories.values().stream().forEach(logFactory -> {
                 logEntries.forEach(logEntry -> {
-                    logFactory.getLogClient().set(logEntry);
+                    logFactory.getLogClient(authToken).set(logEntry);
                 });
             });
         });
@@ -94,9 +95,9 @@ public class LogService {
      * @param id
      * @param log
      */
-    public void createLogEntry(String id, LogEntry logEntry) {
+    public void createLogEntry(String id, LogEntry logEntry,  Object authToken) {
         executor.submit(() -> {
-            logFactories.get(id).getLogClient().set(logEntry);
+            logFactories.get(id).getLogClient(authToken).set(logEntry);
         });
     }
 }
