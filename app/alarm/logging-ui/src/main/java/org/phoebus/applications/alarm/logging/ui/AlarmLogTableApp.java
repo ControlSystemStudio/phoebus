@@ -17,11 +17,13 @@ import javafx.scene.image.Image;
 public class AlarmLogTableApp implements AppDescriptor {
 
     public static final Logger logger = Logger.getLogger(AlarmLogTableApp.class.getName());
-    static final Image icon = ImageCache.getImage(AlarmLogTableApp.class, "/icons/alarmtable.png");
     public static final String NAME = "alarmLogTable";
     public static final String DISPLAYNAME = "Alarm Log Table";
 
+    static final Image icon = ImageCache.getImage(AlarmLogTableApp.class, "/icons/alarmtable.png");
+
     private RestHighLevelClient client;
+    private PreferencesReader prefs;
 
     @Override
     public String getName() {
@@ -36,8 +38,7 @@ public class AlarmLogTableApp implements AppDescriptor {
     @Override
     public void start() {
         AppDescriptor.super.start();
-        final PreferencesReader prefs = new PreferencesReader(AlarmLogTableApp.class,
-                "/alarm_logging_preferences.properties");
+        prefs = new PreferencesReader(AlarmLogTableApp.class, "/alarm_logging_preferences.properties");
         try {
             client = new RestHighLevelClient(
                     RestClient.builder(new HttpHost(prefs.get("es_host"), Integer.valueOf(prefs.get("es_port")))));
@@ -49,7 +50,6 @@ public class AlarmLogTableApp implements AppDescriptor {
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
         AppDescriptor.super.stop();
         if (client != null) {
             try {
