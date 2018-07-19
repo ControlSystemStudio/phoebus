@@ -400,8 +400,11 @@ public class Perspective extends SplitPane
         property_panel.save(memento);
         if (export != null)
             export.save(memento);
-        memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
-        memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
+
+        if (getDividers().size() > 0)
+            memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
+        if (plot_and_tabs.getDividers().size() > 0)
+            memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
         memento.setBoolean(SHOW_SEARCH, left_tabs.getTabs().contains(search_tab));
         memento.setBoolean(SHOW_PROPERTIES, bottom_tabs.getTabs().contains(properties_tab));
         memento.setBoolean(SHOW_EXPORT, bottom_tabs.getTabs().contains(export_tab));
