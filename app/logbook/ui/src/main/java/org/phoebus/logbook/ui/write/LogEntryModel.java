@@ -69,11 +69,13 @@ public class LogEntryModel
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
     
-    private final ReadOnlyBooleanProperty readyToSubmitProperty;
-    private final SimpleBooleanProperty   readyToSubmit;
+    /** Property that allows the model to define when the application is in an appropriate state to submit a log entry. */
+    private final ReadOnlyBooleanProperty readyToSubmitProperty; // To be broadcast through getReadyToSubmitProperty method.
+    private final SimpleBooleanProperty   readyToSubmit;         // Used internally. Backs read only property above.
     
-    private final ReadOnlyBooleanProperty updateCredentialsProperty;
-    private final SimpleBooleanProperty   updateCredentials;
+    /** Property that allows the model to define when the application needs to update the username and password text fields. Only used if save_credentials=true */
+    private final ReadOnlyBooleanProperty updateCredentialsProperty; // To be broadcast through getUpdateCredentialsProperty.
+    private final SimpleBooleanProperty   updateCredentials;         // Used internally. Backs read only property above.
     
     /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
@@ -85,9 +87,7 @@ public class LogEntryModel
         level    = "";
         title    = "";
         text     = "";
-        
-        
-        
+
         updateCredentials = new SimpleBooleanProperty();
         updateCredentialsProperty = updateCredentials;
         
