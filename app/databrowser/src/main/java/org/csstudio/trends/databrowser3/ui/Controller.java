@@ -364,6 +364,8 @@ public class Controller
             @Override
             public void changedColorsOrFonts()
             {
+                plot.getPlot().setForeground(model.getPlotForeground());
+                plot.getPlot().getXAxis().setColor(model.getPlotForeground());
                 plot.getPlot().setBackground(model.getPlotBackground());
                 plot.getPlot().setTitleFont(model.getTitleFont());
                 plot.getPlot().setLegendFont(model.getLegendFont());

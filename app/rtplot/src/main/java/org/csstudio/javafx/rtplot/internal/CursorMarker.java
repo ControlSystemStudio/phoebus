@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -109,7 +109,7 @@ class CursorMarker implements Comparable<CursorMarker>
 
         final Color orig_fill = gc.getColor();
 
-        gc.setColor(new Color(1.0f, 1.0f, 1.0f, 0.8f));
+        gc.setColor(gc.getBackground());
         gc.fillPolygon(outline_x, outline_y, 5);
 
         gc.setColor(mark.rgb);

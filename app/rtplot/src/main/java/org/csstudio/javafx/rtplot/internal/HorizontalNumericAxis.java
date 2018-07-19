@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -132,10 +132,7 @@ public class HorizontalNumericAxis extends NumericAxis
         if (floating)
         {
             gc.drawLine(x, region.y, x, region.y + TICK_LENGTH);
-            final Color orig_fill = gc.getColor();
-            gc.setColor(java.awt.Color.WHITE);
-            gc.fillRect(outline.x, outline.y, outline.width, outline.height);
-            gc.setColor(orig_fill);
+            gc.clearRect(outline.x, outline.y, outline.width, outline.height);
             gc.drawRect(outline.x, outline.y, outline.width, outline.height);
         }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -81,7 +81,7 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         super(name, listener,
                 false,      // vertical
                 0.0, 10.0); // Initial range
-        label_provider = new AxisLabelProvider<XTYPE>(this);
+        label_provider = new AxisLabelProvider<>(this);
     }
 
     /** {@inheritDoc} */
@@ -398,10 +398,7 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
                 gc.drawLine(x + mark_width, screen_y, x + mark_width + TICK_LENGTH, screen_y);
 
             // Box around label
-            final Color orig_fill = gc.getColor();
-            gc.setColor(java.awt.Color.WHITE);
-            gc.fillRect(outline.x, outline.y, outline.width, outline.height);
-            gc.setColor(orig_fill);
+            gc.clearRect(outline.x, outline.y, outline.width, outline.height);
             gc.drawRect(outline.x, outline.y, outline.width, outline.height);
         }
 

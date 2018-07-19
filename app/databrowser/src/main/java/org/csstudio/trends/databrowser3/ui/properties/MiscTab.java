@@ -36,7 +36,7 @@ public class MiscTab extends Tab
 
     private final TextField title = new TextField(), update_period = new TextField(), scroll_step = new TextField();
     private CheckBox save_changes = new CheckBox(), show_legend = new CheckBox();
-    private ColorPicker background = new ColorPicker();
+    private ColorPicker foreground = new ColorPicker(), background = new ColorPicker();
     private FontButton title_font, label_font, scale_font, legend_font;
 
     /** Update Tab when model changes (undo, ...) */
@@ -71,6 +71,7 @@ public class MiscTab extends Tab
         {
             if (updating)
                 return;
+            foreground.setValue(model.getPlotForeground());
             background.setValue(model.getPlotBackground());
             title_font.selectFont(model.getTitleFont());
             label_font.selectFont(model.getLabelFont());
@@ -139,9 +140,20 @@ public class MiscTab extends Tab
             updating = false;
         });
 
-        layout.add(new Label(Messages.BackgroundColorLbl), 0, 3);
+        layout.add(new Label(Messages.ForegroundColorLbl), 0, 3);
+        foreground.setStyle("-fx-color-label-visible: false ;");
+        layout.add(foreground, 1, 3);
+        foreground.setValue(model.getPlotForeground());
+        foreground.setOnAction(event ->
+        {
+            updating = true;
+            new ChangePlotForegroundCommand(model, undo, foreground.getValue());
+            updating = false;
+        });
+
+        layout.add(new Label(Messages.BackgroundColorLbl), 0, 4);
         background.setStyle("-fx-color-label-visible: false ;");
-        layout.add(background, 1, 3);
+        layout.add(background, 1, 4);
         background.setValue(model.getPlotBackground());
         background.setOnAction(event ->
         {
@@ -150,7 +162,7 @@ public class MiscTab extends Tab
             updating = false;
         });
 
-        layout.add(new Label(Messages.SaveChangesLbl), 0, 4);
+        layout.add(new Label(Messages.SaveChangesLbl), 0, 5);
         save_changes.setTooltip(new Tooltip(Messages.SaveChangesTT));
         save_changes.setOnAction(event ->
         {
@@ -158,7 +170,7 @@ public class MiscTab extends Tab
             new ChangeSaveChangesCommand(model, undo, save_changes.isSelected());
             updating = false;
         });
-        layout.add(save_changes, 1, 4);
+        layout.add(save_changes, 1, 5);
 
         layout.add(new Label(Messages.TitleFontLbl), 2, 0);
         title_font = new FontButton(model.getTitleFont(),
