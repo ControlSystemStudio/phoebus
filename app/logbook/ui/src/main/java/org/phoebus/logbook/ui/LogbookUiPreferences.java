@@ -19,6 +19,7 @@ public class LogbookUiPreferences
     public static final String[] default_logbooks;
     public static final boolean save_credentials;
     public static final String   logbook_factory;
+    
     static
     {
         PreferencesReader prefs = new PreferencesReader(LogEntryModel.class, "/log_ui_preferences.properties");
