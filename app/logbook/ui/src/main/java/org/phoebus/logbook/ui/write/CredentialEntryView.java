@@ -31,10 +31,18 @@ public class CredentialEntryView extends HBox
     {
         this.model = model;
         
+        String storedUser = "";
+        String storedPass = "";
+        
         userFieldLabel     = new Label("User Name:");       
         passwordFieldLabel = new Label("Password:");
 
-        userField     = new TextField();
+        userField = new TextField();
+        if (null != storedUser)
+        {
+            userField.setText(storedUser);
+            model.setUser(storedUser);
+        }
         // Update the username entered property when appropriate.
         userField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
@@ -45,6 +53,11 @@ public class CredentialEntryView extends HBox
         });
         
         passwordField = new PasswordField();
+        if(null != storedPass)
+        {
+            passwordField.setText(storedPass);
+            model.setPassword(storedPass);
+        }
         // Update the password entered property when appropriate.
         passwordField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
@@ -54,6 +67,12 @@ public class CredentialEntryView extends HBox
                 passwordFieldLabel.setTextFill(Color.BLACK);
         });
         
+        model.getUpdateCredentialsProperty().addListener((changeListener, oldVal, newVal) ->
+        {
+            userField.setText(model.getUsername());
+            passwordField.setText(model.getPassword());
+        });
+
         formatView();
     }
     

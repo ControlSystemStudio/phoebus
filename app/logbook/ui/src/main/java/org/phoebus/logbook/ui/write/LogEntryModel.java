@@ -32,6 +32,7 @@ import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
+import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 import javafx.application.Platform;
@@ -52,6 +53,9 @@ import javafx.scene.image.Image;
  */
 public class LogEntryModel
 {
+    public static final String USERNAME_TAG = "username";
+    public static final String PASSWORD_TAG = "password";
+    
     private final LogService logService;
     private final LogFactory logFactory;
     
@@ -64,9 +68,12 @@ public class LogEntryModel
     private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
-
-    private ReadOnlyBooleanProperty readyToSubmitProperty;
-    private SimpleBooleanProperty   readyToSubmit;
+    
+    private final ReadOnlyBooleanProperty readyToSubmitProperty;
+    private final SimpleBooleanProperty   readyToSubmit;
+    
+    private final ReadOnlyBooleanProperty updateCredentialsProperty;
+    private final SimpleBooleanProperty   updateCredentials;
     
     /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
@@ -78,6 +85,14 @@ public class LogEntryModel
         level    = "";
         title    = "";
         text     = "";
+        
+        if (LogbookUiPreferences.save_credentials)
+        {
+            fetchStoredUserCredentials();
+        }
+        
+        updateCredentials = new SimpleBooleanProperty();
+        updateCredentialsProperty = updateCredentials;
         
         logService = LogService.getInstance();
         
@@ -103,6 +118,38 @@ public class LogEntryModel
             addSelectedLogbook(logbook.trim());
     }
 
+    private void fetchStoredUserCredentials()
+    {
+        // Perform file IO on background thread.
+        JobManager.schedule("Access Secure Store", monitor ->
+        {
+            // Get the SecureStore. Retrieve username and password.
+            try
+            {
+                SecureStore store = new SecureStore();
+                synchronized(username)
+                {
+                    username = store.get(LogEntryModel.USERNAME_TAG);
+                }
+                synchronized(password)
+                {
+                    password = store.get(LogEntryModel.PASSWORD_TAG);
+                }
+                // Let anyone listening know that their credentials are now out of date.
+                updateCredentials.set(true);
+            } 
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Secure Store file not found.", ex);
+            }
+        });
+    }
+    
+    public ReadOnlyBooleanProperty getUpdateCredentialsProperty()
+    {
+        return updateCredentialsProperty;
+    }
+    
     /**
      * Gets the JavaFX Scene graph.
      * @return Scene
@@ -118,17 +165,33 @@ public class LogEntryModel
      */
     public void setUser(final String username)
     {
-        this.username = username;
+        synchronized(this.username)
+        {
+            this.username = username;
+        }
         checkIfReadyToSubmit();
     }
 
+    public String getUsername()
+    {
+        return username;
+    }
+    
+    public String getPassword()
+    {
+        return password;
+    }
+    
     /**
      * Set the password.
      * @param password
      */
     public void setPassword(final String password)
     {
-        this.password = password;
+        synchronized(this.password)
+        {
+            this.password = password;
+        }
         checkIfReadyToSubmit();
     }
   
@@ -448,9 +511,24 @@ public class LogEntryModel
         // Submit the entry on a separate thread.
         JobManager.schedule("Submit Log Entry", monitor ->
         {
+            if (LogbookUiPreferences.save_credentials)
+            {
+                // Get the SecureStore. Store username and password.
+                try
+                {
+                    SecureStore store = new SecureStore();
+                    store.set(USERNAME_TAG, username);
+                    store.set(PASSWORD_TAG, password);
+                } 
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Secure Store file not found.", ex);
+                }
+            }
+            
             if (null == logFactory) 
             {
-                logger.log(Level.WARNING, "Logbook Factory undefined.");
+                logger.log(Level.WARNING, "Logbook Factory Undefined.");
             }
             else
                 logFactory.getLogClient(new SimpleAuthenticationToken(username, password)).set(logEntry);
@@ -466,33 +544,35 @@ public class LogEntryModel
         return logEntry;
     }
 
-    /** Fetch the available log book and tag lists on a separate thread. */
+    /** Fetch the available log book and tag lists on a separate thread.*/
     public void fetchLists()
     {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
         {
-            LogClient logClient = (null == logFactory) ? null : logFactory.getLogClient();
-            if (null == logClient) 
+            if (null == logFactory) 
             {
-                logger.log(Level.WARNING, "Logbook Factory undefined.");
-                return;
+                logger.log(Level.WARNING, "Logbook Factory Undefined.");
             }
-            
-            List<Logbook> logList = new ArrayList<>();
-            List<Tag> tagList = new ArrayList<>();
-            
-            logClient.listLogbooks().forEach(logbook -> logList.add(logbook));
-            logClient.listTags().forEach(tag -> tagList.add(tag));
-            
-            // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
-            Platform.runLater(() ->
+            else
             {
-                logList.forEach(logbook -> logbooks.add(logbook.getName()));
-                tagList.forEach(tag -> tags.add(tag.getName()));
-
-                Collections.sort(logbooks);
-                Collections.sort(tags);
-            });
+                LogClient logClient = logFactory.getLogClient();
+                
+                List<Logbook> logList = new ArrayList<>();
+                List<Tag> tagList = new ArrayList<>();
+                
+                logClient.listLogbooks().forEach(logbook -> logList.add(logbook));
+                logClient.listTags().forEach(tag -> tagList.add(tag));
+                
+                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
+                Platform.runLater(() ->
+                {
+                    logList.forEach(logbook -> logbooks.add(logbook.getName()));
+                    tagList.forEach(tag -> tags.add(tag.getName()));
+        
+                    Collections.sort(logbooks);
+                    Collections.sort(tags);
+                });
+            }
         });
     }
 
