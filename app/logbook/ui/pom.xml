@@ -20,7 +20,17 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>core-util</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-security</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
