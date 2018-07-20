@@ -36,7 +36,7 @@ public class FilesTab extends Tab
     private class FileCell extends ListCell<File>
     {
         private Hyperlink hyperlink;
-        private File file;
+        //private File file;
 
         public FileCell()
         {
@@ -58,7 +58,7 @@ public class FilesTab extends Tab
             }
             else
             {
-                this.file = file;
+                //this.file = file;
                 hyperlink.setText(file.getName());
                 setGraphic(hyperlink);
             }
