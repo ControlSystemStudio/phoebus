@@ -364,6 +364,8 @@ public class Controller
             @Override
             public void changedColorsOrFonts()
             {
+                plot.getPlot().setForeground(model.getPlotForeground());
+                plot.getPlot().getXAxis().setColor(model.getPlotForeground());
                 plot.getPlot().setBackground(model.getPlotBackground());
                 plot.getPlot().setTitleFont(model.getTitleFont());
                 plot.getPlot().setLegendFont(model.getLegendFont());
@@ -520,32 +522,14 @@ public class Controller
         if (isRunning())
             throw new IllegalStateException("Already started");
 
-//        plot.getPlot().setBackground(SWTMediaPool.getJFX(model.getPlotBackground()));
-//        plot.getPlot().getXAxis().setGridVisible(model.isGridVisible());
-//        plot.getPlot().showToolbar(model.isToolbarVisible());
-//        plot.getPlot().showLegend(model.isLegendVisible());
-//        plot.getPlot().setTitleFont(SWTMediaPool.getJFX(model.getTitleFont()));
-//        plot.getPlot().setLegendFont(SWTMediaPool.getJFX(model.getLegendFont()));
-//        plot.getPlot().setTitle(model.getTitle().orElse(null));
-//        plot.getPlot().setScrollStep(model.getScrollStep());
-
         final List<Trace<Instant>> traces = new ArrayList<>();
         for (Trace<Instant> trace : plot.getPlot().getTraces())
             traces.add(trace);
-//        for (AnnotationInfo info : model.getAnnotations())
-//        {
-//            final Trace<Instant> trace = traces.get(info.getItemIndex());
-//            final Annotation<Instant> annotation =
-//                    new Annotation<Instant>(info.isInternal(), trace , info.getTime(), info.getValue(), info.getOffset(), info.getText());
-//            plot.getPlot().addAnnotation(annotation);
-//        }
         createUpdateTask();
 
         model.start();
 
         // Initial time range setup, schedule archive fetch
-//        if (!model.isScrollEnabled())
-//            plot.getPlot().setScrolling(false);
         model_listener.changedTimerange();
     }
 

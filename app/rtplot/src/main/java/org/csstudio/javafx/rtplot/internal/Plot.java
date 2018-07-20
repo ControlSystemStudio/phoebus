@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -83,7 +83,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     final private AxisPart<XTYPE> x_axis;
     final private List<YAxisImpl<XTYPE>> y_axes = new CopyOnWriteArrayList<>();
     final private PlotPart plot_area;
-    final private TracePainter<XTYPE> trace_painter = new TracePainter<XTYPE>();
+    final private TracePainter<XTYPE> trace_painter = new TracePainter<>();
     final private List<AnnotationImpl<XTYPE>> annotations = new CopyOnWriteArrayList<>();
     final private LegendPart<XTYPE> legend;
 
@@ -123,7 +123,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     public Plot(final Class<XTYPE> type, final boolean active)
     {
         super(active);
-        plot_processor = new PlotProcessor<XTYPE>(this);
+        plot_processor = new PlotProcessor<>(this);
 
         // To avoid unchecked cast, X axis would need to be passed in,
         // but its listener can only be created within this class.
@@ -139,7 +139,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         addYAxis("Value 1");
         title_part = new TitlePart("", plot_part_listener);
         plot_area = new PlotPart("main", plot_part_listener);
-        legend = new LegendPart<XTYPE>("legend", plot_part_listener);
+        legend = new LegendPart<>("legend", plot_part_listener);
 
         if (active)
         {
@@ -169,6 +169,16 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     public void setForeground(final javafx.scene.paint.Color color)
     {
         foreground = color;
+
+        // Use foreground color for the grid.
+        // For dark foreground (black on presumably white background),
+        // use a lighter shade as the grid.
+        // For bright foreground (white on presumably black background),
+        // use a darker shade.
+        if (foreground.getBrightness() > 0.5)
+            grid = GraphicsUtils.convert(foreground.darker());
+        else
+            grid = GraphicsUtils.convert(foreground.brighter());
     }
 
     /** @param color Background color */
@@ -241,7 +251,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
      */
     public YAxis<XTYPE> addYAxis(final String name)
     {
-        YAxisImpl<XTYPE> axis = new YAxisImpl<XTYPE>(name, plot_part_listener);
+        YAxisImpl<XTYPE> axis = new YAxisImpl<>(name, plot_part_listener);
         y_axes.add(axis);
         need_layout.set(true);
         return axis;
@@ -330,7 +340,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
      */
     public PlotMarker<XTYPE> addMarker(final javafx.scene.paint.Color color, final boolean interactive, final XTYPE position)
     {   // Return a PlotMarker that triggers a redraw as it's changed
-        final PlotMarker<XTYPE> marker = new PlotMarker<XTYPE>(color, interactive, position)
+        final PlotMarker<XTYPE> marker = new PlotMarker<>(color, interactive, position)
         {
             @Override
             public void setPosition(XTYPE position)
@@ -408,7 +418,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         if (annotation instanceof AnnotationImpl)
             annotations.add((AnnotationImpl)annotation);
         else
-            annotations.add(new AnnotationImpl<XTYPE>(annotation.isInternal(),
+            annotations.add(new AnnotationImpl<>(annotation.isInternal(),
                                                       annotation.getTrace(), annotation.getPosition(),
                                                       annotation.getValue(), annotation.getOffset(),
                                                       annotation.getText()));
@@ -485,7 +495,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         final AnnotationImpl<XTYPE> anno = mouse_annotation;
         if (anno != null)
         {
-            undo.add(new UpdateAnnotationAction<XTYPE>(this, anno,
+            undo.add(new UpdateAnnotationAction<>(this, anno,
                     mouse_annotation_start_position, mouse_annotation_start_value,
                     mouse_annotation_start_offset,
                     anno.getPosition(), anno.getValue(),
@@ -681,14 +691,15 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         else if (show_crosshair  &&  plot_bounds.contains(current.getX(), current.getY()))
         {   // Cross-hair Cursor
             gc.setStroke(MOUSE_FEEDBACK_BACK);
-            gc.setColor(Color.WHITE);
+            gc.setColor(background);
             gc.drawLine(plot_bounds.x, (int)current.getY(), plot_bounds.x + plot_bounds.width, (int)current.getY());
             gc.drawLine((int)current.getX(), plot_bounds.y, (int)current.getX(), plot_bounds.y + plot_bounds.height);
             gc.setStroke(MOUSE_FEEDBACK_FRONT);
-            gc.setColor(Color.BLACK);
+            gc.setColor(GraphicsUtils.convert(foreground));
             gc.drawLine(plot_bounds.x, (int)current.getY(), plot_bounds.x + plot_bounds.width, (int)current.getY());
             gc.drawLine((int)current.getX(), plot_bounds.y, (int)current.getX(), plot_bounds.y + plot_bounds.height);
             // Corresponding axis ticks
+            gc.setBackground(background);
             x_axis.drawTickLabel(gc, x_axis.getValue((int)current.getX()));
             for (YAxisImpl<XTYPE> axis : y_axes)
                 axis.drawTickLabel(gc, axis.getValue((int)current.getY()));
@@ -987,7 +998,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         if (mouse_mode == MouseMode.PAN_X)
         {
             mouseMove(e);
-            undo.add(new ChangeAxisRanges<XTYPE>(this, Messages.Pan_X, x_axis, mouse_start_x_range, x_axis.getValueRange(), false, false));
+            undo.add(new ChangeAxisRanges<>(this, Messages.Pan_X, x_axis, mouse_start_x_range, x_axis.getValueRange(), false, false));
             fireXAxisChange();
             mouse_mode = MouseMode.PAN;
         }
@@ -995,7 +1006,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         {
             mouseMove(e);
             final YAxisImpl<XTYPE> y_axis = y_axes.get(mouse_y_axis);
-            undo.add(new ChangeAxisRanges<XTYPE>(this, Messages.Pan_Y,
+            undo.add(new ChangeAxisRanges<>(this, Messages.Pan_Y,
                     Arrays.asList(y_axis),
                     mouse_start_y_ranges,
                     Arrays.asList(y_axis.getValueRange()),
@@ -1011,7 +1022,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
             final List<AxisRange<Double>> current_y_ranges = new ArrayList<>();
             for (YAxisImpl<XTYPE> axis : y_axes)
                 current_y_ranges.add(axis.getValueRange());
-            undo.add(new ChangeAxisRanges<XTYPE>(this, Messages.Pan,
+            undo.add(new ChangeAxisRanges<>(this, Messages.Pan,
                     x_axis, mouse_start_x_range, x_axis.getValueRange(), false, false,
                     y_axes, mouse_start_y_ranges, current_y_ranges, pre_pan_auto_scales));
             fireXAxisChange();
@@ -1031,7 +1042,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                 final int high = (int) Math.max(start.getX(), current.getX());
                 final AxisRange<XTYPE> original_x_range = x_axis.getValueRange();
                 final AxisRange<XTYPE> new_x_range = new AxisRange<>(x_axis.getValue(low), x_axis.getValue(high));
-                undo.execute(new ChangeAxisRanges<XTYPE>(this, Messages.Zoom_In_X, x_axis, original_x_range, new_x_range, x_axis.isAutoscale(), false));
+                undo.execute(new ChangeAxisRanges<>(this, Messages.Zoom_In_X, x_axis, original_x_range, new_x_range, x_axis.isAutoscale(), false));
             }
             mouse_mode = MouseMode.ZOOM_IN;
         }
@@ -1042,10 +1053,10 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                 final int high = (int)Math.min(start.getY(), current.getY());
                 final int low = (int) Math.max(start.getY(), current.getY());
                 final YAxisImpl<XTYPE> axis = y_axes.get(mouse_y_axis);
-                undo.execute(new ChangeAxisRanges<XTYPE>(this, Messages.Zoom_In_Y,
+                undo.execute(new ChangeAxisRanges<>(this, Messages.Zoom_In_Y,
                         Arrays.asList(axis),
                         Arrays.asList(axis.getValueRange()),
-                        Arrays.asList(new AxisRange<Double>(axis.getValue(low), axis.getValue(high))),
+                        Arrays.asList(new AxisRange<>(axis.getValue(low), axis.getValue(high))),
                         Arrays.asList(axis.isAutoscale())));
             }
             mouse_mode = MouseMode.ZOOM_IN;
@@ -1069,10 +1080,10 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                 for (YAxisImpl<XTYPE> axis : y_axes)
                 {
                     original_y_ranges.add(axis.getValueRange());
-                    new_y_ranges.add(new AxisRange<Double>(axis.getValue(low), axis.getValue(high)));
+                    new_y_ranges.add(new AxisRange<>(axis.getValue(low), axis.getValue(high)));
                     original_autoscale_values.add(axis.isAutoscale());
                 }
-                undo.execute(new ChangeAxisRanges<XTYPE>(this, Messages.Zoom_In, x_axis, original_x_range, new_x_range, x_axis.isAutoscale(), false,
+                undo.execute(new ChangeAxisRanges<>(this, Messages.Zoom_In, x_axis, original_x_range, new_x_range, x_axis.isAutoscale(), false,
                                                          y_axes, original_y_ranges, new_y_ranges, original_autoscale_values));
             }
             mouse_mode = MouseMode.ZOOM_IN;
@@ -1094,7 +1105,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
             if (x_axis.setAutoscale(false))
                 fireAutoScaleChange(x_axis);
             x_axis.zoom((int)x, factor);
-            undo.add(new ChangeAxisRanges<XTYPE>(this, Messages.Zoom_Out_X, x_axis, orig, x_axis.getValueRange(), was_auto, false));
+            undo.add(new ChangeAxisRanges<>(this, Messages.Zoom_Out_X, x_axis, orig, x_axis.getValueRange(), was_auto, false));
             fireXAxisChange();
         }
         else if (plot_area.getBounds().contains(x, y))
@@ -1117,7 +1128,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                 new_range.add(axis.getValueRange());
                 fireYAxisChange(axis);
             }
-            undo.execute(new ChangeAxisRanges<XTYPE>(this, Messages.Zoom_Out,
+            undo.execute(new ChangeAxisRanges<>(this, Messages.Zoom_Out,
                     x_axis, orig_x, x_axis.getValueRange(),
                     was_auto, false,
                     y_axes, old_range, new_range, old_autoscale));
@@ -1133,7 +1144,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                         fireAutoScaleChange(axis);
                     axis.zoom((int)y, factor);
                     fireYAxisChange(axis);
-                    undo.add(new ChangeAxisRanges<XTYPE>(this, Messages.Zoom_Out_Y,
+                    undo.add(new ChangeAxisRanges<>(this, Messages.Zoom_Out_Y,
                             Arrays.asList(axis),
                             Arrays.asList(orig),
                             Arrays.asList(axis.getValueRange()),
@@ -1204,7 +1215,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                     break;
             }
         if (! axes.isEmpty())
-            undo.execute(new ChangeAxisRanges<XTYPE>(this, Messages.Zoom_In,
+            undo.execute(new ChangeAxisRanges<>(this, Messages.Zoom_In,
                                                      null, null, null, false, false,
                                                      axes, ranges, ranges,
                                                      original_auto, new_auto));

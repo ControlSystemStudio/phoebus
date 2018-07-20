@@ -27,7 +27,7 @@ public class Preferences
     {
         try
         {
-            PreferencesReader prefs = new PreferencesReader(Preferences.class, "display_representation_preferences.properties");
+            PreferencesReader prefs = new PreferencesReader(Preferences.class, "/display_representation_preferences.properties");
             performance_log_period_secs = prefs.getInt("performance_log_period_secs");
             performance_log_threshold_ms = prefs.getInt("performance_log_threshold_ms");
             update_accumulation_time = prefs.getInt("update_accumulation_time");

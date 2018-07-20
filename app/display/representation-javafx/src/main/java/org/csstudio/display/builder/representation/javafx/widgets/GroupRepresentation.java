@@ -40,8 +40,8 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 {
     private static final Insets TITLE_PADDING = new Insets(1, 3, 1, 3);
     private static final int BORDER_WIDTH = 1;
-    private static final BorderWidths EDTI_NONE_BORDER = new BorderWidths(0.5, 0.5, 0.5, 0.5, false, false, false, false);
-    private static final BorderStrokeStyle EDTI_NONE_DASHED = new BorderStrokeStyle(
+    private static final BorderWidths EDIT_NONE_BORDER = new BorderWidths(0.5, 0.5, 0.5, 0.5, false, false, false, false);
+    private static final BorderStrokeStyle EDIT_NONE_DASHED = new BorderStrokeStyle(
         StrokeType.INSIDE,
         StrokeLineJoin.MITER,
         StrokeLineCap.BUTT,
@@ -122,6 +122,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                 jfx_node.setBackground(new Background(new BackgroundFill(background_color, null, null)));
 
             final WidgetFont font = model_widget.propFont().getValue();
+
             label.setFont(JFXUtil.convert(font));
             label.setText(model_widget.propName().getValue());
 
@@ -137,11 +138,9 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
             System.arraycopy(model_widget.runtimePropInsets().getValue(), 0, insets, 0, insets.length);
 
             final boolean hasChildren = !model_widget.runtimeChildren().getValue().isEmpty();
-
             if (hasChildren)
             {
                 inner.relocate(- insets[0], - insets[1]);
-
                 x += insets[0];
                 y += insets[1];
                 width -= insets[2];
@@ -150,7 +149,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 
             switch (style)
             {
-            case NONE:
+                case NONE:
                 {
                     inset = 0;
                     insets[0] = 0;
@@ -161,13 +160,14 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     // In edit mode, show outline because otherwise hard to
                     // handle the totally invisible group
                     if (toolkit.isEditMode())
-                        jfx_node.setBorder(new Border(new BorderStroke(foreground_color, EDTI_NONE_DASHED, CornerRadii.EMPTY, EDTI_NONE_BORDER)));
+                        jfx_node.setBorder(new Border(new BorderStroke(foreground_color, EDIT_NONE_DASHED, CornerRadii.EMPTY, EDIT_NONE_BORDER)));
                     else
                         jfx_node.setBorder(null);
+
                     label.setVisible(false);
                     break;
                 }
-            case LINE:
+                case LINE:
                 {
                     inset = 0;
                     insets[0] = BORDER_WIDTH;
@@ -179,7 +179,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     label.setVisible(false);
                     break;
                 }
-            case TITLE:
+                case TITLE:
                 {
                     inset = 2 + (int) ( 1.2 * font.getSize() );
                     insets[0] = BORDER_WIDTH;
@@ -196,8 +196,8 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     label.setBackground(new Background(new BackgroundFill(foreground_color, CornerRadii.EMPTY, Insets.EMPTY)));
                     break;
                 }
-            case GROUP:
-            default:
+                case GROUP:
+                default:
                 {
                     inset = 2 + (int) ( 1.2 * font.getSize() );
                     insets[0] = inset;

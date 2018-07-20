@@ -362,6 +362,9 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
         {
             logger.log(Level.FINE, "No longer tracking changes to children of {0}", widget);
             children.removePropertyListener(container_children_listener);
+
+            for (Widget child : children.getValue())
+                disposeWidget(child);
         }
         final WidgetRepresentation<TWP, TW, ? extends Widget> representation =
             widget.clearUserData(Widget.USER_DATA_REPRESENTATION);

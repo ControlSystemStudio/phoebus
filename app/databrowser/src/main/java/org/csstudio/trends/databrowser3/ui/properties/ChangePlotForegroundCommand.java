@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,38 +12,43 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
-/** Undo-able command to change save-on-change behavior
+import javafx.scene.paint.Color;
+
+/** Undo-able command to change plot foreground color
  *  @author Kay Kasemir
  */
-public class ChangeSaveChangesCommand extends UndoableAction
+public class ChangePlotForegroundCommand extends UndoableAction
 {
     final private Model model;
-    final private boolean save_changes;
+    final private Color old_color, new_color;
 
     /** Register and perform the command
-     *  @param model Model
+     *  @param model Model to configure
      *  @param operations_manager OperationsManager where command will be reg'ed
-     *  @param save_changes Save changes?
+     *  @param new_color New value
      */
-    public ChangeSaveChangesCommand(final Model model,
+    public ChangePlotForegroundCommand(final Model model,
             final UndoableActionManager operations_manager,
-            final boolean save_changes)
+            final Color new_color)
     {
-        super(Messages.SaveChangesLbl);
+        super(Messages.Color);
         this.model = model;
-        this.save_changes = save_changes;
+        this.old_color = model.getPlotForeground();
+        this.new_color = new_color;
         operations_manager.execute(this);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
-        model.setSaveChanges(save_changes);
+        model.setPlotForeground(new_color);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void undo()
     {
-        model.setSaveChanges(! save_changes);
+        model.setPlotForeground(old_color);
     }
 }

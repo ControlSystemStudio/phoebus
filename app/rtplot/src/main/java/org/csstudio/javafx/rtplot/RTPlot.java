@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -76,12 +76,12 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         // into constructor.
         if (type == Double.class)
         {
-            plot = (Plot) new Plot<Double>(Double.class, active);
+            plot = (Plot) new Plot<>(Double.class, active);
             toolbar = (ToolbarHandler) new ToolbarHandler<Double>((RTPlot)this, active);
         }
         else if (type == Instant.class)
         {
-            plot = (Plot) new Plot<Instant>(Instant.class, active);
+            plot = (Plot) new Plot<>(Instant.class, active);
             toolbar = (ToolbarHandler) new ToolbarHandler<Instant>((RTPlot)this, active);
         }
         else
@@ -476,7 +476,7 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
             final PointType point_type, final int size,
             final int y_axis)
     {
-        final TraceImpl<XTYPE> trace = new TraceImpl<XTYPE>(name, units, data, color, type, width, point_type, size, y_axis);
+        final TraceImpl<XTYPE> trace = new TraceImpl<>(name, units, data, color, type, width, point_type, size, y_axis);
         plot.addTrace(trace);
         return trace;
     }
@@ -534,12 +534,14 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         plot.setUpdateThrottle(dormant_time, unit);
     }
 
-    /** Request a complete redraw of the plot with new layout */
-    @Override
-    public void requestLayout()
-    {
-        plot.requestLayout();
-    }
+    // Used to request a complete redraw of the plot with new layout of node,
+    // but that creates loops:
+    // layout -> compute new image -> set image -> trigger another layout
+    // @Override
+    // public void requestLayout()
+    // {
+    //     plot.requestLayout();
+    // }
 
     /** Request a complete redraw of the plot */
     public void requestUpdate()

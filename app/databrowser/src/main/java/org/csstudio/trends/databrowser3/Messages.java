@@ -136,6 +136,7 @@ public class Messages
     public static String ExportValueInfo;
     public static String ExportValueInfoTT;
     public static String FontTT;
+    public static String ForegroundColorLbl;
     public static String Format_Decimal;
     public static String Format_Default;
     public static String Format_Exponential;
@@ -160,6 +161,7 @@ public class Messages
     public static String ItemName;
     public static String ItemNameTT;
     public static String LabelFontLbl;
+    public static String LegendLbl;
     public static String LegendFontLbl;
     public static String LiveBufferSizeInfoFmt;
     public static String LiveData;

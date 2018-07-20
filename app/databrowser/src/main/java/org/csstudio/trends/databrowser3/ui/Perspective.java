@@ -293,7 +293,7 @@ public class Perspective extends SplitPane
     private void autoMinimize(final TabPane tabs, final SplitPane pane, final double pos)
     {
         if (tabs.getTabs().isEmpty())
-            pane.setDividerPositions(pos);
+            pane.getItems().remove(tabs);
     }
 
     /** Show search tab:
@@ -303,6 +303,12 @@ public class Perspective extends SplitPane
     private void showSearchTab()
     {
         createSearchTab();
+
+        if (! getItems().contains(left_tabs))
+        {
+            getItems().add(0, left_tabs);
+            setDividerPositions(0.2);
+        }
 
         // If tab not on screen, add it
         if (! left_tabs.getTabs().contains(search_tab))
@@ -337,6 +343,11 @@ public class Perspective extends SplitPane
         bottom_tabs.getSelectionModel().select(tab);
 
         // Assert that the tabs section is visible
+        if (! plot_and_tabs.getItems().contains(bottom_tabs))
+        {
+            plot_and_tabs.getItems().add(bottom_tabs);
+            plot_and_tabs.setDividerPositions(0.8);
+        }
         if (plot_and_tabs.getDividers().get(0).getPosition() > 0.9)
             plot_and_tabs.setDividerPositions(0.8);
 
@@ -389,8 +400,11 @@ public class Perspective extends SplitPane
         property_panel.save(memento);
         if (export != null)
             export.save(memento);
-        memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
-        memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
+
+        if (getDividers().size() > 0)
+            memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
+        if (plot_and_tabs.getDividers().size() > 0)
+            memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
         memento.setBoolean(SHOW_SEARCH, left_tabs.getTabs().contains(search_tab));
         memento.setBoolean(SHOW_PROPERTIES, bottom_tabs.getTabs().contains(properties_tab));
         memento.setBoolean(SHOW_EXPORT, bottom_tabs.getTabs().contains(export_tab));

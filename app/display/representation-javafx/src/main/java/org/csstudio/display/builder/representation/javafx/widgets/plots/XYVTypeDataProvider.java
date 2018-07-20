@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,7 +35,6 @@ import org.phoebus.util.array.ListNumber;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class XYVTypeDataProvider implements PlotDataProvider<Double>
 {
     public static final ListNumber EMPTY = new ArrayDouble(new double[0], true);
@@ -45,21 +44,41 @@ public class XYVTypeDataProvider implements PlotDataProvider<Double>
      */
     private static final ReadWriteLock lock = new InstrumentedReadWriteLock();
 
-    private final ListNumber x_data, y_data, error_data;
-    private final int size;
+
+    private final PlotDataItem<Double>[] items;
 
     /** Set the plot's data
      *  @param x_data X data, may be <code>null</code>
      *  @param y_data Y data
      *  @param error_data Error data
      */
-    public XYVTypeDataProvider(final ListNumber x_data, final ListNumber y_data, final ListNumber error_data)
+    @SuppressWarnings("unchecked")
+    public XYVTypeDataProvider(ListNumber x_data, ListNumber y_data, ListNumber error_data)
     {
         // In principle, error_data should have 1 element or same size as X and Y..
-        this.x_data = x_data;
-        this.y_data = y_data;
-        size = x_data == null ? y_data.size() : Math.min(x_data.size(), y_data.size());
-        this.error_data = error_data == null ? EMPTY : error_data;
+        if (error_data != null)
+            error_data = EMPTY;
+
+        // Could create each PlotDataItem lazily in get(),
+        // but create array of PlotDataItems right now because
+        // plot will likely iterate over the data elements at least once to plot value,
+        // maybe again to plot outline, find value at cursor etc.
+        final int size = x_data == null ? y_data.size() : Math.min(x_data.size(), y_data.size());
+        items = new PlotDataItem[size];
+        for (int index=0; index < size; ++index)
+        {
+            final double x = x_data == null ? index : x_data.getDouble(index);
+            final double y = y_data.getDouble(index);
+
+            if (error_data.size() <= 0) // No error data
+                items[index] = new SimpleDataItem<>(x, y, Double.NaN, Double.NaN, Double.NaN, null);
+            else
+            {   // Use corresponding array element, or [0] for scalar error info
+                // (silently treating size(error) < size(Y) as a mix of error array and scalar)
+                final double error = (error_data.size() > index) ? error_data.getDouble(index) : error_data.getDouble(0);
+                items[index] = new SimpleDataItem<>(x, y, Double.NaN, y - error, y + error, null);
+            }
+        }
     }
 
     public XYVTypeDataProvider()
@@ -76,26 +95,13 @@ public class XYVTypeDataProvider implements PlotDataProvider<Double>
     @Override
     public int size()
     {
-        return size;
+        return items.length;
     }
 
     @Override
     public PlotDataItem<Double> get(final int index)
     {
-        final double x = x_data == null ? index : x_data.getDouble(index);
-        final double y = y_data.getDouble(index);
-
-        final double min, max;
-        if (error_data.size() <= 0)
-            min = max = Double.NaN; // No error data
-        else
-        {   // Use corresponding array element, or [0] for scalar error info
-            // (silently treating size(error) < size(Y) as a mix of error array and scalar)
-            final double error = (error_data.size() > index) ? error_data.getDouble(index) : error_data.getDouble(0);
-            min = y - error;
-            max = y + error;
-        }
-        return new SimpleDataItem<Double>(x, y, Double.NaN, min, max, null);
+        return items[index];
     }
 
     @Override

@@ -65,10 +65,10 @@ public class Model
     private volatile Optional<String> title = Optional.empty();
 
     /** Axes configurations */
-    final private List<AxisConfig> axes = new CopyOnWriteArrayList<AxisConfig>();
+    final private List<AxisConfig> axes = new CopyOnWriteArrayList<>();
 
     /** All the items in this model */
-    final private List<ModelItem> items = new CopyOnWriteArrayList<ModelItem>();
+    final private List<ModelItem> items = new CopyOnWriteArrayList<>();
 
     /** 'run' flag
      *  @see #start()
@@ -87,6 +87,9 @@ public class Model
 
     /** Show time axis grid line? */
     private volatile boolean show_grid = false;
+
+    /** Foreground color */
+    private volatile Color foreground = Color.BLACK;
 
     /** Background color */
     private volatile Color background = Color.WHITE;
@@ -151,6 +154,7 @@ public class Model
         setScrollStep(other.scroll_step);
         setTimerange(other.time_range);
         setGridVisible(other.show_grid);
+        setPlotForeground(other.foreground);
         setPlotBackground(other.background);
         setTitleFont(other.title_font);
         setLabelFont(other.label_font);
@@ -652,6 +656,22 @@ public class Model
         // Notify listeners
         for (ModelListener listener : listeners)
             listener.changedTimerange();
+    }
+
+    /** @return foreground color */
+    public Color getPlotForeground()
+    {
+        return foreground;
+    }
+
+    /** @param rgb New foreground color */
+    public void setPlotForeground(final Color rgb)
+    {
+        if (foreground.equals(Objects.requireNonNull(rgb)))
+            return;
+        foreground = rgb;
+        for (ModelListener listener : listeners)
+            listener.changedColorsOrFonts();
     }
 
     /** @return Background color */

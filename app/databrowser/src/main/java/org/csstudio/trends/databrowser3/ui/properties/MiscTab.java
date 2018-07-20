@@ -35,8 +35,8 @@ public class MiscTab extends Tab
     private boolean updating = false;
 
     private final TextField title = new TextField(), update_period = new TextField(), scroll_step = new TextField();
-    private CheckBox save_changes = new CheckBox();
-    private ColorPicker background = new ColorPicker();
+    private CheckBox save_changes = new CheckBox(), show_legend = new CheckBox();
+    private ColorPicker foreground = new ColorPicker(), background = new ColorPicker();
     private FontButton title_font, label_font, scale_font, legend_font;
 
     /** Update Tab when model changes (undo, ...) */
@@ -48,6 +48,14 @@ public class MiscTab extends Tab
             if (updating)
                 return;
             save_changes.setSelected(do_save_changes);
+        }
+
+        @Override
+        public void changedLayout()
+        {
+            if (updating)
+                return;
+            show_legend.setSelected(model.isLegendVisible());
         }
 
         @Override
@@ -63,6 +71,7 @@ public class MiscTab extends Tab
         {
             if (updating)
                 return;
+            foreground.setValue(model.getPlotForeground());
             background.setValue(model.getPlotBackground());
             title_font.selectFont(model.getTitleFont());
             label_font.selectFont(model.getLabelFont());
@@ -131,6 +140,17 @@ public class MiscTab extends Tab
             updating = false;
         });
 
+        layout.add(new Label(Messages.ForegroundColorLbl), 0, 3);
+        foreground.setStyle("-fx-color-label-visible: false ;");
+        layout.add(foreground, 1, 3);
+        foreground.setValue(model.getPlotForeground());
+        foreground.setOnAction(event ->
+        {
+            updating = true;
+            new ChangePlotForegroundCommand(model, undo, foreground.getValue());
+            updating = false;
+        });
+
         layout.add(new Label(Messages.BackgroundColorLbl), 0, 4);
         background.setStyle("-fx-color-label-visible: false ;");
         layout.add(background, 1, 4);
@@ -151,7 +171,6 @@ public class MiscTab extends Tab
             updating = false;
         });
         layout.add(save_changes, 1, 5);
-
 
         layout.add(new Label(Messages.TitleFontLbl), 2, 0);
         title_font = new FontButton(model.getTitleFont(),
@@ -177,6 +196,15 @@ public class MiscTab extends Tab
         legend_font.setMaxWidth(Double.MAX_VALUE);
         layout.add(legend_font, 3, 3);
 
+        layout.add(new Label(Messages.LegendLbl), 2, 4);
+        show_legend.setOnAction(event ->
+        {
+            updating = true;
+            new ChangeShowLegendCommand(model, undo, show_legend.isSelected());
+            updating = false;
+        });
+        layout.add(show_legend, 3, 4);
+
         setContent(layout);
 
         model.addListener(model_listener);
@@ -186,5 +214,6 @@ public class MiscTab extends Tab
         model_listener.changedColorsOrFonts();
         model_listener.changedSaveChangesBehavior(model.shouldSaveChanges());
         model_listener.changedTiming();
+        model_listener.changedLayout();
     }
 }

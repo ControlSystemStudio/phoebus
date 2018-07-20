@@ -27,6 +27,7 @@ import org.phoebus.ui.undo.UndoableActionManager;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -85,6 +86,7 @@ public class SearchView extends SplitPane
     {
         this.model = model;
         this.undo = undo;
+
         // Archive List
 
         // Pattern: ____________ [Search]
@@ -131,6 +133,8 @@ public class SearchView extends SplitPane
         channel_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         VBox.setVgrow(channel_table, Priority.ALWAYS);
+        search_row.setPadding(new Insets(5, 5, 0, 5));
+        replace_row.setPadding(new Insets(5, 5, 0, 5));
         final VBox bottom = new VBox(5, search_row,
                                         replace_row,
                                         channel_table);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -563,7 +563,6 @@ public class StringTable extends BorderPane
     public void setData(final List<List<String>> new_data)
     {
         final int columns = getColumnCount();
-        cell_colors = null;
         data.clear();
         for (List<String> new_row : new_data)
         {
@@ -704,13 +703,15 @@ public class StringTable extends BorderPane
      */
     private void addRow()
     {
-        cell_colors = null;
         int row = table.getSelectionModel().getSelectedIndex();
         final List<List<String>> data = table.getItems();
         final int len = data.size();
         if (row < 0  ||  row > len-1)
             row = len-1;
         data.add(row, createEmptyRow());
+        // If cell_colors in use, add new row there as well
+        if (cell_colors != null && row < cell_colors.size())
+            cell_colors.add(row, new ArrayList<>());
         fireDataChanged();
     }
 
@@ -740,24 +741,30 @@ public class StringTable extends BorderPane
      */
     private void moveRow(final int row, final int target)
     {
-        cell_colors = null;
         final int column = getSelectedColumn();
         final List<String> line = data.remove(row);
         data.add(target, line);
+
+        if (cell_colors != null  && row < cell_colors.size()  && target < cell_colors.size())
+            cell_colors.add(target, cell_colors.remove(row));
+
         table.getSelectionModel().clearAndSelect(target, table.getColumns().get(column));
+        table.refresh();
         fireDataChanged();
     }
 
     /** Delete currently selected row */
     private void deleteRow()
     {
-        cell_colors = null;
         int row = table.getSelectionModel().getSelectedIndex();
         final List<List<String>> data = table.getItems();
         final int len = data.size();
         if (row < 0  ||  row >= len-1)
             return;
         data.remove(row);
+        if (cell_colors != null  &&  row < cell_colors.size())
+            cell_colors.remove(row);
+        table.refresh();
         fireDataChanged();
     }
 
@@ -832,7 +839,6 @@ public class StringTable extends BorderPane
         final String name = getColumnName(Messages.DefaultNewColumnName);
         if (name == null)
             return;
-        cell_colors = null;
         if (column < 0)
             column = table.getColumns().size();
 
@@ -841,9 +847,20 @@ public class StringTable extends BorderPane
         // Add new column
         createTableColumn(column, name);
         // Add empty col. to data
-        for (List<String> row : data)
-            if (row != MAGIC_LAST_ROW)
-                row.add(column, "");
+        for (int r=0; r<data.size(); ++r)
+        {
+            final List<String> row = data.get(r);
+            if (row == MAGIC_LAST_ROW)
+                break;
+            row.add(column, "");
+            if (cell_colors != null)
+            {
+                final List<Color> colors = cell_colors.get(r);
+                if (colors != null  &&  column < colors.size())
+                    colors.add(column, null);
+            }
+        }
+
         // Show the updated data
         table.setItems(data);
         table.refresh();
@@ -877,7 +894,6 @@ public class StringTable extends BorderPane
      */
     private void moveColumn(final int column, final int target)
     {
-        cell_colors = null;
         int row = table.getSelectionModel().getSelectedIndex();
 
         // Some table columns have special cell factories to
@@ -893,25 +909,40 @@ public class StringTable extends BorderPane
         table.getColumns().add(target, col);
 
         // Move column in data
-        for (List<String> data_row : data)
-            if (data_row != MAGIC_LAST_ROW)
+        for (int r=0; r<data.size(); ++r)
+        {
+            final List<String> data_row = data.get(r);
+            if (data_row == MAGIC_LAST_ROW)
+                break;
+            data_row.add(target, data_row.remove(column));
+            if (cell_colors != null  &&  r < cell_colors.size())
             {
-                final String cell = data_row.remove(column);
-                data_row.add(target, cell);
+                // If Row or col has no colors, create them as null
+                List<Color> colors = cell_colors.get(r);
+                if (colors == null)
+                {
+                    colors = new ArrayList<>();
+                    cell_colors.set(r, colors);
+                }
+                while (colors.size() <= Math.max(column,  target))
+                    colors.add(null);
+                // Move just like the data
+                colors.add(target, colors.remove(column));
             }
+        }
 
         // Re-attach data to table
         table.setItems(data);
 
         // Select the moved cell
         table.getSelectionModel().clearAndSelect(row, table.getColumns().get(target));
+        table.refresh();
         fireTableChanged();
     }
 
     /** Delete currently selected column */
     private void deleteColumn()
     {
-        cell_colors = null;
         final int column = getSelectedColumn();
         if (column < 0)
             return;
@@ -920,9 +951,20 @@ public class StringTable extends BorderPane
         // Update table columns
         table.getColumns().remove(column);
         // Remove that column from data
-        for (List<String> row : data)
-            if (row != MAGIC_LAST_ROW  &&  column < row.size())
+        for (int r=0; r<data.size(); ++r)
+        {
+            final List<String> row = data.get(r);
+            if (row == MAGIC_LAST_ROW)
+                break;
+            if (column < row.size())
                 row.remove(column);
+            if (cell_colors != null)
+            {
+                final List<Color> colors = cell_colors.get(r);
+                if (colors != null  &&  column < colors.size())
+                    colors.remove(column);
+            }
+        }
         // Re-attach data to table
         table.setItems(data);
         fireTableChanged();

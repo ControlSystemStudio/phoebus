@@ -70,6 +70,7 @@ public class XMLPersistence
     final public static String TAG_START = "start";
     final public static String TAG_END = "end";
     final public static String TAG_ARCHIVE_RESCALE = "archive_rescale";
+    final public static String TAG_FOREGROUND = "foreground";
     final public static String TAG_BACKGROUND = "background";
     final public static String TAG_TITLE_FONT = "title_font";
     final public static String TAG_LABEL_FONT = "label_font";
@@ -247,6 +248,7 @@ public class XMLPersistence
         }
 
         // New settings, possibly replacing settings from legacy <xyGraphSettings> <axisSettingsList>
+        loadColorFromDocument(root_node, TAG_FOREGROUND).ifPresent(model::setPlotForeground);
         loadColorFromDocument(root_node, TAG_BACKGROUND).ifPresent(model::setPlotBackground);
         loadFontFromDocument(root_node, TAG_TITLE_FONT).ifPresent(model::setTitleFont);
         loadFontFromDocument(root_node, TAG_LABEL_FONT).ifPresent(model::setLabelFont);
@@ -514,6 +516,7 @@ public class XMLPersistence
             writer.writeCharacters(model.getArchiveRescale().name());
             writer.writeEndElement();
 
+            writeColor(writer, TAG_FOREGROUND, model.getPlotForeground());
             writeColor(writer, TAG_BACKGROUND, model.getPlotBackground());
             writeFont(writer, TAG_TITLE_FONT, model.getTitleFont());
             writeFont(writer, TAG_LABEL_FONT, model.getLabelFont());

@@ -272,17 +272,17 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 x_data = y_data = error = XYVTypeDataProvider.EMPTY;
 
             // Decouple from CAJ's PV thread
-            latest_data.set(new XYVTypeDataProvider(x_data, y_data, error));
-            toolkit.submit(this::updateData);
+            if (latest_data.getAndSet(new XYVTypeDataProvider(x_data, y_data, error)) == null)
+                toolkit.submit(this::updateData);
         }
 
         // Update XYPlot data on different thread, not from CAJ callback.
         // Void to be usable as Callable(..) with Exception on error
         private Void updateData() throws Exception
         {
-            // Flurry of N updates will schedule N updateData() calls.
-            // The first one that actually runs will handle the most
-            // recent data and the rest can then return with nothing else to do.
+            // Flurry of N updates should schedule only one updateData() call,
+            // while the remaining updates simply replace latest_data,
+            // but find that the update request has already been submitted.
             final XYVTypeDataProvider latest = latest_data.getAndSet(null);
             if (latest != null)
             {

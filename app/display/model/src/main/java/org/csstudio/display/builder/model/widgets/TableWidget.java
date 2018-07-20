@@ -470,7 +470,6 @@ public class TableWidget extends VisibleWidget
      */
     public void setValue(final Object data)
     {
-        cell_colors.setValue(null);
         value.setValue(data);
     }
 

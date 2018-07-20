@@ -400,4 +400,11 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         }
         image_plot.requestUpdate();
     }
+
+    @Override
+    public void dispose()
+    {
+        image_plot.dispose();
+        super.dispose();
+    }
 }

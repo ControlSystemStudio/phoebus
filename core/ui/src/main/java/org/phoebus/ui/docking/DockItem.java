@@ -200,17 +200,23 @@ public class DockItem extends Tab
         final MenuItem close_other = new MenuItem("Close Others", new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
-            for (Tab tab : new ArrayList<>(getDockPane().getTabs()))
-                if ((tab instanceof DockItem)  &&  tab != DockItem.this)
-                    ((DockItem)tab).close();
+            // Close all other tabs in panes of this window
+            final Stage stage = (Stage) getDockPane().getScene().getWindow();
+            for (DockPane pane : DockStage.getDockPanes(stage))
+                for (Tab tab : new ArrayList<>(pane.getTabs()))
+                    if ((tab instanceof DockItem)  &&  tab != DockItem.this)
+                        ((DockItem)tab).close();
         });
 
         final MenuItem close_all = new MenuItem("Close All", new ImageView(close_many_icon));
         close_all.setOnAction(event ->
         {
-            for (Tab tab : new ArrayList<>(getDockPane().getTabs()))
-                if ((tab instanceof DockItem))
-                    ((DockItem)tab).close();
+            // Close all tabs in panes of this window
+            final Stage stage = (Stage) getDockPane().getScene().getWindow();
+            for (DockPane pane : DockStage.getDockPanes(stage))
+                for (Tab tab : new ArrayList<>(pane.getTabs()))
+                    if ((tab instanceof DockItem))
+                        ((DockItem)tab).close();
         });
 
 
