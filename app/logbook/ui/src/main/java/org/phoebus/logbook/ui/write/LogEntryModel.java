@@ -124,6 +124,7 @@ public class LogEntryModel
             try
             {
                 SecureStore store = new SecureStore();
+                // Could be accessed from JavaFX Application Thread when updating, so synchronize.
                 synchronized(username)
                 {
                     String result = store.get(LogEntryModel.USERNAME_TAG);
@@ -164,6 +165,7 @@ public class LogEntryModel
      */
     public void setUser(final String username)
     {
+        // Could be accessed from background thread when updating, so synchronize.
         synchronized(this.username)
         {
             this.username = username;
@@ -187,6 +189,7 @@ public class LogEntryModel
      */
     public void setPassword(final String password)
     {
+        // Could be accessed from background thread when updating, so synchronize.
         synchronized(this.password)
         {
             this.password = password;
