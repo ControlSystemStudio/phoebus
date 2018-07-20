@@ -33,6 +33,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 /**
  * View for selecting log books and tags for a log entry.
@@ -91,6 +92,15 @@ public class LogbooksTagsView extends VBox
         addLogbook.setTooltip(tooltip);
         logbookSelector.setTooltip(tooltip);
         logbookLabel.setPrefWidth(LogEntryDialog.labelWidth);
+        logbookLabel.setTextFill(Color.RED);
+        logbookField.textProperty().addListener((changeListener, oldVal, newVal) ->
+        {
+            if (model.getSelectedLogbooks().isEmpty())
+                logbookLabel.setTextFill(Color.RED);
+            else
+                logbookLabel.setTextFill(Color.BLACK);
+        });
+        
         logbookSelector.setOnAction(actionEvent -> 
         {
             if (logbookSelector.isSelected())
@@ -228,7 +238,6 @@ public class LogbooksTagsView extends VBox
                 {
                     if (! model.hasSelectedLogbook(text))
                     {
-                        System.out.println("Adding selected log book : " + text);
                         model.addSelectedLogbook(text);
                     }
                     setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);

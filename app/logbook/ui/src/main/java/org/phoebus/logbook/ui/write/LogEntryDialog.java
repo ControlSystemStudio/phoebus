@@ -23,16 +23,22 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.ui.dialog.DialogHelper;
 
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
 /**
  * Dialog for making an entry into a log book.
+ * * <p> Username, password, title, and logbooks are all required fields. 
+ * The button to submit entry will be disabled if they are not all set.
  * @author Evan Smith
  */
 public class LogEntryDialog extends Dialog<LogEntry>
@@ -46,20 +52,14 @@ public class LogEntryDialog extends Dialog<LogEntry>
     /** Dialog Content */
     private final VBox                    content;
     
-    /** View handles user credential entry for access to log. */
-    private final CredentialEntryView  credentialEntry;
-    
-    /** View handles displaying of date and log entry level selection. */
-    private final DateLevelView        dateAndLevel;
-    
     /** View handles the input for creation of the entry. */
     private final FieldsView      logEntryFields;
         
     /** View handles addition of log entry attachments. */
     private final AttachmentsView attachmentsView;
-    
+        
     /** Button type for submitting log entry. */
-    private final ButtonType submit;
+    private final ButtonType submitType;
 
     public LogEntryDialog(final Node parent, LogEntry template)
     {         
@@ -70,12 +70,6 @@ public class LogEntryDialog extends Dialog<LogEntry>
         
         content = new VBox();
         
-        // user name and password label and fields.
-        credentialEntry = new CredentialEntryView(model);
-        
-        // date and level labels, fields, and selectors.
-        dateAndLevel = new DateLevelView(model);
-        
         // title and text labels and fields.
         logEntryFields = new FieldsView(model);
                 
@@ -85,17 +79,17 @@ public class LogEntryDialog extends Dialog<LogEntry>
         // Let the Text Area grow to the bottom.
         VBox.setVgrow(logEntryFields,  Priority.ALWAYS);
 
-        VBox.setMargin(credentialEntry, new Insets(10, 0,  0, 0));
+        //VBox.setMargin(credentialEntry, new Insets(10, 0,  0, 0));
         VBox.setMargin(logEntryFields,  new Insets( 0, 0, 10, 0));
         
         content.setSpacing(10);
-        content.getChildren().addAll(credentialEntry, dateAndLevel, logEntryFields, attachmentsView);
+        content.getChildren().addAll(logEntryFields, attachmentsView);
         
         setTitle("Create Log Book Entry");
         
         getDialogPane().setContent(content);
         
-        submit = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+        submitType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
         
         setResizable(true);
         
@@ -103,13 +97,25 @@ public class LogEntryDialog extends Dialog<LogEntry>
                 PhoebusPreferenceService.userNodeForClass(LogEntryDialog.class),
                 800, 1000);
 
-        getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, submit);
+        getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, submitType);
+                
+        Button submitButton = (Button) getDialogPane().lookupButton(submitType);
+        // Bind the submit button's disable property to the inverse of the model's ready to submit property.
+        submitButton.disableProperty().bind(model.getReadyToSubmitProperty().not());
+        submitButton.setTooltip(new Tooltip("Submit Log Entry"));
+        // Prevent enter from causing log entry submission. We want the button to be clicked.
+        // If the button doesn't have focus, it wasn't clicked.
+        submitButton.addEventFilter(ActionEvent.ACTION, eventFilter -> 
+        {
+            if (!submitButton.isFocused())
+                eventFilter.consume();
+        });
         
-        setResultConverter(button ->
+        setResultConverter(buttonType ->
         {
             try
             {
-                return button == submit ? model.submitEntry() : null;
+                return buttonType == submitType ? model.submitEntry() : null;
             } 
             catch (IOException ex)
             {

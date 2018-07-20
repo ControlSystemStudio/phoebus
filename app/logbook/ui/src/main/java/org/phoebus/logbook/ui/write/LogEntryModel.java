@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -14,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
@@ -30,9 +32,12 @@ import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
+import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -48,8 +53,12 @@ import javafx.scene.image.Image;
  */
 public class LogEntryModel
 {
+    public static final String USERNAME_TAG = "username";
+    public static final String PASSWORD_TAG = "password";
+    
     private final LogService logService;
-
+    private final LogFactory logFactory;
+    
     private Node    node;
     private String  username, password;
     private Instant date;
@@ -59,14 +68,33 @@ public class LogEntryModel
     private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
-
+    
+    /** Property that allows the model to define when the application is in an appropriate state to submit a log entry. */
+    private final ReadOnlyBooleanProperty readyToSubmitProperty; // To be broadcast through getReadyToSubmitProperty method.
+    private final SimpleBooleanProperty   readyToSubmit;         // Used internally. Backs read only property above.
+    
+    /** Property that allows the model to define when the application needs to update the username and password text fields. Only used if save_credentials=true */
+    private final ReadOnlyBooleanProperty updateCredentialsProperty; // To be broadcast through getUpdateCredentialsProperty.
+    private final SimpleBooleanProperty   updateCredentials;         // Used internally. Backs read only property above.
+    
     /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
 
     public LogEntryModel(final Node callingNode)
     {
-        logService = LogService.getInstance();
+        username = "";
+        password = "";
+        level    = "";
+        title    = "";
+        text     = "";
 
+        updateCredentials = new SimpleBooleanProperty();
+        updateCredentialsProperty = updateCredentials;
+        
+        logService = LogService.getInstance();
+        
+        logFactory = logService.getLogFactories().get(LogbookUiPreferences.logbook_factory);
+        
         tags     = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
 
@@ -78,12 +106,50 @@ public class LogEntryModel
 
         node = callingNode;
 
+        readyToSubmit = new SimpleBooleanProperty(false);
+        readyToSubmitProperty = readyToSubmit;
+        
         // Set default logbooks
         // Get rid of leading and trailing whitespace and add the default to the selected list.
         for (String logbook : LogbookUiPreferences.default_logbooks)
             addSelectedLogbook(logbook.trim());
     }
 
+    public void fetchStoredUserCredentials()
+    {
+        // Perform file IO on background thread.
+        JobManager.schedule("Access Secure Store", monitor ->
+        {
+            // Get the SecureStore. Retrieve username and password.
+            try
+            {
+                SecureStore store = new SecureStore();
+                // Could be accessed from JavaFX Application Thread when updating, so synchronize.
+                synchronized(username)
+                {
+                    String result = store.get(LogEntryModel.USERNAME_TAG);
+                    username = (null == result) ? "" : result;
+                }
+                synchronized(password)
+                {
+                    String result = store.get(LogEntryModel.PASSWORD_TAG);
+                    password = (null == result) ? "" : result;
+                }
+                // Let anyone listening know that their credentials are now out of date.
+                updateCredentials.set(true);
+            } 
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Secure Store file not found.", ex);
+            }
+        });
+    }
+    
+    public ReadOnlyBooleanProperty getUpdateCredentialsProperty()
+    {
+        return updateCredentialsProperty;
+    }
+    
     /**
      * Gets the JavaFX Scene graph.
      * @return Scene
@@ -99,18 +165,38 @@ public class LogEntryModel
      */
     public void setUser(final String username)
     {
-        this.username = username;
+        // Could be accessed from background thread when updating, so synchronize.
+        synchronized(this.username)
+        {
+            this.username = username;
+        }
+        checkIfReadyToSubmit();
     }
 
+    public String getUsername()
+    {
+        return username;
+    }
+    
+    public String getPassword()
+    {
+        return password;
+    }
+    
     /**
      * Set the password.
      * @param password
      */
     public void setPassword(final String password)
     {
-        this.password = password;
+        // Could be accessed from background thread when updating, so synchronize.
+        synchronized(this.password)
+        {
+            this.password = password;
+        }
+        checkIfReadyToSubmit();
     }
-
+  
     /**
      * Set the date.
      * @param date
@@ -145,8 +231,9 @@ public class LogEntryModel
     public void setTitle(final String title)
     {
         this.title = title;
+        checkIfReadyToSubmit();
     }
-
+  
     /**
      * Get the text.
      * @param text
@@ -212,6 +299,7 @@ public class LogEntryModel
     {
         boolean result = selectedLogbooks.add(logbook);
         selectedLogbooks.sort(Comparator.naturalOrder());
+        checkIfReadyToSubmit();
         return result;
     }
 
@@ -222,7 +310,9 @@ public class LogEntryModel
      */
     public boolean removeSelectedLogbook(final String logbook)
     {
-        return selectedLogbooks.remove(logbook);
+        boolean result = selectedLogbooks.remove(logbook);
+        checkIfReadyToSubmit();
+        return result;
     }
 
     /**
@@ -356,6 +446,30 @@ public class LogEntryModel
         return files.remove(file);
     }
 
+    /** Check if ready to submit and update readyToSubmitProperty appropriately. */
+    private void checkIfReadyToSubmit()
+    {
+        if (
+            username.trim().isEmpty() ||
+            password.trim().isEmpty() ||
+            title.trim().isEmpty()    ||
+            selectedLogbooks.isEmpty()
+           )
+        {
+            readyToSubmit.set(false);
+        }
+        else
+        {
+            readyToSubmit.set(true);
+        }
+    }
+    
+    /** Get the ready to submit property. True when all required fields have been filled. */
+    public ReadOnlyBooleanProperty getReadyToSubmitProperty()
+    {
+        return readyToSubmitProperty;
+    }
+    
     /**
      * Create and return a log entry with the current data in the log entry form.
      * @throws IOException
@@ -381,9 +495,9 @@ public class LogEntryModel
         // Add Images
         for (Image image : images)
         {
-            File imageFile = File.createTempFile("log_entry_image", ".png");
-            toDelete.add(imageFile);
+            File imageFile = File.createTempFile("log_entry_image_", ".png");
             imageFile.deleteOnExit();
+            toDelete.add(imageFile);
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
             logEntryBuilder.attach(AttachmentImpl.of(imageFile, "image", false));
         }
@@ -399,7 +513,27 @@ public class LogEntryModel
         // Submit the entry on a separate thread.
         JobManager.schedule("Submit Log Entry", monitor ->
         {
-            logService.createLogEntry(logEntry, new SimpleAuthenticationToken(username, password));
+            if (LogbookUiPreferences.save_credentials)
+            {
+                // Get the SecureStore. Store username and password.
+                try
+                {
+                    SecureStore store = new SecureStore();
+                    store.set(USERNAME_TAG, username);
+                    store.set(PASSWORD_TAG, password);
+                } 
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Secure Store file not found.", ex);
+                }
+            }
+            
+            if (null == logFactory) 
+            {
+                logger.log(Level.WARNING, "Logbook Factory Undefined.");
+            }
+            else
+                logFactory.getLogClient(new SimpleAuthenticationToken(username, password)).set(logEntry);
 
             // Delete the temporary files.
             for (File file : toDelete)
@@ -412,32 +546,35 @@ public class LogEntryModel
         return logEntry;
     }
 
-    /** Fetch the available log book and tag lists on a separate thread. */
+    /** Fetch the available log book and tag lists on a separate thread.*/
     public void fetchLists()
     {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
         {
-            Map<String, LogFactory> factories = logService.getLogFactories();
-
-            List<Logbook> logList = new ArrayList<>();
-            List<Tag> tagList = new ArrayList<>();
-
-            // For each registered LogFactory fetch all log books and tags.
-            for (LogFactory logFactory : factories.values())
+            if (null == logFactory) 
+            {
+                logger.log(Level.WARNING, "Logbook Factory Undefined.");
+            }
+            else
             {
                 LogClient logClient = logFactory.getLogClient();
+                
+                List<Logbook> logList = new ArrayList<>();
+                List<Tag> tagList = new ArrayList<>();
+                
                 logClient.listLogbooks().forEach(logbook -> logList.add(logbook));
                 logClient.listTags().forEach(tag -> tagList.add(tag));
+                
+                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
+                Platform.runLater(() ->
+                {
+                    logList.forEach(logbook -> logbooks.add(logbook.getName()));
+                    tagList.forEach(tag -> tags.add(tag.getName()));
+        
+                    Collections.sort(logbooks);
+                    Collections.sort(tags);
+                });
             }
-            // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
-            Platform.runLater(() ->
-            {
-                logList.forEach(logbook -> logbooks.add(logbook.getName()));
-                tagList.forEach(tag -> tags.add(tag.getName()));
-
-                Collections.sort(logbooks);
-                Collections.sort(tags);
-            });
         });
     }
 

@@ -18,7 +18,8 @@ public class LogbookUiPreferences
 {
     public static final String[] default_logbooks;
     public static final boolean save_credentials;
-
+    public static final String   logbook_factory;
+    
     static
     {
         PreferencesReader prefs = new PreferencesReader(LogEntryModel.class, "/log_ui_preferences.properties");
@@ -26,5 +27,6 @@ public class LogbookUiPreferences
         // Split the comma separated list.
         default_logbooks = prefs.get("default_logbooks").split("(\\s)*,(\\s)*");
         save_credentials = prefs.getBoolean("save_credentials");
+        logbook_factory  = prefs.get("logbook_factory");
     }
 }
