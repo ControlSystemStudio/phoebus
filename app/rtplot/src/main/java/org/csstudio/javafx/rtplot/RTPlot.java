@@ -387,16 +387,6 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         return toolbar.addItem(icon, tool_tip);
     }
 
-    /** Add a custom tool bar button
-     *  @param icon Icon {@link Image}
-     *  @param tool_tip Tool tip text
-     *  @return {@link Button}
-     */
-    public Button addToolItem(final Image icon, final String tool_tip)
-    {
-        return addToolItem(new ImageView(icon), tool_tip);
-    }
-
     /** @param show Show the cross-hair cursor? */
     public void showCrosshair(final boolean show)
     {

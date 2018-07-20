@@ -107,16 +107,6 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
         return item;
     }
 
-    /** Add a custom tool bar item
-     *  @param icon Icon {@link Image}
-     *  @param tool_tip Tool tip text
-     *  @return {@link ToolItem}
-     */
-    public Button addItem(final Image icon, final String tool_tip)
-    {
-        return this.addItem(new ImageView(icon), tool_tip);
-    }
-
     private void makeGUI(final boolean active)
     {
         addOptions(active);
