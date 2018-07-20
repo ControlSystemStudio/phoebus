@@ -80,6 +80,7 @@ public class ImageToolbarHandler
         final Button item = new Button();
         item.setGraphic(new ImageView(icon));
         item.setTooltip(new Tooltip(tool_tip));
+        item.setMinSize(ToolbarHandler.BUTTON_WIDTH, ToolbarHandler.BUTTON_HEIGHT);
         toolbar.getItems().add(item);
         return item;
     }
@@ -163,6 +164,7 @@ public class ImageToolbarHandler
 			item.setText(icon.toString());
 		}
         item.setTooltip(new Tooltip(tool_tip));
+        item.setMinSize(ToolbarHandler.BUTTON_WIDTH, ToolbarHandler.BUTTON_HEIGHT);
 
         toolbar.getItems().add(item);
         return item;

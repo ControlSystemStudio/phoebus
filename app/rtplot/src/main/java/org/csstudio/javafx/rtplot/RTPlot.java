@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
@@ -361,19 +360,9 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         // Force layout to reclaim space used by hidden toolbar,
         // or make room for the visible toolbar
         layoutChildren();
-        // XX Hack: Toolbar is garbled, all icons in pile at left end,
-        // when shown the first time, i.e. it was hidden when the plot
-        // was first shown.
-        // Manual fix is to hide and show again.
-        // Workaround is to force another layout a little later
         if (show)
-            ForkJoinPool.commonPool().submit(() ->
-            {
-                Thread.sleep(1000);
-                Platform.runLater(() -> layoutChildren() );
-                return null;
-            });
-        //toggle_toolbar.updateText();
+            Platform.runLater(() -> ToolbarHandler.refreshHack(toolbar.getToolBar()));
+
         plot.fireToolbarChange(show);
     }
 
