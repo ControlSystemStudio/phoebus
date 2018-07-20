@@ -11,5 +11,6 @@
     <module>model</module>
     <module>ui</module>
     <module>server</module>
+    <module>logging-ui</module>
   </modules>
 </project>

@@ -46,5 +46,43 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/rxjava-2.1.14.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/freetts-1.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-1.1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/commons-codec-1.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/commons-logging-1.1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-cli-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-core-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-high-level-client-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-secure-sm-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-x-content-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/HdrHistogram-2.1.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/hppc-0.7.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/httpasyncclient-4.1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/httpclient-4.5.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/httpcore-4.4.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/httpcore-nio-4.4.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-cbor-2.8.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-smile-2.8.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-yaml-2.8.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jna-4.5.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.9.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jopt-simple-5.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/log4j-api-2.9.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-analyzers-common-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-backward-codecs-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-core-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-grouping-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-highlighter-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-join-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-memory-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-misc-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-queries-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-queryparser-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-sandbox-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-extras-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial3d-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/rank-eval-client-6.3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
