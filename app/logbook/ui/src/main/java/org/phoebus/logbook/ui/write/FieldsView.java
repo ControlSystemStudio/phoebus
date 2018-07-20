@@ -28,14 +28,20 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+/** 
+ * View that handles the log entry information fields.
+ * @author Evan Smith
+ */
 public class FieldsView extends VBox
 {   
     private final LogEntryModel    model;
     
+    // Credentials of user making entry.
     private final Label            userFieldLabel, passwordFieldLabel;
     private final TextField        userField;
     private final PasswordField    passwordField;
     
+    // Date and priority level of log entry.
     private final Label                  dateLabel, levelLabel;
     private final TextField              dateField;
     private final ComboBox<String>       levelSelector;
@@ -43,7 +49,7 @@ public class FieldsView extends VBox
                                                         "Urgent",
                                                         "High",
                                                         "Normal");
-    
+    // Title and body of log entry
     private final Label            titleLabel, textLabel;
     private final TextField        titleField;
     private final LogbooksTagsView logbooksAndTags;
@@ -118,13 +124,14 @@ public class FieldsView extends VBox
         });
         
         model.getUpdateCredentialsProperty().addListener((changeListener, oldVal, newVal) ->
-        {
-            userField.setText(model.getUsername());
-            passwordField.setText(model.getPassword());
-            
-            // Put focus on first required field that is empty.
+        {            
+            // This call back should be running on a background thread. Perform contents on JavaFX application thread.
             Platform.runLater(() ->
             {
+                userField.setText(model.getUsername());
+                passwordField.setText(model.getPassword());
+
+                // Put focus on first required field that is empty.
                 if (userField.getText().isEmpty())
                     userField.requestFocus();
                 else if (passwordField.getText().isEmpty())
@@ -233,6 +240,7 @@ public class FieldsView extends VBox
         return titleTextBox;
     }
     
+    /** Set the username and password fields to update the model's username and password fields on text entry. */
     private void setFieldActions()
     {
         userField.setOnKeyReleased(event ->
@@ -246,6 +254,7 @@ public class FieldsView extends VBox
         });
     }
     
+    /** Set the title and text fields to update the model's title and text fields on text entry */
     private void setTextActions()
     {
         titleField.setOnKeyReleased(event ->
@@ -259,17 +268,12 @@ public class FieldsView extends VBox
         });   
     }
 
+    /** Set the priority level selector to update the models priority level field */
     private void setSelectorAction()
     {
         levelSelector.setOnAction(event ->
         {
             model.setLevel(levelSelector.getSelectionModel().getSelectedItem());
         });
-    }
-    
-    /** Have the title field request the focus. */
-    public void requestTitleFocus()
-    {
-        titleField.requestFocus();
     }
 }
