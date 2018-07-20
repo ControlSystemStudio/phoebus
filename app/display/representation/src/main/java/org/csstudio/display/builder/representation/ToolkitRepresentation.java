@@ -341,12 +341,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     private TWP disposeChildren(final Widget container, final ChildrenProperty children)
     {
         for (Widget widget : children.getValue())
-        {   // First dispose child widgets, then the container
-            final ChildrenProperty grandkids = ChildrenProperty.getChildren(widget);
-            if (grandkids != null)
-                disposeChildren(widget, grandkids);
             disposeWidget(widget);
-        }
 
         final TWP parent = container.clearUserData(Widget.USER_DATA_TOOLKIT_PARENT);
         return parent;
