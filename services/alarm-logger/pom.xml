@@ -6,7 +6,7 @@
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>alarm-logger</artifactId>
+  <artifactId>service-alarm-logger</artifactId>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
