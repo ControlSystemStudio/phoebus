@@ -131,6 +131,9 @@ public class AlarmClient
     /** Background thread loop that checks for alarm tree updates */
     private void run()
     {
+        // Send an initial "no server" notification,
+        // to be cleared once we receive data from server.
+        checkServerState();
         try
         {
             while (running.get())
@@ -154,6 +157,10 @@ public class AlarmClient
     /** Perform one check for updates */
     private void checkUpdates()
     {
+        // Check for messages, with timeout.
+        // TODO Because of Kafka bug, this will hang if Kafka isn't running.
+        // Fixed according to https://issues.apache.org/jira/browse/KAFKA-1894 ,
+        // but update to kafka-client 1.1.1 (latest in July 2018) makes no difference.
         final ConsumerRecords<String, String> records = consumer.poll(100);
         for (final ConsumerRecord<String, String> record : records)
         {
