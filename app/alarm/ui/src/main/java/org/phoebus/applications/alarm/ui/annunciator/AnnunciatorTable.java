@@ -307,7 +307,6 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                 final AnnunciationRowInfo to_remove = messages.remove(0);
 
                 table.getItems().remove(to_remove);
-                table.getItems().sort(table.getComparator());
             }
             
             // The table should maintain its selected sort order after message addition.
