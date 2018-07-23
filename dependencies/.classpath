@@ -64,6 +64,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-cbor-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-smile-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-yaml-2.8.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jackson-datatype-jsr310-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jna-4.5.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.9.9.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jopt-simple-5.0.2.jar"/>
