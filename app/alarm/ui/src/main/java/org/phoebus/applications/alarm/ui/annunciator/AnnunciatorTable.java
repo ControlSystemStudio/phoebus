@@ -220,7 +220,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
 
-        annunciatorController = new AnnunciatorController(annunciator_threshold);
+        annunciatorController = new AnnunciatorController(annunciator_threshold, this::addAnnunciationToTable);
 
         // Top button row
         muteButton.setTooltip(muteTip);
@@ -278,41 +278,38 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     @Override
     public void messageReceived(final SeverityLevel severity, final boolean standout, final String message)
     {
-        final AnnunciationRowInfo annunciation = new AnnunciationRowInfo(Instant.now(), severity, message);
-        addAnnunciationToTable(annunciation);
+        final AnnunciatorMessage annunciation = new AnnunciatorMessage(standout, severity, Instant.now(), message);
         logger.log(Level.FINE,
                    () -> "Annunciator received " +
-                         TimestampFormats.MILLI_FORMAT.format(annunciation.time_received.get()) +
-                         " Severity: " + annunciation.severity.get() +
-                         ", Description: \"" + annunciation.message.get() + "\"");
+                         TimestampFormats.MILLI_FORMAT.format(annunciation.time) +
+                         " Severity: " + annunciation.severity +
+                         ", Description: \"" + annunciation.message + "\"");
 
-        annunciatorController.handleAnnunciation(standout, annunciation);
+        annunciatorController.annunciate(annunciation);
     }
 
     /**
      * Handle message addition to the table.
      */
-    private void addAnnunciationToTable(AnnunciationRowInfo annunciation)
+    private void addAnnunciationToTable(AnnunciatorMessage annunciation)
     {
-        messages.add(annunciation);
-
-        // Remove the oldest messages to stay under the message retention threshold.
-        if (messages.size() > annunciator_retention_count)
+        Platform.runLater(() ->
         {
-            // Only the table items are sorted, the messages list maintains chronological order.
-            final AnnunciationRowInfo to_remove = messages.remove(0);
-            Platform.runLater(() ->
+            AnnunciationRowInfo row = new AnnunciationRowInfo(annunciation.time, annunciation.severity, annunciation.message);
+            messages.add(row);
+    
+            // Remove the oldest messages to stay under the message retention threshold.
+            if (messages.size() > annunciator_retention_count)
             {
+                // Only the table items are sorted, the messages list maintains chronological order.
+                final AnnunciationRowInfo to_remove = messages.remove(0);
+
                 table.getItems().remove(to_remove);
                 table.getItems().sort(table.getComparator());
-            });
-        }
-
-        // Update the table on the UI thread.
-        Platform.runLater( () ->
-        {
+            }
+            
             // The table should maintain its selected sort order after message addition.
-            table.getItems().add(annunciation);
+            table.getItems().add(row);
             table.getItems().sort(table.getComparator());
         });
     }
