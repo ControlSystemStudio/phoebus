@@ -248,9 +248,9 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
             if (model_widget.propShowLED().getValue())
             {
                 led.setVisible(true);
-                final int size = Math.max(wid, hei);
-                led.setRadiusX(size / 15.0);
-                led.setRadiusY(size / 10.0);
+                final int size = Math.min(wid, hei);
+                led.setRadiusX(size / 3.7);
+                led.setRadiusY(size / 3.7);
             }
             else
             {
