@@ -10,6 +10,9 @@ package org.phoebus.applications.email.actions;
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
+
+import javafx.scene.image.Image;
 
 /**
  * Menu entry that starts email dialog
@@ -36,5 +39,11 @@ public class CreateEmailMenuEntry implements MenuEntry {
     @Override
     public String getMenuPath() {
         return "Utility";
+    }
+    
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(CreateEmailMenuEntry.class, "/icons/mail-send-16.png");
     }
 }
