@@ -45,7 +45,8 @@ public class AlarmServerMain implements ServerModelListener
 
     private static final String COMMANDS =
                         "Commands:\n\n" +
-                        "Note: '.' and '..' will be interpreted as the current directory and the parent directory respectively.\n\n" +
+                        "Note: '.' and '..' will be interpreted as the current directory and the parent directory respectively.\n" +
+                        "Spaces within a path do not need to be quoted.\n\n" +
                         "\tls               - List all alarm tree items in the current directory.\n" +
                         "\tls -disconnected - List all the disconnected PVs in the entire alarm tree.\n" +
                         "\tls -all          - List all alarm tree PVs in the entire alarm tree.\n" +
