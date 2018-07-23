@@ -54,7 +54,9 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final Button clearTableButton = new Button("Clear Messages");
     private static final Image anunciate_icon = ImageCache.getImage(AlarmUI.class, "/icons/annunciator.png");
     private static final Image mute_icon = ImageCache.getImage(AlarmUI.class, "/icons/silence.png");
-    private final ToggleButton muteButton       = new ToggleButton("", new ImageView(mute_icon));
+    private final Tooltip muteTip = new Tooltip("Mute the annunciator");
+    private final Tooltip annunciateTip = new Tooltip("Un-mute the annunciator");
+    private final ToggleButton muteButton = new ToggleButton("", new ImageView(mute_icon));
 
     private final TableView<AnnunciationRowInfo> table = new TableView<>();
 
@@ -221,7 +223,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         annunciatorController = new AnnunciatorController(annunciator_threshold);
 
         // Top button row
-        muteButton.setTooltip(new Tooltip("Mute the annunciator"));
+        muteButton.setTooltip(muteTip);
         muteButton.setOnAction((event) ->
         {
             // Mute is true when the annunciator should be muted.
@@ -229,6 +231,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             // Update image
             final ImageView image = (ImageView) muteButton.getGraphic();
             image.setImage(mute ? anunciate_icon : mute_icon);
+            muteButton.setTooltip(mute ? annunciateTip : muteTip);
             annunciatorController.setMuted(mute);
             // Refresh the table cell items so that they recalculate their background color.
             table.refresh();
