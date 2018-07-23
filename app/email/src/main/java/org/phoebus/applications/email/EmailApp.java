@@ -13,9 +13,9 @@ import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 
+import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.mail.EmailPreferences;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

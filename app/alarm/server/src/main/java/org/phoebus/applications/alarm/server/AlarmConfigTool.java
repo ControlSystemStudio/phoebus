@@ -154,17 +154,17 @@ public class AlarmConfigTool
             updateMonitor.listen(client);
 
             final AlarmClientNode new_root = xmlModelReader.getRoot();
+            // Check that the configs match.
+            if (!config.equals(new_root.getName()))
+            {
+            	System.out.printf("Expecting configuration for \"%s\" but file %s contains settings for \"%s\".\n", config, filename, new_root.getName());
+            	return;
+            }
+
             System.out.println("Importing " + new_root.getName() + " ...");
 
             // Get the server's root node for this config.
             final AlarmClientNode root = client.getRoot();
-
-            // Check that the configs match.
-            if (!config.equals(new_root.getName()))
-            {
-            	System.out.printf("The provided config \"%s\" does not match the config loaded from file \"%s\".\n", config, new_root.getName());
-            	return;
-            }
 
             // Delete the old model. Leave the root node.
             final List<AlarmTreeItem<?>> root_children = root.getChildren();

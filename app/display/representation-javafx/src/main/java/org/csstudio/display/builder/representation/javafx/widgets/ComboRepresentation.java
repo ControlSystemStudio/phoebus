@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import org.phoebus.ui.javafx.Styles;
 import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VType;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.scene.control.ComboBox;
@@ -32,6 +33,7 @@ import javafx.scene.text.Font;
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
  */
+@SuppressWarnings("nls")
 public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<String>, ComboWidget>
 {
     private volatile boolean active = false;
@@ -45,7 +47,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
     @Override
     public ComboBox<String> createJFXNode() throws Exception
     {
-        final ComboBox<String> combo = new ComboBox<String>();
+        final ComboBox<String> combo = new ComboBox<>();
         if (! toolkit.isEditMode())
         {
             // 'editable' cannot be changed at runtime
@@ -56,20 +58,20 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
             {   // We are updating the UI, ignore
                 if (active)
                     return;
-                String value = combo.getValue();
+                final String value = combo.getValue();
                 if (value != null)
                 {
                     // Restore current value
                     contentChanged(null, null, null);
                     // ... which should soon be replaced by updated value, if accepted
-                    toolkit.fireWrite(model_widget, value);
+                    Platform.runLater(() -> confirm(value));
                 }
             });
 
             // Also write to PV when user re-selects the current value
             combo.setCellFactory(list ->
             {
-                final ListCell<String> cell = new ListCell<String>()
+                final ListCell<String> cell = new ListCell<>()
                 {
                     @Override
                     public void updateItem(final String item, final boolean empty)
@@ -96,6 +98,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
             });
 
         }
+        contentChanged(null, null, null);
         return combo;
     }
 
@@ -122,6 +125,24 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
         model_widget.runtimePropPVWritable().addUntypedPropertyListener(this::enableChanged);
 
         styleChanged(null, null, null);
+    }
+
+    private void confirm(final String value)
+    {
+        if ( model_widget.propConfirmDialog().getValue())
+        {
+            final String message = model_widget.propConfirmMessage().getValue();
+            final String password = model_widget.propPassword().getValue();
+            if (password.length() > 0)
+            {
+                if (toolkit.showPasswordDialog(model_widget, message, password) == null)
+                    return;
+            }
+            else if (!toolkit.showConfirmationDialog(model_widget, message))
+                return;
+        }
+
+        toolkit.fireWrite(model_widget, value);
     }
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -151,7 +172,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
         }
         else
         {
-            final List<String> new_items = new ArrayList<String>();
+            final List<String> new_items = new ArrayList<>();
             for (WidgetProperty<String> itemProp : model_widget.propItems().getValue())
                 new_items.add(itemProp.getValue());
 

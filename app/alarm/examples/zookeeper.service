@@ -1,0 +1,29 @@
+# File /etc/systemd/system/zookeeper.service
+#
+# Start/status/stop
+#   sudo systemctl start zookeeper.service
+#   sudo systemctl status zookeeper.service
+#   sudo systemctl stop zookeeper.service
+#
+# Start when computer boots:
+#   sudo systemctl enable zookeeper.service
+#
+# When running, it should listen on localhost:2181
+#   netstat -an | fgrep 2181
+
+[Unit]
+Description=Apache Zookeeper server (Kafka)
+Documentation=http://zookeeper.apache.org
+Requires=network.target remote-fs.target
+After=network.target remote-fs.target
+
+[Service]
+Type=simple
+User=controls
+Group=users
+Environment=JAVA_HOME=/opt/jdk-10
+ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
+
+[Install]
+WantedBy=multi-user.target

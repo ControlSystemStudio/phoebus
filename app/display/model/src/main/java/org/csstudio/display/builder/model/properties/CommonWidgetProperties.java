@@ -41,7 +41,7 @@ public class CommonWidgetProperties
     public static final WidgetPropertyDescriptor<String> newStringPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                      final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<String>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<String> createProperty(final Widget widget, final String value)
@@ -59,7 +59,7 @@ public class CommonWidgetProperties
     public static final WidgetPropertyDescriptor<String> newFilenamePropertyDescriptor(final WidgetPropertyCategory category,
                                                                                        final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<String>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<String> createProperty(final Widget widget, final String value)
@@ -77,7 +77,7 @@ public class CommonWidgetProperties
     public static final WidgetPropertyDescriptor<String> newPVNamePropertyDescriptor(final WidgetPropertyCategory category,
                                                                                      final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<String>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<String> createProperty(final Widget widget, final String value)
@@ -109,7 +109,7 @@ public class CommonWidgetProperties
                                                                                        final String name, final String description,
                                                                                        final int min, final int max)
     {
-        return new WidgetPropertyDescriptor<Integer>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
@@ -143,7 +143,7 @@ public class CommonWidgetProperties
                                                                                  final String name, final String description,
                                                                                  final long min, final long max)
     {
-        return new WidgetPropertyDescriptor<Long>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<Long> createProperty(final Widget widget, final Long value)
@@ -161,7 +161,7 @@ public class CommonWidgetProperties
     public static final WidgetPropertyDescriptor<Double> newDoublePropertyDescriptor(final WidgetPropertyCategory category,
                                                                                      final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<Double>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<Double> createProperty(final Widget widget, final Double value)
@@ -179,7 +179,7 @@ public class CommonWidgetProperties
     public static final WidgetPropertyDescriptor<Boolean> newBooleanPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                        final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<Boolean>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<Boolean> createProperty(final Widget widget, final Boolean value)
@@ -197,7 +197,7 @@ public class CommonWidgetProperties
     public static final WidgetPropertyDescriptor<WidgetColor> newColorPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                          final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<WidgetColor>(category, name, description)
+        return new WidgetPropertyDescriptor<>(category, name, description)
         {
             @Override
             public WidgetProperty<WidgetColor> createProperty(final Widget widget, final WidgetColor value)
@@ -213,12 +213,12 @@ public class CommonWidgetProperties
      */
     public static final WidgetPropertyDescriptor<VType> newRuntimeValue(final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<VType>(WidgetPropertyCategory.RUNTIME, name, description)
+        return new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, name, description)
         {
             @Override
             public WidgetProperty<VType> createProperty(final Widget widget, final VType value)
             {
-                return new RuntimeWidgetProperty<VType>(this, widget, value)
+                return new RuntimeWidgetProperty<>(this, widget, value)
                 {
                     @Override
                     public void setValueFromObject(final Object value) throws Exception
@@ -240,7 +240,7 @@ public class CommonWidgetProperties
      */
     public static final WidgetPropertyDescriptor<Instant> newRuntimeEvent(final String name, final String description)
     {
-        return new WidgetPropertyDescriptor<Instant>(WidgetPropertyCategory.RUNTIME, name, description)
+        return new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, name, description)
         {
             @Override
             public WidgetProperty<Instant> createProperty(final Widget widget, final Instant value)
@@ -257,7 +257,7 @@ public class CommonWidgetProperties
     // Category and property name
 
     /** 'type' property: "label", "rectangle", "textupdate", .. */
-    public static final WidgetPropertyDescriptor<String> propType = new WidgetPropertyDescriptor<String>(
+    public static final WidgetPropertyDescriptor<String> propType = new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.WIDGET, "type", Messages.WidgetProperties_Type, true)
     {
         @Override
@@ -282,7 +282,7 @@ public class CommonWidgetProperties
      *  <p>Widget class, used to set properties that follow the suggestions from class
      */
     public static final WidgetPropertyDescriptor<String> propWidgetClass =
-        new WidgetPropertyDescriptor<String>(WidgetPropertyCategory.WIDGET, "class", Messages.WidgetProperties_Class)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.WIDGET, "class", Messages.WidgetProperties_Class)
     {
         @Override
         public WidgetProperty<String> createProperty(final Widget widget, final String value)
@@ -293,7 +293,7 @@ public class CommonWidgetProperties
 
     /** 'macros' property */
     public static final WidgetPropertyDescriptor<Macros> propMacros =
-            new WidgetPropertyDescriptor<Macros>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.WIDGET, "macros", Messages.WidgetProperties_Macros)
     {
         @Override
@@ -330,7 +330,7 @@ public class CommonWidgetProperties
 
     /** 'visible' property */
     public static final WidgetPropertyDescriptor<Boolean> propVisible =
-        new WidgetPropertyDescriptor<Boolean>(WidgetPropertyCategory.DISPLAY, "visible", Messages.WidgetProperties_Visible)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "visible", Messages.WidgetProperties_Visible)
     {
         @Override
         public WidgetProperty<Boolean> createProperty(final Widget widget, final Boolean value)
@@ -382,14 +382,14 @@ public class CommonWidgetProperties
 
     /** 'style' property */
     public static final WidgetPropertyDescriptor<LineStyle> propLineStyle =
-            new WidgetPropertyDescriptor<LineStyle>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "line_style", Messages.LineStyle)
     {
         @Override
         public EnumWidgetProperty<LineStyle> createProperty(final Widget widget,
                 final LineStyle default_value)
         {
-            return new EnumWidgetProperty<LineStyle>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
@@ -404,7 +404,7 @@ public class CommonWidgetProperties
 
     /** 'tooltip' property: Text to display in tooltip */
     public static final WidgetPropertyDescriptor<String> propTooltip =
-            new WidgetPropertyDescriptor<String>(WidgetPropertyCategory.BEHAVIOR, "tooltip", Messages.WidgetProperties_Tooltip)
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "tooltip", Messages.WidgetProperties_Tooltip)
     {
         @Override
         public WidgetProperty<String> createProperty(final Widget widget, final String value)
@@ -415,14 +415,14 @@ public class CommonWidgetProperties
 
     /** 'format' property */
     public static final WidgetPropertyDescriptor<FormatOption> propFormat =
-            new WidgetPropertyDescriptor<FormatOption>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "format", Messages.WidgetProperties_Format)
     {
         @Override
         public EnumWidgetProperty<FormatOption> createProperty(final Widget widget,
                 final FormatOption default_value)
         {
-            return new EnumWidgetProperty<FormatOption>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
@@ -436,7 +436,7 @@ public class CommonWidgetProperties
 
     /** 'font' property: Font for display */
     public static final WidgetPropertyDescriptor<WidgetFont> propFont =
-            new WidgetPropertyDescriptor<WidgetFont>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "font", Messages.WidgetProperties_Font)
     {
         @Override
@@ -461,7 +461,7 @@ public class CommonWidgetProperties
 
     /** 'points' property: Points to display */
     public static final WidgetPropertyDescriptor<Points> propPoints =
-            new WidgetPropertyDescriptor<Points>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "points", Messages.WidgetProperties_Points)
     {
         @Override
@@ -474,53 +474,53 @@ public class CommonWidgetProperties
 
     /** 'direction' property */
     public static final WidgetPropertyDescriptor<Direction> propDirection =
-            new WidgetPropertyDescriptor<Direction>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "direction", Messages.WidgetProperties_Direction)
     {
         @Override
         public EnumWidgetProperty<Direction> createProperty(final Widget widget,
                 final Direction default_value)
         {
-            return new EnumWidgetProperty<Direction>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
     /** 'horizontal_alignment' property */
     public static final WidgetPropertyDescriptor<HorizontalAlignment> propHorizontalAlignment =
-            new WidgetPropertyDescriptor<HorizontalAlignment>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "horizontal_alignment", Messages.WidgetProperties_HorizontalAlignment)
     {
         @Override
         public EnumWidgetProperty<HorizontalAlignment> createProperty(final Widget widget,
                 final HorizontalAlignment default_value)
         {
-            return new EnumWidgetProperty<HorizontalAlignment>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
     /** 'vertical_alignment' property */
     public static final WidgetPropertyDescriptor<VerticalAlignment> propVerticalAlignment =
-            new WidgetPropertyDescriptor<VerticalAlignment>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "vertical_alignment", Messages.WidgetProperties_VerticalAlignment)
     {
         @Override
         public EnumWidgetProperty<VerticalAlignment> createProperty(final Widget widget,
                 final VerticalAlignment default_value)
         {
-            return new EnumWidgetProperty<VerticalAlignment>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
     /** 'rotation_step' property */
     public static final WidgetPropertyDescriptor<RotationStep> propRotationStep =
-            new WidgetPropertyDescriptor<RotationStep>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.DISPLAY, "rotation_step", Messages.WidgetProperties_Rotation)
     {
         @Override
         public EnumWidgetProperty<RotationStep> createProperty(final Widget widget,
                 final RotationStep default_value)
         {
-            return new EnumWidgetProperty<RotationStep>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
@@ -529,7 +529,7 @@ public class CommonWidgetProperties
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "wrap_words", Messages.WidgetProperties_WrapWords);
 
     /** Property for the 'off' color */
-    public static final WidgetPropertyDescriptor<WidgetColor> propOffColor = new WidgetPropertyDescriptor<WidgetColor>(
+    public static final WidgetPropertyDescriptor<WidgetColor> propOffColor = new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "off_color", Messages.WidgetProperties_OffColor)
     {
         @Override
@@ -541,7 +541,7 @@ public class CommonWidgetProperties
     };
 
     /** Property for the 'on' color */
-    public static final WidgetPropertyDescriptor<WidgetColor> propOnColor = new WidgetPropertyDescriptor<WidgetColor>(
+    public static final WidgetPropertyDescriptor<WidgetColor> propOnColor = new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "on_color", Messages.WidgetProperties_OnColor)
     {
         @Override
@@ -553,7 +553,7 @@ public class CommonWidgetProperties
     };
 
     /** Property for the 'off' label */
-    public static final WidgetPropertyDescriptor<String> propOffLabel = new WidgetPropertyDescriptor<String>(
+    public static final WidgetPropertyDescriptor<String> propOffLabel = new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "off_label", Messages.WidgetProperties_OffLabel)
     {
         @Override
@@ -564,7 +564,7 @@ public class CommonWidgetProperties
     };
 
     /** Property for the 'on' label */
-    public static final WidgetPropertyDescriptor<String> propOnLabel = new WidgetPropertyDescriptor<String>(
+    public static final WidgetPropertyDescriptor<String> propOnLabel = new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "on_label", Messages.WidgetProperties_OnLabel)
     {
         @Override
@@ -592,7 +592,7 @@ public class CommonWidgetProperties
 
     /** 'actions' property: Actions that user can invoke */
     public static final WidgetPropertyDescriptor<ActionInfos> propActions =
-            new WidgetPropertyDescriptor<ActionInfos>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.BEHAVIOR, "actions", Messages.WidgetProperties_Actions)
     {
         @Override
@@ -617,7 +617,7 @@ public class CommonWidgetProperties
 
     /** 'scripts' property: Scripts to execute */
     public static final WidgetPropertyDescriptor<List<ScriptInfo>> propScripts =
-            new WidgetPropertyDescriptor<List<ScriptInfo>>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.BEHAVIOR, "scripts", Messages.WidgetProperties_Scripts)
     {
         @Override
@@ -630,7 +630,7 @@ public class CommonWidgetProperties
 
     /** 'rules' property: Rules to execute */
     public static final WidgetPropertyDescriptor<List<RuleInfo>> propRules =
-            new WidgetPropertyDescriptor<List<RuleInfo>>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.BEHAVIOR, "rules", Messages.WidgetProperties_Rules)
     {
         @Override
@@ -659,6 +659,29 @@ public class CommonWidgetProperties
     /** 'maximum' property: Maximum display range */
     public static final WidgetPropertyDescriptor<Double> propMaximum =
             newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "maximum", Messages.WidgetProperties_Maximum);
+
+    /** 'show_confirm_dialog' property (with options): Prompt for confirmation before performing something? */
+    public static final WidgetPropertyDescriptor<ConfirmDialog> propConfirmDialogOptions =
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "show_confirm_dialog", Messages.WidgetProperties_ConfirmDialog)
+    {
+        @Override
+        public EnumWidgetProperty<ConfirmDialog> createProperty(final Widget widget, final ConfirmDialog default_value)
+        {
+            return new EnumWidgetProperty<>(this, widget, default_value);
+        }
+    };
+
+    /** 'show_confirm_dialog' property (boolean): Prompt for confirmation before performing something? */
+    public static final WidgetPropertyDescriptor<Boolean> propConfirmDialog =
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "show_confirm_dialog", Messages.WidgetProperties_ConfirmDialog);
+
+    /** 'confirm_message' property: Message for confirmation prompt */
+    public static final WidgetPropertyDescriptor<String> propConfirmMessage =
+            newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "confirm_message", Messages.WidgetProperties_ConfirmMessage);
+
+    /** 'password' property: Password for which to prompt (empty to disable) */
+    public static final WidgetPropertyDescriptor<String> propPassword =
+            newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "password", Messages.WidgetProperties_Password);
 
     /** Runtime 'pv_value' property: Typically read from primary PV */
     public static final WidgetPropertyDescriptor<VType> runtimePropPVValue =

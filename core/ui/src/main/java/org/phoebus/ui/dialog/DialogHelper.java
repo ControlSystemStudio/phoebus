@@ -48,6 +48,11 @@ public class DialogHelper
      */
     public static void positionDialog(final Dialog<?> dialog, final Node node, final int x_offset, final int y_offset)
     {
+        // Modality hack.
+        final Window window = dialog.getDialogPane().getScene().getWindow();
+        if (window instanceof Stage)
+            ((Stage) window).setAlwaysOnTop(true);
+
         final Bounds pos = node.localToScreen(node.getBoundsInLocal());
         dialog.setX(pos.getMinX() + pos.getWidth()/2 + x_offset);
         dialog.setY(pos.getMinY() + pos.getHeight()/2 + y_offset);
@@ -152,9 +157,9 @@ public class DialogHelper
         Objects.requireNonNull(dialog, "Null dialog.");
 
         // Modality hack.
-        final Window window = dialog.getDialogPane().getContent().getScene().getWindow();
-        if ( window instanceof Stage)
-            ( (Stage) window ).setAlwaysOnTop(true);
+        final Window window = dialog.getDialogPane().getScene().getWindow();
+        if (window instanceof Stage)
+            ((Stage) window).setAlwaysOnTop(true);
 
         if (injector != null  &&  prefs != null)
             injector.accept(prefs);

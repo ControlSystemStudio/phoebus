@@ -80,6 +80,7 @@ public class Messages
     public static String MoveDown;
     public static String MoveUp;
     public static String Password;
+    public static String Password_Caption;
     public static String Password_Error;
     public static String Password_Prompt;
     public static String PointsDialog_Info;

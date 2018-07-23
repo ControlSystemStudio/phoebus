@@ -36,6 +36,10 @@ public class Messages
     public static String Center;
     public static String ComboWidget_Item;
     public static String ComboWidget_Items;
+    public static String Confirm_NONE;
+    public static String Confirm_BOTH;
+    public static String Confirm_PUSH;
+    public static String Confirm_RELEASE;
     public static String EmbeddedDisplayWidget_GroupName;
     public static String FontStyle_Bold;
     public static String FontStyle_BoldItalic;

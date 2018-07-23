@@ -30,7 +30,7 @@ import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.server.AlarmServerPV;
-import org.phoebus.mail.EmailPreferences;
+import org.phoebus.email.EmailPreferences;
 import org.phoebus.util.time.TimestampFormats;
 
 /** Executor for email actions

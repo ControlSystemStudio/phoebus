@@ -23,6 +23,7 @@ import org.phoebus.ui.javafx.Styles;
 import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VType;
 
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
@@ -90,8 +91,12 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private void handlePress()
     {
         logger.log(Level.FINE, "{0} pressed", model_widget);
+        Platform.runLater(this::confirm);
+    }
 
-        boolean prompt;
+    private void confirm()
+    {
+        final boolean prompt;
         switch (model_widget.propConfirmDialog().getValue())
         {
         case BOTH:     prompt = true;            break;
@@ -109,14 +114,11 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
                 if (toolkit.showPasswordDialog(model_widget, message, password) == null)
                     return;
             }
-            else
-            {
-                if (! toolkit.showConfirmationDialog(model_widget, message))
+            else if (! toolkit.showConfirmationDialog(model_widget, message))
                     return;
-            }
         }
 
-        int new_val = (rt_value ^ ((use_bit < 0) ? 1 : (1 << use_bit)) );
+        final int new_val = (rt_value ^ ((use_bit < 0) ? 1 : (1 << use_bit)) );
         toolkit.fireWrite(model_widget, new_val);
     }
 
@@ -248,9 +250,9 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
             if (model_widget.propShowLED().getValue())
             {
                 led.setVisible(true);
-                final int size = Math.max(wid, hei);
-                led.setRadiusX(size / 15.0);
-                led.setRadiusY(size / 10.0);
+                final int size = Math.min(wid, hei);
+                led.setRadiusX(size / 3.7);
+                led.setRadiusY(size / 3.7);
             }
             else
             {

@@ -29,8 +29,16 @@ Download Kafka as described on https://kafka.apache.org/quickstart
 Check `config/server.properties`. By default it contains this, which "works",
 but risks that Linux will delete the data:
 
-    # Suggest to change this to a location outside of /tmp, for example /var/kafka
+    # Suggest to change this to a location outside of /tmp,
+    # for example /var/kafka-logs or /home/controls/kafka-logs
     log.dirs=/tmp/kafka-logs
+
+Kafka depends on Zookeeper. By default, Kafka will quit if it cannot connect to Zookeeper within 6 seconds.
+When the Linux host boots up, this may not be long enough to allow Zookeeper to start.
+
+	# Timeout in ms for connecting to zookeeper defaults to 6000ms.
+	# Suggest a much longer time (5 minutes)
+	zookeeper.connection.timeout.ms=300000
 
 By default, Kafka will automatically create topics.
 This means you could accidentally start an alarm server for a non-existing configuration.
@@ -53,18 +61,32 @@ For tests, you can use localhost:
     advertised.host.name = localhost
     advertised.listeners=PLAINTEXT://localhost:9092
 
+If you are using Java 10 or newer, the Zookeeper start script may fail when it
+checks for the Java Version, because it mistakes Java 10 as Java "1", resulting in the following error:
+
+     kafka/bin/kafka-run-class.sh: line 252: .. syntax error in expression ..
+
+If you are using Java 10, change kafka-run-class.sh line 252 from
+
+     JAVA_MAJOR_VERSION=$($JAVA -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p')
+into
+
+     JAVA_MAJOR_VERSION="10"
+
 
 Start local instance:
 
     # Zookeeper must be started first.
     sh start_zookeeper.sh
 
-    # The, in other terminal, start Kafka
+    # Then, in other terminal, start Kafka
     sh start_kafka.sh
 
-    # If kafka is started first it will fail to start and close with a null pointer exception. 
+    # If kafka is started first, with the default zookeeper.connection.timeout of only 6 seconds,
+    # it will fail to start and close with a null pointer exception. 
     # Simply start kafka after zookeeper is running to recover.
 
+Refer to `*.service` scripts for installing Zookeeper and Kafka as Linux services.
     
 Kafka Demo
 ----------
