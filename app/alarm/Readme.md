@@ -61,6 +61,18 @@ For tests, you can use localhost:
     advertised.host.name = localhost
     advertised.listeners=PLAINTEXT://localhost:9092
 
+If you are using Java 10 or newer, the Zookeeper start script may fail when it
+checks for the Java Version, because it mistakes Java 10 as Java "1", resulting in the following error:
+
+     kafka/bin/kafka-run-class.sh: line 252: .. syntax error in expression ..
+
+If you are using Java 10, change kafka-run-class.sh line 252 from
+
+     JAVA_MAJOR_VERSION=$($JAVA -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p')
+into
+
+     JAVA_MAJOR_VERSION="10"
+
 
 Start local instance:
 
