@@ -29,6 +29,7 @@ import javafx.stage.Window;
 public class SaveSnapshotAction extends MenuItem
 {
     private static final Image icon = ImageCache.getImage(SaveSnapshotAction.class, "/icons/save_edit.png");
+    private static final ExtensionFilter all_file_extensions = new ExtensionFilter("All Files", "*.*");
     private static final ExtensionFilter image_file_extension = new ExtensionFilter("Image (*.png)", "*.png");
 
     public SaveSnapshotAction(final Parent model_parent)
@@ -42,6 +43,7 @@ public class SaveSnapshotAction extends MenuItem
         final Window window = model_parent.getScene().getWindow();
         final ExtensionFilter[] file_extensions = new ExtensionFilter[]
         {
+            all_file_extensions,
             image_file_extension
         };
 
