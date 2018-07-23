@@ -22,6 +22,8 @@ public class Messages
     public static String Save;
     public static String SaveAs;
     public static String SaveLayoutAs;
+    public static String SaveSnapshot;
+    public static String SaveSnapshotSelectFilename;
     public static String ShowToolbar;
     public static String TopResources;
     public static String Window;

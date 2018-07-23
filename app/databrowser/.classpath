@@ -11,5 +11,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-formula"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-rtplot"/>
+	<classpathentry kind="src" path="/app-email"/>
+	<classpathentry kind="src" path="/app-logbook-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
