@@ -51,10 +51,10 @@ import javafx.scene.paint.Paint;
 @SuppressWarnings("nls")
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
-    private final Button clearTableButton = new Button("Clear Messages");
-    private static final Image annunciate_icon = ImageCache.getImage(AlarmUI.class, "/icons/annunciator.png");
+    private final Button       clearTableButton = new Button("Clear Messages");
+    private static final Image anunciate_icon = ImageCache.getImage(AlarmUI.class, "/icons/annunciator.png");
     private static final Image mute_icon = ImageCache.getImage(AlarmUI.class, "/icons/silence.png");
-    private final ToggleButton muteButton       = new ToggleButton("", new ImageView(annunciate_icon));
+    private final ToggleButton muteButton       = new ToggleButton("", new ImageView(mute_icon));
 
     private final TableView<AnnunciationRowInfo> table = new TableView<>();
 
@@ -228,7 +228,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             final boolean mute = muteButton.isSelected();
             // Update image
             final ImageView image = (ImageView) muteButton.getGraphic();
-            image.setImage(mute ? mute_icon : annunciate_icon);
+            image.setImage(mute ? anunciate_icon : mute_icon);
             annunciatorController.setMuted(mute);
             // Refresh the table cell items so that they recalculate their background color.
             table.refresh();
