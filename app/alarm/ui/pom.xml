@@ -55,5 +55,10 @@
         <artifactId>freetts</artifactId>
         <version>1.2.2</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-email</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>

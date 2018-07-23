@@ -27,8 +27,11 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.javafx.TreeHelper;
@@ -393,8 +396,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 return null;
             });
             
+            menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
+            menu_items.add(new SendEmailAction());
             menu_items.add(sendToLogbook);
-
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }

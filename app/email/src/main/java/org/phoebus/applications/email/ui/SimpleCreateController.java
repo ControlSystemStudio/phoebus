@@ -1,6 +1,7 @@
 package org.phoebus.applications.email.ui;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -31,8 +32,12 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.HTMLEditor;
+import javafx.scene.web.HTMLEditorSkin;
+import javafx.scene.web.HTMLEditorSkin.Command;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -153,6 +158,28 @@ public class SimpleCreateController {
         recomputeTextArea();
         choiceBox.setOnAction(value -> {
             recomputeTextArea();
+        });
+        
+        htmlEditor.addEventFilter(KeyEvent.KEY_PRESSED, event ->
+        {
+            if (event.getCode() == KeyCode.ENTER)
+            {
+                event.consume();
+
+                final HTMLEditorSkin skin = (HTMLEditorSkin) htmlEditor.getSkin();
+
+                    try
+                    {
+                        // Invoke the private executeCommand(Command.INSERT_NEW_LINE.getCommand(), null);
+                        final Method method = skin.getClass().getDeclaredMethod("executeCommand", String.class, String.class);
+                        method.setAccessible(true);
+                        method.invoke(skin, Command.INSERT_NEW_LINE.getCommand(), null);
+                    }
+                    catch (Throwable ex)
+                    {
+                        throw new RuntimeException("Cannot hack around ENTER", ex);
+                    }
+            }
         });
     }
 

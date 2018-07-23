@@ -39,6 +39,7 @@ public class SendLogbookAction extends MenuItem
     // TODO Use some icon from logbook UI
     private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
     private String default_text;
+    private String supplied_text;
     private Supplier<String> defaultSupplier;
     // TODO Create a messages class for the log book ui.
     private static final String MESSAGE = "Send To Log Book...";
@@ -73,8 +74,9 @@ public class SendLogbookAction extends MenuItem
     private void submitLogEntry(final Parent model_parent, final File image_file)
     {
         if (null != defaultSupplier)
-            default_text = defaultSupplier.get();
+            supplied_text = defaultSupplier.get();
         
+        final String description = (null == supplied_text) ? default_text : supplied_text;
         Attachment attachment = null;
         try
         {
@@ -85,7 +87,7 @@ public class SendLogbookAction extends MenuItem
         }
         
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
-        LogEntry template = logEntryBuilder.appendDescription(default_text)
+        LogEntry template = logEntryBuilder.appendDescription(description)
                        .attach(attachment)
                        .createdDate(Instant.now())
                        .build();

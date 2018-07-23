@@ -5,12 +5,10 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.runtime.app;
+package org.phoebus.ui.application;
 
 import java.io.File;
 
-import org.csstudio.display.builder.representation.javafx.FilenameSupport;
-import org.csstudio.display.builder.runtime.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
@@ -31,6 +29,7 @@ import javafx.stage.Window;
 public class SaveSnapshotAction extends MenuItem
 {
     private static final Image icon = ImageCache.getImage(SaveSnapshotAction.class, "/icons/save_edit.png");
+    private static final ExtensionFilter all_file_extensions = new ExtensionFilter("All Files", "*.*");
     private static final ExtensionFilter image_file_extension = new ExtensionFilter("Image (*.png)", "*.png");
 
     public SaveSnapshotAction(final Parent model_parent)
@@ -44,7 +43,7 @@ public class SaveSnapshotAction extends MenuItem
         final Window window = model_parent.getScene().getWindow();
         final ExtensionFilter[] file_extensions = new ExtensionFilter[]
         {
-            FilenameSupport.file_extensions[0],
+            all_file_extensions,
             image_file_extension
         };
 

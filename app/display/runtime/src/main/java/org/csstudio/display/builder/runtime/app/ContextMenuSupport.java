@@ -23,12 +23,14 @@ import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
+import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.ObservableList;
@@ -140,11 +142,11 @@ class ContextMenuSupport
 
         final Scene scene = node.getScene();
         final Parent model_parent = instance.getRepresentation().getModelParent();
-        items.add(new SaveSnapshotAction(model_parent));
         items.add(new PrintAction(model_parent));
-        // TODO SendEmail
-        items.add(new SendLogbookAction(model_parent, null));
 
+        items.add(new SaveSnapshotAction(model_parent));
+        items.add(new SendEmailAction());
+        items.add(new SendLogbookAction(model_parent, null));
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));

@@ -29,8 +29,12 @@ import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
 import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
+import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -161,7 +165,12 @@ public class Perspective extends SplitPane
             items.add(new ToggleToolbarMenuItem(plot.getPlot()));
             items.add(new SeparatorMenuItem());
             items.addAll(add_data);
-
+            
+            items.add(new SeparatorMenuItem());
+            items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
+            items.add(new SendEmailAction());
+            items.add(new SendLogbookAction(DockPane.getActiveDockPane(), null));
+            
             if (model.getEmptyAxis().isPresent())
             {
                 items.add(new SeparatorMenuItem());
