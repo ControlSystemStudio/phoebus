@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@ import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VNumber;
 import org.phoebus.vtype.VType;
 
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -122,7 +123,7 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
                                                           ((RadioButton) newval).getText(),
                                                           FormatOption.DEFAULT);
                     logger.log(Level.FINE, "Writing " + value);
-                    toolkit.fireWrite(model_widget, value);
+                    Platform.runLater(() -> confirm(value));
                 }
             }
             finally
@@ -130,6 +131,24 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
                 active = false;
             }
         }
+    }
+
+    private void confirm(final Object value)
+    {
+        if (model_widget.propConfirmDialog().getValue())
+        {
+            final String message = model_widget.propConfirmMessage().getValue();
+            final String password = model_widget.propPassword().getValue();
+            if (password.length() > 0)
+            {
+                if (toolkit.showPasswordDialog(model_widget, message, password) == null)
+                    return;
+            }
+            else if (!toolkit.showConfirmationDialog(model_widget, message))
+                return;
+        }
+
+        toolkit.fireWrite(model_widget, value);
     }
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

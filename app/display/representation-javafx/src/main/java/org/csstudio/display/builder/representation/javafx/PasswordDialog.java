@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,12 +9,17 @@ package org.csstudio.display.builder.representation.javafx;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.text.TextAlignment;
 
 /** Dialog that prompts for password
  *
@@ -36,6 +41,7 @@ public class PasswordDialog extends Dialog<String>
 {
     private final String correct_password;
     private final PasswordField pass_entry = new PasswordField();
+    private final Label pass_caption = new Label(Messages.Password_Caption);
 
     /** @param title Title, message
      *  @param correct_password Password to check
@@ -45,10 +51,15 @@ public class PasswordDialog extends Dialog<String>
         this.correct_password = correct_password;
         final DialogPane pane = getDialogPane();
 
+        pass_caption.setTextAlignment(TextAlignment.RIGHT);
+        pass_caption.setAlignment(Pos.CENTER_RIGHT);
+        pass_caption.setMaxHeight(Double.MAX_VALUE);
+
         pass_entry.setPromptText(Messages.Password_Prompt);
         pass_entry.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(pass_entry, Priority.ALWAYS);
 
-        getDialogPane().setContent(pass_entry);
+        pane.setContent(new HBox(6, pass_caption, pass_entry));
 
         setTitle(Messages.Password);
         setHeaderText(title);

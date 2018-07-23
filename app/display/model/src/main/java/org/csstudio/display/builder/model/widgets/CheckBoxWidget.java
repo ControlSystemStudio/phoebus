@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,11 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newStringPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBit;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialogOptions;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +28,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 
 @SuppressWarnings("nls")
@@ -47,6 +51,7 @@ public class CheckBoxWidget extends WritablePVWidget
             return new CheckBoxWidget();
         }
     };
+
     /** 'label' property: Text for label */
     public static final WidgetPropertyDescriptor<String> propLabel =
         newStringPropertyDescriptor(WidgetPropertyCategory.WIDGET, "label", Messages.Checkbox_Label);
@@ -60,6 +65,9 @@ public class CheckBoxWidget extends WritablePVWidget
     private volatile WidgetProperty<String> label;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<Boolean> auto_size;
+    private volatile WidgetProperty<ConfirmDialog> confirm_dialog;
+    private volatile WidgetProperty<String> confirm_message;
+    private volatile WidgetProperty<String> password;
 
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties)
@@ -70,6 +78,9 @@ public class CheckBoxWidget extends WritablePVWidget
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(auto_size = propAutoSize.createProperty(this, false));
         properties.add(enabled = propEnabled.createProperty(this, true));
+        properties.add(confirm_dialog = propConfirmDialogOptions.createProperty(this, ConfirmDialog.NONE));
+        properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
+        properties.add(password = propPassword.createProperty(this, ""));
     }
 
     public CheckBoxWidget()
@@ -105,5 +116,23 @@ public class CheckBoxWidget extends WritablePVWidget
     public WidgetProperty<Boolean> propEnabled()
     {
         return enabled;
+    }
+
+    /** @return 'confirm_dialog' property */
+    public WidgetProperty<ConfirmDialog> propConfirmDialog()
+    {
+        return confirm_dialog;
+    }
+
+    /** @return 'confirm_message' property */
+    public WidgetProperty<String> propConfirmMessage()
+    {
+        return confirm_message;
+    }
+
+    /** @return 'password' property */
+    public WidgetProperty<String> propPassword()
+    {
+        return password;
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,10 +9,13 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propItemsFromPV;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -113,7 +116,7 @@ public class ComboWidget extends WritablePVWidget
 
     /** 'items' property: list of items (string properties) for combo box */
     public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propItems =
-            new ArrayWidgetProperty.Descriptor< WidgetProperty<String> >(WidgetPropertyCategory.BEHAVIOR, "items", Messages.ComboWidget_Items,
+            new ArrayWidgetProperty.Descriptor< >(WidgetPropertyCategory.BEHAVIOR, "items", Messages.ComboWidget_Items,
                                                                          (widget, index) -> propItem.createProperty(widget, "Item " + index));
 
     private static final WidgetPropertyDescriptor<Boolean> propEditable =
@@ -126,6 +129,9 @@ public class ComboWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> items_from_pv;
     private volatile WidgetProperty<Boolean> editable;
     private volatile WidgetProperty<Boolean> enabled;
+    private volatile WidgetProperty<Boolean> confirm_dialog;
+    private volatile WidgetProperty<String> confirm_message;
+    private volatile WidgetProperty<String> password;
 
     public ComboWidget()
     {
@@ -143,6 +149,9 @@ public class ComboWidget extends WritablePVWidget
         properties.add(items_from_pv = propItemsFromPV.createProperty(this, true));
         properties.add(editable = propEditable.createProperty(this, false));
         properties.add(enabled = propEnabled.createProperty(this, true));
+        properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
+        properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
+        properties.add(password = propPassword.createProperty(this, ""));
     }
 
     /** @return 'foreground_color' property */
@@ -205,5 +214,23 @@ public class ComboWidget extends WritablePVWidget
     public WidgetProperty<Boolean> propEnabled()
     {
         return enabled;
+    }
+
+    /** @return 'confirm_dialog' property */
+    public WidgetProperty<Boolean> propConfirmDialog()
+    {
+        return confirm_dialog;
+    }
+
+    /** @return 'confirm_message' property */
+    public WidgetProperty<String> propConfirmMessage()
+    {
+        return confirm_message;
+    }
+
+    /** @return 'password' property */
+    public WidgetProperty<String> propPassword()
+    {
+        return password;
     }
 }
