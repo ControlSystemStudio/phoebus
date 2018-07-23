@@ -20,8 +20,10 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
+import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -369,6 +371,8 @@ public class AlarmTableUI extends BorderPane
                 return null;
             });
             
+            menu_items.add(new SendEmailAction());
+            menu_items.add(new SaveSnapshotAction(table));
             menu_items.add(sendToLogbook);
             
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
