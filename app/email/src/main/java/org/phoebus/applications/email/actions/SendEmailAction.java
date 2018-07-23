@@ -38,7 +38,7 @@ public class SendEmailAction extends MenuItem
                 Parent root = FXMLLoader.load(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
                 Scene scene = new Scene(root, 600, 800);
                 Stage stage = new Stage();
-                stage.setTitle("FXML Welcome");
+                stage.setTitle("Send EMail");
                 stage.setScene(scene);
                 stage.show();
             } catch (IOException e) {
