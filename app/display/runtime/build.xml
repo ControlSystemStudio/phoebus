@@ -12,6 +12,7 @@
         <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
         <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
         <pathelement path="../../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
+        <pathelement path="../../email/${build}/app-email-${version}.jar"/>
       </classpath>
     </javac>
   	
