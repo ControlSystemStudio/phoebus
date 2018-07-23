@@ -224,6 +224,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         muteButton.setTooltip(new Tooltip("Mute the annunciator"));
         muteButton.setOnAction((event) ->
         {
+            // Mute is true when the annunciator should be muted.
             final boolean mute = muteButton.isSelected();
             // Update image
             final ImageView image = (ImageView) muteButton.getGraphic();
