@@ -371,8 +371,8 @@ public class AlarmTableUI extends BorderPane
                 return null;
             });
             
-            menu_items.add(new SendEmailAction());
             menu_items.add(new SaveSnapshotAction(table));
+            menu_items.add(new SendEmailAction());
             menu_items.add(sendToLogbook);
             
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
