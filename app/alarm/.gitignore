@@ -1,2 +1,2 @@
-examples/kafka*
-kafka*
+examples/kafka
+examples/kafka_*
