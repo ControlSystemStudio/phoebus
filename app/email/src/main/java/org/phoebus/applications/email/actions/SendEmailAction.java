@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.email.actions;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
@@ -13,6 +20,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
+
+/**
+ * Context menu item to send an email.
+ * @author Evan Smith
+ */
 public class SendEmailAction extends MenuItem
 {
     public SendEmailAction()
