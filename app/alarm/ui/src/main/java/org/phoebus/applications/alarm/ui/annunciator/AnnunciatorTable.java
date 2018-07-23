@@ -51,12 +51,13 @@ import javafx.scene.paint.Paint;
 @SuppressWarnings("nls")
 public class AnnunciatorTable extends VBox implements TalkClientListener
 {
-    private final Button clearTableButton = new Button("Clear Messages");
     private static final Image anunciate_icon = ImageCache.getImage(AlarmUI.class, "/icons/annunciator.png");
     private static final Image mute_icon = ImageCache.getImage(AlarmUI.class, "/icons/silence.png");
-    private final Tooltip muteTip = new Tooltip("Mute the annunciator");
-    private final Tooltip annunciateTip = new Tooltip("Un-mute the annunciator");
+
+    private final Tooltip muteTip         = new Tooltip("Mute the annunciator");
+    private final Tooltip annunciateTip   = new Tooltip("Un-mute the annunciator");
     private final ToggleButton muteButton = new ToggleButton("", new ImageView(mute_icon));
+    private final Button clearTableButton = new Button("Clear Messages");
 
     private final TableView<AnnunciationRowInfo> table = new TableView<>();
 
@@ -220,6 +221,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
 
+        // Give the addAnnunciationToTable method as a callback to the controller. Will be called after message handling to add message to table.
         annunciatorController = new AnnunciatorController(annunciator_threshold, this::addAnnunciationToTable);
 
         // Top button row
@@ -251,7 +253,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         
         final ToolBar hbox = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
 
-        this.getChildren().setAll(hbox, table);
+        getChildren().setAll(hbox, table);
         
         // Annunciate message so that user can determine if annunciator and table are indeed functional.
         messageReceived(SeverityLevel.OK, true, "Annunciator started");
