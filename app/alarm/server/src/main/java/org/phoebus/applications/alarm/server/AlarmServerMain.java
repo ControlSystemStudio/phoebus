@@ -49,6 +49,7 @@ public class AlarmServerMain implements ServerModelListener
                         "Spaces within a path do not need to be quoted.\n\n" +
                         "\tls               - List all alarm tree items in the current directory.\n" +
                         "\tls -disconnected - List all the disconnected PVs in the entire alarm tree.\n" +
+                        "\tls -disabled     - List all the disabled PVs in the entire alarm tree.\n" +
                         "\tls -all          - List all alarm tree PVs in the entire alarm tree.\n" +
                         "\tls -alarm        - List all alarm tree PVs in the entire alarm tree which are in alarm.\n" +
                         "\tls dir           - List all alarm tree items in the specified directory contained in the current directory.\n" +
@@ -180,8 +181,10 @@ public class AlarmServerMain implements ServerModelListener
                 }
                 else if (args[0].equals("ls"))  // List the alarm tree items at the specified location.
                 {
-                    if (args1.startsWith("-d")) // Print all disconnected PVs in tree.
+                    if (args1.startsWith("-disc")) // Print all disconnected PVs in tree.
                         listPVs(model.getRoot(), PVMode.Disconnected);
+                    else if (args1.startsWith("-disa")) // Print all disconnected PVs in tree.
+                        listPVs(model.getRoot(), PVMode.Disabled);
                     else if (args1.equals("-all")) // Print all the PVs in the tree.
                         listPVs(model.getRoot(), PVMode.All);
                     else if (args1.startsWith("-ala")) // Print all the PVs in the tree that are in alarm
@@ -434,7 +437,8 @@ public class AlarmServerMain implements ServerModelListener
     {
         All,
         InAlarm,
-        Disconnected
+        Disconnected,
+        Disabled
     };
 
     private void listPVs(final AlarmTreeItem<?> node, final PVMode which)
@@ -442,8 +446,9 @@ public class AlarmServerMain implements ServerModelListener
         if (node instanceof AlarmServerPV)
         {
             final AlarmServerPV pv_node = (AlarmServerPV) node;
-            if (which == PVMode.Disconnected  && pv_node.isConnected()  ||
-                which == PVMode.InAlarm  &&  !pv_node.getState().severity.isActive())
+            if (which == PVMode.Disconnected &&  pv_node.isConnected()  ||
+                which == PVMode.Disabled     &&  pv_node.isEnabled()    ||
+                which == PVMode.InAlarm      && !pv_node.getState().severity.isActive())
                 return;
             System.out.println(pv_node);
         }
