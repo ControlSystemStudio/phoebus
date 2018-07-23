@@ -103,6 +103,15 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                                             Paint.valueOf(color), // Set the color.
                                             new CornerRadii(0),   // We want square cells.
                                             new Insets(1))));     // Don't color over the cell borders.
+            
+            /*
+             * Upon row selection, the table will update the text color based on the darkness of the ROW background.
+             * Not the cell background. So the cell may have a white background, but the row could be blue when selected.
+             * This blue color would trigger the table to set the cell's text color to white to provide a nice contrast.
+             * Only the white text would be displayed on the cell's white background, not the blue background of the
+             * table row. To prevent this, set the cell's text color to always be black when drawn on a background.
+             */
+            setStyle("-fx-text-background-color: black;");
         }
     }
 
@@ -205,7 +214,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Width left in window is window width minus time width (190), minus severity width (90), minus width of window edges(1 * 2).
         description.prefWidthProperty().bind(table.widthProperty().subtract(282));
         table.getColumns().add(description);
-
+        
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
 
@@ -235,11 +244,11 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                 .filter(response -> response == ButtonType.OK)
                 .ifPresent(response -> clearTable());
         });
-
+        
         final ToolBar hbox = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
 
         this.getChildren().setAll(hbox, table);
-
+        
         // Annunciate message so that user can determine if annunciator and table are indeed functional.
         messageReceived(SeverityLevel.OK, true, "Annunciator started");
     }
