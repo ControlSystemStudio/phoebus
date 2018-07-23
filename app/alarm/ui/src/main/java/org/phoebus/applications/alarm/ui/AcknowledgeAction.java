@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -24,7 +25,12 @@ class AcknowledgeAction extends MenuItem
     public AcknowledgeAction(final AlarmClient model, final List<AlarmTreeItem<?>> active)
     {
         super("Acknowledge", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
-        setOnAction(event ->
-            active.forEach(item -> model.acknowledge(item, true)));
+        setOnAction(event -> 
+        {
+            JobManager.schedule(getText(), monitor ->
+            {
+                active.forEach(item -> model.acknowledge(item, true));
+            });
+        });
     }
 }
