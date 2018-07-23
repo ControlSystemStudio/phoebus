@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -106,11 +107,14 @@ class AddComponentAction extends MenuItem
             final String new_name = dialog.showAndWait().orElse(null);
             if (new_name == null  ||  new_name.isEmpty())
                 return;
-
-            if (dialog.isPV())
-                model.addPV(parent.getPathName(), new_name);
-            else
-                model.addComponent(parent.getPathName(), new_name);
+            
+            JobManager.schedule(getText(), monitor ->
+            {
+                if (dialog.isPV())
+                    model.addPV(parent.getPathName(), new_name);
+                else
+                    model.addComponent(parent.getPathName(), new_name);
+            });
         });
     }
 }
