@@ -1,6 +1,7 @@
 package org.phoebus.applications.probe.view;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,6 +11,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.Alarm;
@@ -26,6 +28,8 @@ import org.phoebus.vtype.ValueUtil;
 import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
@@ -113,17 +117,16 @@ public class ProbeController {
                 setEditing(false);
         });
 
-        // register selection listener
-//        SelectionService.getInstance().addListener(new SelectionChangeListener() {
-//            @Override
-//            public void selectionChanged(Object source, Selection oldValue, Selection newValue) {
-//                if (source.equals(txtPVName)) {
-//                    System.out.println("I set the selection to : " + newValue);
-//                } else {
-//                    System.out.println("The new selection is : " + newValue);
-//                }
-//            }
-//        });
+        // Context menu to open other PV-aware tools
+        final ContextMenu menu = new ContextMenu(new MenuItem());
+        txtPVName.setOnContextMenuRequested(event ->
+        {
+
+            menu.getItems().clear();
+            SelectionService.getInstance().setSelection("Probe", List.of(new ProcessVariable(txtPVName.getText().trim())));
+            ContextMenuHelper.addSupportedEntries(txtPVName, menu);
+            menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
     }
 
     private PV pv;
