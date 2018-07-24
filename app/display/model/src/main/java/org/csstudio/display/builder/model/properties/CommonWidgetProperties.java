@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.vtype.VType;
+import org.phoebus.vtype.ValueFactory;
 
 /** Common widget properties.
  *
@@ -223,8 +224,14 @@ public class CommonWidgetProperties
                     @Override
                     public void setValueFromObject(final Object value) throws Exception
                     {
+                        // Value should be VType
                         if (value instanceof VType)
                             setValue((VType) value);
+                        // Questionable legacy scripts/rules set double and string
+                        else if (value instanceof Double)
+                            setValue(ValueFactory.newVDouble((Double) value));
+                        else if (value instanceof String)
+                            setValue(ValueFactory.newVString((String) value, ValueFactory.alarmNone(), ValueFactory.timeNow()));
                         else
                             throw new Exception("Need VType, got " + value);
                     }
