@@ -22,7 +22,6 @@ import org.phoebus.vtype.ValueUtil;
 import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 
@@ -30,8 +29,6 @@ public class ProbeController {
 
     private ValueFormat valueFormat = new SimpleValueFormat(3);
 
-    @FXML
-    Button btncalculate;
     @FXML
     TextField txtPVName;
     @FXML
@@ -56,6 +53,8 @@ public class ProbeController {
 
     @FXML
     public void initialize() {
+        txtPVName.setPromptText("Enter PV Name");
+
         // register selection listener
         SelectionService.getInstance().addListener(new SelectionChangeListener() {
 
@@ -68,11 +67,6 @@ public class ProbeController {
                 }
             }
         });
-    }
-
-    @FXML
-    private void setSelection() {
-        SelectionService.getInstance().setSelection(txtPVName, Arrays.asList(new ProcessVariable(txtPVName.getText())));
     }
 
     private PV pv;
@@ -99,6 +93,9 @@ public class ProbeController {
         // search for pv, unless empty
         if (txtPVName.getText().isEmpty())
             return;
+
+        SelectionService.getInstance().setSelection(txtPVName, Arrays.asList(new ProcessVariable(txtPVName.getText())));
+
         try
         {
             pv = PVPool.getPV(txtPVName.getText());

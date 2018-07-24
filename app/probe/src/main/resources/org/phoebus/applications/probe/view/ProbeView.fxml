@@ -18,11 +18,11 @@
   <content>
     <VBox prefHeight="377.0" prefWidth="326.0">
       <children>
-        <HBox prefHeight="33.0" prefWidth="578.0">
+        <HBox prefHeight="33.0" prefWidth="578.0" spacing="5">
           <children>
             <Label alignment="CENTER" text="PV Name: " />
-            <TextField fx:id="txtPVName" onAction="#setSelection" HBox.hgrow="ALWAYS" />
-            <Button fx:id="btncalculate" mnemonicParsing="false" onAction="#search" text="Search" />
+            <TextField fx:id="txtPVName" onAction="#search" HBox.hgrow="ALWAYS" /> 
+            <Button mnemonicParsing="false" onAction="#search" text="Search" />
           </children>
         </HBox>
         <Separator prefWidth="200.0" />
