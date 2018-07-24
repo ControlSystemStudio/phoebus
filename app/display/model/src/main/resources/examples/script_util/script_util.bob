@@ -691,7 +691,7 @@ widget.setPropertyValue("text", str(PVUtil.getSeverity(pvs[0])))
   <widget type="label" version="2.0.0">
     <name>Label_36</name>
     <text>RCPUtil: Eclipse Commands</text>
-    <y>910</y>
+    <y>1050</y>
     <width>320</width>
     <font>
       <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
@@ -714,7 +714,7 @@ RCPUtil.executeEclipseCommand("org.eclipse.ui.perspectives.showPerspective",
         <description>Switch Perspective</description>
       </action>
     </actions>
-    <y>960</y>
+    <y>1100</y>
     <width>150</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -722,7 +722,7 @@ RCPUtil.executeEclipseCommand("org.eclipse.ui.perspectives.showPerspective",
     <name>Label_37</name>
     <text>Scripts can control Eclipse</text>
     <x>4</x>
-    <y>933</y>
+    <y>1073</y>
     <width>385</width>
     <height>40</height>
   </widget>
@@ -743,7 +743,7 @@ RCPUtil.executeEclipseCommand("org.eclipse.ui.views.showView",
       </action>
     </actions>
     <x>160</x>
-    <y>960</y>
+    <y>1100</y>
     <width>150</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -767,7 +767,7 @@ if ScriptUtil.showConfirmationDialog(widget, "Dude, this was just meant as an ex
       </action>
     </actions>
     <x>320</x>
-    <y>960</y>
+    <y>1100</y>
     <width>150</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -777,11 +777,6 @@ if ScriptUtil.showConfirmationDialog(widget, "Dude, this was just meant as an ex
     <x>530</x>
     <y>850</y>
     <width>80</width>
-  </widget>
-  <widget type="textentry" version="3.0.0">
-    <name>Text Entry</name>
-    <x>821</x>
-    <y>1086</y>
   </widget>
   <widget type="textentry" version="3.0.0">
     <name>Text Entry_1</name>
@@ -811,5 +806,47 @@ if ScriptUtil.showConfirmationDialog(widget, "Dude, this was just meant as an ex
     <x>810</x>
     <y>850</y>
     <width>60</width>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_18</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+if 'PHOEBUS' in dir(ScriptUtil):
+    ScriptUtil.openFile(widget, "portable.py")
+else:
+    from org.csstudio.display.builder.rcp.script import RCPUtil
+    # Opens file in the default RCP editor for the file type
+    RCPUtil.openFile(widget, "portable.py")
+
+]]></text>
+        </script>
+        <description>Open File</description>
+      </action>
+    </actions>
+    <x>4</x>
+    <y>973</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_40</name>
+    <text>Scripts can control Phoebus or Eclipse</text>
+    <x>4</x>
+    <y>933</y>
+    <width>385</width>
+    <height>27</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_41</name>
+    <text>RCPUtil: Framework Access</text>
+    <y>910</y>
+    <width>320</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
   </widget>
 </display>
