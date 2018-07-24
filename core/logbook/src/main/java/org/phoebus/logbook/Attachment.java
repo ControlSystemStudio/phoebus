@@ -9,6 +9,8 @@ import java.io.File;
  */
 public interface Attachment {
 
+    public String getName();
+
     public File getFile();
 
     public String getContentType();
