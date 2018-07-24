@@ -9,8 +9,8 @@ package org.phoebus.applications.alarm.ui.annunciator;
 
 import java.time.Instant;
 import java.util.PriorityQueue;
+import java.util.function.Consumer;
 
-import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.framework.jobs.JobManager;
 
 /**
@@ -38,8 +38,9 @@ public class AnnunciatorController
     /**
      * Create AnnunciatorController.
      * @param threshold - Integer value that the length of the queue should not exceed.
+     * @param addToTable - callback to add the message to the annunciator table.
      */
-    public AnnunciatorController(int threshold)
+    public AnnunciatorController(int threshold, Consumer<AnnunciatorMessage> addToTable)
     {
         annunciator = new Annunciator();
         this.threshold = threshold;
@@ -57,10 +58,13 @@ public class AnnunciatorController
                     if (size > this.threshold)
                     {
                         int flurry = 0;
+                        Instant earliest = Instant.now();
                         // Empty the queue 
                         while (! to_annunciate.isEmpty())
                         {
                             AnnunciatorMessage message = to_annunciate.poll();
+                            if (earliest.compareTo(message.time) < 0)
+                                earliest = message.time;
                             // Annunciate if marked as stand out.
                             if (message.standout)
                             {
@@ -76,10 +80,12 @@ public class AnnunciatorController
                         // Annunciate generic message for queue size.
                         if (flurry > 0)
                         {
+                            AnnunciatorMessage flurryMessage = new AnnunciatorMessage(false, null, earliest, "There are " + flurry + " new messages");
+                            addToTable.accept(flurryMessage);
                             synchronized (muted)
                             {
                                 if (! muted)
-                                    annunciator.speak("There are " + flurry + " new messages.");
+                                    annunciator.speak(flurryMessage.message);
                             }
                         }
                     }
@@ -88,6 +94,7 @@ public class AnnunciatorController
                         while (! to_annunciate.isEmpty())
                         {
                             AnnunciatorMessage message = to_annunciate.poll();
+                            addToTable.accept(message);
                             synchronized (muted)
                             {
                                 if (! muted)
@@ -118,7 +125,7 @@ public class AnnunciatorController
      * Annunciate the passed message.
      * @param message
      */
-    private void annunciate(AnnunciatorMessage message)
+    public void annunciate(AnnunciatorMessage message)
     {
         // May block on the to_annunciate queue. So call in another thread to prevent blocking on UI thread.
         JobManager.schedule("annunciate message", (monitor) -> 
@@ -130,19 +137,6 @@ public class AnnunciatorController
                 to_annunciate.notifyAll();
             }
         });
-    }
-    
-    /**
-     * Handle an annunciation by notifying the speaker thread that a message has been received.
-     * @param a - Annunciation
-     */
-    public void handleAnnunciation(boolean standout, AnnunciationRowInfo a)
-    {
-        final String message = a.message.get();
-        final SeverityLevel severity = a.severity.get();
-        final Instant time = a.time_received.get();
-       
-        annunciate(new AnnunciatorMessage(standout, severity, time, message));
     }
     
     /**

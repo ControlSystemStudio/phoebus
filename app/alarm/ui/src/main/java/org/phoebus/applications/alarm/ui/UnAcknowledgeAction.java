@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -24,7 +25,11 @@ class UnAcknowledgeAction extends MenuItem
     public UnAcknowledgeAction(final AlarmClient model, final List<AlarmTreeItem<?>> active)
     {
         super("Un-Acknowledge", ImageCache.getImageView(AlarmUI.class, "/icons/unacknowledge.png"));
-        setOnAction(event ->
-            active.forEach(item -> model.acknowledge(item, false)));
+        
+        JobManager.schedule(getText(), monitor ->
+        {
+            setOnAction(event ->
+                active.forEach(item -> model.acknowledge(item, false)));
+        });
     }
 }
