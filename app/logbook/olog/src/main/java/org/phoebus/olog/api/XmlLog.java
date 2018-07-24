@@ -24,6 +24,7 @@ import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Log object that can be represented as XML/JSON in payload data.
@@ -43,7 +44,9 @@ public class XmlLog implements LogEntry {
     private String md5Entry;
     private String md5Recent;
     private Long tableId;
+    @JsonDeserialize(using = UnixTimestampDeserializer.class)
     private Instant createdDate;
+    @JsonDeserialize(using = UnixTimestampDeserializer.class)
     private Instant modifiedDate;
     private String description;
 
