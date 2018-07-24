@@ -30,7 +30,7 @@ public class EmailApp implements AppResourceDescriptor {
 
     private static final Logger log = Logger.getLogger(AppResourceDescriptor.class.getName());
     public static final String NAME = "email";
-    public static final String DISPLAY_NAME = "Email App";
+    public static final String DISPLAY_NAME = "Send Email";
 
     private Session session;
 
