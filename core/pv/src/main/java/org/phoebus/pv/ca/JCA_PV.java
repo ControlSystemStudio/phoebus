@@ -12,8 +12,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import org.phoebus.vtype.VType;
 import org.phoebus.pv.PV;
+import org.phoebus.vtype.VType;
 
 import gov.aps.jca.CAStatus;
 import gov.aps.jca.Channel;
@@ -77,27 +77,37 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
     /** Listener to initial get-callback for meta data */
     final private GetListener meta_get_listener = (GetEvent ev) ->
     {
-        final DBR old_metadata = metadata;
-        final Class<?> old_type = old_metadata == null ? null : old_metadata.getClass();
-        // Channels from CAS, not based on records, may fail
-        // to provide meta data
-        if (ev.getStatus().isSuccessful())
+        try
         {
-            metadata = ev.getDBR();
-            logger.log(Level.FINE, "{0} received meta data: {1}", new Object[] { getName(), metadata });
+            final DBR old_metadata = metadata;
+            final Class<?> old_type = old_metadata == null ? null : old_metadata.getClass();
+            // Channels from CAS, not based on records, may fail
+            // to provide meta data
+            if (ev.getStatus().isSuccessful())
+            {
+                metadata = ev.getDBR();
+                logger.log(Level.FINE, "{0} received meta data: {1}", new Object[] { getName(), metadata });
+            }
+            else
+            {
+                metadata = null;
+                logger.log(Level.FINE, "{0} has no meta data: {1}", new Object[] { getName(), ev.getStatus() });
+            }
+
+            // If channel changed its type, cancel potentially existing subscription
+            final Class<?> new_type = metadata == null ? null : metadata.getClass();
+            if (old_type != new_type)
+                unsubscribe();
+            // Subscribe, either for the first time or because type changed requires new one.
+            // NOP if channel is already subscribed.
+            subscribe();
         }
-        else
+        catch (Throwable ex)
         {
-            metadata = null;
-            logger.log(Level.FINE, "{0} has no meta data: {1}", new Object[] { getName(), ev.getStatus() });
+            // One scenario: Channel was closed while the metadata arrived,
+            // so subscription will fail.
+            logger.log(Level.WARNING, "Error handling metadata for channel " + getName(), ex);
         }
-        // If channel changed its type, cancel potentially existing subscription
-        final Class<?> new_type = metadata == null ? null : metadata.getClass();
-        if (old_type != new_type)
-            unsubscribe();
-        // Subscribe, either for the first time or because type changed requires new one.
-        // NOP if channel is already subscribed.
-        subscribe();
     };
 
     /** Listener to meta data changes */
@@ -114,10 +124,10 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
     /** Value update subscription.
      *  Non-zero value also used to indicate access right change subscription.
      */
-    private AtomicReference<Monitor> value_monitor = new AtomicReference<Monitor>();
+    private AtomicReference<Monitor> value_monitor = new AtomicReference<>();
 
     /** Metadata update subscription */
-    private AtomicReference<Monitor> metadata_monitor = new AtomicReference<Monitor>();
+    private AtomicReference<Monitor> metadata_monitor = new AtomicReference<>();
 
 
     /** Initialize
