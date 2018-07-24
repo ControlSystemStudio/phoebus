@@ -345,12 +345,12 @@ public class AlarmTableUI extends BorderPane
             if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
                 menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
 
-            SendLogbookAction sendToLogbook = new SendLogbookAction(table, () -> 
-            { 
+            SendLogbookAction sendToLogbook = new SendLogbookAction(table, () ->
+            {
                 if (null != selection && selection.size() > 0)
                 {
                     StringBuilder strBuilder = new StringBuilder();
-                    
+
                     for (AlarmTreeItem<?> item : selection)
                     {
                         // Append descriptions of all the selected alarms
@@ -364,17 +364,17 @@ public class AlarmTableUI extends BorderPane
                             .append(", that is ").append(leaf.getState().getDuration()).append(" HH:MM:SS").append("\n\n");
                         }
                     }
-                    
+
                     return strBuilder.toString();
                 }
-                
+
                 return null;
             });
-            
+
             menu_items.add(new SaveSnapshotAction(table));
-            menu_items.add(new SendEmailAction());
+            menu_items.add(new SendEmailAction(table));
             menu_items.add(sendToLogbook);
-            
+
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }

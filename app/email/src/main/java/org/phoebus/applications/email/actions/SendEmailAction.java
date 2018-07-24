@@ -16,6 +16,7 @@ import org.phoebus.applications.email.EmailApp;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
@@ -27,12 +28,11 @@ import javafx.stage.Stage;
  */
 public class SendEmailAction extends MenuItem
 {
-    public SendEmailAction()
+    public SendEmailAction(final Node parent)
     {
-        super();
         setText("Send Email...");
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/mail-send-16.png"));
-        setOnAction(event -> 
+        setOnAction(event ->
         {
             try {
                 Parent root = FXMLLoader.load(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
@@ -40,6 +40,8 @@ public class SendEmailAction extends MenuItem
                 Stage stage = new Stage();
                 stage.setTitle("Send EMail");
                 stage.setScene(scene);
+                stage.setX(parent.getScene().getWindow().getX() + 100);
+                stage.setY(parent.getScene().getWindow().getY() + 50);
                 stage.show();
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Failed to create email dialog", e);
