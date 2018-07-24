@@ -70,7 +70,7 @@ public class Probe implements AppResourceDescriptor {
         }
         catch (Exception ex)
         {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot create probe instance", ex);
+            Logger.getLogger(Probe.class.getPackageName()).log(Level.WARNING, "Cannot create probe instance", ex);
         }
         return probe;
     }
