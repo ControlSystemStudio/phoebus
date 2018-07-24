@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor;
 
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
@@ -36,7 +37,10 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
+import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.javafx.ImageCache;
@@ -633,6 +637,41 @@ public class DisplayEditor
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Failed to paste content of clipboard", ex);
+        }
+    }
+
+    /** @param pattern (Partial) name of widgets to select */
+    public void selectWidgetsByName(final String pattern)
+    {
+        if (selection_tracker.isInlineEditorActive())
+            return;
+
+        // Search in background thread..
+        ModelThreadPool.getExecutor().submit(() ->
+        {
+            final List<Widget> widgets = new ArrayList<>();
+            addWidgetsByName(widgets, getModel(), pattern);
+
+            // Update selection in UI thread
+            Platform.runLater(() -> selection.setSelection(widgets));
+        });
+    }
+
+    private void addWidgetsByName(final List<Widget> widgets, Widget widget, final String pattern)
+    {
+        if (widget.getName().contains(pattern))
+            widgets.add(widget);
+
+        ChildrenProperty children = ChildrenProperty.getChildren(widget);
+        if (children != null)
+            for (Widget child : children.getValue())
+                addWidgetsByName(widgets, child, pattern);
+        else if (widget instanceof TabsWidget)
+        {
+            final TabsWidget tabs = (TabsWidget) widget;
+            for (TabItemProperty tab : tabs.propTabs().getValue())
+                for (Widget child : tab.children().getValue())
+                    addWidgetsByName(widgets, child, pattern);
         }
     }
 
