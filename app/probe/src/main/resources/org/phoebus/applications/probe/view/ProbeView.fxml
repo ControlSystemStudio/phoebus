@@ -37,9 +37,11 @@
           </rowConstraints>
           <children>
             <Label text="Value:" />
-            <Label text="Time Stamp:" GridPane.rowIndex="1" />
+            <Label text="Alarm:" GridPane.rowIndex="1" />
+            <Label text="Time Stamp:" GridPane.rowIndex="2" />
             <TextField fx:id="txtValue" GridPane.columnIndex="1" />
-            <TextField fx:id="txtTimeStamp" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextField fx:id="txtAlarm" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextField fx:id="txtTimeStamp" GridPane.columnIndex="1" GridPane.rowIndex="2" />
           </children>
         </GridPane>
         <Separator prefWidth="200.0" />

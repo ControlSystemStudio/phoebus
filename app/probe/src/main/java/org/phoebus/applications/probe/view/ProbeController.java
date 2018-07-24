@@ -9,6 +9,7 @@ import org.phoebus.framework.selection.SelectionChangeListener;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
@@ -23,6 +24,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
 
 public class ProbeController {
 
@@ -34,6 +36,8 @@ public class ProbeController {
     TextField txtPVName;
     @FXML
     TextField txtValue;
+    @FXML
+    TextField txtAlarm;
     @FXML
     TextField txtTimeStamp;
 
@@ -125,21 +129,22 @@ public class ProbeController {
                 formattedValue.append(valueString);
             }
         }
-
-        appendAlarm(formattedValue, ValueUtil.alarmOf(value, value != null));
-
         txtValue.setText(formattedValue.toString());
+        setAlarm(ValueUtil.alarmOf(value, value != null));
     }
 
-    private void appendAlarm(StringBuilder builder, Alarm alarm) {
-        if (alarm == null || alarm.getAlarmSeverity().equals(AlarmSeverity.NONE)) {
-            return; // $NON-NLS-1$
-        } else {
-            if (builder.length() != 0) {
-                builder.append(' ');
-            }
-            builder.append('[').append(alarm.getAlarmSeverity()).append(" - ") //$NON-NLS-1$
-                    .append(alarm.getAlarmName()).append(']');
+    private void setAlarm(final Alarm alarm)
+    {
+        if (alarm == null  ||  alarm.getAlarmSeverity() == AlarmSeverity.NONE)
+            txtAlarm.setText("");
+        else
+        {
+            final Color col = SeverityColors.getTextColor(alarm.getAlarmSeverity());
+            txtAlarm.setStyle("-fx-text-fill: rgba(" + (int)(col.getRed()*255) + ',' +
+                                                       (int)(col.getGreen()*255) + ',' +
+                                                       (int)(col.getBlue()*255) + ',' +
+                                                             col.getOpacity()*255 + ");");
+            txtAlarm.setText(alarm.getAlarmSeverity() + " - " + alarm.getAlarmName());
         }
     }
 }
