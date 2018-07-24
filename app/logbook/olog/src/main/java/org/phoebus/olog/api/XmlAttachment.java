@@ -122,4 +122,13 @@ public class XmlAttachment implements Attachment {
         return file;
     }
 
+    void setFile(File file) {
+        this.file = file;
+    }
+
+    @Override
+    public String getName() {
+        return fileName;
+    }
+
 }

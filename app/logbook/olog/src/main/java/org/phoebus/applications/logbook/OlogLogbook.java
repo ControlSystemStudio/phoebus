@@ -11,9 +11,9 @@ import org.phoebus.olog.api.OlogClient.OlogClientBuilder;
 public class OlogLogbook implements LogFactory {
 
     private static final Logger logger = Logger.getLogger(OlogLogbook.class.getName());
-    private static final String ID = "org.phoebus.olog.log";
+    private static final String ID = "olog";
     private OlogClient oLogClient;
-    
+
     @Override
     public String getId() {
         return ID;
@@ -21,7 +21,7 @@ public class OlogLogbook implements LogFactory {
 
     @Override
     public LogClient getLogClient() {
-        if(oLogClient != null) {
+        if (oLogClient == null) {
             try {
                 oLogClient = OlogClientBuilder.serviceURL().create();
             } catch (Exception e) {
@@ -33,7 +33,7 @@ public class OlogLogbook implements LogFactory {
 
     @Override
     public LogClient getLogClient(Object authToken) {
-        if(oLogClient != null) {
+        if (oLogClient == null) {
             try {
                 oLogClient = OlogClientBuilder.serviceURL().create();
             } catch (Exception e) {
@@ -42,6 +42,5 @@ public class OlogLogbook implements LogFactory {
         }
         return oLogClient;
     }
-
 
 }
