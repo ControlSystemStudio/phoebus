@@ -14,8 +14,11 @@ import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
+import org.phoebus.vtype.Display;
 import org.phoebus.vtype.SimpleValueFormat;
 import org.phoebus.vtype.Time;
+import org.phoebus.vtype.VDouble;
+import org.phoebus.vtype.VEnum;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFormat;
 import org.phoebus.vtype.ValueUtil;
@@ -23,9 +26,11 @@ import org.phoebus.vtype.ValueUtil;
 import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 
+@SuppressWarnings("nls")
 public class ProbeController {
 
     private ValueFormat valueFormat = new SimpleValueFormat(3);
@@ -40,6 +45,8 @@ public class ProbeController {
     private TextField txtAlarm;
     @FXML
     private TextField txtTimeStamp;
+    @FXML
+    private TextArea txtMetadata;
 
     public TextField getPVField() {
         return txtPVName;
@@ -72,8 +79,6 @@ public class ProbeController {
 
     @FXML
     public void initialize() {
-        txtPVName.setPromptText("Enter PV Name");
-
         // Write entered value to PV
         txtValue.setOnKeyPressed(event ->
         {
@@ -107,9 +112,6 @@ public class ProbeController {
             if (!focus)
                 setEditing(false);
         });
-
-        txtAlarm.setEditable(false);
-        txtTimeStamp.setEditable(false);
 
         // register selection listener
 //        SelectionService.getInstance().addListener(new SelectionChangeListener() {
@@ -169,13 +171,19 @@ public class ProbeController {
 
         String valueString = null;
         if (value != null)
-            valueString = valueFormat.format(value);
+        {
+            if (value instanceof Display  && value instanceof VDouble)
+                valueString = ((Display)value).getFormat().format(((VDouble)value).getValue().doubleValue());
+            else
+                valueString = valueFormat.format(value);
+        }
         if (valueString != null)
             txtValue.setText(valueString);
         else
             txtValue.setText("<null>");
         setTime(ValueUtil.timeOf(value));
         setAlarm(ValueUtil.alarmOf(value, value != null));
+        setMetadata(value);
     }
 
     private void setTime(final Time time) {
@@ -199,5 +207,29 @@ public class ProbeController {
                                                              col.getOpacity()*255 + ");");
             txtAlarm.setText(alarm.getAlarmSeverity() + " - " + alarm.getAlarmName());
         }
+    }
+
+    private void setMetadata(final VType value)
+    {
+        final StringBuilder buf = new StringBuilder();
+        if (value instanceof VEnum)
+        {
+            final VEnum eval = (VEnum) value;
+            buf.append("Enumeration Labels:\n");
+            int i = 0;
+            for (String label : eval.getLabels())
+                buf.append(i++).append(" = ").append(label).append("\n");
+        }
+        else if (value instanceof Display)
+        {
+            final Display dis = (Display) value;
+            buf.append("Units   : ").append(dis.getUnits()).append("\n");
+            buf.append("Format  : ").append(dis.getFormat().format(0.123456789)).append("\n");
+            buf.append("Range   : ").append(dis.getLowerCtrlLimit()).append(" .. ").append(dis.getUpperCtrlLimit()).append("\n");
+            buf.append("Warnings: ").append(dis.getLowerWarningLimit()).append(" .. ").append(dis.getUpperWarningLimit()).append("\n");
+            buf.append("Alarms  : ").append(dis.getLowerAlarmLimit()).append(" .. ").append(dis.getUpperAlarmLimit()).append("\n");
+        }
+
+        txtMetadata.setText(buf.toString());
     }
 }
