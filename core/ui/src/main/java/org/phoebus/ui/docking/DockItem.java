@@ -433,7 +433,7 @@ public class DockItem extends Tab
 
     private Stage detach()
     {
-        // For size of new stage, approxinate the
+        // For size of new stage, approximate the
         // current size of the item, i.e. the size
         // of its DockPane, adding some extra space
         // for the window border, title bar etc.
