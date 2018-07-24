@@ -100,7 +100,8 @@ public class LogEntryController {
             // tags: " + !logEntry.getTags().isEmpty() + "
             // logbooks:"+!logEntry.getLogbooks().isEmpty());
 
-            LogAttchments.setExpanded(!logEntry.getAttachments().isEmpty());
+            LogAttchments.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
+            LogAttchments.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
             LogLogbooksPane.setExpanded(!logEntry.getLogbooks().isEmpty());
             logTagsPane.setExpanded(!logEntry.getTags().isEmpty());
 

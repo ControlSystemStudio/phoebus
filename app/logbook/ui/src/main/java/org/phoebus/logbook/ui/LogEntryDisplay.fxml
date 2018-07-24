@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -14,10 +13,9 @@
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root type="javafx.scene.layout.VBox" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" spacing="2.0"
-  HBox.hgrow="ALWAYS">
+<fx:root spacing="2.0" type="javafx.scene.layout.VBox" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <GridPane hgap="1.0" minHeight="200.0" vgap="1.0" VBox.vgrow="ALWAYS">
+    <GridPane hgap="1.0" minHeight="140.0" vgap="1.0" VBox.vgrow="ALWAYS">
       <columnConstraints>
         <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -32,10 +30,8 @@
             <Insets left="5.0" />
           </padding>
         </Label>
-        <TextArea fx:id="logDescription" editable="false" prefHeight="100.0" prefWidth="200.0" GridPane.hgrow="ALWAYS"
-          GridPane.rowIndex="1" GridPane.rowSpan="1" GridPane.vgrow="ALWAYS" />
-        <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.hgrow="NEVER" GridPane.rowIndex="1"
-          GridPane.vgrow="ALWAYS">
+        <TextArea fx:id="logDescription" editable="false" prefHeight="100.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="1" GridPane.vgrow="ALWAYS" />
+        <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
           <children>
             <Accordion>
               <panes>
