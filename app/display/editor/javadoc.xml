@@ -42,7 +42,7 @@
              useexternalfile="yes">
       <doctitle><![CDATA[<h1>Display Builder API</h1>]]></doctitle>
       <fileset dir="../../..">
-        <include name="core/framework/src/main/java/org/phoebus/framework/macros/Macros.java"/>
+        <include name="core/framework/src/main/java/org/phoebus/framework/macros/*.java"/>
         <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/Widget.java"/>
         <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/DisplayModel.java"/>
         <include name="app/display/model/src/main/java/org/csstudio/display/builder/model/WidgetProperty.java"/>
@@ -53,6 +53,7 @@
         <exclude name="**/WhateverThing.java"/>
       </fileset>
       <group title="Script API" packages="org.csstudio.display.builder.*"/>
+      <group title="Phoebus API" packages="org.phoebus.*"/>
     </javadoc>
   </target>
   <!-- Run the whole chain -->
