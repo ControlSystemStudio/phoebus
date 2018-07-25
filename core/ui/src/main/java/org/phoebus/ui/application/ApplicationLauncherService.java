@@ -55,7 +55,10 @@ public class ApplicationLauncherService {
     /**
      * @param resource Resource received as command line argument
      * @param prompt Prompt if there are multiple applications, or use first one?
-     * @return <code>true</code> if file could be opened
+     * @param stage If prompt is enabled, a selection dialog will be launched
+     *              positioned next to the provided stage. If <code>null</code> then the
+     *              default or first application will be used
+     * @return <code>true</code> if resource could be opened
      */
     public static boolean openResource(final URI resource, final boolean prompt, final Stage stage)
     {

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -14,36 +16,31 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<TitledPane animated="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0" text="Probe" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.probe.view.ProbeController">
-  <content>
-    <VBox prefHeight="377.0" prefWidth="326.0">
-      <children>
-        <HBox prefHeight="33.0" prefWidth="578.0">
-          <children>
-            <Label alignment="CENTER" text="PV Name: " />
-            <TextField fx:id="txtPVName" onAction="#setSelection" HBox.hgrow="ALWAYS" />
-            <Button fx:id="btncalculate" mnemonicParsing="false" onAction="#search" text="Search" />
-          </children>
-        </HBox>
-        <Separator prefWidth="200.0" />
-        <GridPane>
-          <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          </rowConstraints>
-          <children>
-            <Label text="Value:" />
-            <Label text="Time Stamp:" GridPane.rowIndex="1" />
-            <TextField fx:id="txtValue" GridPane.columnIndex="1" />
-            <TextField fx:id="txtTimeStamp" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-          </children>
-        </GridPane>
-        <Separator prefWidth="200.0" />
-      </children>
-    </VBox>
-  </content>
-</TitledPane>
+<GridPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.probe.view.ProbeController"
+          hgap="5" vgap="5">
+  <padding><Insets top="5" right="5" bottom="5" left="5"/></padding>
+  <children>
+    <Label text="PV Name: " />
+
+	<HBox prefHeight="33.0" prefWidth="578.0" spacing="5" GridPane.columnIndex="1">
+	  <children>
+	    <TextField fx:id="txtPVName" promptText="Enter PV Name" onAction="#search" HBox.hgrow="ALWAYS" /> 
+	    <Button mnemonicParsing="false" onAction="#search" text="Search" />
+	  </children>
+	</HBox>
+
+    <Separator  GridPane.rowIndex="1" GridPane.columnSpan="2" />
+  
+    <Label text="Value:" GridPane.rowIndex="2" />
+    <Label text="Alarm:" GridPane.rowIndex="3" />
+    <Label text="Time Stamp:" GridPane.rowIndex="4" />
+    <Label text="Metadata:" minWidth="100" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+    
+    
+    <TextField fx:id="txtValue" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+    <TextField fx:id="txtAlarm" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+    <TextField fx:id="txtTimeStamp" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+    <TextArea  fx:id="txtMetadata" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5"
+                                                    GridPane.hgrow="SOMETIMES" GridPane.vgrow="SOMETIMES"/>
+  </children>
+</GridPane>

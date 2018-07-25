@@ -13,6 +13,7 @@
 
     <jar destfile="${build}/app-logbook-ui-${version}.jar">
       <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
     </jar>
   </target>
 </project>

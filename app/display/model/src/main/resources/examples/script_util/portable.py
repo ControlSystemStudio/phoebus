@@ -32,6 +32,14 @@ display_builder = 'getVersion' in dir(widget)
 if display_builder:
     from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil
     ScriptUtil.getLogger().info("Executing in display builder")
+    
+    # For the display builder, might further check if running in RCP or Phoebus
+    phoebus = 'PHOEBUS' in dir(ScriptUtil)
+    if phoebus:
+        ScriptUtil.getLogger().info(".. on Phoebus")
+    else:
+        ScriptUtil.getLogger().info(".. on Eclipse/RCP")
+
 else:
     from org.csstudio.opibuilder.scriptUtil import PVUtil, ConsoleUtil
     ConsoleUtil.writeInfo("Executing in BOY")

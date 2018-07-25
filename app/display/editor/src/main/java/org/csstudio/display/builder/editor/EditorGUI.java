@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
+import org.csstudio.display.builder.editor.tree.FindWidgetAction;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
@@ -205,6 +206,7 @@ public class EditorGUI
         final ContextMenu menu = new ContextMenu(
             new ActionWapper(ActionDescription.COPY),
             new ActionWapper(ActionDescription.DELETE),
+            new FindWidgetAction(node, editor),
             new ActionWapper(ActionDescription.TO_BACK),
             new ActionWapper(ActionDescription.MOVE_UP),
             new ActionWapper(ActionDescription.MOVE_DOWN),

@@ -10,7 +10,6 @@ import org.phoebus.framework.spi.AppInstance;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 
 /**
  * This class describes and instance of the the probe application
@@ -37,8 +36,7 @@ public class ProbeInstance implements AppInstance {
         loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));
         try {
-            TitledPane mainLayout = loader.load();
-            return mainLayout;
+            return loader.load();
         } catch (IOException e) {
             e.printStackTrace();
         }

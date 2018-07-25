@@ -10,6 +10,7 @@ package org.csstudio.display.builder.runtime.script;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +35,8 @@ import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.vtype.VType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -54,6 +57,9 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class ScriptUtil
 {
+    /** Flag that indicates running on Phoebus as opposed to Eclipse/RCP */
+    public static final boolean PHOEBUS = true;
+
     // ================
     // Model gymnastics
 
@@ -485,5 +491,19 @@ public class ScriptUtil
                 result.add(null);
         }
         return result;
+    }
+
+    /** Open a file in the default tool.
+     *  @param widget Widget used to resolve resource that's relative to a display file
+     *  @param resource_name Name of resource
+     *  @throws Exception on error
+     */
+    public static void openFile(final Widget widget, final String resource_name) throws Exception
+    {
+        final DisplayModel display = widget.getDisplayModel();
+        final String resolved = ModelResourceUtil.resolveResource(display, resource_name);
+        final File file = new File(resolved);
+        final URI resource = ResourceParser.getURI(file);
+        ToolkitRepresentation.getToolkit(display).execute(() -> ApplicationLauncherService.openResource(resource, false, null));
     }
 }

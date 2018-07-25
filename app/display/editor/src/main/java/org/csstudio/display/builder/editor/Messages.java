@@ -31,6 +31,7 @@ public class Messages
     public static String DownloadPromptFMT;
     public static String DownloadTitle;
     public static String EditEmbededDisplay;
+    public static String FindWidget;
     public static String Grid;
     public static String InstallExamples;
     public static String InstallExamplesDoneFMT;
