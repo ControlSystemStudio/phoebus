@@ -33,7 +33,7 @@ public class CreateDirectoryAction extends MenuItem
      */
     public CreateDirectoryAction(final Node node, final TreeItem<File> item)
     {
-        super("New Folder", new ImageView(FileTreeCell.folder));
+        super("New Folder", new ImageView(FileTreeCell.folder_icon));
 
         setOnAction(event ->
         {

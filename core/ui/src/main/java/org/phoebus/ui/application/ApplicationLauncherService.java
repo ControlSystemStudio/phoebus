@@ -127,7 +127,7 @@ public class ApplicationLauncherService {
         final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
         if (applications.isEmpty())
         {
-            logger.log(Level.WARNING, "No application found for opening " + resource);
+            logger.log(Level.INFO, "No application found for opening " + resource);
             return null;
         }
 

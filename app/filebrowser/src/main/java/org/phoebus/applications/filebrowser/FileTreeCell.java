@@ -1,11 +1,15 @@
 package org.phoebus.applications.filebrowser;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.FileHelper;
-import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -27,7 +31,8 @@ import javafx.scene.paint.Color;
 
 @SuppressWarnings("nls")
 final class FileTreeCell extends TreeCell<File> {
-    static final Image folder = ImageCache.getImage(PhoebusApplication.class, "/icons/fldr_obj.png");
+    static final Image file_icon = ImageCache.getImage(ImageCache.class, "/icons/file_obj.png");
+    static final Image folder_icon = ImageCache.getImage(ImageCache.class, "/icons/fldr_obj.png");
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));
@@ -148,7 +153,7 @@ final class FileTreeCell extends TreeCell<File> {
     }
 
     @Override
-    protected void updateItem(File file, boolean empty) {
+    protected void updateItem(final File file, final boolean empty) {
         super.updateItem(file, empty);
 
         if (empty || file == null) {
@@ -156,15 +161,32 @@ final class FileTreeCell extends TreeCell<File> {
             setGraphic(null);
         } else {
             if (getTreeItem().getParent() == null) {
-                // Root
+                // Root (actually hidden, so this is never called)
                 setText(file.getAbsolutePath());
             } else {
                 if (file.isDirectory())
-                    setGraphic(new ImageView(folder));
+                    setGraphic(new ImageView(folder_icon));
                 else
-                    setGraphic(null);
+                {
+                    setGraphic(new ImageView(file_icon));
+                    JobManager.schedule("File Lookup", monitor -> lookup_icon(file));
+                }
                 setText(file.getName());
             }
         }
+    }
+
+    private void lookup_icon(final File file)
+    {
+        final URI resource = ResourceParser.getURI(file);
+        final AppDescriptor app = ApplicationLauncherService.findApplication(resource, false, null);
+        if (app == null)
+            return;
+        final URL icon_url = app.getIconURL();
+        if (icon_url == null)
+            return;
+        final ImageView icon = ImageCache.getImageView(icon_url);
+        if (icon != null)
+            Platform.runLater(() -> setGraphic(icon));
     }
 }
