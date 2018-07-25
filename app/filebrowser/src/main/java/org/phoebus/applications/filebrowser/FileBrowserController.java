@@ -22,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -198,33 +199,43 @@ public class FileBrowserController {
 
         contextMenu.getItems().clear();
 
-        if (selectedItems.stream().allMatch(item -> item.getValue().isFile()))
-            contextMenu.getItems().addAll(open, openWith);
-
         if (! selectedItems.isEmpty())
-            contextMenu.getItems().add(new CopyPath(selectedItems));
-        if (selectedItems.size() == 1)
         {
-            final TreeItem<File> item = selectedItems.get(0);
-            final boolean is_file = item.getValue().isFile();
-            if (is_file)
-            {
-                // Plain file can be duplicated, directory can't
-                contextMenu.getItems().add(new DuplicateAction(treeView, item));
-
-                // Create directory within the _parent_
-                contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item.getParent()));
-            }
-            else
-                // Within a directory, a new directory can be created
-                contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item));
-            contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)));
+            // allMatch() would return true for empty, so only check if there are items
+            if (selectedItems.stream().allMatch(item -> item.getValue().isFile()))
+                contextMenu.getItems().addAll(open, openWith);
+            contextMenu.getItems().add(new CopyPath(selectedItems));
+            contextMenu.getItems().add(new SeparatorMenuItem());
         }
         if (selectedItems.size() >= 1)
         {
+            final TreeItem<File> item = selectedItems.get(0);
+            final boolean is_file = item.getValue().isFile();
+
+            if (selectedItems.size() == 1)
+            {
+                if (is_file)
+                {
+                    // Create directory within the _parent_
+                    contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item.getParent()));
+
+                    // Plain file can be duplicated, directory can't
+                    contextMenu.getItems().add(new DuplicateAction(treeView, item));
+                }
+                else
+                    // Within a directory, a new directory can be created
+                    contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item));
+                contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)));
+            }
+
             contextMenu.getItems().add(new DeleteAction(treeView, selectedItems));
-            if (selectedItems.get(0).getValue().isDirectory())
-                contextMenu.getItems().add(new RefreshAction(treeView,  selectedItems.get(0)));
+
+            contextMenu.getItems().add(new SeparatorMenuItem());
+
+            if (is_file)
+                contextMenu.getItems().add(new RefreshAction(treeView, item.getParent()));
+            else
+                contextMenu.getItems().add(new RefreshAction(treeView, item));
         }
 
         if (selectedItems.size() == 1)
