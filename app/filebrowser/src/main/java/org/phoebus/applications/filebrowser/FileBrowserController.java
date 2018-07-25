@@ -34,7 +34,7 @@ import javafx.stage.Stage;
  * Controller for the file browser app
  *
  * @author Kunal Shroff
- *
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class FileBrowserController {
@@ -82,14 +82,12 @@ public class FileBrowserController {
         if (added)
             assertTreeContains(treeView.getRoot(), file.toPath());
         else
-            // TODO else assertTreeDoesntContain(..)
-            System.out.println("Oh dear, " + file + " was removed");
+            assertTreeDoesntContain(treeView.getRoot(), file.toPath());
     }
 
     private void assertTreeContains(final TreeItem<File> item, final Path file)
     {
         final Path dir = item.getValue().toPath();
-
         if (! file.startsWith(dir))
         {
             logger.log(Level.WARNING, "Cannot check for " + file + " within " + dir);
@@ -98,19 +96,49 @@ public class FileBrowserController {
 
         final int dir_len = dir.getNameCount();
         final File sub = new File(item.getValue(), file.getName(dir_len).toString());
-        // System.out.println("Looking for " + sub + " in " + dir);
+        logger.log(Level.FINE, () -> "Looking for " + sub + " in " + dir);
 
         for (TreeItem<File> child : item.getChildren())
             if (sub.equals(child.getValue()))
             {
-                // System.out.println("Found it!");
+                logger.log(Level.FINE,"Found it!");
                 if (sub.isDirectory())
                     assertTreeContains(child, file);
                 return;
             }
 
-        // System.out.println("Forcing refresh of " + dir + " to show " + sub);
+        logger.log(Level.FINE, () -> "Forcing refresh of " + dir + " to show " + sub);
         ((FileTreeItem)item).forceRefresh();
+    }
+
+    private void assertTreeDoesntContain(final TreeItem<File> item, final Path file)
+    {
+        final Path dir = item.getValue().toPath();
+        logger.log(Level.FINE, () -> "Does " + dir + " still contain " + file + "?");
+        if (! file.startsWith(dir))
+        {
+            logger.log(Level.FINE, "Can't!");
+            return;
+        }
+
+        final int dir_len = dir.getNameCount();
+        final File sub = new File(item.getValue(), file.getName(dir_len).toString());
+        for (TreeItem<File> child : item.getChildren())
+            if (sub.equals(child.getValue()))
+            {
+                // Found file or sub path to it..
+                if (sub.isDirectory())
+                    assertTreeDoesntContain(child, file);
+                else
+                {   // Found the file still listed as a child of 'item',
+                    // so refresh 'item'
+                    logger.log(Level.FINE, () -> "Forcing refresh of " + dir + " to hide " + sub);
+                    ((FileTreeItem)item).forceRefresh();
+                }
+                return;
+            }
+
+        logger.log(Level.FINE, "Not found, all good");
     }
 
     /** Try to open resource, show error dialog on failure

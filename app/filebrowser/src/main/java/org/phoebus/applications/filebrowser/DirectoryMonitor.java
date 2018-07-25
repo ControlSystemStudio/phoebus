@@ -72,7 +72,7 @@ public class DirectoryMonitor
         {
             try
             {
-                logger.log(Level.INFO, "Monitoring directory " + directory);
+                logger.log(Level.FINE, () -> "Monitoring directory " + directory);
                 return directory.toPath().register(watcher, ENTRY_CREATE, ENTRY_DELETE);
             }
             catch (Exception ex)
@@ -90,7 +90,7 @@ public class DirectoryMonitor
         while (iter.hasNext())
         {
             final Entry<File, WatchKey> entry = iter.next();
-            logger.log(Level.FINE, "Clear: " + entry.getKey());
+            logger.log(Level.FINE, () -> "Clear: " + entry.getKey());
             entry.getValue().cancel();
             iter.remove();
         }
@@ -147,7 +147,7 @@ public class DirectoryMonitor
             final WatchKey key = dir_keys.remove(file);
             if (key != null)
             {
-                logger.log(Level.INFO, "No longer monitoring removed directory " + file);
+                logger.log(Level.FINE, () -> "No longer monitoring removed directory " + file);
                 key.cancel();
             }
             listener.accept(file, false);
