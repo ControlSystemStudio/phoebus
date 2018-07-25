@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.framework.workbench;
 
+import static org.phoebus.framework.workbench.WorkbenchPreferences.logger;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -29,8 +30,6 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 @SuppressWarnings("nls")
 public class ApplicationService
 {
-    private static final Logger logger = Logger.getLogger(ApplicationService.class.getName());
-
     public static final ApplicationService INSTANCE = new ApplicationService();
 
     /** All applications by name */

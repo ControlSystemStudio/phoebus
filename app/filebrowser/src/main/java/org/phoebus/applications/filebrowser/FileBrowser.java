@@ -51,6 +51,8 @@ public class FileBrowser implements AppInstance
         controller = loader.getController();
         if (controller != null  &&  directory != null)
             controller.setRoot(directory);
+
+        tab.addClosedNotification(controller::shutdown);
     }
 
     @Override
