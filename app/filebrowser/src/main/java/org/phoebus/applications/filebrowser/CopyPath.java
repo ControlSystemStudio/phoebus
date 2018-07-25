@@ -24,8 +24,7 @@ import javafx.scene.input.ClipboardContent;
 @SuppressWarnings("nls")
 public class CopyPath extends MenuItem
 {
-    /** @param items Items which paths to copy to clipboard
-     */
+    /** @param items Items which paths to copy to clipboard */
     public CopyPath(final List<TreeItem<File>> items)
     {
         super("Copy Path to Clipboard", ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
@@ -35,7 +34,9 @@ public class CopyPath extends MenuItem
             final Clipboard clipboard = Clipboard.getSystemClipboard();
             final ClipboardContent content = new ClipboardContent();
             content.putString(items.stream().map(item -> item.getValue().getAbsolutePath()).collect(Collectors.joining(", ")));
+            content.putFiles(items.stream().map(item -> item.getValue()).collect(Collectors.toList()));
             clipboard.setContent(content);
         });
     }
 }
+

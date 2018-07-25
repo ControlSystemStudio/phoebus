@@ -3,6 +3,7 @@ package org.phoebus.applications.filebrowser;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.phoebus.ui.javafx.TreeHelper;
 
@@ -13,9 +14,9 @@ import javafx.scene.control.TreeItem;
 class FileTreeItem extends TreeItem<File> {
 
     private final DirectoryMonitor monitor;
-    private boolean isFirstTimeLeaf = true;
+    private AtomicBoolean isFirstTimeLeaf = new AtomicBoolean(true);
     private boolean isFirstTimeChildren = true;
-    private boolean isLeaf;
+    private volatile boolean isLeaf;
 
     public FileTreeItem(final DirectoryMonitor monitor, final File childFile) {
         super(childFile);
@@ -30,7 +31,8 @@ class FileTreeItem extends TreeItem<File> {
     /** Reset so next time item is drawn, it fetches file system information */
     public void forceRefresh()
     {
-        isFirstTimeLeaf = isFirstTimeChildren = true;
+        isFirstTimeLeaf.set(true);
+        isFirstTimeChildren = true;
 
         TreeHelper.triggerTreeItemRefresh(this);
         setExpanded(false);
@@ -53,11 +55,18 @@ class FileTreeItem extends TreeItem<File> {
         return super.getChildren();
     }
 
+    /** Check if item refers to a file.
+     *
+     *  <p>Note that calling this is more effective than
+     *  continuing to call getValue().isFile(),
+     *  because the check is only performed once
+     */
     @Override
-    public boolean isLeaf() {
-        if (isFirstTimeLeaf) {
-            isFirstTimeLeaf = false;
-            File f = getValue();
+    public boolean isLeaf()
+    {
+        if (isFirstTimeLeaf.getAndSet(false))
+        {
+            final File f = getValue();
             isLeaf = f.isFile();
         }
         return isLeaf;

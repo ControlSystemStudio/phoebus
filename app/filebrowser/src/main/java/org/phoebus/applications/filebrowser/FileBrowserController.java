@@ -13,8 +13,6 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -27,6 +25,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -155,6 +154,19 @@ public class FileBrowserController {
         }
     }
 
+    /** Try to open all the currently selected resources */
+    private void openSelectedResources()
+    {
+        treeView.selectionModelProperty()
+                .getValue()
+                .getSelectedItems()
+                .forEach(item ->
+        {
+            if (item.isLeaf())
+                openResource(item.getValue(), null);
+        });
+    }
+
     @FXML
     public void initialize() {
         treeView.setShowRoot(false);
@@ -162,35 +174,80 @@ public class FileBrowserController {
         treeView.setCellFactory(f -> new FileTreeCell());
 
         // Prepare ContextMenu items
-        open.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue()
-                        .getSelectedItems();
-                selectedItems.forEach(s -> {
-                    File selection = s.getValue();
-                    if (selection.isFile()) {
-                        openResource(selection, null);
-                    }
-                });
-            }
-        });
-        openWith.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue()
-                        .getSelectedItems();
-                selectedItems.forEach(s -> {
-                    File selection = s.getValue();
-                    if (selection.isFile()) {
-                        openResource(selection, (Stage) treeView.getParent().getScene().getWindow());
-                    }
-                });
-            }
+        open.setOnAction(event -> openSelectedResources());
+        openWith.setOnAction(event ->
+        {
+            treeView.selectionModelProperty()
+                    .getValue()
+                    .getSelectedItems()
+                    .forEach(item ->
+            {
+                if (item.isLeaf())
+                    openResource(item.getValue(), (Stage) treeView.getParent().getScene().getWindow());
+            });
         });
         contextMenu.getItems().addAll(open, openWith);
+
+        treeView.setOnKeyPressed(this::handleKeys);
+    }
+
+    private void handleKeys(final KeyEvent event)
+    {
+        switch(event.getCode())
+        {
+        case ENTER: // Open
+        {
+            openSelectedResources();
+            event.consume();
+            break;
+        }
+        case F2: // Rename file
+        {
+            final ObservableList<TreeItem<File>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
+            if (items.size() == 1)
+            {
+                final TreeItem<File> item = items.get(0);
+                if (item.isLeaf())
+                    new RenameAction(treeView, item).fire();
+            }
+            event.consume();
+            break;
+        }
+        case DELETE: // Delete
+        {
+            final ObservableList<TreeItem<File>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
+            if (items.size() > 0)
+                new DeleteAction(treeView, items).fire();
+            event.consume();
+            break;
+        }
+        case C: // Copy
+        {
+            if (event.isShortcutDown())
+            {
+                final ObservableList<TreeItem<File>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
+                new CopyPath(items).fire();
+                event.consume();
+            }
+            break;
+        }
+        case V: // Paste
+        {
+            if (event.isShortcutDown())
+            {
+                TreeItem<File> item = treeView.selectionModelProperty().getValue().getSelectedItem();
+                if (item == null)
+                    item = treeView.getRoot();
+                else if (item.isLeaf())
+                    item = item.getParent();
+                new PasteFiles(item).fire();
+                event.consume();
+            }
+            break;
+        }
+        default:
+            // Ignore
+        }
     }
 
     @FXML
@@ -202,7 +259,7 @@ public class FileBrowserController {
         if (! selectedItems.isEmpty())
         {
             // allMatch() would return true for empty, so only check if there are items
-            if (selectedItems.stream().allMatch(item -> item.getValue().isFile()))
+            if (selectedItems.stream().allMatch(item -> item.isLeaf()))
                 contextMenu.getItems().addAll(open, openWith);
             contextMenu.getItems().add(new CopyPath(selectedItems));
             contextMenu.getItems().add(new SeparatorMenuItem());
@@ -210,7 +267,7 @@ public class FileBrowserController {
         if (selectedItems.size() >= 1)
         {
             final TreeItem<File> item = selectedItems.get(0);
-            final boolean is_file = item.getValue().isFile();
+            final boolean is_file = item.isLeaf();
 
             if (selectedItems.size() == 1)
             {
@@ -245,19 +302,10 @@ public class FileBrowserController {
     }
 
     @FXML
-    public void handleMouseClickEvents(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-            ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue()
-                    .getSelectedItems();
-            selectedItems.forEach(s -> {
-                File selection = s.getValue();
-                if (selection.isFile()) {
-                    // Open in 'default' application, no prompt.
-                    // Use context menu "Open With" if need to pick app.
-                    openResource(selection, null);
-                }
-            });
-        }
+    public void handleMouseClickEvents(final MouseEvent event)
+    {
+        if (event.getClickCount() == 2)
+            openSelectedResources();
     }
 
     @FXML
