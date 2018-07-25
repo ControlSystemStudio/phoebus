@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor.tree;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -35,9 +36,10 @@ public class FindWidgetAction extends MenuItem
             prompt.setTitle(Messages.FindWidget);
             prompt.setHeaderText("Enter (partial) widget name");
             prompt.setResizable(true);
-            DialogHelper.positionDialog(prompt, node, -100, -100);
+            DialogHelper.positionAndSize(prompt, node,
+                    PhoebusPreferenceService.userNodeForClass(FindWidgetAction.class));
             final String pattern = prompt.showAndWait().orElse(null);
-            if (pattern != null)
+            if (pattern != null  &&  !pattern.isEmpty())
                 editor.selectWidgetsByName(pattern);
         });
     }
