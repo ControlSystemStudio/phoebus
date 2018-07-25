@@ -10,6 +10,5 @@
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
-	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
