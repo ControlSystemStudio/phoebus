@@ -8,6 +8,7 @@
 package org.phoebus.framework.workbench;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 
@@ -17,6 +18,10 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class WorkbenchPreferences
 {
+    /** Logger for the 'workbench' package */
+    public static final Logger logger = Logger.getLogger(WorkbenchPreferences.class.getPackageName());
+
+
     public static final String external_apps;
     public static final File external_apps_directory;
 

@@ -7,9 +7,10 @@
  *******************************************************************************/
 package org.phoebus.framework.workbench;
 
+import static org.phoebus.framework.workbench.WorkbenchPreferences.logger;
+
 import java.io.File;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /** Information about key locations
  *  @author Kay Kasemir
@@ -30,8 +31,7 @@ public class Locations
         }
         catch (Exception ex)
         {
-            Logger.getLogger(Locations.class.getName())
-                  .log(Level.SEVERE, "Cannot initialize locations", ex);
+            logger.log(Level.SEVERE, "Cannot initialize locations", ex);
         }
     }
 
