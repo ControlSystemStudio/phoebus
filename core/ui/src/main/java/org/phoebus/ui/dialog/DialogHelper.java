@@ -33,6 +33,16 @@ public class DialogHelper
     {
     }
 
+    /** Ensure the dialog stays always on top of his {@link Stage}.
+     *  @param dialog Dialog to position whose modality must be changed.
+     */
+    public static void hackModality (final Dialog<?> dialog)
+    {
+        final Window window = dialog.getDialogPane().getScene().getWindow();
+        if (window instanceof Stage)
+            ((Stage) window).setAlwaysOnTop(true);
+    }
+
     /** Position dialog relative to another widget
      *
      *  <p>By default, dialogs seem to pop up in the center of the first monitor.
@@ -48,10 +58,7 @@ public class DialogHelper
      */
     public static void positionDialog(final Dialog<?> dialog, final Node node, final int x_offset, final int y_offset)
     {
-        // Modality hack.
-        final Window window = dialog.getDialogPane().getScene().getWindow();
-        if (window instanceof Stage)
-            ((Stage) window).setAlwaysOnTop(true);
+        hackModality(dialog);
 
         final Bounds pos = node.localToScreen(node.getBoundsInLocal());
         dialog.setX(pos.getMinX() + pos.getWidth()/2 + x_offset);
@@ -156,10 +163,7 @@ public class DialogHelper
     {
         Objects.requireNonNull(dialog, "Null dialog.");
 
-        // Modality hack.
-        final Window window = dialog.getDialogPane().getScene().getWindow();
-        if (window instanceof Stage)
-            ((Stage) window).setAlwaysOnTop(true);
+        hackModality(dialog);
 
         if (injector != null  &&  prefs != null)
             injector.accept(prefs);
@@ -216,7 +220,7 @@ public class DialogHelper
             final Bounds pos = owner.localToScreen(owner.getBoundsInLocal());
 
             dialog.setX(pos.getMinX());
-            dialog.setY(pos.getMinY() + pos.getHeight());
+            dialog.setY(pos.getMinY() + pos.getHeight()/3);
         }
 
         if (!Double.isNaN(prefWidth)  &&  !Double.isNaN(prefHeight))
