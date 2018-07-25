@@ -124,6 +124,7 @@ final class FileTreeCell extends TreeCell<File> {
             // System.out.println("Move " + file + " into " + dir);
             final File new_name = new File(dir, file.getName());
 
+            final DirectoryMonitor mon = ((FileTreeItem)target_item).getMonitor();
             try
             {
                 FileHelper.move(file, dir);
@@ -131,7 +132,7 @@ final class FileTreeCell extends TreeCell<File> {
                 {
                     // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
                     final ObservableList<TreeItem<File>> siblings = target_item.getChildren();
-                    siblings.add(new FileTreeItem(new_name));
+                    siblings.add(new FileTreeItem(mon, new_name));
                     FileTreeItem.sortSiblings(siblings);
                 });
             }
@@ -141,7 +142,7 @@ final class FileTreeCell extends TreeCell<File> {
                 ExceptionDetailsErrorDialog.openError(tree, "Error", "Failed to move\n" + file + " to " + target_item, ex);
                 // Force full refresh
                 Platform.runLater(() ->
-                    tree.setRoot(new FileTreeItem(tree.getRoot().getValue())) );
+                    tree.setRoot(new FileTreeItem(mon, tree.getRoot().getValue())) );
             }
         });
     }

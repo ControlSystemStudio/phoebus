@@ -20,7 +20,11 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.Watchable;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 /** Background thread that monitors a directory
@@ -29,6 +33,8 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class DirectoryMonitor
 {
+    private final BiConsumer<File, Boolean> listener;
+
     /** NIO Watch Service */
     private final WatchService watcher;
 
@@ -37,8 +43,17 @@ public class DirectoryMonitor
      */
     private volatile Thread thread;
 
-    public DirectoryMonitor() throws Exception
+    /** Map of keys for monitored directories */
+    private final ConcurrentHashMap<File, WatchKey> dir_keys = new ConcurrentHashMap<>();
+
+    /** Create directory monitor
+     *
+     *  @param listener Will be called with file that was added (true) or deleted (false)
+     *  @throws Exception
+     */
+    public DirectoryMonitor(final BiConsumer<File, Boolean> listener) throws Exception
     {
+        this.listener = listener;
         watcher = FileSystems.getDefault().newWatchService();
 
         thread = new Thread(this::run, "DirectoryMonitor");
@@ -46,10 +61,42 @@ public class DirectoryMonitor
         thread.start();
     }
 
-    public void monitor(File directory) throws Exception
+    /** Register a directory to be monitored
+     *
+     *  <p>Directory will be un-registered when it's deleted.
+     *
+     *  @param directory
+     */
+    public void monitor(final File directory)
     {
-        if (directory.isDirectory())
-            directory.toPath().register(watcher, ENTRY_CREATE, ENTRY_DELETE);
+        if (! directory.isDirectory())
+            return;
+        dir_keys.computeIfAbsent(directory, dir ->
+        {
+            try
+            {
+                logger.log(Level.INFO, "Monitoring directory " + directory);
+                return directory.toPath().register(watcher, ENTRY_CREATE, ENTRY_DELETE);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot monitor " + directory, ex);
+            }
+            return null;
+        });
+    }
+
+    /** Clear all monitors */
+    public void clear()
+    {
+        final Iterator<Entry<File, WatchKey>> iter = dir_keys.entrySet().iterator();
+        while (iter.hasNext())
+        {
+            final Entry<File, WatchKey> entry = iter.next();
+            System.out.println("Clear: " + entry.getKey());
+            entry.getValue().cancel();
+            iter.remove();
+        }
     }
 
     private void run()
@@ -90,12 +137,27 @@ public class DirectoryMonitor
         @SuppressWarnings("unchecked")
         final WatchEvent<Path> ev = (WatchEvent<Path>)event;
         final Path filename = ev.context();
+        final File file = dir.resolve(filename).toFile();
 
-        logger.log(Level.INFO, kind.name() + " for " + dir.resolve(filename));
+        if (kind == ENTRY_CREATE)
+            listener.accept(file, true);
+        else if (kind == ENTRY_DELETE)
+        {
+            final WatchKey key = dir_keys.remove(file);
+            if (key != null)
+            {
+                logger.log(Level.INFO, "No longer monitoring removed directory " + file);
+                key.cancel();
+            }
+            listener.accept(file, false);
+        }
+        else
+            logger.log(Level.WARNING, "Unexpected " + kind + " for " + file);
     }
 
-    private void shutdown()
+    public void shutdown()
     {
+        clear();
         final Thread copy = thread;
         thread = null;
         try
@@ -105,16 +167,17 @@ public class DirectoryMonitor
         }
         catch (Exception ex)
         {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
+            logger.log(Level.WARNING, "DirectoryWatcher shutdown error", ex);
        }
     }
 
 
     public static void main(String[] args) throws Exception
     {
-        final DirectoryMonitor monitor = new DirectoryMonitor();
+        final DirectoryMonitor monitor = new DirectoryMonitor(
+            (file, added) -> System.out.println(file + (added ? " added" : " removed")));
         monitor.monitor(new File("/tmp/monitor"));
+        monitor.monitor(new File("/tmp/monitor2"));
         Thread.sleep(4000);
         monitor.shutdown();
     }

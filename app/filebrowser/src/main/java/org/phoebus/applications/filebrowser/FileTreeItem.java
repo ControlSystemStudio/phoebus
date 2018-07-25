@@ -12,12 +12,19 @@ import javafx.scene.control.TreeItem;
 
 class FileTreeItem extends TreeItem<File> {
 
+    private final DirectoryMonitor monitor;
     private boolean isFirstTimeLeaf = true;
     private boolean isFirstTimeChildren = true;
     private boolean isLeaf;
 
-    public FileTreeItem(File childFile) {
+    public FileTreeItem(final DirectoryMonitor monitor, final File childFile) {
         super(childFile);
+        this.monitor = monitor;
+    }
+
+    DirectoryMonitor getMonitor()
+    {
+        return monitor;
     }
 
     /** Reset so next time item is drawn, it fetches file system information */
@@ -68,11 +75,14 @@ class FileTreeItem extends TreeItem<File> {
                     // Keep hidden files hidden?
                     if (childFile.isHidden()  &&  !FileBrowserApp.show_hidden)
                         continue;
-                    children.add(new FileTreeItem(childFile));
+                    children.add(new FileTreeItem(monitor, childFile));
                 }
-
+                // Have current set of files, monitor from now on
+                monitor.monitor(f);
                 return children;
             }
+            // No files, yet, but monitor directory to learn about additions
+            monitor.monitor(f);
         }
 
         return FXCollections.emptyObservableList();

@@ -36,6 +36,8 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class FileBrowserController {
 
+    private final DirectoryMonitor monitor;
+
     @FXML
     TextField path;
     @FXML
@@ -46,6 +48,23 @@ public class FileBrowserController {
     private final MenuItem open = new MenuItem("Open", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final MenuItem openWith = new MenuItem("Open With", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
+
+    public FileBrowserController()
+    {
+        try
+        {
+            monitor = new DirectoryMonitor(this::handleFilesystemChanges);
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException("Cannot monitor files", ex);
+        }
+    }
+
+    private void handleFilesystemChanges(final File file, final boolean added)
+    {
+        System.out.println("Oh dear, " + file + (added ? " was added" : " was removed"));
+    }
 
     /** Try to open resource, show error dialog on failure
      *  @param file Resource to open
@@ -65,6 +84,7 @@ public class FileBrowserController {
 
     @FXML
     public void initialize() {
+        treeView.setShowRoot(false);
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.setCellFactory(f -> new FileTreeCell());
 
@@ -150,14 +170,15 @@ public class FileBrowserController {
     public void setNewRoot() {
         Path p = Paths.get(path.getText());
         File newRootFile = p.toFile();
-        treeView.setRoot(new FileTreeItem(newRootFile));
+        treeView.setRoot(new FileTreeItem(monitor, newRootFile));
     }
 
     /** @param directory Desired root directory */
     public void setRoot(final File directory)
     {
+        monitor.clear();
         path.setText(directory.toString());
-        treeView.setRoot(new FileTreeItem(directory));
+        treeView.setRoot(new FileTreeItem(monitor, directory));
     }
 
     /** @return Root directory */
@@ -175,6 +196,6 @@ public class FileBrowserController {
         }
         File newRootFile = directoryChooser.showDialog(treeView.getParent().getScene().getWindow());
         path.setText(newRootFile.getAbsolutePath());
-        treeView.setRoot(new FileTreeItem(newRootFile));
+        treeView.setRoot(new FileTreeItem(monitor, newRootFile));
     }
 }
