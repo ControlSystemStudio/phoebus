@@ -93,7 +93,7 @@ public class DirectoryMonitor
         while (iter.hasNext())
         {
             final Entry<File, WatchKey> entry = iter.next();
-            System.out.println("Clear: " + entry.getKey());
+            logger.log(Level.FINE, "Clear: " + entry.getKey());
             entry.getValue().cancel();
             iter.remove();
         }
@@ -155,6 +155,7 @@ public class DirectoryMonitor
             logger.log(Level.WARNING, "Unexpected " + kind + " for " + file);
     }
 
+    /** Call when no longer needed */
     public void shutdown()
     {
         clear();
@@ -171,14 +172,14 @@ public class DirectoryMonitor
        }
     }
 
-
-    public static void main(String[] args) throws Exception
-    {
-        final DirectoryMonitor monitor = new DirectoryMonitor(
-            (file, added) -> System.out.println(file + (added ? " added" : " removed")));
-        monitor.monitor(new File("/tmp/monitor"));
-        monitor.monitor(new File("/tmp/monitor2"));
-        Thread.sleep(4000);
-        monitor.shutdown();
-    }
+    /** Demo */
+//    public static void main(String[] args) throws Exception
+//    {
+//        final DirectoryMonitor monitor = new DirectoryMonitor(
+//            (file, added) -> System.out.println(file + (added ? " added" : " removed")));
+//        monitor.monitor(new File("/tmp/monitor"));
+//        monitor.monitor(new File("/tmp/monitor2"));
+//        Thread.sleep(4000);
+//        monitor.shutdown();
+//    }
 }

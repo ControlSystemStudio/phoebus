@@ -169,8 +169,7 @@ public class FileBrowserController {
     @FXML
     public void setNewRoot() {
         Path p = Paths.get(path.getText());
-        File newRootFile = p.toFile();
-        treeView.setRoot(new FileTreeItem(monitor, newRootFile));
+        setRoot(p.toFile());
     }
 
     /** @param directory Desired root directory */
@@ -195,7 +194,13 @@ public class FileBrowserController {
             directoryChooser.setInitialDirectory(Paths.get(path.getText()).toFile());
         }
         File newRootFile = directoryChooser.showDialog(treeView.getParent().getScene().getWindow());
-        path.setText(newRootFile.getAbsolutePath());
-        treeView.setRoot(new FileTreeItem(monitor, newRootFile));
+        if (newRootFile != null)
+            setRoot(newRootFile);
+    }
+
+    /** Call when no longer needed */
+    public void shutdown()
+    {
+        monitor.shutdown();
     }
 }
