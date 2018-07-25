@@ -6,7 +6,10 @@ import java.util.List;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
+
+import javafx.scene.image.Image;
 
 /**
  * A prototype action entry for starting the probe application
@@ -20,7 +23,13 @@ public class ContextLaunchProbe implements ContextMenuEntry {
 
     @Override
     public String getName() {
-        return Probe.NAME;
+        return Probe.DISPLAYNAME;
+    }
+
+    @Override
+    public Image getIcon()
+    {
+        return ImageCache.getImage(Probe.class, "/icons/probe.png");
     }
 
     @Override

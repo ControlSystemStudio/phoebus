@@ -165,12 +165,12 @@ public class Perspective extends SplitPane
             items.add(new ToggleToolbarMenuItem(plot.getPlot()));
             items.add(new SeparatorMenuItem());
             items.addAll(add_data);
-            
+
             items.add(new SeparatorMenuItem());
             items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
-            items.add(new SendEmailAction());
+            items.add(new SendEmailAction(this));
             items.add(new SendLogbookAction(DockPane.getActiveDockPane(), null));
-            
+
             if (model.getEmptyAxis().isPresent())
             {
                 items.add(new SeparatorMenuItem());

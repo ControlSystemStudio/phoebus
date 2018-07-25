@@ -23,6 +23,7 @@ import javax.mail.internet.MimeMultipart;
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.framework.workbench.ApplicationService;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -97,14 +98,32 @@ public class SimpleCreateController {
             EmailApp app = ApplicationService.findApplication(EmailApp.NAME);
             Message message = new MimeMessage(app.getSession());
 
-            // Set From: header field of the header.
-            message.setFrom(new InternetAddress(txtFrom.getText()));
-
             // Set To: header field of the header.
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(txtTo.getText()));
+            String txt = txtTo.getText().trim();
+            if (txt.isEmpty())
+            {
+                Platform.runLater(txtTo::requestFocus);
+                return;
+            }
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(txt));
+
+            // Set From: header field of the header.
+            txt = txtFrom.getText().trim();
+            if (txt.isEmpty())
+            {
+                Platform.runLater(txtFrom::requestFocus);
+                return;
+            }
+            message.setFrom(new InternetAddress(txt));
 
             // Set Subject: header field
-            message.setSubject(txtSubject.getText());
+            txt = txtSubject.getText().trim();
+            if (txt.isEmpty())
+            {
+                Platform.runLater(txtSubject::requestFocus);
+                return;
+            }
+            message.setSubject(txt);
 
             Multipart multipart = new MimeMultipart();
 
@@ -153,13 +172,20 @@ public class SimpleCreateController {
 
     @FXML
     public void initialize() {
+        txtFrom.setPromptText("Enter your email address");
+        txtTo.setPromptText("Enter receipient's email address(es)");
+        txtSubject.setPromptText("Enter Subject");
+
+
         choiceBox.setItems(supportedMimeTypes);
         choiceBox.setValue("text/plain");
         recomputeTextArea();
         choiceBox.setOnAction(value -> {
             recomputeTextArea();
         });
-        
+
+        // Patch for bug in HTMLEditor that doesn't allow entering new lines on Linux
+        // https://stackoverflow.com/questions/11269632/javafx-hmtleditor-doesnt-react-on-return-key
         htmlEditor.addEventFilter(KeyEvent.KEY_PRESSED, event ->
         {
             if (event.getCode() == KeyCode.ENTER)
@@ -167,18 +193,17 @@ public class SimpleCreateController {
                 event.consume();
 
                 final HTMLEditorSkin skin = (HTMLEditorSkin) htmlEditor.getSkin();
-
-                    try
-                    {
-                        // Invoke the private executeCommand(Command.INSERT_NEW_LINE.getCommand(), null);
-                        final Method method = skin.getClass().getDeclaredMethod("executeCommand", String.class, String.class);
-                        method.setAccessible(true);
-                        method.invoke(skin, Command.INSERT_NEW_LINE.getCommand(), null);
-                    }
-                    catch (Throwable ex)
-                    {
-                        throw new RuntimeException("Cannot hack around ENTER", ex);
-                    }
+                try
+                {
+                    // Invoke the private executeCommand(Command.INSERT_NEW_LINE.getCommand(), null);
+                    final Method method = skin.getClass().getDeclaredMethod("executeCommand", String.class, String.class);
+                    method.setAccessible(true);
+                    method.invoke(skin, Command.INSERT_NEW_LINE.getCommand(), null);
+                }
+                catch (Throwable ex)
+                {
+                    throw new RuntimeException("Cannot hack around ENTER", ex);
+                }
             }
         });
     }
@@ -201,7 +226,7 @@ public class SimpleCreateController {
     @FXML
     public void attachments(Event event) {
         Stage stage = (Stage) btnAtt.getScene().getWindow();
-        List<File> list = new ArrayList<File>();
+        List<File> list = new ArrayList<>();
         list = fileChooser.showOpenMultipleDialog(stage);
         listView.setItems(FXCollections
                 .observableArrayList(list.stream().map(File::getAbsolutePath).collect(Collectors.toList())));

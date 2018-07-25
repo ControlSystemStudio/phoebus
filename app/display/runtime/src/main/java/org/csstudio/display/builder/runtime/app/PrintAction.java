@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import org.csstudio.display.builder.runtime.Messages;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -43,33 +44,40 @@ public class PrintAction extends MenuItem
 
     private void print(final Parent model_parent)
     {
-        // Select printer
-        final PrinterJob job = Objects.requireNonNull(PrinterJob.createPrinterJob(), "Cannot create printer job");
-        final Scene scene = Objects.requireNonNull(model_parent.getScene(), "Missing Scene");
-
-        if (! job.showPrintDialog(scene.getWindow()))
-            return;
-
-        // Get Screenshot
-        final WritableImage screenshot = model_parent.snapshot(null, null);
-
-        // Scale image to full page
-        final Printer printer = job.getPrinter();
-        final Paper paper = job.getJobSettings().getPageLayout().getPaper();
-        final PageLayout pageLayout = printer.createPageLayout(paper,
-                                                               PageOrientation.LANDSCAPE,
-                                                               Printer.MarginType.DEFAULT);
-        final double scaleX = pageLayout.getPrintableWidth() / screenshot.getWidth();
-        final double scaleY = pageLayout.getPrintableHeight() / screenshot.getHeight();
-        final double scale = Math.min(scaleX, scaleY);
-        final ImageView print_node = new ImageView(screenshot);
-        print_node.getTransforms().add(new Scale(scale, scale));
-
-        // Print off the UI thread
-        JobManager.schedule(Messages.Print, monitor ->
+        try
         {
-            if (job.printPage(print_node))
-                job.endJob();
-        });
+            // Select printer
+            final PrinterJob job = Objects.requireNonNull(PrinterJob.createPrinterJob(), "Cannot create printer job");
+            final Scene scene = Objects.requireNonNull(model_parent.getScene(), "Missing Scene");
+
+            if (! job.showPrintDialog(scene.getWindow()))
+                return;
+
+            // Get Screenshot
+            final WritableImage screenshot = model_parent.snapshot(null, null);
+
+            // Scale image to full page
+            final Printer printer = job.getPrinter();
+            final Paper paper = job.getJobSettings().getPageLayout().getPaper();
+            final PageLayout pageLayout = printer.createPageLayout(paper,
+                                                                   PageOrientation.LANDSCAPE,
+                                                                   Printer.MarginType.DEFAULT);
+            final double scaleX = pageLayout.getPrintableWidth() / screenshot.getWidth();
+            final double scaleY = pageLayout.getPrintableHeight() / screenshot.getHeight();
+            final double scale = Math.min(scaleX, scaleY);
+            final ImageView print_node = new ImageView(screenshot);
+            print_node.getTransforms().add(new Scale(scale, scale));
+
+            // Print off the UI thread
+            JobManager.schedule(Messages.Print, monitor ->
+            {
+                if (job.printPage(print_node))
+                    job.endJob();
+            });
+        }
+        catch (Exception ex)
+        {
+            ExceptionDetailsErrorDialog.openError(model_parent, Messages.Print, "Failed to print", ex);
+        }
     }
 }

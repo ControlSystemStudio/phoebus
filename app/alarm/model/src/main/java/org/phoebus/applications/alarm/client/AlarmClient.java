@@ -151,6 +151,7 @@ public class AlarmClient
         finally
         {
             consumer.close();
+            producer.close();
         }
     }
 

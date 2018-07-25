@@ -433,12 +433,14 @@ public class DockItem extends Tab
 
     private Stage detach()
     {
-        // For size of new stage, use the old one.
-        // (Initially used size of old _Window_,
-        //  but that resulted in a new Stage that's
-        //  too high, about one title bar height taller).
+        // For size of new stage, approximate the
+        // current size of the item, i.e. the size
+        // of its DockPane, adding some extra space
+        // for the window border, title bar etc.
         final DockPane old_parent = getDockPane();
         final Scene old_scene = old_parent.getScene();
+        final double extra_width = Math.max(0, old_scene.getWindow().getWidth() - old_scene.getWidth());
+        final double extra_height = Math.max(0, old_scene.getWindow().getHeight() - old_scene.getHeight());
 
         // If this tab was the last tab in the DockPane,
         // and that's in a SplitDock, the following call will
@@ -448,8 +450,8 @@ public class DockItem extends Tab
 
         final Stage other = new Stage();
         DockStage.configureStage(other, this);
-        other.setWidth(old_scene.getWidth());
-        other.setHeight(old_scene.getHeight());
+        other.setWidth(old_parent.getWidth() + extra_width);
+        other.setHeight(old_parent.getHeight() + extra_height);
 
         // Assert that styles used in old scene are still available
         for (String css : old_scene.getStylesheets())
