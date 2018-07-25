@@ -54,14 +54,7 @@ public class FileBrowserController {
 
     public FileBrowserController()
     {
-        try
-        {
-            monitor = new DirectoryMonitor(this::handleFilesystemChanges);
-        }
-        catch (Exception ex)
-        {
-            throw new RuntimeException("Cannot monitor files", ex);
-        }
+        monitor = new DirectoryMonitor(this::handleFilesystemChanges);
     }
 
     private void handleFilesystemChanges(final File file, final boolean added)

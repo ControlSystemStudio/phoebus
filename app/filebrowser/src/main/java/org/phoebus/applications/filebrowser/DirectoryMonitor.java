@@ -36,25 +36,32 @@ public class DirectoryMonitor
     private final BiConsumer<File, Boolean> listener;
 
     /** NIO Watch Service */
-    private final WatchService watcher;
+    private WatchService watcher;
 
     /** Thread that polls the `watcher`.
      *  Set to <code>null</code> when exiting.
      */
-    private volatile Thread thread;
+    private volatile Thread thread = null;
 
     /** Map of {@link WatchKey}s for monitored directories */
     private final ConcurrentHashMap<File, WatchKey> dir_keys = new ConcurrentHashMap<>();
 
     /** Create directory monitor
-     *
      *  @param listener Will be called with file that was added (<code>true</code>) or deleted (<code>false</code>)
-     *  @throws Exception
      */
-    public DirectoryMonitor(final BiConsumer<File, Boolean> listener) throws Exception
+    public DirectoryMonitor(final BiConsumer<File, Boolean> listener)
     {
         this.listener = listener;
-        watcher = FileSystems.getDefault().newWatchService();
+        try
+        {
+            watcher = FileSystems.getDefault().newWatchService();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot monitor file system", ex);
+            watcher = null;
+            return;
+        }
 
         thread = new Thread(this::run, "DirectoryMonitor");
         thread.setDaemon(true);
@@ -66,7 +73,7 @@ public class DirectoryMonitor
      */
     public void monitor(final File directory)
     {
-        if (! directory.isDirectory())
+        if (thread == null  ||  ! directory.isDirectory())
             return;
         dir_keys.computeIfAbsent(directory, dir ->
         {
@@ -161,6 +168,8 @@ public class DirectoryMonitor
     {
         clear();
         final Thread copy = thread;
+        if (thread == null)
+            return;
         thread = null;
         try
         {
