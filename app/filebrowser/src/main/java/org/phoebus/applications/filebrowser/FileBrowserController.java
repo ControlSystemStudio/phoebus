@@ -1,8 +1,11 @@
 package org.phoebus.applications.filebrowser;
 
+import static org.phoebus.applications.filebrowser.FileBrowser.logger;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Level;
 
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
@@ -63,7 +66,51 @@ public class FileBrowserController {
 
     private void handleFilesystemChanges(final File file, final boolean added)
     {
-        System.out.println("Oh dear, " + file + (added ? " was added" : " was removed"));
+        // The notification might address a file that the file browser itself just added/renamed/removed,
+        // and the file browser is already in the process of updating itself.
+        // Wait a little to allow that to happen
+        try
+        {
+            Thread.sleep(1000);
+        }
+        catch (InterruptedException ex)
+        {
+            return;
+        }
+
+        // Now check if the UI has already been updated
+        if (added)
+            assertTreeContains(treeView.getRoot(), file.toPath());
+        else
+            // TODO else assertTreeDoesntContain(..)
+            System.out.println("Oh dear, " + file + " was removed");
+    }
+
+    private void assertTreeContains(final TreeItem<File> item, final Path file)
+    {
+        final Path dir = item.getValue().toPath();
+
+        if (! file.startsWith(dir))
+        {
+            logger.log(Level.WARNING, "Cannot check for " + file + " within " + dir);
+            return;
+        }
+
+        final int dir_len = dir.getNameCount();
+        final File sub = new File(item.getValue(), file.getName(dir_len).toString());
+        // System.out.println("Looking for " + sub + " in " + dir);
+
+        for (TreeItem<File> child : item.getChildren())
+            if (sub.equals(child.getValue()))
+            {
+                // System.out.println("Found it!");
+                if (sub.isDirectory())
+                    assertTreeContains(child, file);
+                return;
+            }
+
+        // System.out.println("Forcing refresh of " + dir + " to show " + sub);
+        ((FileTreeItem)item).forceRefresh();
     }
 
     /** Try to open resource, show error dialog on failure

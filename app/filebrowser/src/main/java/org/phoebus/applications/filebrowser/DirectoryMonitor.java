@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.filebrowser;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -10,13 +17,6 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
-/*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *******************************************************************************/
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.Watchable;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-/** Background thread that monitors a directory
+/** Background thread that monitors directories
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -43,12 +43,12 @@ public class DirectoryMonitor
      */
     private volatile Thread thread;
 
-    /** Map of keys for monitored directories */
+    /** Map of {@link WatchKey}s for monitored directories */
     private final ConcurrentHashMap<File, WatchKey> dir_keys = new ConcurrentHashMap<>();
 
     /** Create directory monitor
      *
-     *  @param listener Will be called with file that was added (true) or deleted (false)
+     *  @param listener Will be called with file that was added (<code>true</code>) or deleted (<code>false</code>)
      *  @throws Exception
      */
     public DirectoryMonitor(final BiConsumer<File, Boolean> listener) throws Exception
@@ -62,10 +62,7 @@ public class DirectoryMonitor
     }
 
     /** Register a directory to be monitored
-     *
-     *  <p>Directory will be un-registered when it's deleted.
-     *
-     *  @param directory
+     *  @param directory To monitor. Will automatically un-register when it is deleted.
      */
     public void monitor(final File directory)
     {
@@ -99,6 +96,7 @@ public class DirectoryMonitor
         }
     }
 
+    /** 'thread' runnable, exits when 'thread' set to <code>null</code> */
     private void run()
     {
         while (thread != null)
@@ -126,6 +124,9 @@ public class DirectoryMonitor
         }
     }
 
+    /** @param dir Directory that received a change
+     *  @param event Change within dir
+     */
     private void handle(final Path dir, final WatchEvent<?> event)
     {
         final WatchEvent.Kind<?> kind = event.kind();
