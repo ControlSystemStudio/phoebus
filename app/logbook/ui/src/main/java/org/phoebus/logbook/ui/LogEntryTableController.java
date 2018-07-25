@@ -8,13 +8,20 @@ import org.phoebus.logbook.LogEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 public class LogEntryTableController extends LogbookSearchController {
 
     List<LogEntry> logEntries;
+
+    @FXML
+    TextField query;
+    @FXML
+    Button search;
 
     @FXML
     ListView<LogEntry> logs;
@@ -48,6 +55,16 @@ public class LogEntryTableController extends LogbookSearchController {
             logsList.addAll(logEntries.stream().collect(Collectors.toList()));
             logs.setItems(logsList);
         }
+    }
+
+    public void setQuery(String string) {
+        query.setText(string);
+        search();
+    }
+
+    @FXML
+    public void search() {
+        super.search(query.getText());
     }
 
     @Override

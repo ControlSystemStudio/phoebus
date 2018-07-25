@@ -36,6 +36,11 @@ public class AttachmentImpl implements Attachment {
         return thumbnail;
     }
 
+    @Override
+    public String getName() {
+        return file.getName();
+    }
+    
     /**
      * Create a new instance of a default implementation of the {@link Attachment} interface using the given attachement
      * @param attach 

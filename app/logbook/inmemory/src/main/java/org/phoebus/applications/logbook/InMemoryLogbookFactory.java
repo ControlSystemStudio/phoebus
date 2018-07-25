@@ -5,8 +5,8 @@ import org.phoebus.logbook.LogFactory;
 
 public class InMemoryLogbookFactory implements LogFactory {
 
-    private static final String ID = "org.phoebus.inmemory.log";
-    private final InMemoryLogClient inMemoryLogClient = new InMemoryLogClient();
+    private static String ID = "inmemory";
+    private InMemoryLogClient inMemoryLogClient = new InMemoryLogClient();
 
     @Override
     public String getId() {

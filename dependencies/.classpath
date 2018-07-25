@@ -64,6 +64,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-cbor-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-smile-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-yaml-2.8.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jackson-datatype-jsr310-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jna-4.5.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.9.9.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jopt-simple-5.0.2.jar"/>
@@ -84,5 +85,9 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial3d-7.3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/rank-eval-client-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-common-9.0-r1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-controls-9.0-r1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-fxml-9.0-r1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-agenda-9.0-r1.jar" sourcepath="C:/Users/Kunal Shroff/.m2/repository/org/jfxtras/jfxtras-agenda/9.0-r1/jfxtras-agenda-9.0-r1-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

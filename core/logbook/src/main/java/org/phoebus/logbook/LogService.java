@@ -23,7 +23,7 @@ public class LogService {
 
     /** Suggested logger for all log book related code. */
     public static final Logger logger = Logger.getLogger(LogService.class.getPackageName());
-    
+
     static final java.lang.String SERVICE_NAME = "LoggingService";
 
     private static LogService logService;
@@ -32,9 +32,6 @@ public class LogService {
 
     private static ExecutorService executor = Executors.newCachedThreadPool();
 
-    /**
-     * 
-     */
     private LogService() {
         // Load available adapter factories
         logFactories = new HashMap<String, LogFactory>();
@@ -47,6 +44,7 @@ public class LogService {
 
     /**
      * Returns the instance logbook service instance
+     * 
      * @return
      */
     public static LogService getInstance() {
@@ -56,6 +54,19 @@ public class LogService {
         return logService;
     }
 
+    /**
+     * Get a registered log factory for creating logbook clients to the specified type of logbook service
+     * @param logbook_factory A string identifying the logbook service type
+     * @return logbookFactory for creating clients to logbookServiceId
+     */
+    public LogFactory getLogFactories(String logbookServiceId) {
+        return logFactories.get(logbookServiceId);
+    }
+
+    /**
+     * Get a list of all the registered logbook factories
+     * @return A Map of all the logbook factories
+     */
     public Map<String, LogFactory> getLogFactories() {
         return Collections.unmodifiableMap(logFactories);
     }
@@ -64,7 +75,8 @@ public class LogService {
      * Create a log entry in all registered LogFactory
      * 
      * @param adaptedSelections
-     * @param authToken - Authentication Token
+     * @param authToken
+     *            - Authentication Token
      */
     public void createLogEntry(LogEntry logEntry, Object authToken) {
         executor.submit(() -> {
@@ -73,13 +85,13 @@ public class LogService {
             });
         });
     }
-    
+
     /**
      * Create a log entry in all registered LogFactory TODO change to Log type
      * 
      * @param adaptedSelections
      */
-    public void createLogEntry(List<LogEntry> logEntries,  Object authToken) {
+    public void createLogEntry(List<LogEntry> logEntries, Object authToken) {
         executor.submit(() -> {
             logFactories.values().stream().forEach(logFactory -> {
                 logEntries.forEach(logEntry -> {
@@ -95,7 +107,7 @@ public class LogService {
      * @param id
      * @param log
      */
-    public void createLogEntry(String id, LogEntry logEntry,  Object authToken) {
+    public void createLogEntry(String id, LogEntry logEntry, Object authToken) {
         executor.submit(() -> {
             logFactories.get(id).getLogClient(authToken).set(logEntry);
         });

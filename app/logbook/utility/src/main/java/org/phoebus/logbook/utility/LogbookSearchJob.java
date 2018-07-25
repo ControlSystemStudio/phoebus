@@ -41,7 +41,7 @@ public class LogbookSearchJob implements JobRunnable {
     @Override
     public void run(JobMonitor monitor) throws Exception {
         monitor.beginTask("searching for log entires : " + pattern);
-        List<LogEntry> channels = client.findLogsBySearch(pattern);
-        logentry_handler.accept(channels);
+        List<LogEntry> logEntries = client.findLogsBySearch(pattern);
+        logentry_handler.accept(logEntries);
     }
 }

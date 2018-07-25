@@ -6,25 +6,22 @@
 
 package org.phoebus.olog.api;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import org.phoebus.logbook.Tag;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Tag object that can be represented as XML/JSON in payload data.
  *
  * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
  */
-@XmlType(propOrder = {"name","state","xmlLogs"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 @XmlRootElement(name = "tag")
 public class XmlTag implements Tag {
     private String name = null;
     private String state = null;
-    private XmlLogs logs = null;
-
     /**
      * Creates a new instance of XmlTag.
      *
@@ -62,7 +59,6 @@ public class XmlTag implements Tag {
      *
      * @return tag name
      */
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -81,7 +77,6 @@ public class XmlTag implements Tag {
      *
      * @return tag state
      */
-    @XmlAttribute
     public String getState() {
         return state;
     }
@@ -95,37 +90,4 @@ public class XmlTag implements Tag {
         this.state = state;
     }
 
-    /**
-     * Getter for tag's XmlLogs.
-     *
-     * @return XmlLogs object
-     */
-    @XmlElement(name = "logs")
-    public XmlLogs getXmlLogs() {
-        return logs;
-    }
-
-    /**
-     * Setter for tag's XmlLogs.
-     *
-     * @param logs XmlLogs object
-     */
-    public void setXmlLogs(XmlLogs logs) {
-        this.logs = logs;
-    }
-
-    /**
-     * Creates a compact string representation for the log.
-     *
-     * @param data the XmlTag to log
-     * @return string representation for log
-     */
-    public static String toLog(XmlTag data) {
-        if (data.logs == null) {
-            return data.getName() + "(" + data.getState() + ")";
-        } else {
-            return data.getName() + "(" + data.getState() + ")"
-                    + XmlLogs.toLog(data.logs);
-        }
-    }
 }

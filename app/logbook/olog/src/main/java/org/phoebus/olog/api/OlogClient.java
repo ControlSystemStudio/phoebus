@@ -1,8 +1,12 @@
 package org.phoebus.olog.api;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -28,7 +33,15 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -84,8 +97,8 @@ public class OlogClient implements LogClient {
         }
 
         /**
-         * Creates a {@link OlogClientBuilder} for a CF client to Default URL in
-         * the channelfinder.properties.
+         * Creates a {@link OlogClientBuilder} for a CF client to Default URL in the
+         * channelfinder.properties.
          * 
          * @return
          */
@@ -94,8 +107,7 @@ public class OlogClient implements LogClient {
         }
 
         /**
-         * Creates a {@link OlogClientBuilder} for a CF client to URI
-         * <tt>uri</tt>.
+         * Creates a {@link OlogClientBuilder} for a CF client to URI <tt>uri</tt>.
          * 
          * @param uri
          * @return {@link OlogClientBuilder}
@@ -149,8 +161,8 @@ public class OlogClient implements LogClient {
         }
 
         /**
-         * set the {@link ClientConfig} to be used while creating the
-         * channelfinder client connection.
+         * set the {@link ClientConfig} to be used while creating the channelfinder
+         * client connection.
          * 
          * @param clientConfig
          * @return {@link OlogClientBuilder}
@@ -201,7 +213,8 @@ public class OlogClient implements LogClient {
             }
             this.username = ifNullReturnPreferenceValue(this.username, "username", "username");
             this.password = ifNullReturnPreferenceValue(this.password, "password", "password");
-            return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username, this.password);
+            return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username,
+                    this.password);
         }
 
         private String ifNullReturnPreferenceValue(String value, String key, String Default) {
@@ -214,7 +227,8 @@ public class OlogClient implements LogClient {
 
     }
 
-    private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username, String password) {
+    private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username,
+            String password) {
         config.getClasses().add(MultiPartWriter.class);
         Client client = Client.create(config);
         if (withHTTPBasicAuthFilter) {
@@ -224,7 +238,7 @@ public class OlogClient implements LogClient {
         client.setFollowRedirects(true);
         service = client.resource(UriBuilder.fromUri(ologURI).build());
     }
-    
+
     @Override
     public org.phoebus.logbook.Attachment add(File arg0, Long arg1) {
         // TODO Auto-generated method stub
@@ -279,7 +293,6 @@ public class OlogClient implements LogClient {
 
     }
 
-
     @Override
     public InputStream getAttachment(Long arg0, org.phoebus.logbook.Attachment arg1) {
         // TODO Auto-generated method stub
@@ -297,7 +310,6 @@ public class OlogClient implements LogClient {
         // TODO Auto-generated method stub
         return null;
     }
-
 
     @Override
     public Tag set(Tag arg0) {
@@ -422,22 +434,20 @@ public class OlogClient implements LogClient {
         ClientResponse clientResponse = service.path("logs").accept(MediaType.APPLICATION_XML)
                 .accept(MediaType.APPLICATION_JSON).post(ClientResponse.class, xmlLogs);
         if (clientResponse.getStatus() < 300) {
-            XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
+            // XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
             Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
-            for (XmlLog xmllog : responseLogs.getLogs()) {
-                returnLogs.add(xmllog);
-            }
+            // for (XmlLog xmllog : responseLogs.getLogs()) {
+            // returnLogs.add(xmllog);
+            // }
             return Collections.unmodifiableCollection(returnLogs);
         } else {
             throw new UniformInterfaceException(clientResponse);
         }
     }
 
-
     @Override
     public LogEntry findLogById(Long logId) {
-        XmlLog xmlLog = service.path("logs").path(logId.toString())
-                .accept(MediaType.APPLICATION_XML)
+        XmlLog xmlLog = service.path("logs").path(logId.toString()).accept(MediaType.APPLICATION_XML)
                 .accept(MediaType.APPLICATION_JSON).get(XmlLog.class);
         return xmlLog;
     }
@@ -456,17 +466,72 @@ public class OlogClient implements LogClient {
         mMap.putSingle(queryParameter, pattern);
         return findLogs(mMap);
     }
-    
+
+    private static ObjectMapper logEntryMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    static SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
+    static SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
+
+    static {
+        resolver.addMapping(Logbook.class, XmlLogbook.class);
+        resolver.addMapping(Tag.class, XmlTag.class);
+        resolver.addMapping(Property.class, XmlProperty.class);
+        resolver.addMapping(Attachment.class, XmlAttachment.class);
+        module.setAbstractTypes(resolver);
+
+        logEntryMapper.registerModule(module);
+        logEntryMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    }
+
     private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
         List<LogEntry> logs = new ArrayList<LogEntry>();
-        XmlLogs xmlLogs = service.path("logs").queryParams(mMap)
-                .accept(MediaType.APPLICATION_XML)
-                .accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
-        for (XmlLog xmllog : xmlLogs.getLogs()) {
-            logs.add(xmllog);
+        if (!mMap.containsKey("limit")) {
+            mMap.putSingle("limit", "25");
+        }
+        try {
+            logs = logEntryMapper.readValue(
+                    service.path("logs").queryParams(mMap).accept(MediaType.APPLICATION_JSON).get(String.class),
+                    new TypeReference<List<XmlLog>>() {
+                    });
+            logs.forEach(log -> {
+                // fetch attachment??
+                // This surely can be done better, move the fetch into a job and only invoke it when the client is trying to render the image
+                if (!log.getAttachments().isEmpty()) {
+                    Collection<Attachment> populatedAttachment = log.getAttachments().stream().map((attachment) -> {
+                        XmlAttachment fileAttachment = new XmlAttachment();
+                        fileAttachment.setContentType(attachment.getContentType());
+                        fileAttachment.setThumbnail(false);
+                        try {
+                            Path temp = Files.createTempFile("phoebus", attachment.getName());
+                            Files.copy(getAttachment(log.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
+                            fileAttachment.setFile(temp.toFile());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return fileAttachment;
+                    }).collect(Collectors.toList());
+                    ((XmlLog)log).setXmlAttachments(populatedAttachment);
+                }
+            });
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            e.printStackTrace();
         }
         return Collections.unmodifiableList(logs);
     }
+
+    // private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
+    // List<LogEntry> logs = new ArrayList<LogEntry>();
+    // if (!mMap.containsKey("limit")) {
+    // mMap.putSingle("limit", "1");
+    // }
+    // XmlLogs xmlLogs =
+    // service.path("logs").queryParams(mMap).accept(MediaType.APPLICATION_XML)
+    // .accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
+    // for (XmlLog xmllog : xmlLogs.getLogs()) {
+    // logs.add(xmllog);
+    // }
+    // return Collections.unmodifiableList(logs);
+    // }
 
     @Override
     public List<LogEntry> findLogsByLogbook(String logbookName) {
@@ -479,17 +544,15 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public List<LogEntry> findLogsByProperty(String propertyName,
-            String attributeName, String attributeValue) {
+    public List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) {
         HashMap<String, String> map = new HashMap<String, String>();
         map.put(propertyName + "." + attributeName, attributeValue);
         return findLogs(map);
     }
 
     @Override
-    public List<LogEntry> findLogsBySearch(String arg0) {
-        // TODO
-        return null;
+    public List<LogEntry> findLogsBySearch(String pattern) {
+        return findLogs("search", pattern);
     }
 
     @Override
@@ -523,42 +586,44 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Logbook> listLogbooks() {
         Collection<Logbook> allLogbooks = new HashSet<Logbook>();
-        XmlLogbooks allXmlLogbooks = service.path("logbooks").accept(MediaType.APPLICATION_XML).get(XmlLogbooks.class);
-        for (XmlLogbook xmlLogbook : allXmlLogbooks.getLogbooks()) {
-            allLogbooks.add(xmlLogbook);
-        }
+        // XmlLogbooks allXmlLogbooks =
+        // service.path("logbooks").accept(MediaType.APPLICATION_XML).get(XmlLogbooks.class);
+        // for (XmlLogbook xmlLogbook : allXmlLogbooks.getLogbooks()) {
+        // allLogbooks.add(xmlLogbook);
+        // }
         return allLogbooks;
     }
 
     @Override
     public List<LogEntry> listLogs() {
-        XmlLogs xmlLogs = service.path("logs").accept(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_JSON)
-                .get(XmlLogs.class);
+        // XmlLogs xmlLogs =
+        // service.path("logs").accept(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_JSON)
+        // .get(XmlLogs.class);
         List<LogEntry> logEntries = new ArrayList<LogEntry>();
-        logEntries.addAll(xmlLogs.getLogs());
+        // logEntries.addAll(xmlLogs.getLogs());
         return logEntries;
     }
 
     @Override
     public Collection<Property> listProperties() {
         Collection<Property> allProperties = new HashSet<Property>();
-        XmlProperties xmlProperties = service.path("properties")
-                .accept(MediaType.APPLICATION_XML)
-                .accept(MediaType.APPLICATION_JSON)
-                .get(XmlProperties.class);
-        for (XmlProperty xmlProperty : xmlProperties.getProperties()) {
-            allProperties.add(xmlProperty);
-        }
+        // XmlProperties xmlProperties =
+        // service.path("properties").accept(MediaType.APPLICATION_XML)
+        // .accept(MediaType.APPLICATION_JSON).get(XmlProperties.class);
+        // for (XmlProperty xmlProperty : xmlProperties.getProperties()) {
+        // allProperties.add(xmlProperty);
+        // }
         return allProperties;
     }
 
     @Override
     public Collection<Tag> listTags() {
         Collection<Tag> allTags = new HashSet<Tag>();
-        XmlTags allXmlTags = service.path("tags").accept(MediaType.APPLICATION_XML).get(XmlTags.class);
-        for (XmlTag xmlTag : allXmlTags.getTags()) {
-            allTags.add(xmlTag);
-        }
+        // XmlTags allXmlTags =
+        // service.path("tags").accept(MediaType.APPLICATION_XML).get(XmlTags.class);
+        // for (XmlTag xmlTag : allXmlTags.getTags()) {
+        // allTags.add(xmlTag);
+        // }
         return allTags;
     }
 }
