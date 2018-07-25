@@ -12,14 +12,14 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
-public class LogEntryTableApp implements AppResourceDescriptor {
+public class LogEntryCalenderApp implements AppResourceDescriptor {
 
-    public static final Logger logger = Logger.getLogger(LogEntryTableApp.class.getName());
-    static final Image icon = ImageCache.getImage(LogEntryTableApp.class, "/icons/logbook-16.png");
-    public static final String NAME = "logEntryTable";
-    public static final String DISPLAYNAME = "LogEntryTable";
+    public static final Logger logger = Logger.getLogger(LogEntryCalenderApp.class.getName());
+    static final Image icon = ImageCache.getImage(LogEntryCalenderApp.class, "/icons/logbook-16.png");
+    public static final String NAME = "logEntryCalender";
+    public static final String DISPLAYNAME = "LogEntryCalender";
 
-    private static final String SUPPORTED_SCHEMA = "logbook";
+    private static final String SUPPORTED_SCHEMA = "logCalender";
     private LogFactory logFactory;
 
     @Override
@@ -34,7 +34,7 @@ public class LogEntryTableApp implements AppResourceDescriptor {
 
     @Override
     public AppInstance create() {
-        return new LogEntryTable(this);
+        return new LogEntryCalender(this);
     }
 
     @Override
@@ -49,8 +49,7 @@ public class LogEntryTableApp implements AppResourceDescriptor {
      */
     @Override
     public AppInstance create(URI resource) {
-        LogEntryTable logEntryTable = new LogEntryTable(this);
-        logEntryTable.setResource(resource);
+        LogEntryCalender logEntryTable = new LogEntryCalender(this);
         return logEntryTable;
     }
 

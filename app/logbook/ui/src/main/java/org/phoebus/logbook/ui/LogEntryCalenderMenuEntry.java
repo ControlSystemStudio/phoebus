@@ -13,22 +13,22 @@ import org.phoebus.framework.workbench.ApplicationService;
 import javafx.scene.image.Image;
 
 /**
- * MenuEntry for opening a log entry table.
+ * MenuEntry for opening a log entry calendar.
  * @author Kunal Shroff
  */
-public class LogEntryTableMenuEntry implements MenuEntry
+public class LogEntryCalenderMenuEntry implements MenuEntry
 {
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.createInstance(LogEntryTableApp.NAME);
+        ApplicationService.createInstance(LogEntryCalenderApp.NAME);
         return null;
     }
 
     @Override
     public String getName()
     {
-        return LogEntryTableApp.DISPLAYNAME;
+        return LogEntryCalenderApp.DISPLAYNAME;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class LogEntryTableMenuEntry implements MenuEntry
     @Override
     public Image getIcon()
     {
-        return LogEntryTableApp.icon;
+        return LogEntryCalenderApp.icon;
     }
 
 }

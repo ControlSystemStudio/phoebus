@@ -38,5 +38,20 @@
       <artifactId>app-logbook-utility</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.jfxtras</groupId>
+      <artifactId>jfxtras-agenda</artifactId>
+      <version>9.0-r1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jfxtras</groupId>
+      <artifactId>jfxtras-controls</artifactId>
+      <version>9.0-r1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jfxtras</groupId>
+      <artifactId>jfxtras-common</artifactId>
+      <version>9.0-r1</version>
+    </dependency>
   </dependencies>
 </project>
