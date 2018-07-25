@@ -39,7 +39,7 @@ public class DuplicateAction extends MenuItem
         setOnAction(event ->
         {
             final File file = item.getValue();
-            final TextInputDialog prompt = new TextInputDialog(file.getName());
+            final TextInputDialog prompt = new TextInputDialog("Copy_of_" + file.getName());
             prompt.setTitle(getText());
             prompt.setHeaderText("Enter name for duplicated file:");
             DialogHelper.positionDialog(prompt, node, 0, 0);
@@ -69,10 +69,11 @@ public class DuplicateAction extends MenuItem
                 out.flush();
                 out.close();
 
-                final FileTreeItem parent = (FileTreeItem)item.getParent();
+                final FileTreeItem fte = (FileTreeItem)item;
+                final FileTreeItem parent = (FileTreeItem)fte.getParent();
                 Platform.runLater(() ->
                 {
-                    parent.getChildren().add(new FileTreeItem(new_file));
+                    parent.getChildren().add(new FileTreeItem(fte.getMonitor(), new_file));
                     FileTreeItem.sortSiblings(parent.getChildren());
                 });
             });
