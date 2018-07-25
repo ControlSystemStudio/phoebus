@@ -87,6 +87,10 @@ public class FileBrowserController {
             return;
         }
 
+        // Are we looking for a directory, and this one is it? Done!
+        if (dir.equals(file))
+            return;
+
         final int dir_len = dir.getNameCount();
         final File sub = new File(item.getValue(), file.getName(dir_len).toString());
         logger.log(Level.FINE, () -> "Looking for " + sub + " in " + dir);
@@ -201,8 +205,19 @@ public class FileBrowserController {
             contextMenu.getItems().add(new CopyPath(selectedItems));
         if (selectedItems.size() == 1)
         {
-            if (selectedItems.get(0).getValue().isFile())
-                contextMenu.getItems().add(new DuplicateAction(treeView, selectedItems.get(0)));
+            final TreeItem<File> item = selectedItems.get(0);
+            final boolean is_file = item.getValue().isFile();
+            if (is_file)
+            {
+                // Plain file can be duplicated, directory can't
+                contextMenu.getItems().add(new DuplicateAction(treeView, item));
+
+                // Create directory within the _parent_
+                contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item.getParent()));
+            }
+            else
+                // Within a directory, a new directory can be created
+                contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item));
             contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)));
         }
         if (selectedItems.size() >= 1)

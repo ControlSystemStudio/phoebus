@@ -9,7 +9,6 @@ package org.phoebus.applications.filebrowser;
 
 import java.io.File;
 
-import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -28,7 +27,7 @@ public class RefreshAction extends MenuItem
      */
     public RefreshAction(final Node node, final TreeItem<File> item)
     {
-        super("Refresh", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+        super("Refresh", ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
 
         setOnAction(event ->
         {

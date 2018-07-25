@@ -27,7 +27,7 @@ import javafx.scene.paint.Color;
 
 @SuppressWarnings("nls")
 final class FileTreeCell extends TreeCell<File> {
-    private static final Image folder = ImageCache.getImage(PhoebusApplication.class, "/icons/fldr_obj.png");
+    static final Image folder = ImageCache.getImage(PhoebusApplication.class, "/icons/fldr_obj.png");
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));
