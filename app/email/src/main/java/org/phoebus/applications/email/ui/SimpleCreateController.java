@@ -31,6 +31,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -71,9 +74,13 @@ public class SimpleCreateController {
     ChoiceBox<String> choiceBox;
 
     @FXML
-    VBox simpleTextVBox;
+    SplitPane simpleTextVBox;
     @FXML
     TextArea textArea;
+
+    @FXML
+    TabPane attachmentTabs;
+
     @FXML
     ListView<String> listView;
     @FXML
@@ -176,7 +183,6 @@ public class SimpleCreateController {
         txtTo.setPromptText("Enter receipient's email address(es)");
         txtSubject.setPromptText("Enter Subject");
 
-
         choiceBox.setItems(supportedMimeTypes);
         choiceBox.setValue("text/plain");
         recomputeTextArea();
@@ -206,6 +212,13 @@ public class SimpleCreateController {
                 }
             }
         });
+
+        simpleTextVBox.setDividerPositions(0.6, 0.9);
+
+        final Tab att_images = new ImagesTab(null);
+        final Tab att_files = new Tab("Files");
+        att_files.setClosable(false);
+        attachmentTabs.getTabs().addAll(att_images, att_files);
     }
 
     private void recomputeTextArea() {
