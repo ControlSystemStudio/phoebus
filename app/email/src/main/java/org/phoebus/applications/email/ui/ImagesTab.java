@@ -67,15 +67,13 @@ public class ImagesTab extends Tab
 
     private static final ImageView removeIcon = ImageCache.getImageView(ImageCache.class, "/icons/delete.png");
 
-    private final Node root_node;
     private final ImageView preview = new ImageView();
     private final ListView<Image> images = new ListView<>();
+    private Node snapshot_node;
 
     /** @param root_node Node that will be used to obtain a screenshot */
-    public ImagesTab(final Node root_node)
+    public ImagesTab()
     {
-        this.root_node = root_node;
-
         setText("Images");
         setClosable(false);
         setTooltip(new Tooltip("Add images to log entry."));
@@ -86,6 +84,12 @@ public class ImagesTab extends Tab
         final VBox content = new VBox(5, images, buttons);
         content.setPadding(new Insets(5));
         setContent(content);
+    }
+
+    /** @param node Node to use when taking a screenshot */
+    public void setSnapshotNode(final Node node)
+    {
+        snapshot_node = node;
     }
 
     /** @param images Images to show */
@@ -171,7 +175,7 @@ public class ImagesTab extends Tab
 
         captureWindow.setOnAction(event ->
         {
-            images.getItems().add(Screenshot.imageFromNode(root_node));
+            images.getItems().add(Screenshot.imageFromNode(snapshot_node));
             selectFirstImage();
         });
 

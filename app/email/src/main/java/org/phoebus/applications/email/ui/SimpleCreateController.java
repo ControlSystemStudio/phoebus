@@ -22,6 +22,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.SplitPane;
@@ -72,7 +73,7 @@ public class SimpleCreateController {
     @FXML
     TextArea textArea;
 
-    private final ImagesTab att_images = new ImagesTab(null);
+    private final ImagesTab att_images = new ImagesTab();
 
     @FXML
     TabPane attachmentTabs;
@@ -207,6 +208,12 @@ public class SimpleCreateController {
         final Tab att_files = new Tab("Files");
         att_files.setClosable(false);
         attachmentTabs.getTabs().addAll(att_images, att_files);
+    }
+
+    /** @param node Node to use when taking a screenshot */
+    public void setSnapshotNode(final Node node)
+    {
+        att_images.setSnapshotNode(node);
     }
 
     private void recomputeTextArea() {
