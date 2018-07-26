@@ -1,6 +1,7 @@
 package org.phoebus.applications.alarm.logging.ui;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -8,19 +9,21 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
-public class AlarmLogTableApp implements AppDescriptor {
+public class AlarmLogTableApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(AlarmLogTableApp.class.getName());
     public static final String NAME = "alarmLogTable";
     public static final String DISPLAYNAME = "Alarm Log Table";
 
-    static final Image icon = ImageCache.getImage(AlarmLogTableApp.class, "/icons/alarmtable.png");
+    public static final String SUPPORTED_SCHEMA = "alarmLog";
+    
+    public static final Image icon = ImageCache.getImage(AlarmLogTableApp.class, "/icons/alarmtable.png");
 
     private RestHighLevelClient client;
     private PreferencesReader prefs;
@@ -34,10 +37,25 @@ public class AlarmLogTableApp implements AppDescriptor {
     public AppInstance create() {
         return new AlarmLogTable(this);
     }
+    /**
+     * Support the launching of alarmLogtable using resource alarmLog://?<search_string>
+     * e.g.
+     * -resource alarmLog://?pv=SR*
+     */
+    @Override
+    public AppInstance create(URI resource) {
+        AlarmLogTable alarmLogTable = new AlarmLogTable(this);
+        //alarmLogTable.s
+        return alarmLogTable;
+    }
+    
+    @Override
+    public boolean canOpenResource(String resource) {
+        return URI.create(resource).getScheme().equals(SUPPORTED_SCHEMA);
+    }
 
     @Override
     public void start() {
-        AppDescriptor.super.start();
         prefs = new PreferencesReader(AlarmLogTableApp.class, "/alarm_logging_preferences.properties");
         try {
             client = new RestHighLevelClient(
@@ -50,7 +68,6 @@ public class AlarmLogTableApp implements AppDescriptor {
 
     @Override
     public void stop() {
-        AppDescriptor.super.stop();
         if (client != null) {
             try {
                 client.close();
