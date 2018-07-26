@@ -1,14 +1,9 @@
 package org.phoebus.applications.email.ui;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.imageio.ImageIO;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -25,7 +20,6 @@ import org.phoebus.framework.workbench.ApplicationService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -150,27 +144,10 @@ public class SimpleCreateController {
                 // Attachments
 // TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
                 for (Image image : att_images.getImages()) {
-
-                    // TODO Use memory buffer as data source
-
-                    try
-                    {
-                        messageBodyPart = new MimeBodyPart();
-                        File file = File.createTempFile("image_", ".png");
-
-                        final BufferedImage img = SwingFXUtils.fromFXImage(image, null);
-                        ImageIO.write(img, "png", file);
-
-                        DataSource source = new FileDataSource(file);
-
-                        messageBodyPart.setDataHandler(new DataHandler(source));
-                        messageBodyPart.setFileName("Image");
-                        multipart.addBodyPart(messageBodyPart);
-                    }
-                    catch (Exception ex)
-                    {
-                        ex.printStackTrace();
-                    }
+                    messageBodyPart = new MimeBodyPart();
+                    messageBodyPart.setDataHandler(new DataHandler(new ImageDataSource(image)));
+                    messageBodyPart.setFileName("Image");
+                    multipart.addBodyPart(messageBodyPart);
                 }
                 break;
             }
