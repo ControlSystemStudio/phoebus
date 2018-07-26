@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>sim://sine</pv_name>
+    <x>210</x>
+    <y>80</y>
+    <rules>
+      <rule name="New Rule" prop_id="width" out_exp="false">
+        <exp bool_exp="pv0&gt;10">
+          <value>200</value>
+        </exp>
+        <pv_name>nixda</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <x>210</x>
+    <y>110</y>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <pv_name>sim://sine</pv_name>
+    <x>210</x>
+    <y>40</y>
+    <width>200</width>
+    <rules>
+      <rule name="New Rule" prop_id="width" out_exp="false">
+        <exp bool_exp="pv0&gt;0">
+          <value>100</value>
+        </exp>
+        <pv_name>sim://ramp</pv_name>
+      </rule>
+    </rules>
+    <border_width>5</border_width>
+    <border_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Default, alarm-sensitive border:</text>
+    <y>10</y>
+    <width>210</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_4</name>
+    <pv_name>sim://sine</pv_name>
+    <x>210</x>
+    <y>10</y>
+    <border_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </border_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Custom Border &amp; Rule:</text>
+    <y>40</y>
+    <width>210</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Rule has bad PV:</text>
+    <y>80</y>
+    <width>210</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>No PV:</text>
+    <y>110</y>
+    <width>210</width>
+    <height>30</height>
+  </widget>
+</display>
