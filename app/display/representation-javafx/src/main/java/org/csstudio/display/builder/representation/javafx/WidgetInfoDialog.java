@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,9 +30,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -42,6 +43,30 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class WidgetInfoDialog extends Dialog<Boolean>
 {
+    /** Table cell that allows copying the value, but can't edit */
+    private static class ReadOnlyTextCell<T> extends TableCell<T, String>
+    {
+        private final TextField text = new TextField();
+
+        public ReadOnlyTextCell()
+        {
+            text.setEditable(false);
+        }
+
+        @Override
+        protected void updateItem(String item, boolean empty)
+        {
+            super.updateItem(item, empty);
+            if (empty)
+                setGraphic(null);
+            else
+            {
+                text.setText(item);
+                setGraphic(text);
+            }
+        }
+    }
+
     public static class NameStateValue
     {
         public final String name;
@@ -98,19 +123,18 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         // Table uses list of macro names as input
         // Name column just displays the macro name,..
         final TableColumn<String, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
-        name.setCellFactory(TextFieldTableCell.forTableColumn());
+        name.setCellFactory(col -> new ReadOnlyTextCell<>());
         name.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue()));
 
         // .. value column fetches the macro value
         final TableColumn<String, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
-        value.setCellFactory(TextFieldTableCell.forTableColumn());
+        value.setCellFactory(col -> new ReadOnlyTextCell<>());
         value.setCellValueFactory(param -> new ReadOnlyStringWrapper(macros.getValue(param.getValue())));
 
         final TableView<String> table =
             new TableView<>(FXCollections.observableArrayList(macros.getNames()));
         table.getColumns().add(name);
         table.getColumns().add(value);
-        table.setEditable(true);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return new Tab(Messages.WidgetInfoDialog_TabMacros, table);
@@ -120,15 +144,15 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     {
         // Use text field to allow users to copy the name, value to clipboard
         final TableColumn<NameStateValue, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
-        name.setCellFactory(TextFieldTableCell.forTableColumn());
+        name.setCellFactory(col -> new ReadOnlyTextCell<>());
         name.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().name));
 
         final TableColumn<NameStateValue, String> state = new TableColumn<>(Messages.WidgetInfoDialog_State);
-        state.setCellFactory(TextFieldTableCell.forTableColumn());
+        state.setCellFactory(col -> new ReadOnlyTextCell<>());
         state.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().state));
 
         final TableColumn<NameStateValue, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
-        value.setCellFactory(TextFieldTableCell.forTableColumn());
+        value.setCellFactory(col -> new ReadOnlyTextCell<>());
         value.setCellValueFactory(param ->
         {
             String text;
@@ -159,7 +183,6 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         table.getColumns().add(name);
         table.getColumns().add(state);
         table.getColumns().add(value);
-        table.setEditable(true);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return new Tab(Messages.WidgetInfoDialog_TabPVs, table);
@@ -177,11 +200,11 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         descr.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().getDescription()));
 
         final TableColumn<WidgetProperty<?>, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
-        name.setCellFactory(TextFieldTableCell.forTableColumn());
+        name.setCellFactory(col -> new ReadOnlyTextCell<>());
         name.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().getName()));
 
         final TableColumn<WidgetProperty<?>, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
-        value.setCellFactory(TextFieldTableCell.forTableColumn());
+        value.setCellFactory(col -> new ReadOnlyTextCell<>());
         value.setCellValueFactory(param -> new ReadOnlyStringWrapper(Objects.toString(param.getValue().getValue())));
 
         final TableView<WidgetProperty<?>> table =
@@ -190,7 +213,6 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         table.getColumns().add(descr);
         table.getColumns().add(name);
         table.getColumns().add(value);
-        table.setEditable(true);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return new Tab(Messages.WidgetInfoDialog_TabProperties, table);
