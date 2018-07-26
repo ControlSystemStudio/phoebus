@@ -41,7 +41,8 @@ public class contextMenuLogging implements ContextMenuEntry {
                 });
             });
         });
-        LogService.getInstance().createLogEntry(adaptedSelections, null);
+        // TODO open the create log entry dialog
+        //LogService.getInstance().createLogEntry(adaptedSelections, null);
         return null;
     }
 
