@@ -48,7 +48,7 @@ public class AlarmLogTableController {
     TableColumn<AlarmStateMessage, String> mode;
 
     // The search string
-    // TODO need to standardize
+    // TODO need to standardize the search string so that it can be easily parsed
     private String searchString = "*";
     // Result
     private List<AlarmStateMessage> alarmStateMessages;
