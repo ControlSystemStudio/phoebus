@@ -90,7 +90,7 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
         // find the css file
 
         try {
-            agenda.getStylesheets().add(this.getClass().getResource("Agenda.css").toString());
+            agenda.getStylesheets().add(this.getClass().getResource("/Agenda.css").toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
