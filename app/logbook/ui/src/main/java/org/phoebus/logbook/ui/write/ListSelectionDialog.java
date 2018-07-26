@@ -80,7 +80,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
 
         DialogHelper.positionAndSize(this, root,
                 PhoebusPreferenceService.userNodeForClass(ListSelectionDialog.class),
-                500, 600);
+                700, 800);
 
         setResultConverter(button ->  button == apply);
     }

@@ -46,7 +46,6 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
     LogEntryCalender(final LogEntryCalenderApp app) {
         this.app = app;
         tab = new DockItem(this, createFxScene());
-        DockPane.getActiveDockPane().addTab(tab);
 
         tab.setOnClosed(event -> {
             // dispose();
@@ -93,7 +92,7 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
         // find the css file
 
         try {
-            agenda.getStylesheets().add(this.getClass().getResource("Agenda.css").toString());
+            agenda.getStylesheets().add(this.getClass().getResource("/Agenda.css").toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
