@@ -49,8 +49,8 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
      */
     @Override
     public AppInstance create(URI resource) {
-        LogEntryCalender logEntryTable = new LogEntryCalender(this);
-        return logEntryTable;
+        LogEntryCalender logEntryCalender = new LogEntryCalender(this);
+        return logEntryCalender;
     }
 
     public LogClient getClient() {
