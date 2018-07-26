@@ -134,6 +134,7 @@ public class ImagesTab extends Tab
         // Enable button if something is selected
         removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
 
+        VBox.setVgrow(images, Priority.ALWAYS);
         final VBox right = new VBox(new Label("Images: "), images);
         right.setPadding(new Insets(5));
 

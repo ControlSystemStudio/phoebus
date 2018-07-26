@@ -1,15 +1,14 @@
 package org.phoebus.applications.email.ui;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.imageio.ImageIO;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -26,16 +25,17 @@ import org.phoebus.framework.workbench.ApplicationService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
@@ -78,13 +78,10 @@ public class SimpleCreateController {
     @FXML
     TextArea textArea;
 
-    @FXML
-    TabPane attachmentTabs;
+    private final ImagesTab att_images = new ImagesTab(null);
 
     @FXML
-    ListView<String> listView;
-    @FXML
-    Button btnAtt;
+    TabPane attachmentTabs;
 
     @FXML
     VBox htmlTextVBox;
@@ -152,13 +149,28 @@ public class SimpleCreateController {
                 multipart.addBodyPart(messageBodyPart);
                 // Attachments
 // TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
-                for (String file : listView.getItems()) {
-                    messageBodyPart = new MimeBodyPart();
-                    String filename = file;
-                    DataSource source = new FileDataSource(filename);
-                    messageBodyPart.setDataHandler(new DataHandler(source));
-                    messageBodyPart.setFileName(filename);
-                    multipart.addBodyPart(messageBodyPart);
+                for (Image image : att_images.getImages()) {
+
+                    // TODO Use memory buffer as data source
+
+                    try
+                    {
+                        messageBodyPart = new MimeBodyPart();
+                        File file = File.createTempFile("image_", ".png");
+
+                        final BufferedImage img = SwingFXUtils.fromFXImage(image, null);
+                        ImageIO.write(img, "png", file);
+
+                        DataSource source = new FileDataSource(file);
+
+                        messageBodyPart.setDataHandler(new DataHandler(source));
+                        messageBodyPart.setFileName("Image");
+                        multipart.addBodyPart(messageBodyPart);
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    }
                 }
                 break;
             }
@@ -215,7 +227,6 @@ public class SimpleCreateController {
 
         simpleTextVBox.setDividerPositions(0.6, 0.9);
 
-        final Tab att_images = new ImagesTab(null);
         final Tab att_files = new Tab("Files");
         att_files.setClosable(false);
         attachmentTabs.getTabs().addAll(att_images, att_files);
@@ -234,14 +245,5 @@ public class SimpleCreateController {
         // Do nothing right now
         Stage stage = (Stage) btnCancel.getScene().getWindow();
         stage.close();
-    }
-
-    @FXML
-    public void attachments(Event event) {
-        Stage stage = (Stage) btnAtt.getScene().getWindow();
-        List<File> list = new ArrayList<>();
-        list = fileChooser.showOpenMultipleDialog(stage);
-        listView.setItems(FXCollections
-                .observableArrayList(list.stream().map(File::getAbsolutePath).collect(Collectors.toList())));
     }
 }
