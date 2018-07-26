@@ -13,6 +13,7 @@ import java.util.List;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
 
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -20,19 +21,23 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 /** Tab that allows the viewing and selection of images and screen shots from the file system, application, or system clip board.
- * @author Evan Smith
+ *  @author Evan Smith
+ *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ImagesTab extends Tab
 {
     private class ImageCell extends ListCell<Image>
@@ -41,9 +46,8 @@ public class ImagesTab extends Tab
 
         public ImageCell(final ImageView imageView)
         {
-            super();
             setAlignment(Pos.CENTER);
-            cellImageView.fitWidthProperty().bind(imageList.widthProperty().subtract(50));
+            cellImageView.fitWidthProperty().bind(images.widthProperty().subtract(50));
             cellImageView.setPreserveRatio(true);
         }
 
@@ -64,163 +68,134 @@ public class ImagesTab extends Tab
     private static final ImageView removeIcon = ImageCache.getImageView(ImageCache.class, "/icons/delete.png");
 
     private final Node root_node;
-    private final VBox        content, removeBox, listBox;
-    private final HBox        imageBox, imageViewBox;
-    private final ImageView   imageView;
-    private final HBox        buttonBox;
-    private final Button      addImage, captureWindow, clipboard, removeImage;
-    private final FileChooser addImageDialog;
-    private final ListView<Image>  imageList;
+    private final ImageView preview = new ImageView();
+    private final ListView<Image> images = new ListView<>();
 
     /** @param root_node Node that will be used to obtain a screenshot */
     public ImagesTab(final Node root_node)
     {
         this.root_node = root_node;
-        content       = new VBox();
-        imageBox      = new HBox();
-        imageViewBox  = new HBox();
-        imageView     = new ImageView();
-        removeBox     = new VBox();
-        removeImage   = new Button("Remove", removeIcon);
-        listBox       = new VBox();
-        imageList     = new ListView<>();
-        buttonBox     = new HBox();
-        addImage      = new Button("Add Image");
-        captureWindow     = new Button("CSS Window");
-        clipboard     = new Button("Clipboard Image");
 
-        addImageDialog = new FileChooser();
-
-        formatTab();
-    }
-
-    private void formatTab()
-    {
         setText("Images");
         setClosable(false);
         setTooltip(new Tooltip("Add images to log entry."));
 
-        addImageDialog.setInitialDirectory(new File(System.getProperty("user.home")));
-        addImageDialog.getExtensionFilters().addAll(
-                new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.ppm" , "*.pgm"));
-
-        formatContent();
-        setOnActions();
+        final Node images = createImageSection();
+        final Node buttons = createButtons();
+        VBox.setVgrow(images, Priority.ALWAYS);
+        final VBox content = new VBox(5, images, buttons);
+        content.setPadding(new Insets(5));
+        setContent(content);
     }
 
-    /** Format the tab content */
-    private void formatContent()
+    /** @param images Images to show */
+    public void setImages(final List<Image> images)
     {
-        formatImageBox();
-        formatButtonBox();
-
-        content.setSpacing(10);
-        VBox.setMargin(imageBox,  new Insets(10, 0, 0, 0));
-        VBox.setMargin(buttonBox, new Insets(0, 0, 10, 0));
-        content.getChildren().addAll(imageBox, buttonBox);
-
-        this.setContent(content);
+        this.images.getItems().setAll(images);
     }
 
-    private void formatImageBox()
+    /** @return Images shown in the tab */
+    public List<Image> getImages()
     {
-        imageBox.setPrefHeight(250);
-
-        imageBox.setSpacing(10);
-        imageBox.setAlignment(Pos.CENTER);
-        imageBox.getChildren().addAll(imageViewBox, removeBox, listBox);
-
-        VBox.setMargin(imageBox, new Insets(0, 0, 0, 10));
-
-        formatImageViewBox();
-        formatRemoveBox();
-        formatListBox();
+        return images.getItems();
     }
 
-    private void formatImageViewBox()
+    private Node createImageSection()
     {
-        imageView.fitWidthProperty().bind(imageViewBox.widthProperty());
-        imageView.fitHeightProperty().bind(imageViewBox.heightProperty());
-        imageView.setPreserveRatio(true);
-        imageView.imageProperty().bind(imageList.getSelectionModel().selectedItemProperty());
-        HBox.setHgrow(imageViewBox, Priority.SOMETIMES);
-        imageViewBox.prefWidthProperty().bind(imageBox.widthProperty().divide(3));
-        imageViewBox.setAlignment(Pos.CENTER);
-        imageViewBox.getChildren().add(imageView);
-        HBox.setMargin(imageViewBox, new Insets(0, 0, 0, 10));
-    }
+        preview.setPreserveRatio(true);
+        preview.setManaged(false);
 
-    private void formatRemoveBox()
-    {
+        final Button removeImage   = new Button("Remove", removeIcon);
         removeImage.setTooltip(new Tooltip("Remove the selected image."));
-        removeBox.setMinWidth(110);
-        removeImage.setPrefSize(100, 30);
-        removeBox.getChildren().add(removeImage);
+        removeImage.setOnAction(event ->
+        {
+            Image image = preview.getImage();
+            if (image != null)
+                images.getItems().remove(image);
+        });
+
+        final StackPane left = new StackPane(preview, removeImage);
+        // Image in background fills the area
+        preview.setX(5);
+        preview.setY(5);
+        preview.fitWidthProperty().bind(left.widthProperty());
+        preview.fitHeightProperty().bind(left.heightProperty());
+        // Remove button on top, upper right corner
+        StackPane.setAlignment(removeImage, Pos.TOP_RIGHT);
+        StackPane.setMargin(removeImage, new Insets(5));
+
+        images.setPlaceholder(new Label("No Images"));
+        images.setStyle("-fx-control-inner-background-alt: #f4f4f4");
+        images.setStyle("-fx-control-inner-background: #f4f4f4");
+        images.setCellFactory(param -> new ImageCell(preview));
+
+        // Show selected image in preview
+        preview.imageProperty().bind(images.getSelectionModel().selectedItemProperty());
+        // Enable button if something is selected
+        removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
+
+        final VBox right = new VBox(new Label("Images: "), images);
+        right.setPadding(new Insets(5));
+
+        final SplitPane split = new SplitPane(left, right);
+        split.setDividerPositions(0.7);
+        return split;
     }
 
-    private void formatListBox()
+    private Node createButtons()
     {
-        imageList.setStyle("-fx-control-inner-background-alt: #f4f4f4");
-        imageList.setStyle("-fx-control-inner-background: #f4f4f4");
+        final Button addImage      = new Button("Add Image");
+        final Button captureWindow = new Button("CSS Window");
+        final Button clipboard     = new Button("Clipboard Image");
 
-        imageList.setCellFactory(param -> new ImageCell(imageView));
-        imageList.prefWidthProperty().bind(imageBox.widthProperty().divide(5));
-        listBox.setSpacing(5);
-        HBox.setMargin(listBox, new Insets(0, 10, 0, 0));
-        listBox.setAlignment(Pos.CENTER_LEFT);
-        listBox.getChildren().addAll(new Label("Images: "), imageList);
-    }
-
-    private void formatButtonBox()
-    {
         addImage.setTooltip(new Tooltip("Add an image to the log entry."));
         captureWindow.setTooltip(new Tooltip("Add a capture of the application window to the log entry."));
         clipboard.setTooltip(new Tooltip("Add an image from the clipboard to the log entry."));
 
-        buttonBox.setSpacing(10);
-
-        HBox.setMargin(addImage,  new Insets(0,  0, 0, 10));
-        HBox.setMargin(clipboard, new Insets(0, 10, 0,  0));
-
-        buttonBox.setAlignment(Pos.CENTER);
-
-        // Give each button 1/4 of the room.
-        addImage.prefWidthProperty().bind(buttonBox.widthProperty().divide(3));
-        captureWindow.prefWidthProperty().bind(buttonBox.widthProperty().divide(3));
-        clipboard.prefWidthProperty().bind(buttonBox.widthProperty().divide(3));
-
-        buttonBox.getChildren().addAll(addImage, captureWindow, clipboard);
-    }
-
-    private void setOnActions()
-    {
         addImage.setOnAction(event ->
         {
+            final FileChooser addImageDialog = new FileChooser();
+            addImageDialog.setInitialDirectory(new File(System.getProperty("user.home")));
+            addImageDialog.getExtensionFilters().addAll(
+                    new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.ppm" , "*.pgm"));
             final List<File> imageFiles = addImageDialog.showOpenMultipleDialog(getTabPane().getScene().getWindow());
             if (null != imageFiles)
                 for (File imageFile : imageFiles)
                 {
                     Image image = new Image(imageFile.toURI().toString());
-                    imageList.getItems().add(image);
+                    images.getItems().add(image);
                 }
-        });
-
-        removeImage.setOnAction(event ->
-        {
-            Image image = imageView.getImage();
-            if (image != null)
-                imageList.getItems().remove(image);
+            selectFirstImage();
         });
 
         captureWindow.setOnAction(event ->
         {
-            imageList.getItems().add(Screenshot.imageFromNode(root_node));
+            images.getItems().add(Screenshot.imageFromNode(root_node));
+            selectFirstImage();
         });
 
         clipboard.setOnAction(event ->
         {
             final Image image = Screenshot.getImageFromClipboard();
-            imageList.getItems().add(image);
+            images.getItems().add(image);
+            selectFirstImage();
         });
+
+        final HBox row = new HBox(10, addImage, captureWindow, clipboard);
+        // Have buttons equally split the available width
+        addImage.setMaxWidth(Double.MAX_VALUE);
+        captureWindow.setMaxWidth(Double.MAX_VALUE);
+        clipboard.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(addImage, Priority.ALWAYS);
+        HBox.setHgrow(captureWindow, Priority.ALWAYS);
+        HBox.setHgrow(clipboard, Priority.ALWAYS);
+
+        return row;
+    }
+
+    private void selectFirstImage()
+    {
+        if (images.getSelectionModel().isEmpty()  &&  ! images.getItems().isEmpty())
+            images.getSelectionModel().select(images.getItems().get(0));
     }
 }
