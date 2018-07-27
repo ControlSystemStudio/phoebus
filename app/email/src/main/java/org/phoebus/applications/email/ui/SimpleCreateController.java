@@ -1,8 +1,10 @@
 package org.phoebus.applications.email.ui;
 
+import static org.phoebus.applications.email.EmailApp.logger;
+
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 import javax.activation.DataHandler;
 import javax.mail.BodyPart;
@@ -16,6 +18,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.phoebus.applications.email.EmailApp;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.workbench.ApplicationService;
 
 import javafx.application.Platform;
@@ -48,9 +51,13 @@ import javafx.stage.Stage;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("nls")
 public class SimpleCreateController {
 
-    private static final Logger log = Logger.getLogger(SimpleCreateController.class.getCanonicalName());
+    private static final String LAST_FROM = "last_from";
+
+    final Preferences prefs = PhoebusPreferenceService.userNodeForClass(EmailApp.class);
+
     private static final String TEXT_PLAIN = "text/plain";
     private static final String TEXT_HTML = "text/html";
 
@@ -159,7 +166,9 @@ public class SimpleCreateController {
             message.setContent(multipart);
             // Send message
             Transport.send(message);
-            log.info("Sent message successfully....");
+            logger.info("Sent message successfully....");
+
+            prefs.put(LAST_FROM, txtFrom.getText());
 
             Stage stage = (Stage) btnSend.getScene().getWindow();
             stage.close();
@@ -171,6 +180,9 @@ public class SimpleCreateController {
 
     @FXML
     public void initialize() {
+
+        txtFrom.setText(prefs.get(LAST_FROM, ""));
+
         txtFrom.setPromptText("Enter your email address");
         txtTo.setPromptText("Enter receipient's email address(es)");
         txtTo.setTooltip(new Tooltip("Enter receipient's email address(es), comma-separated"));
