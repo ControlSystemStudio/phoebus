@@ -18,6 +18,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
@@ -64,11 +65,11 @@ public class AlarmLogSearchJob implements JobRunnable {
     @Override
     public void run(JobMonitor monitor) {
         monitor.beginTask("searching for alarm log entires : " + pattern);
-        // TODO get the search pattern from the user
-        QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("pv", "*");
+        QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("pv", pattern);
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder = sourceBuilder.query(matchQueryBuilder);
         sourceBuilder.size(prefs.getInt("es_max_size"));
+        sourceBuilder.sort("time", SortOrder.DESC);
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.source(sourceBuilder);
         List<AlarmStateMessage> result;

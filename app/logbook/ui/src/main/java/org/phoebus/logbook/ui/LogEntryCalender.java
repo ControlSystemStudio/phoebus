@@ -15,7 +15,6 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.utility.LogbookSearchJob;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -34,7 +33,6 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
     private DockItem tab;
 
     private Agenda agenda;
-    private PopOver popover;
     private LogEntryControl logEntryControl;
 
     // Model
@@ -51,7 +49,6 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
         tab.setOnClosed(event -> {
             // dispose();
         });
-        DockPane.getActiveDockPane().addTab(tab);
     }
 
     @Override
@@ -93,7 +90,7 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
         // find the css file
 
         try {
-            agenda.getStylesheets().add(this.getClass().getResource("Agenda.css").toString());
+            agenda.getStylesheets().add(this.getClass().getResource("/Agenda.css").toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

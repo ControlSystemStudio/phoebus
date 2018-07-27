@@ -32,7 +32,6 @@ public class AdapterService {
                 adapters.get(adaptableType).add(adapterFactory);
             });
             Class adaptable = adapterFactory.getAdaptableObject();
-            System.out.println(adaptable.getName() + " " + adaptable.toString());
             if (!adaptables.containsKey(adaptable.getName())) {
                 adaptables.put(adaptable.getName(), new ArrayList<>());
             }
