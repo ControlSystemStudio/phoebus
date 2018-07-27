@@ -1,8 +1,11 @@
 package org.phoebus.applications.alarm.logging.ui;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -37,5 +40,16 @@ public class AlarmLogTable implements AppInstance {
     @Override
     public AppDescriptor getAppDescriptor() {
         return app;
+    }
+    
+
+    public void setResource(URI resource) {
+        String query = resource.getQuery();
+        // TODO URI parsing might be improved.
+        String parsedQuery = Arrays.asList(query.split("&")).stream().filter(s->{
+            return s.startsWith("pv");
+        }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
+
+        controller.setSearchString(parsedQuery);
     }
 }

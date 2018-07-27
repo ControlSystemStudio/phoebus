@@ -5,6 +5,8 @@ import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -21,8 +23,10 @@ import org.phoebus.applications.alarm.messages.MessageParser;
 public class AlarmStateLogger implements Runnable {
 
     private final String topic;
-    Map<String, Object> serdeProps;
-    final Serde<AlarmStateMessage> alarmStateMessageSerde;
+    private Map<String, Object> serdeProps;
+    private final Serde<AlarmStateMessage> alarmStateMessageSerde;
+    
+    private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
     public AlarmStateLogger(String topic) {
         super();
@@ -56,8 +60,11 @@ public class AlarmStateLogger implements Runnable {
 
                     @Override
                     public KeyValue<String, AlarmStateMessage> apply(String key, AlarmStateMessage value) {
+                        key = key.replace("\\", "");
+                        Matcher matcher = pattern.matcher(key);
                         value.setConfig(key);
-                        value.setPv(key);
+                        matcher.find();
+                        value.setPv(matcher.group());
                         return new KeyValue<String, AlarmStateMessage>(key, value);
                     }
                 });
