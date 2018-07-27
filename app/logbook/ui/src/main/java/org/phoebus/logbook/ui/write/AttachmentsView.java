@@ -7,8 +7,10 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
+import java.io.File;
 import java.util.List;
 
+import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
 
 import javafx.scene.Node;
@@ -38,7 +40,7 @@ public class AttachmentsView extends Accordion
         tabPane    = new TabPane();
         images     = new ImagesTab();
         images.setSnapshotNode(parent);
-        files      = new FilesTab(model);
+        files      = new FilesTab();
         properties = new PropertiesTab();
 
         tabPane.getTabs().addAll(images, files, properties);
@@ -53,8 +55,20 @@ public class AttachmentsView extends Accordion
         return images.getImages();
     }
 
-    public void setImages(List<Image> images)
+    public void setImages(final List<Image> images)
     {
         this.images.setImages(images);
     }
+
+    public List<File> getFiles()
+    {
+        return files.getFiles();
+    }
+
+    public void setFiles(final List<File> files)
+    {
+        this.files.setFiles(files);
+    }
+
+
 }

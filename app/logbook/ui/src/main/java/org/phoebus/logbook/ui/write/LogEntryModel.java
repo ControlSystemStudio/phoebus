@@ -51,6 +51,7 @@ import javafx.scene.image.Image;
  * <p> Provides methods to set log entry data and to submit log entries.
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class LogEntryModel
 {
     public static final String USERNAME_TAG = "username";
@@ -390,15 +391,6 @@ public class LogEntryModel
     }
 
     /**
-     * Add a listener to the images list.
-     * @param listChangeListener
-     */
-    public void addImagesListener(ListChangeListener<Image> listChangeListener)
-    {
-        images.addListener(listChangeListener);
-    }
-
-    /**
      * Return an unmodifiable list of the model's files.
      * @return
      */
@@ -407,24 +399,10 @@ public class LogEntryModel
         return FXCollections.unmodifiableObservableList(files);
     }
 
-    /**
-     * Add a file to the model's list of files.
-     * @param file
-     * @return
-     */
-    public boolean addFile(final File file)
+    /** @param files Files to add to log entry */
+    public void setFiles(final List<File> files)
     {
-        return files.add(file);
-    }
-
-    /**
-     * Remove a file form the model's list of files.
-     * @param file
-     * @return
-     */
-    public boolean removeFile(final File file)
-    {
-        return files.remove(file);
+        this.files.setAll(files);
     }
 
     /** Check if ready to submit and update readyToSubmitProperty appropriately. */

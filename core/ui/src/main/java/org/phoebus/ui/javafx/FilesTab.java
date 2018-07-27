@@ -7,47 +7,40 @@
  *******************************************************************************/
 package org.phoebus.ui.javafx;
 
+import java.io.File;
 import java.util.List;
 
-import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 
-/** Tab that allows the viewing and selection of images and screen shots from the file system, application, or system clip board.
+/** Tab that allows showing and maintaining a list of files.
  *  @author Evan Smith
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ImagesTab extends Tab
+public class FilesTab extends Tab
 {
-    private ImageList images = new ImageList();
+    private FilesList files = new FilesList();
 
     /** @param root_node Node that will be used to obtain a screenshot */
-    public ImagesTab()
+    public FilesTab()
     {
-        setText("Images");
+        setText("Files");
         setClosable(false);
-        setTooltip(new Tooltip("Add images."));
+        setTooltip(new Tooltip("Add file attachments."));
 
-        setContent(images);
+        setContent(files);
     }
 
-    /** @param node Node to use when taking a screenshot */
-    public void setSnapshotNode(final Node node)
+    /** @return Files listed in tab */
+    public List<File> getFiles()
     {
-        images.setSnapshotNode(node);
+        return files.getFiles();
     }
 
-    /** @param images Images to show */
-    public void setImages(final List<Image> images)
+    /** @param files Files to list in tab */
+    public void setFiles(final List<File> files)
     {
-        this.images.setImages(images);
-    }
-
-    /** @return Images shown in the tab */
-    public List<Image> getImages()
-    {
-        return images.getImages();
+        this.files.setFiles(files);
     }
 }

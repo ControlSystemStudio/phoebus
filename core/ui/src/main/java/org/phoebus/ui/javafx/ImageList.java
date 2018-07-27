@@ -150,9 +150,9 @@ public class ImageList extends VBox
         final Button captureWindow = new Button("CSS Window");
         final Button clipboard     = new Button("Clipboard Image");
 
-        addImage.setTooltip(new Tooltip("Add an image to the log entry."));
-        captureWindow.setTooltip(new Tooltip("Add a capture of the application window to the log entry."));
-        clipboard.setTooltip(new Tooltip("Add an image from the clipboard to the log entry."));
+        addImage.setTooltip(new Tooltip("Add an image file"));
+        captureWindow.setTooltip(new Tooltip("Add a capture of the application window"));
+        clipboard.setTooltip(new Tooltip("Add an image from the clipboard"));
 
         addImage.setOnAction(event ->
         {

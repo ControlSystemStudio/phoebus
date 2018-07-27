@@ -20,6 +20,7 @@ import javax.mail.internet.MimeMultipart;
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
 
 import javafx.application.Platform;
@@ -31,7 +32,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -43,7 +43,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.HTMLEditorSkin;
 import javafx.scene.web.HTMLEditorSkin.Command;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
@@ -61,8 +60,6 @@ public class SimpleCreateController {
 
     private static final String TEXT_PLAIN = "text/plain";
     private static final String TEXT_HTML = "text/html";
-
-    private final FileChooser fileChooser = new FileChooser();
 
     private ObservableList<String> supportedMimeTypes = FXCollections.observableArrayList(TEXT_PLAIN, TEXT_HTML);
 
@@ -84,6 +81,7 @@ public class SimpleCreateController {
     TextArea textArea;
 
     private final ImagesTab att_images = new ImagesTab();
+    private final FilesTab att_files = new FilesTab();
 
     @FXML
     TabPane attachmentTabs;
@@ -221,8 +219,6 @@ public class SimpleCreateController {
 
         simpleTextVBox.setDividerPositions(0.6, 0.9);
 
-        final Tab att_files = new Tab("Files");
-        att_files.setClosable(false);
         attachmentTabs.getTabs().addAll(att_images, att_files);
     }
 

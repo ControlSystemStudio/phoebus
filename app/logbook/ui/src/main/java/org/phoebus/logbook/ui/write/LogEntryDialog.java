@@ -119,6 +119,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
             try
             {
                 model.setImages(attachmentsView.getImages());
+                model.setFiles(attachmentsView.getFiles());
                 return buttonType == submitType ? model.submitEntry() : null;
             }
             catch (IOException ex)
@@ -150,6 +151,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
         });
 
         final List<Image> images = new ArrayList<>();
+        final List<File> files = new ArrayList<>();
         for (Attachment attachment : template.getAttachments())
         {
             final File file = attachment.getFile();
@@ -168,10 +170,11 @@ public class LogEntryDialog extends Dialog<LogEntry>
             }
             // Add file to model if attachment is file.
             else if (attachment.getContentType().equals("file"))
-                model.addFile(file);
+                files.add(file);
         }
 
         attachmentsView.setImages(images);
+        attachmentsView.setFiles(files);
     }
 
     /** Set a runnable to be executed <b>after</b> the log entry submission occurs. */
