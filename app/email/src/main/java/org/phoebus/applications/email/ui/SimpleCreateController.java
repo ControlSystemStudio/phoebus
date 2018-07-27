@@ -20,6 +20,7 @@ import javax.mail.internet.MimeMultipart;
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImagesTab;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;

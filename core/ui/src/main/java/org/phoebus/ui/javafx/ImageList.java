@@ -5,13 +5,10 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.email.ui;
+package org.phoebus.ui.javafx;
 
 import java.io.File;
 import java.util.List;
-
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.Screenshot;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -22,7 +19,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -33,12 +29,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-/** Tab that allows the viewing and selection of images and screen shots from the file system, application, or system clip board.
+/** List of images, with buttons to add/remove screen shot, image from file system or clip board.
  *  @author Evan Smith
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ImagesTab extends Tab
+public class ImageList extends VBox
 {
     private class ImageCell extends ListCell<Image>
     {
@@ -72,18 +68,15 @@ public class ImagesTab extends Tab
     private Node snapshot_node;
 
     /** @param root_node Node that will be used to obtain a screenshot */
-    public ImagesTab()
+    public ImageList()
     {
-        setText("Images");
-        setClosable(false);
-        setTooltip(new Tooltip("Add images to log entry."));
-
         final Node images = createImageSection();
         final Node buttons = createButtons();
         VBox.setVgrow(images, Priority.ALWAYS);
-        final VBox content = new VBox(5, images, buttons);
-        content.setPadding(new Insets(5));
-        setContent(content);
+
+        setSpacing(5);
+        getChildren().setAll(images, buttons);
+        setPadding(new Insets(5));
     }
 
     /** @param node Node to use when taking a screenshot */
@@ -114,9 +107,12 @@ public class ImagesTab extends Tab
         removeImage.setTooltip(new Tooltip("Remove the selected image."));
         removeImage.setOnAction(event ->
         {
-            Image image = preview.getImage();
+            final Image image = preview.getImage();
             if (image != null)
+            {
                 images.getItems().remove(image);
+                selectFirstImage();
+            }
         });
 
         final StackPane left = new StackPane(preview, removeImage);
@@ -164,7 +160,7 @@ public class ImagesTab extends Tab
             addImageDialog.setInitialDirectory(new File(System.getProperty("user.home")));
             addImageDialog.getExtensionFilters().addAll(
                     new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.ppm" , "*.pgm"));
-            final List<File> imageFiles = addImageDialog.showOpenMultipleDialog(getTabPane().getScene().getWindow());
+            final List<File> imageFiles = addImageDialog.showOpenMultipleDialog(getScene().getWindow());
             if (null != imageFiles)
                 for (File imageFile : imageFiles)
                 {
