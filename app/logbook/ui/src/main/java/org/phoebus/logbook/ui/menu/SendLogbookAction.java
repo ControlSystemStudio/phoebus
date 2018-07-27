@@ -21,80 +21,88 @@ import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.ui.write.LogEntryDialog;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
 
 import javafx.application.Platform;
-import javafx.scene.Parent;
+import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 
-/** Action for saving snapshot of display
+/** Action for submitting log entry
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class SendLogbookAction extends MenuItem
 {
-    // TODO Use some icon from logbook UI
-    private static final Image icon = ImageCache.getImage(SendLogbookAction.class, "/icons/save_edit.png");
-    private String default_text;
-    private String supplied_text;
-    private Supplier<String> defaultSupplier;
     // TODO Create a messages class for the log book ui.
     private static final String MESSAGE = "Send To Log Book...";
-    /**
-     * Constructor.
-     * @param model_parent JavaFX parent that context menu is called from.
-     * @param selection Selection of items that default text will be derived from. For no default text, pass null.
+
+    /** Constructor.
+     *  @param parent JavaFX parent that context menu is called from.
+     *  @param title Initial title or <code>null</code>
+     *  @param body Initial body text or <code>null</code>
+     *  @param get_image Supplier for image to attach, or <code>null</code>
      */
-    public SendLogbookAction(final Parent model_parent, Supplier<String> defaultSupplier)
+    public SendLogbookAction(final Node parent, final String title, final String body, final Supplier<Image> get_image)
     {
-        super(MESSAGE, new ImageView(icon));
-        this.defaultSupplier = defaultSupplier;
-        setOnAction(event -> save(model_parent));
-        default_text = "Log Entry from " + getText();
+        this(parent, title, body == null ? null : () -> body, get_image);
     }
 
-    private void save(final Parent model_parent)
+    /** Constructor.
+     *  @param parent JavaFX parent that context menu is called from.
+     *  @param title Initial title or <code>null</code>
+     *  @param get_body Supplier for initial body text or <code>null</code>
+     *  @param get_image Supplier for image to attach, or <code>null</code>
+     */
+    public SendLogbookAction(final Node parent, final String title, final Supplier<String> get_body, final Supplier<Image> get_image)
     {
-        // On UI thread, create screenshot
-        final Screenshot screenshot = new Screenshot(model_parent);
+        super(MESSAGE, ImageCache.getImageView(SendLogbookAction.class, "/icons/logentry-add-16.png"));
 
-        // Save to file in background thread
-        JobManager.schedule(MESSAGE, monitor ->
+        setOnAction(event ->
         {
-            final File image_file = screenshot.writeToTempfile("display");
+            // On UI thread, create screenshot etc.
+            final String body = get_body == null ? "" : get_body.get();
+            final Image image = get_image == null ? null : get_image.get();
 
-            // Create log entry via dialog on UI thread
-            Platform.runLater(() ->  submitLogEntry(model_parent, image_file));
+            // Save to file in background thread
+            JobManager.schedule(MESSAGE, monitor ->
+            {
+                final File image_file = image == null ? null : new Screenshot(image).writeToTempfile("image");
+
+                // Create log entry via dialog on UI thread
+                Platform.runLater(() ->  submitLogEntry(parent, title, body, image_file));
+            });
         });
     }
 
-    private void submitLogEntry(final Parent model_parent, final File image_file)
+    private void submitLogEntry(final Node parent, final String title, final String body, final File image_file)
     {
-        if (null != defaultSupplier)
-            supplied_text = defaultSupplier.get();
-        
-        final String description = (null == supplied_text) ? default_text : supplied_text;
-        Attachment attachment = null;
-        try
-        {
-            attachment = AttachmentImpl.of(image_file, "image", false);
-        } catch (FileNotFoundException ex)
-        {
-            logger.log(Level.WARNING, "Default log entry attachment creation failed.", ex);
-        }
-        
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
-        LogEntry template = logEntryBuilder.appendDescription(description)
-                       .attach(attachment)
-                       .createdDate(Instant.now())
-                       .build();
-        
-        LogEntryDialog logEntryDialog = new LogEntryDialog(model_parent, template);
+        if (title != null)
+            logEntryBuilder.title(title);
+        if (body != null)
+            logEntryBuilder.appendDescription(body);
+
+        if (image_file != null)
+            try
+            {
+                final Attachment attachment = AttachmentImpl.of(image_file, "image", false);
+                logEntryBuilder.attach(attachment);
+            }
+            catch (FileNotFoundException ex)
+            {
+                logger.log(Level.WARNING, "Cannot attach " + image_file, ex);
+            }
+
+        final LogEntry template = logEntryBuilder.createdDate(Instant.now()).build();
+
+        final LogEntryDialog logEntryDialog = new LogEntryDialog(parent, template);
+        DialogHelper.positionDialog(logEntryDialog, parent, -200, -400);
         // Set the on submit action to clean up the temporary file after log entry submission.
-        logEntryDialog.setOnSubmitAction(() -> image_file.delete());
+        if (image_file != null)
+            logEntryDialog.setOnSubmitAction(() -> image_file.delete());
         logEntryDialog.showAndWait();
     }
 }
