@@ -30,6 +30,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -171,6 +172,7 @@ public class SimpleCreateController {
     public void initialize() {
         txtFrom.setPromptText("Enter your email address");
         txtTo.setPromptText("Enter receipient's email address(es)");
+        txtTo.setTooltip(new Tooltip("Enter receipient's email address(es), comma-separated"));
         txtSubject.setPromptText("Enter Subject");
 
         choiceBox.setItems(supportedMimeTypes);
