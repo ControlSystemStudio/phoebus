@@ -2,11 +2,13 @@ package org.phoebus.applications.email.ui;
 
 import static org.phoebus.applications.email.EmailApp.logger;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -156,6 +158,14 @@ public class SimpleCreateController {
                     messageBodyPart = new MimeBodyPart();
                     messageBodyPart.setDataHandler(new DataHandler(new ImageDataSource(image)));
                     messageBodyPart.setFileName("Image");
+                    multipart.addBodyPart(messageBodyPart);
+                }
+
+                for (File file : att_files.getFiles())
+                {
+                    messageBodyPart = new MimeBodyPart();
+                    messageBodyPart.setDataHandler(new DataHandler(new FileDataSource(file)));
+                    messageBodyPart.setFileName(file.getName());
                     multipart.addBodyPart(messageBodyPart);
                 }
                 break;
