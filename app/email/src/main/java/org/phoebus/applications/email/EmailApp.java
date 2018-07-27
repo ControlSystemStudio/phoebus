@@ -28,7 +28,8 @@ import javafx.stage.Stage;
  */
 public class EmailApp implements AppResourceDescriptor {
 
-    private static final Logger log = Logger.getLogger(AppResourceDescriptor.class.getName());
+    /** Logger for email related messages */
+    public static final Logger logger = Logger.getLogger(EmailApp.class.getPackageName());
     public static final String NAME = "email";
     public static final String DISPLAY_NAME = "Send Email";
 
@@ -80,7 +81,7 @@ public class EmailApp implements AppResourceDescriptor {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            log.log(Level.WARNING, "Failed to create email dialog", e);
+            logger.log(Level.WARNING, "Failed to create email dialog", e);
         }
         return null;
     }

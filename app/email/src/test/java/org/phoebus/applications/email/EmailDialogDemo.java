@@ -1,31 +1,23 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.applications.email;
 
-import org.phoebus.applications.email.ui.SimpleCreateController;
+import org.phoebus.applications.email.actions.SendEmailAction;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class EmailDialogDemo extends Application
 {
-
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
-        Parent root = loader.load();
-        SimpleCreateController controller = loader.getController();
-
-        controller.setSnapshotNode(root);
-
-        Scene scene = new Scene(root, 600, 800);
-
-        stage.setScene(scene);
-
-        stage.show();
+        new SendEmailAction(null, "Demo", "This is\na demonstation...", null).fire();
     }
 
     public static void main(final String[] args)

@@ -86,4 +86,21 @@ public class AlarmInfoRow
         pv_severity.set(other.pv_severity.get());
         pv_status.set(other.pv_status.get());
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder buf = new StringBuilder();
+
+        buf.append("PV: ").append(pv.get()).append("\n");
+        buf.append("Description: ").append(description.get()).append("\n");
+        buf.append("Alarm Time: ").append(time.get()).append("\n");
+        buf.append("Alarm Severity: ").append(severity.get());
+        buf.append(", Status: ").append(status.get());
+        buf.append(", Value: ").append(value.get()).append("\n");
+        buf.append("Current PV Severity: ").append(pv_severity.get());
+        buf.append(", Status: ").append(pv_status.get()).append("\n");
+
+        return buf.toString();
+    }
 }

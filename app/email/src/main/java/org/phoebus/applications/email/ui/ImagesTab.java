@@ -96,6 +96,7 @@ public class ImagesTab extends Tab
     public void setImages(final List<Image> images)
     {
         this.images.getItems().setAll(images);
+        selectFirstImage();
     }
 
     /** @return Images shown in the tab */

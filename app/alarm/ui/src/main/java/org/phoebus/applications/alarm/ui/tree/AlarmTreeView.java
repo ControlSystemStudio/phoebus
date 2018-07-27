@@ -33,6 +33,7 @@ import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
@@ -397,7 +398,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             });
 
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
-            menu_items.add(new SendEmailAction(tree_view));
+            menu_items.add(new SendEmailAction(tree_view, "Alarm Screenshot", "See alarm tree screenshot", () -> Screenshot.imageFromNode(tree_view)));
             menu_items.add(sendToLogbook);
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });

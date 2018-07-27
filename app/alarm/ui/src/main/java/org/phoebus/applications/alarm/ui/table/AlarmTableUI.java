@@ -26,6 +26,7 @@ import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.text.RegExHelper;
 import org.phoebus.util.time.TimestampFormats;
@@ -372,11 +373,28 @@ public class AlarmTableUI extends BorderPane
             });
 
             menu_items.add(new SaveSnapshotAction(table));
-            menu_items.add(new SendEmailAction(table));
+            menu_items.add(new SendEmailAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
             menu_items.add(sendToLogbook);
 
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
+    }
+
+    private String list_alarms()
+    {
+        final StringBuilder buf = new StringBuilder();
+
+        buf.append("Active Alarms\n");
+        buf.append("=============\n");
+        for (AlarmInfoRow row : active_rows)
+            buf.append(row).append("\n");
+
+        buf.append("Acknowledged Alarms\n");
+        buf.append("===================\n");
+        for (AlarmInfoRow row : active_rows)
+            buf.append(row).append("\n");
+
+        return buf.toString();
     }
 
     void restore(final Memento memento)

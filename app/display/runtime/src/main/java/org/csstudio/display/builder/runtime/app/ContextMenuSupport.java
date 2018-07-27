@@ -32,6 +32,7 @@ import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.Screenshot;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -145,7 +146,7 @@ class ContextMenuSupport
         items.add(new PrintAction(model_parent));
 
         items.add(new SaveSnapshotAction(model_parent));
-        items.add(new SendEmailAction(model_parent));
+        items.add(new SendEmailAction(model_parent, "Display Screenshot", "See attached display", () ->  Screenshot.imageFromNode(model_parent)));
         items.add(new SendLogbookAction(model_parent, null));
         items.add(new SeparatorMenuItem());
 

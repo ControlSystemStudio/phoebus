@@ -1,6 +1,7 @@
 package org.phoebus.applications.email.ui;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
@@ -216,6 +217,25 @@ public class SimpleCreateController {
     public void setSnapshotNode(final Node node)
     {
         att_images.setSnapshotNode(node);
+    }
+
+    /** @param text Title (subject) */
+    public void setTitle(final String text)
+    {
+        txtSubject.setText(text);
+    }
+
+    /** @param text Body (content) */
+    public void setBody(final String text)
+    {
+        textArea.setText(text);
+        htmlEditor.setHtmlText(text.replace("\n", "<br>"));
+    }
+
+    /** @param images Initial list of images to attach */
+    public void setImages(final List<Image> images)
+    {
+        att_images.setImages(images);
     }
 
     private void recomputeTextArea() {
