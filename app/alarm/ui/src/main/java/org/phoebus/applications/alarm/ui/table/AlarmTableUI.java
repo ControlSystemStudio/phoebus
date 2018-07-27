@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
@@ -26,6 +25,7 @@ import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.text.RegExHelper;
 import org.phoebus.util.time.TimestampFormats;
@@ -345,38 +345,29 @@ public class AlarmTableUI extends BorderPane
             if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
                 menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
 
-            SendLogbookAction sendToLogbook = new SendLogbookAction(table, () ->
-            {
-                if (null != selection && selection.size() > 0)
-                {
-                    StringBuilder strBuilder = new StringBuilder();
-
-                    for (AlarmTreeItem<?> item : selection)
-                    {
-                        // Append descriptions of all the selected alarms
-                        if (item instanceof AlarmClientLeaf)
-                        {
-                            AlarmClientLeaf leaf = (AlarmClientLeaf) item;
-                            strBuilder.append(item.getPathName()).append("\n\n")
-                            .append("\tDescription: ").append(leaf.getDescription()).append("\n\n")
-                            .append("\tIn alarm since ")
-                            .append(TimestampFormats.MILLI_FORMAT.format(leaf.getState().getTime()))
-                            .append(", that is ").append(leaf.getState().getDuration()).append(" HH:MM:SS").append("\n\n");
-                        }
-                    }
-
-                    return strBuilder.toString();
-                }
-
-                return null;
-            });
-
             menu_items.add(new SaveSnapshotAction(table));
-            menu_items.add(new SendEmailAction(table));
-            menu_items.add(sendToLogbook);
+            menu_items.add(new SendEmailAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
+            menu_items.add(new SendLogbookAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
 
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
+    }
+
+    private String list_alarms()
+    {
+        final StringBuilder buf = new StringBuilder();
+
+        buf.append("Active Alarms\n");
+        buf.append("=============\n");
+        for (AlarmInfoRow row : active_rows)
+            buf.append(row).append("\n");
+
+        buf.append("Acknowledged Alarms\n");
+        buf.append("===================\n");
+        for (AlarmInfoRow row : active_rows)
+            buf.append(row).append("\n");
+
+        return buf.toString();
     }
 
     void restore(final Memento memento)

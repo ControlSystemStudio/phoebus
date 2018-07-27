@@ -1,14 +1,13 @@
 package org.phoebus.applications.email.ui;
 
+import static org.phoebus.applications.email.EmailApp.logger;
+
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import java.util.prefs.Preferences;
 
 import javax.activation.DataHandler;
-import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.BodyPart;
 import javax.mail.Message;
@@ -21,25 +20,31 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.phoebus.applications.email.EmailApp;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.FilesTab;
+import org.phoebus.ui.javafx.ImagesTab;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.HTMLEditorSkin;
 import javafx.scene.web.HTMLEditorSkin.Command;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
@@ -48,13 +53,15 @@ import javafx.stage.Stage;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("nls")
 public class SimpleCreateController {
 
-    private static final Logger log = Logger.getLogger(SimpleCreateController.class.getCanonicalName());
+    private static final String LAST_FROM = "last_from";
+
+    final Preferences prefs = PhoebusPreferenceService.userNodeForClass(EmailApp.class);
+
     private static final String TEXT_PLAIN = "text/plain";
     private static final String TEXT_HTML = "text/html";
-
-    private final FileChooser fileChooser = new FileChooser();
 
     private ObservableList<String> supportedMimeTypes = FXCollections.observableArrayList(TEXT_PLAIN, TEXT_HTML);
 
@@ -71,13 +78,15 @@ public class SimpleCreateController {
     ChoiceBox<String> choiceBox;
 
     @FXML
-    VBox simpleTextVBox;
+    SplitPane simpleTextVBox;
     @FXML
     TextArea textArea;
+
+    private final ImagesTab att_images = new ImagesTab();
+    private final FilesTab att_files = new FilesTab();
+
     @FXML
-    ListView<String> listView;
-    @FXML
-    Button btnAtt;
+    TabPane attachmentTabs;
 
     @FXML
     VBox htmlTextVBox;
@@ -145,12 +154,18 @@ public class SimpleCreateController {
                 multipart.addBodyPart(messageBodyPart);
                 // Attachments
 // TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
-                for (String file : listView.getItems()) {
+                for (Image image : att_images.getImages()) {
                     messageBodyPart = new MimeBodyPart();
-                    String filename = file;
-                    DataSource source = new FileDataSource(filename);
-                    messageBodyPart.setDataHandler(new DataHandler(source));
-                    messageBodyPart.setFileName(filename);
+                    messageBodyPart.setDataHandler(new DataHandler(new ImageDataSource(image)));
+                    messageBodyPart.setFileName("Image");
+                    multipart.addBodyPart(messageBodyPart);
+                }
+
+                for (File file : att_files.getFiles())
+                {
+                    messageBodyPart = new MimeBodyPart();
+                    messageBodyPart.setDataHandler(new DataHandler(new FileDataSource(file)));
+                    messageBodyPart.setFileName(file.getName());
                     multipart.addBodyPart(messageBodyPart);
                 }
                 break;
@@ -160,7 +175,9 @@ public class SimpleCreateController {
             message.setContent(multipart);
             // Send message
             Transport.send(message);
-            log.info("Sent message successfully....");
+            logger.info("Sent message successfully....");
+
+            prefs.put(LAST_FROM, txtFrom.getText());
 
             Stage stage = (Stage) btnSend.getScene().getWindow();
             stage.close();
@@ -172,10 +189,13 @@ public class SimpleCreateController {
 
     @FXML
     public void initialize() {
+
+        txtFrom.setText(prefs.get(LAST_FROM, ""));
+
         txtFrom.setPromptText("Enter your email address");
         txtTo.setPromptText("Enter receipient's email address(es)");
+        txtTo.setTooltip(new Tooltip("Enter receipient's email address(es), comma-separated"));
         txtSubject.setPromptText("Enter Subject");
-
 
         choiceBox.setItems(supportedMimeTypes);
         choiceBox.setValue("text/plain");
@@ -206,6 +226,35 @@ public class SimpleCreateController {
                 }
             }
         });
+
+        simpleTextVBox.setDividerPositions(0.6, 0.9);
+
+        attachmentTabs.getTabs().addAll(att_images, att_files);
+    }
+
+    /** @param node Node to use when taking a screenshot */
+    public void setSnapshotNode(final Node node)
+    {
+        att_images.setSnapshotNode(node);
+    }
+
+    /** @param text Title (subject) */
+    public void setTitle(final String text)
+    {
+        txtSubject.setText(text);
+    }
+
+    /** @param text Body (content) */
+    public void setBody(final String text)
+    {
+        textArea.setText(text);
+        htmlEditor.setHtmlText(text.replace("\n", "<br>"));
+    }
+
+    /** @param images Initial list of images to attach */
+    public void setImages(final List<Image> images)
+    {
+        att_images.setImages(images);
     }
 
     private void recomputeTextArea() {
@@ -221,14 +270,5 @@ public class SimpleCreateController {
         // Do nothing right now
         Stage stage = (Stage) btnCancel.getScene().getWindow();
         stage.close();
-    }
-
-    @FXML
-    public void attachments(Event event) {
-        Stage stage = (Stage) btnAtt.getScene().getWindow();
-        List<File> list = new ArrayList<>();
-        list = fileChooser.showOpenMultipleDialog(stage);
-        listView.setItems(FXCollections
-                .observableArrayList(list.stream().map(File::getAbsolutePath).collect(Collectors.toList())));
     }
 }

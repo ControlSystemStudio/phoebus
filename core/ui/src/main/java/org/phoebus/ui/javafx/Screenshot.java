@@ -42,7 +42,12 @@ public class Screenshot
         image = bufferFromNode(node);
     }
 
-    /** Get a JavaFX Node Snapshot as a JavaFX Image 
+    public Screenshot(final Image image)
+    {
+        this.image = bufferFromImage(image);
+    }
+
+    /** Get a JavaFX Node Snapshot as a JavaFX Image
      * @param node
      * @return Image
      */
@@ -50,14 +55,13 @@ public class Screenshot
     {
         return node.snapshot(null, null);
     }
-    
-    /** Get a JavaFX Node Snapshot as an AWT BufferedImage
-     * @param node
-     * @return BufferedImage
+
+    /** Get a AWT BufferedImage from JavaFX Image
+     *  @param jfx {@link Image}
+     *  @return BufferedImage
      */
-    public static BufferedImage bufferFromNode(Node node)
+    public static BufferedImage bufferFromImage(final Image jfx)
     {
-        final WritableImage jfx = imageFromNode(node);
         final BufferedImage img = new BufferedImage((int)jfx.getWidth(),
                 (int)jfx.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
@@ -66,20 +70,29 @@ public class Screenshot
         return img;
     }
 
+    /** Get a JavaFX Node Snapshot as an AWT BufferedImage
+     * @param node
+     * @return BufferedImage
+     */
+    public static BufferedImage bufferFromNode(Node node)
+    {
+        return bufferFromImage(imageFromNode(node));
+    }
+
     /* Commented out because AWT causes issues, but remains as example of how it could be done.
     /**
      * Capture an image of the entire screen.
      * @return Image
-     
+
     public static Image captureScreen()
     {
         try {
             Robot robot = new Robot();
-            
+
             // Create an image of the main screen with the retrieved screen dimensions.
             Rectangle screenDimensions = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
             BufferedImage screenCapture = robot.createScreenCapture(screenDimensions);
-            
+
             return SwingFXUtils.toFXImage(screenCapture, null);
         } catch (AWTException ex) {
             logger.log(Level.WARNING, "Screen capture failed.", ex);
@@ -87,7 +100,7 @@ public class Screenshot
         return null;
     }
     */
-    
+
     /**
      * Get an image from the clip board.
      * <p> Returns null if no image is on the clip board.
@@ -98,7 +111,7 @@ public class Screenshot
         Clipboard clipboard = Clipboard.getSystemClipboard();
         return clipboard.getImage();
     }
-    
+
     /** Write to file
      *  @param file Output file
      *  @throws Exception on error

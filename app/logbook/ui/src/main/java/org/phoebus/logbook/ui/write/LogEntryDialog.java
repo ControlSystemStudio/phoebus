@@ -13,7 +13,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
@@ -37,7 +39,7 @@ import javafx.scene.layout.VBox;
 
 /**
  * Dialog for making an entry into a log book.
- * * <p> Username, password, title, and logbooks are all required fields. 
+ * * <p> Username, password, title, and logbooks are all required fields.
  * The button to submit entry will be disabled if they are not all set.
  * @author Evan Smith
  */
@@ -45,78 +47,81 @@ public class LogEntryDialog extends Dialog<LogEntry>
 {
     /** Width of labels on views leftmost column. */
     public static final int labelWidth = 80;
-        
+
     /** Purveyor of log entry application state. */
     private final LogEntryModel           model;
-    
+
     /** Dialog Content */
     private final VBox                    content;
-    
+
     /** View handles the input for creation of the entry. */
     private final FieldsView      logEntryFields;
-        
+
     /** View handles addition of log entry attachments. */
     private final AttachmentsView attachmentsView;
-        
+
     /** Button type for submitting log entry. */
     private final ButtonType submitType;
 
     public LogEntryDialog(final Node parent, LogEntry template)
-    {         
+    {
         model = new LogEntryModel(parent);
-        
-        if (null != template)
-            setModelTemplate(template);
-        
+
+
         content = new VBox();
-        
+
         // title and text labels and fields.
         logEntryFields = new FieldsView(model);
-                
+
         // Images, Files, Properties
-        attachmentsView = new AttachmentsView(model);        
-        
+        attachmentsView = new AttachmentsView(parent, model);
+
+        if (null != template)
+            setModelTemplate(template);
+
         // Let the Text Area grow to the bottom.
         VBox.setVgrow(logEntryFields,  Priority.ALWAYS);
 
         //VBox.setMargin(credentialEntry, new Insets(10, 0,  0, 0));
         VBox.setMargin(logEntryFields,  new Insets( 0, 0, 10, 0));
-        
+
         content.setSpacing(10);
         content.getChildren().addAll(logEntryFields, attachmentsView);
-        
+
         setTitle("Create Log Book Entry");
-        
+
         getDialogPane().setContent(content);
-        
+
         submitType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
-        
+
         setResizable(true);
-        
+
         DialogHelper.positionAndSize(this, parent,
                 PhoebusPreferenceService.userNodeForClass(LogEntryDialog.class),
                 800, 1000);
 
         getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, submitType);
-                
+
         Button submitButton = (Button) getDialogPane().lookupButton(submitType);
         // Bind the submit button's disable property to the inverse of the model's ready to submit property.
         submitButton.disableProperty().bind(model.getReadyToSubmitProperty().not());
         submitButton.setTooltip(new Tooltip("Submit Log Entry"));
         // Prevent enter from causing log entry submission. We want the button to be clicked.
         // If the button doesn't have focus, it wasn't clicked.
-        submitButton.addEventFilter(ActionEvent.ACTION, eventFilter -> 
+        submitButton.addEventFilter(ActionEvent.ACTION, eventFilter ->
         {
             if (!submitButton.isFocused())
                 eventFilter.consume();
         });
-        
+
         setResultConverter(buttonType ->
         {
             try
             {
+                model.setImages(attachmentsView.getImages());
+                model.setFiles(attachmentsView.getFiles());
                 return buttonType == submitType ? model.submitEntry() : null;
-            } 
+            }
             catch (IOException ex)
             {
                 logger.log(Level.WARNING, "Log Entry Submission Failed!", ex);
@@ -134,42 +139,42 @@ public class LogEntryDialog extends Dialog<LogEntry>
         // model.setTitle(template.getTitle());
         model.setText(template.getDescription());
         Collection<Logbook> logbooks = template.getLogbooks();
-        logbooks.forEach(logbook-> 
+        logbooks.forEach(logbook->
         {
             model.addSelectedLogbook(logbook.getName());
-        });  
-        
+        });
+
         Collection<Tag> tags = template.getTags();
-        tags.forEach(tag-> 
+        tags.forEach(tag->
         {
             model.addSelectedTag(tag.getName());
         });
-        
+
+        final List<Image> images = new ArrayList<>();
+        final List<File> files = new ArrayList<>();
         for (Attachment attachment : template.getAttachments())
         {
-            File file = attachment.getFile();
-            
+            final File file = attachment.getFile();
+
             // Add image to model if attachment is image.
             if (attachment.getContentType().equals("image"))
             {
-                Image image = null;
                 try
                 {
-                    image = new Image(new FileInputStream(file));
-                } 
+                    images.add(new Image(new FileInputStream(file)));
+                }
                 catch (FileNotFoundException ex)
                 {
                     logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + "'", ex);
                 }
-                
-                model.addImage(image);
             }
             // Add file to model if attachment is file.
             else if (attachment.getContentType().equals("file"))
-            {
-                model.addFile(file);
-            }
+                files.add(file);
         }
+
+        attachmentsView.setImages(images);
+        attachmentsView.setFiles(files);
     }
 
     /** Set a runnable to be executed <b>after</b> the log entry submission occurs. */

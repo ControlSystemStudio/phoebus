@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextArea?>
@@ -61,30 +63,13 @@
                   <Insets bottom="5.0" top="5.0" />
                </VBox.margin>
             </HBox>
-            <VBox fx:id="simpleTextVBox" VBox.vgrow="ALWAYS">
-               <children>
-                  <TextArea fx:id="textArea" VBox.vgrow="ALWAYS">
-                     <VBox.margin>
-                        <Insets />
-                     </VBox.margin>
-                  </TextArea>
-                  <HBox alignment="TOP_RIGHT" spacing="5.0">
-                     <children>
-                        <ListView fx:id="listView" prefHeight="0.0" HBox.hgrow="ALWAYS" />
-                        <Button fx:id="btnAtt" alignment="CENTER_RIGHT" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#attachments" text="attach" />
-                     </children>
-                     <VBox.margin>
-                        <Insets bottom="2.0" top="2.0" />
-                     </VBox.margin>
-                     <padding>
-                        <Insets left="5.0" right="5.0" top="5.0" />
-                     </padding>
-                  </HBox>
-               </children>
-               <VBox.margin>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </VBox.margin>
-            </VBox>
+            <SplitPane fx:id="simpleTextVBox" orientation="VERTICAL" VBox.vgrow="ALWAYS">
+               <items>
+                  <TextArea fx:id="textArea" />
+                  <TabPane fx:id="attachmentTabs" >
+                  </TabPane>
+               </items>
+            </SplitPane>
             <VBox fx:id="htmlTextVBox" VBox.vgrow="ALWAYS">
                <VBox.margin>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

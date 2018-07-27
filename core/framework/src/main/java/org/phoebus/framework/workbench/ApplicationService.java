@@ -107,7 +107,7 @@ public class ApplicationService
     public static List<AppResourceDescriptor> getApplications(final URI resource)
     {
         final String path = resource.getPath();
-        final String ext = path.substring(path.lastIndexOf(".") + 1);
+        final String ext = path.substring(path.lastIndexOf(".") + 1).toLowerCase();
         if (INSTANCE.extensions.containsKey(ext))
             return INSTANCE.extensions.get(ext);
         else

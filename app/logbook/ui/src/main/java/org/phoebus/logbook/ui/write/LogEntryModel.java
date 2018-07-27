@@ -51,14 +51,15 @@ import javafx.scene.image.Image;
  * <p> Provides methods to set log entry data and to submit log entries.
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class LogEntryModel
 {
     public static final String USERNAME_TAG = "username";
     public static final String PASSWORD_TAG = "password";
-    
+
     private final LogService logService;
     private final LogFactory logFactory;
-    
+
     private Node    node;
     private String  username, password;
     private Instant date;
@@ -68,15 +69,15 @@ public class LogEntryModel
     private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
-    
+
     /** Property that allows the model to define when the application is in an appropriate state to submit a log entry. */
     private final ReadOnlyBooleanProperty readyToSubmitProperty; // To be broadcast through getReadyToSubmitProperty method.
     private final SimpleBooleanProperty   readyToSubmit;         // Used internally. Backs read only property above.
-    
+
     /** Property that allows the model to define when the application needs to update the username and password text fields. Only used if save_credentials=true */
     private final ReadOnlyBooleanProperty updateCredentialsProperty; // To be broadcast through getUpdateCredentialsProperty.
     private final SimpleBooleanProperty   updateCredentials;         // Used internally. Backs read only property above.
-    
+
     /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
 
@@ -90,11 +91,11 @@ public class LogEntryModel
 
         updateCredentials = new SimpleBooleanProperty();
         updateCredentialsProperty = updateCredentials;
-        
+
         logService = LogService.getInstance();
-        
+
         logFactory = logService.getLogFactories().get(LogbookUiPreferences.logbook_factory);
-        
+
         tags     = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
 
@@ -108,7 +109,7 @@ public class LogEntryModel
 
         readyToSubmit = new SimpleBooleanProperty(false);
         readyToSubmitProperty = readyToSubmit;
-        
+
         // Set default logbooks
         // Get rid of leading and trailing whitespace and add the default to the selected list.
         for (String logbook : LogbookUiPreferences.default_logbooks)
@@ -137,19 +138,19 @@ public class LogEntryModel
                 }
                 // Let anyone listening know that their credentials are now out of date.
                 updateCredentials.set(true);
-            } 
+            }
             catch (Exception ex)
             {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);
             }
         });
     }
-    
+
     public ReadOnlyBooleanProperty getUpdateCredentialsProperty()
     {
         return updateCredentialsProperty;
     }
-    
+
     /**
      * Gets the JavaFX Scene graph.
      * @return Scene
@@ -177,12 +178,12 @@ public class LogEntryModel
     {
         return username;
     }
-    
+
     public String getPassword()
     {
         return password;
     }
-    
+
     /**
      * Set the password.
      * @param password
@@ -196,7 +197,7 @@ public class LogEntryModel
         }
         checkIfReadyToSubmit();
     }
-  
+
     /**
      * Set the date.
      * @param date
@@ -233,7 +234,7 @@ public class LogEntryModel
         this.title = title;
         checkIfReadyToSubmit();
     }
-  
+
     /**
      * Get the text.
      * @param text
@@ -375,6 +376,11 @@ public class LogEntryModel
         return selectedTags.remove(tag);
     }
 
+    public void setImages(final List<Image> images)
+    {
+        this.images.setAll(images);
+    }
+
     /**
      * Return an unmodifiable list of the model's images.
      * @return
@@ -382,39 +388,6 @@ public class LogEntryModel
     public ObservableList<Image> getImages()
     {
         return FXCollections.unmodifiableObservableList(images);
-    }
-
-    /**
-     * Add an image to the model's list of images.
-     * @param image
-     * @return
-     */
-    public boolean addImage(final Image image)
-    {
-        if (null != image)
-            return images.add(image);
-        return false;
-    }
-
-    /**
-     * Remove an image from the model's list of images.
-     * @param image
-     * @return
-     */
-    public boolean removeImage(final Image image)
-    {
-        if (null != image)
-            return images.remove(image);
-        return false;
-    }
-
-    /**
-     * Add a listener to the images list.
-     * @param listChangeListener
-     */
-    public void addImagesListener(ListChangeListener<Image> listChangeListener)
-    {
-        images.addListener(listChangeListener);
     }
 
     /**
@@ -426,24 +399,10 @@ public class LogEntryModel
         return FXCollections.unmodifiableObservableList(files);
     }
 
-    /**
-     * Add a file to the model's list of files.
-     * @param file
-     * @return
-     */
-    public boolean addFile(final File file)
+    /** @param files Files to add to log entry */
+    public void setFiles(final List<File> files)
     {
-        return files.add(file);
-    }
-
-    /**
-     * Remove a file form the model's list of files.
-     * @param file
-     * @return
-     */
-    public boolean removeFile(final File file)
-    {
-        return files.remove(file);
+        this.files.setAll(files);
     }
 
     /** Check if ready to submit and update readyToSubmitProperty appropriately. */
@@ -463,13 +422,13 @@ public class LogEntryModel
             readyToSubmit.set(true);
         }
     }
-    
+
     /** Get the ready to submit property. True when all required fields have been filled. */
     public ReadOnlyBooleanProperty getReadyToSubmitProperty()
     {
         return readyToSubmitProperty;
     }
-    
+
     /**
      * Create and return a log entry with the current data in the log entry form.
      * @throws IOException
@@ -521,14 +480,14 @@ public class LogEntryModel
                     SecureStore store = new SecureStore();
                     store.set(USERNAME_TAG, username);
                     store.set(PASSWORD_TAG, password);
-                } 
+                }
                 catch (Exception ex)
                 {
                     logger.log(Level.WARNING, "Secure Store file not found.", ex);
                 }
             }
-            
-            if (null == logFactory) 
+
+            if (null == logFactory)
             {
                 logger.log(Level.WARNING, "Logbook Factory Undefined.");
             }
@@ -551,26 +510,26 @@ public class LogEntryModel
     {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
         {
-            if (null == logFactory) 
+            if (null == logFactory)
             {
                 logger.log(Level.WARNING, "Logbook Factory Undefined.");
             }
             else
             {
                 LogClient logClient = logFactory.getLogClient();
-                
+
                 List<Logbook> logList = new ArrayList<>();
                 List<Tag> tagList = new ArrayList<>();
-                
+
                 logClient.listLogbooks().forEach(logbook -> logList.add(logbook));
                 logClient.listTags().forEach(tag -> tagList.add(tag));
-                
+
                 // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
                 Platform.runLater(() ->
                 {
                     logList.forEach(logbook -> logbooks.add(logbook.getName()));
                     tagList.forEach(tag -> tags.add(tag.getName()));
-        
+
                     Collections.sort(logbooks);
                     Collections.sort(tags);
                 });

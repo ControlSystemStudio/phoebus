@@ -16,6 +16,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -170,17 +171,14 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         {
             value_prop = value.get();
             alarm_sensitive_border_prop = alarm_sens.get();
-            // Start 'OK'
-            computeAlarmBorder(AlarmSeverity.NONE);
             // runtimeValue should be a VType,
             // but some widgets may allow other data types (Table),
             // so use Object and then check for VType
-            value_prop.addUntypedPropertyListener(this::valueChanged);
+            value_prop.addUntypedPropertyListener(this::connectionOrValueChanged);
         }
 
-
         // Indicate 'disconnected' state
-        model_widget.runtimePropConnected().addPropertyListener(this::connectionChanged);
+        model_widget.runtimePropConnected().addUntypedPropertyListener(this::connectionOrValueChanged);
 
         // Allow middle-button click to copy PV name
         if (model_widget instanceof PVWidget)
@@ -217,51 +215,70 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         else
         {
             final Color color = JFXUtil.convert(border_color_prop.getValue());
-            custom_border = new Border(new BorderStroke(color, solid, CornerRadii.EMPTY, new BorderWidths(width)));
+            final CornerRadii corners = computeCornerRadii();
+            custom_border = new Border(new BorderStroke(color, solid, corners, new BorderWidths(width)));
         }
         dirty_border.mark();
         toolkit.scheduleUpdate(this);
     }
 
-    private void connectionChanged(final WidgetProperty<Boolean> property, final Boolean was_connected, final Boolean is_connected)
+    private void connectionOrValueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
-        if (is_connected)
-        {   // Reflect severity of primary PV's value
-            if (value_prop != null)
-                computeValueBorder(value_prop.getValue());
-            else // No PV: OK
-                computeAlarmBorder(AlarmSeverity.NONE);
-        }
-        else// Value of primary PV doesn't matter, show disconnected
-            computeAlarmBorder(AlarmSeverity.UNDEFINED);
-    }
+        // Hope for the best
+        AlarmSeverity severity = AlarmSeverity.NONE;
 
-    private void valueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
-    {
-        computeValueBorder(new_value);
-    }
-
-    private void computeValueBorder(final Object value)
-    {
-        AlarmSeverity severity;
-        if (alarm_sensitive_border_prop.getValue())
-        {
-            if (value instanceof Alarm)
-                // Have alarm info
-                severity = ((Alarm)value).getAlarmSeverity();
-            else if (value instanceof VType)
-                // VType that doesn't provide alarm, always OK
-                severity = AlarmSeverity.NONE;
-            else if (value != null)
-                // Not a vtype, but non-null, assume OK
-                severity = AlarmSeverity.NONE;
-            else // null
-                severity = AlarmSeverity.UNDEFINED;
-        }
+        // Ignore custom border and value of primary PV, show disconnected
+        if (! model_widget.runtimePropConnected().getValue())
+            severity = AlarmSeverity.UNDEFINED;
         else
-            severity = AlarmSeverity.NONE;
+        {   // Reflect severity of primary PV's value
+            if (value_prop != null  && alarm_sensitive_border_prop.getValue())
+            {
+                final Object value = value_prop.getValue();
+                if (value instanceof Alarm)
+                    // Have alarm info
+                    severity = ((Alarm)value).getAlarmSeverity();
+                else if (value instanceof VType)
+                    // VType that doesn't provide alarm, always OK
+                    severity = AlarmSeverity.NONE;
+                else if (value != null)
+                    // Not a vtype, but non-null, assume OK
+                    severity = AlarmSeverity.NONE;
+                else // null
+                    severity = AlarmSeverity.UNDEFINED;
+            }
+        }
 
-        computeAlarmBorder(severity);
+        // Any change?
+        if (current_alarm.getAndSet(severity) == severity)
+            return;
+
+        final CornerRadii corners = computeCornerRadii();
+        if (corners == CornerRadii.EMPTY)
+            // Use common alarm border
+            alarm_border = alarm_borders[severity.ordinal()];
+        else
+            // Create a custom alarm border
+            alarm_border = createAlarmBorder(severity, corners);
+
+        dirty_border.mark();
+        toolkit.scheduleUpdate(this);
+    }
+
+    private CornerRadii computeCornerRadii()
+    {
+        final int[] radii = getBorderRadii();
+        if (radii == null)
+            return CornerRadii.EMPTY;
+        final int horiz = radii[0], vert = radii[1];
+        // There's a bug in CornerRadii:
+        // Even though horiz != vert, it considers them all 'uniform'
+        // because it _separately_ compares all the horizontal and vertical radii,
+        // never checking if horiz == vert.
+        // Workaround: Make one of the horiz or vert radii a little different (+0.1).
+        // Bug was in at least Java 1.8.0_101.
+        return new CornerRadii(horiz, vert, vert, horiz, horiz, vert, vert, horiz+0.1,
+                               false, false, false, false, false, false, false, false);
     }
 
     /** Get radii for the border of the widget.
@@ -280,42 +297,20 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         return null;
     }
 
-    private void computeAlarmBorder(final AlarmSeverity severity)
-    {
-        // Any change?
-        if (current_alarm.getAndSet(severity) == severity)
-            return;
-
-        final int[] radii = getBorderRadii();
-        if (radii == null)
-            // Use common alarm border
-            alarm_border = alarm_borders[severity.ordinal()];
-        else
-        {   // Create a custom alarm border
-            final int horiz = radii[0], vert = radii[1];
-            // There's a bug in CornerRadii:
-            // Even though horiz != vert, it considers them all 'uniform'
-            // because it _separately_ compares all the horizontal and vertical radii,
-            // never checking if horiz == vert.
-            // Workaround: Make one of the horiz or vert radii a little different (+0.1).
-            // Bug was in at least Java 1.8.0_101.
-            final CornerRadii corners = new CornerRadii(horiz, vert, vert, horiz, horiz, vert, vert, horiz+0.1,
-                                                        false, false, false, false, false, false, false, false);
-            alarm_border = createAlarmBorder(severity, corners);
-        }
-        dirty_border.mark();
-        toolkit.scheduleUpdate(this);
-    }
-
     @Override
     public void updateChanges()
     {
         super.updateChanges();
         if (dirty_border.checkAndClear())
         {
+            // If there's an alarm border, set it.
+            // Otherwise, use custom border,
+            // but leave property untouched if there's no change.
+            // For the hopefully common case of never setting any border,
+            // this avoids even setting it to 'null' and marking it as set-by-user.
             if (alarm_border != null)
                 jfx_node.setBorder(alarm_border);
-            else
+            else if (! Objects.equals(custom_border, jfx_node.getBorder()))
                 jfx_node.setBorder(custom_border);
         }
     }
