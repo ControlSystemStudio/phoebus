@@ -113,11 +113,6 @@
       <version>1.19</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>1.19</version>
-    </dependency>
-    <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-multipart</artifactId>
       <version>1.19</version>
@@ -237,6 +232,12 @@
       <version>9.0-r1</version>
     </dependency>
 
+    <!-- MQTT client library -->
+    <dependency>
+        <groupId>org.eclipse.paho</groupId>
+        <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+        <version>1.2.0</version>
+    </dependency>
   </dependencies>
 
   <build>
