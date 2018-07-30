@@ -12,13 +12,13 @@ import org.phoebus.pv.PVFactory;
 
 /**
  * MQTT implementation of org.phoebus.pv.PVFactory.
- * @author Evan Smith
+ * @author Kay Kasemir
  */
 public class MQTT_PVFactory implements PVFactory
 {
     
     final public static String TYPE = "mqtt";
-    final public static String BROKER_URL = "???";
+    final public static String BROKER_URL = "tcp://diane:1883";
     
     @Override
     public String getType()

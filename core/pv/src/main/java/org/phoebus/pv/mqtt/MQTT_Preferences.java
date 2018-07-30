@@ -9,11 +9,15 @@ package org.phoebus.pv.mqtt;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 
+/**
+ * Singleton preferences class for MQTT PVs
+ * @author Evan Smith
+ */
 public class MQTT_Preferences
 {
     private static final PreferencesReader prefs = new PreferencesReader(MQTT_PVConn.class, "/pv_mqtt_preferences.properties");
     
-    private static String brokerURL;
+    private static final String brokerURL;
     
     static
     {

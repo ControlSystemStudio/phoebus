@@ -182,7 +182,6 @@ public class MQTT_PV extends PV
         }
     }
 
-
     /**
      * Called when a message arrives from a subscribed topic
      */
@@ -209,7 +208,5 @@ public class MQTT_PV extends PV
             //throw new Exception("Failed to parse message", ex);
         }
     }
-
-
 
 }
