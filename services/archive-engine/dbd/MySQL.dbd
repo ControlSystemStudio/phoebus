@@ -1,0 +1,289 @@
+# Example MySQL Setup
+#
+# Start/Stop of MySQL (aka MariaDB) on Linux:
+#
+#	sudo systemctl start mariadb.service
+#	sudo systemctl status mariadb.service
+#	sudo systemctl stop mariadb.service
+#
+# When first installed, the root password will be empty, so set it something:
+#
+#	mysql -u root
+#
+#	USE mysql;
+#	UPDATE user SET password=PASSWORD('YourPassword') WHERE User='root' AND Host = 'localhost';
+#	FLUSH PRIVILEGES;	
+#
+#
+# The commands below will create a setup that allows write-access when connected like this:
+#
+#   mysql -u archive -p'$archive' archive
+#
+# Read access:
+#
+#   mysql -u report -p'$report' archive
+#
+# These commands create a new MySQL database for archiving.
+#
+# THIS WILL DELETE ANY DATA THAT MIGHT BE IN THERE!
+#
+# Table size info:
+# SELECT table_name, data_length/1024/1024 "Table MB", index_length / 1024 / 1024  "Index MB" FROM information_schema.TABLES WHERE table_schema="archive";
+#
+# SHOW TABLE STATUS FROM archive;
+
+-- Create 'archive' user who can remotely access the 'archive' tables,
+-- but only change the table layout locally
+GRANT ALL ON archive.* TO archive@localhost IDENTIFIED BY '$archive';
+GRANT INSERT, SELECT, UPDATE, DELETE ON archive.* TO archive@'%' IDENTIFIED BY '$archive';
+FLUSH PRIVILEGES;
+
+-- Create 'report' user who can read data
+GRANT SELECT ON archive.* TO report@localhost IDENTIFIED BY '$report';
+GRANT SELECT ON archive.* TO report@'%' IDENTIFIED BY '$report';
+FLUSH PRIVILEGES;
+
+
+USE mysql;
+SELECT User, Host FROM user;
+SELECT User, Host, Db FROM db;
+
+# ----------------------
+
+DROP DATABASE IF EXISTS archive;
+
+CREATE DATABASE archive;
+
+USE archive;
+
+# Switch from default MyISAM (no checks but faster)
+# to InnoDB ('real' database but slower)?
+SET storage_engine=INNODB;
+# SET storage_engine=MyISAM;
+
+# ----------------------
+# Sample engine
+DROP TABLE IF EXISTS smpl_eng;
+CREATE TABLE IF NOT EXISTS smpl_eng
+(
+   eng_id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+   name VARCHAR(100) NOT NULL,
+   descr VARCHAR(100) NOT NULL,
+   url VARCHAR(100) NOT NULL
+);
+INSERT INTO smpl_eng VALUES (1, 'Demo', 'Demo Engine', 'http://localhost:4812');
+SELECT * FROM smpl_eng;
+
+# ----------------------
+# Retention
+# Not used at this time
+DROP TABLE IF EXISTS retent;
+CREATE TABLE IF NOT EXISTS retent
+(
+   retent_id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+   descr VARCHAR(255) NOT NULL
+);
+INSERT INTO retent VALUES (30, 'Months');
+INSERT INTO retent VALUES (9999, 'Forever');
+SELECT * FROM retent;
+
+# ----------------------
+# Channel Group
+DROP TABLE IF EXISTS chan_grp;
+CREATE TABLE IF NOT EXISTS chan_grp
+(
+   grp_id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+   name VARCHAR(100) NOT NULL,
+   eng_id INT UNSIGNED NOT NULL,
+   descr VARCHAR(100) NULL,
+   enabling_chan_id INT UNSIGNED NULL
+);
+INSERT INTO chan_grp VALUES (1, 'Demo', 1, 'Demo Group', NULL);
+SELECT * FROM chan_grp;
+
+# ----------------------
+# Sample modes
+DROP TABLE IF EXISTS smpl_mode;
+CREATE TABLE IF NOT EXISTS smpl_mode
+(
+   smpl_mode_id INT UNSIGNED NOT NULL PRIMARY KEY,
+   name VARCHAR(100) NOT NULL,
+   descr VARCHAR(100) NOT NULL
+);
+INSERT INTO smpl_mode VALUES (1, 'Monitor', 'Store every received update');
+INSERT INTO smpl_mode VALUES (2, 'Scan', 'Periodic scan');
+SELECT * FROM smpl_mode;
+
+# ----------------------
+# Channel: ID and name
+DROP TABLE IF EXISTS channel;
+CREATE TABLE IF NOT EXISTS channel
+(
+   channel_id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+   name VARCHAR(100) NOT NULL,
+   descr VARCHAR(100) NULL,
+   grp_id INT UNSIGNED NULL,
+   smpl_mode_id INT UNSIGNED NULL,
+   smpl_val DOUBLE NULL,
+   smpl_per DOUBLE NULL,
+   retent_id INT UNSIGNED NULL,
+   retent_val DOUBLE NULL
+);
+CREATE UNIQUE INDEX channel_name_idx ON channel (name);
+INSERT INTO channel(channel_id, name) VALUES
+  (1, 'sim://sine(0, 10, 50, 0.1)'),
+  (2, 'sim://noiseWaveform(0,10,100,10)'),
+  (3, 'freddy'),
+  (4, 'jane');
+
+
+UPDATE channel SET retent_id=9999 WHERE channel_id < 4;
+UPDATE channel SET grp_id=1 WHERE channel_id < 4;
+UPDATE channel SET smpl_val=1 WHERE channel_id = 1;
+SELECT * FROM channel;
+
+# ----------------------
+# Severity mapping of severity ID to string
+DROP TABLE IF EXISTS severity;
+CREATE TABLE IF NOT EXISTS severity
+(
+   severity_id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+   name VARCHAR(100) NOT NULL
+);
+INSERT INTO severity VALUES (1, 'OK'), (2, 'MINOR'), (3, 'MAJOR'), (4, 'INVALID');
+SELECT * FROM severity;
+
+# ----------------------
+# Status mapping of status ID to string
+DROP TABLE IF EXISTS status;
+CREATE TABLE IF NOT EXISTS status
+(
+   status_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+   name VARCHAR(100) NOT NULL UNIQUE
+);
+INSERT INTO status (name) VALUES ('OK'), ('disconnected');
+SELECT * FROM status;
+
+# ----------------------
+# Samples of a channel
+# Either the numeric, floating point or string value should be set,
+# not all of them.
+#
+# See array_encoding.txt for handling of array data.
+#
+# Blob size considerations:
+# TINYBLOB: Up to 2^8 = 256 bytes, 1 byte overhead
+# BLOB: 2^16
+# MEDIUMBLOB: 2^24
+# LONGBLOB: 2^32, 4 byte overhead
+DROP TABLE IF EXISTS sample;
+CREATE TABLE IF NOT EXISTS sample
+(
+   channel_id INT UNSIGNED NOT NULL                       COMMENT 'Channel ID',
+   smpl_time TIMESTAMP NOT NULL                           COMMENT 'Time stamp',
+   nanosecs INT UNSIGNED NOT NULL                         COMMENT 'Nanoseconds of time stamp',
+   severity_id INT UNSIGNED NOT NULL                      COMMENT 'Severity ID',
+   status_id INT UNSIGNED NOT NULL                        COMMENT 'Status ID',
+   num_val INT NULL                                       COMMENT 'Integer value or null',
+   float_val REAL NULL                                    COMMENT 'Float value or null',
+   str_val VARCHAR(120) NULL                              COMMENT 'String value or null',
+   datatype CHAR(1) CHARACTER SET binary NULL DEFAULT ' ' COMMENT 'Array element count, 1 for scalar',
+   array_val LONGBLOB  NULL                               COMMENT 'Array data',
+   
+   FOREIGN KEY (channel_id) REFERENCES channel (channel_id) ON DELETE CASCADE,
+   FOREIGN KEY (severity_id) REFERENCES severity (severity_id) ON DELETE CASCADE,
+   FOREIGN KEY (status_id) REFERENCES status (status_id) ON DELETE CASCADE
+);
+
+# Update original non-BLOB sample table:
+#
+# ALTER TABLE sample ADD COLUMN datatype CHAR(1) CHARACTER SET binary NULL DEFAULT ' ' COMMENT 'array_val data type' AFTER str_val;
+# ALTER TABLE sample ADD COLUMN array_val LONGBLOB NULL COMMENT 'Array data' AFTER datatype;
+#  
+# SHOW FULL COLUMNS FROM sample;
+  
+# Need index on channel_id and smpl_time?
+CREATE INDEX sample_id_time ON sample ( channel_id, smpl_time, nanosecs );
+
+# These inserts are in reverse time order to check retrieval
+INSERT INTO sample (channel_id, smpl_time, nanosecs, severity_id, status_id, float_val)
+   VALUES (1, '2004-01-10 13:01:17', 1, 3, 2, 3.16),
+          (1, '2004-01-10 13:01:11', 2, 1, 1, 3.16),
+          (1, '2004-01-10 13:01:10', 3, 1, 2, 3.15),
+          (1, '2004-01-10 13:01:10', 4, 1, 2, 3.14);
+          
+# To display array_val in MySQL, the closest might be
+# SELECT ...datatype, SUBSTRING(HEX(array_val), 1, 8) AS ArrayCount, SUBSTRING(HEX(array_val), 9, 8) AS Array1 FROM sample WHERE ...
+
+# ----------------------
+# *** OLD Array element table. Replaced by array_val BLOB in sample table ***
+# See sample table: Array elements 1, 2, 3, ... beyond the element 0
+# that's in the sample table
+DROP TABLE IF EXISTS array_val;
+CREATE TABLE IF NOT EXISTS array_val
+(
+   channel_id INT UNSIGNED NOT NULL,
+   smpl_time TIMESTAMP NOT NULL,
+   nanosecs INT UNSIGNED NOT NULL,
+   seq_nbr INT UNSIGNED NOT NULL,
+   float_val REAL NULL,
+   FOREIGN KEY (channel_id) REFERENCES channel (channel_id) ON DELETE CASCADE
+);
+
+CREATE INDEX array_val_id_time ON array_val ( channel_id, smpl_time, nanosecs );
+
+# ----------------------
+# Channel Meta data: Units etc. for numeric channels
+DROP TABLE IF EXISTS num_metadata;
+CREATE TABLE IF NOT EXISTS num_metadata
+(
+   channel_id INT UNSIGNED NOT NULL PRIMARY KEY,
+   low_disp_rng REAL NULL,
+   high_disp_rng REAL NULL,
+   low_warn_lmt REAL NULL,
+   high_warn_lmt REAL NULL,
+   low_alarm_lmt REAL NULL,
+   high_alarm_lmt REAL NULL,
+   prec INT NULL,
+   unit VARCHAR(100) NOT NULL
+);
+INSERT INTO num_metadata VALUES (1, 0, 10, 2, 8, 1, 9, 2, 'mA');
+SELECT * FROM num_metadata;
+
+# ----------------------
+# Enumerated channels have a sample.num_val that can also be interpreted
+# as an enumeration string via this table
+DROP TABLE IF EXISTS enum_metadata;
+CREATE TABLE IF NOT EXISTS enum_metadata
+(
+   channel_id INT UNSIGNED NOT NULL,
+   enum_nbr INT NULL,
+   enum_val VARCHAR(120) NULL,
+   FOREIGN KEY (channel_id) REFERENCES channel (channel_id) ON DELETE CASCADE
+);
+
+# ----------------------
+# ----------------------
+# ----------------------
+# Dump all values for all channels
+SELECT channel.name, smpl_time, severity.name, status.name, float_val
+   FROM channel, severity, status, sample 
+   WHERE channel.channel_id = sample.channel_id AND
+         severity.severity_id = sample.severity_id AND
+         status.status_id = sample.status_id
+   ORDER BY channel.name, smpl_time
+   LIMIT 50;
+
+# Same with INNER JOIN
+SELECT channel.name AS channel,
+       smpl_time,
+       severity.name AS severity,
+       status.name AS status,
+       float_val
+   FROM sample INNER JOIN channel INNER JOIN severity INNER JOIN status
+   ON channel.channel_id = sample.channel_id AND
+      severity.severity_id = sample.severity_id AND
+      status.status_id = sample.status_id
+   ORDER BY smpl_time
+   LIMIT 50;
+   
