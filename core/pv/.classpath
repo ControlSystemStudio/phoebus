@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
@@ -8,5 +7,11 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-vtype"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/core-util"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dependencies"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/dependencies/target/lib/org.eclipse.paho.client.mqttv3-1.2.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
