@@ -39,7 +39,7 @@ public class AttachmentsView extends Accordion
         this.model = model;
         tabPane    = new TabPane();
         images     = new ImagesTab();
-        images.setSnapshotNode(parent);
+        images.setSnapshotNode(parent.getScene().getRoot());
         files      = new FilesTab();
         properties = new PropertiesTab();
 

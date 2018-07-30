@@ -64,7 +64,7 @@ public class SendEmailAction extends MenuItem
 
                 if (parent != null)
                 {
-                    controller.setSnapshotNode(parent);
+                    controller.setSnapshotNode(parent.getScene().getRoot());
                     stage.setX(parent.getScene().getWindow().getX() + 100);
                     stage.setY(parent.getScene().getWindow().getY() + 50);
                 }
