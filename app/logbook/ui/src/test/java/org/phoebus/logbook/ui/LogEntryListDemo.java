@@ -23,7 +23,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class LogEntryTableDemo extends Application {
+public class LogEntryListDemo extends Application {
 
     public static void main(String[] args) {
         launch(args);
@@ -34,9 +34,9 @@ public class LogEntryTableDemo extends Application {
         // TODO Auto-generated method stub
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("LogEntryTable.fxml"));
+        loader.setLocation(this.getClass().getResource("LogEntryList.fxml"));
         loader.load();
-        LogEntryTableController controller = loader.getController();
+        LogEntryListController controller = loader.getController();
         Parent root = loader.getRoot();
 
         primaryStage.setScene(new Scene(root, 400, 400));

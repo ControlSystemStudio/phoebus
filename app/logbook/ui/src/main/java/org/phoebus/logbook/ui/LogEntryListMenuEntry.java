@@ -16,19 +16,19 @@ import javafx.scene.image.Image;
  * MenuEntry for opening a log entry table.
  * @author Kunal Shroff
  */
-public class LogEntryTableMenuEntry implements MenuEntry
+public class LogEntryListMenuEntry implements MenuEntry
 {
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.createInstance(LogEntryTableApp.NAME);
+        ApplicationService.createInstance(LogEntryListApp.NAME);
         return null;
     }
 
     @Override
     public String getName()
     {
-        return LogEntryTableApp.DISPLAYNAME;
+        return LogEntryListApp.DISPLAYNAME;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class LogEntryTableMenuEntry implements MenuEntry
     @Override
     public Image getIcon()
     {
-        return LogEntryTableApp.icon;
+        return LogEntryListApp.icon;
     }
 
 }

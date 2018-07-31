@@ -12,12 +12,12 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
-public class LogEntryTableApp implements AppResourceDescriptor {
+public class LogEntryListApp implements AppResourceDescriptor {
 
-    public static final Logger logger = Logger.getLogger(LogEntryTableApp.class.getName());
-    static final Image icon = ImageCache.getImage(LogEntryTableApp.class, "/icons/logbook-16.png");
-    public static final String NAME = "logEntryTable";
-    public static final String DISPLAYNAME = "LogEntryTable";
+    public static final Logger logger = Logger.getLogger(LogEntryListApp.class.getName());
+    static final Image icon = ImageCache.getImage(LogEntryListApp.class, "/icons/logbook-16.png");
+    public static final String NAME = "logEntryList";
+    public static final String DISPLAYNAME = "Log Entry List";
 
     private static final String SUPPORTED_SCHEMA = "logbook";
     private LogFactory logFactory;
@@ -34,7 +34,7 @@ public class LogEntryTableApp implements AppResourceDescriptor {
 
     @Override
     public AppInstance create() {
-        return new LogEntryTable(this);
+        return new LogEntryList(this);
     }
 
     @Override
@@ -43,13 +43,13 @@ public class LogEntryTableApp implements AppResourceDescriptor {
     }
 
     /**
-     * Support the launching of log entry table using resource
+     * Support the launching of log entry list view using resource
      * logbook://?<search_string> e.g. -resource
      * logbook://?query=*Fault*Motor*&tag=operation
      */
     @Override
     public AppInstance create(URI resource) {
-        LogEntryTable logEntryTable = new LogEntryTable(this);
+        LogEntryList logEntryTable = new LogEntryList(this);
         logEntryTable.setResource(resource);
         return logEntryTable;
     }

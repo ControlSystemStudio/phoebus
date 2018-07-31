@@ -14,7 +14,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
-public class LogEntryTableController extends LogbookSearchController {
+public class LogEntryListController extends LogbookSearchController {
 
     List<LogEntry> logEntries;
 
