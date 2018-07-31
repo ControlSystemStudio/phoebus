@@ -7,14 +7,17 @@
  ******************************************************************************/
 package org.csstudio.archive;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.csstudio.archive.engine.config.RDBConfig;
+import org.csstudio.archive.engine.config.XMLConfig;
 import org.csstudio.archive.engine.model.EngineModel;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 
@@ -57,6 +60,7 @@ public class Engine
         String config_name = "Demo";
         int port = 4812;
         boolean skip_last = false;
+        File import_file = null, export_file = null;
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
@@ -111,10 +115,22 @@ public class Engine
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
-
-                // TODO -import engine_config.xml
-                // TODO -export engine_config.xml
-
+                else if (cmd.equals("-export"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -export file name");
+                    iter.remove();
+                    export_file = new File(iter.next());
+                    iter.remove();
+                }
+                else if (cmd.equals("-import"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -import file name");
+                    iter.remove();
+                    import_file = new File(iter.next());
+                    iter.remove();
+                }
                 else
                     throw new Exception("Unknown option " + cmd);
             }
@@ -137,6 +153,20 @@ public class Engine
         // TODO Web server and CommandShell, see ScanServerInstance
 
         final EngineModel model = new EngineModel();
-        new RDBConfig().readConfig(config_name, port, skip_last, model);
+        try
+        (
+            RDBConfig config = new RDBConfig(model);
+        )
+        {
+            config.read(config_name, port, skip_last);
+        }
+
+        if (export_file != null)
+        {
+            logger.log(Level.INFO, "Saving configuration to " + export_file);
+            new XMLConfig(model).write(export_file);
+            return;
+        }
+        // TODO -import engine_config.xml
     }
 }

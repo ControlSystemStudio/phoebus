@@ -47,6 +47,11 @@ public class MonitoredArchiveChannel extends ArchiveChannel
         this.period_estimate = period_estimate;
     }
 
+    public double getPeriodEstimate()
+    {
+        return period_estimate;
+    }
+
     @Override
     public String getMechanism()
     {

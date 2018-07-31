@@ -69,6 +69,16 @@ public class DeltaArchiveChannel extends ArchiveChannel
         this.period_estimate = period_estimate;
     }
 
+    public double getPeriodEstimate()
+    {
+        return period_estimate;
+    }
+
+    public double getDelta()
+    {
+        return delta;
+    }
+
     @Override
     public String getMechanism()
     {

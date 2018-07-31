@@ -23,6 +23,7 @@ import org.phoebus.vtype.ValueFactory;
 /** Data model of the archive engine.
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class EngineModel
 {
     /** Version code. See also webroot/version.html
@@ -178,10 +179,7 @@ public class EngineModel
      *  @param last_sample_time Time stamp of last archived sample or <code>null</code>
      *  @return {@link ArchiveChannel}
      *  @throws Exception on error from channel creation
-     * @deprecated Use {@link #addChannel(String,String,ArchiveGroup,Enablement,SampleMode,Instant)} instead
      */
-    @Deprecated
-    @SuppressWarnings("nls")
     public ArchiveChannel addChannel(final String name,
                          final ArchiveGroup group,
                          final Enablement enablement,
@@ -201,7 +199,6 @@ public class EngineModel
      *  @return {@link ArchiveChannel}
      *  @throws Exception on error from channel creation
      */
-    @SuppressWarnings("nls")
     public ArchiveChannel addChannel(final String name,
                          final String retention,
                          final ArchiveGroup group,
@@ -345,7 +342,6 @@ public class EngineModel
     }
 
     /** Stop monitoring the channels, flush the write buffers. */
-    @SuppressWarnings("nls")
     public void stop() throws Exception
     {
         state = State.STOPPING;
@@ -367,7 +363,6 @@ public class EngineModel
     }
 
     /** Remove all channels and groups. */
-    @SuppressWarnings("nls")
     public void clearConfig()
     {
         if (state != State.IDLE)
@@ -382,7 +377,6 @@ public class EngineModel
     }
 
     /** Write debug info to stdout */
-    @SuppressWarnings("nls")
     public void dumpDebugInfo()
     {
         System.out.println(TimestampHelper.format(Instant.now()) + ": Debug info");
