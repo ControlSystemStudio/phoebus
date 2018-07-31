@@ -12,12 +12,16 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
+
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.writer.WriteChannel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.text.NumberFormats;
+import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.Display;
 //import org.junit.Ignore;
 import org.phoebus.vtype.ValueFactory;
@@ -34,7 +38,7 @@ import org.phoebus.vtype.ValueFactory;
 public class RDBArchiveWriterDemo
 {
     final Display display = ValueFactory.newDisplay(0.0, 1.0, 2.0, "a.u.", NumberFormats.format(2), 8.0, 9.0, 10.0, 0.0, 10.0);
-    private String name = "fred", array_name = "alan";
+    private String name = "jane", array_name = "sim://noiseWaveform(0,10,100,10)";
     private RDBArchiveWriter writer;
 
     @Before
@@ -82,38 +86,38 @@ public class RDBArchiveWriterDemo
         writer.flush();
     }
 
-//    @Test
-//    public void testWriteDoubleArray() throws Exception
-//    {
-//        if (writer == null  ||  array_name == null)
-//            return;
-//        System.out.println("Writing double array sample for channel " + array_name);
-//        final WriteChannel channel = writer.getChannel(array_name);
-//        writer.addSample(channel, new ArchiveVNumberArray(Instant.now(), AlarmSeverity.NONE, "OK", display,
-//                3.14, 6.28, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0));
-//        writer.flush();
-//    }
-//
-//    @Test
-//    public void testWriteLongEnumText() throws Exception
-//    {
-//        if (writer == null)
-//            return;
-//        final WriteChannel channel = writer.getChannel(name);
-//
-//        // Enum, sets enumerated meta data
-//        writer.addSample(channel, new ArchiveVEnum(Instant.now(), AlarmSeverity.MINOR, "OK", Arrays.asList("Zero", "One"), 1));
-//        writer.flush();
-//
-//        // Writing string leaves the enumerated meta data untouched
-//        writer.addSample(channel, new ArchiveVString(Instant.now(), AlarmSeverity.MAJOR, "OK", "Hello"));
-//        writer.flush();
-//
-//        // Integer, sets numeric meta data
-//        writer.addSample(channel, new ArchiveVNumber(Instant.now(), AlarmSeverity.MINOR, "OK", display, 42));
-//        writer.flush();
-//    }
-//
+    @Test
+    public void testWriteDoubleArray() throws Exception
+    {
+        if (writer == null  ||  array_name == null)
+            return;
+        System.out.println("Writing double array sample for channel " + array_name);
+        final WriteChannel channel = writer.getChannel(array_name);
+        writer.addSample(channel, ValueFactory.newVDoubleArray(new ArrayDouble(10, 2, 3, 4), ValueFactory.alarmNone(), ValueFactory.timeNow(), display));
+        writer.flush();
+    }
+
+    @Test
+    public void testWriteLongEnumText() throws Exception
+    {
+        if (writer == null)
+            return;
+        final WriteChannel channel = writer.getChannel(name);
+
+        // Enum, sets enumerated meta data
+        writer.addSample(channel, ValueFactory.newVEnum(0, List.of("Zero", "One"), ValueFactory.alarmNone(), ValueFactory.timeNow()));
+        writer.addSample(channel, ValueFactory.newVEnum(1, List.of("Zero", "One"), ValueFactory.newAlarm(AlarmSeverity.MINOR, "STATE"), ValueFactory.timeNow()));
+        writer.flush();
+
+        // Writing string leaves the enumerated meta data untouched
+        writer.addSample(channel,ValueFactory.newVString("Hello", ValueFactory.alarmNone(), ValueFactory.timeNow()));
+        writer.flush();
+
+        // Integer, sets numeric meta data
+        writer.addSample(channel, ValueFactory.newVInt(42, ValueFactory.alarmNone(), ValueFactory.timeNow(), display));
+        writer.flush();
+    }
+
 //    final private static int TEST_DURATION_SECS = 60;
 //    final private static long FLUSH_COUNT = 500;
 //
