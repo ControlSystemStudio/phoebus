@@ -12,6 +12,7 @@ import static org.csstudio.archive.Engine.logger;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,7 +33,7 @@ import io.reactivex.disposables.Disposable;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-abstract public class ArchiveChannel // TODO extends PVListenerAdapter
+abstract public class ArchiveChannel
 {
     /** Throttled log for samples like NaN */
     private static ThrottledLogger trouble_sample_log = new ThrottledLogger(Level.INFO, Preferences.log_trouble_samples);
@@ -84,22 +85,17 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
     private boolean enabled = true;
 
     /** Most recent value of the PV.
-     *  <p>
-     *  This is the value received from the PV,
+     *
+     *  <p>This is the value received from the PV,
      *  is is not necessarily written to the archive.
-     *  <p>
-     *  SYNC:Lock on <code>this</code> for access.
      */
-    protected VType most_recent_value = null; // TODO AtomicReference?
+    protected volatile VType most_recent_value = null;
 
     /** Counter for received values (monitor updates) */
-    private long received_value_count = 0;
+    private AtomicLong received_value_count = new AtomicLong();
 
-    /** Last value in the archive, i.e. the one most recently written.
-     *  <p>
-     *  SYNC: Lock on <code>this</code> for access.
-     */
-    protected VType last_archived_value = null;
+    /** Last value in the archive, i.e. the one most recently written. */
+    protected volatile VType last_archived_value = null;
 
     /** Buffer of received samples, periodically written */
     private final SampleBuffer buffer;
@@ -123,10 +119,10 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
 
     /** Construct an archive channel
      *  @param name Name of the channel (PV)
-     * @param retention Sample retention policy; may be null, if default/not supported
-     * @param enablement How channel affects its groups
-     * @param buffer_capacity Size of sample buffer
-     * @param last_archived_value Last value from storage, or <code>null</code>.
+     *  @param retention Sample retention policy; may be null, if default/not supported
+     *  @param enablement How channel affects its groups
+     *  @param buffer_capacity Size of sample buffer
+     *  @param last_archived_value Last value from storage, or <code>null</code>.
      *  @throws Exception On error in PV setup
      */
     public ArchiveChannel(final String name,
@@ -197,7 +193,7 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
     }
 
     /** @return Human-readable info on internal state of PV */
-    public synchronized String getInternalState()
+    public String getInternalState()
     {
         final PV actual = pv.get();
         if (actual == null)
@@ -282,31 +278,31 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
     }
 
     /** @return Most recent value of the channel's PV*/
-    final public synchronized VType getCurrentValue()
+    final public VType getCurrentValue()
     {
         return most_recent_value;
     }
 
     /** @return Most recent value of the channel's PV as a string*/
-    final public synchronized String getCurrentValueAsString()
+    final public String getCurrentValueAsString()
     {
         return VTypeHelper.toString(most_recent_value);
     }
 
     /** @return Count of received values */
-    final public synchronized long getReceivedValues()
+    final public long getReceivedValues()
     {
-        return received_value_count;
+        return received_value_count.get();
     }
 
     /** @return Last value written to archive*/
-    final public synchronized VType getLastArchivedValue()
+    final public VType getLastArchivedValue()
     {
         return last_archived_value;
     }
 
     /** @return Last value written to archive as a string*/
-    final public synchronized String getLastArchivedValueAsString()
+    final public String getLastArchivedValueAsString()
     {
         return VTypeHelper.toString(last_archived_value);
     }
@@ -321,10 +317,7 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
     public void reset()
     {
         buffer.reset();
-        synchronized (this)
-        {
-            received_value_count = 0;
-        }
+        received_value_count.set(0);
     }
 
     /** Enable or disable groups based on received value */
@@ -359,11 +352,8 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
      */
     protected boolean handleNewValue(final VType value)
     {
-        synchronized (this)
-        {
-            ++received_value_count;
-            most_recent_value = value;
-        }
+        received_value_count.incrementAndGet();
+        most_recent_value = value;
         // NaN test
         if (value instanceof VNumber)
         {
@@ -400,10 +390,7 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
      */
     protected void handleDisconnected()
     {
-        synchronized (this)
-        {
-            most_recent_value = null;
-        }
+        most_recent_value = null;
         logger.log(Level.FINE, "Wrote disconnect sample for {0}", getName());
         addInfoToBuffer(ValueButcher.createDisconnected());
         need_first_sample = true;
@@ -415,18 +402,16 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
      */
     final protected VType addInfoToBuffer(VType value)
     {
-        synchronized (this)
+        final VType last_value = last_archived_value;
+        if (last_value != null)
         {
-            if (last_archived_value != null)
-            {
-                final Instant last = VTypeHelper.getTimestamp(last_archived_value);
-                if (last.compareTo(VTypeHelper.getTimestamp(value)) >= 0)
-                {   // Patch the time stamp
-                    final Instant next = last.plus(Duration.ofMillis(100));
-                    value = VTypeHelper.transformTimestamp(value, next);
-                }
-                // else: value is OK as is
+            final Instant last = VTypeHelper.getTimestamp(last_value);
+            if (last.compareTo(VTypeHelper.getTimestamp(value)) >= 0)
+            {   // Patch the time stamp
+                final Instant next = last.plus(Duration.ofMillis(100));
+                value = VTypeHelper.transformTimestamp(value, next);
             }
+            // else: value is OK as is
         }
         addValueToBuffer(value);
         return value;
@@ -458,24 +443,22 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
             return false;
         }
 
-        synchronized (this)
-        {
-            if (last_archived_value != null &&
-                VTypeHelper.getTimestamp(last_archived_value).compareTo(time) >= 0)
-            {   // Cannot use this sample because of back-in-time problem.
-                // Usually this is NOT an error:
-                // We logged an initial sample, disconnected, disabled, ...,
-                // and now we got an update from the IOC which still
-                // carries the old, original time stamp of the PV,
-                // and that's back in time...
-                trouble_sample_log.log(getName() + " skips back-in-time:\n" +
-                        "last: " + VTypeHelper.toString(last_archived_value) + "\n" +
-                        "new : " + VTypeHelper.toString(value));
-                return false;
-            }
-            // else ...
-            last_archived_value = value;
+        final VType last_value = last_archived_value;
+        if (last_value != null &&
+            VTypeHelper.getTimestamp(last_value).compareTo(time) >= 0)
+        {   // Cannot use this sample because of back-in-time problem.
+            // Usually this is NOT an error:
+            // We logged an initial sample, disconnected, disabled, ...,
+            // and now we got an update from the IOC which still
+            // carries the old, original time stamp of the PV,
+            // and that's back in time...
+            trouble_sample_log.log(getName() + " skips back-in-time:\n" +
+                    "last: " + VTypeHelper.toString(last_value) + "\n" +
+                    "new : " + VTypeHelper.toString(value));
+            return false;
         }
+        // else ...
+        last_archived_value = value;
         buffer.add(value);
         if (SampleBuffer.isInErrorState())
             need_write_error_sample = true;
@@ -516,11 +499,7 @@ abstract public class ArchiveChannel // TODO extends PVListenerAdapter
             return;
         if (enabled)
         {   // If we have the 'current' value of the PV...
-            VType value;
-            synchronized (this)
-            {
-                value = most_recent_value;
-            }
+            VType value = most_recent_value;
             if (value != null)
             {   // Add to the buffer with timestamp 'now' to show
                 // the re-enablement

@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.csstudio.archive.Preferences;
+import org.csstudio.archive.engine.scanner.ScanThread;
+import org.csstudio.archive.engine.scanner.Scanner;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueFactory;

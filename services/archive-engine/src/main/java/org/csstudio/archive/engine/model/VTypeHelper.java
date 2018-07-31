@@ -115,7 +115,7 @@ public class VTypeHelper
 
     public static String toString(final VType value)
     {
-        // XXX Tends to be poorly formatted...
+        // TODO Tends to be poorly formatted...
         return value.toString();
     }
 }

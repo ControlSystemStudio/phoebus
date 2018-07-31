@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -20,12 +21,15 @@ import org.csstudio.archive.engine.config.RDBConfig;
 import org.csstudio.archive.engine.config.XMLConfig;
 import org.csstudio.archive.engine.model.EngineModel;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.util.shell.CommandShell;
 
 @SuppressWarnings("nls")
 public class Engine
 {
     /** Logger for all engine code */
     public static final Logger logger = Logger.getLogger(Engine.class.getPackageName());
+
+    private static final CountDownLatch done = new CountDownLatch(1);
 
     public static void help()
     {
@@ -51,6 +55,30 @@ public class Engine
         System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
         System.out.println("-logging logging.properties - Load log settings");
         System.out.println();
+    }
+
+    private static final String COMMANDS =
+        "Archive Engine Commands:\n" +
+        "help            -  Show commands\n" +
+        "shutdown        -  Stop the archive engine";
+
+    private static boolean handleShellCommands(final String... args) throws Throwable
+    {
+        if (args.length == 1)
+        {
+            if (args[0].startsWith("shut"))
+                stop();
+            else
+                return false;
+        }
+        else
+            return false;
+        return true;
+    }
+
+    public static void stop()
+    {
+        done.countDown();
     }
 
     public static void main(final String[] original_args) throws Exception
@@ -168,5 +196,31 @@ public class Engine
             return;
         }
         // TODO -import engine_config.xml
+
+
+        logger.info("Archive Engine web interface on http://localhost:" + port + "/index.html");
+        // final WebServer httpd = ...
+        try
+        {
+            final CommandShell shell = new CommandShell(COMMANDS,
+                    Engine::handleShellCommands);
+            // httpd.start();
+            model.start();
+            shell.start();
+
+            // Main thread could do other things while web server & shell are running...
+            done.await();
+
+            model.stop();
+            shell.stop();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot start", ex);
+        }
+        // httpd.shutdown();
+
+        logger.info("Done.");
+        System.exit(0);
     }
 }
