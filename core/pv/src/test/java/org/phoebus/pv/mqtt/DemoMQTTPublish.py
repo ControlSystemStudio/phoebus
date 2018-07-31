@@ -6,7 +6,7 @@ import psutil
 import threading
 import paho.mqtt.client as mqtt
 
-topic = "1es/cpuPercent"
+topic = "cpuPercent"
 will_message = "1es/cpuPercent has disconnected"
 
 client = mqtt.Client()
