@@ -1,7 +1,6 @@
 #
 # Author(s): Evan Smith, smithej@ornl.gov
 #
-
 import psutil
 import threading
 import paho.mqtt.client as mqtt
@@ -21,4 +20,6 @@ def publishCpuPercent():
 
 thread = threading.Thread(target=publishCpuPercent())
 thread.setName("CPU PERCENT THREAD")
+thread.setDaemon(True)
 thread.start()
+
