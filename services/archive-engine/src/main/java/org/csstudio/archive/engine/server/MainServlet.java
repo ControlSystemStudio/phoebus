@@ -8,6 +8,7 @@
 package org.csstudio.archive.engine.server;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -25,8 +26,11 @@ import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeDuration;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+
 /** 'main' web page
  *  @author Kay Kasemir
+ *  @author Dominic Oram JSON support in previous version
  */
 @SuppressWarnings("nls")
 public class MainServlet extends HttpServlet
@@ -41,6 +45,8 @@ public class MainServlet extends HttpServlet
                          final HttpServletResponse response) throws ServletException, IOException
     {
         final EngineModel model = Engine.getModel();
+
+        // Determine statistics
         final int group_count = model.getGroupCount();
         int connect_count = 0;
         int totalChannelCount = 0;
@@ -55,52 +61,101 @@ public class MainServlet extends HttpServlet
             }
             totalChannelCount += channel_count;
         }
-        int disconnectCount = totalChannelCount - connect_count;
-
-        final HTMLWriter html = new HTMLWriter(response, "Archive Engine");
-
-        html.openTable(2, "Summary");
-        html.tableLine("Version", Engine.VERSION);
-        html.tableLine("Description", model.getName());
-        html.tableLine("State", model.getState().name());
-
+        final int disconnectCount = totalChannelCount - connect_count;
         final Instant start = model.getStartTime();
-        if (start != null)
-        {
-            html.tableLine("Start Time", TimestampHelper.format(start));
-            final double up_secs =
-                    TimeDuration.toSecondsDouble(Duration.between(start, Instant.now()));
-            html.tableLine("Uptime", SecondsParser.formatSeconds(up_secs));
-        }
-
-        html.tableLine("Groups", Integer.toString(group_count));
-        html.tableLine("Channels", Integer.toString(totalChannelCount));
-        if (disconnectCount > 0)
-            html.tableLine("Disconnected", HTMLWriter.makeRedText(Integer.toString(disconnectCount)));
-
-        html.tableLine("Batch Size", Preferences.batch_size + " samples");
-        html.tableLine("Write Period", Preferences.write_period + " sec");
-
-        html.tableLine("Write State", (SampleBuffer.isInErrorState()
-                ? HTMLWriter.makeRedText("Write Error")
-                : "OK"));
-
         final Instant last_write_time = model.getLastWriteTime();
-        html.tableLine("Last Written", last_write_time == null ? "Never" : TimestampHelper.format(last_write_time));
-        html.tableLine("Write Count", model.getWriteCount() + " samples");
-        html.tableLine("Write Duration", String.format("%.1f sec", model.getWriteDuration()));
 
-        html.tableLine("Idle Time", String.format("%.1f %%", model.getIdlePercentage()));
+        if ("json".equals(request.getParameter("format")))
+        {
+            response.setContentType("application/json");
+            final PrintWriter out = response.getWriter();
+            final JsonGenerator jg = EngineWebServer.mapper.getFactory().createGenerator(out);
+            jg.writeStartObject();
 
-        final Runtime runtime = Runtime.getRuntime();
-        final double used_mem = runtime.totalMemory() / MB;
-        final double max_mem = runtime.maxMemory() / MB;
-        final double perc_mem = max_mem > 0 ?
-                     used_mem / max_mem * 100.0 : 0.0;
-        html.tableLine("Memory", String.format("%.1f MB of %.1f MB used (%.1f %%)", used_mem, max_mem, perc_mem));
+            jg.writeStringField(Messages.HTTP_Version, Engine.VERSION);
+            jg.writeStringField(Messages.HTTP_Description, model.getName());
+            jg.writeStringField(Messages.HTTP_State, model.getState().name());
 
-        html.closeTable();
+            if (start != null)
+            {
+                jg.writeStringField(Messages.HTTP_StartTime, TimestampHelper.format(start));
+                final double up_secs =
+                        TimeDuration.toSecondsDouble(Duration.between(start, Instant.now()));
+                jg.writeStringField(Messages.HTTP_Uptime, SecondsParser.formatSeconds(up_secs));
+            }
 
-        html.close();
+            jg.writeNumberField(Messages.HTTP_GroupCount, group_count);
+            jg.writeNumberField(Messages.HTTP_ChannelCount, totalChannelCount);
+            jg.writeNumberField(Messages.HTTP_Disconnected, disconnectCount);
+            jg.writeNumberField(Messages.HTTP_BatchSize, Preferences.batch_size);
+            jg.writeNumberField(Messages.HTTP_WritePeriod, Preferences.write_period);
+
+            jg.writeStringField(Messages.HTTP_WriteState, (SampleBuffer.isInErrorState()
+                    ? Messages.HTTP_WriteError : "OK"));
+
+            jg.writeStringField(Messages.HTTP_LastWriteTime, last_write_time == null ? "Never" : TimestampHelper.format(last_write_time));
+            jg.writeNumberField(Messages.HTTP_WriteCount, model.getWriteCount());
+            jg.writeNumberField(Messages.HTTP_WriteDuration, model.getWriteDuration());
+            jg.writeNumberField(Messages.HTTP_Idletime, model.getIdlePercentage());
+
+            final Runtime runtime = Runtime.getRuntime();
+            final double used_mem = runtime.totalMemory() / MB;
+            final double max_mem = runtime.maxMemory() / MB;
+            final double perc_mem = max_mem > 0 ?
+                         used_mem / max_mem * 100.0 : 0.0;
+
+            jg.writeNumberField("Used Memory", used_mem);
+            jg.writeNumberField("Max Memory", max_mem);
+            jg.writeNumberField("Percentage Memory", perc_mem);
+
+            jg.writeEndObject();
+            jg.close();
+            out.close();
+        }
+        else
+        {
+            final HTMLWriter html = new HTMLWriter(response, Messages.HTTP_MainTitle);
+
+            html.openTable(2, "Summary");
+            html.tableLine(Messages.HTTP_Version, Engine.VERSION);
+            html.tableLine(Messages.HTTP_Description, model.getName());
+            html.tableLine(Messages.HTTP_State, model.getState().name());
+
+            if (start != null)
+            {
+                html.tableLine(Messages.HTTP_StartTime, TimestampHelper.format(start));
+                final double up_secs =
+                        TimeDuration.toSecondsDouble(Duration.between(start, Instant.now()));
+                html.tableLine(Messages.HTTP_Uptime, SecondsParser.formatSeconds(up_secs));
+            }
+
+            html.tableLine(Messages.HTTP_GroupCount, Integer.toString(group_count));
+            html.tableLine(Messages.HTTP_ChannelCount, Integer.toString(totalChannelCount));
+            if (disconnectCount > 0)
+                html.tableLine(Messages.HTTP_Disconnected, HTMLWriter.makeRedText(Integer.toString(disconnectCount)));
+
+            html.tableLine(Messages.HTTP_BatchSize, Preferences.batch_size + " samples");
+            html.tableLine(Messages.HTTP_WritePeriod, Preferences.write_period + " sec");
+
+            html.tableLine(Messages.HTTP_WriteState, (SampleBuffer.isInErrorState()
+                    ? HTMLWriter.makeRedText(Messages.HTTP_WriteError)
+                    : "OK"));
+
+            html.tableLine(Messages.HTTP_LastWriteTime, last_write_time == null ? "Never" : TimestampHelper.format(last_write_time));
+            html.tableLine(Messages.HTTP_WriteCount, model.getWriteCount() + " samples");
+            html.tableLine(Messages.HTTP_WriteDuration, String.format("%.1f sec", model.getWriteDuration()));
+
+            html.tableLine(Messages.HTTP_Idletime, String.format("%.1f %%", model.getIdlePercentage()));
+
+            final Runtime runtime = Runtime.getRuntime();
+            final double used_mem = runtime.totalMemory() / MB;
+            final double max_mem = runtime.maxMemory() / MB;
+            final double perc_mem = max_mem > 0 ?
+                         used_mem / max_mem * 100.0 : 0.0;
+            html.tableLine("Memory", String.format("%.1f MB of %.1f MB used (%.1f %%)", used_mem, max_mem, perc_mem));
+
+            html.closeTable();
+            html.close();
+        }
     }
 }

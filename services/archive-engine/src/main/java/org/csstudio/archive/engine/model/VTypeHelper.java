@@ -8,6 +8,7 @@
 package org.csstudio.archive.engine.model;
 
 import java.time.Instant;
+import java.util.Objects;
 
 import org.phoebus.util.array.ListInt;
 import org.phoebus.util.array.ListNumber;
@@ -116,6 +117,6 @@ public class VTypeHelper
     public static String toString(final VType value)
     {
         // TODO Tends to be poorly formatted...
-        return value.toString();
+        return Objects.toString(value);
     }
 }

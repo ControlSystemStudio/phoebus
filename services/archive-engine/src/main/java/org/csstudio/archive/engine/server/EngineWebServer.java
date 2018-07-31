@@ -11,11 +11,15 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /** Engine's web server
  *  @author Kay Kasemir
  */
 public class EngineWebServer
 {
+    public static final ObjectMapper mapper = new ObjectMapper();
+
     private final Server server;
 
     public EngineWebServer(final int port)
@@ -31,6 +35,8 @@ public class EngineWebServer
         // Our servlets
         context.addServlet(MainServlet.class, "/main/*");
         context.addServlet(DisconnectedServlet.class, "/disconnected/*");
+        context.addServlet(ChannelServlet.class, "/channel/*");
+        context.addServlet(StopServlet.class, "/stop/*");
 
         // Serve static files from webroot to "/"
         context.setContextPath("/");
