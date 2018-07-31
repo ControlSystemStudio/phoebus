@@ -383,8 +383,8 @@ abstract public class ArchiveChannel
     }
 
     /** Handle a disconnect event.
-     *  <p>
-     *  Base class clears the <code>most_recent_value</code> and
+     *
+     *  <p>Base class clears the <code>most_recent_value</code> and
      *  adds a 'disconnected' info sample.
      *  Subclasses may override, but must call <code>super()</code>.
      */

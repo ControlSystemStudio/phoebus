@@ -35,6 +35,7 @@ public class EngineWebServer
         // Our servlets
         context.addServlet(MainServlet.class, "/main/*");
         context.addServlet(DisconnectedServlet.class, "/disconnected/*");
+        context.addServlet(GroupsServlet.class, "/groups/*");
         context.addServlet(ChannelServlet.class, "/channel/*");
         context.addServlet(StopServlet.class, "/stop/*");
 
