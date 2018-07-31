@@ -20,16 +20,21 @@ import java.util.logging.Logger;
 import org.csstudio.archive.engine.config.RDBConfig;
 import org.csstudio.archive.engine.config.XMLConfig;
 import org.csstudio.archive.engine.model.EngineModel;
+import org.csstudio.archive.engine.server.EngineWebServer;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.util.shell.CommandShell;
 
 @SuppressWarnings("nls")
 public class Engine
 {
+    public static final String VERSION = "4.0.0";
+
     /** Logger for all engine code */
     public static final Logger logger = Logger.getLogger(Engine.class.getPackageName());
 
     private static final CountDownLatch done = new CountDownLatch(1);
+
+    private static EngineModel model = null;
 
     public static void help()
     {
@@ -61,6 +66,11 @@ public class Engine
         "Archive Engine Commands:\n" +
         "help            -  Show commands\n" +
         "shutdown        -  Stop the archive engine";
+
+    public static EngineModel getModel()
+    {
+        return model;
+    }
 
     private static boolean handleShellCommands(final String... args) throws Throwable
     {
@@ -171,16 +181,9 @@ public class Engine
             return;
         }
 
-        logger.info("Archive Engine (PID " + ProcessHandle.current().pid() + ")");
-
+        logger.info("Archive Engine " + VERSION + " (PID " + ProcessHandle.current().pid() + ")");
         logger.info("Engine Configuration: " + config_name);
-
-
-        // TODO Command to check RDBConnectionPool
-
-        // TODO Web server and CommandShell, see ScanServerInstance
-
-        final EngineModel model = new EngineModel();
+        model = new EngineModel();
         try
         (
             RDBConfig config = new RDBConfig(model);
@@ -195,16 +198,19 @@ public class Engine
             new XMLConfig(model).write(export_file);
             return;
         }
-        // TODO -import engine_config.xml
-
+        if (import_file != null)
+        {
+            // TODO -import engine_config.xml
+            throw new Exception("Not implemented, yet");
+            // return;
+        }
 
         logger.info("Archive Engine web interface on http://localhost:" + port + "/index.html");
-        // final WebServer httpd = ...
+        final EngineWebServer httpd = new EngineWebServer(port);
         try
         {
-            final CommandShell shell = new CommandShell(COMMANDS,
-                    Engine::handleShellCommands);
-            // httpd.start();
+            final CommandShell shell = new CommandShell(COMMANDS, Engine::handleShellCommands);
+            httpd.start();
             model.start();
             shell.start();
 
@@ -218,7 +224,7 @@ public class Engine
         {
             logger.log(Level.SEVERE, "Cannot start", ex);
         }
-        // httpd.shutdown();
+        httpd.shutdown();
 
         logger.info("Done.");
         System.exit(0);
