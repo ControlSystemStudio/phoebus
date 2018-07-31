@@ -251,6 +251,7 @@ public class MQTT_PVConn implements MqttCallback
 
         connOpt.setCleanSession(true);
         connOpt.setKeepAliveInterval(30);
+        connOpt.setWill("ERROR", "PV Disconnected".getBytes(), 0, true);
         //connOpt.setUserName(userName);
         //connOpt.setPassword(passWord.toCharArray());
         //TODO: Look up best practices for reconnect
