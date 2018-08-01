@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.LogEntryTableController">
+  <children>
+    <TableView fx:id="tableView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <columns>
+        <TableColumn fx:id="timeOwnerCol" maxWidth="200.0" prefWidth="75.0" text="Time and Owner" />
+        <TableColumn fx:id="descriptionCol" maxWidth="300.0" minWidth="200.0" prefWidth="200.0" text="Description" />
+        <TableColumn fx:id="metaCol" maxWidth="200.0" prefWidth="75.0" text="MetaData" />
+      </columns>
+    </TableView>
+  </children>
+</AnchorPane>
