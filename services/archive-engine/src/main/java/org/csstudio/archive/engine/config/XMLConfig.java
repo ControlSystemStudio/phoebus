@@ -39,17 +39,11 @@ public class XMLConfig
     private static final String PERIOD = "period";
     private static final String SCAN = "scan";
 
-    private final EngineModel model;
-
-    /** @param model {@link EngineModel} to configure
+    /** @param model {@link EngineModel}
+     *  @param file File to write with information from model
      *  @throws Exception on error
      */
-    public XMLConfig(final EngineModel model) throws Exception
-    {
-        this.model = model;
-    }
-
-    public void write(final File file) throws Exception
+    public void write(final EngineModel model, final File file) throws Exception
     {
         final XMLStreamWriter base =
                 XMLOutputFactory.newInstance().createXMLStreamWriter(new FileOutputStream(file), XMLUtil.ENCODING);
@@ -58,7 +52,7 @@ public class XMLConfig
         writer.writeStartElement(ENGINECONFIG);
         {
             for (int g=0; g<model.getGroupCount(); ++g)
-                write(writer, model.getGroup(g));
+                write(model, writer, model.getGroup(g));
         }
         writer.writeEndElement();
         writer.writeEndDocument();
@@ -66,7 +60,7 @@ public class XMLConfig
         writer.close();
     }
 
-    private void write(final XMLStreamWriter writer, final ArchiveGroup group) throws Exception
+    private void write(final EngineModel model, final XMLStreamWriter writer, final ArchiveGroup group) throws Exception
     {
         writer.writeStartElement(GROUP);
         {
@@ -122,5 +116,16 @@ public class XMLConfig
                 writer.writeEmptyElement(ENABLE);
         }
         writer.writeEndElement();
+    }
+
+    /** @param import_file XML file to read
+     *  @param config RDB to update with configuration from XML file
+     *  @param steal_channels
+     *  @param replace_engine
+     */
+    public void read(final File import_file, final RDBConfig config, final boolean replace_engine, final boolean steal_channels)
+    {
+        // TODO Auto-generated method stub
+
     }
 }

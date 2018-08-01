@@ -30,17 +30,13 @@ import org.phoebus.framework.rdb.RDBInfo;
 @SuppressWarnings("nls")
 public class RDBConfig implements AutoCloseable
 {
-    private final EngineModel model;
     private final RDBInfo rdb;
     private final SQL sql;
     private final Connection connection;
 
-    /** @param model {@link EngineModel} to configure
-     *  @throws Exception on error
-     */
-    public RDBConfig(final EngineModel model) throws Exception
+    /** @throws Exception on error */
+    public RDBConfig() throws Exception
     {
-        this.model = model;
         rdb = new RDBInfo(Preferences.url, Preferences.user, Preferences.password);
         sql = new SQL(rdb.getDialect(), Preferences.schema);
         connection = rdb.connect();
@@ -141,12 +137,13 @@ public class RDBConfig implements AutoCloseable
 
 
     /** Read configuration of model from RDB.
+     *  @param model {@link EngineModel} to configure
      *  @param config_name Name of engine config
      *  @param port Current HTTPD port
      *  @param skip_last Skip reading last sample time
      *  @throws Exception on error
      */
-    public void read(final String config_name, final int port, final boolean skip_last) throws Exception
+    public void read(final EngineModel model, final String config_name, final int port, final boolean skip_last) throws Exception
     {
         logger.info("Archive Configuration '" + config_name + "'");
         logger.info("RDB: " + Preferences.url);
@@ -175,14 +172,15 @@ public class RDBConfig implements AutoCloseable
                         " while configuration requires " + url);
         }
 
-        readGroups(id, skip_last);
+        readGroups(model, id, skip_last);
     }
 
-    /** @param engine_id Engine for which to read groups and their channels
+    /** @param model {@link EngineModel} to configure
+     *  @param engine_id Engine for which to read groups and their channels
      *  @param skip_last Skip reading last sample time
      *  @throws Exception on error
      */
-    private void readGroups(final int engine_id, final boolean skip_last) throws Exception
+    private void readGroups(final EngineModel model, final int engine_id, final boolean skip_last) throws Exception
     {
         try
         (
