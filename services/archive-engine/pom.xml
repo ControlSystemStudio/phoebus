@@ -164,6 +164,45 @@
           </archive>
         </configuration>
       </plugin>
+      
+      <!-- Update jar, list all lib/* jars in the manifest classpath
+        -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <configuration>
+              <failOnError>true</failOnError>
+              <tasks>
+                <echo message="Adding dependencies to product"/>
+                <manifestclasspath property="manifest-classpath"
+                                   jarfile="${project.build.directory}/service-archive-engine-${project.version}.jar">
+                  <classpath>
+                    <path>
+                      <fileset dir="${project.build.directory}/lib">
+                        <include name="*.jar"/>
+                      </fileset>
+                    </path>
+                  </classpath>
+                </manifestclasspath>
+            
+                <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
+                <jar update="true" destfile="${project.build.directory}/service-archive-engine-${project.version}.jar">
+                  <manifest>
+                    <attribute name="Class-Path" value="${manifest-classpath}" />
+                  </manifest>
+                </jar>
+
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
     </plugins>
   </build>
 
