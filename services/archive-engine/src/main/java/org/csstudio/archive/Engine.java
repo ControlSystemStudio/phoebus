@@ -25,6 +25,11 @@ import org.csstudio.archive.engine.server.EngineWebServer;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.util.shell.CommandShell;
 
+// TODO 'restart'
+
+/** Archive engine 'main'
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 public class Engine
 {
@@ -52,14 +57,15 @@ public class Engine
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                       - This text");
-        System.out.println("-engine demo                - Engine configuration name");
-        System.out.println("-port 4812                  - HTTP Server port");
-        System.out.println("-skip_last                  - Skip reading last sample time from RDB on start-up");
-        System.out.println("-import engine_config.xml   - Import configuration from XML");
-        System.out.println("-export engine_config.xml   - Export configuration to XML");
-        System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
-        System.out.println("-logging logging.properties - Load log settings");
+        System.out.println("-help                         This text");
+        System.out.println("-engine demo                  Engine configuration name");
+        System.out.println("-port 4812                    HTTP Server port");
+        System.out.println("-skip_last                    Skip reading last sample time from RDB on start-up");
+        System.out.println("-list                         List engine names");
+        System.out.println("-import engine_config.xml     Import configuration from XML");
+        System.out.println("-export engine_config.xml     Export configuration to XML");
+        System.out.println("-settings settings.xml        Import preferences (PV connectivity) from property format file");
+        System.out.println("-logging logging.properties   Load log settings");
         System.out.println();
     }
 
@@ -99,6 +105,7 @@ public class Engine
         String config_name = "Demo";
         int port = 4812;
         boolean skip_last = false;
+        boolean list = false;
         File import_file = null, export_file = null;
 
         // Handle arguments
@@ -154,6 +161,11 @@ public class Engine
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-list"))
+                {
+                    list = true;
+                    iter.remove();
+                }
                 else if (cmd.equals("-export"))
                 {
                     if (! iter.hasNext())
@@ -184,6 +196,24 @@ public class Engine
 
         logger.info("Archive Engine " + VERSION + " (PID " + ProcessHandle.current().pid() + ")");
         logger.info("Engine Configuration: " + config_name);
+
+
+        if (list)
+        {
+            try
+            (
+                RDBConfig config = new RDBConfig(null);
+            )
+            {
+                System.out.println("Archive Engine Configurations:");
+                System.out.println("ID  Name                 Description                              URL");
+                for (String cfg : config.list())
+                    System.out.println(cfg);
+            }
+            return;
+        }
+
+
         model = new EngineModel();
         try
         (
@@ -202,6 +232,9 @@ public class Engine
         if (import_file != null)
         {
             // TODO -import engine_config.xml
+            // "-delete_config", "Delete existing engine config");
+            // "-replace_engine", "Replace existing engine config, or stop?")
+            // "-steal_channels", "Steal channels that are already in other engine");
             throw new Exception("Not implemented, yet");
             // return;
         }

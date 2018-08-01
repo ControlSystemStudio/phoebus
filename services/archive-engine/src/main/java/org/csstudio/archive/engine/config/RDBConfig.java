@@ -13,7 +13,10 @@ import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.archive.Preferences;
@@ -41,6 +44,27 @@ public class RDBConfig implements AutoCloseable
         rdb = new RDBInfo(Preferences.url, Preferences.user, Preferences.password);
         sql = new SQL(rdb.getDialect(), Preferences.schema);
         connection = rdb.connect();
+    }
+
+    /** List available configuration names
+     *  @throws Exception on error
+     */
+    public List<String> list() throws Exception
+    {
+        final List<String> configs = new ArrayList<>();
+
+        try
+        (
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery(sql.smpl_eng_list);
+        )
+        {   // eng_id, name, descr, url
+            while (result.next())
+                configs.add(String.format("%3d %-20s %-40s %-30s",
+                                          result.getInt(1), result.getString(2),
+                                          result.getString(3), result.getString(4)));
+        }
+        return configs;
     }
 
     /** Read configuration of model from RDB.
