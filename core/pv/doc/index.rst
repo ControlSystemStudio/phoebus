@@ -2,37 +2,43 @@
 Process Variables
 =================
 
-CA
---
-Process variables that are to be accessed over the channel access protocol must be identified by a formatted string that
-contains the process variable's name.
+Several types of process variables are supported.
+A prefix of the form "xx://.." is typically used to select the PV type.
 
-Channel access is the default protocol so no protocol identification is necessary as can be seen in the other examples.
+Channel Access
+--------------
+Process variables that are to be accessed over the channel access protocol are simply identified by
+the channel name.
 
-The Channel Access format is as follows::
+Channel access is the default protocol.
+If desired, 'ca://' can be used to specifically select channel access,
+but for the time being no protocol identification is necessary for channel access.
 
-    pv_name
+Examples::
 
-where 'pv_name' is replaced with the process variable's actual name.
+    SomePVName
+    ca://SomePVName
+    SomeMotor.RBV
 
-PVA
----
-Process variables that are to be accessed over the PV access protocol must be identified by a formatted string that
+
+
+PV Access
+---------
+Process variables that are to be accessed over the PV Access protocol must be identified by a formatted string that
 contains the process variable's name.
 
 As PV Access is not the default protocol, process variables accessed over it must have the protocol specified with 'pva://'.
 
 The PV Access format is as follows::
 
-    pva://pv_name
+    pva://SomePVName
+    pva://SomePVName/subfield/subelement
 
-where 'pv_name' is replaced with the process variable's actual name.
+As shown, when accessing structures, the path to a nested structure element can be provided.
 
-Sim
----
-Simulated process variables must be reference with a formatted string which contains the name of the simulated variable.
-The VType should not be included as simulated process variables are predefined within the server and already know what 
-types will be dealt with.
+Simulated
+---------
+Simulated process variables are ueful for tests. They do not communicate with the control system.
 
 The provided simulated process variables are:
     * flipflop(update_seconds)
@@ -47,37 +53,47 @@ The provided simulated process variables are:
     * sinewave(period_seconds, wavelength, size, update_seconds)
     * strings(update_seconds)
     
-The Simulated format is as follows::
+Examples::
 
-    sim://pv_name
+    sim://sine
+    sim://ramp
+    sim://ramp(1, 10, 0.2)
+    sim://noise
 
-where 'pv_name' is replaced with the simulated process variable's actual name.
+Local
+-----
+Local process variables can be used within the application,
+for example to send a value from one display to another display within the same application.
+They do not communicate with the control system.
 
-Loc
----
-Local process variables must be referenced with a formatted string which contains the name of the simulated variable
-and the VType that the variable is to have.
+Unless a type selector and initial value are provided, a local value will be of type 'double'
+with initial value of 0.
 
-Local process variables are instantiated inside the server and are not accessed over a protocol, however to identify them as internal they must be specified with 'loc://'. 
+Examples::
 
-The Local format is as follows::
+    loc://example
+    loc://a_number(42.2)
+    loc://an_array(3.8, 2.5, 7.4)
+    loc://a_text("Hello")
+    loc://large<VLong>(42)
+    loc://options<VEnum>(2, "A", "Initial", "B", "C")
 
-    loc://pv_name<VType>
-
-where 'pv_name' is replaced with the process variable's actual name and 'VType' is replaced with the VType that the variable is instantiated with.
 
 MQTT
 ----
-Data that is to be read over the MQTT network protocol must be referenced with a formatted string which contains the name of the MQTT topic and the VType that corresponds to the type of data published on the topic.
+Data that is to be read over the MQTT network protocol must be referenced with a formatted string
+which contains the name of the MQTT topic and the VType that corresponds to the type of data published on the topic.
 
-In core-pv there is a pv_mqtt_preferences.properties file that contains the MQTT broker URL. This should be set to the address of the MQTT broker that the topics will be published to.
+All MQTT topics are obtained from the same MQTT broker URL, based on a preference setting that defaults to::
 
-As MQTT is not the default protocol, topics accessed over it must have the protocol specified with 'mqtt://'.
+    org.phoebus.pv.mqtt/mqtt_broker=tcp://localhost:1883
 
-The MQTT format is as follows::
+If the VType is omitted, 'double' is assumed. Examples::
 
-    mqtt://topic_name<VType>
+    mqtt://some_topic
+    mqtt://some_topic<VDouble>
+    mqtt://some_topic<VString>
+    mqtt://some/nested/topic
 
-where 'topic_name' is replaced with the topic's actual name and 'VType' is replaced with the VType that corresponds to the variable's type.
 
 
