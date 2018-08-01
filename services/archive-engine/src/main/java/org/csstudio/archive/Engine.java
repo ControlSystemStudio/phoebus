@@ -62,6 +62,7 @@ public class Engine
         System.out.println("-port 4812                    HTTP Server port");
         System.out.println("-skip_last                    Skip reading last sample time from RDB on start-up");
         System.out.println("-list                         List engine names");
+        System.out.println("-delete_config                Delete existing engine config");
         System.out.println("-import engine_config.xml     Import configuration from XML");
         System.out.println("-export engine_config.xml     Export configuration to XML");
         System.out.println("-settings settings.xml        Import preferences (PV connectivity) from property format file");
@@ -105,7 +106,7 @@ public class Engine
         String config_name = "Demo";
         int port = 4812;
         boolean skip_last = false;
-        boolean list = false;
+        boolean list = false, delete = false;
         File import_file = null, export_file = null;
 
         // Handle arguments
@@ -166,6 +167,11 @@ public class Engine
                     list = true;
                     iter.remove();
                 }
+                else if (cmd.equals("-delete_config"))
+                {
+                    delete = true;
+                    iter.remove();
+                }
                 else if (cmd.equals("-export"))
                 {
                     if (! iter.hasNext())
@@ -212,7 +218,19 @@ public class Engine
             }
             return;
         }
-
+        if (delete)
+        {
+            try
+            (
+                RDBConfig config = new RDBConfig(null);
+            )
+            {
+                System.out.println("Deleting engine config '" + config_name + "' ...");
+                config.delete(config_name);
+                System.out.println("Done.");
+            }
+            return;
+        }
 
         model = new EngineModel();
         try
@@ -232,7 +250,6 @@ public class Engine
         if (import_file != null)
         {
             // TODO -import engine_config.xml
-            // "-delete_config", "Delete existing engine config");
             // "-replace_engine", "Replace existing engine config, or stop?")
             // "-steal_channels", "Steal channels that are already in other engine");
             throw new Exception("Not implemented, yet");

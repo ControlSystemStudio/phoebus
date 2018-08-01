@@ -47,6 +47,7 @@ public class RDBConfig implements AutoCloseable
     }
 
     /** List available configuration names
+     *  @return Information for each configuration
      *  @throws Exception on error
      */
     public List<String> list() throws Exception
@@ -66,6 +67,78 @@ public class RDBConfig implements AutoCloseable
         }
         return configs;
     }
+
+
+    /** @param config_name Name of engine config to delete
+     *  @throws Exception on error
+     */
+    public void delete(final String config_name) throws Exception
+    {
+        // Find engine
+        final int engine_id;
+        try
+        (
+            PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_sel_by_name);
+        )
+        {
+            statement.setString(1, config_name);
+            ResultSet result = statement.executeQuery();
+            if (result.next())
+                engine_id = result.getInt(1);
+            else
+                engine_id = -1;
+            result.close();
+        }
+
+        if (engine_id < 0)
+        {
+            System.out.println("Engine config '" + config_name + "' does not exist");
+            return;
+        }
+
+        // Unlink all channels from engine's groups
+        connection.setAutoCommit(false);
+        try
+        {
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.channel_clear_grp_for_engine);
+            )
+            {
+                statement.setInt(1, engine_id);
+                statement.executeUpdate();
+            }
+            // Delete all groups under engine...
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.chan_grp_delete_by_engine_id);
+            )
+            {
+                statement.setInt(1, engine_id);
+                statement.executeUpdate();
+            }
+            // Delete Engine entry
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_delete);
+            )
+            {
+                statement.setInt(1, engine_id);
+                statement.executeUpdate();
+            }
+            connection.commit();
+        }
+        catch (Exception ex)
+        {
+            connection.rollback();
+            throw ex;
+        }
+        finally
+        {
+            connection.setAutoCommit(true);
+        }
+    }
+
 
     /** Read configuration of model from RDB.
      *  @param config_name Name of engine config
