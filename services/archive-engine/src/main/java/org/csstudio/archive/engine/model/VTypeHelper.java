@@ -27,7 +27,6 @@ import org.phoebus.vtype.ValueFactory;
 /** {@link VType} helper
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class VTypeHelper
 {
     /** Read number from a {@link VType}

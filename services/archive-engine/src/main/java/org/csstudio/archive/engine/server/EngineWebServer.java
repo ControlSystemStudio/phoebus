@@ -11,15 +11,13 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /** Engine's web server
  *  @author Kay Kasemir
+ *  @author Dominic Oram JSON support in previous version
  */
+@SuppressWarnings("nls")
 public class EngineWebServer
 {
-    public static final ObjectMapper mapper = new ObjectMapper();
-
     private final Server server;
 
     public EngineWebServer(final int port)

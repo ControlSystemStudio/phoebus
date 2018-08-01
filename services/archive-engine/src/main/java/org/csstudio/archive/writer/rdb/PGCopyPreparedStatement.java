@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import org.postgresql.PGConnection;
 import org.postgresql.copy.CopyManager;
 
+@SuppressWarnings("nls")
 public class PGCopyPreparedStatement implements PreparedStatement {
 
     private Connection connection;
@@ -64,7 +65,7 @@ public class PGCopyPreparedStatement implements PreparedStatement {
         }
 
         // Get the column order as it's stored in database
-        Map<String, Integer> postgresColumnOrderMap = new HashMap<String, Integer>();
+        Map<String, Integer> postgresColumnOrderMap = new HashMap<>();
         ResultSet columnsRs = connection.getMetaData().getColumns(
                 connection.getCatalog(), null, tableName, null);
         while (columnsRs.next()) {

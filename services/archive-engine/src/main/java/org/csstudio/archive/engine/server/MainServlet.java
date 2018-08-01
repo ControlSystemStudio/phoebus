@@ -8,7 +8,6 @@
 package org.csstudio.archive.engine.server;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -67,10 +66,8 @@ public class MainServlet extends HttpServlet
 
         if ("json".equals(request.getParameter("format")))
         {
-            response.setContentType("application/json");
-            final PrintWriter out = response.getWriter();
-            final JsonGenerator jg = EngineWebServer.mapper.getFactory().createGenerator(out);
-            jg.writeStartObject();
+            final JSONWriter json = new JSONWriter(request, response);
+            final JsonGenerator jg = json.getGenerator();
 
             jg.writeStringField(Messages.HTTP_Version, Engine.VERSION);
             jg.writeStringField(Messages.HTTP_Description, model.getName());
@@ -108,9 +105,7 @@ public class MainServlet extends HttpServlet
             jg.writeNumberField("Max Memory", max_mem);
             jg.writeNumberField("Percentage Memory", perc_mem);
 
-            jg.writeEndObject();
-            jg.close();
-            out.close();
+            json.close();
         }
         else
         {
