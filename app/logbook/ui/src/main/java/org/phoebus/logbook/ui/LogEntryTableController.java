@@ -11,23 +11,17 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -39,11 +33,15 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
 public class LogEntryTableController extends LogbookSearchController {
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
+
+    @FXML
+    TextField query;
+    @FXML
+    Button search;
 
     @FXML
     TableView<LogEntry> tableView;
@@ -72,6 +70,7 @@ public class LogEntryTableController extends LogbookSearchController {
         // Create 2 sub column for FullName.
         metaCol = new TableColumn<LogEntry, LogEntry>("Logbook/Tags");
 
+        timeOwnerCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
         timeOwnerCol.setCellValueFactory(col -> {
             return new SimpleObjectProperty(col.getValue());
         });
@@ -97,6 +96,7 @@ public class LogEntryTableController extends LogbookSearchController {
             };
         });
 
+        descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 50);
         descriptionCol.setCellValueFactory(col -> {
             return new SimpleObjectProperty(col.getValue());
         });
@@ -115,20 +115,20 @@ public class LogEntryTableController extends LogbookSearchController {
                     if (empty) {
                         setGraphic(null);
                     } else {
-                        if (logEntry.getTitle() == null && !logEntry.getTitle().isEmpty()) {
+                        if (logEntry.getTitle() == null || logEntry.getTitle().isEmpty()) {
                             titleText.setVisible(false);
                         } else {
                             titleText.setVisible(true);
                             titleText.setText(logEntry.getTitle());
                         }
                         descriptionText.setText(logEntry.getDescription());
-//                        imageGallery.getChildren().clear();
-//                        logEntry.getAttachments().forEach(attachment -> {
-//                            ImageView imageView;
-//                            imageView = createImageView(attachment.getFile());
-//                            imageGallery.getChildren().addAll(imageView);
-//                        });
-//                        imageGallery.requestLayout();
+                        // imageGallery.getChildren().clear();
+                        // logEntry.getAttachments().forEach(attachment -> {
+                        // ImageView imageView;
+                        // imageView = createImageView(attachment.getFile());
+                        // imageGallery.getChildren().addAll(imageView);
+                        // });
+                        // imageGallery.requestLayout();
                         setGraphic(pane);
                     }
                 }
@@ -136,6 +136,7 @@ public class LogEntryTableController extends LogbookSearchController {
 
         });
 
+        metaCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
         metaCol.setCellValueFactory(col -> {
             return new SimpleObjectProperty(col.getValue());
         });
@@ -185,10 +186,15 @@ public class LogEntryTableController extends LogbookSearchController {
         }
     }
 
+    @FXML
+    public void search() {
+        super.search(query.getText());
+    }
 
     public void setQuery(String parsedQuery) {
-        // TODO Auto-generated method stub
-        
+        query.setText(parsedQuery);
+        search();
+
     }
 
     private ImageView createImageView(final File imageFile) {
