@@ -32,11 +32,11 @@ import org.phoebus.pv.loc.LocalPV;
 @SuppressWarnings("nls")
 public class MQTT_PVConn implements MqttCallback
 {
-    
+
     MqttClient myClient;
     MqttConnectOptions connOpt;
 
-    final Map<String, Set<MQTT_PV>> subscribers = new ConcurrentHashMap<String, Set<MQTT_PV>>();
+    final Map<String, Set<MQTT_PV>> subscribers = new ConcurrentHashMap<>();
 
     volatile private String brokerURL;
     volatile private String clientID;
@@ -84,7 +84,7 @@ public class MQTT_PVConn implements MqttCallback
                     + "\" due to no broker connection");
             throw new Exception("MQTT subscribe failed: no broker connection");
         }
-        
+
         if (!subscribers.containsKey(topicStr))
         {
             synchronized(subscribers)
@@ -198,7 +198,7 @@ public class MQTT_PVConn implements MqttCallback
             {
                 if (!is_connected)
                 {
-                    brokerURL = MQTT_Preferences.getBrokerURL();
+                    brokerURL = MQTT_Preferences.brokerURL;
                     generateClientID();
                     setOptions();
 

@@ -13,19 +13,14 @@ import org.phoebus.framework.preferences.PreferencesReader;
  * Singleton preferences class for MQTT PVs
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class MQTT_Preferences
 {
-    private static final PreferencesReader prefs = new PreferencesReader(MQTT_PVConn.class, "/pv_mqtt_preferences.properties");
-    
-    private static final String brokerURL;
-    
+    public static final String brokerURL;
+
     static
     {
+        final PreferencesReader prefs = new PreferencesReader(MQTT_PVConn.class, "/pv_mqtt_preferences.properties");
         brokerURL = prefs.get("mqtt_broker");
-    }
-    
-    public static String getBrokerURL()
-    {
-        return brokerURL;
     }
 }
