@@ -8,6 +8,8 @@
 package org.csstudio.archive.engine.config;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -22,6 +24,7 @@ import org.csstudio.archive.engine.model.MonitoredArchiveChannel;
 import org.csstudio.archive.engine.model.ScannedArchiveChannel;
 import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Element;
 
 /** XML-based engine configuration
  *  @author Kay Kasemir
@@ -66,10 +69,10 @@ public class XMLConfig
         {
             writer.writeStartElement(NAME);
             writer.writeCharacters(group.getName());
+            writer.writeEndElement();
 
             for (int c=0; c<group.getChannelCount(); ++c)
                 write(writer, model.getChannel(c));
-            writer.writeEndElement();
         }
         writer.writeEndElement();
     }
@@ -121,11 +124,31 @@ public class XMLConfig
     /** @param import_file XML file to read
      *  @param config RDB to update with configuration from XML file
      *  @param steal_channels
-     *  @param replace_engine
+     *  @throws Exception on error
      */
-    public void read(final File import_file, final RDBConfig config, final boolean replace_engine, final boolean steal_channels)
+    public void read(final File import_file, final RDBConfig config, final int engine_id, final boolean steal_channels) throws FileNotFoundException, Exception
     {
-        // TODO Auto-generated method stub
+        // TODO RDB: Load sample modes?
 
+        final Element doc = XMLUtil.openXMLDocument(new FileInputStream(import_file), ENGINECONFIG);
+        for (Element ge : XMLUtil.getChildElements(doc, GROUP))
+        {
+            final String group_name = XMLUtil.getChildString(ge, NAME)
+                                             .orElseThrow(() -> new Exception(import_file + " line " + XMLUtil.getLineInfo(ge) + " Missing group name"));
+
+            final int group_id = config.createGroup(engine_id, group_name);
+
+            for (Element ce : XMLUtil.getChildElements(ge, CHANNEL))
+            {
+                final String name = XMLUtil.getChildString(ce, NAME)
+                                           .orElseThrow(() -> new Exception(import_file + " line " + XMLUtil.getLineInfo(ce) + " Missing channel name"));
+                final boolean monitor = XMLUtil.getChildElement(ce, MONITOR) != null;
+                final double period = XMLUtil.getChildDouble(ce, PERIOD).orElse(60.0);
+                final double delta = XMLUtil.getChildDouble(ce, DELTA).orElse(-1.0);
+                final boolean enable = XMLUtil.getChildBoolean(ce, ENABLE).orElse(false);
+
+                config.addChannel(group_id, steal_channels, name, monitor, period, delta, enable);
+            }
+        }
     }
 }

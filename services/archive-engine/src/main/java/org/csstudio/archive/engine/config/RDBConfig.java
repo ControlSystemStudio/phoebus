@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.csstudio.archive.Engine;
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.engine.model.ArchiveGroup;
 import org.csstudio.archive.engine.model.Enablement;
@@ -65,10 +66,205 @@ public class RDBConfig implements AutoCloseable
     }
 
 
-    /** @param config_name Name of engine config to delete
+    /** @param config_name Name of engine to create (or use existing)
+     *  @param replace_engine If exists, remove existing groups & channels?
+     *  @return ID of new or existing engine
+     *  @throws Exception on error, which includes finding existing engine without 'replace' option
+     */
+    public int createEngine(final String config_name, final boolean replace_engine, final String url) throws Exception
+    {
+        // Check for existing engine
+        int engine_id;
+        try
+        (
+            PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_sel_by_name);
+        )
+        {
+            statement.setString(1, config_name);
+            ResultSet result = statement.executeQuery();
+            if (result.next())
+                engine_id = result.getInt(1);
+            else
+                engine_id = -1;
+            result.close();
+        }
+
+        if (engine_id >= 0)
+        {
+            if (replace_engine)
+            {
+                logger.log(Level.INFO, "Removing channels and groups from existing '" + config_name + "' (" + engine_id + ")");
+                delete(config_name, false);
+            }
+            else
+                throw new Exception("Archive engine '" + config_name + "' (" + engine_id + ") already exists. Use -replace_engine to replace");
+        }
+        else
+        {
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_next_id);
+            )
+            {
+                ResultSet result = statement.executeQuery();
+                if (result.next())
+                    engine_id = result.getInt(1) + 1;
+                else
+                    engine_id = 1;
+                result.close();
+            }
+
+            logger.log(Level.INFO, "Creating new engine '" + config_name + "' (" + engine_id + ")");
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_insert);
+            )
+            {
+                statement.setInt(1, engine_id);
+                statement.setString(2, config_name);
+                statement.setString(3, "Created by Engine " + Engine.VERSION);
+                statement.setString(4, url);
+                statement.executeUpdate();
+            }
+        }
+
+        return engine_id;
+    }
+
+    /** @param engine_id Engine for which to create a new group
+     *  @param group_name Name of that group
+     *  @return Group ID
      *  @throws Exception on error
      */
-    public void delete(final String config_name) throws Exception
+    public int createGroup(final int engine_id, final String group_name) throws Exception
+    {
+        final int group_id;
+        try
+        (
+            PreparedStatement statement = connection.prepareStatement(sql.chan_grp_next_id);
+        )
+        {
+            ResultSet result = statement.executeQuery();
+            if (result.next())
+                group_id = result.getInt(1) + 1;
+            else
+                group_id = 1;
+            result.close();
+        }
+
+        logger.log(Level.INFO, "Creating new group '" + group_name + "' (" + group_id + ")");
+        try
+        (
+            PreparedStatement statement = connection.prepareStatement(sql.chan_grp_insert);
+        )
+        {
+            statement.setInt(1, group_id);
+            statement.setString(2, group_name);
+            statement.setInt(3, engine_id);
+            statement.executeUpdate();
+        }
+
+        return group_id;
+    }
+
+    /** @param group_id Group where to add channel
+     *  @param steal_channels Steal from other group, if channel already attached?
+     *  @param name Name of channel
+     *  @param monitor
+     *  @param period
+     *  @param delta
+     *  @param enable
+     *  @throws Exception on error, including existing channel
+     */
+    public void addChannel(final int group_id, final boolean steal_channels, final String name,
+                           final boolean monitor, final double period, final double delta,
+                           final boolean enable) throws Exception
+    {
+        int channel_id = -1;
+        try
+        (
+            PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
+        )
+        {
+            statement.setString(1, name);
+            ResultSet result = statement.executeQuery();
+            if (result.next())
+                channel_id = result.getInt(1);
+            result.close();
+        }
+
+        if (channel_id >= 0)
+        {
+            // Check if existing channel is simply an old one with data,
+            // or currently listed in another engine's group
+            Exception existing = null;
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.chan_grp_sel_by_channel);
+            )
+            {
+                statement.setString(1, name);
+                ResultSet result = statement.executeQuery();
+                if (result.next())
+                    existing = new Exception("Channel '" + name + "' is already in group '" + result.getString(2) + "' (" + result.getInt(1) + ")");
+                result.close();
+            }
+            if (existing != null  &&  !steal_channels)
+                throw existing;
+
+            // Update channel to be in new group
+            logger.log(Level.INFO, "Updating channel '" + name + "' (" + channel_id + ")");
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.channel_update);
+            )
+            {
+                statement.setInt(1, group_id);
+                statement.setString(2, name);
+                statement.setInt(3, monitor ? 1 : 2);
+                statement.setDouble(4, delta);
+                statement.setDouble(5, period);
+                statement.setInt(6, channel_id);
+                statement.executeUpdate();
+            }
+        }
+        else
+        {   // Create new channel
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.channel_next_id);
+            )
+            {
+                ResultSet result = statement.executeQuery();
+                if (result.next())
+                    channel_id = result.getInt(1) + 1;
+                else
+                    channel_id = 1;
+                result.close();
+            }
+
+            logger.log(Level.INFO, "Adding new channel '" + name + "' (" + channel_id + ")");
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.channel_insert);
+            )
+            {
+                statement.setInt(1, group_id);
+                statement.setString(2, name);
+                statement.setInt(3, monitor ? 1 : 2);
+                statement.setDouble(4, delta);
+                statement.setDouble(5, period);
+                statement.setInt(6, channel_id);
+                statement.executeUpdate();
+            }
+        }
+    }
+
+    /** @param config_name Name of engine config to delete
+     *  @param complete Delete the sample engine entry itself, or leave that after unlinking all groups and channels?
+     *  @throws Exception on error
+     */
+    public void delete(final String config_name, final boolean complete) throws Exception
     {
         // Find engine
         final int engine_id;
@@ -114,13 +310,16 @@ public class RDBConfig implements AutoCloseable
                 statement.executeUpdate();
             }
             // Delete Engine entry
-            try
-            (
-                PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_delete);
-            )
+            if (complete)
             {
-                statement.setInt(1, engine_id);
-                statement.executeUpdate();
+                try
+                (
+                    PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_delete);
+                )
+                {
+                    statement.setInt(1, engine_id);
+                    statement.executeUpdate();
+                }
             }
             connection.commit();
         }

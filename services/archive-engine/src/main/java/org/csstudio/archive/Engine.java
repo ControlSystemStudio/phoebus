@@ -239,7 +239,7 @@ public class Engine
             )
             {
                 logger.log(Level.INFO, "Deleting engine config '" + config_name + "' ...");
-                config.delete(config_name);
+                config.delete(config_name, true);
                 logger.log(Level.INFO, "Done.");
             }
             return;
@@ -247,13 +247,19 @@ public class Engine
 
         if (import_file != null)
         {
-            logger.log(Level.INFO, "Importing configuration from " + import_file);
+            logger.log(Level.INFO, "Importing config    : " + import_file);
+// TODO     logger.log(Level.INFO, "Description         : " + engine_description.get());
+// TODO     logger.log(Level.INFO, "URL                 : " + engine_url);
+            logger.log(Level.INFO, "Replace engine      : " + replace_engine);
+            logger.log(Level.INFO, "Steal channels      : " + steal_channels);
+
             try
             (
-                    RDBConfig config = new RDBConfig();
-                    )
+                RDBConfig config = new RDBConfig();
+            )
             {
-                new XMLConfig().read(import_file, config, replace_engine, steal_channels);
+                final int engine_id = config.createEngine(config_name, replace_engine, "http://localhost:" + port);
+                new XMLConfig().read(import_file, config, engine_id, steal_channels);
             }
             return;
         }
