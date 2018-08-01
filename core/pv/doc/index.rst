@@ -5,28 +5,28 @@ Process Variables
 CA
 --
 Process variables that are to be accessed over the channel access protocol must be identified by a formatted string that
-contains the process variable's name and the VType that corresponds to the process variable's type.
+contains the process variable's name.
 
 Channel access is the default protocol so no protocol identification is necessary as can be seen in the other examples.
 
 The Channel Access format is as follows::
 
-    pv_name<VType>
+    pv_name
 
-where 'pv_name' is replaced with the process variable's actual name and 'VType' is replaced with the VType that corresponds to the variable's type.
+where 'pv_name' is replaced with the process variable's actual name.
 
 PVA
 ---
 Process variables that are to be accessed over the PV access protocol must be identified by a formatted string that
-contains the process variable's name and the VType that corresponds to the process variable's type.
+contains the process variable's name.
 
 As PV Access is not the default protocol, process variables accessed over it must have the protocol specified with 'pva://'.
 
 The PV Access format is as follows::
 
-    pva://pv_name<VType>
+    pva://pv_name
 
-where 'pv_name' is replaced with the process variable's actual name and 'VType' is replaced with the VType that corresponds to the variable's type.
+where 'pv_name' is replaced with the process variable's actual name.
 
 Sim
 ---
