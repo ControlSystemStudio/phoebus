@@ -341,6 +341,7 @@ public class Engine
             catch (Exception ex)
             {
                 logger.log(Level.SEVERE, "Cannot start", ex);
+                run = false;
             }
             httpd.shutdown();
         }
