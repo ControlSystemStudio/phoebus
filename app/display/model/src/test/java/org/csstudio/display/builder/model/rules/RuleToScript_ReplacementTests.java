@@ -31,6 +31,7 @@ public class RuleToScript_ReplacementTests
     {
         assertThat(RuleToScript.javascriptToPythonLogic("pv0!=3"), equalTo("pv0!=3"));
         assertThat(RuleToScript.javascriptToPythonLogic("pv0=3"), equalTo("pv0==3"));
+        assertThat(RuleToScript.javascriptToPythonLogic("pv0>=0"), equalTo("pv0>=0"));
     }
 
     @Test
@@ -60,5 +61,6 @@ public class RuleToScript_ReplacementTests
         final String expression = "a == \"a\" || x != \"\\\"\" && y == \"b!\"";
         assertThat(RuleToScript.javascriptToPythonLogic(expression),
                                                 equalTo("a == \"a\"  or  x != \"\\\"\"  and  y == \"b!\""));
+        assertThat(RuleToScript.javascriptToPythonLogic("pv0>=0) && (pv0<=10)"), equalTo("pv0>=0)  and  (pv0<=10)"));
     }
 }

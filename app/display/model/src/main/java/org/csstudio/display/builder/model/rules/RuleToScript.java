@@ -149,7 +149,7 @@ public class RuleToScript
                 result.append("==");
                 i += 1;
             }
-            else if (text.charAt(i) == '=') // and neither "==" nor "!="
+            else if (text.charAt(i) == '=' && i > 0 && !(text.charAt(i-1)=='<' || text.charAt(i-1)=='>')) // and neither "==" nor "!=" nor "<=", ">="
                 result.append("==");
             else
                 result.append(text.charAt(i));
