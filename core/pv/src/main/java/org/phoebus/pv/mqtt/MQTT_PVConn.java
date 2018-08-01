@@ -61,7 +61,6 @@ public class MQTT_PVConn implements MqttCallback
     @Override
     public void messageArrived(String topic, MqttMessage msg) throws Exception
     {
-        System.out.println("MQTT Connections Message arrived: " + topic + " : " + msg.toString());
 
         //Synchronize this so a pv can't unsubscribe and leave an invalid pointer in the map while we deliver message
         synchronized(subscribers)
@@ -85,7 +84,7 @@ public class MQTT_PVConn implements MqttCallback
                     + "\" due to no broker connection");
             throw new Exception("MQTT subscribe failed: no broker connection");
         }
-
+        
         if (!subscribers.containsKey(topicStr))
         {
             synchronized(subscribers)
@@ -151,8 +150,6 @@ public class MQTT_PVConn implements MqttCallback
         message.setQos(pubQoS);
         message.setRetained(retained);
 
-        // Publish the message
-        System.out.println("Publishing \"" + pubMsg + "\" to topic \"" + topic + "\" qos " + pubQoS);
         MqttDeliveryToken token = null;
         try {
             // publish message to broker
@@ -179,9 +176,9 @@ public class MQTT_PVConn implements MqttCallback
                             Thread.sleep(100);
                             myClient.disconnect();
                             is_connected = false;
-                        } catch (Exception e) {
+                        } catch (Exception ex) {
                             PV.logger.log(Level.WARNING, "Failed to disconnect from MQTT broker " + brokerURL);
-                            e.printStackTrace();
+                            ex.printStackTrace();
                         }
                     }
                     else
@@ -211,9 +208,9 @@ public class MQTT_PVConn implements MqttCallback
                         myClient.setCallback(this);
                         myClient.connect(connOpt);
                         is_connected = true;
-                    } catch (MqttException e) {
+                    } catch (MqttException ex) {
                         PV.logger.log(Level.SEVERE, "Could not connect to MQTT broker " + brokerURL);
-                        e.printStackTrace();
+                        ex.printStackTrace();
                     }
                 }
             }
@@ -253,9 +250,8 @@ public class MQTT_PVConn implements MqttCallback
         connOpt.setKeepAliveInterval(30);
         connOpt.setWill("ERROR", "PV Disconnected".getBytes(), 0, true);
         //connOpt.setUserName(userName);
-        //connOpt.setPassword(passWord.toCharArray());
+        //connOpt.setPassword(passWord.getBytes());
         //TODO: Look up best practices for reconnect
-        //connOpt.setAutomaticReconnect(true);
     }
 
     /**
@@ -271,9 +267,9 @@ public class MQTT_PVConn implements MqttCallback
         // TODO: attempt reconnect repeatedly in background thread with timer backoff and eventual timeout
         try {
             myClient.connect(connOpt);
-        } catch (MqttException e) {
+        } catch (MqttException ex) {
             PV.logger.log(Level.SEVERE, "Could not reconnect to MQTT broker " + brokerURL);
-            e.printStackTrace();
+            ex.printStackTrace();
         }
     }
 

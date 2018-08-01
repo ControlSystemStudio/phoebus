@@ -175,10 +175,10 @@ public class MQTT_PV extends PV
         {
             conx.unsubscribeTopic(topicStr, this);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
             logger.log(Level.WARNING, "Failed to unsubscribe PV from topic " + topicStr);
-            e.printStackTrace();
+            ex.printStackTrace();
         }
     }
 
@@ -188,7 +188,6 @@ public class MQTT_PV extends PV
     public void messageArrived(String topic, MqttMessage msg) throws Exception
     {
         final String new_value = msg.toString();
-        System.out.println("MQTT_PV Message arrived: " + topic + " : " + msg.toString());
 
         if (!topic.equals(topicStr))
         {
@@ -204,8 +203,8 @@ public class MQTT_PV extends PV
         catch (Exception ex)
         {
             logger.log(Level.SEVERE, "Could not parse message: '" + new_value + "' to " + getName());
-            ex.printStackTrace();
-            //throw new Exception("Failed to parse message", ex);
+
+            throw new Exception("Failed to parse message", ex);
         }
     }
 
