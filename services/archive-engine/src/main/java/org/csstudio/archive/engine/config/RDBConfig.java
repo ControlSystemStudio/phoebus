@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.csstudio.archive.Engine;
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.engine.model.ArchiveGroup;
 import org.csstudio.archive.engine.model.Enablement;
@@ -67,11 +66,12 @@ public class RDBConfig implements AutoCloseable
 
 
     /** @param config_name Name of engine to create (or use existing)
+     *  @param description
      *  @param replace_engine If exists, remove existing groups & channels?
      *  @return ID of new or existing engine
      *  @throws Exception on error, which includes finding existing engine without 'replace' option
      */
-    public int createEngine(final String config_name, final boolean replace_engine, final String url) throws Exception
+    public int createEngine(final String config_name, final String description, final boolean replace_engine, final String url) throws Exception
     {
         // Check for existing engine
         int engine_id;
@@ -122,7 +122,7 @@ public class RDBConfig implements AutoCloseable
             {
                 statement.setInt(1, engine_id);
                 statement.setString(2, config_name);
-                statement.setString(3, "Created by Engine " + Engine.VERSION);
+                statement.setString(3, description);
                 statement.setString(4, url);
                 statement.executeUpdate();
             }
@@ -206,7 +206,7 @@ public class RDBConfig implements AutoCloseable
                 statement.setString(1, name);
                 ResultSet result = statement.executeQuery();
                 if (result.next())
-                    existing = new Exception("Channel '" + name + "' is already in group '" + result.getString(2) + "' (" + result.getInt(1) + ")");
+                    existing = new Exception("Channel '" + name + "' is already in group '" + result.getString(2) + "' (" + result.getInt(1) + "). Use option -steal_channels to move to this engine.");
                 result.close();
             }
             if (existing != null  &&  !steal_channels)

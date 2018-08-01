@@ -36,6 +36,7 @@ public class EngineWebServer
         context.addServlet(GroupsServlet.class, "/groups/*");
         context.addServlet(GroupServlet.class, "/group/*");
         context.addServlet(ChannelServlet.class, "/channel/*");
+        context.addServlet(RestartServlet.class, "/restart/*");
         context.addServlet(StopServlet.class, "/stop/*");
 
         // Serve static files from webroot to "/"

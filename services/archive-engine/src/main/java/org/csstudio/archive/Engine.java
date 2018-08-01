@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -20,6 +19,8 @@ import java.util.logging.Logger;
 
 import org.csstudio.archive.engine.config.RDBConfig;
 import org.csstudio.archive.engine.config.XMLConfig;
+import org.csstudio.archive.engine.model.ArchiveChannel;
+import org.csstudio.archive.engine.model.ArchiveGroup;
 import org.csstudio.archive.engine.model.EngineModel;
 import org.csstudio.archive.engine.server.EngineWebServer;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
@@ -37,8 +38,6 @@ public class Engine
 
     /** Logger for all engine code */
     public static final Logger logger = Logger.getLogger(Engine.class.getPackageName());
-
-    private static final CountDownLatch done = new CountDownLatch(1);
 
     private static EngineModel model = null;
 
@@ -65,6 +64,7 @@ public class Engine
         System.out.println("-delete_config                Delete existing engine config");
         System.out.println("-export engine_config.xml     Export configuration to XML");
         System.out.println("-import engine_config.xml     Import configuration from XML");
+        System.out.println("-description \"Some Info\"      Import: Description for the engine");
         System.out.println("-replace_engine               Import: Replace existing engine config, or stop?");
         System.out.println("-steal_channels               Import: Reassign channels that belong to other engine?");
         System.out.println("-settings settings.xml        Import preferences (PV connectivity) from property format file");
@@ -75,6 +75,8 @@ public class Engine
     private static final String COMMANDS =
         "Archive Engine Commands:\n" +
         "help            -  Show commands\n" +
+        "disconnected    -  Show disconnected channels\n" +
+        "restart         -  Restart archive engine\n" +
         "shutdown        -  Stop the archive engine";
 
     public static EngineModel getModel()
@@ -86,8 +88,31 @@ public class Engine
     {
         if (args.length == 1)
         {
-            if (args[0].startsWith("shut"))
-                stop();
+            if (args[0].startsWith("dis"))
+            {
+                System.out.println("Disconnected channels:");
+                int disconnected = 0;
+                final int group_count = model.getGroupCount();
+                for (int i=0; i<group_count; ++i)
+                {
+                    final ArchiveGroup group = model.getGroup(i);
+                    final int channel_count = group.getChannelCount();
+                    for (int j=0; j<channel_count; ++j)
+                    {
+                        final ArchiveChannel channel = group.getChannel(j);
+                        if (! channel.isConnected())
+                        {
+                            ++disconnected;
+                            System.out.println(channel.getName());
+                       }
+                    }
+                }
+                System.out.println("Total: " + disconnected);
+            }
+            else if (args[0].startsWith("shut"))
+                model.requestStop();
+            else if (args[0].startsWith("restart"))
+                model.requestRestart();
             else
                 return false;
         }
@@ -96,16 +121,13 @@ public class Engine
         return true;
     }
 
-    public static void stop()
-    {
-        done.countDown();
-    }
-
     public static void main(final String[] original_args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(Engine.class.getResourceAsStream("/engine_logging.properties"));
 
         String config_name = "Demo";
+        String description = "";
+
         int port = 4812;
         boolean skip_last = false;
         boolean list = false, delete = false, replace_engine = false, steal_channels = false;
@@ -190,6 +212,14 @@ public class Engine
                     import_file = new File(iter.next());
                     iter.remove();
                 }
+                else if (cmd.equals("-description"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -description text");
+                    iter.remove();
+                    description = iter.next();
+                    iter.remove();
+                }
                 else if (cmd.equals("-replace_engine"))
                 {
                     replace_engine = true;
@@ -247,9 +277,10 @@ public class Engine
 
         if (import_file != null)
         {
+            final String url = "http://localhost:" + port;
             logger.log(Level.INFO, "Importing config    : " + import_file);
-// TODO     logger.log(Level.INFO, "Description         : " + engine_description.get());
-// TODO     logger.log(Level.INFO, "URL                 : " + engine_url);
+            logger.log(Level.INFO, "Description         : " + description);
+            logger.log(Level.INFO, "URL                 : " + url);
             logger.log(Level.INFO, "Replace engine      : " + replace_engine);
             logger.log(Level.INFO, "Steal channels      : " + steal_channels);
 
@@ -258,55 +289,63 @@ public class Engine
                 RDBConfig config = new RDBConfig();
             )
             {
-                final int engine_id = config.createEngine(config_name, replace_engine, "http://localhost:" + port);
+                final int engine_id = config.createEngine(config_name, description, replace_engine, url);
                 new XMLConfig().read(import_file, config, engine_id, steal_channels);
             }
             return;
         }
 
-        model = new EngineModel();
-        try
-        (
-            RDBConfig config = new RDBConfig();
-        )
+        final CommandShell shell = new CommandShell(COMMANDS, Engine::handleShellCommands);
+        shell.start();
+        boolean run = true;
+        while (run)
         {
-            config.read(model, config_name, port, skip_last);
-        }
-
-        if (export_file != null)
-        {
-            logger.log(Level.INFO, "Saving configuration to " + export_file);
-            new XMLConfig().write(model, export_file);
-            return;
-        }
-
-        logger.info("Archive Engine web interface on http://localhost:" + port + "/index.html");
-        final EngineWebServer httpd = new EngineWebServer(port);
-        try
-        {
-            final CommandShell shell = new CommandShell(COMMANDS, Engine::handleShellCommands);
-            httpd.start();
-            model.start();
-            shell.start();
-
-            // Main thread could do other things while web server & shell are running...
-            while (true)
+            model = new EngineModel();
+            try
+            (
+                RDBConfig config = new RDBConfig();
+            )
             {
-                if (model.getState() == EngineModel.State.SHUTDOWN_REQUESTED)
-                    break;
-                if (done.await(100, TimeUnit.MILLISECONDS))
-                    break;
+                config.read(model, config_name, port, skip_last);
             }
 
-            model.stop();
-            shell.stop();
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.SEVERE, "Cannot start", ex);
-        }
-        httpd.shutdown();
+            if (export_file != null)
+            {
+                logger.log(Level.INFO, "Saving configuration to " + export_file);
+                new XMLConfig().write(model, export_file);
+                return;
+            }
 
+            logger.info("Archive Engine web interface on http://localhost:" + port + "/index.html");
+            final EngineWebServer httpd = new EngineWebServer(port);
+            try
+            {
+                httpd.start();
+                model.start();
+
+                // Main thread could do other things while web server & shell are running...
+                while (true)
+                {
+                    if (model.getState() == EngineModel.State.SHUTDOWN_REQUESTED)
+                    {
+                        run = false;
+                        break;
+                    }
+                    if (model.getState() == EngineModel.State.RESTART_REQUESTED)
+                        break;
+                    TimeUnit.MILLISECONDS.sleep(100);
+                }
+
+                model.stop();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.SEVERE, "Cannot start", ex);
+            }
+            httpd.shutdown();
+        }
+
+        shell.stop();
         logger.info("Done.");
         System.exit(0);
     }
