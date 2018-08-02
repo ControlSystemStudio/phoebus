@@ -38,6 +38,8 @@ public class PVTableModel implements PVTableItemListener
      */
     private static final long UPDATE_PERIOD_MS = 200;
 
+    private boolean toSaveRestore = true;
+    
     /** The list of items in this table. */
     private List<PVTableItem> items = new ArrayList<PVTableItem>();
 
@@ -289,6 +291,16 @@ public class PVTableModel implements PVTableItemListener
         }
     }
 
+    public void setToSaveRestore(boolean toSaveRestore)
+    {
+        this.toSaveRestore = toSaveRestore;
+    }
+    
+    public boolean getToSaveRestore()
+    {
+        return toSaveRestore;
+    }
+    
     /** Restore saved values for all checked items */
     public void restore()
     {
