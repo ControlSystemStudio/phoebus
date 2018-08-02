@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 public class PVTableXMLPersistence extends PVTablePersistence
 {
     /** File extension used for XML files */
-    final public static String FILE_EXTENSION = "pvs";
+    final public  static String FILE_EXTENSION = "pvs";
     final private static String ROOT = "pvtable";
     final private static String TOLERANCE = "tolerance";
     final private static String PVLIST = "pvlist";
@@ -76,7 +76,8 @@ public class PVTableXMLPersistence extends PVTablePersistence
         Element root_node = doc.getDocumentElement();
         String root_name = root_node.getNodeName();
         
-        // boolean save = Boolean.parseBoolean(root_node.getAttribute("save"));
+        boolean save = Boolean.parseBoolean(root_node.getAttribute("save"));
+        model.setToSaveRestore(save);
         
         if (!root_name.equals(ROOT))
             throw new Exception("Expected <" + ROOT + ">, found <" + root_name + ">");
@@ -99,11 +100,14 @@ public class PVTableXMLPersistence extends PVTablePersistence
                 final double tolerance = XMLUtil.getChildDouble(pv, TOLERANCE).orElse(default_tolerance);
                 final boolean selected = XMLUtil.getChildBoolean(pv, SELECTED).orElse(true);
 
-                final String time_saved = XMLUtil.getChildString(pv, SAVED_TIME).orElse("");
-                final SavedValue saved = readSavedValue(pv);
-                final PVTableItem pvItem = model.addItem(pv_name, tolerance, saved, time_saved);
-                pvItem.setSelected(selected);
-                pvItem.setUseCompletion(XMLUtil.getChildBoolean(pv, COMPLETION).orElse(false));
+                if (save)
+                {
+                    final String time_saved = XMLUtil.getChildString(pv, SAVED_TIME).orElse("");
+                    final SavedValue saved = readSavedValue(pv);
+                    final PVTableItem pvItem = model.addItem(pv_name, tolerance, saved, time_saved);
+                    pvItem.setSelected(selected);
+                    pvItem.setUseCompletion(XMLUtil.getChildBoolean(pv, COMPLETION).orElse(false));
+                }
 
                 // Legacy files may contain a separate readback PV and value for this entry
                 XMLUtil.getChildString(pv, READBACK_NAME).ifPresent(readback ->
@@ -141,9 +145,13 @@ public class PVTableXMLPersistence extends PVTablePersistence
     @Override
     public void write(final PVTableModel model, final OutputStream stream) throws Exception
     {
+        Boolean save = model.getToSaveRestore();
+        
         final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         final Element root = doc.createElement("pvtable");
         root.setAttribute("version", "3.0");
+        if (save)
+            root.setAttribute("save", save.toString());
         doc.appendChild(root);
 
         root.appendChild(XMLUtil.createTextElement(doc, TIMEOUT, Double.toString(model.getCompletionTimeout())));
@@ -156,24 +164,28 @@ public class PVTableXMLPersistence extends PVTablePersistence
             pv.appendChild(XMLUtil.createTextElement(doc, SELECTED, Boolean.toString(item.isSelected())));
             pv.appendChild(XMLUtil.createTextElement(doc, NAME, item.getName()));
             pv.appendChild(XMLUtil.createTextElement(doc, TOLERANCE, Double.toString(item.getTolerance())));
-            pv.appendChild(XMLUtil.createTextElement(doc, SAVED_TIME, item.getTime_saved()));
-
-            final SavedValue saved = item.getSavedValue().orElse(null);
-            if (saved instanceof SavedScalarValue)
-                pv.appendChild(XMLUtil.createTextElement(doc, SAVED_VALUE, saved.toString()));
-            else if (saved instanceof SavedArrayValue)
+            
+            if (save)
             {
-                final SavedArrayValue array = (SavedArrayValue) saved;
-                final Element el = doc.createElement(SAVED_ARRAY);
-
-                final int N = array.size();
-                for (int i=0; i<N; ++i)
-                    el.appendChild(XMLUtil.createTextElement(doc, ITEM, array.get(i)));
-
-                pv.appendChild(el);
-
+                pv.appendChild(XMLUtil.createTextElement(doc, SAVED_TIME, item.getTime_saved()));
+    
+                final SavedValue saved = item.getSavedValue().orElse(null);
+                if (saved instanceof SavedScalarValue)
+                    pv.appendChild(XMLUtil.createTextElement(doc, SAVED_VALUE, saved.toString()));
+                else if (saved instanceof SavedArrayValue)
+                {
+                    final SavedArrayValue array = (SavedArrayValue) saved;
+                    final Element el = doc.createElement(SAVED_ARRAY);
+    
+                    final int N = array.size();
+                    for (int i=0; i<N; ++i)
+                        el.appendChild(XMLUtil.createTextElement(doc, ITEM, array.get(i)));
+    
+                    pv.appendChild(el);
+    
+                }
             }
-
+            
             pv.appendChild(XMLUtil.createTextElement(doc, COMPLETION, Boolean.toString(item.isUsingCompletion())));
 
             pvs.appendChild(pv);
