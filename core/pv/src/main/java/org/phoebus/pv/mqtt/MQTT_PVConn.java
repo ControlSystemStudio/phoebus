@@ -26,8 +26,10 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.loc.LocalPV;
 
-/** Factory for creating {@link LocalPV}s
- *  @author Kay Kasemir
+/** MQTT Topic subscription handler
+ *
+ *  <p>Dispatches MQTT data to {@link MQTT_PV}s
+ *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
 public class MQTT_PVConn implements MqttCallback
