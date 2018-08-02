@@ -42,7 +42,7 @@ public class MQTT_PVConn implements MqttCallback
     /** Mapping from topic to PVs */
     final ConcurrentHashMap<String, CopyOnWriteArrayList<MQTT_PV>> subscribers = new ConcurrentHashMap<>();
 
-    volatile private String brokerURL;
+    volatile private String brokerURL = MQTT_Preferences.brokerURL;
     volatile private String clientID;
 
     //Random integer in case
@@ -251,7 +251,6 @@ public class MQTT_PVConn implements MqttCallback
     public void deliveryComplete(IMqttDeliveryToken arg0)
     {
         // TODO Auto-generated method stub
-
     }
 
 }
