@@ -9,3 +9,4 @@ mvn -DskipTests clean install
 # Or:
 # (cd scan-server-product/target; java -jar scan-server-product-0.0.1-SNAPSHOT.jar )
 # (cd alarm-server-product/target; java -jar alarm-server-product-0.0.1-SNAPSHOT.jar )
+# (cd services/archive-engine/target; java -jar service-archive-engine-0.0.1-SNAPSHOT.jar -help )
