@@ -9,10 +9,11 @@ package org.phoebus.pv.mqtt;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -24,7 +25,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.loc.LocalPV;
 
 /** MQTT Topic subscription handler
  *
@@ -34,17 +34,16 @@ import org.phoebus.pv.loc.LocalPV;
 @SuppressWarnings("nls")
 public class MQTT_PVConn implements MqttCallback
 {
+    private final AtomicBoolean connected = new AtomicBoolean();
 
     MqttClient myClient;
     MqttConnectOptions connOpt;
 
-    final Map<String, Set<MQTT_PV>> subscribers = new ConcurrentHashMap<>();
+    /** Mapping from topic to PVs */
+    final ConcurrentHashMap<String, CopyOnWriteArrayList<MQTT_PV>> subscribers = new ConcurrentHashMap<>();
 
     volatile private String brokerURL;
     volatile private String clientID;
-
-    boolean is_connected;
-    final Object conn_lock = new Object();
 
     //Random integer in case
     final static Integer randInt = ThreadLocalRandom.current().nextInt(0, 1000000 + 1);
@@ -63,84 +62,65 @@ public class MQTT_PVConn implements MqttCallback
     @Override
     public void messageArrived(String topic, MqttMessage msg) throws Exception
     {
-
-        //Synchronize this so a pv can't unsubscribe and leave an invalid pointer in the map while we deliver message
-        synchronized(subscribers)
-        {
-            if (subscribers.containsKey(topic))
-            {
-                for (MQTT_PV pv : subscribers.get(topic))
-                {
-                    pv.messageArrived(topic, msg);
-                }
-            }
-        }
-
+        for (MQTT_PV pv : subscribers.get(topic))
+            pv.messageArrived(topic, msg);
     }
 
     public void subscribeTopic (String topicStr, MQTT_PV pv) throws Exception
     {
-        if ((!is_connected) && (!connect()))
+        if (!connect())
         {
             PV.logger.log(Level.WARNING, "Could not subscribe to mqtt topic \"" + topicStr
                     + "\" due to no broker connection");
             throw new Exception("MQTT subscribe failed: no broker connection");
         }
 
-        if (!subscribers.containsKey(topicStr))
+        final List<MQTT_PV> pvs = subscribers.computeIfAbsent(topicStr, topic ->
         {
-            synchronized(subscribers)
+            int subQoS = 0;
+            try
             {
-                if (!subscribers.containsKey(topicStr))
-                {
-                    subscribers.put(topicStr, ConcurrentHashMap.newKeySet());
-                    int subQoS = 0;
-                    myClient.subscribe(topicStr, subQoS);
-                }
+                myClient.subscribe(topicStr, subQoS);
             }
-        }
-        subscribers.get(topicStr).add(pv);
+            catch (Exception ex)
+            {
+                PV.logger.log(Level.WARNING, "Cannot subscribe to MQTT topic '" + topicStr + "'", ex);
+            }
+            return new CopyOnWriteArrayList<>();
+        });
+        pvs.add(pv);
     }
 
     public void unsubscribeTopic (String topicStr, MQTT_PV pv) throws Exception
     {
-        if ((!is_connected) && (!connect()))
+        if (!connect())
         {
             PV.logger.log(Level.WARNING, "Could not unsubscribe to mqtt topic \"" + topicStr
                     + "\" due to no broker connection");
             throw new Exception("MQTT unsubscribe failed: no broker connection");
         }
 
-        if (!subscribers.containsKey(topicStr))
+        final CopyOnWriteArrayList<MQTT_PV> pvs = subscribers.get(topicStr);
+        if (pvs == null)
         {
             PV.logger.log(Level.WARNING, "Could not unsubscribe to mqtt topic \"" + topicStr
                     + "\" due to no internal record of topic");
             throw new Exception("MQTT unsubscribe failed: no topic record");
         }
 
-        subscribers.get(topicStr).remove(pv);
-
-        if (subscribers.get(topicStr).size() == 0)
+        pvs.remove(pv);
+        if (pvs.isEmpty())
         {
-            synchronized(subscribers)
-            {
-                if (subscribers.get(topicStr).size() == 0)
-                {
-                    subscribers.remove(topicStr);
-                    myClient.unsubscribe(topicStr);
-                }
-                if (subscribers.isEmpty())
-                {
-                    disconnect();
-                }
-            }
+            subscribers.remove(topicStr);
+            myClient.unsubscribe(topicStr);
+            if (subscribers.isEmpty())
+                disconnect();
         }
-
     }
 
     public void publishTopic(String topicStr, String pubMsg, int pubQoS, boolean retained) throws Exception
     {
-        if ((!is_connected) && (!connect()))
+        if (!connect())
         {
             PV.logger.log(Level.WARNING, "Could not publish to mqtt topic \"" + topicStr
                     + "\" due to no broker connection");
@@ -166,58 +146,46 @@ public class MQTT_PVConn implements MqttCallback
 
     private void disconnect()
     {
-        if (is_connected) {
-            synchronized(conn_lock)
-            {
-                if (is_connected)
-                {
-                    if (myClient.isConnected())
-                    {
-                        try {
-                            // wait to ensure subscribed messages are delivered
-                            Thread.sleep(100);
-                            myClient.disconnect();
-                            is_connected = false;
-                        } catch (Exception ex) {
-                            PV.logger.log(Level.WARNING, "Failed to disconnect from MQTT broker " + brokerURL);
-                            ex.printStackTrace();
-                        }
-                    }
-                    else
-                    {
-                        is_connected = false;
-                    }
-                }
-            }
+        if (! connected.compareAndSet(true, false))
+            return; // Already disconnected
+
+        try
+        {
+            if (! myClient.isConnected())
+                throw new Exception("Already disconnected");
+
+            // wait to ensure subscribed messages are delivered
+            Thread.sleep(100);
+            myClient.disconnect();
+        }
+        catch (Exception ex)
+        {
+            PV.logger.log(Level.WARNING, "Failed to disconnect from MQTT broker " + brokerURL, ex);
         }
     }
 
     private boolean connect()
     {
-        if (!is_connected)
-        {
-            synchronized(conn_lock)
-            {
-                if (!is_connected)
-                {
-                    brokerURL = MQTT_Preferences.brokerURL;
-                    generateClientID();
-                    setOptions();
+        if (! connected.compareAndSet(false, true))
+            return true; // Already connected
 
-                    // Connect to Broker
-                    try {
-                        myClient = new MqttClient(brokerURL, clientID);
-                        myClient.setCallback(this);
-                        myClient.connect(connOpt);
-                        is_connected = true;
-                    } catch (MqttException ex) {
-                        PV.logger.log(Level.SEVERE, "Could not connect to MQTT broker " + brokerURL);
-                        ex.printStackTrace();
-                    }
-                }
-            }
+        generateClientID();
+        setOptions();
+
+        // Connect to Broker
+        try
+        {
+            myClient = new MqttClient(brokerURL, clientID);
+            myClient.setCallback(this);
+            myClient.connect(connOpt);
         }
-        return  is_connected;
+        catch (MqttException ex)
+        {
+            PV.logger.log(Level.SEVERE, "Could not connect to MQTT broker " + brokerURL, ex);
+            connected.set(false);
+        }
+
+        return connected.get();
     }
 
     private void generateClientID()
