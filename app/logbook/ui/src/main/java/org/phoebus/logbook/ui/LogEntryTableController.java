@@ -34,6 +34,8 @@ import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import static org.phoebus.util.time.TimestampFormats.*;
+
 public class LogEntryTableController extends LogbookSearchController {
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
@@ -88,7 +90,7 @@ public class LogEntryTableController extends LogbookSearchController {
                     if (empty) {
                         setGraphic(null);
                     } else {
-                        timeText.setText(logEntry.getCreatedDate().toString());
+                        timeText.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
                         ownerText.setText(logEntry.getOwner());
                         setGraphic(pane);
                     }
