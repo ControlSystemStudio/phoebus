@@ -25,7 +25,6 @@ import org.phoebus.vtype.VBooleanArray;
 import org.phoebus.vtype.VDouble;
 import org.phoebus.vtype.VDoubleArray;
 import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VEnumArray;
 import org.phoebus.vtype.VLong;
 import org.phoebus.vtype.VNumber;
 import org.phoebus.vtype.VNumberArray;
@@ -103,10 +102,6 @@ public class VTypeToFromString
         {
             return VTArraytoString(((VBooleanArray) value).getData(), new StringBuilder()).toString();
         }
-        if (value instanceof VEnumArray)
-        {
-            return VTArraytoString(((VEnumArray) value).getData(), new StringBuilder()).toString();
-        }
 
         StringBuilder sb = new StringBuilder();
 
@@ -121,15 +116,6 @@ public class VTypeToFromString
         if (value instanceof VNumber)
         {
             return sb.append(((VNumber)value).getValue()).toString();
-        }
-        if (value instanceof VEnum)
-        {
-            final VEnum vEnum = (VEnum)value;
-            sb.append(vEnum.getValue())
-            .append("(")
-            .append(vEnum.getIndex())
-            .append(")");
-            return sb.toString();
         }
 
         throw new Exception ("Cannot change unknown type to String " + value.getClass().getName());
@@ -335,9 +321,6 @@ public class VTypeToFromString
         return text;
     }
 
-
-
-
     /** @param items String Items
      *  @return Numeric values for all items
      *  @throws Exception on error
@@ -427,17 +410,6 @@ public class VTypeToFromString
                 return ValueFactory.newVStringArray(strings, ValueFactory.alarmNone(), ValueFactory.timeNow());
             }
             return FromStringVStringArray(Objects.toString(new_value));
-        }
-
-        if (type == VEnum.class)
-        {
-            final List<String> labels = ((VEnum)old_value).getLabels();
-            final int index;
-            if (new_value instanceof Number)
-                index = ((Number)new_value).intValue();
-            else
-                index = labels.indexOf(Objects.toString(new_value));
-            return ValueFactory.newVEnum(index, labels, ValueFactory.alarmNone(), ValueFactory.timeNow());
         }
 
         throw new Exception("Expected type " + type.getSimpleName() + " but got " + new_value.getClass().getName());
