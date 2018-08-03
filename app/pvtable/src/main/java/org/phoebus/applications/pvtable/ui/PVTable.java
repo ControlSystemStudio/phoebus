@@ -94,7 +94,7 @@ public class PVTable extends VBox
     /** Flag to disable updates while editing */
     private boolean editing = false;
 
-    private boolean uiSaveRestoreDisabled = false;
+    private boolean saveRestoreDisabled = false;
 
     /** Table cell for boolean column, empty for 'comment' items */
     private static class BooleanTableCell extends TableCell<TableItemProxy, Boolean>
@@ -342,7 +342,7 @@ public class PVTable extends VBox
                 else
                 {
                     setEditable(proxy.item.isWritable());
-                    if (proxy.item.isChanged() && model.getToSaveRestore())
+                    if (proxy.item.isChanged() && model.isSaveRestoreEnabled())
                         setStyle(changed_style);
                     else
                         setStyle(null);
@@ -466,7 +466,7 @@ public class PVTable extends VBox
 
     private void setItemsFromModel()
     {
-        if (! model.getToSaveRestore())
+        if (! model.isSaveRestoreEnabled())
             disableSaveRestore();
         
         table.setItems(FXCollections.emptyObservableList());
@@ -480,7 +480,7 @@ public class PVTable extends VBox
 
     private void disableSaveRestore()
     {
-        if (uiSaveRestoreDisabled)
+        if (saveRestoreDisabled)
             return;
         
         toolbar.getItems().remove(snapshot_button);
@@ -489,7 +489,7 @@ public class PVTable extends VBox
         table.getColumns().remove(saved_time_col);
         table.getColumns().remove(completion_col);
         
-        uiSaveRestoreDisabled = true;
+        saveRestoreDisabled = true;
         
         table.refresh();
         model.fireModelChange();
@@ -605,17 +605,17 @@ public class PVTable extends VBox
             menu.getItems().clear();
             menu.getItems().addAll(info, new SeparatorMenuItem());
             
-            if (model.getToSaveRestore())
+            if (model.isSaveRestoreEnabled())
                 menu.getItems().addAll(save, restore, new SeparatorMenuItem());
             
             menu.getItems().addAll(add_row, remove_row, new SeparatorMenuItem(), tolerance);
             
-            if (model.getToSaveRestore())
+            if (model.isSaveRestoreEnabled())
                 menu.getItems().add(timeout);
             
             menu.getItems().add(new SeparatorMenuItem());
 
-            if (maySetToSaveRestore() && model.getToSaveRestore())
+            if (maySetToSaveRestore() && model.isSaveRestoreEnabled())
             {
                 MenuItem disableSaveRestore = createMenuItem(Messages.DisableSaveRestore, "timeout.png", event1 -> 
                 {
@@ -624,7 +624,7 @@ public class PVTable extends VBox
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.YES)
                     {
-                        model.setToSaveRestore(false);
+                        model.setSaveRestore(false);
                         disableSaveRestore();
                     }
                 });

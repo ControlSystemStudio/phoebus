@@ -38,7 +38,7 @@ public class PVTableModel implements PVTableItemListener
      */
     private static final long UPDATE_PERIOD_MS = 200;
 
-    private boolean toSaveRestore = true;
+    private boolean enableSaveRestore = true;
     
     /** The list of items in this table. */
     private List<PVTableItem> items = new ArrayList<PVTableItem>();
@@ -199,7 +199,7 @@ public class PVTableModel implements PVTableItemListener
             item.listener = this;
             items.add(item);
         }
-        setToSaveRestore(other_model.getToSaveRestore());
+        setSaveRestore(other_model.isSaveRestoreEnabled());
         other_model.items.clear();
         for (PVTableModelListener listener : listeners)
             listener.modelChanged();
@@ -292,14 +292,14 @@ public class PVTableModel implements PVTableItemListener
         }
     }
 
-    public void setToSaveRestore(boolean toSaveRestore)
+    public void setSaveRestore(boolean enableSaveRestore)
     {
-        this.toSaveRestore = toSaveRestore;
+        this.enableSaveRestore = enableSaveRestore;
     }
     
-    public boolean getToSaveRestore()
+    public boolean isSaveRestoreEnabled()
     {
-        return toSaveRestore;
+        return enableSaveRestore;
     }
     
     /** Restore saved values for all checked items */

@@ -48,7 +48,7 @@ public class PVTableXMLPersistence extends PVTablePersistence
     final private static String READBACK_SAVED = "readback_value";
     final private static String COMPLETION = "completion";
     final private static String TIMEOUT = "timeout";
-    final private static String TO_SAVE_RESTORE = "toSaveRestore";
+    final private static String ENABLE_SAVE_RESTORE = "EnableSaveRestore";
 
     /** {@inheritDoc} */
     @Override
@@ -77,8 +77,8 @@ public class PVTableXMLPersistence extends PVTablePersistence
         Element root_node = doc.getDocumentElement();
         String root_name = root_node.getNodeName();
         
-        boolean toSaveRestore = Boolean.parseBoolean(root_node.getAttribute(TO_SAVE_RESTORE));
-        model.setToSaveRestore(toSaveRestore);
+        boolean enableSaveRestore = Boolean.parseBoolean(root_node.getAttribute(ENABLE_SAVE_RESTORE));
+        model.setSaveRestore(enableSaveRestore);
         
         if (!root_name.equals(ROOT))
             throw new Exception("Expected <" + ROOT + ">, found <" + root_name + ">");
@@ -102,13 +102,12 @@ public class PVTableXMLPersistence extends PVTablePersistence
                 final boolean selected = XMLUtil.getChildBoolean(pv, SELECTED).orElse(true);
 
             
-                final String time_saved = model.getToSaveRestore() ? XMLUtil.getChildString(pv, SAVED_TIME).orElse("") : "";
-                final SavedValue saved  = model.getToSaveRestore() ? readSavedValue(pv) : null;
+                final String time_saved = model.isSaveRestoreEnabled() ? XMLUtil.getChildString(pv, SAVED_TIME).orElse("") : "";
+                final SavedValue saved  = model.isSaveRestoreEnabled() ? readSavedValue(pv) : null;
                 final PVTableItem pvItem = model.addItem(pv_name, tolerance, saved, time_saved);
                 pvItem.setSelected(selected);
-                if (model.getToSaveRestore())
+                if (model.isSaveRestoreEnabled())
                     pvItem.setUseCompletion(XMLUtil.getChildBoolean(pv, COMPLETION).orElse(false));
-            
 
                 // Legacy files may contain a separate readback PV and value for this entry
                 XMLUtil.getChildString(pv, READBACK_NAME).ifPresent(readback ->
@@ -146,12 +145,12 @@ public class PVTableXMLPersistence extends PVTablePersistence
     @Override
     public void write(final PVTableModel model, final OutputStream stream) throws Exception
     {
-        Boolean save = model.getToSaveRestore();
+        Boolean saveRestore = model.isSaveRestoreEnabled();
         
         final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         final Element root = doc.createElement("pvtable");
         root.setAttribute("version", "3.0");
-        root.setAttribute(TO_SAVE_RESTORE, save.toString());
+        root.setAttribute(ENABLE_SAVE_RESTORE, saveRestore.toString());
         doc.appendChild(root);
 
         root.appendChild(XMLUtil.createTextElement(doc, TIMEOUT, Double.toString(model.getCompletionTimeout())));
@@ -165,7 +164,7 @@ public class PVTableXMLPersistence extends PVTablePersistence
             pv.appendChild(XMLUtil.createTextElement(doc, NAME, item.getName()));
             pv.appendChild(XMLUtil.createTextElement(doc, TOLERANCE, Double.toString(item.getTolerance())));
             
-            if (save)
+            if (saveRestore)
             {
                 pv.appendChild(XMLUtil.createTextElement(doc, SAVED_TIME, item.getTime_saved()));
     
