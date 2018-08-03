@@ -199,6 +199,7 @@ public class PVTableModel implements PVTableItemListener
             item.listener = this;
             items.add(item);
         }
+        setToSaveRestore(other_model.getToSaveRestore());
         other_model.items.clear();
         for (PVTableModelListener listener : listeners)
             listener.modelChanged();
