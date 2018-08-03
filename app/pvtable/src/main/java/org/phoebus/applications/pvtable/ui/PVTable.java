@@ -80,6 +80,10 @@ public class PVTable extends VBox
     private final PVTableModel model;
     private final TableView<TableItemProxy> table;
 
+    private TableColumn<TableItemProxy, String>  saved_value_col;
+    private TableColumn<TableItemProxy, String>  saved_time_col;
+    private TableColumn<TableItemProxy, Boolean> completion_col;
+    
     /** Flag to disable updates while editing */
     private boolean editing = false;
 
@@ -374,7 +378,6 @@ public class PVTable extends VBox
         }
     };
 
-
     public PVTable(final PVTableModel model)
     {
         this.model = model;
@@ -418,7 +421,7 @@ public class PVTable extends VBox
             SelectionService.getInstance().setSelection("PV Table", pvs);
         };
         table_sel.getSelectedItems().addListener(sel_changed);
-
+                
         createTableColumns();
 
         table.setEditable(true);
@@ -430,9 +433,9 @@ public class PVTable extends VBox
         VBox.setVgrow(table, Priority.ALWAYS);
 
         getChildren().setAll(toolbar, table);
-
+        
         setItemsFromModel();
-
+        
         createContextMenu();
 
         model.addListener(model_listener);
@@ -451,6 +454,9 @@ public class PVTable extends VBox
 
     private void setItemsFromModel()
     {
+        if (! model.getToSaveRestore())
+            disableSaveRestore();
+        
         table.setItems(FXCollections.emptyObservableList());
         final ObservableList<TableItemProxy> items = FXCollections.observableArrayList();
         for (PVTableItem item : model.getItems())
@@ -458,6 +464,14 @@ public class PVTable extends VBox
         items.add(TableItemProxy.NEW_ITEM);
         table.setItems(items);
         table.refresh();
+    }
+
+    private void disableSaveRestore()
+    {
+        // TODO Remove items from context menu.
+        table.getColumns().remove(saved_value_col);
+        table.getColumns().remove(saved_time_col);
+        table.getColumns().remove(completion_col);
     }
 
     private Node createToolbar()
@@ -658,17 +672,20 @@ public class PVTable extends VBox
         // Saved value
         col = new TableColumn<>(Messages.Saved);
         col.setCellValueFactory(cell -> cell.getValue().saved);
+        saved_value_col = col;
         table.getColumns().add(col);
 
         // Saved value's timestamp
         col = new TableColumn<>(Messages.Saved_Value_TimeStamp);
         col.setCellValueFactory(cell -> cell.getValue().time_saved);
+        saved_time_col = col;
         table.getColumns().add(col);
 
         // Completion checkbox
         final TableColumn<TableItemProxy, Boolean> compl_col = new TableColumn<>(Messages.Completion);
         compl_col.setCellValueFactory(cell -> cell.getValue().use_completion);
         compl_col.setCellFactory(column -> new BooleanTableCell());
+        completion_col = compl_col;
         table.getColumns().add(compl_col);
     }
 
