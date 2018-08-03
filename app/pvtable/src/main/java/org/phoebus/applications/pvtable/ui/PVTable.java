@@ -84,6 +84,10 @@ public class PVTable extends VBox
     private TableColumn<TableItemProxy, String>  saved_time_col;
     private TableColumn<TableItemProxy, Boolean> completion_col;
     
+    private ToolBar toolbar;
+    private Button  snapshot_button;
+    private Button  restore_button;
+    
     /** Flag to disable updates while editing */
     private boolean editing = false;
 
@@ -426,8 +430,8 @@ public class PVTable extends VBox
 
         table.setEditable(true);
 
-        final Node toolbar = createToolbar();
-
+        toolbar = createToolbar();
+        
         // Have table use the available space
         setMargin(table, new Insets(5));
         VBox.setVgrow(table, Priority.ALWAYS);
@@ -468,13 +472,14 @@ public class PVTable extends VBox
 
     private void disableSaveRestore()
     {
-        // TODO Remove save/restore buttons from tool bar.
+        toolbar.getItems().remove(snapshot_button);
+        toolbar.getItems().remove(restore_button);
         table.getColumns().remove(saved_value_col);
         table.getColumns().remove(saved_time_col);
         table.getColumns().remove(completion_col);
     }
 
-    private Node createToolbar()
+    private ToolBar createToolbar()
     {
         return new ToolBar(
             ToolbarHelper.createSpring(),
@@ -489,8 +494,8 @@ public class PVTable extends VBox
                     item.setSelected(false);
             }),
             ToolbarHelper.createStrut(),
-            createButton("snapshot.png", Messages.Snapshot_TT, event -> model.save()),
-            createButton("restore.png", Messages.Restore_TT, event -> model.restore())
+            snapshot_button = createButton("snapshot.png", Messages.Snapshot_TT, event -> model.save()),
+            restore_button  = createButton("restore.png", Messages.Restore_TT, event -> model.restore())
             );
     }
 
