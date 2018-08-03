@@ -10,6 +10,7 @@ package org.phoebus.applications.pvtable.ui;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,6 +44,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -617,12 +619,18 @@ public class PVTable extends VBox
             {
                 MenuItem disableSaveRestore = createMenuItem(Messages.DisableSaveRestore, "timeout.png", event1 -> 
                 {
-                    model.setToSaveRestore(false);
-                    disableSaveRestore();
+                    Alert alert = new Alert(AlertType.CONFIRMATION, "", ButtonType.NO, ButtonType.YES);
+                    alert.setHeaderText("Are you sure you want to disable save/restore functionality for this table?");
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.isPresent() && result.get() == ButtonType.YES)
+                    {
+                        model.setToSaveRestore(false);
+                        disableSaveRestore();
+                    }
                 });
-                menu.getItems().add(disableSaveRestore);
+                menu.getItems().addAll(new SeparatorMenuItem(), disableSaveRestore);
             }
-            
+
             // Add PV entries
             ContextMenuHelper.addSupportedEntries(table, menu);
         });
