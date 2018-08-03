@@ -21,6 +21,7 @@ import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.NumericInputDialog;
@@ -598,11 +599,27 @@ public class PVTable extends VBox
                 menu.getItems().add(timeout);
             
             menu.getItems().add(new SeparatorMenuItem());
+
+            if (maySetToSaveRestore() && model.getToSaveRestore())
+            {
+                MenuItem disableSaveRestore = createMenuItem(Messages.DisableSaveRestore, "timeout.png", event1 -> 
+                {
+                    model.setToSaveRestore(false);
+                    disableSaveRestore();
+                });
+                menu.getItems().add(disableSaveRestore);
+            }
             
             // Add PV entries
             ContextMenuHelper.addSupportedEntries(table, menu);
         });
+        
         table.setContextMenu(menu);
+    }
+
+    private boolean maySetToSaveRestore()
+    {
+        return AuthorizationService.hasAuthorization("disable_save_restore");
     }
 
     private MenuItem createMenuItem(final String label, final String icon,
