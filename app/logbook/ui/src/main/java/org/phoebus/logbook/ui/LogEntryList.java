@@ -14,16 +14,16 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.fxml.FXMLLoader;
 
-public class LogEntryTable implements AppInstance {
-    private final LogEntryTableApp app;
-    private LogEntryTableController controller;
+public class LogEntryList implements AppInstance {
+    private final LogEntryListApp app;
+    private LogEntryListController controller;
     private DockItem tab;
 
-    LogEntryTable(final LogEntryTableApp app) {
+    LogEntryList(final LogEntryListApp app) {
         this.app = app;
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(this.getClass().getResource("LogEntryTable.fxml"));
+            loader.setLocation(this.getClass().getResource("LogEntryList.fxml"));
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
             controller.setClient(this.app.getClient());
