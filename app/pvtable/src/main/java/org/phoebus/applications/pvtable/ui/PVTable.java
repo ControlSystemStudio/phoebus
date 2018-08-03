@@ -468,7 +468,7 @@ public class PVTable extends VBox
 
     private void disableSaveRestore()
     {
-        // TODO Remove items from context menu.
+        // TODO Remove save/restore buttons from tool bar.
         table.getColumns().remove(saved_value_col);
         table.getColumns().remove(saved_time_col);
         table.getColumns().remove(completion_col);
@@ -522,13 +522,13 @@ public class PVTable extends VBox
             model.save(getSelectedItems().map(proxy -> proxy.item)
                                          .collect(Collectors.toList()));
         });
-
+        
         final MenuItem restore = createMenuItem(Messages.RestoreSelection, "restore.png", event ->
         {
             model.restore(getSelectedItems().map(proxy -> proxy.item)
                                             .collect(Collectors.toList()));
         });
-
+        
         final MenuItem add_row = createMenuItem(Messages.Insert, "add.gif", event ->
         {
             // Copy selection as it will change when we add to the model
@@ -575,17 +575,25 @@ public class PVTable extends VBox
                     number -> number > 0 ? null : "Enter a positive number of seconds");
             dlg.promptAndHandle(number -> model.setCompletionTimeout(number.longValue()));
         });
-
+        
         final ContextMenu menu = new ContextMenu();
-
+        
         table.setOnContextMenuRequested(event ->
         {
             // Start with fixed entries
             menu.getItems().clear();
-            menu.getItems().addAll(info, new SeparatorMenuItem(),
-                    save, restore, new SeparatorMenuItem(),
-                    add_row, remove_row, new SeparatorMenuItem(),
-                    tolerance, timeout, new SeparatorMenuItem());
+            menu.getItems().addAll(info, new SeparatorMenuItem());
+            
+            if (model.getToSaveRestore())
+                menu.getItems().addAll(save, restore, new SeparatorMenuItem());
+            
+            menu.getItems().addAll(add_row, remove_row, new SeparatorMenuItem(), tolerance);
+            
+            if (model.getToSaveRestore())
+                menu.getItems().add(timeout);
+            
+            menu.getItems().add(new SeparatorMenuItem());
+            
             // Add PV entries
             ContextMenuHelper.addSupportedEntries(table, menu);
         });
