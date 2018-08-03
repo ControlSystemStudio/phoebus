@@ -18,6 +18,7 @@ public class Messages
     public static String Completion;
     public static String Delete;
     public static String Delete_TT;
+    public static String DisableSaveRestore;
     public static String EnterPositiveTolerance;
     public static String EnterTolerance;
     public static String EmptyTable;
