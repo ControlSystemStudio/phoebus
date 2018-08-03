@@ -92,6 +92,8 @@ public class PVTable extends VBox
     /** Flag to disable updates while editing */
     private boolean editing = false;
 
+    private boolean uiSaveRestoreDisabled = false;
+
     /** Table cell for boolean column, empty for 'comment' items */
     private static class BooleanTableCell extends TableCell<TableItemProxy, Boolean>
     {
@@ -244,9 +246,12 @@ public class PVTable extends VBox
     /** Table cell for 'value' column, enables/disables and indicates changed value */
     private static class ValueTableCell extends TableCell<TableItemProxy, String>
     {
+        
+        private final PVTableModel model;
 
-        public ValueTableCell()
+        public ValueTableCell(PVTableModel model)
         {
+            this.model = model;
             getStyleClass().add("text-field-table-cell");
         }
 
@@ -335,7 +340,7 @@ public class PVTable extends VBox
                 else
                 {
                     setEditable(proxy.item.isWritable());
-                    if (proxy.item.isChanged())
+                    if (proxy.item.isChanged() && model.getToSaveRestore())
                         setStyle(changed_style);
                     else
                         setStyle(null);
@@ -343,7 +348,7 @@ public class PVTable extends VBox
             }
         }
     }
-
+    
     /** Listener to model changes */
     private final PVTableModelListener model_listener = new PVTableModelListener()
     {
@@ -382,7 +387,7 @@ public class PVTable extends VBox
             setItemsFromModel();
         }
     };
-
+    
     public PVTable(final PVTableModel model)
     {
         this.model = model;
@@ -473,11 +478,19 @@ public class PVTable extends VBox
 
     private void disableSaveRestore()
     {
+        if (uiSaveRestoreDisabled)
+            return;
+        
         toolbar.getItems().remove(snapshot_button);
         toolbar.getItems().remove(restore_button);
         table.getColumns().remove(saved_value_col);
         table.getColumns().remove(saved_time_col);
         table.getColumns().remove(completion_col);
+        
+        uiSaveRestoreDisabled = true;
+        
+        table.refresh();
+        model.fireModelChange();
     }
 
     private ToolBar createToolbar()
@@ -676,7 +689,7 @@ public class PVTable extends VBox
         // Editable value
         col = new TableColumn<>(Messages.Value);
         col.setCellValueFactory(cell -> cell.getValue().value);
-        col.setCellFactory(column -> new ValueTableCell());
+        col.setCellFactory(column -> new ValueTableCell(model));
         col.setOnEditStart(event -> editing = true);
         col.setOnEditCommit(event ->
         {
