@@ -560,7 +560,6 @@ public class Controller
 
     private void doUpdate()
     {
-
         try
         {
             // Skip updates while nobody is watching
