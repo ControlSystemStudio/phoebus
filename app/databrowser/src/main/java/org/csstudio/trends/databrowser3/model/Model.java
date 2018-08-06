@@ -18,6 +18,8 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.trends.databrowser3.Messages;
@@ -54,6 +56,9 @@ public class Model
 
     /** Default colors for newly added item */
     final private RGBFactory default_colors = new RGBFactory();
+
+    /** Matcher for "Value N" axis name */
+    private final Pattern axis_name_pattern = Pattern.compile(Messages.Plot_ValueAxisName + " \\d+", Pattern.MULTILINE);
 
     /** Macros */
     private volatile MacroValueProvider macros = new Macros();
@@ -319,6 +324,9 @@ public class Model
 
 
     /** Add value axis with default settings
+     *  Sets name of new axis to Value N
+     *  N is found by searching for all the existing axes with the name Value X; N is set to the highest value of X found + 1
+     *  (this scheme should avoid the creation of axes with duplicate names of the format Value N)
      *  @return Newly added axis configuration
      */
     public AxisConfig addAxis()
@@ -333,7 +341,21 @@ public class Model
     public void addAxis(final AxisConfig axis)
     {
         if (axis.getName().isEmpty())
-            axis.setName(MessageFormat.format(Messages.Plot_ValueAxisNameFMT, axes.size() + 1));
+        {
+            int max_default_axis_num = 0;
+            for (AxisConfig a : axes)
+            {
+                String existing_axis_name = a.getName();
+                Matcher matcher = axis_name_pattern.matcher(existing_axis_name);
+                while (matcher.find())
+                {
+                    final int default_axis_num = Integer.parseInt(matcher.group(0).replace(Messages.Plot_ValueAxisName+" ",""));
+                    if (default_axis_num > max_default_axis_num)
+                        max_default_axis_num = default_axis_num;
+                }
+            }
+            axis.setName(MessageFormat.format(Messages.Plot_ValueAxisNameFMT, max_default_axis_num + 1));
+        }
         axes.add(Objects.requireNonNull(axis));
         axis.setModel(this);
         fireAxisChangedEvent(Optional.empty());
