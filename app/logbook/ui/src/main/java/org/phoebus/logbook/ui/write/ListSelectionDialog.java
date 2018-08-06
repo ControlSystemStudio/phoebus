@@ -113,8 +113,11 @@ public class ListSelectionDialog extends Dialog<Boolean>
         remove.setMinWidth(buttonWidth);
         clear.setMinWidth(buttonWidth);
 
+        // Note: For the followings, either using Bindings.isEmpty()
+        // or trying to initilize right away resulted in buttons that remained
+        // disabled or would not re-enable.
+        // Only DIY listener and runLater(..) seem to fully function...
         // Enable buttons as appropriate
-        
         availableItems.getSelectionModel().getSelectedItems().addListener((Observable o) ->
             add.setDisable(availableItems.getSelectionModel().getSelectedItems().isEmpty()));
         
