@@ -48,6 +48,7 @@ import javafx.application.Platform;
  *  <ul>
  *  <li>For each item in the Model, create a trace in the plot.
  *  <li>Perform scrolling of the time axis.
+ *      Scrolling is enabled via a model time range ending in relative value of Duration.ZERO.
  *  <li>When the plot is interactively zoomed, update the Model's time range.
  *  <li>Get archived data whenever the time axis changes.
  *  </ul>
@@ -559,13 +560,18 @@ public class Controller
 
     private void doUpdate()
     {
+
         try
         {
             // Skip updates while nobody is watching
             if (window_is_iconized || suppress_redraws)
                 return;
-            // Check if anything changed, which also updates formulas
-            if (model.updateItemsAndCheckForNewSamples())
+
+            // Check if anything changed, which also updates formulas.
+            // When scrolling, need to update even when nothing changed to 'scroll'.
+            final TimeRelativeInterval span = model.getTimerange();
+            final boolean scrolling = !span.isEndAbsolute();
+            if (model.updateItemsAndCheckForNewSamples() || scrolling)
                 plot.redrawTraces();
         }
         catch (Throwable ex)
