@@ -643,7 +643,6 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
             // Half-transparent, average of black & white, works for both white and black backgrounds
             gc.setColor(new Color(128, 128, 128, 128));
             gc.fillRect(future_x, 0, area_copy.width - future_x, area_copy.height);
-            title_part.setColor(foreground);
         }
 
         plot_area.paint(gc);
