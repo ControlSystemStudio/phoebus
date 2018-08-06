@@ -3,7 +3,7 @@
      All external dependencies need to be
      provided as jar files ../dependencies/lib
   -->
-<project name="Phoebus" default="product">
+<project name="Phoebus" default="services">
 
   <target name="clean" description="Remove all artifacts">
     <ant target="clean" dir="core/framework"/>
@@ -44,6 +44,7 @@
     <ant target="clean" dir="phoebus-product"/>
     <ant target="clean" dir="scan-server-product"/>
     <ant target="clean" dir="alarm-server-product"/>
+    <ant target="clean" dir="services/archive-engine"/>
       
     <!-- If above list is complete, each project should have deleted its output.
          Just in case, another way to delete all target dirs
@@ -52,6 +53,7 @@
     <delete includeEmptyDirs="true">
       <fileset dir="core" includes="**/target/**"/>
       <fileset dir="app" includes="**/target/**"/>
+      <fileset dir="services" includes="**/target/**"/>
     </delete>
   </target>
 
@@ -107,10 +109,15 @@
     <ant target="product" dir="alarm-server-product"/>
   </target>
 
-  <target name="dist" depends="product" description="Pack for distribution">
+  <target name="services" depends="app" description="Assemble services">
+    <ant target="service" dir="services/archive-engine"/>
+  </target>
+	
+  <target name="dist" depends="services" description="Pack for distribution">
     <ant target="dist" dir="phoebus-product"/>
     <ant target="dist" dir="scan-server-product"/>
     <ant target="dist" dir="alarm-server-product"/>
+    <ant target="dist" dir="services/archive-engine"/>
   </target>
 
   <target name="run" depends="product" description="Run the product">

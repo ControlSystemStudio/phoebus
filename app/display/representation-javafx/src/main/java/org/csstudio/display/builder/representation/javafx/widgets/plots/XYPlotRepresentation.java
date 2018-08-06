@@ -42,6 +42,7 @@ import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.internal.NumericAxis;
 import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.array.ListNumber;
+import org.phoebus.vtype.VNumber;
 import org.phoebus.vtype.VNumberArray;
 import org.phoebus.vtype.VType;
 
@@ -265,6 +266,21 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                     error = null;
                 else if (error_value instanceof VNumberArray)
                     error = ((VNumberArray)error_value).getData();
+                else
+                    error = new ArrayDouble(VTypeUtil.getValueNumber(error_value).doubleValue());
+            }
+            else if (y_value instanceof VNumber)
+            {
+                final VType x_value = model_trace.traceXValue().getValue();
+                x_data = (x_value instanceof VNumber) ? new ArrayDouble(((VNumber)x_value).getValue().doubleValue()) : null;
+
+                final VNumber y_array = (VNumber)y_value;
+                trace.setUnits(y_array.getUnits());
+                y_data = new ArrayDouble(y_array.getValue().doubleValue());
+
+                final VType error_value = model_trace.traceErrorValue().getValue();
+                if (error_value == null)
+                    error = null;
                 else
                     error = new ArrayDouble(VTypeUtil.getValueNumber(error_value).doubleValue());
             }

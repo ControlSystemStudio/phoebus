@@ -1,0 +1,175 @@
+<html>
+<head>
+<title>Version Info</title>
+</head>
+<body background='images/blueback.jpg'>
+<blockquote>
+
+<!-- Remember to also update Engine.VERSION -->
+
+<h1>Archive Engine Version Info</h1>
+<table border='0'>
+  <tr bgcolor='#AAAAFF'>
+    <th align='center'>Version</th>
+    <th align='center'>Detail</th>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>4.0.0 - 2018/08/01</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+       First Phoebus Version.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>3.3.0 - 2014/02/19</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+       Use org.csstudio.vtype.pv.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>3.1.0 - 2012/05/23</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+       Application returns error code.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>3.1.0 - 2011/10/31</th>
+    <td valign='top'>
+       Support for BLOB storage of array samples.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>3.0.2 - 2011/09/08</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+       RDB Writer handles NaN in numeric metadata.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>3.0.1 - 2011/06/13</th>
+    <td valign='top'>
+       Pluggable config and write support.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>3.0.0 - 2011/06/06</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+       Built on CSS 3.0.0.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>1.2.4 - 2011/01/27</th>
+    <td valign='top'>
+       Fix bug that caused exception when 'stopping' or 'restarting' while already restarting.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>1.2.3 - 2010/07/08</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+        Oracle SQL without 'APPEND' hint to avoid locking.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>1.2.2 - 2010/06/28</th>
+    <td valign='top'>
+       Added timeout preference (30 min) to sample table access.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>1.2.1 - 2010/06/15</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+        Slight optimization of startup.
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>1.2.0 - 2010/03/18</th>
+    <td valign='top'>
+      <ul>
+      <li>New 'Delta' sample mode:
+          Channel configuration includes sample mode 'value'.
+          Monitored channels use sample values greater than zero as 'delta',
+          storing only received samples that differ from the previously archived
+          sample by that delta.
+      <li>Display of 'current' value was wrong.
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>1.0.8 - 2010/02/22</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+        Show 'Write Error' state in http "/main"
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>1.0.7 - 2009/12/21</th>
+    <td valign='top'>
+      Count received values
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>1.0.6 - 2009/09/04</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+      Throttle 'back-in-time' messages
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>1.0.5 - 2009/08/26</th>
+    <td valign='top'>
+      Main loop error dumps stack trace
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>1.0.4 - 2009/08/07</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+      PV layer fix to support PV type changes on IOC reboots
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>1.0.3 - 2009/07/08</th>
+    <td valign='top'>
+      <ul>
+      <li>'Monitored' mode no longer complains about initial back-in-time
+      <li>'Scan' mode fixes: No more duplicates after 'restart'; store
+          most recent original sample instead of host time stamp
+      <li>Suppress samples that are too far into the future (clock of host
+          or IOC must be wrong)
+      <li>Eclipse 3.5
+      <li>'debug' URL
+      <li>PV layer supports simulated PVs
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>1.0.2 - 2009/06/16</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+      <ul>
+      <li>On batch error, try individual inserts.
+      <li>Simpler back-in-time code
+      <li>Limit length of string samples (1.0.2d)
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top'>1.0.1 - 2009/06/11</th>
+    <td valign='top'>
+      HTTPD shows version detail,
+      period estimate for monitored channels,
+      lists disconnected channels.<br>
+      Minimum sample period (1.0 secs)
+    </td>
+  </tr>
+  <tr>
+    <th align='left' valign='top' bgcolor='#DFDFFF'>1.0.0 - 2009/05/20</th>
+    <td valign='top' bgcolor='#DFDFFF'>
+      Consistently set this version info as printed on startup,
+      defined in EngineModel.VERSION,
+      and also matches the version of the org.csstudio.archive.engine plug-in.
+      <br>
+      Before this date, those showed different numbers.
+    </td>
+  </tr>
+</table>
+<p>
+<hr width='50%' align='left'>
+<a href="/main">-Main-</a>
+</blockquote>
+</body>
+</html>

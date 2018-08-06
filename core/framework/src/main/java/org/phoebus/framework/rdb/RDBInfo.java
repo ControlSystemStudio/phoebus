@@ -51,7 +51,7 @@ public class RDBInfo
     private final String url, user, password;
     private final Dialect dialect;
 
-    RDBInfo(final String url, final String user, final String password) throws Exception
+    public RDBInfo(final String url, final String user, final String password) throws Exception
     {
         this.url = url;
         this.user = user;
@@ -67,12 +67,14 @@ public class RDBInfo
             throw new Exception("Unknown database dialect " + url);
     }
 
+    /** @return {@link Dialect}  */
     public Dialect getDialect()
     {
         return dialect;
     }
 
-    Connection connect() throws Exception
+    /** Create a new {@link Connection} */
+    public Connection connect() throws Exception
     {
         Connection connection = null;
 

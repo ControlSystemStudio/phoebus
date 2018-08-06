@@ -1,0 +1,71 @@
+<project default="service">
+  <import file="../../dependencies/ant_settings.xml"/>
+	
+  <target name="service">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath"/>
+
+    <!-- Assemble lib/ -->
+    <copy todir="${build}/lib" flatten="true">
+      <fileset dir="../..">
+      	<include name="dependencies/target/lib/epics-pvaccess-*.jar"/>
+      	<include name="dependencies/target/lib/epics-pvdata-*.jar"/>
+  		<include name="dependencies/target/lib/hamcrest-all-*.jar"/>
+      	<include name="dependencies/target/lib/hamcrest-core-*.jar"/>
+  		<include name="dependencies/target/lib/jackson-annotations-*.jar"/>
+      	<include name="dependencies/target/lib/jackson-core-*.jar"/>
+  		<include name="dependencies/target/lib/jackson-databind-*.jar"/>
+  		<include name="dependencies/target/lib/javax.servlet-api-*.jar"/>
+      	<include name="dependencies/target/lib/jca-*.jar"/>
+  		<include name="dependencies/target/lib/jetty-*.jar"/>
+  		<include name="dependencies/target/lib/junit-*.jar"/>
+      	<include name="dependencies/target/lib/mysql-connector-*.jar"/>
+  		<include name="dependencies/target/lib/ojdbc8-*.jar"/>
+      	<include name="dependencies/target/lib/org.eclipse.paho.client*.jar"/>
+  		<include name="dependencies/target/lib/postgresql-*.jar"/>
+      	<include name="dependencies/target/lib/reactive-streams-*.jar"/>
+  		<include name="dependencies/target/lib/rxjava-*.jar"/>
+      	
+      	<include name="core/**/core-framework-*.jar"/>
+      	<include name="core/**/core-pv-*.jar"/>
+      	<include name="core/**/core-util-*.jar"/>
+      	<include name="core/**/core-vtype-*.jar"/>
+      	
+      	<exclude name="**/*SNAPSHOT.jar"/>
+      </fileset>
+    </copy>
+  	
+    <!-- Create classpath for lib/*jar -->
+    <manifestclasspath property="manifest-classpath"
+                       jarfile="${build}/product-${version}.jar">
+      <classpath>
+        <path>
+          <fileset dir="${build}/lib">
+            <include name="*.jar"/>
+          </fileset>
+        </path>
+      </classpath>
+    </manifestclasspath>
+
+    <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
+
+	<!-- ZIP of engine, with classpath for lib/* and main class -->  	
+    <jar destfile="${build}/service-archive-engine-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+      <manifest>
+        <attribute name="Main-Class" value="org.csstudio.archive.Engine" />
+        <attribute name="Class-Path" value="${manifest-classpath}" />
+      </manifest>
+    </jar>
+  </target>
+
+	  <!-- Create ZIP of the product.jar, lib/, launcher -->
+  <target name="dist" depends="service" description="Pack for distribution">
+    <zip destfile="${build}/archive-engine-${version}.zip">
+      <zipfileset dir="${build}" includes="**/*.jar" prefix="archive-engine-${version}"/>
+      <zipfileset dir="." includes="archive-engine.sh" fullpath="archive-engine-${version}/archive-engine.sh" filemode="755"/>
+    </zip>
+  </target>
+	
+</project>
