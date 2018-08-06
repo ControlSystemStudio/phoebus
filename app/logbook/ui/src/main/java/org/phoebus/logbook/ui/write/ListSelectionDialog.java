@@ -121,10 +121,10 @@ public class ListSelectionDialog extends Dialog<Boolean>
         selectedItems.getSelectionModel().getSelectedItems().addListener((Observable o) ->
             remove.setDisable(selectedItems.getSelectionModel().getSelectedItems().isEmpty()));
         
-        
         selectedItems.getItems().addListener((Observable o) ->
             clear.setDisable(selectedItems.getItems().isEmpty()));
         
+        // Initialize later
         Platform.runLater(() ->
         {
             add.setDisable(availableItems.getSelectionModel().getSelectedItems().isEmpty());
