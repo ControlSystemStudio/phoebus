@@ -16,9 +16,6 @@ import org.phoebus.vtype.VType;
 
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -114,19 +111,12 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
             }
             led.getStyleClass().add("led");
             if (save_colorVals != null && i < save_colorVals.length)
-                led.setFill( makeGradient(save_colorVals[i]) );
+                led.setFill(save_colorVals[i]);
             leds[i] = led;
         }
         this.leds = leds;
         pane.getChildren().clear();
         pane.getChildren().addAll(leds);
-    }
-
-    private LinearGradient makeGradient(final Color color)
-    {
-        return new LinearGradient(0, 0, .7, .7, true, CycleMethod.NO_CYCLE,
-                new Stop(0, color.interpolate(Color.WHITESMOKE, 0.8)),
-                new Stop(1, color));
     }
 
     protected Color[] createColors()
@@ -249,7 +239,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
 
             final int N = Math.min(save_leds.length, save_values.length);
             for (int i = 0; i < N; i++)
-                leds[i].setFill( makeGradient(save_values[i]));
+                leds[i].setFill(save_values[i]);
         }
     }
 }

@@ -6,7 +6,7 @@
 {
     -fx-stroke-width: 2;
     -fx-stroke-type: inside;
-    -fx-stroke: linear-gradient(to bottom right, #808080, #f0f0f0);
+    -fx-stroke: rgba(50, 50, 50, 0.7);
 }
 .led_label
 {
