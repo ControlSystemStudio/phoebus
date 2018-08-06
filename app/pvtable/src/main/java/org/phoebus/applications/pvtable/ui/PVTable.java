@@ -10,6 +10,7 @@ package org.phoebus.applications.pvtable.ui;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,6 +22,7 @@ import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.NumericInputDialog;
@@ -42,6 +44,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -80,8 +83,18 @@ public class PVTable extends VBox
     private final PVTableModel model;
     private final TableView<TableItemProxy> table;
 
+    private TableColumn<TableItemProxy, String>  saved_value_col;
+    private TableColumn<TableItemProxy, String>  saved_time_col;
+    private TableColumn<TableItemProxy, Boolean> completion_col;
+    
+    private ToolBar toolbar;
+    private Button  snapshot_button;
+    private Button  restore_button;
+    
     /** Flag to disable updates while editing */
     private boolean editing = false;
+
+    private boolean saveRestoreDisabled = false;
 
     /** Table cell for boolean column, empty for 'comment' items */
     private static class BooleanTableCell extends TableCell<TableItemProxy, Boolean>
@@ -235,9 +248,12 @@ public class PVTable extends VBox
     /** Table cell for 'value' column, enables/disables and indicates changed value */
     private static class ValueTableCell extends TableCell<TableItemProxy, String>
     {
+        
+        private final PVTableModel model;
 
-        public ValueTableCell()
+        public ValueTableCell(PVTableModel model)
         {
+            this.model = model;
             getStyleClass().add("text-field-table-cell");
         }
 
@@ -326,7 +342,7 @@ public class PVTable extends VBox
                 else
                 {
                     setEditable(proxy.item.isWritable());
-                    if (proxy.item.isChanged())
+                    if (proxy.item.isChanged() && model.isSaveRestoreEnabled())
                         setStyle(changed_style);
                     else
                         setStyle(null);
@@ -334,7 +350,7 @@ public class PVTable extends VBox
             }
         }
     }
-
+    
     /** Listener to model changes */
     private final PVTableModelListener model_listener = new PVTableModelListener()
     {
@@ -373,8 +389,7 @@ public class PVTable extends VBox
             setItemsFromModel();
         }
     };
-
-
+    
     public PVTable(final PVTableModel model)
     {
         this.model = model;
@@ -418,21 +433,21 @@ public class PVTable extends VBox
             SelectionService.getInstance().setSelection("PV Table", pvs);
         };
         table_sel.getSelectedItems().addListener(sel_changed);
-
+                
         createTableColumns();
 
         table.setEditable(true);
 
-        final Node toolbar = createToolbar();
-
+        toolbar = createToolbar();
+        
         // Have table use the available space
         setMargin(table, new Insets(5));
         VBox.setVgrow(table, Priority.ALWAYS);
 
         getChildren().setAll(toolbar, table);
-
+        
         setItemsFromModel();
-
+        
         createContextMenu();
 
         model.addListener(model_listener);
@@ -451,6 +466,9 @@ public class PVTable extends VBox
 
     private void setItemsFromModel()
     {
+        if (! model.isSaveRestoreEnabled())
+            disableSaveRestore();
+        
         table.setItems(FXCollections.emptyObservableList());
         final ObservableList<TableItemProxy> items = FXCollections.observableArrayList();
         for (PVTableItem item : model.getItems())
@@ -460,7 +478,24 @@ public class PVTable extends VBox
         table.refresh();
     }
 
-    private Node createToolbar()
+    private void disableSaveRestore()
+    {
+        if (saveRestoreDisabled)
+            return;
+        
+        toolbar.getItems().remove(snapshot_button);
+        toolbar.getItems().remove(restore_button);
+        table.getColumns().remove(saved_value_col);
+        table.getColumns().remove(saved_time_col);
+        table.getColumns().remove(completion_col);
+        
+        saveRestoreDisabled = true;
+        
+        table.refresh();
+        model.fireModelChange();
+    }
+
+    private ToolBar createToolbar()
     {
         return new ToolBar(
             ToolbarHelper.createSpring(),
@@ -475,8 +510,8 @@ public class PVTable extends VBox
                     item.setSelected(false);
             }),
             ToolbarHelper.createStrut(),
-            createButton("snapshot.png", Messages.Snapshot_TT, event -> model.save()),
-            createButton("restore.png", Messages.Restore_TT, event -> model.restore())
+            snapshot_button = createButton("snapshot.png", Messages.Snapshot_TT, event -> model.save()),
+            restore_button  = createButton("restore.png", Messages.Restore_TT, event -> model.restore())
             );
     }
 
@@ -508,13 +543,13 @@ public class PVTable extends VBox
             model.save(getSelectedItems().map(proxy -> proxy.item)
                                          .collect(Collectors.toList()));
         });
-
+        
         final MenuItem restore = createMenuItem(Messages.RestoreSelection, "restore.png", event ->
         {
             model.restore(getSelectedItems().map(proxy -> proxy.item)
                                             .collect(Collectors.toList()));
         });
-
+        
         final MenuItem add_row = createMenuItem(Messages.Insert, "add.gif", event ->
         {
             // Copy selection as it will change when we add to the model
@@ -561,21 +596,51 @@ public class PVTable extends VBox
                     number -> number > 0 ? null : "Enter a positive number of seconds");
             dlg.promptAndHandle(number -> model.setCompletionTimeout(number.longValue()));
         });
-
+        
         final ContextMenu menu = new ContextMenu();
-
+        
         table.setOnContextMenuRequested(event ->
         {
             // Start with fixed entries
             menu.getItems().clear();
-            menu.getItems().addAll(info, new SeparatorMenuItem(),
-                    save, restore, new SeparatorMenuItem(),
-                    add_row, remove_row, new SeparatorMenuItem(),
-                    tolerance, timeout, new SeparatorMenuItem());
+            menu.getItems().addAll(info, new SeparatorMenuItem());
+            
+            if (model.isSaveRestoreEnabled())
+                menu.getItems().addAll(save, restore, new SeparatorMenuItem());
+            
+            menu.getItems().addAll(add_row, remove_row, new SeparatorMenuItem(), tolerance);
+            
+            if (model.isSaveRestoreEnabled())
+                menu.getItems().add(timeout);
+            
+            menu.getItems().add(new SeparatorMenuItem());
+
+            if (maySetToSaveRestore() && model.isSaveRestoreEnabled())
+            {
+                MenuItem disableSaveRestore = createMenuItem(Messages.DisableSaveRestore, "timeout.png", event1 -> 
+                {
+                    Alert alert = new Alert(AlertType.CONFIRMATION, "", ButtonType.NO, ButtonType.YES);
+                    alert.setHeaderText("Are you sure you want to disable save/restore functionality for this table?");
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.isPresent() && result.get() == ButtonType.YES)
+                    {
+                        model.setSaveRestore(false);
+                        disableSaveRestore();
+                    }
+                });
+                menu.getItems().addAll(new SeparatorMenuItem(), disableSaveRestore);
+            }
+
             // Add PV entries
             ContextMenuHelper.addSupportedEntries(table, menu);
         });
+        
         table.setContextMenu(menu);
+    }
+
+    private boolean maySetToSaveRestore()
+    {
+        return AuthorizationService.hasAuthorization("disable_save_restore");
     }
 
     private MenuItem createMenuItem(final String label, final String icon,
@@ -632,7 +697,7 @@ public class PVTable extends VBox
         // Editable value
         col = new TableColumn<>(Messages.Value);
         col.setCellValueFactory(cell -> cell.getValue().value);
-        col.setCellFactory(column -> new ValueTableCell());
+        col.setCellFactory(column -> new ValueTableCell(model));
         col.setOnEditStart(event -> editing = true);
         col.setOnEditCommit(event ->
         {
@@ -658,17 +723,20 @@ public class PVTable extends VBox
         // Saved value
         col = new TableColumn<>(Messages.Saved);
         col.setCellValueFactory(cell -> cell.getValue().saved);
+        saved_value_col = col;
         table.getColumns().add(col);
 
         // Saved value's timestamp
         col = new TableColumn<>(Messages.Saved_Value_TimeStamp);
         col.setCellValueFactory(cell -> cell.getValue().time_saved);
+        saved_time_col = col;
         table.getColumns().add(col);
 
         // Completion checkbox
         final TableColumn<TableItemProxy, Boolean> compl_col = new TableColumn<>(Messages.Completion);
         compl_col.setCellValueFactory(cell -> cell.getValue().use_completion);
         compl_col.setCellFactory(column -> new BooleanTableCell());
+        completion_col = compl_col;
         table.getColumns().add(compl_col);
     }
 

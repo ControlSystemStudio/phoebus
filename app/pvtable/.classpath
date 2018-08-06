@@ -8,5 +8,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+	<classpathentry kind="src" path="/core-security"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
