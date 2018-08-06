@@ -17,7 +17,8 @@ import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.beans.binding.Bindings;
+import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -113,10 +114,24 @@ public class ListSelectionDialog extends Dialog<Boolean>
         clear.setMinWidth(buttonWidth);
 
         // Enable buttons as appropriate
-        add.disableProperty().bind(Bindings.isEmpty(availableItems.getSelectionModel().getSelectedItems()));
-        remove.disableProperty().bind(Bindings.isEmpty(selectedItems.getSelectionModel().getSelectedItems()));
-        clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
-
+        
+        availableItems.getSelectionModel().getSelectedItems().addListener((Observable o) ->
+            add.setDisable(availableItems.getSelectionModel().getSelectedItems().isEmpty()));
+        
+        selectedItems.getSelectionModel().getSelectedItems().addListener((Observable o) ->
+            remove.setDisable(selectedItems.getSelectionModel().getSelectedItems().isEmpty()));
+        
+        
+        selectedItems.getItems().addListener((Observable o) ->
+            clear.setDisable(selectedItems.getItems().isEmpty()));
+        
+        Platform.runLater(() ->
+        {
+            add.setDisable(availableItems.getSelectionModel().getSelectedItems().isEmpty());
+            remove.setDisable(selectedItems.getSelectionModel().getSelectedItems().isEmpty());        
+            clear.setDisable(selectedItems.getItems().isEmpty());
+        });
+        
         // Double click to add..
         availableItems.setOnMouseClicked(event ->
         {
