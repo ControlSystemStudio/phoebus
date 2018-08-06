@@ -70,6 +70,8 @@ public class SearchJob implements JobRunnable
                 final ArchiveReader reader = ArchiveReaders.createReader(archive.getUrl());
             )
             {
+                if (monitor.isCanceled())
+                    break;
                 monitor.updateTaskName(archive.getName());
                 final List<String> names = reader.getNamesByPattern(pattern);
                 for (String name : names)
