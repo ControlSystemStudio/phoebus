@@ -17,6 +17,7 @@ import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -112,11 +113,17 @@ public class ListSelectionDialog extends Dialog<Boolean>
         remove.setMinWidth(buttonWidth);
         clear.setMinWidth(buttonWidth);
 
+        // Note: For the followings, trying to initialize right away resulted in buttons that remained
+        // disabled or would not re-enable.
+        // Only runLater(..) seems to fully function...
         // Enable buttons as appropriate
-        add.disableProperty().bind(Bindings.isEmpty(availableItems.getSelectionModel().getSelectedItems()));
-        remove.disableProperty().bind(Bindings.isEmpty(selectedItems.getSelectionModel().getSelectedItems()));
-        clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
-
+        Platform.runLater( () -> 
+        {
+           add.disableProperty().bind(Bindings.isEmpty(availableItems.getSelectionModel().getSelectedItems()));
+           remove.disableProperty().bind(Bindings.isEmpty(selectedItems.getSelectionModel().getSelectedItems()));
+           clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
+        });
+        
         // Double click to add..
         availableItems.setOnMouseClicked(event ->
         {
