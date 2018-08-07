@@ -118,17 +118,50 @@ public class DockItemWithInput extends DockItem
         info.append("Input: ").append(getInput());
     }
 
-    /** @param input Input */
+    private static String extract_name(String path)
+    {
+        if (path == null)
+            return null;
+
+        // Get basename
+        int sep = path.lastIndexOf('/');
+        if (sep < 0)
+            sep = path.lastIndexOf('\\');
+        if (sep >= 0)
+            path = path.substring(sep+1);
+
+        // Remove extension
+        sep = path.lastIndexOf('.');
+        if (sep < 0)
+            return path;
+        return path.substring(0, sep);
+    }
+
+    /** Set input
+     *
+     *  <p>Registers the input to be persisted and restored.
+     *  The tab tooltip indicates complete input,
+     *  while tab label will be set to basic name (sans path and extension).
+     *  For custom name, call <code>setLabel</code> after updating input
+     *
+     *  @param input Input
+     *  @see DockItemWithInput#setLabel(String)
+     */
     public void setInput(final URI input)
     {
         this.input = input;
+        final String name = input == null ? null : extract_name(input.getPath());
+
         // Tooltip update must be on UI thread
         Platform.runLater(() ->
         {
             if (input == null)
                 name_tab.setTooltip(new Tooltip("<Not saved to file>"));
             else
+            {
                 name_tab.setTooltip(new Tooltip(input.toString()));
+                setLabel(name);
+            }
         });
     }
 
