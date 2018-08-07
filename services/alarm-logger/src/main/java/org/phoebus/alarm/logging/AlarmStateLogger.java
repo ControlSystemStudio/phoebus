@@ -47,7 +47,7 @@ public class AlarmStateLogger implements Runnable {
         }
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, AlarmStateMessage> alarms = builder.stream("AcceleratorState",
+        KStream<String, AlarmStateMessage> alarms = builder.stream(topic+"State",
                 Consumed.with(Serdes.String(), alarmStateMessageSerde));
 
         // Filter the alarms to only
