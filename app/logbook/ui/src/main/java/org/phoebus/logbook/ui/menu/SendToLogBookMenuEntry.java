@@ -41,7 +41,7 @@ public class SendToLogBookMenuEntry implements MenuEntry
     @Override
     public Image getIcon()
     {
-        return ImageCache.getImage(SendToLogBookMenuEntry.class, "/icons/save_edit.png");
+        return ImageCache.getImage(SendToLogBookMenuEntry.class, "/icons/logentry-add-16.png");
     }
 
 }
