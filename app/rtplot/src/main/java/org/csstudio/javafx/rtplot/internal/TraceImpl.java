@@ -100,6 +100,8 @@ public class TraceImpl<XTYPE extends Comparable<XTYPE>> implements Trace<XTYPE>
     @Override
     public String getUnits()
     {
+        if (name.isEmpty())
+            return "";
         return units;
     }
 

@@ -634,6 +634,17 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         }
 
         gc.setClip(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height);
+
+        // Shade plot region beyond 'now'
+        // Lay this 'on top' of grid, then add the traces.
+        if (x_axis instanceof TimeAxis)
+        {
+            final int future_x = ((TimeAxis)x_axis).getScreenCoord(Instant.now());
+            // Half-transparent, average of black & white, works for both white and black backgrounds
+            gc.setColor(new Color(128, 128, 128, 128));
+            gc.fillRect(future_x, 0, area_copy.width - future_x, area_copy.height);
+        }
+
         plot_area.paint(gc);
 
         for (YAxisImpl<XTYPE> y_axis : y_axes)

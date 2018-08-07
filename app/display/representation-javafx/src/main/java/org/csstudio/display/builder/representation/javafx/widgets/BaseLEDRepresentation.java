@@ -18,9 +18,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.RadialGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -200,12 +197,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         }
         if (dirty_content.checkAndClear())
         {
-            led.setFill(
-                // Put highlight in top-left corner, about 0.2 wide,
-                // relative to actual size of LED
-                new RadialGradient(0, 0, 0.3, 0.3, 0.4, true, CycleMethod.NO_CYCLE,
-                                   new Stop(0, value_color.interpolate(Color.WHITESMOKE, 0.8)),
-                                   new Stop(1, value_color)));
+            led.setFill(value_color);
             label.setText(value_label);
         }
     }
