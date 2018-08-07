@@ -12,9 +12,12 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.io.File;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -295,6 +298,37 @@ public class DockItemWithInput extends DockItem
         return true;
     }
 
+    /** @param file_extensions {@link ExtensionFilter}s
+     *  @return List of valid file extensions, ignoring "*.*"
+     */
+    private static List<String> getValidExtensions(final ExtensionFilter[] file_extensions)
+    {
+        final List<String> valid = new ArrayList<>();
+        for (ExtensionFilter filter : file_extensions)
+            for (String ext : filter.getExtensions())
+                if (! ext.equals("*.*"))
+                {
+                    final int sep = ext.lastIndexOf('.');
+                    if (sep > 0)
+                        valid.add(ext.substring(sep+1));
+                }
+        return valid;
+    }
+
+    /** @param file File
+     *  @param valid List of valid file extensions
+     *  @return <code>true</code> if file has one of the valid extensions
+     */
+    private static boolean checkFileExtension(final File file, final List<String> valid)
+    {
+        final String path = file.getPath();
+        final int sep = path.lastIndexOf('.');
+        if (sep < 0)
+            return false;
+        final String ext = path.substring(sep+1);
+        return valid.contains(ext);
+    }
+
     /** Prompt for new file, then save the content of the item that file.
      *
      *  <p>Called by the framework when user invokes the 'Save As'
@@ -313,13 +347,38 @@ public class DockItemWithInput extends DockItem
         try
         {
             // Prompt for file
-            File file = ResourceParser.getFile(getInput());
-            file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
-                                                    Messages.SaveAs, file, file_extensions);
+            final File initial = ResourceParser.getFile(getInput());
+            final File file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
+                                                    Messages.SaveAs, initial, file_extensions);
             if (file == null)
                 return false;
 
-            // TODO Enforce one of the file extensions, but ignore "*.*"
+            // Enforce one of the file extensions
+            final List<String> valid = getValidExtensions(file_extensions);
+            if (! checkFileExtension(file, valid))
+            {
+                // Prompt on UI thread
+                final String prompt =
+                    "The file name\n  " + file + "\n" +
+                    "does not have the suggested file extension\n" +
+                    "i.e. " + valid.stream().collect(Collectors.joining(", ")) + ".\n\n" +
+                    "Continue with chosen name, or cancel?";
+
+                final CompletableFuture<Boolean> go_on = new CompletableFuture<>();
+                Platform.runLater(() ->
+                {
+                    final Alert dialog = new Alert(AlertType.CONFIRMATION);
+                    dialog.setTitle(Messages.SaveAs);
+                    dialog.setHeaderText("Use this file extension?");
+                    dialog.setContentText(prompt);
+                    dialog.setResizable(true);
+                    DialogHelper.positionDialog(dialog, getTabPane(), -100, -200);
+                    go_on.complete(dialog.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK);
+                });
+                // In background thread, wait for the result
+                if (! go_on.get())
+                    return false;
+            }
 
             // Update input
             setInput(ResourceParser.getURI(file));
