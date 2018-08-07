@@ -18,7 +18,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
-import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -113,26 +113,15 @@ public class ListSelectionDialog extends Dialog<Boolean>
         remove.setMinWidth(buttonWidth);
         clear.setMinWidth(buttonWidth);
 
-        // Note: For the followings, either using Bindings.isEmpty()
-        // or trying to initilize right away resulted in buttons that remained
+        // Note: For the followings, trying to initialize right away resulted in buttons that remained
         // disabled or would not re-enable.
-        // Only DIY listener and runLater(..) seem to fully function...
+        // Only runLater(..) seems to fully function...
         // Enable buttons as appropriate
-        availableItems.getSelectionModel().getSelectedItems().addListener((Observable o) ->
-            add.setDisable(availableItems.getSelectionModel().getSelectedItems().isEmpty()));
-        
-        selectedItems.getSelectionModel().getSelectedItems().addListener((Observable o) ->
-            remove.setDisable(selectedItems.getSelectionModel().getSelectedItems().isEmpty()));
-        
-        selectedItems.getItems().addListener((Observable o) ->
-            clear.setDisable(selectedItems.getItems().isEmpty()));
-        
-        // Initialize later
-        Platform.runLater(() ->
+        Platform.runLater( () -> 
         {
-            add.setDisable(availableItems.getSelectionModel().getSelectedItems().isEmpty());
-            remove.setDisable(selectedItems.getSelectionModel().getSelectedItems().isEmpty());        
-            clear.setDisable(selectedItems.getItems().isEmpty());
+           add.disableProperty().bind(Bindings.isEmpty(availableItems.getSelectionModel().getSelectedItems()));
+           remove.disableProperty().bind(Bindings.isEmpty(selectedItems.getSelectionModel().getSelectedItems()));
+           clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
         });
         
         // Double click to add..
