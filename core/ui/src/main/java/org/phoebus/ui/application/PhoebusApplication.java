@@ -451,20 +451,21 @@ public class PhoebusApplication extends Application {
             final File dir = new File(Locations.user().getAbsolutePath());
             final File[] filesArray = dir.listFiles();
             // For every non default memento file create a menu item for the load layout menu.
-            for (final File file : filesArray)
-            {
-                final String filename = file.getName();
-                if (file.isFile() && filename.endsWith(".memento"))
+            if (filesArray != null)
+                for (final File file : filesArray)
                 {
-                    // Build the list of memento files.
-                    memento_files.add(filename);
-                    // Use just the file name w/o ".memento" for the menu entry
-                    final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
-                    menuItem.setOnAction(event -> startLayoutReplacement(file));
-                    // Add the item to the load layout menu.
-                    menuItemList.add(menuItem);
+                    final String filename = file.getName();
+                    if (file.isFile() && filename.endsWith(".memento"))
+                    {
+                        // Build the list of memento files.
+                        memento_files.add(filename);
+                        // Use just the file name w/o ".memento" for the menu entry
+                        final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                        menuItem.setOnAction(event -> startLayoutReplacement(file));
+                        // Add the item to the load layout menu.
+                        menuItemList.add(menuItem);
+                    }
                 }
-            }
             // Sort the menu items alphabetically.
             menuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
 
