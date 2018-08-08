@@ -9,6 +9,7 @@ package org.phoebus.logbook.ui.write;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
@@ -80,9 +81,22 @@ public class TestListSelectionDialog extends ApplicationTest
         stage.show();
     }
 
+    public void myClickOn(Button button) throws Exception
+    {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        
+        Platform.runLater(() -> 
+        {            
+            button.fire();
+            future.complete(null);
+        });
+        
+        future.get();
+    }
+    
     @SuppressWarnings("unchecked")
     @Test 
-    public void testAddAndRemoveAllItems()
+    public void testAddAndRemoveAllItems() throws Exception
     {
         ListView<String> availableItems = (ListView<String>) lookup("#availableItems").query();
         ListView<String> selectedItems = (ListView<String>) lookup("#selectedItems").query();
@@ -100,7 +114,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that add is enabled.
         assertEquals(false, add.disabledProperty().get());
         
-        clickOn("#addButton");
+        myClickOn(add);
         
         // Check that selected items is not empty.
         assertEquals(false, selectedItems.getItems().isEmpty());
@@ -114,7 +128,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that remove is enabled.
         assertEquals(false, remove.disabledProperty().get());
         
-        clickOn("#removeButton");
+        myClickOn(remove);
         
         // Check that selected items is empty.
         assertEquals(true, selectedItems.getItems().isEmpty());
@@ -124,7 +138,7 @@ public class TestListSelectionDialog extends ApplicationTest
     
     @SuppressWarnings("unchecked")
     @Test 
-    public void testAddAndClearAllItems()
+    public void testAddAndClearAllItems() throws Exception
     {
         ListView<String> availableItems = (ListView<String>) lookup("#availableItems").query();
         ListView<String> selectedItems = (ListView<String>) lookup("#selectedItems").query();
@@ -144,7 +158,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that add is now enabled.
         assertEquals(false, add.disabledProperty().get());
         
-        clickOn("#addButton");
+        myClickOn(add);
         
         // Check that the items were indeed added.
         assertEquals(false, selectedItems.getItems().isEmpty());
@@ -153,7 +167,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that clear is not disabled.
         assertEquals(false, clear.disabledProperty().get());
         
-        clickOn("#clearButton");
+        myClickOn(clear);
         
         // Check that there are no selected items.
         assertEquals(true, selectedItems.getItems().isEmpty());
@@ -163,7 +177,7 @@ public class TestListSelectionDialog extends ApplicationTest
     
     @SuppressWarnings("unchecked")
     @Test 
-    public void testAddAndRemoveItems()
+    public void testAddAndRemoveItems() throws Exception
     {
         ListView<String> availableItems = (ListView<String>) lookup("#availableItems").query();
         ListView<String> selectedItems = (ListView<String>) lookup("#selectedItems").query();
@@ -186,7 +200,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that add is now enabled.
         assertEquals(false, add.disabledProperty().get());
         
-        clickOn("#addButton");
+        myClickOn(add);
         
         // Check that the items were added.
         for (String item : items)
@@ -204,7 +218,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that remove is enabled.
         assertEquals(false, remove.disabledProperty().get());
         
-        clickOn("#removeButton");
+        myClickOn(remove);
         
         // Check that the items were removed.
         for (String item : items)
@@ -217,7 +231,7 @@ public class TestListSelectionDialog extends ApplicationTest
     
     @SuppressWarnings("unchecked")
     @Test 
-    public void testAddAndClearItems()
+    public void testAddAndClearItems() throws Exception
     {
         ListView<String> availableItems = (ListView<String>) lookup("#availableItems").query();
         ListView<String> selectedItems = (ListView<String>) lookup("#selectedItems").query();
@@ -240,7 +254,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that add is now enabled.
         assertEquals(false, add.disabledProperty().get());
         
-        clickOn("#addButton");
+        myClickOn(add);
         
         // Check that the items were added.
         for (String item : items)
@@ -251,7 +265,7 @@ public class TestListSelectionDialog extends ApplicationTest
         // Check that clear is not disabled.
         assertEquals(false, clear.disabledProperty().get());
         
-        clickOn("#clearButton");
+        myClickOn(clear);
         
         // Check that no items are selected.
         assertEquals(true, selectedItems.getItems().isEmpty());
