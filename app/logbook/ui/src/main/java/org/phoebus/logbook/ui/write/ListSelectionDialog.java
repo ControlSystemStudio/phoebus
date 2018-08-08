@@ -92,7 +92,9 @@ public class ListSelectionDialog extends Dialog<Boolean>
         availableItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         selectedItems.setStyle("-fx-control-inner-background-alt: white");
         availableItems.setStyle("-fx-control-inner-background-alt: white");
-
+        selectedItems.setId("selectedItems");
+        availableItems.setId("availableItems");
+        
         final Button add = new Button("Add", ImageCache.getImageView(ImageCache.class, "/icons/add.png"));
         add.setTooltip(new Tooltip("Add the selected items."));
         add.setOnAction(event -> addSelectedItems());
@@ -112,7 +114,11 @@ public class ListSelectionDialog extends Dialog<Boolean>
         add.setMinWidth(buttonWidth);
         remove.setMinWidth(buttonWidth);
         clear.setMinWidth(buttonWidth);
-
+        
+        add.setId("addButton");
+        remove.setId("removeButton");
+        clear.setId("clearButton");
+        
         // Note: For the followings, trying to initialize right away resulted in buttons that remained
         // disabled or would not re-enable.
         // Only runLater(..) seems to fully function...

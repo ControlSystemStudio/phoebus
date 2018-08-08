@@ -67,7 +67,6 @@ public class LogEntryDialog extends Dialog<LogEntry>
     {
         model = new LogEntryModel(parent);
 
-
         content = new VBox();
 
         // title and text labels and fields.
@@ -103,6 +102,11 @@ public class LogEntryDialog extends Dialog<LogEntry>
         getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, submitType);
 
         Button submitButton = (Button) getDialogPane().lookupButton(submitType);
+        Button cancelButton = (Button) getDialogPane().lookupButton(ButtonType.CANCEL);
+        
+        submitButton.setId("submitButton");
+        cancelButton.setId("cancelButton");
+        
         // Bind the submit button's disable property to the inverse of the model's ready to submit property.
         submitButton.disableProperty().bind(model.getReadyToSubmitProperty().not());
         submitButton.setTooltip(new Tooltip("Submit Log Entry"));
