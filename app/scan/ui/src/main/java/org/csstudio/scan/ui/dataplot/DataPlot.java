@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.PointType;
@@ -67,6 +68,8 @@ public class DataPlot extends VBox
     /** Scan Client */
     private final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
 
+    private final LongConsumer scan_id_listener;
+
     /** Information about all scans */
     private ScanInfoModel scan_info_model;
 
@@ -91,9 +94,12 @@ public class DataPlot extends VBox
     /** Data for the plot, one entry for each (x_device, y_device) based on y_devices */
     private volatile List<ScanPlotDataProvider> plot_data = Collections.emptyList();
 
-    /** Constructor */
-    public DataPlot()
+    /** Constructor
+     *  @param scan_id_listener Will be invoked when user selects different scan
+     */
+    public DataPlot(final LongConsumer scan_id_listener)
     {
+        this.scan_id_listener = scan_id_listener;
         scan_selector.setTooltip(new Tooltip("Select a Scan"));
         x_device_selector.setTooltip(new Tooltip("Select device for horizontal axis"));
         add_y_device.setTooltip(new Tooltip("Add trace for another device to plot"));
@@ -234,6 +240,7 @@ public class DataPlot extends VBox
         last_scan_data = null;
         plot.setTitle(title);
         reader.setScanId(scan_id);
+        scan_id_listener.accept(scan_id);
     }
 
     /** @param device Device to use for X axis */

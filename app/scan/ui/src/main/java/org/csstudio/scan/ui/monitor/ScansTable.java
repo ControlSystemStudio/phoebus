@@ -252,21 +252,30 @@ public class ScansTable extends VBox
         scan_table.setOnContextMenuRequested(event ->
         {
             // Update menu based on selected scan and states of scans in the table
+            // Start with benign, "read only" commands, then end with commands that
+            // do something like re-submit, abort, remove
             menu.getItems().setAll(server_info, new SeparatorMenuItem());
 
             final List<ScanInfo> selection = scan_table.getSelectionModel().getSelectedItems().stream().map(proxy -> proxy.info).collect(Collectors.toList());
             if (selection.size() == 1)
             {
+                // View data, plot, possibly commands
                 menu.getItems().add(new OpenScanDataTableAction(selection.get(0).getId()));
                 menu.getItems().add(new OpenScanDataPlotAction(selection.get(0).getId()));
-                menu.getItems().add(new SeparatorMenuItem());
 
                 final boolean have_commands = selection.get(0).getState() != ScanState.Logged;
                 if (have_commands)
                 {
-                    menu.getItems().add(new ReSubmitScanAction(scan_client, selection.get(0)));
-                    menu.getItems().add(new SaveScanAction(this, scan_client, selection.get(0)));
                     menu.getItems().add(new OpenScanEditorAction(selection.get(0).getId()));
+                    menu.getItems().add(new SaveScanAction(this, scan_client, selection.get(0)));
+                }
+
+                menu.getItems().add(new SeparatorMenuItem());
+
+                // Resubmit
+                if (have_commands)
+                {
+                    menu.getItems().add(new ReSubmitScanAction(scan_client, selection.get(0)));
                     menu.getItems().add(new SeparatorMenuItem());
                 }
             }
