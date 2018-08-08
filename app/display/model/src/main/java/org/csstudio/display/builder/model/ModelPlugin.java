@@ -19,7 +19,7 @@ import org.csstudio.display.builder.model.util.ModelResourceUtil;
  */
 public class ModelPlugin
 {
-    public final static Logger logger = Logger.getLogger(ModelPlugin.class.getName());
+    public final static Logger logger = Logger.getLogger(ModelPlugin.class.getPackageName());
 
     static
     {

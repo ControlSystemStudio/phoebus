@@ -18,8 +18,8 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class Locations
 {
-    private static final String PHOENIX_INSTALL = "phoenix.install";
-    private static final String PHOENIX_USER = "phoenix.user";
+    private static final String PHOEBUS_INSTALL = "phoebus.install";
+    private static final String PHOEBUS_USER = "phoebus.user";
 
     /** Initialize locations */
     public static void initialize()
@@ -40,8 +40,8 @@ public class Locations
         // Check for location of installation,
         // i.e. the directory that should contain the lib/
         // and doc/ folders.
-        String phoenix_install = System.getProperty(PHOENIX_INSTALL);
-        if (phoenix_install == null)
+        String phoebus_install = System.getProperty(PHOEBUS_INSTALL);
+        if (phoebus_install == null)
         {
             // Determine location of this class
             // During development in the IDE, it's /some/path/phoebus/core/framework/target/classes
@@ -57,42 +57,42 @@ public class Locations
                 path = path.getParentFile().getParentFile().getParentFile().getParentFile();
             }
 
-            phoenix_install = path.getAbsolutePath();
-            System.setProperty(PHOENIX_INSTALL, phoenix_install);
+            phoebus_install = path.getAbsolutePath();
+            System.setProperty(PHOEBUS_INSTALL, phoebus_install);
         }
     }
 
     private static void initUser()
     {
-        String phoenix_user = System.getProperty(PHOENIX_USER);
-        if (phoenix_user == null)
+        String phoebus_user = System.getProperty(PHOEBUS_USER);
+        if (phoebus_user == null)
         {
-            phoenix_user = new File(System.getProperty("user.home"), ".phoebus").getAbsolutePath();
-            System.setProperty(PHOENIX_USER, phoenix_user);
+            phoebus_user = new File(System.getProperty("user.home"), ".phoebus").getAbsolutePath();
+            System.setProperty(PHOEBUS_USER, phoebus_user);
         }
     }
 
     /** 'Install' location contains the lib/ and doc/ directories.
      *
-     *  <p>Can be set via "phoenix.install".
+     *  <p>Can be set via "phoebus.install".
      *
      *  <p>Defaults to the location of the lib/framework.jar.
      */
     public static File install()
     {
-        return new File(System.getProperty(PHOENIX_INSTALL));
+        return new File(System.getProperty(PHOEBUS_INSTALL));
     }
 
     /** 'User' location contains the preferences and memento.
      *
-     *  <p>Can be set via "phoenix.user".
+     *  <p>Can be set via "phoebus.user".
      *
      *  <p>Defaults to ".phoebus" in "user.home".
      *
-     *  @return Phoenix user location
+     *  @return Phoebus user location
      */
     public static File user()
     {
-        return new File(System.getProperty(PHOENIX_USER));
+        return new File(System.getProperty(PHOEBUS_USER));
     }
 }

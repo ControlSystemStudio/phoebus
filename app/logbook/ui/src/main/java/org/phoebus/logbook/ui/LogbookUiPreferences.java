@@ -8,7 +8,6 @@
 package org.phoebus.logbook.ui;
 
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.logbook.ui.write.LogEntryModel;
 
 /** Preference settings for logbook.ui
  *  @author Evan Smith
@@ -19,10 +18,10 @@ public class LogbookUiPreferences
     public static final String[] default_logbooks;
     public static final boolean save_credentials;
     public static final String   logbook_factory;
-    
+
     static
     {
-        PreferencesReader prefs = new PreferencesReader(LogEntryModel.class, "/log_ui_preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(LogbookUiPreferences.class, "/log_ui_preferences.properties");
 
         // Split the comma separated list.
         default_logbooks = prefs.get("default_logbooks").split("(\\s)*,(\\s)*");
