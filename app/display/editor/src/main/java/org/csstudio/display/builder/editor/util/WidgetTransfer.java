@@ -7,6 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.util;
 
+import static javafx.scene.paint.Color.GRAY;
+import static org.csstudio.display.builder.editor.Plugin.logger;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
@@ -24,6 +27,34 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
+import javax.swing.text.Document;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.rtf.RTFEditorKit;
+
+import org.csstudio.display.builder.editor.DisplayEditor;
+import org.csstudio.display.builder.editor.EditorUtil;
+import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.editor.palette.Palette;
+import org.csstudio.display.builder.editor.tracker.SelectedWidgetUITracker;
+import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetDescriptor;
+import org.csstudio.display.builder.model.WidgetFactory;
+import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.ModelWriter;
+import org.csstudio.display.builder.model.persist.WidgetClassesService;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
+import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.csstudio.display.builder.model.widgets.PVWidget;
+import org.csstudio.display.builder.model.widgets.PictureWidget;
+import org.csstudio.display.builder.model.widgets.SymbolWidget;
+import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
+import org.csstudio.display.builder.representation.ToolkitRepresentation;
+import org.csstudio.display.builder.representation.javafx.widgets.SymbolRepresentation;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Point2D;
@@ -38,36 +69,6 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-import javax.imageio.ImageIO;
-import javax.swing.text.Document;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.rtf.RTFEditorKit;
-import org.csstudio.display.builder.editor.DisplayEditor;
-import org.csstudio.display.builder.editor.EditorUtil;
-import org.csstudio.display.builder.editor.Messages;
-import org.csstudio.display.builder.editor.palette.Palette;
-import org.csstudio.display.builder.editor.tracker.SelectedWidgetUITracker;
-import org.csstudio.display.builder.model.ArrayWidgetProperty;
-import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.WidgetDescriptor;
-import org.csstudio.display.builder.model.WidgetFactory;
-import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.csstudio.display.builder.model.persist.WidgetClassesService;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
-import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.csstudio.display.builder.model.widgets.PVWidget;
-import org.csstudio.display.builder.model.widgets.PictureWidget;
-import org.csstudio.display.builder.model.widgets.SymbolWidget;
-import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
-import org.csstudio.display.builder.representation.ToolkitRepresentation;
-import org.csstudio.display.builder.representation.javafx.widgets.SymbolRepresentation;
-
-import static javafx.scene.paint.Color.GRAY;
-import static org.csstudio.display.builder.editor.Plugin.logger;
 
 /** Helper for widget drag/drop
  *
@@ -493,14 +494,9 @@ public class WidgetTransfer {
 
         final DisplayModel model = selection_tracker.getModel();
         final SymbolWidget widget = (SymbolWidget) SymbolWidget.WIDGET_DESCRIPTOR.createWidget();
-        ArrayWidgetProperty<WidgetProperty<String>> propSymbols = widget.propSymbols();
 
         for ( int i = 0; i < fileNames.size(); i++ ) {
-            if ( i < propSymbols.size() ) {
-                propSymbols.getElement(i).setValue(fileNames.get(i));
-            } else {
-                widget.addSymbol(fileNames.get(i));
-            }
+            widget.addOrReplaceSymbol(i, fileNames.get(i));
         }
 
         final int index = widgets.size();
