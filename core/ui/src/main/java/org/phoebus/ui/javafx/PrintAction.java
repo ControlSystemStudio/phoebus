@@ -5,14 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.runtime.app;
+package org.phoebus.ui.javafx;
 
 import java.util.Objects;
 
-import org.csstudio.display.builder.runtime.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
 import javafx.print.PageLayout;
