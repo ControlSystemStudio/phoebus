@@ -146,6 +146,7 @@ public class DockItemWithInput extends DockItem
      *  The tab tooltip indicates complete input,
      *  while tab label will be set to basic name (sans path and extension).
      *  For custom name, call <code>setLabel</code> after updating input
+     *  in <code>Platform.runLater()</code>
      *
      *  @param input Input
      *  @see DockItemWithInput#setLabel(String)

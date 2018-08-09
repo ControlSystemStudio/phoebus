@@ -18,6 +18,8 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
+import javafx.application.Platform;
+
 /** Application instance for Scan Data Plot
  *  @author Kay Kasemir
  */
@@ -36,7 +38,7 @@ public class ScanDataPlotInstance implements AppInstance
         data_plot = create(scan_id);
         final URI input = ScanURI.createURI(scan_id);
         tab = new DockItemWithInput(this, data_plot, input, null, null);
-        tab.setLabel("Scan Plot #" + scan_id);
+        Platform.runLater(() -> tab.setLabel("Scan Plot #" + scan_id));
         tab.addCloseCheck(() ->
         {
             data_plot.stop();
@@ -47,9 +49,21 @@ public class ScanDataPlotInstance implements AppInstance
 
     private DataPlot create(final long scan_id)
     {
-        final DataPlot plot = new DataPlot();
+        final DataPlot plot = new DataPlot(this::updateScanId);
         plot.selectScan(scan_id);
         return plot;
+    }
+
+    /** @param scan_id New scan selected by user in DataPlot */
+    private void updateScanId(final long scan_id)
+    {
+        // Skip the initial call from
+        // Constructor -> create -> selectScan
+        if (tab == null)
+            return;
+        final URI input = ScanURI.createURI(scan_id);
+        tab.setInput(input);
+        Platform.runLater(() -> tab.setLabel("Scan Plot #" + scan_id));
     }
 
     @Override

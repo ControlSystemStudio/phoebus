@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,8 +18,8 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class Locations
 {
-    private static final String PHOEBUS_INSTALL = "phoebus.install";
-    private static final String PHOEBUS_USER = "phoebus.user";
+    public static final String PHOEBUS_INSTALL = "phoebus.install";
+    public static final String PHOEBUS_USER = "phoebus.user";
 
     /** Initialize locations */
     public static void initialize()
