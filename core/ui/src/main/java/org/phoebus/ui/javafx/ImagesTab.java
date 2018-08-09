@@ -18,7 +18,6 @@ import javafx.scene.image.Image;
  *  @author Evan Smith
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class ImagesTab extends Tab
 {
     private ImageList images = new ImageList();
@@ -26,9 +25,9 @@ public class ImagesTab extends Tab
     /** @param root_node Node that will be used to obtain a screenshot */
     public ImagesTab()
     {
-        setText("Images");
+        setText(Messages.Images);
         setClosable(false);
-        setTooltip(new Tooltip("Add images."));
+        setTooltip(new Tooltip(Messages.AddImages));
 
         setContent(images);
     }

@@ -103,8 +103,8 @@ public class ImageList extends VBox
         preview.setPreserveRatio(true);
         preview.setManaged(false);
 
-        final Button removeImage   = new Button("Remove", removeIcon);
-        removeImage.setTooltip(new Tooltip("Remove the selected image."));
+        final Button removeImage   = new Button(Messages.Remove, removeIcon);
+        removeImage.setTooltip(new Tooltip(Messages.RemoveImage));
         removeImage.setOnAction(event ->
         {
             final Image image = preview.getImage();
@@ -125,7 +125,7 @@ public class ImageList extends VBox
         StackPane.setAlignment(removeImage, Pos.TOP_RIGHT);
         StackPane.setMargin(removeImage, new Insets(5));
 
-        images.setPlaceholder(new Label("No Images"));
+        images.setPlaceholder(new Label(Messages.NoImages));
         images.setStyle("-fx-control-inner-background-alt: #f4f4f4");
         images.setStyle("-fx-control-inner-background: #f4f4f4");
         images.setCellFactory(param -> new ImageCell(preview));
@@ -136,7 +136,7 @@ public class ImageList extends VBox
         removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
 
         VBox.setVgrow(images, Priority.ALWAYS);
-        final VBox right = new VBox(new Label("Images: "), images);
+        final VBox right = new VBox(new Label(Messages.ImagesTitle), images);
         right.setPadding(new Insets(5));
 
         final SplitPane split = new SplitPane(left, right);
@@ -146,20 +146,20 @@ public class ImageList extends VBox
 
     private Node createButtons()
     {
-        final Button addImage      = new Button("Add Image");
-        final Button captureWindow = new Button("CSS Window");
-        final Button clipboard     = new Button("Clipboard Image");
+        final Button addImage      = new Button(Messages.AddImage);
+        final Button captureWindow = new Button(Messages.CSSWindow);
+        final Button clipboard     = new Button(Messages.Clipboard);
 
-        addImage.setTooltip(new Tooltip("Add an image file"));
-        captureWindow.setTooltip(new Tooltip("Add a capture of the application window"));
-        clipboard.setTooltip(new Tooltip("Add an image from the clipboard"));
+        addImage.setTooltip(new Tooltip(Messages.AddImageTooltip));
+        captureWindow.setTooltip(new Tooltip(Messages.CSSWindowTooltip));
+        clipboard.setTooltip(new Tooltip(Messages.ClipboardTooltip));
 
         addImage.setOnAction(event ->
         {
             final FileChooser addImageDialog = new FileChooser();
             addImageDialog.setInitialDirectory(new File(System.getProperty("user.home")));
             addImageDialog.getExtensionFilters().addAll(
-                    new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.ppm" , "*.pgm"));
+                    new ExtensionFilter(Messages.ImageFiles, "*.png", "*.jpg", "*.ppm" , "*.pgm"));
             final List<File> imageFiles = addImageDialog.showOpenMultipleDialog(getScene().getWindow());
             if (null != imageFiles)
                 for (File imageFile : imageFiles)

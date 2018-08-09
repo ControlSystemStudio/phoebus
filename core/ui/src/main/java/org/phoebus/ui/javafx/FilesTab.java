@@ -25,9 +25,9 @@ public class FilesTab extends Tab
     /** @param root_node Node that will be used to obtain a screenshot */
     public FilesTab()
     {
-        setText("Files");
+        setText(Messages.Files);
         setClosable(false);
-        setTooltip(new Tooltip("Add file attachments."));
+        setTooltip(new Tooltip(Messages.AddFileAttachments));
 
         setContent(files);
     }
