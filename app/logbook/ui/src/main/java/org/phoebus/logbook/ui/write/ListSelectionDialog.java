@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -241,11 +242,13 @@ public class ListSelectionDialog extends Dialog<Boolean>
             availableItems.getSelectionModel().clearSelection();
         else
         {                
+            // Case insensitive, support unicode...
+            Pattern pattern = Pattern.compile(Pattern.quote(substring), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
             int size = availableItems.getItems().size();
             for (int i = 0; i < size; i++)
             {
                 final String item = availableItems.getItems().get(i);
-                if (item.contains(substring))
+                if (pattern.matcher(item).find())
                     availableItems.getSelectionModel().select(i);
                 else
                     availableItems.getSelectionModel().clearSelection(i);
