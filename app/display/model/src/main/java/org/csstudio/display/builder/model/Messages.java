@@ -189,6 +189,7 @@ public class Messages
     public static String WidgetProperties_Enabled;
     public static String WidgetProperties_ExtremaVisible;
     public static String WidgetProperties_File;
+    public static String WidgetProperties_Filecomponent;
     public static String WidgetProperties_FillColor;
     public static String WidgetProperties_FlatBar;
     public static String WidgetProperties_Font;
