@@ -10,6 +10,7 @@ package org.phoebus.logbook.ui.write;
 import java.io.File;
 import java.util.List;
 
+import org.phoebus.logbook.ui.Messages;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
 
@@ -26,8 +27,6 @@ import javafx.scene.image.Image;
  */
 public class AttachmentsView extends Accordion
 {
-    @SuppressWarnings("unused")
-    private final LogEntryModel    model;
     private final TabPane          tabPane;
     private final ImagesTab     images;
     private final FilesTab      files;
@@ -36,7 +35,6 @@ public class AttachmentsView extends Accordion
     public AttachmentsView(final Node parent, final LogEntryModel model)
     {
         super();
-        this.model = model;
         tabPane    = new TabPane();
         images     = new ImagesTab();
         images.setSnapshotNode(parent.getScene().getRoot());
@@ -45,7 +43,7 @@ public class AttachmentsView extends Accordion
 
         tabPane.getTabs().addAll(images, files, properties);
 
-        TitledPane tPane = new TitledPane("Attachments", tabPane);
+        TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
 
         getPanes().add(tPane);
     }

@@ -65,9 +65,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
     private final ButtonType submitType;
 
     /* Non NLS Strings */
-    private static final String FILE_TYPE = "file",
-                                IMAGE_TYPE = "image",
-                                SUBMIT_ID = "submitButton",
+    private static final String SUBMIT_ID = "submitButton",
                                 CANCEL_ID = "cancelButton";
     
     public LogEntryDialog(final Node parent, LogEntry template)
@@ -171,7 +169,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
             final File file = attachment.getFile();
 
             // Add image to model if attachment is image.
-            if (attachment.getContentType().equals(IMAGE_TYPE))
+            if (attachment.getContentType().equals(Attachment.CONTENT_IMAGE))
             {
                 try
                 {
@@ -183,7 +181,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
                 }
             }
             // Add file to model if attachment is file.
-            else if (attachment.getContentType().equals(FILE_TYPE))
+            else if (attachment.getContentType().equals(Attachment.CONTENT_FILE))
                 files.add(file);
         }
 
