@@ -114,9 +114,12 @@ public class LogEntryDialog extends Dialog<LogEntry>
         submitButton.setId(SUBMIT_ID);
         cancelButton.setId(CANCEL_ID);
         
+        cancelButton.setTooltip(new Tooltip(Messages.CancelTooltip));
+        submitButton.setTooltip(new Tooltip(Messages.SubmitTooltip));
+
         // Bind the submit button's disable property to the inverse of the model's ready to submit property.
         submitButton.disableProperty().bind(model.getReadyToSubmitProperty().not());
-        submitButton.setTooltip(new Tooltip(Messages.SubmitTooltip));
+        
         // Prevent enter from causing log entry submission. We want the button to be clicked.
         // If the button doesn't have focus, it wasn't clicked.
         submitButton.addEventFilter(ActionEvent.ACTION, eventFilter ->
