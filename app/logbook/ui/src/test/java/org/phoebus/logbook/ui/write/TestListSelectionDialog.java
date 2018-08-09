@@ -8,11 +8,14 @@
 package org.phoebus.logbook.ui.write;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
+import org.phoebus.ui.javafx.ClearingTextField;
 import org.testfx.framework.junit.ApplicationTest;
 
 import javafx.application.Platform;
@@ -105,35 +108,35 @@ public class TestListSelectionDialog extends ApplicationTest
         Button remove = (Button) lookup("#removeButton").query();
         
         // Check that there are no selected items.
-        assertEquals(true, selectedItems.getItems().isEmpty());
+        assertTrue(selectedItems.getItems().isEmpty());
 
         // Check that add is disabled.
-        assertEquals(true, add.disabledProperty().get());
+        assertTrue(add.disabledProperty().get());
         // Select all the available items.
         availableItems.getSelectionModel().selectAll();
         // Check that add is enabled.
-        assertEquals(false, add.disabledProperty().get());
+        assertFalse(add.disabledProperty().get());
         
         myClickOn(add);
         
         // Check that selected items is not empty.
-        assertEquals(false, selectedItems.getItems().isEmpty());
+        assertFalse(selectedItems.getItems().isEmpty());
         // Check that available items is not empty.
-        assertEquals(true, availableItems.getItems().isEmpty());
+        assertTrue(availableItems.getItems().isEmpty());
 
         // Check that remove is disabled.
-        assertEquals(true, remove.disabledProperty().get());
+        assertTrue(remove.disabledProperty().get());
         // Select all the selected items.
         selectedItems.getSelectionModel().selectAll();
         // Check that remove is enabled.
-        assertEquals(false, remove.disabledProperty().get());
+        assertFalse(remove.disabledProperty().get());
         
         myClickOn(remove);
         
         // Check that selected items is empty.
-        assertEquals(true, selectedItems.getItems().isEmpty());
+        assertTrue(selectedItems.getItems().isEmpty());
         // With no selected items, check that remove is disabled.
-        assertEquals(true, remove.disabledProperty().get());
+        assertTrue(remove.disabledProperty().get());
     }
     
     @SuppressWarnings("unchecked")
@@ -147,32 +150,32 @@ public class TestListSelectionDialog extends ApplicationTest
         Button clear = (Button) lookup("#clearButton").query();
         
         // Check that no items are selected.
-        assertEquals(true, selectedItems.getItems().isEmpty());
+        assertTrue(selectedItems.getItems().isEmpty());
         
         // Check that add is disabled.
-        assertEquals(true, add.disabledProperty().get());
+        assertTrue(add.disabledProperty().get());
         
         // Select all the items.
         availableItems.getSelectionModel().selectAll();
         
         // Check that add is now enabled.
-        assertEquals(false, add.disabledProperty().get());
+        assertFalse(add.disabledProperty().get());
         
         myClickOn(add);
         
         // Check that the items were indeed added.
-        assertEquals(false, selectedItems.getItems().isEmpty());
-        assertEquals(true, availableItems.getItems().isEmpty());
+        assertFalse(selectedItems.getItems().isEmpty());
+        assertTrue(availableItems.getItems().isEmpty());
         
         // Check that clear is not disabled.
-        assertEquals(false, clear.disabledProperty().get());
+        assertFalse(clear.disabledProperty().get());
         
         myClickOn(clear);
         
         // Check that there are no selected items.
-        assertEquals(true, selectedItems.getItems().isEmpty());
+        assertTrue(selectedItems.getItems().isEmpty());
         // With no selected items, check that clear is disabled.
-        assertEquals(true, clear.disabledProperty().get());
+        assertTrue(clear.disabledProperty().get());
     }
     
     @SuppressWarnings("unchecked")
@@ -188,45 +191,45 @@ public class TestListSelectionDialog extends ApplicationTest
         String[] items = {"item 1", "item 3", "item 5", "item 7"};
         
         // Check that no items are selected.
-        assertEquals(true, selectedItems.getItems().isEmpty());
+        assertTrue(selectedItems.getItems().isEmpty());
         
         // Check that add is disabled.
-        assertEquals(true, add.disabledProperty().get());
+        assertTrue(add.disabledProperty().get());
         
         // Select 4 items.
         for (String item : items)
             availableItems.getSelectionModel().select(item);
         
         // Check that add is now enabled.
-        assertEquals(false, add.disabledProperty().get());
+        assertFalse(add.disabledProperty().get());
         
         myClickOn(add);
         
         // Check that the items were added.
         for (String item : items)
-            assertEquals(false, availableItems.getItems().contains(item));
+            assertFalse(availableItems.getItems().contains(item));
         for (String item : items)
-            assertEquals(true, selectedItems.getItems().contains(item));
+            assertTrue(selectedItems.getItems().contains(item));
 
         // Check that remove is disabled.
-        assertEquals(true, remove.disabledProperty().get());
+        assertTrue(remove.disabledProperty().get());
         
         // Select the selected items.
         for (String item : items)
             selectedItems.getSelectionModel().select(item);
         
         // Check that remove is enabled.
-        assertEquals(false, remove.disabledProperty().get());
+        assertFalse(remove.disabledProperty().get());
         
         myClickOn(remove);
         
         // Check that the items were removed.
         for (String item : items)
-            assertEquals(false, selectedItems.getItems().contains(item));
+            assertFalse(selectedItems.getItems().contains(item));
         
         // Check that the items were returned.
         for (String item : items)
-            assertEquals(true, availableItems.getItems().contains(item));
+            assertTrue(availableItems.getItems().contains(item));
     }
     
     @SuppressWarnings("unchecked")
@@ -242,40 +245,79 @@ public class TestListSelectionDialog extends ApplicationTest
         String[] items = {"item 2", "item 4", "item 6", "item 8"};
 
         // Check that no items are selected.
-        assertEquals(true, selectedItems.getItems().isEmpty());
+        assertTrue(selectedItems.getItems().isEmpty());
         
         // Check that add is disabled.
-        assertEquals(true, add.disabledProperty().get());
+        assertTrue(add.disabledProperty().get());
         
         // Select 4 items.
         for (String item : items)
             availableItems.getSelectionModel().select(item);
         
         // Check that add is now enabled.
-        assertEquals(false, add.disabledProperty().get());
+        assertFalse(add.disabledProperty().get());
         
         myClickOn(add);
         
         // Check that the items were added.
         for (String item : items)
-            assertEquals(false, availableItems.getItems().contains(item));
+            assertFalse(availableItems.getItems().contains(item));
         for (String item : items)
-            assertEquals(true, selectedItems.getItems().contains(item));
+            assertTrue(selectedItems.getItems().contains(item));
         
         // Check that clear is not disabled.
-        assertEquals(false, clear.disabledProperty().get());
+        assertFalse(clear.disabledProperty().get());
         
         myClickOn(clear);
         
         // Check that no items are selected.
-        assertEquals(true, selectedItems.getItems().isEmpty());
+        assertTrue(selectedItems.getItems().isEmpty());
         
         // Check that the items were removed.
         for (String item : items)
-            assertEquals(false, selectedItems.getItems().contains(item));
+            assertFalse(selectedItems.getItems().contains(item));
         
         // Check that the items were returned.
         for (String item : items)
-            assertEquals(true, availableItems.getItems().contains(item));
+            assertTrue(availableItems.getItems().contains(item));
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testSearchBar() 
+    {
+        ListView<String> availableItems = (ListView<String>) lookup("#availableItems").query();
+        ClearingTextField searchField = (ClearingTextField) lookup("#searchField").query();
+        
+        String[] items = {"item 1", "item 10", "item 11", "item 12", "item 13", "item 14", "item 15", "item 16", "item 17", "item 18", "item 19"};
+        
+        // Check that the search bar is empty.
+        assertTrue(searchField.getText().isEmpty());
+        
+        // Type something in the search bar that selects all the items.
+        searchField.setText("item");
+        
+        // Check that the available items containing the typed substring are selected.
+        assertEquals(availableItems.getItems().size(), availableItems.getSelectionModel().getSelectedItems().size());
+        
+        // Clear the search bar.
+        searchField.setText("");
+        
+        // Check that no available items are selected.
+        assertTrue(availableItems.getSelectionModel().getSelectedItems().isEmpty());
+        
+        // Type something in the search bar that selects a subset of the items.
+        searchField.setText("item 1");
+        
+        // Check that the available items containing the typed substring are selected.
+        assertEquals(11, availableItems.getSelectionModel().getSelectedItems().size());
+        for (String item : items)
+            assertTrue(availableItems.getSelectionModel().getSelectedItems().contains(item));
+        
+        // Clear the search bar.
+        searchField.setText("");
+        
+        // Check that no available items are selected.
+        assertTrue(availableItems.getSelectionModel().getSelectedItems().isEmpty());
     }
 }
