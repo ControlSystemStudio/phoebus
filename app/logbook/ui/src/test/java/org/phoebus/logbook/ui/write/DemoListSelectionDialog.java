@@ -52,7 +52,9 @@ public class DemoListSelectionDialog extends Application
     
     public Boolean addSelected(String item)
     {
-        return selected.add(item);
+        Boolean result = selected.add(item);
+        FXCollections.sort(selected);
+        return result;
     }
     
     public Boolean removeSelected(String item)
