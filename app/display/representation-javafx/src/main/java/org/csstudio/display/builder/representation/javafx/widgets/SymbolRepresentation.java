@@ -422,7 +422,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
         model_widget.propPVName().addPropertyListener(this::contentChanged);
 
         model_widget.propSymbols().addPropertyListener(this::imagesChanged);
-        model_widget.propSymbols().getValue().stream().forEach(p -> p.addPropertyListener(imagePropertyListener));
+        model_widget.propSymbols().getValue().stream().forEach(p -> {
+            p.removePropertyListener(imagePropertyListener);
+            p.addPropertyListener(imagePropertyListener);
+        });
 
         model_widget.propInitialIndex().addPropertyListener(this::initialIndexChanged);
 
@@ -622,11 +625,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
 
 
             for ( int i = 0; i < fileNames.size(); i++ ) {
-                if ( i < propSymbols.size() ) {
-                    propSymbols.getElement(i).setValue(fileNames.get(i));
-                } else {
-                    model_widget.addSymbol(fileNames.get(i));
-                }
+                model_widget.addOrReplaceSymbol(i, fileNames.get(i));
             }
 
         } finally {
@@ -647,7 +646,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
             }
 
             if ( fileNames == null ) {
-                logger.log(Level.WARNING, "Empty list of file names.");
+                logger.log(Level.WARNING, "Empty list of file names for " + model_widget);
             } else {
 
                 imagesList.clear();
@@ -677,6 +676,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
 
                 toBeRemoved.stream().forEach(f -> imagesMap.remove(f));
 
+                // Trigger update of displayed image by selecting default image and then
+                // again the proper one
+                setImageIndex(-1);
                 setImageIndex(Math.min(Math.max(getImageIndex(), 0), imagesList.size() - 1));
                 maxSize = computeMaximumSize(model_widget);
 

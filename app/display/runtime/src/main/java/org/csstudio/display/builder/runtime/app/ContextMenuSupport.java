@@ -59,12 +59,6 @@ class ContextMenuSupport
         this.instance = instance;
         menu.setAutoHide(true);
 
-        // Menu inherits styling of widget's node.
-        // Some widgets update the background color
-        // (TextEntryRepresentation).
-        // No way to prevent inheritance, so reset to the modena.css default:
-        menu.setStyle("-fx-control-inner-background: derive(-fx-base,80%);");
-
         final ToolkitListener tkl = new ToolkitListener()
         {
             @Override
@@ -72,7 +66,13 @@ class ContextMenuSupport
             {
                 final Node node = JFXBaseRepresentation.getJFXNode(widget);
                 fillMenu(node, widget);
-                menu.show(node, screen_x, screen_y);
+                // Use window, not node, to show menu for two reasons:
+                // 1) menu.show(node, ..) means menu is attached to node,
+                //    inheriting styles of nodes. For widgets that change background color
+                //    via style, those colors would then apply to the menu items as well.
+                // 2) Clicking outside the menu will close the menu, while it would remain
+                //    open when attached to the node.
+                menu.show(node.getScene().getWindow(), screen_x, screen_y);
             }
         };
 

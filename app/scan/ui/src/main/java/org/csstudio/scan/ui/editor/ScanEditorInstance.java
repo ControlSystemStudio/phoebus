@@ -30,6 +30,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
+import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 /** Application instance for Scan Editor
@@ -104,6 +105,7 @@ public class ScanEditorInstance  implements AppInstance
         // resource will find this instance and not start
         // another instance
         tab.setInput(ScanURI.createURI(id));
+        Platform.runLater(() -> tab.setLabel("Scan Editor #" + id));
 
         JobManager.schedule("Read Scan", monitor ->
         {

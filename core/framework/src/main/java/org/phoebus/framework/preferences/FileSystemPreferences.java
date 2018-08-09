@@ -25,19 +25,32 @@
 
 package org.phoebus.framework.preferences;
 
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.AbstractPreferences;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
-import java.security.PrivilegedActionException;
+
+import org.phoebus.framework.workbench.Locations;
 
 /**
  * Preferences implementation for Unix. Preferences are stored in the file
@@ -54,15 +67,16 @@ import java.security.PrivilegedActionException;
  * @since 1.4
  */
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "nls"})
 class FileSystemPreferences extends AbstractPreferences {
 
     /**
      * Sync interval in seconds.
      */
     private static final int SYNC_INTERVAL = Math.max(1,
-            Integer.parseInt((String) AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
+            Integer.parseInt(AccessController.doPrivileged(new PrivilegedAction<String>() {
+                @Override
+                public String run() {
                     return System.getProperty("java.util.prefs.syncInterval", "30");
                 }
             })));
@@ -110,9 +124,16 @@ class FileSystemPreferences extends AbstractPreferences {
 
     private static void setupUserRoot() {
         AccessController.doPrivileged(new PrivilegedAction() {
+            @Override
             public Object run() {
 
-                userRootDir = new File(System.getProperty("java.util.prefs.userRoot", System.getProperty("user.home")),
+                // If Phoebus locations have been set,
+                // place the user preferences in the user directory that also stores mementos etc.
+                // Otherwise fall back to original FileSystemPreferences behavior
+                if (System.getProperty(Locations.PHOEBUS_USER, "").length() > 0)
+                    userRootDir = new File(System.getProperty(Locations.PHOEBUS_USER), ".userPrefs");
+                else
+                    userRootDir = new File(System.getProperty("java.util.prefs.userRoot", System.getProperty("user.home")),
                         ".phoebus/.userPrefs");
 
                 // Attempt to create root dir if it does not yet exist.
@@ -155,8 +176,9 @@ class FileSystemPreferences extends AbstractPreferences {
 
     private static void setupSystemRoot() {
         AccessController.doPrivileged(new PrivilegedAction() {
+            @Override
             public Object run() {
-                String systemPrefsDirName = (String) System.getProperty("java.util.prefs.systemRoot", "/etc/.java");
+                String systemPrefsDirName = System.getProperty("java.util.prefs.systemRoot", "/etc/.java");
                 systemRootDir = new File(systemPrefsDirName, ".systemPrefs");
                 // Attempt to create root dir if it does not yet exist.
                 if (!systemRootDir.exists()) {
@@ -328,6 +350,7 @@ class FileSystemPreferences extends AbstractPreferences {
             this.value = value;
         }
 
+        @Override
         void replay() {
             prefsCache.put(key, value);
         }
@@ -343,6 +366,7 @@ class FileSystemPreferences extends AbstractPreferences {
             this.key = key;
         }
 
+        @Override
         void replay() {
             prefsCache.remove(key);
         }
@@ -356,6 +380,7 @@ class FileSystemPreferences extends AbstractPreferences {
          * Performs no action, but the presence of this object in changeLog will force
          * the node and its ancestors to be made permanent at the next sync.
          */
+        @Override
         void replay() {
         }
     }
@@ -378,6 +403,7 @@ class FileSystemPreferences extends AbstractPreferences {
     static {
         // Add periodic timer task to periodically sync cached prefs
         syncTimer.schedule(new TimerTask() {
+            @Override
             public void run() {
                 syncWorld();
             }
@@ -385,8 +411,10 @@ class FileSystemPreferences extends AbstractPreferences {
 
         // Add shutdown hook to flush cached prefs on normal termination
         AccessController.doPrivileged(new PrivilegedAction() {
+            @Override
             public Object run() {
                 Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
                     public void run() {
                         syncTimer.cancel();
                         syncWorld();
@@ -450,6 +478,7 @@ class FileSystemPreferences extends AbstractPreferences {
         prefsFile = new File(dir, "prefs.xml");
         tmpFile = new File(dir, "prefs.tmp");
         AccessController.doPrivileged(new PrivilegedAction() {
+            @Override
             public Object run() {
                 newNode = !dir.exists();
                 return null;
@@ -463,21 +492,25 @@ class FileSystemPreferences extends AbstractPreferences {
         }
     }
 
+    @Override
     public boolean isUserNode() {
         return isUserNode;
     }
 
+    @Override
     protected void putSpi(String key, String value) {
         initCacheIfNecessary();
         changeLog.add(new Put(key, value));
         prefsCache.put(key, value);
     }
 
+    @Override
     protected String getSpi(String key) {
         initCacheIfNecessary();
         return (String) prefsCache.get(key);
     }
 
+    @Override
     protected void removeSpi(String key) {
         initCacheIfNecessary();
         changeLog.add(new Remove(key));
@@ -514,6 +547,7 @@ class FileSystemPreferences extends AbstractPreferences {
     private void loadCache() throws BackingStoreException {
         try {
             AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                @Override
                 public Object run() throws BackingStoreException {
                     Map m = new TreeMap();
                     long newLastSyncTime = 0;
@@ -555,6 +589,7 @@ class FileSystemPreferences extends AbstractPreferences {
     private void writeBackCache() throws BackingStoreException {
         try {
             AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                @Override
                 public Object run() throws BackingStoreException {
                     try {
                         if (!dir.exists() && !dir.mkdirs())
@@ -577,13 +612,16 @@ class FileSystemPreferences extends AbstractPreferences {
         }
     }
 
+    @Override
     protected String[] keysSpi() {
         initCacheIfNecessary();
         return (String[]) prefsCache.keySet().toArray(new String[prefsCache.size()]);
     }
 
+    @Override
     protected String[] childrenNamesSpi() {
         return (String[]) AccessController.doPrivileged(new PrivilegedAction() {
+            @Override
             public Object run() {
                 List result = new ArrayList();
                 File[] dirContents = dir.listFiles();
@@ -599,10 +637,12 @@ class FileSystemPreferences extends AbstractPreferences {
 
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
+    @Override
     protected AbstractPreferences childSpi(String name) {
         return new FileSystemPreferences(this, name);
     }
 
+    @Override
     public void removeNode() throws BackingStoreException {
         synchronized (isUserNode() ? userLockFile : systemLockFile) {
             // to remove a node we need an exclusive lock
@@ -619,9 +659,11 @@ class FileSystemPreferences extends AbstractPreferences {
     /**
      * Called with file lock held (in addition to node locks).
      */
+    @Override
     protected void removeNodeSpi() throws BackingStoreException {
         try {
             AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                @Override
                 public Object run() throws BackingStoreException {
                     if (changeLog.contains(nodeCreate)) {
                         changeLog.remove(nodeCreate);
@@ -649,6 +691,7 @@ class FileSystemPreferences extends AbstractPreferences {
         }
     }
 
+    @Override
     public synchronized void sync() throws BackingStoreException {
         boolean userNode = isUserNode();
         boolean shared;
@@ -665,6 +708,7 @@ class FileSystemPreferences extends AbstractPreferences {
             if (!lockFile(shared))
                 throw (new BackingStoreException("Couldn't get file lock."));
             final Long newModTime = (Long) AccessController.doPrivileged(new PrivilegedAction() {
+                @Override
                 public Object run() {
                     long nmt;
                     if (isUserNode()) {
@@ -680,6 +724,7 @@ class FileSystemPreferences extends AbstractPreferences {
             try {
                 super.sync();
                 AccessController.doPrivileged(new PrivilegedAction() {
+                    @Override
                     public Object run() {
                         if (isUserNode()) {
                             userRootModTime = newModTime.longValue() + 1000;
@@ -697,9 +742,11 @@ class FileSystemPreferences extends AbstractPreferences {
         }
     }
 
+    @Override
     protected void syncSpi() throws BackingStoreException {
         try {
             AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                @Override
                 public Object run() throws BackingStoreException {
                     syncSpiPrivileged();
                     return null;
@@ -752,12 +799,14 @@ class FileSystemPreferences extends AbstractPreferences {
         }
     }
 
+    @Override
     public void flush() throws BackingStoreException {
         if (isRemoved())
             return;
         sync();
     }
 
+    @Override
     protected void flushSpi() throws BackingStoreException {
         // assert false;
     }
@@ -826,7 +875,7 @@ class FileSystemPreferences extends AbstractPreferences {
      * Try to acquire the appropriate file lock (user or system). If the initial
      * attempt fails, several more attempts are made using an exponential backoff
      * strategy. If all attempts fail, this method returns false.
-     * 
+     *
      * @throws SecurityException
      *             if file access denied.
      */
@@ -891,7 +940,7 @@ class FileSystemPreferences extends AbstractPreferences {
 
     /**
      * Release the the appropriate file lock (user or system).
-     * 
+     *
      * @throws SecurityException
      *             if file access denied.
      */
@@ -908,8 +957,7 @@ class FileSystemPreferences extends AbstractPreferences {
             try {
                 rootLockFile.close();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                getLogger().log(Level.WARNING, "Cannot close lock file " + rootLockFile, e);
             }
         }
 

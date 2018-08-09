@@ -20,7 +20,7 @@ public class DataPlotDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final DataPlot plot = new DataPlot();
+        final DataPlot plot = new DataPlot(id -> System.err.println("Selected scan #" + id));
         final Scene scene = new Scene(plot, 800, 600);
         stage.setScene(scene);
         stage.show();
