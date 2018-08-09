@@ -14,6 +14,7 @@ public class Messages
     public static String Add,                              
                          Add_Tooltip,
                          Apply,
+                         Attachments,
                          Available,
                          CancelTooltip,
                          Clear,                                
