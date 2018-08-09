@@ -23,6 +23,7 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.ui.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 
 import javafx.event.ActionEvent;
@@ -49,13 +50,13 @@ public class LogEntryDialog extends Dialog<LogEntry>
     public static final int labelWidth = 80;
 
     /** Purveyor of log entry application state. */
-    private final LogEntryModel           model;
+    private final LogEntryModel model;
 
     /** Dialog Content */
-    private final VBox                    content;
+    private final VBox content;
 
     /** View handles the input for creation of the entry. */
-    private final FieldsView      logEntryFields;
+    private final FieldsView logEntryFields;
 
     /** View handles addition of log entry attachments. */
     private final AttachmentsView attachmentsView;
@@ -63,6 +64,12 @@ public class LogEntryDialog extends Dialog<LogEntry>
     /** Button type for submitting log entry. */
     private final ButtonType submitType;
 
+    /* Non NLS Strings */
+    private static final String FILE_TYPE = "file",
+                                IMAGE_TYPE = "image",
+                                SUBMIT_ID = "submitButton",
+                                CANCEL_ID = "cancelButton";
+    
     public LogEntryDialog(final Node parent, LogEntry template)
     {
         model = new LogEntryModel(parent);
@@ -87,11 +94,11 @@ public class LogEntryDialog extends Dialog<LogEntry>
         content.setSpacing(10);
         content.getChildren().addAll(logEntryFields, attachmentsView);
 
-        setTitle("Create Log Book Entry");
+        setTitle(Messages.CreateLogbookEntry);
 
         getDialogPane().setContent(content);
 
-        submitType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+        submitType = new ButtonType(Messages.Submit, ButtonBar.ButtonData.OK_DONE);
 
         setResizable(true);
 
@@ -104,12 +111,12 @@ public class LogEntryDialog extends Dialog<LogEntry>
         Button submitButton = (Button) getDialogPane().lookupButton(submitType);
         Button cancelButton = (Button) getDialogPane().lookupButton(ButtonType.CANCEL);
         
-        submitButton.setId("submitButton");
-        cancelButton.setId("cancelButton");
+        submitButton.setId(SUBMIT_ID);
+        cancelButton.setId(CANCEL_ID);
         
         // Bind the submit button's disable property to the inverse of the model's ready to submit property.
         submitButton.disableProperty().bind(model.getReadyToSubmitProperty().not());
-        submitButton.setTooltip(new Tooltip("Submit Log Entry"));
+        submitButton.setTooltip(new Tooltip(Messages.SubmitTooltip));
         // Prevent enter from causing log entry submission. We want the button to be clicked.
         // If the button doesn't have focus, it wasn't clicked.
         submitButton.addEventFilter(ActionEvent.ACTION, eventFilter ->
@@ -161,7 +168,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
             final File file = attachment.getFile();
 
             // Add image to model if attachment is image.
-            if (attachment.getContentType().equals("image"))
+            if (attachment.getContentType().equals(IMAGE_TYPE))
             {
                 try
                 {
@@ -173,7 +180,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
                 }
             }
             // Add file to model if attachment is file.
-            else if (attachment.getContentType().equals("file"))
+            else if (attachment.getContentType().equals(FILE_TYPE))
                 files.add(file);
         }
 
