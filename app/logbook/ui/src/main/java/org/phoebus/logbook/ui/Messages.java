@@ -30,6 +30,7 @@ public class Messages
                          Normal,
                          Num_Selected,
                          Password,
+                         Properties,
                          Remove,
                          Remove_Tooltip,
                          Search,
