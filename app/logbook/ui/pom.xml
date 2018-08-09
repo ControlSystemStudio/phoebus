@@ -53,5 +53,17 @@
       <artifactId>jfxtras-common</artifactId>
       <version>9.0-r1</version>
     </dependency>
+     <dependency>
+      <groupId>org.testfx</groupId>
+      <artifactId>testfx-core</artifactId>
+      <version>4.0.13-alpha</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testfx</groupId>
+      <artifactId>testfx-junit</artifactId>
+      <version>4.0.13-alpha</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

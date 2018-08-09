@@ -68,6 +68,7 @@ public class FieldsView extends VBox
         this.model.setDate(now);
         levelLabel = new Label("Level:");
         levelSelector = new ComboBox<String>(levels);
+        levelSelector.getSelectionModel().select("Normal");
         
         setSelectorAction();
         
