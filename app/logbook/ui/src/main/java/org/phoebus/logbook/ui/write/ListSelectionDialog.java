@@ -242,6 +242,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
             availableItems.getSelectionModel().clearSelection();
         else
         {                
+            // Case insensitive, support unicode...
             Pattern pattern = Pattern.compile(Pattern.quote(substring), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
             int size = availableItems.getItems().size();
             for (int i = 0; i < size; i++)
