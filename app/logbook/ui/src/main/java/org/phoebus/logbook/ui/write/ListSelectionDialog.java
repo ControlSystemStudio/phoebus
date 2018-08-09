@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.logbook.ui.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
@@ -48,20 +49,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
 {
     private static final int buttonWidth = 110, spacing = 10;
     private static final Font labelFont = new Font(16);
-    
-    /* Translations would apply to these strings. Can be moved to NLS */
-    private static final String ADD = "Add",                                
-                                ADD_TOOLTIP = "Add the selected items.",
-                                APPLY = "Apply",
-                                AVAILABLE = "Available", 
-                                CLEAR = "Clear",                                
-                                CLEAR_TOOLTIP = "Clear the selected items list.",
-                                NUM_SELECTED = "selected",
-                                REMOVE = "Remove",
-                                REMOVE_TOOLTIP = "Remove the selected items.",
-                                SEARCH = "Search available:",
-                                SELECTED = "Selected";
-    
+
     /* Non NLS Strings */
     private static final String ADD_ID = "addButton",
                                 ADD_ICON = "/icons/add.png",
@@ -71,7 +59,8 @@ public class ListSelectionDialog extends Dialog<Boolean>
                                 REMOVE_ICON = "/icons/delete.png",
                                 REMOVE_ID = "removeButton",
                                 SEARCH_ID = "searchField",
-                                SELECTED_ID = "selectedItems";
+                                SELECTED_ID = "selectedItems",
+                                LISTVIEW_STYLE = "-fx-control-inner-background-alt: white";
     
     private final Function<String, Boolean> addSelected, removeSelected;
 
@@ -99,7 +88,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
 
         setTitle(title);
         
-        final ButtonType apply = new ButtonType(APPLY, ButtonBar.ButtonData.OK_DONE);
+        final ButtonType apply = new ButtonType(Messages.Apply, ButtonBar.ButtonData.OK_DONE);
 
         getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, apply);
         getDialogPane().setContent(formatContent());
@@ -117,21 +106,21 @@ public class ListSelectionDialog extends Dialog<Boolean>
     {
         selectedItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         availableItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        selectedItems.setStyle("-fx-control-inner-background-alt: white");
-        availableItems.setStyle("-fx-control-inner-background-alt: white");
+        selectedItems.setStyle(LISTVIEW_STYLE);
+        availableItems.setStyle(LISTVIEW_STYLE);
         selectedItems.setId(SELECTED_ID);
         availableItems.setId(AVAILABLE_ID);
         
-        final Button add = new Button(ADD, ImageCache.getImageView(ImageCache.class, ADD_ICON));
-        add.setTooltip(new Tooltip(ADD_TOOLTIP));
+        final Button add = new Button(Messages.Add, ImageCache.getImageView(ImageCache.class, ADD_ICON));
+        add.setTooltip(new Tooltip(Messages.Add_Tooltip));
         add.setOnAction(event -> addSelectedItems());
 
-        final Button remove = new Button(REMOVE, ImageCache.getImageView(ImageCache.class, REMOVE_ICON));
-        remove.setTooltip(new Tooltip(REMOVE_TOOLTIP));
+        final Button remove = new Button(Messages.Remove, ImageCache.getImageView(ImageCache.class, REMOVE_ICON));
+        remove.setTooltip(new Tooltip(Messages.Remove_Tooltip));
         remove.setOnAction(event -> removeItems(selectedItems.getSelectionModel().getSelectedItems()));
 
-        final Button clear  = new Button(CLEAR, ImageCache.getImageView(ImageCache.class, CLEAR_ICON));
-        clear.setTooltip(new Tooltip(CLEAR_TOOLTIP));
+        final Button clear  = new Button(Messages.Clear, ImageCache.getImageView(ImageCache.class, CLEAR_ICON));
+        clear.setTooltip(new Tooltip(Messages.Clear_Tooltip));
         clear.setOnAction(event ->  removeItems(selectedItems.getItems()));
 
         add.setPrefWidth(buttonWidth);
@@ -146,7 +135,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         remove.setId(REMOVE_ID);
         clear.setId(CLEAR_ID);
         
-        // Note: For the followings, trying to initialize right away resulted in buttons that remained
+        // Note: For the following, trying to initialize right away resulted in buttons that remained
         // disabled or would not re-enable.
         // Only runLater(..) seems to fully function...
         // Enable buttons as appropriate
@@ -178,7 +167,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         buttonsBox.setSpacing(10);
         buttonsBox.setAlignment(Pos.CENTER);
 
-        final Label availableLabel = new Label(AVAILABLE);
+        final Label availableLabel = new Label(Messages.Available);
         availableLabel.setFont(labelFont);
         VBox.setVgrow(availableItems, Priority.ALWAYS);
         final VBox availableBox = new VBox(spacing, availableLabel, availableItems);
@@ -187,12 +176,12 @@ public class ListSelectionDialog extends Dialog<Boolean>
         {
             int selectedNum = availableItems.getSelectionModel().getSelectedItems().size();
             if (selectedNum > 0)
-                Platform.runLater(() -> availableLabel.setText(AVAILABLE + " (" + selectedNum + " " + NUM_SELECTED + ")"));
+                Platform.runLater(() -> availableLabel.setText(Messages.Available + " (" + selectedNum + " " + Messages.Num_Selected + ")"));
             else
-                Platform.runLater(() -> availableLabel.setText(AVAILABLE));
+                Platform.runLater(() -> availableLabel.setText(Messages.Available));
         });
         
-        final Label selectedLabel = new Label(SELECTED);
+        final Label selectedLabel = new Label(Messages.Selected);
         selectedLabel.setFont(labelFont);
         VBox.setVgrow(selectedItems, Priority.ALWAYS);
         final VBox selectedBox = new VBox(spacing, selectedLabel, selectedItems);
@@ -201,9 +190,9 @@ public class ListSelectionDialog extends Dialog<Boolean>
         {
             int selectedNum = selectedItems.getSelectionModel().getSelectedItems().size();
             if (selectedNum > 0)
-                Platform.runLater(() -> selectedLabel.setText(SELECTED + " (" + selectedNum + " " + NUM_SELECTED + ")"));
+                Platform.runLater(() -> selectedLabel.setText(Messages.Selected + " (" + selectedNum + " " + Messages.Num_Selected + ")"));
             else
-                Platform.runLater(() -> selectedLabel.setText(SELECTED));
+                Platform.runLater(() -> selectedLabel.setText(Messages.Selected));
         });
 
         HBox.setHgrow(availableBox, Priority.ALWAYS);
@@ -223,7 +212,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
             searchAvailableItemsForSubstring(newVal);
         });
         
-        final Label searchLabel = new Label(SEARCH);
+        final Label searchLabel = new Label(Messages.Search);
         searchLabel.setFont(labelFont);
         final HBox searchBox = new HBox(spacing, searchLabel, searchField);
         searchBox.setAlignment(Pos.CENTER_LEFT);
