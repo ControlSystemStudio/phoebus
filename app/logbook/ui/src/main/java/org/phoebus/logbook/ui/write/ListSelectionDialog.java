@@ -69,6 +69,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
                                 CLEAR_ID = "clearButton",
                                 REMOVE_ICON = "/icons/delete.png",
                                 REMOVE_ID = "removeButton",
+                                SEARCH_ID = "searchField",
                                 SELECTED_ID = "selectedItems";
     
     private final Function<String, Boolean> addSelected, removeSelected;
@@ -214,7 +215,8 @@ public class ListSelectionDialog extends Dialog<Boolean>
         final HBox selectionBox = new HBox(spacing, availableBox, buttonsBox, selectedBox);
         selectionBox.setAlignment(Pos.CENTER);
         
-        final ClearingTextField searchField = new ClearingTextField(); 
+        final ClearingTextField searchField = new ClearingTextField();
+        searchField.setId(SEARCH_ID);
         searchField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
             searchAvailableItemsForSubstring(newVal);
