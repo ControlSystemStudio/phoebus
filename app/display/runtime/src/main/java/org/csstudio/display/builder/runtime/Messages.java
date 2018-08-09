@@ -18,7 +18,6 @@ public class Messages
     public static String NavigateForward_TT;
     public static String OpenDataBrowser;
     public static String OpenInEditor;
-    public static String Print;
     public static String ReloadDisplay;
     public static String SendToLogbook;
     public static String Toolbar_Hide;
