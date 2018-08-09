@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import org.phoebus.logbook.ui.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.FXCollections;
@@ -63,18 +64,18 @@ public class LogbooksTagsView extends VBox
         this.model = model;
         
         logbookBox = new HBox();
-        logbookLabel = new Label("Logbooks: ");
+        logbookLabel = new Label(Messages.Logbooks);
         logbookField = new TextField();
         logbookDropDown = new ContextMenu();
-        logbookSelector = new ToggleButton("", new ImageView(down_icon));
-        addLogbook = new Button("", new ImageView(logbook_icon));
+        logbookSelector = new ToggleButton(null, new ImageView(down_icon));
+        addLogbook = new Button(null, new ImageView(logbook_icon));
         
         tagBox = new HBox();
-        tagLabel = new Label("Tags: ");
+        tagLabel = new Label(Messages.Tags);
         tagField = new TextField();
         tagDropDown = new ContextMenu();
-        tagSelector = new ToggleButton("", new ImageView(down_icon));
-        addTag = new Button("", new ImageView(tag_icon));
+        tagSelector = new ToggleButton(null, new ImageView(down_icon));
+        addTag = new Button(null, new ImageView(tag_icon));
         
         setSpacing(10);
         
@@ -88,7 +89,7 @@ public class LogbooksTagsView extends VBox
     /** Format log books HBox */
     private void formatLogbooks()
     {
-        Tooltip tooltip = new Tooltip("Add logbook to the log entry.");
+        Tooltip tooltip = new Tooltip(Messages.LogbooksTooltip);
         addLogbook.setTooltip(tooltip);
         logbookSelector.setTooltip(tooltip);
         logbookLabel.setPrefWidth(LogEntryDialog.labelWidth);
@@ -125,10 +126,9 @@ public class LogbooksTagsView extends VBox
        
         HBox.setHgrow(logbookField, Priority.ALWAYS);
         
-        final String title = "Select Logbooks";
         addLogbook.setOnAction(event ->
         {
-            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), title, model::getLogbooks, model::getSelectedLogbooks, model::addSelectedLogbook, model::removeSelectedLogbook);
+            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), Messages.LogbooksTitle, model::getLogbooks, model::getSelectedLogbooks, model::addSelectedLogbook, model::removeSelectedLogbook);
             
             Optional<Boolean> result = select.showAndWait();
             if (result.isPresent() && result.get())
@@ -145,7 +145,7 @@ public class LogbooksTagsView extends VBox
     /** Format tags HBox */
     private void formatTags()
     {
-        Tooltip tooltip = new Tooltip("Add tag to the log entry.");
+        Tooltip tooltip = new Tooltip(Messages.TagsTooltip);
         addTag.setTooltip(tooltip);
         tagSelector.setTooltip(tooltip);
         tagLabel.setPrefWidth(LogEntryDialog.labelWidth);
@@ -173,10 +173,9 @@ public class LogbooksTagsView extends VBox
        
         HBox.setHgrow(tagField, Priority.ALWAYS);
         
-        final String title = "Select Tags";
         addTag.setOnAction(event ->
         {
-            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), title, model::getTags, model::getSelectedTags, model::addSelectedTag, model::removeSelectedTag);
+            ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), Messages.TagsTitle, model::getTags, model::getSelectedTags, model::addSelectedTag, model::removeSelectedTag);
             
             Optional<Boolean> result = select.showAndWait();
             if (result.isPresent() && result.get())

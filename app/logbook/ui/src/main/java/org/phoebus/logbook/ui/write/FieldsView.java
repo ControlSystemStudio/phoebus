@@ -60,7 +60,6 @@ public class FieldsView extends VBox
     {
         this.model = model;
         
-        
         Instant now = Instant.now();
         dateLabel = new Label(Messages.Date);
         dateField = new TextField(TimestampFormats.DATE_FORMAT.format(now));
