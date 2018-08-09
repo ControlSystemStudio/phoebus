@@ -13,6 +13,9 @@ public interface Attachment {
 
     public File getFile();
 
+    public static final String CONTENT_IMAGE = "image";
+    public static final String CONTENT_FILE = "file";
+    
     public String getContentType();
 
     public Boolean getThumbnail();
