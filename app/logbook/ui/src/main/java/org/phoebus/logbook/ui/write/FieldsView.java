@@ -10,6 +10,7 @@ package org.phoebus.logbook.ui.write;
 import java.time.Instant;
 
 import org.phoebus.logbook.ui.LogbookUiPreferences;
+import org.phoebus.logbook.ui.Messages;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
@@ -46,9 +47,9 @@ public class FieldsView extends VBox
     private final TextField              dateField;
     private final ComboBox<String>       levelSelector;
     private final ObservableList<String> levels = FXCollections.observableArrayList(
-                                                        "Urgent",
-                                                        "High",
-                                                        "Normal");
+                                                        Messages.Urgent,
+                                                        Messages.High,
+                                                        Messages.Normal);
     // Title and body of log entry
     private final Label            titleLabel, textLabel;
     private final TextField        titleField;
@@ -59,20 +60,19 @@ public class FieldsView extends VBox
     {
         this.model = model;
         
-        
         Instant now = Instant.now();
-        dateLabel = new Label("Date:");
+        dateLabel = new Label(Messages.Date);
         dateField = new TextField(TimestampFormats.DATE_FORMAT.format(now));
         dateField.setPrefWidth(100);
 
         this.model.setDate(now);
-        levelLabel = new Label("Level:");
+        levelLabel = new Label(Messages.Level);
         levelSelector = new ComboBox<String>(levels);
-        levelSelector.getSelectionModel().select("Normal");
+        levelSelector.getSelectionModel().select(Messages.Normal);
         
         setSelectorAction();
         
-        titleLabel = new Label("Title:");
+        titleLabel = new Label(Messages.Title);
         titleField = new TextField(model.getTitle());
         titleField.textProperty().addListener((changeListener, oldVal, newVal) ->
         {
@@ -85,21 +85,14 @@ public class FieldsView extends VBox
         // log books and tags text field, selector, and addition view button
         logbooksAndTags =  new LogbooksTagsView(model);
         
-        textLabel  = new Label("Text:");
+        textLabel  = new Label(Messages.Text);
         textArea   = new TextArea(model.getText());
-        
-        String storedUser = "";
-        String storedPass = "";
-        
-        userFieldLabel     = new Label("User Name:");       
-        passwordFieldLabel = new Label("Password:");
+      
+        userFieldLabel     = new Label(Messages.Username);       
+        passwordFieldLabel = new Label(Messages.Password);
 
         userField = new TextField();
-        if (null != storedUser)
-        {
-            userField.setText(storedUser);
-            model.setUser(storedUser);
-        }
+
         // Update the username entered property when appropriate.
         userField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
@@ -110,11 +103,7 @@ public class FieldsView extends VBox
         });
 
         passwordField = new PasswordField();
-        if(null != storedPass)
-        {
-            passwordField.setText(storedPass);
-            model.setPassword(storedPass);
-        }
+
         // Update the password entered property when appropriate.
         passwordField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
@@ -186,11 +175,11 @@ public class FieldsView extends VBox
     {
         HBox dateLevelBox = new HBox();
         dateField.setEditable(false);
-        dateField.setTooltip(new Tooltip("Current Date"));
+        dateField.setTooltip(new Tooltip(Messages.CurrentDate));
         dateLabel.setPrefWidth(LogEntryDialog.labelWidth);
         levelLabel.setAlignment(Pos.CENTER_RIGHT);
         levelSelector.setMinHeight(26); // When opened from phoebus, not the demo, the selector gets squeezed down to 10 pixels tall.
-        levelSelector.setTooltip(new Tooltip("Select the log entry level."));
+        levelSelector.setTooltip(new Tooltip(Messages.SelectLevelTooltip));
         // Put log level label and selector in HBox so that they can be right justified.
         HBox levelBox  = new HBox();
         levelBox.getChildren().addAll(levelLabel, levelSelector);

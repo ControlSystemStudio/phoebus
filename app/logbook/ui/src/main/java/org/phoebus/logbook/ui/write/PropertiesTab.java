@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
+import org.phoebus.logbook.ui.Messages;
+
 import javafx.scene.control.Tab;
 
 /**
@@ -24,6 +26,6 @@ public class PropertiesTab extends Tab
     private void formatTab()
     {
         setClosable(false);
-        setText("Properties");
+        setText(Messages.Properties);
     }
 }

@@ -27,8 +27,12 @@ import java.util.logging.Logger;
  *  <code>public static String SomeMessageVariable;<code>,
  *  and the `messages.properties` file in the same location
  *  contains lines
- *  <code>SomeMessageVariable=The text</code>.
- *
+ *  
+ *  <p><code>SomeMessageVariable=The text</code>.
+ *  
+ *  <p> Note that spaces surrounding the '<code>=</code>' will be consumed, 
+ *  and the text's trailing whitespace will be preserved.
+ *  
  *  <p>Localized files of the name `messages_xx.properties`
  *  with `xx` determined by the {@link Locale} will be
  *  given preference over the generic `messages.properties` file.

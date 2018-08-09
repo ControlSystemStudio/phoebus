@@ -32,6 +32,7 @@ import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 
 import javafx.collections.ObservableList;

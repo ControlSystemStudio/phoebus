@@ -35,6 +35,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -167,6 +168,7 @@ public class Perspective extends SplitPane
             items.addAll(add_data);
 
             items.add(new SeparatorMenuItem());
+            items.add(new PrintAction(DockPane.getActiveDockPane()));
             items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
             items.add(new SendEmailAction(this, "Data Browser Plot", "See attached data browser plot", () ->  plot.getPlot().getImage()));
             items.add(new SendLogbookAction(DockPane.getActiveDockPane(), "Data Browser Plot", "See attached data browser plot", () ->  plot.getPlot().getImage()));
