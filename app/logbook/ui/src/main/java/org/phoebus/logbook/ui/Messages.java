@@ -17,11 +17,22 @@ public class Messages
                          Available, 
                          Clear,                                
                          Clear_Tooltip,
+                         CurrentDate,
+                         Date,
+                         High,
+                         Level,
+                         Normal,
                          Num_Selected,
+                         Password,
                          Remove,
                          Remove_Tooltip,
                          Search,
-                         Selected;
+                         Selected,
+                         SelectLevelTooltip,
+                         Text,
+                         Title,
+                         Urgent,
+                         Username;
     static
     {
         // initialize resource bundle
