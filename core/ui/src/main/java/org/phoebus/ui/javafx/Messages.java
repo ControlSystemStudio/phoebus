@@ -21,6 +21,7 @@ public class Messages
                          ImagesTitle,
                          ImageFiles,
                          NoImages,
+                         Print,
                          Remove,
                          RemoveImage;
 
