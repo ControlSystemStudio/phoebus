@@ -1,8 +1,19 @@
 <project default="app-pvtree">
   <import file="../../dependencies/ant_settings.xml"/>
-
-  <target name="app-pvtree" depends="compile-app">
-    <jar destfile="${build}/app-pvtree-${version}.jar">
+  
+  <target name="app-pvtree">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
+        <pathelement path="../email/${build}/app-email-${version}.jar"/>
+      </classpath>
+    </javac>
+ 
+  	<jar destfile="${build}/app-pvtree-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
