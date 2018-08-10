@@ -30,7 +30,6 @@ import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
-import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -641,7 +640,7 @@ public class PVTable extends VBox
             if (ContextMenuHelper.addSupportedEntries(table, menu))
                 menu.getItems().add(new SeparatorMenuItem());
             
-            menu.getItems().add(new PrintAction(DockPane.getActiveDockPane()));
+            menu.getItems().add(new PrintAction(this));
             menu.getItems().add(new SaveSnapshotAction(table));
             menu.getItems().add(new SendEmailAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
             menu.getItems().add(new SendLogbookAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));

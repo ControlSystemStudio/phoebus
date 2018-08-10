@@ -371,7 +371,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
             
             menu_items.add(new SeparatorMenuItem());
-            menu_items.add(new PrintAction(DockPane.getActiveDockPane()));
+            menu_items.add(new PrintAction(tree_view));
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
             menu_items.add(new SendEmailAction(tree_view, "Alarm Screenshot", "See alarm tree screenshot", () -> Screenshot.imageFromNode(tree_view)));
             menu_items.add(new SendLogbookAction(tree_view, "Alarm Screenshot", "See alarm tree screenshot", () -> Screenshot.imageFromNode(tree_view)));
