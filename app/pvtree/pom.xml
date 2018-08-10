@@ -47,7 +47,7 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-logbook</artifactId>
+      <artifactId>app-logbook-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
