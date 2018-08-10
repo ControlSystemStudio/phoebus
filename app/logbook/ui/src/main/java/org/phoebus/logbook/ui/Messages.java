@@ -34,6 +34,7 @@ public class Messages
                          Remove,
                          Remove_Tooltip,
                          Search,
+                         SearchAvailableItems,
                          Selected,
                          SelectLevelTooltip,
                          Submit,
