@@ -28,6 +28,14 @@ import javafx.stage.FileChooser;
 public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, FileSelectorWidget>
 {
     private static final Image open_file_icon = ImageCache.getImage(FileSelectorRepresentation.class, "/icons/open_file.png");
+
+    /** Globally maintain the last directory that was selected.
+     *
+     *  <p>Next time a dialog opens, it will use this directory
+     *  unless the initial value contains a directory path.
+     */
+    private static File last_directory = null;
+
     private final DirtyFlag dirty_size = new DirtyFlag();
 
     @Override
@@ -58,7 +66,6 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
         toolkit.scheduleUpdate(this);
     }
 
-
     @Override
     public void updateChanges()
     {
@@ -76,32 +83,47 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
 
         File file = path == null ? null : new File(path);
 
-        // This is a JFX representation, but using RCP/SWT dialogs
-        // which are aware of the workspace and match other load/save dialogs
+        // Prompt for just dialog, or use general file selector?
         if (component == FileSelectorWidget.FileComponent.DIRECTORY)
         {
             final DirectoryChooser dialog = new DirectoryChooser();
-            // DialogHelper.positionDialog(dialog, jfx_node, -200, -300);
+            dialog.setTitle("Select Directory");
             if (null != file.getParentFile() && file.getParentFile().exists())
                 dialog.setInitialDirectory(file.getParentFile());
+            else if (last_directory != null)
+                dialog.setInitialDirectory(last_directory);
             file = dialog.showDialog(jfx_node.getScene().getWindow());
         }
         else
         {
             final FileChooser dialog = new FileChooser();
-            // DialogHelper.positionDialog(dialog, jfx_node, -200, -300);
+            dialog.setTitle("Select File");
             if (null != file.getParentFile() && file.getParentFile().exists())
                 dialog.setInitialDirectory(file.getParentFile());
-            dialog.setInitialFileName(file.getName());
+            else if (last_directory != null)
+                dialog.setInitialDirectory(last_directory);
+            // Try to already select the initial file,
+            // but at least on Linux that seems to have no effect
+            if (file != null)
+                dialog.setInitialFileName(file.getName());
             file = dialog.showOpenDialog(jfx_node.getScene().getWindow());
         }
+
         if (file == null)
             return;
+
+        if (file.isDirectory())
+            last_directory = file;
+        else
+            last_directory = file.getParentFile();
+
         switch (model_widget.propComponent().getValue())
         {
         case FULL:
+            path = file.getAbsolutePath();
+            break;
         case DIRECTORY:
-            // DirectoryDialog vs. FileDialog already handle this
+            path = last_directory.getAbsolutePath();
             break;
         case FULLNAME:
             path = file.getName();
