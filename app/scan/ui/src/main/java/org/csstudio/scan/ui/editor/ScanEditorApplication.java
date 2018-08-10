@@ -9,6 +9,7 @@ package org.csstudio.scan.ui.editor;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 import org.csstudio.scan.ui.ScanURI;
@@ -35,6 +36,12 @@ public class ScanEditorApplication implements AppResourceDescriptor
     public String getDisplayName()
     {
         return DISPLAY_NAME;
+    }
+
+    @Override
+    public URL getIconURL()
+    {
+        return getClass().getResource("/icons/scan.png");
     }
 
     @Override
