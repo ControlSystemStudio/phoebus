@@ -207,6 +207,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         
         final ClearingTextField searchField = new ClearingTextField();
         searchField.setId(SEARCH_ID);
+        searchField.setTooltip(new Tooltip(Messages.SearchAvailableItems));
         searchField.textProperty().addListener((changeListener, oldVal, newVal) -> 
         {
             searchAvailableItemsForSubstring(newVal);
