@@ -86,6 +86,7 @@ public class SendLogbookAction extends MenuItem
             logEntryBuilder.appendDescription(body);
 
         if (image_file != null)
+        {
             try
             {
                 final Attachment attachment = AttachmentImpl.of(image_file, "image", false);
@@ -95,7 +96,8 @@ public class SendLogbookAction extends MenuItem
             {
                 logger.log(Level.WARNING, "Cannot attach " + image_file, ex);
             }
-
+        }
+        
         final LogEntry template = logEntryBuilder.createdDate(Instant.now()).build();
 
         final LogEntryDialog logEntryDialog = new LogEntryDialog(parent, template);

@@ -37,14 +37,15 @@ public class ContextMenuHelper
      *
      *  @param parent_node Parent node, usually owner of the context menu
      *  @param menu Menu where selection-based entries will be added
+     *  @return <code>true</code> if a supported entry was added.
      */
-    public static void addSupportedEntries(final Node parent_node, final ContextMenu menu)
+    public static boolean addSupportedEntries(final Node parent_node, final ContextMenu menu)
     {
         final Window window = parent_node.getScene().getWindow();
         if (! (window instanceof Stage))
         {
             logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-            return;
+            return false;
         }
         final Stage stage = (Stage) window;
         // Assert that this window's dock pane is the active one.
@@ -52,6 +53,9 @@ public class ContextMenuHelper
         //  always activate the stage)
         DockStage.setActiveDockStage(stage);
 
+        if (ContextMenuService.getInstance().listSupportedContextMenuEntries().isEmpty())
+            return false;
+        
         for (ContextMenuEntry<?> entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
         {
             final MenuItem item = new MenuItem(entry.getName());
@@ -72,5 +76,7 @@ public class ContextMenuHelper
             });
             menu.getItems().add(item);
         }
+        
+        return true;
     }
 }

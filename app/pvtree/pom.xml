@@ -40,5 +40,15 @@
       <artifactId>core-types</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+        <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-email</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-logbook-ui</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>

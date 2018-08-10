@@ -9,5 +9,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
 	<classpathentry kind="src" path="/core-security"/>
+	<classpathentry kind="src" path="/app-email"/>
+	<classpathentry kind="src" path="/app-logbook-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

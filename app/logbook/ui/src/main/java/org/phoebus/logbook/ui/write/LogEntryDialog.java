@@ -70,7 +70,11 @@ public class LogEntryDialog extends Dialog<LogEntry>
     
     public LogEntryDialog(final Node parent, LogEntry template)
     {
+        
         model = new LogEntryModel(parent);
+
+        if (null != template)
+            setModelTemplate(template);
 
         content = new VBox();
 
@@ -79,9 +83,6 @@ public class LogEntryDialog extends Dialog<LogEntry>
 
         // Images, Files, Properties
         attachmentsView = new AttachmentsView(parent, model);
-
-        if (null != template)
-            setModelTemplate(template);
 
         // Let the Text Area grow to the bottom.
         VBox.setVgrow(logEntryFields,  Priority.ALWAYS);
@@ -148,7 +149,7 @@ public class LogEntryDialog extends Dialog<LogEntry>
      */
     private void setModelTemplate(LogEntry template)
     {
-        // model.setTitle(template.getTitle());
+        model.setTitle(template.getTitle());
         model.setText(template.getDescription());
         Collection<Logbook> logbooks = template.getLogbooks();
         logbooks.forEach(logbook->
@@ -184,9 +185,8 @@ public class LogEntryDialog extends Dialog<LogEntry>
             else if (attachment.getContentType().equals(Attachment.CONTENT_FILE))
                 files.add(file);
         }
-
-        attachmentsView.setImages(images);
-        attachmentsView.setFiles(files);
+        model.setImages(images);
+        model.setFiles(files);
     }
 
     /** Set a runnable to be executed <b>after</b> the log entry submission occurs. */

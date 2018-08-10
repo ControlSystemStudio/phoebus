@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -22,11 +23,15 @@ import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
+import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.vtype.VEnum;
@@ -628,16 +633,22 @@ public class PVTable extends VBox
                         disableSaveRestore();
                     }
                 });
-                menu.getItems().addAll(new SeparatorMenuItem(), disableSaveRestore);
+                menu.getItems().addAll(disableSaveRestore, new SeparatorMenuItem());
             }
 
             // Add PV entries
-            ContextMenuHelper.addSupportedEntries(table, menu);
+            if (ContextMenuHelper.addSupportedEntries(table, menu))
+                menu.getItems().add(new SeparatorMenuItem());
+            
+            menu.getItems().add(new PrintAction(this));
+            menu.getItems().add(new SaveSnapshotAction(table));
+            menu.getItems().add(new SendEmailAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
+            menu.getItems().add(new SendLogbookAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
         });
         
         table.setContextMenu(menu);
     }
-
+    
     private boolean maySetToSaveRestore()
     {
         return AuthorizationService.hasAuthorization("disable_save_restore");

@@ -27,7 +27,7 @@ import javafx.scene.image.Image;
  */
 public class AttachmentsView extends Accordion
 {
-    private final TabPane          tabPane;
+    private final TabPane       tabPane;
     private final ImagesTab     images;
     private final FilesTab      files;
     private final PropertiesTab properties;
@@ -40,7 +40,10 @@ public class AttachmentsView extends Accordion
         images.setSnapshotNode(parent.getScene().getRoot());
         files      = new FilesTab();
         properties = new PropertiesTab();
-
+        
+        images.setImages(model.getImages());
+        files.setFiles(model.getFiles());
+        
         tabPane.getTabs().addAll(images, files, properties);
 
         TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
@@ -53,20 +56,8 @@ public class AttachmentsView extends Accordion
         return images.getImages();
     }
 
-    public void setImages(final List<Image> images)
-    {
-        this.images.setImages(images);
-    }
-
     public List<File> getFiles()
     {
         return files.getFiles();
     }
-
-    public void setFiles(final List<File> files)
-    {
-        this.files.setFiles(files);
-    }
-
-
 }

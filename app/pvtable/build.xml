@@ -1,7 +1,16 @@
 <project default="app-pvtable">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="app-pvtable" depends="compile-app">
+  <target name="app-pvtable">
+    <mkdir dir="${classes}"/>
+  	  <javac destdir="${classes}">
+  	    <src path="${src}"/>
+  	    <classpath>
+  	      <path refid="app-classpath"/>
+  	      <pathelement path="../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
+  	      <pathelement path="../email/${build}/app-email-${version}.jar"/>
+  	      </classpath>
+  	  </javac>
     <jar destfile="${build}/app-pvtable-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

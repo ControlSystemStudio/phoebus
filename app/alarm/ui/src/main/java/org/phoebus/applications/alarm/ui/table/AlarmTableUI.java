@@ -25,6 +25,7 @@ import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.text.RegExHelper;
@@ -343,8 +344,11 @@ public class AlarmTableUI extends BorderPane
                 menu_items.add(new SeparatorMenuItem());
 
             if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
+            {
                 menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
-
+                menu_items.add(new SeparatorMenuItem());
+            }
+            menu_items.add(new PrintAction(this));
             menu_items.add(new SaveSnapshotAction(table));
             menu_items.add(new SendEmailAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
             menu_items.add(new SendLogbookAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));

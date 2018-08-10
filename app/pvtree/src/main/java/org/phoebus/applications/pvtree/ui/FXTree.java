@@ -15,18 +15,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.applications.pvtree.model.TreeModel;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
 import org.phoebus.applications.pvtree.model.TreeModelListener;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.TreeHelper;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.Border;
@@ -101,17 +106,6 @@ public class FXTree
         tree_view = new TreeView<>();
         tree_view.setCellFactory(cell -> new TreeModelItemCell());
 
-        // Tool tip that shows PV and alarm counts
-        final Tooltip tt = new Tooltip();
-        tt.setOnShowing(event ->
-        {
-            System.out.println("Creating TT...");
-            // Counting alarms on UI thread?
-            // Was OK in test with ~12000 items, ~4000 in alarm
-            final int alarm_count = model.getAlarmItems().size();
-            tt.setText(model.getItemCount() + " items, " + alarm_count + " in alarm");
-        });
-
         // Publish currently selected PV
         tree_view.getSelectionModel().selectedItemProperty().addListener((prop, old_item, selected) ->
         {
@@ -137,7 +131,12 @@ public class FXTree
         tree_view.setOnContextMenuRequested(event ->
         {
             menu.getItems().clear();
-            ContextMenuHelper.addSupportedEntries(tree_view, menu);
+            if (ContextMenuHelper.addSupportedEntries(tree_view, menu))
+                menu.getItems().add(new SeparatorMenuItem());
+            menu.getItems().add(new PrintAction(tree_view));
+            menu.getItems().add(new SaveSnapshotAction(tree_view));
+            menu.getItems().add(new SendEmailAction(tree_view, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(tree_view)));
+            menu.getItems().add(new SendLogbookAction(tree_view, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(tree_view)));
         });
         tree_view.setContextMenu(menu);
     }
