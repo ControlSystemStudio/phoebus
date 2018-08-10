@@ -57,7 +57,7 @@ public class FileBrowserController {
     TreeView<File> treeView;
 
     private final MenuItem open = new MenuItem("Open", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
-    private final Menu openWith = new Menu("Open With", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final Menu openWith = new Menu("Open With...", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
     public FileBrowserController()
