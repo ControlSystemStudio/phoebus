@@ -292,14 +292,9 @@ public class WaveformView extends VBox
                 }
                 else
                 {
-                    // TODO Use sampleSearch
-                    sample = samples.get(0);
-                    for (int s=1; s<samples.size(); ++s)
-                        if (VTypeHelper.getTimestamp(samples.get(s).getVType()).isAfter(firstWaveformSampleTime))
-                        {
-                            sample = samples.get(s-1);
-                            break;
-                        }
+                    final TimeDataSearch search = new TimeDataSearch();
+                    final int s = search.findClosestSample(samples, firstWaveformSampleTime);
+                    sample = samples.get(s);
                 }
             }
             finally
