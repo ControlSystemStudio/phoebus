@@ -62,7 +62,8 @@ public class Perspective extends SplitPane
                                 PLOT_TABS_SPLIT = "plot_tabs_split",
                                 SHOW_SEARCH = "show_search",
                                 SHOW_PROPERTIES = "show_properties",
-                                SHOW_EXPORT = "show_export";
+                                SHOW_EXPORT = "show_export",
+                                SHOW_WAVEFORM = "show_waveform";
 
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
@@ -391,6 +392,14 @@ public class Perspective extends SplitPane
                 bottom_tabs.getTabs().add(export_tab);
             }
         });
+        memento.getBoolean(SHOW_WAVEFORM).ifPresent(show ->
+        {
+            if (show)
+            {
+                createWaveformTab();
+                bottom_tabs.getTabs().add(waveform_tab);
+            }
+        });
 
         // Has no effect when run right now?
         Platform.runLater(() ->
@@ -408,17 +417,29 @@ public class Perspective extends SplitPane
     {
         if (search != null)
             search.save(memento);
+
         property_panel.save(memento);
+
         if (export != null)
             export.save(memento);
 
         if (getDividers().size() > 0)
             memento.setNumber(LEFT_RIGHT_SPLIT, getDividers().get(0).getPosition());
+
         if (plot_and_tabs.getDividers().size() > 0)
             memento.setNumber(PLOT_TABS_SPLIT, plot_and_tabs.getDividers().get(0).getPosition());
-        memento.setBoolean(SHOW_SEARCH, left_tabs.getTabs().contains(search_tab));
-        memento.setBoolean(SHOW_PROPERTIES, bottom_tabs.getTabs().contains(properties_tab));
-        memento.setBoolean(SHOW_EXPORT, bottom_tabs.getTabs().contains(export_tab));
+
+        if (left_tabs.getTabs().contains(search_tab))
+            memento.setBoolean(SHOW_SEARCH, true);
+
+        if (bottom_tabs.getTabs().contains(properties_tab))
+            memento.setBoolean(SHOW_PROPERTIES, true);
+
+        if (bottom_tabs.getTabs().contains(export_tab))
+            memento.setBoolean(SHOW_EXPORT, true);
+
+        if (bottom_tabs.getTabs().contains(waveform_tab))
+            memento.setBoolean(SHOW_WAVEFORM, true);
     }
 
     public void dispose()
