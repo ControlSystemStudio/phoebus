@@ -51,7 +51,7 @@ import javafx.scene.transform.Scale;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<ScrollPane, EmbeddedDisplayWidget>
+public class  extends RegionBaseRepresentation<ScrollPane, EmbeddedDisplayWidget>
 {
     private static final Background TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
     private static final Border EDIT_BORDER = new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
@@ -302,6 +302,9 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     @Override
     public void updateChanges()
     {
+        // Late update after disposal?
+        if (inner == null)
+            return;
         super.updateChanges();
         if (dirty_sizes.checkAndClear())
         {
