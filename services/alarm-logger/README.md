@@ -9,7 +9,9 @@ Logging alarm state and other messages to an elastic back end.
 
     bin/elasticsearch
 
-elasticsearch defaults to port 9200, however if elasticsearch is configured to use another port this can be set in the alarm\_logging\_preferences.properties file.
+elasticsearch defaults to port 9200, however if elasticsearch is configured to use another port this can be set in
+
+    /src/main/resources/alarm_logging_preferences.properties
 
 
 ### Create an elasticsearch index
