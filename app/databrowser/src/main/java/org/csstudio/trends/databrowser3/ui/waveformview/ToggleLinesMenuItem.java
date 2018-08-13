@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.waveformview;
 
+import java.util.List;
+
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.RTPlot;
 import org.csstudio.javafx.rtplot.RTValuePlot;
@@ -22,16 +24,19 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class ToggleLinesMenuItem extends MenuItem
 {
-    public ToggleLinesMenuItem(final RTValuePlot plot, final Trace<Double> trace)
+    public ToggleLinesMenuItem(final RTValuePlot plot, final List<Trace<Double>> traces)
     {
-        if (trace.getPointType() == PointType.NONE)
+        if (traces.get(0).getPointType() == PointType.NONE)
         {
             setText("Use points");
             setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/points.png"));
             setOnAction(event ->
             {
-                trace.setPointType(PointType.CIRCLES);
-                trace.setType(TraceType.NONE);
+                for (Trace<Double> trace : traces)
+                {
+                    trace.setPointType(PointType.CIRCLES);
+                    trace.setType(TraceType.NONE);
+                }
                 plot.requestUpdate();
             });
         }
@@ -41,8 +46,11 @@ public class ToggleLinesMenuItem extends MenuItem
             setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/lines.png"));
             setOnAction(event ->
             {
-                trace.setPointType(PointType.NONE);
-                trace.setType(TraceType.LINES_DIRECT);
+                for (Trace<Double> trace : traces)
+                {
+                    trace.setPointType(PointType.NONE);
+                    trace.setType(TraceType.LINES_DIRECT);
+                }
                 plot.requestUpdate();
             });
         }
