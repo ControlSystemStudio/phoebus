@@ -39,9 +39,12 @@ public class ToggleLinesMenuItem extends MenuItem
         else
         {
             setText("Use lines");
-            trace.setPointType(PointType.NONE);
-            trace.setType(TraceType.LINES_DIRECT);
-            plot.requestUpdate();
+            setOnAction(event ->
+            {
+                trace.setPointType(PointType.NONE);
+                trace.setType(TraceType.LINES_DIRECT);
+                plot.requestUpdate();
+            });
         }
     }
 }
