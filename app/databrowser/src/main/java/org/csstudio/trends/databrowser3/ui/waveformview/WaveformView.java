@@ -353,41 +353,39 @@ public class WaveformView extends VBox
         if (waveform_annotations.isEmpty())
             return;
 
-        for (AnnotationInfo annotation : model.getAnnotations())
-            for (AnnotationInfo waveform_annotation : waveform_annotations)
+        // Compare position of waveform_annotations to those in model
+        // to determine which annotation the user moved.
+        final List<AnnotationInfo> model_annotations = model.getAnnotations();
+        for (AnnotationInfo waveform_annotation : waveform_annotations)
+            for (AnnotationInfo annotation : model_annotations)
+                if (annotation.isInternal()                                          &&
+                    annotation.getItemIndex() == waveform_annotation.getItemIndex()  &&
+                    ! annotation.getTime().equals(waveform_annotation.getTime()))
             {
-                // Locate the annotation for this waveform
-                if (annotation.isInternal()  &&
-                    annotation.getItemIndex() == waveform_annotation.getItemIndex() &&
-                    annotation.getText().equals(waveform_annotation.getText()))
-                {   // Locate index of sample for annotation's time stamp
-                    // by first locating the relevant samples
-                    for (ModelItem model_item : model_items)
-                        if (annotation.getText().contains(model_item.getDisplayName()))
-                        {
-                            final PlotSamples samples = model_item.getSamples();
-                            final TimeDataSearch search = new TimeDataSearch();
-                            final int idx;
-                            samples.getLock().lock();
-                            try
-                            {
-                                idx = search.findClosestSample(samples, annotation.getTime());
-                            }
-                            finally
-                            {
-                                samples.getLock().unlock();
-                            }
-                            // Update waveform view for that sample on UI thread
-                            Platform.runLater(() ->
-                            {
-                                if (sample_index.getMax() < idx)
-                                    sample_index.setMax(idx);
-                                sample_index.setValue(idx);
-                                showSelectedSample();
-                            });
-                            return;
-                        }
-                }
+               // System.out.println("User moved " + annotation.getText() + "\nfrom " + waveform_annotation.getTime() + "\n  to " + annotation.getTime());
+
+               final ModelItem model_item = model.getItems().get(annotation.getItemIndex());
+               final PlotSamples samples = model_item.getSamples();
+               final TimeDataSearch search = new TimeDataSearch();
+               final int idx;
+               samples.getLock().lock();
+               try
+               {
+                   idx = search.findClosestSample(samples, annotation.getTime());
+               }
+               finally
+               {
+                   samples.getLock().unlock();
+               }
+               // Update waveform view for that sample on UI thread
+               Platform.runLater(() ->
+               {
+                   if (sample_index.getMax() < idx)
+                       sample_index.setMax(idx);
+                   sample_index.setValue(idx);
+                   showSelectedSample();
+               });
+               return;
             }
     }
 
