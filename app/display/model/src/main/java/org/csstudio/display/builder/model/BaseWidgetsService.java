@@ -22,6 +22,7 @@ import org.csstudio.display.builder.model.widgets.ComboWidget;
 import org.csstudio.display.builder.model.widgets.DigitalClockWidget;
 import org.csstudio.display.builder.model.widgets.EllipseWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
+import org.csstudio.display.builder.model.widgets.FileSelectorWidget;
 import org.csstudio.display.builder.model.widgets.GaugeWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.KnobWidget;
@@ -73,6 +74,7 @@ public class BaseWidgetsService implements WidgetsService
             DigitalClockWidget.WIDGET_DESCRIPTOR,
             EllipseWidget.WIDGET_DESCRIPTOR,
             EmbeddedDisplayWidget.WIDGET_DESCRIPTOR,
+            FileSelectorWidget.WIDGET_DESCRIPTOR,
             GaugeWidget.WIDGET_DESCRIPTOR,
             GroupWidget.WIDGET_DESCRIPTOR,
             ImageWidget.WIDGET_DESCRIPTOR,

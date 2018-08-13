@@ -156,13 +156,13 @@ offering an alternate way to select an existing file.</text>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_15</name>
-    <text>The file selection can be based on the Workspace,
-or the complete file system.
+    <text>Under RCP/Eclipse, the file selection was usually based on the Workspace,
+optionally the file system. With Phoebus, it's always using the file system.
 The PV can be updated to the complete path of
 the file, just the directory path, just the file name,
 or just the base name of the file (without extension).</text>
     <y>121</y>
-    <width>431</width>
+    <width>481</width>
     <height>100</height>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">

@@ -467,6 +467,32 @@ public class ModelResourceUtil
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
 
+        // Handle legacy RCP URL
+        // "platform:/plugin/name.of.plugin/path/within/plugin"
+        if (resource_name.startsWith("platform:/plugin/"))
+        {
+            // Get path after plugin name
+            String path = resource_name.substring("platform:/plugin/".length());
+            final int sep = path.indexOf('/');
+            if (sep > 0)
+            {
+                path = path.substring(sep);
+
+                // There are no OSGi plugins.
+                // As long as the phoebus components are jar files,
+                // all merged into one large class path,
+                // there is a good chance that this class loader can open the path.
+                // If phoebus components are modules, we'll need
+                // "requires name.of.other.module;
+                // to access resources in other modules.
+                final InputStream stream = ModelResourceUtil.class.getResourceAsStream(path);
+                if (stream != null)
+                    return stream;
+                // Didn't work, so run into the FileInputStream exception which will
+                // generate a stack trace that includes the resource name.
+            }
+        }
+
         final URL example = getExampleURL(resource_name);
         if (example != null)
         {

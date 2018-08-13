@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
 import org.csstudio.display.builder.model.widgets.ComboWidget;
 import org.csstudio.display.builder.model.widgets.EllipseWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
+import org.csstudio.display.builder.model.widgets.FileSelectorWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LEDWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
@@ -73,6 +74,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(ComboWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new ComboRepresentation()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR, () -> (WidgetRepresentation) new EmbeddedDisplayRepresentation()),
             entry(EllipseWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new EllipseRepresentation()),
+            entry(FileSelectorWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new FileSelectorRepresentation()),
             entry(GroupWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new GroupRepresentation()),
             entry(ImageWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new ImageRepresentation()),
             entry(LabelWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new LabelRepresentation()),

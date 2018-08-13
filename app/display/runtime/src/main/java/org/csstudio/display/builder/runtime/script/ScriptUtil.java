@@ -362,7 +362,7 @@ public class ScriptUtil
      *  <p>This is the PV that a Text Update widget displays,
      *  or the one that a Text Entry widget writes.
      *
-     *  <p>Some widgets have no primary PV (Label, Rectangle),
+     *  <p>Some widgets have no primary PV (Label, Rectangle, ActionButton),
      *  or more then one PV (XY Plot).
      *
      *  @param widget Widget to get PV of.

@@ -46,7 +46,7 @@ class ExternalApplication implements AppResourceDescriptor
     @Override
     public String getDisplayName()
     {
-        return "External Application '" + name + "'";
+        return "External " + name;
     }
 
     @Override

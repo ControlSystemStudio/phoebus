@@ -3,10 +3,16 @@ package org.phoebus.applications.filebrowser;
 import static org.phoebus.applications.filebrowser.FileBrowser.logger;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.logging.Level;
 
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -18,12 +24,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -49,7 +57,7 @@ public class FileBrowserController {
     TreeView<File> treeView;
 
     private final MenuItem open = new MenuItem("Open", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
-    private final MenuItem openWith = new MenuItem("Open With", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final Menu openWith = new Menu("Open With...", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
     public FileBrowserController()
@@ -175,17 +183,6 @@ public class FileBrowserController {
 
         // Prepare ContextMenu items
         open.setOnAction(event -> openSelectedResources());
-        openWith.setOnAction(event ->
-        {
-            treeView.selectionModelProperty()
-                    .getValue()
-                    .getSelectedItems()
-                    .forEach(item ->
-            {
-                if (item.isLeaf())
-                    openResource(item.getValue(), (Stage) treeView.getParent().getScene().getWindow());
-            });
-        });
         contextMenu.getItems().addAll(open, openWith);
 
         treeView.setOnKeyPressed(this::handleKeys);
@@ -260,7 +257,30 @@ public class FileBrowserController {
         {
             // allMatch() would return true for empty, so only check if there are items
             if (selectedItems.stream().allMatch(item -> item.isLeaf()))
-                contextMenu.getItems().addAll(open, openWith);
+                contextMenu.getItems().add(open);
+
+            // If just one entry selected, check if there are multiple apps from which to select
+            if (selectedItems.size() == 1)
+            {
+                final File file = selectedItems.get(0).getValue();
+                final URI resource = ResourceParser.getURI(file);
+                final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
+                if (applications.size() > 0)
+                {
+                    openWith.getItems().clear();
+                    for (AppResourceDescriptor app : applications)
+                    {
+                        final MenuItem open_app = new MenuItem(app.getDisplayName());
+                        final URL icon_url = app.getIconURL();
+                        if (icon_url != null)
+                            open_app.setGraphic(new ImageView(icon_url.toExternalForm()));
+                        open_app.setOnAction(event -> app.create(resource));
+                        openWith.getItems().add(open_app);
+                    }
+                    contextMenu.getItems().add(openWith);
+                }
+            }
+
             contextMenu.getItems().add(new CopyPath(selectedItems));
             contextMenu.getItems().add(new SeparatorMenuItem());
         }
