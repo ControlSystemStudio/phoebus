@@ -22,13 +22,12 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class ToggleLinesMenuItem extends MenuItem
 {
-    public ToggleLinesMenuItem(RTValuePlot plot, final Trace<Double> trace)
+    public ToggleLinesMenuItem(final RTValuePlot plot, final Trace<Double> trace)
     {
-        setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/toolbar.png"));
-
         if (trace.getPointType() == PointType.NONE)
         {
             setText("Use points");
+            setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/points.png"));
             setOnAction(event ->
             {
                 trace.setPointType(PointType.CIRCLES);
@@ -39,6 +38,7 @@ public class ToggleLinesMenuItem extends MenuItem
         else
         {
             setText("Use lines");
+            setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/lines.png"));
             setOnAction(event ->
             {
                 trace.setPointType(PointType.NONE);

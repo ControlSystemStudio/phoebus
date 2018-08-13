@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,7 @@ import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
 
-import javafx.scene.Parent;
+import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -32,15 +32,16 @@ public class SaveSnapshotAction extends MenuItem
     private static final ExtensionFilter all_file_extensions = new ExtensionFilter("All Files", "*.*");
     private static final ExtensionFilter image_file_extension = new ExtensionFilter("Image (*.png)", "*.png");
 
-    public SaveSnapshotAction(final Parent model_parent)
+    /** @param node Node in scene of which to take snapshot */
+    public SaveSnapshotAction(final Node node)
     {
         super(Messages.SaveSnapshot, new ImageView(icon));
-        setOnAction(event -> save(model_parent));
+        setOnAction(event -> save(node));
     }
 
-    private void save(final Parent model_parent)
+    private void save(final Node node)
     {
-        final Window window = model_parent.getScene().getWindow();
+        final Window window = node.getScene().getWindow();
         final ExtensionFilter[] file_extensions = new ExtensionFilter[]
         {
             all_file_extensions,
@@ -52,7 +53,7 @@ public class SaveSnapshotAction extends MenuItem
         if (file == null)
             return;
 
-        final Screenshot screenshot = new Screenshot(model_parent);
+        final Screenshot screenshot = new Screenshot(node);
         JobManager.schedule(Messages.SaveSnapshot, monitor ->
         {
             monitor.beginTask(file.toString());

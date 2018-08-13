@@ -280,7 +280,6 @@ public class Messages
     public static String ValueAxes;
     public static String ValueAxisName;
     public static String ValueColumn;
-    public static String WaveformAmplitude;
     public static String WaveformIndex;
     public static String WaveformIndexCol;
     public static String WaveformIndexColTT;

@@ -168,8 +168,8 @@ public class Perspective extends SplitPane
             items.addAll(add_data);
 
             items.add(new SeparatorMenuItem());
-            items.add(new PrintAction(DockPane.getActiveDockPane()));
-            items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
+            items.add(new PrintAction(plot.getPlot()));
+            items.add(new SaveSnapshotAction(plot.getPlot()));
             items.add(new SendEmailAction(this, "Data Browser Plot", "See attached data browser plot", () ->  plot.getPlot().getImage()));
             items.add(new SendLogbookAction(DockPane.getActiveDockPane(), "Data Browser Plot", "See attached data browser plot", () ->  plot.getPlot().getImage()));
 

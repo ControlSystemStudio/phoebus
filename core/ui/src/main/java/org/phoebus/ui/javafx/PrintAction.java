@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,7 +18,7 @@ import javafx.print.PageOrientation;
 import javafx.print.Paper;
 import javafx.print.Printer;
 import javafx.print.PrinterJob;
-import javafx.scene.Parent;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
@@ -34,25 +34,26 @@ public class PrintAction extends MenuItem
 {
     private static final Image icon = ImageCache.getImage(PrintAction.class, "/icons/print_edit.png");
 
-    public PrintAction(final Parent model_parent)
+    /** @param node Node that will be printed */
+    public PrintAction(final Node node)
     {
         super(Messages.Print, new ImageView(icon));
-        setOnAction(event -> Platform.runLater(() -> print(model_parent)));
+        setOnAction(event -> Platform.runLater(() -> print(node)));
     }
 
-    private void print(final Parent model_parent)
+    private void print(final Node node)
     {
         try
         {
             // Select printer
             final PrinterJob job = Objects.requireNonNull(PrinterJob.createPrinterJob(), "Cannot create printer job");
-            final Scene scene = Objects.requireNonNull(model_parent.getScene(), "Missing Scene");
+            final Scene scene = Objects.requireNonNull(node.getScene(), "Missing Scene");
 
             if (! job.showPrintDialog(scene.getWindow()))
                 return;
 
             // Get Screenshot
-            final WritableImage screenshot = model_parent.snapshot(null, null);
+            final WritableImage screenshot = node.snapshot(null, null);
 
             // Scale image to full page
             final Printer printer = job.getPrinter();
@@ -75,7 +76,7 @@ public class PrintAction extends MenuItem
         }
         catch (Exception ex)
         {
-            ExceptionDetailsErrorDialog.openError(model_parent, Messages.Print, "Failed to print", ex);
+            ExceptionDetailsErrorDialog.openError(node, Messages.Print, "Failed to print", ex);
         }
     }
 }

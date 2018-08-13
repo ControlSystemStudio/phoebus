@@ -31,6 +31,8 @@ import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
 import org.csstudio.trends.databrowser3.ui.ToggleToolbarMenuItem;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.vtype.VNumberArray;
 import org.phoebus.vtype.VType;
@@ -43,6 +45,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -183,10 +186,14 @@ public class WaveformView extends VBox
     {
         plot = new RTValuePlot(true);
         plot.getXAxis().setName(Messages.WaveformIndex);
-        plot.getYAxes().get(0).setName(Messages.WaveformAmplitude);
         plot.getYAxes().get(0).setAutoscale(true);
+        plot.getYAxes().get(0).useAxisName(false);
+        plot.showLegend(false);
+        createContextMenu();
+    }
 
-        // Context menu
+    private void createContextMenu()
+    {
         final ContextMenu menu = new ContextMenu();
         plot.setOnContextMenuRequested(event ->
         {
@@ -195,6 +202,12 @@ public class WaveformView extends VBox
             final Iterator<Trace<Double>> traces = plot.getTraces().iterator();
             if (traces.hasNext())
                 menu.getItems().add(new ToggleLinesMenuItem(plot, traces.next()));
+
+
+            menu.getItems().addAll(new SeparatorMenuItem(),
+                                   new PrintAction(plot),
+                                   new SaveSnapshotAction(plot));
+
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
@@ -313,7 +326,7 @@ public class WaveformView extends VBox
 
     private void updateAnnotation(final Instant time, final double value)
     {
-        final List<AnnotationInfo> annotations = new ArrayList<AnnotationInfo>(model.getAnnotations());
+        final List<AnnotationInfo> annotations = new ArrayList<>(model.getAnnotations());
         // Initial annotation offset
         Point2D offset = new Point2D(20, -20);
         // If already in model, note its offset and remove
