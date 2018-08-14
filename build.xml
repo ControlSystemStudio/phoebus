@@ -36,12 +36,11 @@
     <ant target="clean" dir="app/scan/model"/>
     <ant target="clean" dir="app/scan/client"/>
     <ant target="clean" dir="app/scan/ui"/>
-    <ant target="clean" dir="app/scan/server"/>
     <ant target="clean" dir="app/alarm/model"/>
     <ant target="clean" dir="app/alarm/ui"/>
     <ant target="clean" dir="app/update"/>
     <ant target="clean" dir="phoebus-product"/>
-    <ant target="clean" dir="scan-server-product"/>
+    <ant target="clean" dir="services/scan-server"/>
     <ant target="clean" dir="services/alarm-server"/>
     <ant target="clean" dir="services/archive-engine"/>
       
@@ -95,7 +94,6 @@
     <ant dir="app/scan/model"/>
     <ant dir="app/scan/client"/>
     <ant dir="app/scan/ui"/>
-    <ant dir="app/scan/server"/>
     <ant dir="app/alarm/model"/>
     <ant dir="app/alarm/ui"/>
     <ant dir="app/update"/>
@@ -103,17 +101,17 @@
 
   <target name="product" depends="app" description="Assemble product">
     <ant target="product" dir="phoebus-product"/>
-    <ant target="product" dir="scan-server-product"/>
   </target>
 
   <target name="services" depends="app" description="Assemble services">
+    <ant target="service-scan-server" dir="services/scan-server"/>
     <ant target="service-alarm-server" dir="services/alarm-server"/>
     <ant target="service-archive-engine" dir="services/archive-engine"/>
   </target>
 	
   <target name="dist" depends="services" description="Pack for distribution">
     <ant target="dist" dir="phoebus-product"/>
-    <ant target="dist" dir="scan-server-product"/>
+    <ant target="dist" dir="services/scan-server"/>
     <ant target="dist" dir="services/alarm-server"/>
     <ant target="dist" dir="services/archive-engine"/>
   </target>

@@ -2,8 +2,9 @@
   <import file="../../dependencies/ant_settings.xml"/>
 
   <target name="service-alarm-server">
+   	<!-- Compile src -->
     <mkdir dir="${classes}"/>
-    <javac destdir="${classes}" classpathref="app-classpath">
+    <javac destdir="${classes}">
       <src path="${src}"/>
       <classpath>
         <path refid="app-classpath"/>

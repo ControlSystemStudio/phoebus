@@ -1,19 +1,81 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.phoebus</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>services</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>scan-server-product</artifactId>
+  <artifactId>service-scan-server</artifactId>
   <dependencies>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython-standalone</artifactId>
+      <version>2.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.4.9.v20180320</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>9.4.9.v20180320</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-security</artifactId>
+      <version>9.4.9.v20180320</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>10.14.1.0</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>2.1.14</version>
+    </dependency>
+    
+    <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-scan-server</artifactId>
+      <artifactId>core-framework</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-util</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-pv</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-scan-model</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
+  
   <build>
     <plugins>
       <plugin>
@@ -65,7 +127,7 @@
               <tasks>
                 <echo message="Adding dependencies to product"/>
                 <manifestclasspath property="manifest-classpath"
-                                   jarfile="${project.build.directory}/scan-server-product-${project.version}.jar">
+                                   jarfile="${project.build.directory}/service-scan-server-${project.version}.jar">
                   <classpath>
                     <path>
                       <fileset dir="${project.build.directory}/lib">
@@ -76,10 +138,10 @@
                 </manifestclasspath>
             
                 <!--
-                 -->
                  <echo message="Manifest classpath: ${manifest-classpath}"/> 
+                 -->
 
-                <jar update="true" destfile="${project.build.directory}/scan-server-product-${project.version}.jar">
+                <jar update="true" destfile="${project.build.directory}/service-scan-server-${project.version}.jar">
                   <manifest>
                     <attribute name="Class-Path" value="${manifest-classpath}" />
                   </manifest>
@@ -94,4 +156,5 @@
       </plugin>
     </plugins>
   </build>
+  
 </project>

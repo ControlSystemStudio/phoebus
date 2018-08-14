@@ -85,7 +85,7 @@ public class ScanServerInstance
         System.out.println("-help                       - This text");
         System.out.println("-config scan_config.xml     - Scan config (REST port, jython paths, simulation settings");
         System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
-        System.out.println("-logging logging.properties -  Load log settings");
+        System.out.println("-logging logging.properties - Load log settings");
         System.out.println();
     }
 

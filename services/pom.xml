@@ -10,5 +10,6 @@
   <modules>
     <module>alarm-server</module>
     <module>archive-engine</module>
+    <module>scan-server</module>
   </modules>
 </project>
