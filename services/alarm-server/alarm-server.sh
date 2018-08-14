@@ -18,11 +18,11 @@ fi
 V="0.0.1"
 
 # Use ant or maven jar?
-if [ -f ${TOP}/alarm-server-product-${V}.jar ]
+if [ -f ${TOP}/service-alarm-server-${V}.jar ]
 then
-  JAR="${TOP}/alarm-server-product-${V}.jar"
+  JAR="${TOP}/service-alarm-server-${V}.jar"
 else
-  JAR="${TOP}/alarm-server-product-${V}-SNAPSHOT.jar"
+  JAR="${TOP}/service-alarm-server-${V}-SNAPSHOT.jar"
 fi
 
 java --add-modules=java.corba -jar $JAR "$@"

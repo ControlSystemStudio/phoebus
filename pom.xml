@@ -69,7 +69,6 @@
     <module>app</module>
     <module>phoebus-product</module>
     <module>scan-server-product</module>
-    <module>alarm-server-product</module>
     <module>services</module>
   </modules>
 </project>
