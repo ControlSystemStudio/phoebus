@@ -19,6 +19,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
+import org.phoebus.applications.alarm.model.AlarmTreePath;
 
 public class AlarmStateLogger implements Runnable {
 
@@ -64,7 +65,8 @@ public class AlarmStateLogger implements Runnable {
                         Matcher matcher = pattern.matcher(key);
                         value.setConfig(key);
                         matcher.find();
-                        value.setPv(matcher.group());
+                        String[] tokens = AlarmTreePath.splitPath(key);
+                        value.setPv(tokens[tokens.length - 1]);
                         return new KeyValue<String, AlarmStateMessage>(key, value);
                     }
                 });
