@@ -302,6 +302,9 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     @Override
     public void updateChanges()
     {
+        // Late update after disposal?
+        if (inner == null)
+            return;
         super.updateChanges();
         if (dirty_sizes.checkAndClear())
         {
