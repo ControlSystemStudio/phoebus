@@ -20,14 +20,14 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "text"
           },
           "config" : {
-            "type" : "text"
+            "type" : "keyword"
           },
           "pv" : {
             "type" : "text",
             "analyzer" : "keyword"
           },
           "severity" : {
-            "type" : "text"
+            "type" : "keyword"
           },
           "message" : {
             "type" : "text"
@@ -40,7 +40,7 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "format" : "yyyy-MM-dd HH:mm:ss.SSS"
           },
           "current_severity" : {
-            "type" : "text"
+            "type" : "keyword"
           },
           "current_message" : {
             "type" : "text"
