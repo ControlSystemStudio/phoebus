@@ -1,0 +1,85 @@
+<project default="service-alarm-logger">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="service-alarm-logger">
+   	<!-- Compile src -->
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../../app/alarm/model/${build}/app-alarm-model-${version}.jar"/>
+      </classpath>
+  	</javac>
+
+    <!-- Assemble lib/ -->
+    <copy todir="${build}/lib" flatten="true">
+      <fileset dir="../..">
+        <include name="dependencies/**/aggs-matrix-stats-client*.jar"/>
+      	<include name="dependencies/**/commons-codec*.jar"/>
+      	<include name="dependencies/**/commons-logging*.jar"/>
+      	<include name="dependencies/**/connect-api*.jar"/>
+      	<include name="dependencies/**/connect-json*.jar"/>
+      	<include name="dependencies/**/elasticsearch-*.jar"/>
+      	<include name="dependencies/**/HdrHistogram-*.jar"/>
+      	<include name="dependencies/**/hppc-*.jar"/>
+      	<include name="dependencies/**/httpasyncclient-*.jar"/>
+      	<include name="dependencies/**/httpclient-*.jar"/>
+      	<include name="dependencies/**/httpcore-*.jar"/>
+      	<include name="dependencies/**/jackson-*.jar"/>
+      	<include name="dependencies/**/jna-*.jar"/>
+      	<include name="dependencies/**/joda-time-*.jar"/>
+      	<include name="dependencies/**/jopt-simple-*.jar"/>
+      	<include name="dependencies/**/kafka-clients-*.jar"/>
+      	<include name="dependencies/**/kafka-streams-*.jar"/>
+      	<include name="dependencies/**/log4j-api-*.jar"/>
+      	<include name="dependencies/**/lucene-*.jar"/>
+        <include name="dependencies/**/lz4*.jar"/>
+      	<include name="dependencies/**/parent-join-client-*.jar"/>
+      	<include name="dependencies/**/rank-eval-client-*.jar"/>
+      	<include name="dependencies/**/rocksdbjni-*.jar"/>
+        <include name="dependencies/**/slf4j*.jar"/>
+        <include name="dependencies/**/snakeyaml-*.jar"/>
+      	<include name="dependencies/**/snappy-java-*.jar"/>
+        <include name="dependencies/**/t-digest-*.jar"/>
+  	  	
+      	<include name="core/**/core-framework-*.jar"/>
+      	<include name="core/**/core-util-*.jar"/>
+      	
+      	<include name="app/**/app-alarm-model*.jar"/>
+      </fileset>
+    </copy>
+
+    <!-- Create classpath for lib/*jar -->
+    <manifestclasspath property="manifest-classpath"
+                       jarfile="${build}/service-alarm-logger-${version}.jar">
+      <classpath>
+        <path>
+          <fileset dir="${build}/lib">
+            <include name="*.jar"/>
+          </fileset>
+        </path>
+      </classpath>
+    </manifestclasspath>
+
+    <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
+
+	<!-- ZIP of service, with classpath for lib/* and main class -->  	
+    <jar destfile="${build}/service-alarm-logger-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+      <manifest>
+        <attribute name="Main-Class" value="org.phoebus.alarm.logging.AlarmLoggingService" />
+        <attribute name="Class-Path" value="${manifest-classpath}" />
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- Create ZIP of the service.jar, lib/, launcher -->
+  <target name="dist" depends="service-alarm-logger" description="Pack for distribution">
+    <zip destfile="${build}/alarm-logger-${version}.zip">
+      <zipfileset dir="${build}" includes="**/*.jar" prefix="alarm-logger-${version}"/>
+      <zipfileset dir="." includes="alarm-logger.sh" fullpath="alarm-logger-${version}/alarm-logger.sh" filemode="755"/>
+    </zip>
+  </target>
+</project>

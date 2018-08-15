@@ -26,13 +26,13 @@ public class AlarmStateLogger implements Runnable {
     private final String topic;
     private Map<String, Object> serdeProps;
     private final Serde<AlarmStateMessage> alarmStateMessageSerde;
-    
+
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
     public AlarmStateLogger(String topic) {
         super();
         this.topic = topic;
-        MessageParser<AlarmStateMessage> messageParser = new MessageParser<AlarmStateMessage>(AlarmStateMessage.class);
+        MessageParser<AlarmStateMessage> messageParser = new MessageParser<>(AlarmStateMessage.class);
         alarmStateMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
     }
 
@@ -67,7 +67,7 @@ public class AlarmStateLogger implements Runnable {
                         matcher.find();
                         String[] tokens = AlarmTreePath.splitPath(key);
                         value.setPv(tokens[tokens.length - 1]);
-                        return new KeyValue<String, AlarmStateMessage>(key, value);
+                        return new KeyValue<>(key, value);
                     }
                 });
         // Commit to elastic
