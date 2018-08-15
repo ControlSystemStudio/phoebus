@@ -21,18 +21,23 @@ import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 
+@SuppressWarnings("nls")
 public class AlarmStateLogger implements Runnable {
+
+    private final Properties props = new Properties();
 
     private final String topic;
     private Map<String, Object> serdeProps;
     private final Serde<AlarmStateMessage> alarmStateMessageSerde;
-    
+
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
-    public AlarmStateLogger(String topic) {
-        super();
+    public AlarmStateLogger(final String server, String topic) {
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-state");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+
         this.topic = topic;
-        MessageParser<AlarmStateMessage> messageParser = new MessageParser<AlarmStateMessage>(AlarmStateMessage.class);
+        MessageParser<AlarmStateMessage> messageParser = new MessageParser<>(AlarmStateMessage.class);
         alarmStateMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
     }
 
@@ -40,14 +45,9 @@ public class AlarmStateLogger implements Runnable {
     public void run() {
         logger.info("Starting the stream consumer");
 
-        Properties props = PropertiesHelper.getProperties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-state");
-        if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
-            props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        }
-
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, AlarmStateMessage> alarms = builder.stream("AcceleratorState",
+        // Alarm state updates are received by the "..State" topic
+        KStream<String, AlarmStateMessage> alarms = builder.stream(topic + "State",
                 Consumed.with(Serdes.String(), alarmStateMessageSerde));
 
         // Filter the alarms to only
