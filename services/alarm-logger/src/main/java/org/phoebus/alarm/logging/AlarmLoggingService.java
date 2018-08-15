@@ -86,7 +86,7 @@ public class AlarmLoggingService {
         logger.info("Starting logger for: " + properties.getProperty("alarm_topics"));
         properties.forEach((k, v) -> { logger.info(k + ":" + v); });
 
-        List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(":"));
+        List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(","));
         // Check all the topic index already exist.
         if (topicNames.stream().allMatch(topic -> {
             return ElasticClientHelper.getInstance().indexExists(topic.toLowerCase() + "_alarms");
