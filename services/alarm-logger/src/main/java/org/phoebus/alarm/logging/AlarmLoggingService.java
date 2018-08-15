@@ -49,7 +49,7 @@ public class AlarmLoggingService {
     }
 
     private static final String COMMANDS =
-            "Commands:\n\n" +
+            "Commands:\n" +
             "\thelp             - Show help.\n" +
             "\tshutdown         - Shut alarm logger down and exit.\n";
 
