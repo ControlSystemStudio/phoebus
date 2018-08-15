@@ -6,7 +6,7 @@
 {
     -fx-stroke-width: 2.345;
     -fx-stroke-type: inside;
-    -fx-stroke: rgba(50, 50, 50, 0.7);
+    /* Set by LEDRepresentation: -fx-stroke: rgba(50, 50, 50, 0.7); */
 }
 .led_label
 {

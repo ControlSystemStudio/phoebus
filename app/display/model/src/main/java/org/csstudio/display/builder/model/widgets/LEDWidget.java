@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLabelsFromPV;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffLabel;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOnColor;
@@ -76,7 +77,7 @@ public class LEDWidget extends BaseLEDWidget
             super.configureFromXML(model_reader, widget, xml);
 
             final LEDWidget led = (LEDWidget) widget;
-            handle_legacy_LED(led, xml_version, xml);
+            handle_legacy_LED(model_reader, led, xml_version, xml);
 
             // If legacy widgets was configured to not use labels, clear them
             XMLUtil.getChildBoolean(xml, "show_boolean_label").ifPresent(show ->
@@ -114,6 +115,7 @@ public class LEDWidget extends BaseLEDWidget
         properties.add(on_color = propOnColor.createProperty(this, new WidgetColor(60, 255, 60)));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(50, 50, 50, 178)));
         properties.add(square = propSquare.createProperty(this, false));
         // Ideally, widgets should fetch their information from a PV,
         // but the LED does not allow much room for text,
