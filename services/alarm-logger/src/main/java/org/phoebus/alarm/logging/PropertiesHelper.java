@@ -10,15 +10,16 @@ public class PropertiesHelper {
 
     static Properties prop = new Properties();
 
+    /**
+     * load the default properties from the properties file packaged with the jar
+     */
     static {
         String filename = "alarm_logging_service.properties";
-        InputStream input = null;
-        input = PropertiesHelper.class.getClassLoader().getResourceAsStream(filename);
-        if (input == null) {
-            logger.warning("Sorry, unable to find " + filename);
-        }
-        // load a properties file from class path, inside static method
-        try {
+        try (InputStream input = PropertiesHelper.class.getClassLoader().getResourceAsStream(filename);) {
+            if (input == null) {
+                logger.warning("Sorry, unable to find " + filename);
+            }
+            // load a properties file from class path, inside static method
             prop.load(input);
         } catch (IOException e) {
             e.printStackTrace();
