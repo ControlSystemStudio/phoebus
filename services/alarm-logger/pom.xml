@@ -58,6 +58,43 @@
           <mainClass>org.phoebus.alarm.logging.AlarmLoggingService</mainClass>
         </configuration>
       </plugin>
+      
+      <!-- Copy all dependencies into target/lib -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!-- Add the lib/* jars to the manifest class path -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib</classpathPrefix>
+              <mainClass>org.phoebus.alarm.logging.AlarmLoggingService</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      
     </plugins>
   </build>
 </project>
