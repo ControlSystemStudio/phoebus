@@ -4,6 +4,7 @@
 package org.phoebus.alarm.logging;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
+import static org.phoebus.alarm.logging.PropertiesHelper.getProperties;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -26,12 +27,7 @@ public class ElasticClientHelper {
     private static RestHighLevelClient client;
     private static ElasticClientHelper instance;
 
-    public static void initialize(final String host, final int port)
-    {
-        instance = new ElasticClientHelper(host, port);
-    }
-
-    private ElasticClientHelper(final String host, final int port) {
+    private ElasticClientHelper() {
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 logger.info("Shutting down the ElasticClientHelper.");
@@ -44,7 +40,9 @@ public class ElasticClientHelper {
                     }
                 }
             }));
-            client = new RestHighLevelClient(RestClient.builder(new HttpHost(host, port)));
+            client = new RestHighLevelClient(
+                    RestClient.builder(new HttpHost(getProperties().getProperty("es_host", "localhost"),
+                            Integer.valueOf(getProperties().getProperty("es_port", "9200")))));
         } catch (Exception e) {
             try {
                 client.close();
@@ -57,6 +55,9 @@ public class ElasticClientHelper {
     }
 
     public static ElasticClientHelper getInstance() {
+        if (instance == null) {
+            instance = new ElasticClientHelper();
+        }
         return instance;
     }
 

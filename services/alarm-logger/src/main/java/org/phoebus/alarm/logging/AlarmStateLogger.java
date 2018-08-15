@@ -21,10 +21,7 @@ import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 
-@SuppressWarnings("nls")
 public class AlarmStateLogger implements Runnable {
-
-    private final Properties props = new Properties();
 
     private final String topic;
     private Map<String, Object> serdeProps;
@@ -32,10 +29,8 @@ public class AlarmStateLogger implements Runnable {
 
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
-    public AlarmStateLogger(final String server, String topic) {
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-state");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-
+    public AlarmStateLogger(String topic) {
+        super();
         this.topic = topic;
         MessageParser<AlarmStateMessage> messageParser = new MessageParser<>(AlarmStateMessage.class);
         alarmStateMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
@@ -45,9 +40,14 @@ public class AlarmStateLogger implements Runnable {
     public void run() {
         logger.info("Starting the stream consumer");
 
+        Properties props = PropertiesHelper.getProperties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-state");
+        if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
+            props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        }
+
         StreamsBuilder builder = new StreamsBuilder();
-        // Alarm state updates are received by the "..State" topic
-        KStream<String, AlarmStateMessage> alarms = builder.stream(topic + "State",
+        KStream<String, AlarmStateMessage> alarms = builder.stream(topic+"State",
                 Consumed.with(Serdes.String(), alarmStateMessageSerde));
 
         // Filter the alarms to only
@@ -67,7 +67,7 @@ public class AlarmStateLogger implements Runnable {
                         matcher.find();
                         String[] tokens = AlarmTreePath.splitPath(key);
                         value.setPv(tokens[tokens.length - 1]);
-                        return new KeyValue<String, AlarmStateMessage>(key, value);
+                        return new KeyValue<>(key, value);
                     }
                 });
         // Commit to elastic

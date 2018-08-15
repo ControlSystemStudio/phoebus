@@ -1,16 +1,17 @@
 package org.phoebus.alarm.logging;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.phoebus.util.shell.CommandShell;
 
@@ -20,11 +21,6 @@ public class AlarmLoggingService {
     /** Alarm system logger */
     public static final Logger logger = Logger.getLogger(AlarmLoggingService.class.getPackageName());
     private static final ExecutorService Scheduler = Executors.newScheduledThreadPool(4);
-
-    // Defaults
-    private static String server = "localhost:9092";
-    private static String config = "Accelerator";
-    private static String es = "localhost:9200";
 
     private static void help()
     {
@@ -40,11 +36,13 @@ public class AlarmLoggingService {
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                       - This text");
-        System.out.println("-server  " + server + "     - Kafka server for reading alarm updates");
-        System.out.println("-config  " + config + "        - Alarm configuration to monitor (more than one separated by ':')");
-        System.out.println("-es      " + es + "     - Elastic Search for writing alarm updates");
-        System.out.println("-logging logging.properties - Load log settings");
+        System.out.println("-help                                    - This text");
+        System.out.println("-topics   Accelerator                    - Alarm topics to be logged, they can be defined as a comma separated list");
+        System.out.println("-es_host  localhost                      - elastic server host");
+        System.out.println("-es_port  9200                           - elastic server port");
+        System.out.println("-bootstrap.servers localhost:9092        - Kafka server address");
+        System.out.println("-properties /opt/alarm_logger.propertier - Properties file to be used (instead of command line arguments)");
+        System.out.println("-logging logging.properties              - Load log settings");
         System.out.println();
     }
 
@@ -65,48 +63,58 @@ public class AlarmLoggingService {
         return false;
     }
 
-    public static void main(final String[] original_args) throws Exception
-    {
+    public static void main(final String[] original_args) throws Exception {
         LogManager.getLogManager().readConfiguration(AlarmLoggingService.class.getResourceAsStream("/alarm_logger_logging.properties"));
+
+        // load the default properties
+        final Properties properties = PropertiesHelper.getProperties();
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
-        try
-        {
-            while (iter.hasNext())
-            {
+        try {
+            while (iter.hasNext()) {
+
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h"))
-                {
+                if (cmd.startsWith("-h")) {
                     help();
                     return;
-                }
-                else if (cmd.equals("-server"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -server name");
+                } else if (cmd.equals("-properties")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -properties properties file");
                     iter.remove();
-                    server = iter.next();
+                    try(FileInputStream file = new FileInputStream(iter.next());){
+                        properties.load(file);
+                    } catch(FileNotFoundException e) {
+                        System.out.println();
+                        e.printStackTrace();
+                    }
                     iter.remove();
-                }
-                else if (cmd.equals("-config"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -config name");
+                } else if (cmd.equals("-topics")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -topics topic name");
                     iter.remove();
-                    config = iter.next();
+                    properties.put("alarm_topics",iter.next());
                     iter.remove();
-                }
-                else if (cmd.equals("-es"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -es name");
+                } else if (cmd.equals("-es_host")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -es_host hostname");
                     iter.remove();
-                    es = iter.next();
+                    properties.put("es_host",iter.next());
                     iter.remove();
-                }
-                else if (cmd.equals("-logging"))
+                } else if (cmd.equals("-es_port")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -es_port port number");
+                    iter.remove();
+                    properties.put("es_port",iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-bootstrap.servers")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -bootstrap.servers kafaka server addresss");
+                    iter.remove();
+                    properties.put("bootstrap.servers",iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-logging"))
                 {
                     if (! iter.hasNext())
                         throw new Exception("Missing -logging file name");
@@ -114,13 +122,10 @@ public class AlarmLoggingService {
                     final String filename = iter.next();
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
-                }
-                else
+                } else
                     throw new Exception("Unknown option " + cmd);
             }
-        }
-        catch (final Exception ex)
-        {
+        } catch (Exception ex) {
             help();
             System.out.println();
             ex.printStackTrace();
@@ -128,24 +133,13 @@ public class AlarmLoggingService {
         }
 
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
-        final List<String> topicNames = Arrays.stream(config.split(":"))
-                                              .map(String::trim)
-                                              .collect(Collectors.toList());
 
-        logger.info("Starting logger for '..State' of " + config);
+        logger.info("Properties:");
+        properties.forEach((k, v) -> { logger.info(k + ":" + v); });
 
-        final int sep = es.lastIndexOf(':');
-        if (sep < 0)
-        {
-            System.err.println("Cannot parse host:port from -es " + es);
-            help();
-            return;
-        }
-        final String es_host = es.substring(0, sep);
-        final int es_port = Integer.parseInt(es.substring(sep+1));
-
-        // Create an elastic client
-        ElasticClientHelper.initialize(es_host, es_port);
+        // Read list of Topics
+        final List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(","));
+        logger.info("Starting logger for '..State': " + topicNames);
 
         // Check all the topic index already exist.
         if (topicNames.stream().allMatch(topic -> {
@@ -158,11 +152,10 @@ public class AlarmLoggingService {
 
         // Start a new stream consumer for each topic
         topicNames.forEach(topic -> {
-            Scheduler.execute(new AlarmStateLogger(server, topic));
+            Scheduler.execute(new AlarmStateLogger(topic));
         });
 
         // Wait in command shell until closed
-
         final CommandShell shell = new CommandShell(COMMANDS, AlarmLoggingService::handleShellCommands);
         shell.start();
         done.await();
