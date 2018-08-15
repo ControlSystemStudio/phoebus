@@ -36,6 +36,7 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Screen;
 
 /** Application instance
  *
@@ -46,6 +47,9 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class DataBrowserInstance implements AppInstance
 {
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[] { new ExtensionFilter("Data Browser", "*.plt") };
+
+    /** Width of the display in pixels. Used to scale negative plot_bins */
+    public static int display_pixel_width = 0;
 
     private final DataBrowserApp app;
     private final Perspective perspective;
@@ -118,6 +122,22 @@ public class DataBrowserInstance implements AppInstance
     public DataBrowserInstance(final DataBrowserApp app, final boolean minimal)
     {
         this.app = app;
+
+        // Determine width of widest monitor
+        if (display_pixel_width == 0)
+        {
+            for (Screen screen : Screen.getScreens())
+            {
+                final int width = (int) screen.getBounds().getWidth();
+                if (width > display_pixel_width)
+                    display_pixel_width = width;
+            }
+            if (display_pixel_width <= 0)
+            {
+                logger.log(Level.WARNING, "Cannot determine display pixel width, using 1000");
+                display_pixel_width = 1000;
+            }
+        }
 
         perspective = new Perspective(minimal);
 

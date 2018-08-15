@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.Activator;
+import org.csstudio.trends.databrowser3.DataBrowserInstance;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.PVItem;
@@ -100,7 +101,12 @@ public class ArchiveFetchJob implements JobRunnable
             logger.log(Level.FINE, "Starting {0}", ArchiveFetchJob.this);
             final long start_time = System.currentTimeMillis();
             long samples = 0;
-            final int bins = Preferences.plot_bins;
+
+            // Number of bins. Negative values are scaling factor for display width
+            int bins = Preferences.plot_bins;
+            if (bins < 0)
+                bins = DataBrowserInstance.display_pixel_width * (-bins);
+
             final Collection<ArchiveDataSource> archives = item.getArchiveDataSources();
             final List<ArchiveDataSource> archives_without_channel = new ArrayList<>();
             int i = 0;
