@@ -27,8 +27,7 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookUiPreferences.logbook_factory);
     }
 
-    public String getDisplayName()
-    {
+    public String getDisplayName() {
         return DISPLAYNAME;
     }
     
