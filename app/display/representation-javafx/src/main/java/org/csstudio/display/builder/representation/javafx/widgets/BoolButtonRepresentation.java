@@ -145,6 +145,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         imagesChanged(null, null, null);
         bitChanged(model_widget.propBit(), null, model_widget.propBit().getValue());
         enablementChanged(null, null, null);
+        valueChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
     private void stateChanged()

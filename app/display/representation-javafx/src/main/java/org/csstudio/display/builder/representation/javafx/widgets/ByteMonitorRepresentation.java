@@ -164,6 +164,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         //initialization
         configChanged(null, null, null);
         lookChanged(null, null, null);
+        contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
     /**
