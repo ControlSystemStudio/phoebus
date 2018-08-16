@@ -101,6 +101,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
         jfx_node.valueProperty().addListener(this::nodeValueChanged);
         model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> openConfigurationPanel());
+        valueChanged(null, null, null);
     }
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

@@ -276,6 +276,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         rangeChanged(null, null, null);
         coloringChanged(null, null,null);
         configChanged(null, null, null);
+        contentChanged(null, null, null);
     }
 
     private void addAxisListener(final AxisWidgetProperty axis)
