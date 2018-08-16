@@ -28,6 +28,11 @@ public class LogEntryTableApp implements AppResourceDescriptor {
     }
 
     @Override
+    public String getDisplayName() {
+        return DISPLAYNAME;
+    }
+    
+    @Override
     public String getName() {
         return NAME;
     }
