@@ -16,7 +16,7 @@ public class LogEntryTableApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(LogEntryTableApp.class.getName());
     static final Image icon = ImageCache.getImage(LogEntryTableApp.class, "/icons/logbook-16.png");
-    public static final String NAME = "Log Entry Table";
+    public static final String NAME = "logEntryTable";
     public static final String DISPLAYNAME = "Log Entry Table";
 
     private static final String SUPPORTED_SCHEMA = "logbook";
@@ -27,6 +27,11 @@ public class LogEntryTableApp implements AppResourceDescriptor {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookUiPreferences.logbook_factory);
     }
 
+    public String getDisplayName()
+    {
+        return DISPLAYNAME;
+    }
+    
     @Override
     public String getName() {
         return NAME;
