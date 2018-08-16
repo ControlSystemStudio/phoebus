@@ -27,6 +27,7 @@ public class LogEntryTableApp implements AppResourceDescriptor {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookUiPreferences.logbook_factory);
     }
 
+    @Override
     public String getDisplayName() {
         return DISPLAYNAME;
     }
