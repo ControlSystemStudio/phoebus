@@ -16,7 +16,7 @@ public class LogEntryListApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(LogEntryListApp.class.getName());
     static final Image icon = ImageCache.getImage(LogEntryListApp.class, "/icons/logbook-16.png");
-    public static final String NAME = "logEntryList";
+    public static final String NAME = "Log Entry List";
     public static final String DISPLAYNAME = "Log Entry List";
 
     private static final String SUPPORTED_SCHEMA = "logbook";
