@@ -31,6 +31,9 @@ public class AlarmStateMessage {
     private String current_message;
     private String mode;
 
+    @JsonIgnore
+    private Instant message_time;
+
     public AlarmStateMessage() {
         super();
     }
@@ -120,6 +123,16 @@ public class AlarmStateMessage {
     }
 
     @JsonIgnore
+    public Instant getMessageTime() {
+        return this.message_time;
+    }
+
+    @JsonIgnore
+    public void setMessageTime(Instant message_time) {
+        this.message_time = message_time;
+    }
+
+    @JsonIgnore
     public boolean isLeaf() {
         return value != null && message != null && time != null && current_severity != null && current_message != null;
     }
@@ -135,6 +148,7 @@ public class AlarmStateMessage {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
                 .withZone(ZoneId.systemDefault());
         map.put("time", formatter.format(getInstant()));
+        map.put("message_time", formatter.format(getMessageTime()));
         map.put("current_severity", getCurrent_severity());
         map.put("current_message", getCurrent_message());
         map.put("mode", getMode());
