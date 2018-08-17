@@ -10,13 +10,17 @@ package org.csstudio.javafx.rtplot.internal;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.RTPlot;
+import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.YAxis;
+import org.csstudio.javafx.rtplot.util.RGBFactory;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -24,6 +28,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
@@ -42,7 +47,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
         initModality(Modality.NONE);
         setTitle("Configure");
-        setHeaderText("Change plot settings");
+        setHeaderText("Change plot runtime settings");
         try
         {
             setGraphic(new ImageView(Activator.getIcon("configure")));
@@ -57,6 +62,14 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         setResizable(true);
 
         setResultConverter(button -> null);
+    }
+
+    static ColorPicker createPicker(final Color color)
+    {
+        final ColorPicker picker = new ColorPicker(color);
+        picker.getCustomColors().setAll(RGBFactory.PALETTE);
+        picker.setStyle("-fx-color-label-visible: false ;");
+        return picker;
     }
 
     private Node createContent()
@@ -88,26 +101,59 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
         label = new Label("Plot");
         label.setFont(section_font);
+        layout.add(label, 0, row++);
+
+        label = new Label("Title:");
         layout.add(label, 0, row);
+
+        final TextField title = new TextField(plot.getTitle());
+        title.setOnAction(event -> plot.setTitle(title.getText()));
+        layout.add(title, 1, row++, 2, 1);
 
         final CheckBox legend = new CheckBox("Show Legend");
         legend.setSelected(plot.isLegendVisible());
         legend.setOnAction(event ->   plot.showLegend(legend.isSelected()) );
         layout.add(legend, 1, row);
 
+
+        layout.add(new Separator(Orientation.VERTICAL), 4, 1, 1, row-1);
+
+        row = 0;
+        label = new Label("Traces");
+        label.setFont(section_font);
+        layout.add(label, 5, row++);
+
+        for (Trace<?> trace : plot.getTraces())
+            row = addTraceContent(layout, row, trace);
+
         final ScrollPane scroll = new ScrollPane(layout);
         return scroll;
     }
 
-    // TODO Traces: Hide, change color?
-//    static ColorPicker createPicker(final Color color)
-//    {
-//        final ColorPicker picker = new ColorPicker(color);
-//        picker.getCustomColors().setAll(RGBFactory.PALETTE);
-//        picker.setStyle("-fx-color-label-visible: false ;");
-//        return picker;
-//    }
+    private int addTraceContent(final GridPane layout, int row, final Trace<?> trace)
+    {
+        Label label = new Label(trace.getName());
+        layout.add(label, 5, row);
 
+        final ColorPicker color = createPicker(trace.getColor());
+        color.setOnAction(event ->
+        {
+            trace.setColor(color.getValue());
+            plot.requestUpdate();
+        });
+        layout.add(color, 6, row);
+
+        final CheckBox visible = new CheckBox("Visible");
+        visible.setSelected(trace.isVisible());
+        visible.setOnAction(event ->
+        {
+            trace.setVisible(visible.isSelected());
+            plot.requestUpdate();
+        });
+        layout.add(visible, 7, row++);
+
+        return row;
+    }
 
     private int addAxisContent(final GridPane layout, int row, final Axis<?> axis)
     {
@@ -115,11 +161,6 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         final TextField axis_name = new TextField(axis.getName());
         axis_name.setOnAction(event -> axis.setName(axis_name.getText()));
         layout.add(axis_name, 1, row++, 2, 1);
-
-        final CheckBox visible = new CheckBox("Visible");
-        visible.setSelected(axis.isVisible());
-        visible.setOnAction(event -> axis.setVisible(visible.isSelected()));
-        layout.add(visible, 1, row++);
 
         // Don't support auto-scale for time axis
         // because code that updates the time axis
@@ -203,7 +244,12 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         }
         ++row;
 
-        layout.add(new Separator(), 0, row++, 3, 1);
+        final CheckBox visible = new CheckBox("Visible");
+        visible.setSelected(axis.isVisible());
+        visible.setOnAction(event -> axis.setVisible(visible.isSelected()));
+        layout.add(visible, 1, row++);
+
+        layout.add(new Separator(), 1, row++, 2, 1);
 
         return row;
     }
