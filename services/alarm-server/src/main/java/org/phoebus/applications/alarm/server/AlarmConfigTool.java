@@ -14,7 +14,7 @@ import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
-import org.phoebus.applications.alarm.client.UpdateMonitor;
+import org.phoebus.applications.alarm.client.AlarmConfigMonitor;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
@@ -57,7 +57,7 @@ public class AlarmConfigTool
         System.out.printf("Writing file after model is stable for %d seconds:\n", STABILIZATION_SECS);
         System.out.println("Monitoring changes...");
 
-        final UpdateMonitor updateMonitor = new UpdateMonitor(STABILIZATION_SECS, client);
+        final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(STABILIZATION_SECS, client);
         updateMonitor.waitForPauseInUpdates(30);
 
         System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", STABILIZATION_SECS);
@@ -89,7 +89,7 @@ public class AlarmConfigTool
         try
         {
             System.out.println("Fetching server model. This could take some time ...");
-            final UpdateMonitor updateMonitor = new UpdateMonitor(STABILIZATION_SECS, client);
+            final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(STABILIZATION_SECS, client);
             updateMonitor.waitForPauseInUpdates(30);
             updateMonitor.dispose();
 

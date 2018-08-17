@@ -30,7 +30,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class UpdateMonitor
+public class AlarmConfigMonitor
 {
     private final AlarmClient client;
     private final ResettableTimeout timer;
@@ -76,7 +76,7 @@ public class UpdateMonitor
     /** @param idle_secs Seconds after which we decide that there's a pause in configuration updates
      *  @param client AlarmClient to check for a pause in updates
      */
-    public UpdateMonitor(final long idle_secs, final AlarmClient client)
+    public AlarmConfigMonitor(final long idle_secs, final AlarmClient client)
     {
         this.client = client;
         timer = new ResettableTimeout(idle_secs);
