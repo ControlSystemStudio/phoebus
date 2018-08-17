@@ -8,12 +8,14 @@
 package org.phoebus.ui.javafx;
 
 import static org.phoebus.ui.javafx.JFXUtil.logger;
+import static org.phoebus.ui.javafx.UpdateThrottle.TIMER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -524,6 +526,9 @@ public class StringTable extends BorderPane
             }
             row.set(col, event.getNewValue());
             fireDataChanged();
+
+            // Automatically edit the next row, same column
+            editCell(event.getTablePosition().getRow() + 1, table_column);
         });
         table_column.setOnEditCancel(event -> editing = false);
         table_column.setSortable(false);
@@ -532,6 +537,21 @@ public class StringTable extends BorderPane
             table.getColumns().add(index, table_column);
         else
             table.getColumns().add(table_column);
+    }
+
+    /** Start 'edit' mode for a cell
+     *  @param row
+     *  @param table_column
+     */
+    private void editCell(final int row, final TableColumn<List<String>, String> table_column)
+    {
+        TIMER.schedule(() ->
+            Platform.runLater(() ->
+            {
+                table.getSelectionModel().clearAndSelect(row, table_column);
+                table.edit(row, table_column);
+            }),
+            200, TimeUnit.MILLISECONDS);
     }
 
     /** @return Header labels */
