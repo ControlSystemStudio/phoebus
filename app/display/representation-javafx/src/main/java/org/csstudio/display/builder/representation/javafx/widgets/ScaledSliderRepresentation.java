@@ -282,8 +282,8 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
 
     private void handleSliderMove(final ObservableValue<? extends Number> property, final Number old_value, final Number new_value)
     {
-            if (!active)
-                toolkit.fireWrite(model_widget, new_value);
+        if (!active)
+            toolkit.fireWrite(model_widget, new_value);
     }
 
     private void valueChanged(final WidgetProperty<? extends VType> property, final VType old_value, final VType new_value)

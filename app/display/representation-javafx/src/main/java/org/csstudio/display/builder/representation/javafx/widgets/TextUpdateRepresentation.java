@@ -94,6 +94,9 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
         model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
 
         model_widget.propPVName().addPropertyListener(this::pvnameChanged);
+
+        // Initial update in case runtimePropValue already has value before we registered listener
+        contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

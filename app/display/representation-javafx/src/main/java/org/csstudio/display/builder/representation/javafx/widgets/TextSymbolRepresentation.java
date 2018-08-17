@@ -254,6 +254,7 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
             dirtyValue.checkAndClear();
         } else {
             model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
+            valueChanged(null, null, null);
         }
 
     }

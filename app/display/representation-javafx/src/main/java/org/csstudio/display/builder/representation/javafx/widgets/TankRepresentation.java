@@ -55,6 +55,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propMinimum().addUntypedPropertyListener(this::valueChanged);
         model_widget.propMaximum().addUntypedPropertyListener(this::valueChanged);
         model_widget.runtimePropValue().addUntypedPropertyListener(this::valueChanged);
+        valueChanged(null, null, null);
     }
 
     private void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
