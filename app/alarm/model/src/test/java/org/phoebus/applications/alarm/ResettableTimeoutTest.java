@@ -5,7 +5,7 @@
  *  which accompanies this distribution, and is available at
  *  http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.applications.alarm.server;
+package org.phoebus.applications.alarm;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.phoebus.applications.alarm.ResettableTimeout;
 
 /** JUnit test of the {@link ResettableTimeout}
  *  @author Kay Kasemir
