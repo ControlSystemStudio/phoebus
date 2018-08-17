@@ -2,12 +2,14 @@ package org.phoebus.alarm.logging;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.Consumed;
@@ -16,7 +18,14 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Transformer;
+import org.apache.kafka.streams.kstream.TransformerSupplier;
+import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.processor.StateStore;
+import org.apache.kafka.streams.processor.TimestampExtractor;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
@@ -48,7 +57,14 @@ public class AlarmStateLogger implements Runnable {
 
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, AlarmStateMessage> alarms = builder.stream(topic+"State",
-                Consumed.with(Serdes.String(), alarmStateMessageSerde));
+                Consumed.with(Serdes.String(), alarmStateMessageSerde)
+                        .withTimestampExtractor(new TimestampExtractor() {
+                            
+                            @Override
+                            public long extract(ConsumerRecord<Object, Object> record, long previousTimestamp) {
+                                return record.timestamp();
+                            }
+                        }));
 
         // Filter the alarms to only
         KStream<String, AlarmStateMessage> filteredAlarms = alarms.filter((k, v) -> {
@@ -56,20 +72,54 @@ public class AlarmStateLogger implements Runnable {
         });
 
         // transform the alarm messages, include the pv and config path
-        KStream<String, AlarmStateMessage> transformedAlarms = filteredAlarms
-                .map(new KeyValueMapper<String, AlarmStateMessage, KeyValue<String, AlarmStateMessage>>() {
+        // create store
+        StoreBuilder<KeyValueStore<String,AlarmStateMessage>> keyValueStoreBuilder =
+                Stores.keyValueStoreBuilder(Stores.lruMap(topic+"_state_store", 100),
+                        Serdes.String(),
+                        alarmStateMessageSerde);
+        // register store
+        builder.addStateStore(keyValueStoreBuilder);
+
+        KStream<String, AlarmStateMessage> transformedAlarms = filteredAlarms.transform(new TransformerSupplier<String, AlarmStateMessage, KeyValue<String,AlarmStateMessage>>() {
+
+            @Override
+            public Transformer<String, AlarmStateMessage, KeyValue<String, AlarmStateMessage>> get() {
+                return new Transformer<String, AlarmStateMessage, KeyValue<String, AlarmStateMessage>>() {
+                    private ProcessorContext context;
+                    private StateStore state;
 
                     @Override
-                    public KeyValue<String, AlarmStateMessage> apply(String key, AlarmStateMessage value) {
+                    public KeyValue<String, AlarmStateMessage> transform(String key, AlarmStateMessage value) {
                         key = key.replace("\\", "");
                         Matcher matcher = pattern.matcher(key);
                         value.setConfig(key);
                         matcher.find();
                         String[] tokens = AlarmTreePath.splitPath(key);
                         value.setPv(tokens[tokens.length - 1]);
+                        value.setMessageTime(Instant.ofEpochMilli(context.timestamp()));
                         return new KeyValue<String, AlarmStateMessage>(key, value);
                     }
-                });
+
+                    @Override
+                    public void init(ProcessorContext context) {
+                        this.context = context;
+                        this.state = context.getStateStore(topic+"_state_store");
+                    }
+
+                    @Override
+                    public KeyValue<String, AlarmStateMessage> punctuate(long timestamp) {
+                        return null;
+                    }
+
+                    @Override
+                    public void close() {
+                        // TODO Auto-generated method stub
+                        
+                    }
+                };
+            }
+        }, topic+"_state_store");
+
         // Commit to elastic
         transformedAlarms.foreach((k, v) -> {
             ElasticClientHelper.getInstance().indexAlarmStateDocument(topic + "_alarms", v);
