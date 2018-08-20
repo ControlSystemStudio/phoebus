@@ -56,4 +56,3 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
   }
 }
 '
-

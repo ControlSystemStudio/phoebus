@@ -25,11 +25,15 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 
 public class AlarmLogSearchJob implements JobRunnable {
     private final RestHighLevelClient client;
@@ -60,6 +64,8 @@ public class AlarmLogSearchJob implements JobRunnable {
         this.errorHandler = errorHandler;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        this.objectMapper.registerModule(javaTimeModule);
     }
 
     @Override
@@ -80,13 +86,19 @@ public class AlarmLogSearchJob implements JobRunnable {
                         public AlarmStateMessage apply(SearchHit hit) {
                             try {
                                 JsonNode root = objectMapper.readTree(hit.getSourceAsString());
-                                JsonNode value = ((ObjectNode) root).remove("time");
+                                JsonNode time = ((ObjectNode) root).remove("time");
+                                JsonNode message_time = ((ObjectNode) root).remove("message_time");
                                 AlarmStateMessage alarmStateMessage = objectMapper.readValue(root.traverse(),
                                         AlarmStateMessage.class);
-                                if (value != null) {
-                                    Instant instant = LocalDateTime.parse(value.asText(), formatter)
+                                if (time != null) {
+                                    Instant instant = LocalDateTime.parse(time.asText(), formatter)
                                             .atZone(ZoneId.systemDefault()).toInstant();
                                     alarmStateMessage.setInstant(instant);
+                                }
+                                if (message_time != null) {
+                                    Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
+                                            .atZone(ZoneId.systemDefault()).toInstant();
+                                    alarmStateMessage.setMessage_time(instant);
                                 }
                                 return alarmStateMessage;
                             } catch (Exception e) {

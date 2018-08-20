@@ -96,7 +96,7 @@ public class AlarmStateLogger implements Runnable {
                         matcher.find();
                         String[] tokens = AlarmTreePath.splitPath(key);
                         value.setPv(tokens[tokens.length - 1]);
-                        value.setMessageTime(Instant.ofEpochMilli(context.timestamp()));
+                        value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
                         return new KeyValue<String, AlarmStateMessage>(key, value);
                     }
 
