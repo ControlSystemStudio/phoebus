@@ -41,11 +41,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -135,9 +137,44 @@ public class StringTable extends BorderPane
      */
     private class StringTextCell extends TextFieldTableCell<List<String>, String>
     {
+        private TextField editor = null;
+
         public StringTextCell()
         {
             super(new DefaultStringConverter());
+        }
+
+        // Track the text field used for editing
+        @Override
+        public void startEdit()
+        {
+            super.startEdit();
+            // TextFieldTableCell happens to create the editor once,
+            // so attach event filter once and then remember the editor
+            // to prevent multiple event filters
+            if (editor == null)
+            {
+                editor = (TextField) getGraphic();
+                editor.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
+            }
+        }
+
+        private void handleKey(final KeyEvent event)
+        {
+            if (event.getCode() == KeyCode.TAB)
+            {
+                // Save the current text field content, since lost focus would otherwise restore previous value
+                commitEdit(editor.getText());
+
+                // Edit next/prev column in same row
+                final ObservableList<TableColumn<List<String>, ?>> columns = getTableView().getColumns();
+                final int col = columns.indexOf(getTableColumn());
+                final int next = event.isShiftDown()
+                               ? (col + columns.size() - 1) % columns.size()
+                               : (col + 1) % columns.size();
+                editCell(getIndex(), columns.get(next));
+                event.consume();
+            }
         }
 
         @Override
@@ -252,7 +289,7 @@ public class StringTable extends BorderPane
         {
             table.setEditable(true);
             // Check for keys in both toolbar and table
-            setOnKeyPressed(this::handleKey);
+            addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
         }
         updateStyle();
         fillToolbar();
@@ -543,7 +580,7 @@ public class StringTable extends BorderPane
      *  @param row
      *  @param table_column
      */
-    private void editCell(final int row, final TableColumn<List<String>, String> table_column)
+    private void editCell(final int row, final TableColumn<List<String>, ?> table_column)
     {
         TIMER.schedule(() ->
             Platform.runLater(() ->
@@ -707,14 +744,23 @@ public class StringTable extends BorderPane
      */
     private void handleKey(final KeyEvent event)
     {
-        if (editing)
-            return;
-        switch (event.getCode())
+        if (! editing)
         {
-        case T:
-            showToolbar(! isToolbarVisible());
-            break;
-        default:
+            // Toggle toolbar
+            if (event.getCode() == KeyCode.T)
+            {
+                showToolbar(! isToolbarVisible());
+                event.consume();
+            }
+
+            // Switch to edit mode on keypress
+            if  (event.getCode().isLetterKey() || event.getCode().isDigitKey())
+            {
+                @SuppressWarnings("unchecked")
+                final TablePosition<List<String>, ?> pos = table.getFocusModel().getFocusedCell();
+                table.edit(pos.getRow(), pos.getTableColumn());
+                // TODO Re-send that key event a little later so the editor that just opened receives it?
+            }
         }
     }
 
