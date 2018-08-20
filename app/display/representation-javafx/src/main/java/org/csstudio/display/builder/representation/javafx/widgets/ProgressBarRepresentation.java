@@ -50,6 +50,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
         model_widget.propMaximum().addUntypedPropertyListener(this::valueChanged);
         model_widget.runtimePropValue().addUntypedPropertyListener(this::valueChanged);
         model_widget.propHorizontal().addUntypedPropertyListener(this::lookChanged);
+        valueChanged(null, null, null);
     }
 
     private void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

@@ -6,12 +6,13 @@
 {
     -fx-stroke-width: 2.345;
     -fx-stroke-type: inside;
+	/* LEDRepresentation overrides this, but BoolButton still uses this stroke color */
     -fx-stroke: rgba(50, 50, 50, 0.7);
 }
 .led_label
 {
     /* Move left to start on top of the border */
-    -fx-label-padding: 0 0 0 -2;
+    -fx-label-padding: -2 -2 -2 -2; 
     /* Clip, don't add "...", to see most of text that doesn't fit the LED */
     -fx-text-overrun: clip;
 }

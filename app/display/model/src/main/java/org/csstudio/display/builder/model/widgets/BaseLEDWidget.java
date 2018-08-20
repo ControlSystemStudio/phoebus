@@ -16,6 +16,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -28,7 +29,7 @@ import org.w3c.dom.Element;
 public class BaseLEDWidget extends PVWidget
 {
     /** Helper for configurator to handle legacy LED sizing and common options */
-    protected static void handle_legacy_LED(final Widget widget, final Version xml_version, final Element xml)
+    protected static void handle_legacy_LED(final ModelReader model_reader, final Widget widget, final Version xml_version, final Element xml)
                 throws Exception
     {
         final BaseLEDWidget led = (BaseLEDWidget) widget;
@@ -57,6 +58,11 @@ public class BaseLEDWidget extends PVWidget
                 prop.setValue(prop.getValue() - 2*border);
             }
 
+            // Legacy used "bulb_border_color" instead of "line_color"
+            final Element element = XMLUtil.getChildElement(xml, "bulb_border_color");
+            if (element != null)
+                led.propLineColor().readFromXML(model_reader, element);
+
             // Legacy used "square_led" instead of "square"
             led.propSquare().setValue(XMLUtil.getChildBoolean(xml, "square_led").orElse(false));
         }
@@ -64,6 +70,7 @@ public class BaseLEDWidget extends PVWidget
 
     protected volatile WidgetProperty<WidgetFont> font;
     protected volatile WidgetProperty<WidgetColor> foreground;
+    protected volatile WidgetProperty<WidgetColor> line_color;
     protected volatile WidgetProperty<Boolean> square;
 
     /** Widget constructor.
@@ -95,6 +102,12 @@ public class BaseLEDWidget extends PVWidget
     public WidgetProperty<WidgetColor> propForegroundColor()
     {
         return foreground;
+    }
+
+    /** @return 'line_color' property */
+    public WidgetProperty<WidgetColor> propLineColor()
+    {
+        return line_color;
     }
 
     /** @return 'square' property*/

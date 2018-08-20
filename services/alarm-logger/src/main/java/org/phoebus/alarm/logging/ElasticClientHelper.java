@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.phoebus.alarm.logging;
 
@@ -68,7 +68,7 @@ public class ElasticClientHelper {
     /**
      * Check if an index exists with the given name Note: this is an synchronous
      * call
-     * 
+     *
      * @param indexName
      * @return true if index exists
      * @throws IOException

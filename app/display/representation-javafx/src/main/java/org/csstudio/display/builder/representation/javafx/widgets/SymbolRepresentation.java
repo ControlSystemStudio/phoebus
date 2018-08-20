@@ -447,6 +447,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<AnchorPane, S
             dirtyValue.checkAndClear();
         } else {
             model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
+            valueChanged(null, null, null);
         }
 
     }

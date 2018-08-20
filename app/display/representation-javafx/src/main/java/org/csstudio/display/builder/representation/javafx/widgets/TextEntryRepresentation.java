@@ -213,6 +213,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
 
         model_widget.propPVName().addPropertyListener(this::pvnameChanged);
+
+        contentChanged(null, null, null);
     }
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

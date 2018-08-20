@@ -17,7 +17,7 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
     public static final Logger logger = Logger.getLogger(LogEntryCalenderApp.class.getName());
     static final Image icon = ImageCache.getImage(LogEntryCalenderApp.class, "/icons/logbook-16.png");
     public static final String NAME = "logEntryCalender";
-    public static final String DISPLAYNAME = "LogEntryCalender";
+    public static final String DISPLAYNAME = "Log Entry Calender";
 
     private static final String SUPPORTED_SCHEMA = "logCalender";
     private LogFactory logFactory;
@@ -27,6 +27,11 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookUiPreferences.logbook_factory);
     }
 
+    @Override
+    public String getDisplayName() {
+        return DISPLAYNAME;
+    }
+    
     @Override
     public String getName() {
         return NAME;
