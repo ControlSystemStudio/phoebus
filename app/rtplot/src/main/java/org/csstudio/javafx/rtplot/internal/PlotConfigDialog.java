@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,18 +10,25 @@ package org.csstudio.javafx.rtplot.internal;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.RTPlot;
+import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.YAxis;
+import org.csstudio.javafx.rtplot.util.RGBFactory;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
@@ -40,7 +47,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
         initModality(Modality.NONE);
         setTitle("Configure");
-        setHeaderText("Change plot settings");
+        setHeaderText("Change plot runtime settings");
         try
         {
             setGraphic(new ImageView(Activator.getIcon("configure")));
@@ -55,6 +62,14 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         setResizable(true);
 
         setResultConverter(button -> null);
+    }
+
+    static ColorPicker createPicker(final Color color)
+    {
+        final ColorPicker picker = new ColorPicker(color);
+        picker.getCustomColors().setAll(RGBFactory.PALETTE);
+        picker.setStyle("-fx-color-label-visible: false ;");
+        return picker;
     }
 
     private Node createContent()
@@ -84,22 +99,68 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
         row = addAxisContent(layout, row, plot.getXAxis());
 
-//        label = new Label("Plot");
-//        label.setFont(section_font);
-//        layout.add(label, 0, ++row);
-//
-//        final CheckBox legend = new CheckBox("legend");
-//        legend.setSelected(plot.isLegendVisible());
-//        legend.setOnAction(event ->   plot.showLegend(legend.isSelected()) );
-//        layout.add(legend, 2, ++row);
+        label = new Label("Plot");
+        label.setFont(section_font);
+        layout.add(label, 0, row++);
 
-        return layout;
+        label = new Label("Title:");
+        layout.add(label, 0, row);
+
+        final TextField title = new TextField(plot.getTitle());
+        title.setOnAction(event -> plot.setTitle(title.getText()));
+        layout.add(title, 1, row++, 2, 1);
+
+        final CheckBox legend = new CheckBox("Show Legend");
+        legend.setSelected(plot.isLegendVisible());
+        legend.setOnAction(event ->   plot.showLegend(legend.isSelected()) );
+        layout.add(legend, 1, row);
+
+
+        layout.add(new Separator(Orientation.VERTICAL), 4, 1, 1, row-1);
+
+        row = 0;
+        label = new Label("Traces");
+        label.setFont(section_font);
+        layout.add(label, 5, row++);
+
+        for (Trace<?> trace : plot.getTraces())
+            row = addTraceContent(layout, row, trace);
+
+        final ScrollPane scroll = new ScrollPane(layout);
+        return scroll;
+    }
+
+    private int addTraceContent(final GridPane layout, int row, final Trace<?> trace)
+    {
+        Label label = new Label(trace.getName());
+        layout.add(label, 5, row);
+
+        final ColorPicker color = createPicker(trace.getColor());
+        color.setOnAction(event ->
+        {
+            trace.setColor(color.getValue());
+            plot.requestUpdate();
+        });
+        layout.add(color, 6, row);
+
+        final CheckBox visible = new CheckBox("Visible");
+        visible.setSelected(trace.isVisible());
+        visible.setOnAction(event ->
+        {
+            trace.setVisible(visible.isSelected());
+            plot.requestUpdate();
+        });
+        layout.add(visible, 7, row++);
+
+        return row;
     }
 
     private int addAxisContent(final GridPane layout, int row, final Axis<?> axis)
     {
-        if (! axis.getName().trim().isEmpty())
-            layout.add(new Label('"' + axis.getName() + '"'), 0, row);
+        layout.add(new Label("Axis Name:"), 0, row);
+        final TextField axis_name = new TextField(axis.getName());
+        axis_name.setOnAction(event -> axis.setName(axis_name.getText()));
+        layout.add(axis_name, 1, row++, 2, 1);
 
         // Don't support auto-scale for time axis
         // because code that updates the time axis
@@ -108,14 +169,12 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         {
             final NumericAxis num_axis = (NumericAxis) axis;
 
-            Label label = new Label("Start");
-            layout.add(label, 1, row);
+            Label label = new Label("Start, End:");
+            layout.add(label, 0, row);
 
             final TextField start = new TextField(axis.getValueRange().getLow().toString());
-            layout.add(start,  2, row++);
+            layout.add(start,  1, row);
 
-            label = new Label("End");
-            layout.add(label, 1, row);
             final TextField end = new TextField(axis.getValueRange().getHigh().toString());
             layout.add(end,  2, row++);
 
@@ -140,7 +199,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
             start.setOnAction(update_range);
             end.setOnAction(update_range);
 
-            final CheckBox autoscale = new CheckBox("auto-scale");
+            final CheckBox autoscale = new CheckBox("Auto-scale");
             if (axis.isAutoscale())
             {
                 autoscale.setSelected(true);
@@ -154,9 +213,9 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
                 end.setDisable(autoscale.isSelected());
                 plot.internalGetPlot().fireAutoScaleChange(axis);
             });
-            layout.add(autoscale, 2, row++);
+            layout.add(autoscale, 1, row);
 
-            final CheckBox logscale = new CheckBox("log scale");
+            final CheckBox logscale = new CheckBox("Log scale");
             logscale.setSelected(num_axis.isLogarithmic());
             logscale.setOnAction(event ->
             {
@@ -166,14 +225,31 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
             layout.add(logscale, 2, row++);
         }
 
-        final CheckBox grid = new CheckBox("grid");
+        final CheckBox grid = new CheckBox("Grid");
         grid.setSelected(axis.isGridVisible());
         grid.setOnAction(event ->
         {
             axis.setGridVisible(grid.isSelected());
             plot.internalGetPlot().fireGridChange(axis);
         });
-        layout.add(grid, 2, row++);
+        layout.add(grid, 1, row);
+
+        if (axis instanceof YAxis)
+        {
+            final YAxis<?> yaxis = (YAxis<?>) axis;
+            final CheckBox trace_names = new CheckBox("Show Trace Names");
+            trace_names.setSelected(yaxis.isUsingTraceNames());
+            trace_names.setOnAction(event -> yaxis.useTraceNames(trace_names.isSelected()));
+            layout.add(trace_names, 2, row);
+        }
+        ++row;
+
+        final CheckBox visible = new CheckBox("Visible");
+        visible.setSelected(axis.isVisible());
+        visible.setOnAction(event -> axis.setVisible(visible.isSelected()));
+        layout.add(visible, 1, row++);
+
+        layout.add(new Separator(), 1, row++, 2, 1);
 
         return row;
     }
