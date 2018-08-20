@@ -240,7 +240,7 @@ public class StringTable extends BorderPane
             }
             else if (event.getCode() == KeyCode.ENTER)
             {
-                // Consume 'enter' and move to next column. Space can be used to toggle (or mouse click)
+                // Consume 'enter' and move to next row. Space can be used to toggle (or mouse click)
                 event.consume();
                 editCell(getIndex() + 1, getTableColumn());
             }
