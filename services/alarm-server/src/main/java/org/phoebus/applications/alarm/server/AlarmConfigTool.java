@@ -11,11 +11,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.client.AlarmConfigMonitor;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
@@ -32,67 +31,7 @@ public class AlarmConfigTool
     /** Time the model must be stable for. Unit is seconds. Default is 4 seconds. */
     private static final long STABILIZATION_SECS = 4;
 
-    private class UpdateMonitor
-	{
-		private final ResettableTimeout timer = new ResettableTimeout(STABILIZATION_SECS);
-        private final AtomicInteger updates = new AtomicInteger();
-
-	    private final AlarmClientListener updateListener = new AlarmClientListener()
-        {
-            @Override
-            public void serverStateChanged(final boolean alive)
-            {
-                //NOP
-            }
-
-            @Override
-            public void serverModeChanged(boolean maintenance_mode)
-            {
-                //NOP
-            }
-
-            @Override
-            public void itemAdded(final AlarmTreeItem<?> item)
-            {
-            	// Reset the timer when receiving update
-                timer.reset();
-        		updates.incrementAndGet();
-            }
-
-            @Override
-            public void itemRemoved(final AlarmTreeItem<?> item)
-            {
-            	// Reset the timer when receiving update
-                timer.reset();
-        		updates.incrementAndGet();
-            }
-
-            @Override
-            public void itemUpdated(final AlarmTreeItem<?> item)
-            {
-            	//NOP
-            }
-        };
-
-        public void listen(AlarmClient client) throws Exception
-        {
-            client.addListener(updateListener);
-            if (! timer.awaitTimeout(30))
-                 throw new Exception("30 seconds have passed, I give up waiting for updates to subside.");
-        	// Reset the counter to count any updates received after we decide to continue.
-        	updates.set(0);
-        }
-
-        public Integer getCount()
-        {
-        	return updates.get();
-        }
-	}
-
-    private AlarmClient client = null;
-    private UpdateMonitor updateMonitor = null;
-
-	// Export an alarm system model to an xml file.
+    	// Export an alarm system model to an xml file.
     public void exportModel(String filename, String server, String config) throws Exception
 	{
         final XmlModelWriter xmlWriter;
@@ -112,14 +51,14 @@ public class AlarmConfigTool
             xmlWriter = new XmlModelWriter(fos);
         }
 
-		client = new AlarmClient(server, config);
+        final AlarmClient client = new AlarmClient(server, config);
         client.start();
 
         System.out.printf("Writing file after model is stable for %d seconds:\n", STABILIZATION_SECS);
         System.out.println("Monitoring changes...");
 
-        updateMonitor = new UpdateMonitor();
-        updateMonitor.listen(client);
+        final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(STABILIZATION_SECS, client);
+        updateMonitor.waitForPauseInUpdates(30);
 
         System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", STABILIZATION_SECS);
 
@@ -129,6 +68,8 @@ public class AlarmConfigTool
 
         System.out.println("\nModel written to file: " + filename);
         System.out.printf("%d updates were received while writing model to file.\n", updateMonitor.getCount());
+
+        updateMonitor.dispose();
 
         client.shutdown();
 	}
@@ -143,15 +84,14 @@ public class AlarmConfigTool
 		xmlModelReader.load(fileInputStream);
 
 		// Connect to the server.
-		client = new AlarmClient(server, config);
+		final AlarmClient client = new AlarmClient(server, config);
         client.start();
         try
         {
-            updateMonitor = new UpdateMonitor();
-
             System.out.println("Fetching server model. This could take some time ...");
-
-            updateMonitor.listen(client);
+            final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(STABILIZATION_SECS, client);
+            updateMonitor.waitForPauseInUpdates(30);
+            updateMonitor.dispose();
 
             final AlarmClientNode new_root = xmlModelReader.getRoot();
             // Check that the configs match.
@@ -174,7 +114,7 @@ public class AlarmConfigTool
             // For every child of the new root, add them and their descendants to the old root.
             final List<AlarmTreeItem<?>> new_root_children = new_root.getChildren();
             for (final AlarmTreeItem<?> child : new_root_children)
-				addNodes(root, child);
+				addNodes(client, root, child);
             System.out.println("Done.");
         }
         finally
@@ -183,7 +123,7 @@ public class AlarmConfigTool
         }
 	}
 
-	private void addNodes(AlarmTreeItem<?> parent, AlarmTreeItem<?> tree_item) throws Exception
+	private void addNodes(final AlarmClient client, final AlarmTreeItem<?> parent, final AlarmTreeItem<?> tree_item) throws Exception
 	{
 		// Determine if the item is a node or a leaf and add to the model appropriately.
 		if (tree_item instanceof AlarmTreeLeaf)
@@ -197,6 +137,6 @@ public class AlarmConfigTool
 		// Recurse over children.
 		final List<AlarmTreeItem<?>> children = tree_item.getChildren();
 		for (final AlarmTreeItem<?> child : children)
-			addNodes(tree_item, child);
+			addNodes(client, tree_item, child);
 	}
 }

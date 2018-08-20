@@ -201,6 +201,12 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         grid = color;
     }
 
+    /** @return Title */
+    public String getTitle()
+    {
+        return title_part.getName();
+    }
+
     /** @param title Title */
     public void setTitle(final String title)
     {
