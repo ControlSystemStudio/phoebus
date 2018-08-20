@@ -20,6 +20,7 @@ import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
 import org.phoebus.applications.email.actions.SendEmailAction;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
@@ -194,7 +195,7 @@ public class AlarmTableUI extends BorderPane
         acknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : active.getSelectionModel().getSelectedItems())
-                client.acknowledge(row.item, true);
+                JobManager.schedule("ack", monitor -> client.acknowledge(row.item, true));
         });
 
         final Button unacknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/unacknowledge.png"));
@@ -202,7 +203,7 @@ public class AlarmTableUI extends BorderPane
         unacknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : acknowledged.getSelectionModel().getSelectedItems())
-                client.acknowledge(row.item, false);
+                JobManager.schedule("unack", monitor -> client.acknowledge(row.item, false));
         });
 
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
@@ -318,7 +319,7 @@ public class AlarmTableUI extends BorderPane
             row.setOnMouseClicked(event ->
             {
                 if (event.getClickCount() == 2  &&  !row.isEmpty())
-                    client.acknowledge(row.getItem().item, active);
+                    JobManager.schedule("ack", monitor ->  client.acknowledge(row.getItem().item, active));
             });
             return row;
         });
