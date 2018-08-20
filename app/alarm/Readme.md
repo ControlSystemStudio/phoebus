@@ -26,12 +26,21 @@ Download Kafka as described on https://kafka.apache.org/quickstart
     tar -vzxf kafka_2.11-1.1.0.tgz
     ln -s kafka_2.11-1.1.0 kafka
     
-Check `config/server.properties`. By default it contains this, which "works",
-but risks that Linux will delete the data:
+Check `config/zookeeper.properties` and `config/server.properties`.
+By default these contain settings for keeping data in `/tmp/`, which works for initial tests,
+but risks that Linux will delete the data.
+For a production setup, change `zookeeper.properties`:
 
+    # Suggest to change this to a location outside of /tmp,
+    # for example /var/zookeeper-logs or /home/controls/zookeeper-logs
+    dataDir=/tmp/zookeeper
+  
+Similarly, change the directory setting in `server.properties`
+    
     # Suggest to change this to a location outside of /tmp,
     # for example /var/kafka-logs or /home/controls/kafka-logs
     log.dirs=/tmp/kafka-logs
+
 
 Kafka depends on Zookeeper. By default, Kafka will quit if it cannot connect to Zookeeper within 6 seconds.
 When the Linux host boots up, this may not be long enough to allow Zookeeper to start.
