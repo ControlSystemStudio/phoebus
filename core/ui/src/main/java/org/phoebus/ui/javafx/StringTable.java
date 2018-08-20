@@ -661,7 +661,7 @@ public class StringTable extends BorderPane
                 table.getSelectionModel().clearAndSelect(row, table_column);
                 table.edit(row, table_column);
             }),
-            200, TimeUnit.MILLISECONDS);
+            100, TimeUnit.MILLISECONDS);
     }
 
     /** @return Header labels */

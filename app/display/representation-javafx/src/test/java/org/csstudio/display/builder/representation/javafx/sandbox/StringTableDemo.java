@@ -14,6 +14,7 @@ import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.javafx.StringTableListener;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -118,6 +119,8 @@ public class StringTableDemo extends Application
         layout.setTop(label);
         layout.setCenter(table);
         layout.setRight(new VBox(10, new_headers, new_data, set_color, sel_row));
+
+        BorderPane.setMargin(layout.getRight(), new Insets(10));
 
         final Scene scene = new Scene(layout, 800, 700);
         stage.setScene(scene);
