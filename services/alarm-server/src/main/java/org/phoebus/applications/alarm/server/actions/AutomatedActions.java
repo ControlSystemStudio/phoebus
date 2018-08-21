@@ -83,66 +83,67 @@ public class AutomatedActions
         // System.out.println(item.getPathName() + " auto actions update for " + severity);
         final boolean is_active = severity.isActive();
         // Is this a change?
-        if (active_alarm.compareAndSet(!is_active, is_active))
+        if (! active_alarm.compareAndSet(!is_active, is_active))
+            return;
+
+        if (is_active)
         {
-            if (is_active)
+            for (TitleDetailDelay action : item.getActions())
             {
-                for (TitleDetailDelay action : item.getActions())
-                {
-                    if (action.detail.startsWith(TitleDetailDelay.SEVRPV))
-                        continue;
+                if (action.detail.startsWith(TitleDetailDelay.SEVRPV))
+                    continue;
 
-                    // Schedule action to be executed unless already scheduled
-                    scheduled_actions.computeIfAbsent(action, a ->
+                // Schedule action to be executed unless already scheduled
+                scheduled_actions.computeIfAbsent(action, a ->
+                {
+                    final Runnable trigger_action = () ->
                     {
-                        final Runnable trigger_action = () ->
+                        if (scheduled_actions.remove(a) == null)
+                            logger.log(Level.INFO, item.getPathName() + ": Aborting execution of cancelled action " + a);
+                        else
                         {
-                            if (scheduled_actions.remove(a) == null)
-                                logger.log(Level.INFO, item.getPathName() + ": Aborting execution of cancelled action " + a);
-                            else
-                            {
-                                // Perform the action
-                                perform_action.accept(item, a);
+                            // Perform the action
+                            perform_action.accept(item, a);
 
-                                // If follow up is requested for this type of action,
-                                // note that we performed it.
-                                // TODO Check this only once?
-                                for (String followup : AlarmSystem.automated_action_followup)
-                                    if (action.detail.startsWith(followup))
+                            // Is follow up is requested for this type of action?
+                            for (String followup : AlarmSystem.automated_action_followup)
+                                if (action.detail.startsWith(followup))
+                                {
+                                    synchronized (performed_actions)
                                     {
-                                        synchronized (performed_actions)
-                                        {
-                                            performed_actions.add(action);
-                                        }
-                                        break;
+                                        performed_actions.add(action);
                                     }
-                            }
-                        };
-                        logger.log(Level.INFO, item.getPathName() + ": Schedule " + a.title + " in " + a.delay + " s");
-                        return timer.schedule(trigger_action, a.delay, TimeUnit.SECONDS);
-                    });
-                }
+                                    break;
+                                }
+                        }
+                    };
+                    logger.log(Level.INFO, item.getPathName() + ": Schedule " + a.title + " in " + a.delay + " s");
+                    return timer.schedule(trigger_action, a.delay, TimeUnit.SECONDS);
+                });
             }
-            else
-            {
-                // Cancel all scheduled actions
-                cancel();
+        }
+        else
+        {
+            // Cancel all scheduled actions
+            cancel();
 
-                // Follow up on actions that have been executed and now need an "It's OK"
-                final List<TitleDetailDelay> follow_up;
-                synchronized (performed_actions)
-                {
-                    // Atomically get-and-clear the actions on which to follow up
-                    follow_up = new ArrayList<>(performed_actions);
-                    performed_actions.clear();
-                }
-                // Invokes the action again. Action will notice that the item is right now OK
-                // and can act accordingly by for example creating a differently worded email.
-                for (TitleDetailDelay action : follow_up)
-                {
-                    logger.log(Level.INFO, item.getPathName() + ": Follow up since alarm no longer active");
-                    perform_action.accept(item, action);
-                }
+            // Follow up on actions that have been executed and now need an "It's OK"
+            final List<TitleDetailDelay> follow_up;
+            synchronized (performed_actions)
+            {
+                // Exit ASAP if nothing to do
+                if (performed_actions.isEmpty())
+                    return;
+                // Atomically get-and-clear the actions on which to follow up
+                follow_up = new ArrayList<>(performed_actions);
+                performed_actions.clear();
+            }
+            // Invokes the action again. Action will notice that the item is right now OK
+            // and can act accordingly by for example creating a differently worded email.
+            for (TitleDetailDelay action : follow_up)
+            {
+                logger.log(Level.INFO, item.getPathName() + ": Follow up since alarm no longer active");
+                perform_action.accept(item, action);
             }
         }
     }
@@ -156,5 +157,9 @@ public class AutomatedActions
             logger.log(Level.INFO, item.getPathName() + ": Cancelled");
             scheduled_actions.remove(action);
         });
+        synchronized (performed_actions)
+        {
+            performed_actions.clear();
+        }
     }
 }
