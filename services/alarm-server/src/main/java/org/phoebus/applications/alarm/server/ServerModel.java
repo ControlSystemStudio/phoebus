@@ -9,10 +9,10 @@ package org.phoebus.applications.alarm.server;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -60,7 +60,7 @@ class ServerModel
     private final String config_topic, command_topic, state_topic, talk_topic;
     private final ServerModelListener listener;
     private final AlarmServerNode root;
-    private final AtomicBoolean running = new AtomicBoolean(true);
+    private volatile boolean running = true;
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
     private final Thread thread;
@@ -120,7 +120,7 @@ class ServerModel
     {
         try
         {
-            while (running.get())
+            while (running)
             {
                 checkUpdates();
                 final long now = System.currentTimeMillis();
@@ -130,7 +130,7 @@ class ServerModel
         }
         catch (Throwable ex)
         {
-            if (running.get())
+            if (running)
                 logger.log(Level.SEVERE, "Server model error", ex);
             // else: Intended shutdown
         }
@@ -334,7 +334,12 @@ class ServerModel
         if (node == null)
             return null;
 
-        // Node is known: Detach it
+        // Node is known.
+
+        // Clear actions to cancel pending notifications
+        node.setActions(Collections.emptyList());
+
+        // Detach it
         final AlarmTreeItem<BasicState> parent = node.getParent();
         node.detachFromParent();
 
@@ -438,13 +443,25 @@ class ServerModel
         return active;
     }
 
+    private void clearActionsAndStopPVs(final AlarmTreeItem<?> node)
+    {
+        // Clear actions to cancel pending notifications
+        node.setActions(Collections.emptyList());
+
+        // Stop PV, or recurse to child nodes
+        if (node instanceof AlarmServerPV)
+            ((AlarmServerPV) node).stop();
+        else
+            for (AlarmTreeItem<?> child : node.getChildren())
+                clearActionsAndStopPVs(child);
+    }
+
     /** Stop client */
     public void shutdown()
     {
         SeverityPVHandler.stop();
-        running.set(false);
+        running = false;
         consumer.wakeup();
-
         try
         {
             thread.join(2000);
@@ -453,6 +470,16 @@ class ServerModel
         {
             logger.log(Level.WARNING, "Server model thread doesn't shut down", ex);
         }
+
         logger.info(thread.getName() + " shut down");
+
+        // Stop all the PVs
+        clearActionsAndStopPVs(root);
+        logger.info("Stopped all PVs");
+
+        // Delete config
+        root.getChildren().clear();
+        root.maximizeSeverity();
+        logger.info("Cleared configuration for " + root.getName());
     }
 }
