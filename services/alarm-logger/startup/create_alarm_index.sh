@@ -23,8 +23,7 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "keyword"
           },
           "pv" : {
-            "type" : "text",
-            "analyzer" : "keyword"
+            "type" : "keyword"
           },
           "severity" : {
             "type" : "keyword"
@@ -36,6 +35,10 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "text"
           },
           "time" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "message_time" : {
             "type" : "date",
             "format" : "yyyy-MM-dd HH:mm:ss.SSS"
           },
@@ -53,4 +56,3 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
   }
 }
 '
-

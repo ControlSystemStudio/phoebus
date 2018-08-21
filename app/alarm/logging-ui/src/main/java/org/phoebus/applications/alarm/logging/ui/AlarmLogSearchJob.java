@@ -80,13 +80,19 @@ public class AlarmLogSearchJob implements JobRunnable {
                         public AlarmStateMessage apply(SearchHit hit) {
                             try {
                                 JsonNode root = objectMapper.readTree(hit.getSourceAsString());
-                                JsonNode value = ((ObjectNode) root).remove("time");
+                                JsonNode time = ((ObjectNode) root).remove("time");
+                                JsonNode message_time = ((ObjectNode) root).remove("message_time");
                                 AlarmStateMessage alarmStateMessage = objectMapper.readValue(root.traverse(),
                                         AlarmStateMessage.class);
-                                if (value != null) {
-                                    Instant instant = LocalDateTime.parse(value.asText(), formatter)
+                                if (time != null) {
+                                    Instant instant = LocalDateTime.parse(time.asText(), formatter)
                                             .atZone(ZoneId.systemDefault()).toInstant();
                                     alarmStateMessage.setInstant(instant);
+                                }
+                                if (message_time != null) {
+                                    Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
+                                            .atZone(ZoneId.systemDefault()).toInstant();
+                                    alarmStateMessage.setMessage_time(instant);
                                 }
                                 return alarmStateMessage;
                             } catch (Exception e) {

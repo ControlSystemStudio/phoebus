@@ -14,6 +14,7 @@
             <TableColumn fx:id="messageCol" minWidth="50.0" prefWidth="75.0" text="Message" />
             <TableColumn fx:id="valueCol" minWidth="50.0" prefWidth="75.0" text="Value" />
             <TableColumn fx:id="timeCol" minWidth="50.0" prefWidth="75.0" text="Time" />
+            <TableColumn fx:id="msgTimeCol" minWidth="50.0" prefWidth="75.0" text="Message Time" />
             <TableColumn fx:id="currentSeverityCol" minWidth="50.0" prefWidth="75.0" text="Current Severity" />
             <TableColumn fx:id="currentMessageCol" minWidth="50.0" prefWidth="75.0" text="Current Message" />
             <TableColumn fx:id="mode" minWidth="50.0" prefWidth="75.0" text="Mode" />

@@ -30,6 +30,11 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>core-util</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>

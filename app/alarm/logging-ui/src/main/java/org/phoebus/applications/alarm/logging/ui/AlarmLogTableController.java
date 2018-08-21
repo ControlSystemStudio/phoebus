@@ -2,16 +2,18 @@ package org.phoebus.applications.alarm.logging.ui;
 
 import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.elasticsearch.client.RestHighLevelClient;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.framework.jobs.Job;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -40,6 +42,8 @@ public class AlarmLogTableController {
     TableColumn<AlarmStateMessage, String> valueCol;
     @FXML
     TableColumn<AlarmStateMessage, String> timeCol;
+    @FXML
+    TableColumn<AlarmStateMessage, String> msgTimeCol;
     @FXML
     TableColumn<AlarmStateMessage, String> currentSeverityCol;
     @FXML
@@ -103,10 +107,22 @@ public class AlarmLogTableController {
                 new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
                     @Override
                     public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        return new SimpleStringProperty(alarmStateMessage.getValue().getInstant().toString());
+                        String time = TimestampFormats.MILLI_FORMAT.format(alarmStateMessage.getValue().getInstant());
+                        return new SimpleStringProperty(time);
                     }
                 });
         tableView.getColumns().add(timeCol);
+
+        msgTimeCol = new TableColumn<>("Message Time");
+        msgTimeCol.setCellValueFactory(
+                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+                    @Override
+                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
+                        String time = TimestampFormats.MILLI_FORMAT.format(alarmStateMessage.getValue().getMessage_time());
+                        return new SimpleStringProperty(time);
+                    }
+                });
+        tableView.getColumns().add(msgTimeCol);
 
         currentSeverityCol = new TableColumn<>("Current Severity");
         currentSeverityCol.setCellValueFactory(
@@ -144,9 +160,8 @@ public class AlarmLogTableController {
             }
             alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString,
                     result -> Platform.runLater(() -> setAlarmStateMessages(result)), (url, ex) -> {
-                        logger.warning("Shutting down alarm log message scheduler.");
+                        logger.log(Level.WARNING, "Shutting down alarm log message scheduler.", ex);
                         runningTask.cancel(true);
-                        ExceptionDetailsErrorDialog.openError("Alarm Log Search Error : ", ex.getMessage(), ex);
                     });
         }, 0, 10, TimeUnit.SECONDS);
     }

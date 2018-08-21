@@ -1,12 +1,12 @@
 package org.phoebus.applications.alarm.messages;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
+import org.phoebus.util.time.TimestampFormats;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class AlarmStateMessage {
 
+    private static DateTimeFormatter formatter = TimestampFormats.MILLI_FORMAT;
     private String config;
     private String pv;
 
@@ -30,6 +31,7 @@ public class AlarmStateMessage {
     private String current_severity;
     private String current_message;
     private String mode;
+    private Instant message_time;
 
     public AlarmStateMessage() {
         super();
@@ -107,6 +109,14 @@ public class AlarmStateMessage {
         this.mode = mode;
     }
 
+    public Instant getMessage_time() {
+        return message_time;
+    }
+
+    public void setMessage_time(Instant message_time) {
+        this.message_time = message_time;
+    }
+
     @JsonIgnore
     public Instant getInstant() {
         return Instant.ofEpochSecond(Long.parseLong(time.get("seconds")), Long.parseLong(time.get("nano")));
@@ -132,9 +142,8 @@ public class AlarmStateMessage {
         map.put("severity", getSeverity());
         map.put("message", getMessage());
         map.put("value", getValue());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-                .withZone(ZoneId.systemDefault());
         map.put("time", formatter.format(getInstant()));
+        map.put("message_time", formatter.format(getMessage_time()));
         map.put("current_severity", getCurrent_severity());
         map.put("current_message", getCurrent_message());
         map.put("mode", getMode());
