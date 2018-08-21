@@ -29,6 +29,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.server.AlarmServerPV;
 import org.phoebus.email.EmailPreferences;
 import org.phoebus.util.time.TimestampFormats;
@@ -46,7 +47,7 @@ import org.phoebus.util.time.TimestampFormats;
 public class EmailActionExecutor
 {
     /** @param item Item for which to send email
-     *  @param addresses Receipients
+     *  @param addresses Recipients
      */
     static void sendEmail(final AlarmTreeItem<?> item, final String[] addresses)
     {
@@ -82,7 +83,14 @@ public class EmailActionExecutor
     {
         final StringBuilder buf = new StringBuilder();
 
-        buf.append(item.getState().severity).append(" alarm: ");
+        // "MAJOR alarm: .." or just "OK:"
+        final SeverityLevel severity = item.getState().severity;
+        buf.append(severity);
+        if (severity != SeverityLevel.OK)
+            buf.append(" alarm");
+        buf.append(": ");
+
+        // PV's description or path to item
         if (item instanceof AlarmServerPV)
         {
             final AlarmServerPV pv = (AlarmServerPV)item;
@@ -102,10 +110,15 @@ public class EmailActionExecutor
             addPVDetail(buf, (AlarmServerPV)item);
         else
         {
-            buf.append("PVs:\n\n");
             final List<AlarmServerPV> pvs = AutomatedActionExecutor.getAlarmPVs(item);
-            for (AlarmServerPV pv : pvs)
-                addPVDetail(buf, pv);
+            if (pvs.isEmpty())
+                buf.append("No active alarms\n");
+            else
+            {
+                buf.append("PVs:\n\n");
+                for (AlarmServerPV pv : pvs)
+                    addPVDetail(buf, pv);
+            }
         }
 
         return buf.toString();
