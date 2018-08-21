@@ -140,7 +140,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         if (node.isLeaf())
             return;
 
-        node.setExpanded(node.getValue().getState().severity.isActive());
+        // Always expand the root, which itself is not visible,
+        // but this will show all the top-level elements.
+        // In addition, expand those items which are in active alarm.
+        final boolean expand = node.getValue().getState().severity.isActive() ||
+                               node == tree_view.getRoot();
+        node.setExpanded(expand);
         for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
             expandAlarms(sub);
     }
@@ -369,7 +374,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     menu_items.add(new RemoveComponentAction(tree_view, model, selection));
                 }
             }
-            
+
             menu_items.add(new SeparatorMenuItem());
             menu_items.add(new PrintAction(tree_view));
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
