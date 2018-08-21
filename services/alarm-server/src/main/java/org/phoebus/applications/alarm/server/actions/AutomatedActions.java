@@ -125,7 +125,7 @@ public class AutomatedActions
         else
         {
             // Cancel all scheduled actions
-            cancel();
+            cancelScheduled();
 
             // Follow up on actions that have been executed and now need an "It's OK"
             final List<TitleDetailDelay> follow_up;
@@ -148,7 +148,8 @@ public class AutomatedActions
         }
     }
 
-    public void cancel()
+    /** Cancel/clear all scheduled actions */
+    private void cancelScheduled()
     {
         // Cancel/clear all scheduled actions
         scheduled_actions.forEach((action, scheduled) ->
@@ -157,6 +158,12 @@ public class AutomatedActions
             logger.log(Level.INFO, item.getPathName() + ": Cancelled");
             scheduled_actions.remove(action);
         });
+    }
+
+    /** Cancel all scheduled actions and forget about follow-up */
+    public void cancel()
+    {
+        cancelScheduled();
         synchronized (performed_actions)
         {
             performed_actions.clear();
