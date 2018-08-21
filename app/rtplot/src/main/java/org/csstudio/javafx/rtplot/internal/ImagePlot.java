@@ -597,9 +597,9 @@ public class ImagePlot extends PlotCanvasBase
             }
         }
 
-        // If log, min needs to be 1
-        if (colorbar_axis.isLogarithmic()  &&  min < 1.0)
-            min = 1;
+        // If log, min needs to be > 0
+        if (colorbar_axis.isLogarithmic()  &&  min <= 0.0)
+            min = 0.001;  // arbitrary minimum
         colorbar_axis.setValueRange(min, max);
         if (need_layout.getAndSet(false))
             computeLayout(gc, area_copy, min, max);
