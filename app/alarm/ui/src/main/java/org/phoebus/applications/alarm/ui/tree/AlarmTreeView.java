@@ -132,7 +132,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
         show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
         show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
-        return new ToolBar(ToolbarHelper.createSpring(), collapse, show_alarms);
+        return new ToolBar(no_server, ToolbarHelper.createSpring(), collapse, show_alarms);
+    }
+
+    ToolBar getToolbar()
+    {
+        return (ToolBar) getTop();
     }
 
     private void expandAlarms(final TreeItem<AlarmTreeItem<?>> node)
@@ -171,7 +176,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         Platform.runLater(() ->
         {
-            final ToolBar toolbar = (ToolBar) getTop();
+            final ToolBar toolbar = getToolbar();
             toolbar.getItems().remove(no_server);
             if (! alive)
                 toolbar.getItems().add(0, no_server);
