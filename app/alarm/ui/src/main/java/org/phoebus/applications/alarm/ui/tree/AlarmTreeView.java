@@ -41,6 +41,7 @@ import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -176,10 +177,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         Platform.runLater(() ->
         {
-            final ToolBar toolbar = getToolbar();
-            toolbar.getItems().remove(no_server);
+            final ObservableList<Node> items = getToolbar().getItems();
+            items.remove(no_server);
             if (! alive)
-                toolbar.getItems().add(0, no_server);
+                // Place left of spring, collapse, expand_alarms,
+                // i.e. right of potential AlarmConfigSelector
+                items.add(items.size()-3, no_server);
         });
     }
 

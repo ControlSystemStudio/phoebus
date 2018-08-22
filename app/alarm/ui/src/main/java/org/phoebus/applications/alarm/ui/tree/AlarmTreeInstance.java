@@ -14,6 +14,7 @@ import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.ui.AlarmConfigSelector;
 import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -22,7 +23,6 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
 /** Alarm tree application instance (singleton)
@@ -77,10 +77,7 @@ class AlarmTreeInstance implements AppInstance
 
             if (AlarmSystem.config_names.size() > 0)
             {
-                final ComboBox<String> configs = new ComboBox<>();
-                configs.getItems().setAll(AlarmSystem.config_names);
-                configs.setValue(config_name);
-                configs.setOnAction(event ->  changeConfig(configs.getValue()));
+                final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
                 tree_view.getToolbar().getItems().add(0, configs);
             }
 

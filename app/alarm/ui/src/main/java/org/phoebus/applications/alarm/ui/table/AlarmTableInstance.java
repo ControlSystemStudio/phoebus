@@ -9,17 +9,20 @@ package org.phoebus.applications.alarm.ui.table;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.net.URI;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.ui.tree.AlarmTreeApplication;
+import org.phoebus.applications.alarm.ui.AlarmConfigSelector;
+import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
@@ -29,26 +32,24 @@ import javafx.scene.control.Label;
 @SuppressWarnings("nls")
 class AlarmTableInstance implements AppInstance
 {
-    /** Singleton instance maintained by {@link AlarmTreeApplication} */
-    static AlarmTableInstance INSTANCE = null;
-
     private final AlarmTableApplication app;
 
+    private String server = null, config_name = null;
     private AlarmClient client;
     private AlarmTableUI table;
     private AlarmTableMediator mediator;
-    private final DockItem tab;
+    private final DockItemWithInput tab;
 
-    public AlarmTableInstance(final AlarmTableApplication app)
+    public AlarmTableInstance(final AlarmTableApplication app, final URI input) throws Exception
     {
         this.app = app;
-        tab = new DockItem(this, create());
+        tab = new DockItemWithInput(this, create(input), input, null, null);
+        Platform.runLater(() -> tab.setLabel(config_name + " " + app.getDisplayName()));
         tab.addCloseCheck(() ->
         {
             dispose();
             return true;
         });
-        tab.addClosedNotification(() -> INSTANCE = null);
         DockPane.getActiveDockPane().addTab(tab);
     }
 
@@ -58,26 +59,58 @@ class AlarmTableInstance implements AppInstance
         return app;
     }
 
-    void raise()
+    /** Create UI for input, starts alarm client
+     *
+     *  @param input Alarm URI, will be parsed into `server` and `config_name`
+     *  @return Alarm UI
+     *  @throws Exception
+     */
+    private Node create(final URI input) throws Exception
     {
-        tab.select();
-    }
+        final String[] parsed = AlarmURI.parseAlarmURI(input);
+        server = parsed[0];
+        config_name = parsed[1];
 
-    private Node create()
-    {
         try
         {
-            client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name);
+            client = new AlarmClient(server, config_name);
             table = new AlarmTableUI(client);
             mediator = new AlarmTableMediator(client, table);
             client.addListener(mediator);
             client.start();
+
+            if (AlarmSystem.config_names.size() > 0)
+            {
+                final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
+                // Place after "Active Alarms: 12" and strut
+                table.getToolbar().getItems().add(2, configs);
+            }
+
             return table;
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot create alarm tree", ex);
-            return new Label("Cannot create alarm tree");
+            logger.log(Level.WARNING, "Cannot create alarm table for " + input, ex);
+            return new Label("Cannot create alarm table for " + input);
+        }
+    }
+
+    private void changeConfig(final String new_config_name)
+    {
+        // Dispose existing setup
+        dispose();
+
+        try
+        {
+            // Use same server name, but new config_name
+            final URI new_input = AlarmURI.createURI(server, new_config_name);
+            tab.setContent(create(new_input));
+            tab.setInput(new_input);
+            Platform.runLater(() -> tab.setLabel(config_name + " " + app.getDisplayName()));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot switch alarm table to " + config_name, ex);
         }
     }
 
