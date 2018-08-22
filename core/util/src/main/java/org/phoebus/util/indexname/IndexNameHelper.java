@@ -84,6 +84,7 @@ public class IndexNameHelper
         Integer field = -1;
         if (dateSpanUnit.equals("Y"))
         {
+            // Roll the year back to the beginning (midnight of the first of the year).
             field = Calendar.YEAR;
             calendar.set(Calendar.MONTH, Calendar.JANUARY);
             calendar.set(Calendar.WEEK_OF_MONTH, 1);
@@ -91,6 +92,7 @@ public class IndexNameHelper
         }
         if (dateSpanUnit.equals("M"))
         {
+            // Roll the month back to the beginning (midnight of the first of the month).
             field = Calendar.MONTH;
             calendar.set(Calendar.WEEK_OF_MONTH, 1);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -98,12 +100,14 @@ public class IndexNameHelper
         }
         if (dateSpanUnit.equals("W"))
         {
+            // Roll the week back to the beginning (midnight Sunday).
             field = Calendar.WEEK_OF_YEAR;    
             calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         }
         if (dateSpanUnit.equals("D"))
             field = Calendar.DATE;
         
+        // Roll the day back to midnight
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
