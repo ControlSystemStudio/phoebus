@@ -103,9 +103,13 @@ public class AlarmStateInitializer
                     // Get node_config as JSON map to check for "pv" key
                     final Object json = JsonModelReader.parseJsonText(node_config);
                     final ClientState state = JsonModelReader.parseClientState(json);
-                    if (state != null  &&  state.severity != SeverityLevel.OK)
+                    if (state != null)
                     {
-                        inititial_severity.put(path, state);
+                        // Delete when PV was OK, or track non-OK severity.
+                        if (state.severity == SeverityLevel.OK)
+                            inititial_severity.remove(path);
+                        else
+                            inititial_severity.put(path, state);
                         timer.reset();
                     }
                 }
