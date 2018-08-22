@@ -105,7 +105,6 @@ public class Activator
             }
             catch (InterruptedException e)
             {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             System.out.println("Long task A Done.");
@@ -120,12 +119,10 @@ public class Activator
             }
             catch (InterruptedException e)
             {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             System.out.println("Long task B Done.");
         }, 2, TimeUnit.SECONDS);
-
 
         TimeUnit.SECONDS.sleep(10);
     }

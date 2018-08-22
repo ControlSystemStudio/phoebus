@@ -235,14 +235,25 @@ public class Controller
         }
 
         @Override
-        public void droppedNames(List<String> name)
+        public void droppedNames(final List<String> names)
         {
-            // TODO Handle dropped PV names
-//            // Offer potential PV name in dialog so user can edit/cancel
-//            final AddPVAction add = new AddPVAction(plot.getPlot().getUndoableActionManager(), shell, model, false);
-//            for (String one_name : names)
-//                if (! add.runWithSuggestedName(one_name, null))
-//                    break;
+            // Offer potential PV name in dialog so user can edit/cancel
+            // sim://sine sim://ramp sim://noise
+            final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
+            DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
+            for (int i=0; i<names.size(); ++i)
+                dlg.setName(i, names.get(i));
+            if (! dlg.showAndWait().orElse(false))
+                return;
+
+            final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
+            for (int i=0; i<names.size(); ++i)
+            {
+                final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
+                AddModelItemCommand.forPV(undo,
+                        model, dlg.getName(i), dlg.getScanPeriod(i),
+                        axis, null);
+            }
         }
 
         @Override
