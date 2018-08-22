@@ -10,6 +10,11 @@ package org.phoebus.applications.alarm.ui;
 import java.net.URI;
 
 /** Alarm URI helpers
+ *
+ *  <p>Alarm tools use a URI "alarm://host:port/config_name".
+ *  For example, an alarm tree for the "Accelerator" configuration
+ *  can be opened with the resource "alarm://localhost/Accelerator?app=alarm_tree"
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")

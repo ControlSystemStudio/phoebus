@@ -61,6 +61,8 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final ToggleButton muteButton = new ToggleButton("", new ImageView(mute_icon));
     private final Button clearTableButton = new Button("Clear Messages");
 
+    private final ToolBar toolbar;
+
     private final TableView<AnnunciationRowInfo> table = new TableView<>();
 
     private final TableColumn<AnnunciationRowInfo, Instant>       time        = new TableColumn<>("Time Received");
@@ -258,12 +260,17 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                 .ifPresent(response -> clearTable());
         });
 
-        final ToolBar hbox = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
+        toolbar = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
 
-        getChildren().setAll(hbox, table);
+        getChildren().setAll(toolbar, table);
 
         // Annunciate message so that user can determine if annunciator and table are indeed functional.
         messageReceived(SeverityLevel.OK, true, "Annunciator started");
+    }
+
+    ToolBar getToolbar()
+    {
+        return toolbar;
     }
 
     /**
