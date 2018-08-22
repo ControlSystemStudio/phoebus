@@ -158,7 +158,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         model_widget.propBitReverse().addUntypedPropertyListener(this::configChanged);
 
         model_widget.propNumBits().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propHorizontal().addUntypedPropertyListener(this::lookChanged);
+        model_widget.propHorizontal().addPropertyListener(this::orientationChanged);
         model_widget.propSquare().addUntypedPropertyListener(this::lookChanged);
 
         //initialization
@@ -167,12 +167,28 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
-    /**
-     * Invoked when LED shape, number, or arrangement
-     * changed (square_led, numBits, horizontal)
-     * @param property Ignored
-     * @param old_value Ignored
-     * @param new_value Ignored
+    private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
+    {
+        // When interactively changing orientation, swap width <-> height.
+        // This will only affect interactive changes once the widget is represented on the screen.
+        // Initially, when the widget is loaded from XML, the representation
+        // doesn't exist and the original width, height and orientation are applied
+        // without triggering a swap.
+        if (toolkit.isEditMode())
+        {
+            final int w = model_widget.propWidth().getValue();
+            final int h = model_widget.propHeight().getValue();
+            model_widget.propWidth().setValue(h);
+            model_widget.propHeight().setValue(w);
+        }
+        lookChanged(prop, old, horizontal);
+    }
+
+    /** Invoked when LED shape, number, or (via orientationChanged) arrangement
+     *  changed (square_led, numBits, horizontal)
+     *  @param property Ignored
+     *  @param old_value Ignored
+     *  @param new_value Ignored
      */
     protected void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {

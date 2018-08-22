@@ -22,6 +22,7 @@ import java.util.logging.LogManager;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -188,6 +189,36 @@ public class AutomatedActionTest
             assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
         }
 
+        auto_action.handleSeverityUpdate(SeverityLevel.OK);
+        assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
+
+        auto_action.cancel();
+    }
+
+    @Test
+    public void testAutomatedEmailFollowup() throws Exception
+    {
+        if (! AlarmSystem.automated_action_followup.contains("mailto:"))
+        {
+            System.out.println("Skipping test of automated email follow up");
+            return;
+        }
+
+        final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
+        final AlarmClientNode test_item = new AlarmClientNode(null, "test");
+        test_item.setActions(List.of(email));
+
+        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
+
+        // Trigger Action, get email after DELAY_MS
+        auto_action.handleSeverityUpdate(SeverityLevel.MAJOR);
+        assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
+
+        // .. and expect another email "right away" when the alarm is acked, i.e. no longer active
+        auto_action.handleSeverityUpdate(SeverityLevel.MAJOR_ACK);
+        assertThat(action_performed.poll(), equalTo("Send Email"));
+
+        // When the alarm then clears, there's NOT another update, already had the follow-up
         auto_action.handleSeverityUpdate(SeverityLevel.OK);
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
 

@@ -432,8 +432,8 @@ public class Perspective extends SplitPane
         if (left_tabs.getTabs().contains(search_tab))
             memento.setBoolean(SHOW_SEARCH, true);
 
-        if (bottom_tabs.getTabs().contains(properties_tab))
-            memento.setBoolean(SHOW_PROPERTIES, true);
+        if (! bottom_tabs.getTabs().contains(properties_tab))
+            memento.setBoolean(SHOW_PROPERTIES, false);
 
         if (bottom_tabs.getTabs().contains(export_tab))
             memento.setBoolean(SHOW_EXPORT, true);

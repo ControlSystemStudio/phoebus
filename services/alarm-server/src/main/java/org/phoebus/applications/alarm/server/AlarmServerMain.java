@@ -98,6 +98,10 @@ public class AlarmServerMain implements ServerModelListener
                 // a) restart (restart given with value 'true')
                 // b) shut down (restart given with value 'false')
                 run = restart.take();
+                if (run)
+                    logger.info("Restarting...");
+                else
+                    logger.info("Shutting down");
 
                 shell.stop();
 

@@ -53,7 +53,7 @@ public class AutomatedActionsHelper
      *  @param severity Alarm severity that may trigger or cancel actions
      */
     public static void update(final AtomicReference<AutomatedActions> automated_actions,
-            final SeverityLevel severity)
+                              final SeverityLevel severity)
     {
         final AutomatedActions actions = automated_actions.get();
         if (actions != null)

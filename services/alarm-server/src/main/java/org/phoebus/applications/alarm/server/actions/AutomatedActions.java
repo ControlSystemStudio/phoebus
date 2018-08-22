@@ -9,6 +9,8 @@ package org.phoebus.applications.alarm.server.actions;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,14 +20,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
-
-/** Handler of automated actionsAlarm handling logic.
+/** Handler of automated actions
  *
  *  @author Kay Kasemir
  */
@@ -35,17 +37,22 @@ public class AutomatedActions
     /** Timer shared by all automated actions */
     private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("AutomatedActions"));
 
+    /** Item for which to handle automated actions */
+    private final AlarmTreeItem<?> item;
+
     /** Is the item in active alarm? */
     private final AtomicBoolean active_alarm;
 
     /** Actions that have been scheduled with the timer */
     private final ConcurrentHashMap<TitleDetailDelay, ScheduledFuture<?>> scheduled_actions = new ConcurrentHashMap<>(1);
 
-    /** Item for which to handle automated actions */
-    private final AlarmTreeItem<?> item;
-
     /** Will be invoked to actually perform one of the item's actions */
     private final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> perform_action;
+
+    /** Actions that have been performed and need a follow-up when the alarm clears
+     *  SYNC on access because of atomic get-all-and-clear
+     */
+    private final List<TitleDetailDelay> performed_actions = new ArrayList<>();
 
     /** Handle automated actions for one item
      *  @param item Item for which automated actions should be handled
@@ -76,36 +83,73 @@ public class AutomatedActions
         // System.out.println(item.getPathName() + " auto actions update for " + severity);
         final boolean is_active = severity.isActive();
         // Is this a change?
-        if (active_alarm.compareAndSet(!is_active, is_active))
-        {
-            if (is_active)
-            {
-                for (TitleDetailDelay action : item.getActions())
-                {
-                    if (action.detail.startsWith(TitleDetailDelay.SEVRPV))
-                        continue;
+        if (! active_alarm.compareAndSet(!is_active, is_active))
+            return;
 
-                    // Schedule action to be executed unless already scheduled
-                    scheduled_actions.computeIfAbsent(action, a ->
+        if (is_active)
+        {
+            for (TitleDetailDelay action : item.getActions())
+            {
+                if (action.detail.startsWith(TitleDetailDelay.SEVRPV))
+                    continue;
+
+                // Schedule action to be executed unless already scheduled
+                scheduled_actions.computeIfAbsent(action, a ->
+                {
+                    final Runnable trigger_action = () ->
                     {
-                        final Runnable trigger_action = () ->
+                        if (scheduled_actions.remove(a) == null)
+                            logger.log(Level.INFO, item.getPathName() + ": Aborting execution of cancelled action " + a);
+                        else
                         {
-                            if (scheduled_actions.remove(a) == null)
-                                logger.log(Level.INFO, item.getPathName() + ": Aborting execution of cancelled action " + a);
-                            else
-                                perform_action.accept(item, a);
-                        };
-                        logger.log(Level.INFO, item.getPathName() + ": Schedule " + a.title + " in " + a.delay + " s");
-                        return timer.schedule(trigger_action, a.delay, TimeUnit.SECONDS);
-                    });
-                }
+                            // Perform the action
+                            perform_action.accept(item, a);
+
+                            // Is follow up is requested for this type of action?
+                            for (String followup : AlarmSystem.automated_action_followup)
+                                if (action.detail.startsWith(followup))
+                                {
+                                    synchronized (performed_actions)
+                                    {
+                                        performed_actions.add(action);
+                                    }
+                                    break;
+                                }
+                        }
+                    };
+                    logger.log(Level.INFO, item.getPathName() + ": Schedule " + a.title + " in " + a.delay + " s");
+                    return timer.schedule(trigger_action, a.delay, TimeUnit.SECONDS);
+                });
             }
-            else // Cancel all scheduled actions
-                cancel();
+        }
+        else
+        {
+            // Cancel all scheduled actions
+            cancelScheduled();
+
+            // Follow up on actions that have been executed and now need an "It's OK"
+            final List<TitleDetailDelay> follow_up;
+            synchronized (performed_actions)
+            {
+                // Exit ASAP if nothing to do
+                if (performed_actions.isEmpty())
+                    return;
+                // Atomically get-and-clear the actions on which to follow up
+                follow_up = new ArrayList<>(performed_actions);
+                performed_actions.clear();
+            }
+            // Invokes the action again. Action will notice that the item is right now OK
+            // and can act accordingly by for example creating a differently worded email.
+            for (TitleDetailDelay action : follow_up)
+            {
+                logger.log(Level.INFO, item.getPathName() + ": Follow up since alarm no longer active");
+                perform_action.accept(item, action);
+            }
         }
     }
 
-    public void cancel()
+    /** Cancel/clear all scheduled actions */
+    private void cancelScheduled()
     {
         // Cancel/clear all scheduled actions
         scheduled_actions.forEach((action, scheduled) ->
@@ -114,5 +158,15 @@ public class AutomatedActions
             logger.log(Level.INFO, item.getPathName() + ": Cancelled");
             scheduled_actions.remove(action);
         });
+    }
+
+    /** Cancel all scheduled actions and forget about follow-up */
+    public void cancel()
+    {
+        cancelScheduled();
+        synchronized (performed_actions)
+        {
+            performed_actions.clear();
+        }
     }
 }
