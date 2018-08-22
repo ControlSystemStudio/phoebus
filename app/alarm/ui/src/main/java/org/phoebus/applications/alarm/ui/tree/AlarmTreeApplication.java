@@ -7,16 +7,22 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import java.net.URL;
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.net.URI;
+import java.net.URL;
+import java.util.logging.Level;
+
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.applications.alarm.ui.AlarmURI;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 
 /** Application descriptor for "Alarm Tree"
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmTreeApplication implements AppDescriptor
+public class AlarmTreeApplication implements AppResourceDescriptor
 {
     public static final String NAME = "alarm_tree";
     public static final String DISPLAY_NAME = "Alarm Tree";
@@ -42,10 +48,20 @@ public class AlarmTreeApplication implements AppDescriptor
     @Override
     public AlarmTreeInstance create()
     {
-        if (AlarmTreeInstance.INSTANCE == null)
-            AlarmTreeInstance.INSTANCE = new AlarmTreeInstance(this);
-        else
-            AlarmTreeInstance.INSTANCE.raise();
-        return AlarmTreeInstance.INSTANCE;
+        return create(AlarmURI.createURI(AlarmSystem.server, AlarmSystem.config_name));
+    }
+
+    @Override
+    public AlarmTreeInstance create(final URI resource)
+    {
+        try
+        {
+            return new AlarmTreeInstance(this, resource);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot create alarm tree for " + resource, ex);
+        }
+        return null;
     }
 }

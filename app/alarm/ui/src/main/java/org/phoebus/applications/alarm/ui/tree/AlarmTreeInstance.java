@@ -9,17 +9,18 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.net.URI;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.framework.persistence.Memento;
+import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
-import javafx.scene.Group;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -30,38 +31,24 @@ import javafx.scene.control.Label;
 @SuppressWarnings("nls")
 class AlarmTreeInstance implements AppInstance
 {
-    /** Memento tag for last used configuration */
-    private static final String TAG_CONFIG = "config";
-
-    // TODO Allow multiple instances...
-    /** Singleton instance maintained by {@link AlarmTreeApplication} */
-    static AlarmTreeInstance INSTANCE = null;
-
     private final AlarmTreeApplication app;
 
+    private String server = null, config_name = null;
     private AlarmClient client = null;
-    private final DockItem tab;
+    private final DockItemWithInput tab;
 
-
-    public AlarmTreeInstance(final AlarmTreeApplication app)
+    public AlarmTreeInstance(final AlarmTreeApplication app, final URI input) throws Exception
     {
         this.app = app;
-        // Start with dummy node, to be replaced in restore()
-        tab = new DockItem(this, new Group());
+
+        tab = new DockItemWithInput(this, create(input), input, null, null);
+        Platform.runLater(() -> tab.setLabel(config_name + " " + app.getDisplayName()));
         tab.addCloseCheck(() ->
         {
             dispose();
             return true;
         });
-        tab.addClosedNotification(() -> INSTANCE = null);
-        final DockPane dockPane = DockPane.getActiveDockPane();
-        if (null != dockPane)
-        	dockPane.addTab(tab);
-        else
-        {
-        	dispose();
-        	INSTANCE = null;
-        }
+        DockPane.getActiveDockPane().addTab(tab);
     }
 
     @Override
@@ -70,30 +57,21 @@ class AlarmTreeInstance implements AppInstance
         return app;
     }
 
-    void raise()
+    /** Create UI for input, starts alarm client
+     *
+     *  @param input Alarm URI, will be parsed into `server` and `config_name`
+     *  @return Alarm UI
+     *  @throws Exception
+     */
+    private Node create(final URI input) throws Exception
     {
-        tab.select();
-    }
+        final String[] parsed = AlarmURI.parseAlarmURI(input);
+        server = parsed[0];
+        config_name = parsed[1];
 
-    @Override
-    public void restore(final Memento memento)
-    {
-        // Use config from previous run, or default to preference
-        final String config_name = memento.getString(TAG_CONFIG).orElse(AlarmSystem.config_name);
-        tab.setContent(create(config_name));
-    }
-
-    @Override
-    public void save(final Memento memento)
-    {
-        memento.setString(TAG_CONFIG, client.getRoot().getName());
-    }
-
-    private Node create(final String config_name)
-    {
         try
         {
-            client = new AlarmClient(AlarmSystem.server, config_name);
+            client = new AlarmClient(server, config_name);
             final AlarmTreeView tree_view = new AlarmTreeView(client);
             client.start();
 
@@ -110,15 +88,28 @@ class AlarmTreeInstance implements AppInstance
         }
         catch (final Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot create alarm tree", ex);
-            return new Label("Cannot create alarm tree");
+            logger.log(Level.WARNING, "Cannot create alarm tree for " + input, ex);
+            return new Label("Cannot create alarm tree for " + input);
         }
     }
 
-    private void changeConfig(final String config_name)
+    private void changeConfig(final String new_config_name)
     {
+        // Dispose existing setup
         dispose();
-        tab.setContent(create(config_name));
+
+        try
+        {
+            // Use same server name, but new config_name
+            final URI new_input = AlarmURI.createURI(server, new_config_name);
+            tab.setContent(create(new_input));
+            tab.setInput(new_input);
+            Platform.runLater(() -> tab.setLabel(config_name + " " + app.getDisplayName()));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot switch alarm tree to " + config_name, ex);
+        }
     }
 
     private void dispose()
