@@ -339,6 +339,57 @@ public class AlarmLogicUnitTest
     }
 
     @Test
+    public void testLatchedUnAckToLowerSeverity()
+    {
+        // This test was added for the Phoebus/Kafka version.
+        // Behavior was not tested in the previous version.
+        System.out.println("* Latched, annunciated: Major, Undefined, Ack, Reconnect, UnAck, Ack, OK");
+        final AlarmLogicDemo logic = new AlarmLogicDemo(true, true);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+
+        // Follow into MAJOR alarm
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, true, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR, "very high");
+
+        // PV gets disconnected
+        logic.computeNewState("a", SeverityLevel.UNDEFINED, "Disconnected");
+        logic.check(true, true, SeverityLevel.UNDEFINED, "Disconnected", SeverityLevel.UNDEFINED, "Disconnected");
+
+        // Ack': Naturally becomes UNDEFINED_ACK, since UNDEFINED was acknowledged
+        logic.acknowledge(true);
+        logic.check(true, false, SeverityLevel.UNDEFINED, "Disconnected", SeverityLevel.UNDEFINED_ACK, "Disconnected");
+
+        // PV reconnects, again found in MAJOR alarm, but still has UNDEFINED_ACK.
+        // Makes sense because an undefined has been acked,
+        // but looks a little odd if it remains like this for a long time with no way to change:
+        // The PV is mostly in MAJOR alarm, and that has been acked.
+        // Yet alarm shows UNDEFINED_ACK just because PV was briefly disconnected..
+        // In original implementation, that was the end of the story.
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.UNDEFINED_ACK, "Disconnected");
+
+        // Un-ack: Now shows MAJOR alarm
+        // Previous implementation stayed with alarm severity UNDEFINED.
+        // New implementation un-acks based on the current severity,
+        // so now alarm is closer to the current reality
+        logic.acknowledge(false);
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR, "very high");
+
+        // Ack the MAJOR: Naturally becomes MAJOR_ACK.
+        // --> After a flurry of brief disconnects, a manual ack & unack allows a "reset"
+        //     of the alarms to their current state.
+        // This is a change from previous behavior, but no change to previously _tested_ behavior,
+        // and more in line with natural expectation:
+        // I've acked severity X, some time ago. Now PV has lesser severity Y, so un-ack should show alarm severity == Y.
+        logic.acknowledge(true);
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR_ACK, "very high");
+
+        // OK
+        logic.computeNewState("b", SeverityLevel.OK, OK);
+        logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+    }
+
+    @Test
     public void testLatchedAnnunciatedAckToLowerSeverity()
     {
         System.out.println("* Latched, annunciated: Major, Minor, Ack, Major, Ack, Minor, OK.");
