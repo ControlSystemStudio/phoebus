@@ -38,6 +38,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -185,6 +186,11 @@ public class AlarmTableUI extends BorderPane
         setCenter(split);
     }
 
+    ToolBar getToolbar()
+    {
+        return toolbar;
+    }
+
     private ToolBar createToolbar()
     {
         setMaintenanceMode(false);
@@ -209,7 +215,7 @@ public class AlarmTableUI extends BorderPane
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
-        return new ToolBar(active_count, ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
+        return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
     }
 
     /** Show if connected to server or not
@@ -217,9 +223,12 @@ public class AlarmTableUI extends BorderPane
      */
     void setServerState(final boolean alive)
     {
-        toolbar.getItems().remove(no_server);
+        final ObservableList<Node> items = toolbar.getItems();
+        items.remove(no_server);
         if (! alive)
-            toolbar.getItems().add(1, no_server);
+            // Place to the left of spring, maint, ack, unack, filter,
+            // i.e. right of "active alarms" and optional AlarmConfigSelector
+            items.add(items.size() - 5, no_server);
     }
 
     void setMaintenanceMode(final boolean maintenance_mode)

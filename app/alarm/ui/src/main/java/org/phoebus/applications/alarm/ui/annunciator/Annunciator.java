@@ -13,13 +13,14 @@ import com.sun.speech.freetts.VoiceManager;
 /**
  * Annunciator class. Uses freeTTS to annunciate passed messages.
  * @author Evan Smith
- * 
  */
+@SuppressWarnings("nls")
 public class Annunciator
 {
-    private final VoiceManager voiceManager; 
+    private final VoiceManager voiceManager;
     private final Voice        voice;
     private static final String voice_name = "kevin16";
+
     public Annunciator()
     {
         // Define the voices directory.
@@ -28,17 +29,17 @@ public class Annunciator
         voice = voiceManager.getVoice(voice_name);
         voice.allocate();
     }
-    
+
     /**
      * Annunciate the message. Only returns once speaking finishes.
      * @param message
      */
-    public void speak(String message)
+    public void speak(final String message)
     {
         if (null != message)
             voice.speak(message);
     }
-    
+
     /**
      * Deallocates the voice.
      */
