@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
@@ -451,10 +452,10 @@ public class AlarmServerMain implements ServerModelListener
 
     private void listPVs(final AlarmTreeItem<?> node, final PVMode which)
     {
-        listPVs(0, node, which);
+        listPVs(new AtomicInteger(), node, which);
     }
 
-    private void listPVs(int count, final AlarmTreeItem<?> node, final PVMode which)
+    private void listPVs(final AtomicInteger count, final AlarmTreeItem<?> node, final PVMode which)
     {
         if (node instanceof AlarmServerPV)
         {
@@ -480,7 +481,7 @@ public class AlarmServerMain implements ServerModelListener
             default:
                 break;
             }
-            System.out.format("%3d : ", ++count);
+            System.out.format("%3d : ", count.incrementAndGet());
             System.out.println(pv_node);
         }
         else
