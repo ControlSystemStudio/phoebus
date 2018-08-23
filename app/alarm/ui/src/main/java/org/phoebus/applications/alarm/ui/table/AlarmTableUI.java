@@ -55,6 +55,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -331,6 +334,23 @@ public class AlarmTableUI extends BorderPane
                     JobManager.schedule("ack", monitor ->  client.acknowledge(row.getItem().item, active));
             });
             return row;
+        });
+
+        // Drag selected PV names
+        table.setOnDragDetected(event ->
+        {
+            final Dragboard db = table.startDragAndDrop(TransferMode.COPY);
+            final ClipboardContent content = new ClipboardContent();
+            final StringBuilder buf = new StringBuilder();
+            for (AlarmInfoRow row : table.getSelectionModel().getSelectedItems())
+            {
+                if (buf.length() > 0)
+                    buf.append(" ");
+                buf.append(row.pv.get());
+            }
+            content.putString(buf.toString());
+            db.setContent(content);
+            event.consume();
         });
 
         return table;
