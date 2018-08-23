@@ -55,7 +55,7 @@ public class AlarmLoggingService {
 
     private static boolean handleShellCommands(final String... args) throws Throwable
     {
-        if (args.length == 1  &&  args[0].startsWith("shut"))
+        if (args == null  ||  (args.length == 1  &&  args[0].startsWith("shut")))
         {
             done.countDown();
             return true;

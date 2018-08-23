@@ -128,7 +128,9 @@ public class AlarmServerMain implements ServerModelListener
      */
     private boolean handleShellCommands(final String... args) throws Throwable
     {
-        if (args.length == 1)
+        if (args == null)
+            restart.offer(false);
+        else if (args.length == 1)
         {
             if (args[0].startsWith("shut"))
                 restart.offer(false);
