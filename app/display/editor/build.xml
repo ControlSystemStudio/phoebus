@@ -1,8 +1,24 @@
 <project default="app-display-editor">
   <import file="../../../dependencies/ant_settings.xml"/>
 
+  <target name="clean" description="Remove all artifacts">
+    <!-- Delete the ${build} directory trees -->
+    <delete dir="${build}"/>
+    <!-- Delete the javadoc -->
+    <ant antfile="javadoc.xml" target="clean"/>
+  </target>
+	
   <target name="app-display-editor">
-    <mkdir dir="${classes}"/>
+  	<!-- Build Script API Javadoc
+  	     Actually needs to be build _before_
+  	     building the *.rst doc,
+  	     but updating it in here helps find
+  	     fatal problems in the javadoc.
+  	  -->
+    <ant antfile="javadoc.xml" target="all"/>
+
+  	<!-- Build Code -->
+  	<mkdir dir="${classes}"/>
     <javac destdir="${classes}">
       <src path="${src}"/>
       <src path="${test}"/>
