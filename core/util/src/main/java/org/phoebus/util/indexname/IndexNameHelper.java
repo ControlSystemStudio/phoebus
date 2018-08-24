@@ -70,10 +70,6 @@ public class IndexNameHelper
             currentDateSpan = parseCurrentDateSpan();
         }
         
-        System.out.println("Time : " + time.toString());
-        System.out.println("Start: " + spanStart.toString());
-        System.out.println("End  : " + spanEnd.toString());
-        
         return baseIndexName + "_" + currentDateSpan;
     }
 
