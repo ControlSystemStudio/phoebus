@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Helper class for calculating the index name for time based indices.
@@ -22,11 +23,12 @@ public class IndexNameHelper
     private Integer dateSpanField;
     private Integer dateSpanValue;
     private String baseIndexName;
-    private String currentDateBlock;
+    private String currentDateSpan;
     
-    private Instant cutoff;
-    private String indexName;
-    private List<String> acceptedDateUnits = List.of("D", "W", "M", "Y");
+    private Instant spanStart;
+    private Instant spanEnd;
+        
+    private static final List<String> acceptedDateUnits = List.of("D", "W", "M", "Y");
     
     /**
      * 
@@ -55,34 +57,31 @@ public class IndexNameHelper
             this.dateSpanValue = dateSpanValue;
         else
             throw new Exception("Date Span Value is null.");
-        
     }
     
     public String getIndexName(Instant time) throws Exception
     {
         if (null == time)
-            throw new Exception("Instant is null");
+            throw new Exception("Passed instant is null.");
+           
+        if (null == spanEnd || time.isAfter(spanEnd))
+        {
+            setDateSpanStartAndEnd(time);
+            currentDateSpan = parseCurrentDateSpan();
+        }
         
-        if (null == cutoff || time.compareTo(cutoff) > 0)
-            updateIndexNameAndCutoff(time);
+        System.out.println("Time : " + time.toString());
+        System.out.println("Start: " + spanStart.toString());
+        System.out.println("End  : " + spanEnd.toString());
         
-        return indexName;
+        return baseIndexName + "_" + currentDateSpan;
     }
-    
-    private void updateIndexNameAndCutoff(Instant time)
-    {
 
-        Calendar calendar = getCalendarForNextDateBlock();
-        currentDateBlock = calendar.getTime().toString();
-        System.out.println("Next block start date: " + currentDateBlock);
-        cutoff = getCutoff(calendar);
-        
-        indexName = baseIndexName + currentDateBlock;
-    }
-    
-    private Calendar getCalendarForNextDateBlock()
+    private void setDateSpanStartAndEnd(Instant time)
     {
         Calendar calendar = new GregorianCalendar();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        calendar.setTimeInMillis(time.toEpochMilli());
         calendar.setFirstDayOfWeek(Calendar.SUNDAY);
         
         if (dateSpanUnit.equals("Y"))
@@ -116,17 +115,27 @@ public class IndexNameHelper
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         
+        spanStart = calendar.toInstant();
+        
         calendar.add(dateSpanField, dateSpanValue);
-
-        return calendar;
+        
+        spanEnd = calendar.toInstant();
     }
-
-    private Instant getCutoff(Calendar calendar)
+    
+    private String parseCurrentDateSpan()
     {
-        calendar.add(Calendar.SECOND, -1);
-        calendar.add(dateSpanField, dateSpanValue);
-        System.out.println("Cutoff for next block: " + calendar.getTime().toString());
-        Instant instant = calendar.toInstant();
-        return instant;
+        String fullDate = spanStart.toString();
+                
+        return fullDate.split("T")[0];
+    }
+    
+    public Instant getCurrentDateSpanStart()
+    {
+        return spanStart;
+    }
+    
+    public Instant getCurrentDateSpanEnd()
+    {
+        return spanEnd;
     }
 }
