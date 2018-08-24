@@ -8,9 +8,7 @@ fi
 es_host=localhost
 es_port=9200
 
-# Create the elastic index with the correct mapping for alarm state messages.
-# Create the Index
-# Set the mapping
+# Create the elastic template with the correct mapping for alarm state messages.
 curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_template -H 'Content-Type: application/json' -d'
 {
   "index_patterns":["*"],
