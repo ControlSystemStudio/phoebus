@@ -42,6 +42,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToolBar;
@@ -386,6 +387,28 @@ public class StringTable extends BorderPane
             table.getSelectionModel().setCellSelectionEnabled(true);
     }
 
+    /** Set selection
+     *  @param sel_row_col Flattened list of row, col, row, col, .. cell indices. May be <code>null</code>
+     */
+    public void setSelection(final List<Integer> sel_row_col)
+    {
+        final TableViewSelectionModel<List<String>> selection = table.getSelectionModel();
+        selection.clearSelection();
+
+        if (sel_row_col == null)
+            return;
+
+        final ObservableList<TableColumn<List<String>, ?>> columns = table.getColumns();
+        int i = 0;
+        while (i < sel_row_col.size())
+        {
+            final int row = sel_row_col.get(i++);
+            final int col = sel_row_col.get(i++);
+            if (row < data.size()  &&  col < columns.size())
+                selection.select(row, columns.get(col));
+        }
+    }
+
     /** @param listener Listener to notify of changes */
     public void setListener(final StringTableListener listener)
     {
@@ -695,12 +718,11 @@ public class StringTable extends BorderPane
     {
         // Save row, col, .. indices of selection
         final ObservableList<TablePosition> sel = table.getSelectionModel().getSelectedCells();
-        final int[] sel_row_col = new int[sel.size() * 2];
-        int i = 0;
+        final List<Integer> sel_row_col = new ArrayList<>();
         for (TablePosition pos : sel)
         {
-            sel_row_col[i++] = pos.getRow();
-            sel_row_col[i++] = pos.getColumn();
+            sel_row_col.add(pos.getRow());
+            sel_row_col.add(pos.getColumn());
         }
 
         final int columns = getColumnCount();
@@ -717,7 +739,7 @@ public class StringTable extends BorderPane
                 logger.log(Level.WARNING, "Table needs " + columns +
                            " columns " + getHeaders() +
                            " but got row with just " + row.size() + ": " + row);
-                for (i=row.size(); i<columns; ++i)
+                for (int i=row.size(); i<columns; ++i)
                     row.add("");
             }
             data.add(row);
@@ -729,14 +751,7 @@ public class StringTable extends BorderPane
         // fireDataChanged();
 
         // Restore selection
-        i = 0;
-        while (i < sel_row_col.length)
-        {
-            final int row = sel_row_col[i++];
-            final int col = sel_row_col[i++];
-            if (row < data.size()  &&  col < columns)
-                table.getSelectionModel().select(row, table.getColumns().get(col));
-        }
+        setSelection(sel_row_col);
     }
 
     /** Get complete table content

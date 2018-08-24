@@ -182,11 +182,35 @@ public class TableWidget extends VisibleWidget
         newStringPropertyDescriptor(WidgetPropertyCategory.MISC, "selection_pv", Messages.WidgetProperties_SelectionPV);
 
     private static final WidgetPropertyDescriptor<Boolean> propRowSelectionMode =
-            newBooleanPropertyDescriptor(WidgetPropertyCategory.MISC, "row_selection_mode", "Select Rows");
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.MISC, "row_selection_mode", "Select Rows");
 
     /** Runtime info about selection */
     private static final WidgetPropertyDescriptor<VType> runtimePropSelectionInfo =
         newRuntimeValue("selection", Messages.WidgetProperties_Selection);
+
+    /** Property to set selection */
+    private static final WidgetPropertyDescriptor<List<Integer>> runtimePropSetSelection =
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, "set_selection", "Set Selection")
+        {
+            @Override
+            public WidgetProperty<List<Integer>> createProperty(final Widget widget, final List<Integer> default_value)
+            {
+                return new RuntimeWidgetProperty<>(this, widget, default_value)
+                {
+                    @SuppressWarnings({ "rawtypes", "unchecked" })
+                    @Override
+                    public void setValueFromObject(final Object value) throws Exception
+                    {
+                        if (value instanceof List) // Not really checking for List<Integer>..
+                            setValue((List)value);
+                        else if (value == null)
+                            setValue(null);
+                        else
+                            throw new Exception("Need List<Integer>, got " + value);
+                    }
+                };
+            }
+        };
 
     /** Configurator for legacy XML files */
     private static class CustomConfigurator extends WidgetConfigurator
@@ -272,6 +296,7 @@ public class TableWidget extends VisibleWidget
     private volatile WidgetProperty<Boolean> row_selection_mode;
     private volatile WidgetProperty<String> selection_pv;
     private volatile WidgetProperty<VType> selection;
+    private volatile WidgetProperty<List<Integer>> set_selection;
 
     public TableWidget()
     {
@@ -295,6 +320,7 @@ public class TableWidget extends VisibleWidget
         properties.add(row_selection_mode = propRowSelectionMode.createProperty(this, false));
         properties.add(selection_pv = propSelectionPV.createProperty(this, ""));
         properties.add(selection = runtimePropSelectionInfo.createProperty(this, null));
+        properties.add(set_selection = runtimePropSetSelection.createProperty(this, null));
     }
 
     /** Allow scripts to access "value" */
@@ -631,6 +657,25 @@ public class TableWidget extends VisibleWidget
 //        return String.format("%3d,%3d,%3d  ",  col.getRed(), col.getGreen(), col.getBlue());
 //    }
 
+    /** Select specific cells
+     *
+     *  <p>Selects based on a flattened list of (row, col) pairs.
+     *  Even in "row selection mode" where completed rows are
+     *  selected instead of individual cells, the list must contain
+     *  (row, col) data, and col may always be 0.
+     *
+     *  @param rows_cols List of row, col, row, col, ..
+     */
+    public void setSelection(final List<Integer> rows_cols)
+    {
+        // If there's no change, force update because
+        // current selection of table on screen could be anything,
+        // and script wants to re-set a previously requested selection
+        if (Objects.equals(rows_cols, set_selection.getValue()))
+            set_selection.setValue(null);
+        set_selection.setValue(rows_cols);
+    }
+
     /** @return 'editable' property */
     public WidgetProperty<Boolean> propEditable()
     {
@@ -653,5 +698,11 @@ public class TableWidget extends VisibleWidget
     public WidgetProperty<VType> runtimePropSelection()
     {
         return selection;
+    }
+
+    /** @return Runtime 'set_selection' property */
+    public WidgetProperty<List<Integer>> runtimePropSetSelection()
+    {
+        return set_selection;
     }
 }
