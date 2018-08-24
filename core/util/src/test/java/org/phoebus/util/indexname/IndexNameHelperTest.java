@@ -34,7 +34,7 @@ public class IndexNameHelperTest
     }
     
     @Test
-    public void dateRangeUnitNull()
+    public void dateSpanUnitNull()
     {
         try
         {
@@ -60,7 +60,7 @@ public class IndexNameHelperTest
     }
     
     @Test
-    public void dateRangeValueNull()
+    public void dateSpanValueNull()
     {
         try
         {
