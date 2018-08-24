@@ -114,7 +114,7 @@ public class IndexNameHelperTest
         Instant expectedSpanStart = Instant.parse("2018-01-01T00:00:00Z");
         Instant expectedSpanEnd = Instant.parse("2019-01-01T00:00:00Z");   
         Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2019-09-13T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2019-01-01T00:00:01Z");
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "y", 1);
 
@@ -163,7 +163,7 @@ public class IndexNameHelperTest
         Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
         Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");   
         Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-10-13T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-10-01T00:00:01Z");
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
 
@@ -212,7 +212,7 @@ public class IndexNameHelperTest
         Instant expectedSpanStart = Instant.parse("2018-09-09T00:00:00Z");
         Instant expectedSpanEnd = Instant.parse("2018-09-16T00:00:00Z");   
         Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-09-18T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-09-16T00:00:01Z");
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "w", 1);
 
