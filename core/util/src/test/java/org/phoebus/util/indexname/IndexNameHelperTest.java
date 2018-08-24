@@ -8,6 +8,7 @@
 package org.phoebus.util.indexname;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.time.Instant;
 
@@ -59,16 +60,57 @@ public class IndexNameHelperTest
     }
     
     @Test
-    public void dateBlock()
+    public void passedInstantNull()
     {
         try
         {
-            IndexNameHelper inh = new IndexNameHelper("", "w", 2);
-            System.out.println(inh.getIndexName(Instant.now()));
+            IndexNameHelper inh = new IndexNameHelper("index", "w", 1);
+            inh.getIndexName(null);
         }
         catch (Exception ex)
         {
-            ex.printStackTrace();
+            assertEquals("Passed instant is null.", ex.getMessage());
         }
+    }
+    
+    @Test
+    public void dateInCurrentMonth() throws Exception
+    {        
+        Instant testTime = Instant.parse("2018-09-15T00:00:00Z");
+        Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");
+        
+        IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
+        
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-09-01", inh.getIndexName(testTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+    }
+    
+    @Test
+    public void dateInNextMonth() throws Exception
+    {
+        IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
+        
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        Instant oldSpanTime = Instant.parse("2018-09-15T00:00:00Z");
+        inh.getIndexName(oldSpanTime);
+        
+        Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");   
+        
+        Instant newSpanTime = Instant.parse("2018-10-15T00:00:00Z");
+     
+        expectedSpanStart = Instant.parse("2018-10-01T00:00:00Z");
+        expectedSpanEnd = Instant.parse("2018-11-01T00:00:00Z");
+        
+        assertEquals("test_index_2018-10-01", inh.getIndexName(newSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
     }
 }
