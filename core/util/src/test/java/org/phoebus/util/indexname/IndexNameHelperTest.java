@@ -63,7 +63,7 @@ public class IndexNameHelperTest
     {
         try
         {
-            IndexNameHelper inh = new IndexNameHelper("", "m", 10);
+            IndexNameHelper inh = new IndexNameHelper("", "w", 2);
             System.out.println(inh.getIndexName(Instant.now()));
         }
         catch (Exception ex)

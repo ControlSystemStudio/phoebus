@@ -19,6 +19,7 @@ import java.util.List;
 public class IndexNameHelper
 {
     private String dateSpanUnit;
+    private Integer dateSpanField;
     private Integer dateSpanValue;
     private String baseIndexName;
     private String currentDateBlock;
@@ -70,22 +71,24 @@ public class IndexNameHelper
     
     private void updateIndexNameAndCutoff(Instant time)
     {
-        Calendar calendar = new GregorianCalendar();
-        calendar.setFirstDayOfWeek(Calendar.SUNDAY);
-        
-        currentDateBlock = getDateBlock(calendar);
+
+        Calendar calendar = getCalendarForNextDateBlock();
+        currentDateBlock = calendar.getTime().toString();
+        System.out.println("Next block start date: " + currentDateBlock);
         cutoff = getCutoff(calendar);
         
         indexName = baseIndexName + currentDateBlock;
     }
     
-    private String getDateBlock(Calendar calendar)
+    private Calendar getCalendarForNextDateBlock()
     {
-        Integer field = -1;
+        Calendar calendar = new GregorianCalendar();
+        calendar.setFirstDayOfWeek(Calendar.SUNDAY);
+        
         if (dateSpanUnit.equals("Y"))
         {
             // Roll the year back to the beginning (midnight of the first of the year).
-            field = Calendar.YEAR;
+            dateSpanField = Calendar.YEAR;
             calendar.set(Calendar.MONTH, Calendar.JANUARY);
             calendar.set(Calendar.WEEK_OF_MONTH, 1);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -93,7 +96,7 @@ public class IndexNameHelper
         if (dateSpanUnit.equals("M"))
         {
             // Roll the month back to the beginning (midnight of the first of the month).
-            field = Calendar.MONTH;
+            dateSpanField = Calendar.MONTH;
             calendar.set(Calendar.WEEK_OF_MONTH, 1);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
 
@@ -101,11 +104,11 @@ public class IndexNameHelper
         if (dateSpanUnit.equals("W"))
         {
             // Roll the week back to the beginning (midnight Sunday).
-            field = Calendar.WEEK_OF_YEAR;    
+            dateSpanField = Calendar.WEEK_OF_YEAR;    
             calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         }
         if (dateSpanUnit.equals("D"))
-            field = Calendar.DATE;
+            dateSpanField = Calendar.DATE;
         
         // Roll the day back to midnight
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -113,14 +116,17 @@ public class IndexNameHelper
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         
-        calendar.add(field, dateSpanValue);
+        calendar.add(dateSpanField, dateSpanValue);
 
-        return calendar.getTime().toString();
+        return calendar;
     }
 
     private Instant getCutoff(Calendar calendar)
     {
-        
-        return null;
+        calendar.add(Calendar.SECOND, -1);
+        calendar.add(dateSpanField, dateSpanValue);
+        System.out.println("Cutoff for next block: " + calendar.getTime().toString());
+        Instant instant = calendar.toInstant();
+        return instant;
     }
 }
