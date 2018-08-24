@@ -73,20 +73,6 @@ public class IndexNameHelperTest
         }
     }
     
-    @Test
-    public void passedInstantNull()
-    {
-        try
-        {
-            IndexNameHelper inh = new IndexNameHelper("index", "w", 1);
-            inh.getIndexName(null);
-        }
-        catch (Exception ex)
-        {
-            assertEquals("Passed instant is null.", ex.getMessage());
-        }
-    }
-    
     @Test 
     public void dateInCurrentYear() throws Exception
     {

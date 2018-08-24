@@ -63,12 +63,14 @@ public class IndexNameHelper
             throw new Exception("Date Span Value is null.");
     }
     
-    public String getIndexName(Instant time) throws Exception
+    /**
+     * Return a time based index name for the given time.
+     * @param time 
+     * @return index_name
+     */
+    public String getIndexName(Instant time)
     {
-        if (null == time)
-            throw new Exception("Passed instant is null.");
-           
-        if (null == spanEnd || time.isAfter(spanEnd))
+        if (null != time && (null == spanEnd || time.isAfter(spanEnd)))
         {
             setDateSpanStartAndEnd(time);
             currentDateSpan = parseCurrentDateSpan();
