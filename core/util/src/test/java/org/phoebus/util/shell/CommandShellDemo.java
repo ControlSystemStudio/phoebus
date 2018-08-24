@@ -23,7 +23,7 @@ public class CommandShellDemo
 
     private static boolean handleCommand(final String[] args)
     {
-        if (args.length == 1  &&  args[0].startsWith("ex"))
+        if (args == null  ||  (args.length == 1  &&  args[0].startsWith("ex")))
         {
             done.countDown();
             return true;

@@ -26,7 +26,7 @@ public class CommandShell
     public interface CommandHandler
     {
         /** Invoked when user entered a command
-         *  @param args Entered command, split at spaces
+         *  @param args Entered command, split at spaces, or <code>null</code> when user entered 'Ctrl-D' to close shell
          *  @return <code>true</code> if command was handled, <code>false</code> to show help
          *  @throws Exception on error
          */
@@ -37,7 +37,7 @@ public class CommandShell
     private final String help;
     private final CommandHandler handler;
     private String prompt = "";
-    
+
     /** Create shell
      *  @param help Text that is displayed initially
      *              and whenever a command isn't handled
@@ -69,13 +69,13 @@ public class CommandShell
     {
         return prompt;
     }
-    
+
     /** Set the prompt string. */
     public void setPrompt(final String newPrompt)
     {
         this.prompt = newPrompt;
     }
-    
+
     private void run()
     {
         System.out.println(help);
@@ -85,7 +85,21 @@ public class CommandShell
             while (! thread.isInterrupted())
             {
                 System.out.print(prompt + " > ");
-                final String line = reader.readLine().trim();
+                String line = reader.readLine();
+                if (line == null)
+                {
+                    System.out.println("\nEnd of input, exiting command shell.");
+                    try
+                    {
+                        handler.handle(null);
+                    }
+                    catch (Throwable ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                    return;
+                }
+                line = line.trim();
                 if (line.isEmpty())
                     continue;
                 try

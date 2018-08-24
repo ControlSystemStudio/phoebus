@@ -90,7 +90,6 @@ public class DockItem extends Tab
                                name_icon = ImageCache.getImage(DockItem.class, "/icons/name.png"),
                                lock_icon = ImageCache.getImage(DockItem.class, "/icons/lock.png"),
                                unlock_icon = ImageCache.getImage(DockItem.class, "/icons/unlock.png"),
-                               close_icon = ImageCache.getImage(DockItem.class, "/icons/remove.png"),
                                close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
 
 
@@ -194,7 +193,7 @@ public class DockItem extends Tab
         final MenuItem unlock = new MenuItem("Un-lock Pane", new ImageView(unlock_icon));
         unlock.setOnAction(event -> lock(false));
 
-        final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
+        final MenuItem close = new MenuItem("Close", new ImageView(DockPane.close_icon));
         close.setOnAction(event -> close());
 
         final MenuItem close_other = new MenuItem("Close Others", new ImageView(close_many_icon));

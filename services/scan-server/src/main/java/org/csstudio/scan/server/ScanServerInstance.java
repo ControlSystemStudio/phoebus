@@ -105,7 +105,9 @@ public class ScanServerInstance
 
     private static boolean handleShellCommands(final String... args) throws Throwable
     {
-        if (args.length == 1)
+        if (args == null)
+            stop();
+        else if (args.length == 1)
         {
             if (args[0].startsWith("shut"))
                 stop();

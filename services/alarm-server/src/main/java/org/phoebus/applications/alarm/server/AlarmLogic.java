@@ -510,7 +510,9 @@ public class AlarmLogic // implements GlobalAlarmListener
                     alarm_state = alarm_state.createAcknowledged(current_state);
             }
             else
-                alarm_state = alarm_state.createUnacknowledged();
+                // Un-acknowledge: Use the current state as the new alarm state
+                // current state is never 'acked', but just to make sure call createUnack..
+                alarm_state = current_state.createUnacknowledged();
             current = current_state;
             alarm = alarm_state;
         }
