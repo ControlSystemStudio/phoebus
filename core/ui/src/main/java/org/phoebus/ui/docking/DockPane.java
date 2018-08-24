@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
@@ -25,8 +26,13 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -49,6 +55,8 @@ public class DockPane extends TabPane
 {
     /** Logger for all docking related messages */
     public static final Logger logger = Logger.getLogger(DockPane.class.getPackageName());
+
+    final static Image close_icon = ImageCache.getImage(DockItem.class, "/icons/remove.png");
 
     private static CopyOnWriteArrayList<DockPaneListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -197,6 +205,21 @@ public class DockPane extends TabPane
 
         // Show/hide tabs as tab count changes
         getTabs().addListener((InvalidationListener) change -> handleTabChanges());
+
+        setOnContextMenuRequested(this::showContextMenu);
+    }
+
+    private void showContextMenu(final ContextMenuEvent event)
+    {
+        // If this pane is empty, offer 'close' entry in context menu to close (merge) it.
+        if (getTabs().isEmpty() &&  dock_parent instanceof SplitDock)
+        {
+            System.out.println("Open context menu on pane?");
+            final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
+            close.setOnAction(evt -> mergeEmptyAnonymousSplit());
+            final ContextMenu menu = new ContextMenu(close);
+            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        }
     }
 
     /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */

@@ -86,7 +86,9 @@ public class Engine
 
     private static boolean handleShellCommands(final String... args) throws Throwable
     {
-        if (args.length == 1)
+        if (args == null)
+            model.requestStop();
+        else if (args.length == 1)
         {
             if (args[0].startsWith("dis"))
             {

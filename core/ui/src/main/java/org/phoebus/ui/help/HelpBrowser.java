@@ -44,7 +44,17 @@ public class HelpBrowser implements AppInstance
         this.app = app;
 
         browser = new WebView();
-        dock_item = new DockItem(this, new BorderPane(browser));
+        dock_item = new DockItem(this, new BorderPane(browser))
+        {
+            // Add 'Web URL'
+            @Override
+            protected void fillInformation(final StringBuilder info)
+            {
+                super.fillInformation(info);
+                info.append("\n");
+                info.append("Help Page: ").append(browser.getEngine().getLocation());
+            }
+        };
         dock_item.addClosedNotification(this::dispose);
         DockPane.getActiveDockPane().addTab(dock_item);
 
