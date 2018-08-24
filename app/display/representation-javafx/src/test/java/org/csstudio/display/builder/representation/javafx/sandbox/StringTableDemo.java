@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,7 +45,7 @@ public class StringTableDemo extends Application
         // Data lacks one element to demonstrate log message.
         // Table still "works"
         final List<List<String>> data = Arrays.asList(
-                Arrays.asList("One", "Two", "true"/*, "missing" */),
+                Arrays.asList("One", "Two", "true" /*, "missing" */),
                 Arrays.asList("Uno", "Due", "false", "Tres"));
 
         // Table
@@ -96,7 +96,6 @@ public class StringTableDemo extends Application
         final Button new_data = new Button("New Data");
         new_data.setOnAction(event ->
         {
-            table.setHeaders(Arrays.asList("A", "B"));
             table.setData(Arrays.asList(
                     Arrays.asList("A 1", "B 1"),
                     Arrays.asList("A 2", "B 2")));
@@ -119,7 +118,6 @@ public class StringTableDemo extends Application
         layout.setTop(label);
         layout.setCenter(table);
         layout.setRight(new VBox(10, new_headers, new_data, set_color, sel_row));
-
         BorderPane.setMargin(layout.getRight(), new Insets(10));
 
         final Scene scene = new Scene(layout, 800, 700);

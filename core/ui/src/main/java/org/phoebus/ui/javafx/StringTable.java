@@ -690,8 +690,19 @@ public class StringTable extends BorderPane
      *                  where each row must contain the same number
      *                  of elements as the column headers
      */
+    @SuppressWarnings("rawtypes")
     public void setData(final List<List<String>> new_data)
     {
+        // Save row, col, .. indices of selection
+        final ObservableList<TablePosition> sel = table.getSelectionModel().getSelectedCells();
+        final int[] sel_row_col = new int[sel.size() * 2];
+        int i = 0;
+        for (TablePosition pos : sel)
+        {
+            sel_row_col[i++] = pos.getRow();
+            sel_row_col[i++] = pos.getColumn();
+        }
+
         final int columns = getColumnCount();
         data.clear();
         for (List<String> new_row : new_data)
@@ -706,7 +717,7 @@ public class StringTable extends BorderPane
                 logger.log(Level.WARNING, "Table needs " + columns +
                            " columns " + getHeaders() +
                            " but got row with just " + row.size() + ": " + row);
-                for (int i=row.size(); i<columns; ++i)
+                for (i=row.size(); i<columns; ++i)
                     row.add("");
             }
             data.add(row);
@@ -716,6 +727,16 @@ public class StringTable extends BorderPane
             data.add(MAGIC_LAST_ROW);
         // Don't fire, since external source changed data, not user
         // fireDataChanged();
+
+        // Restore selection
+        i = 0;
+        while (i < sel_row_col.length)
+        {
+            final int row = sel_row_col[i++];
+            final int col = sel_row_col[i++];
+            if (row < data.size()  &&  col < columns)
+                table.getSelectionModel().select(row, table.getColumns().get(col));
+        }
     }
 
     /** Get complete table content
