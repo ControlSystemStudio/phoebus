@@ -20,6 +20,7 @@ import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
 import org.phoebus.applications.email.actions.SendEmailAction;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
@@ -37,6 +38,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -53,6 +55,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -184,6 +189,11 @@ public class AlarmTableUI extends BorderPane
         setCenter(split);
     }
 
+    ToolBar getToolbar()
+    {
+        return toolbar;
+    }
+
     private ToolBar createToolbar()
     {
         setMaintenanceMode(false);
@@ -194,7 +204,7 @@ public class AlarmTableUI extends BorderPane
         acknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : active.getSelectionModel().getSelectedItems())
-                client.acknowledge(row.item, true);
+                JobManager.schedule("ack", monitor -> client.acknowledge(row.item, true));
         });
 
         final Button unacknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/unacknowledge.png"));
@@ -202,13 +212,13 @@ public class AlarmTableUI extends BorderPane
         unacknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : acknowledged.getSelectionModel().getSelectedItems())
-                client.acknowledge(row.item, false);
+                JobManager.schedule("unack", monitor -> client.acknowledge(row.item, false));
         });
 
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
-        return new ToolBar(active_count, ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
+        return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
     }
 
     /** Show if connected to server or not
@@ -216,9 +226,12 @@ public class AlarmTableUI extends BorderPane
      */
     void setServerState(final boolean alive)
     {
-        toolbar.getItems().remove(no_server);
+        final ObservableList<Node> items = toolbar.getItems();
+        items.remove(no_server);
         if (! alive)
-            toolbar.getItems().add(1, no_server);
+            // Place to the left of spring, maint, ack, unack, filter,
+            // i.e. right of "active alarms" and optional AlarmConfigSelector
+            items.add(items.size() - 5, no_server);
     }
 
     void setMaintenanceMode(final boolean maintenance_mode)
@@ -318,9 +331,26 @@ public class AlarmTableUI extends BorderPane
             row.setOnMouseClicked(event ->
             {
                 if (event.getClickCount() == 2  &&  !row.isEmpty())
-                    client.acknowledge(row.getItem().item, active);
+                    JobManager.schedule("ack", monitor ->  client.acknowledge(row.getItem().item, active));
             });
             return row;
+        });
+
+        // Drag selected PV names
+        table.setOnDragDetected(event ->
+        {
+            final Dragboard db = table.startDragAndDrop(TransferMode.COPY);
+            final ClipboardContent content = new ClipboardContent();
+            final StringBuilder buf = new StringBuilder();
+            for (AlarmInfoRow row : table.getSelectionModel().getSelectedItems())
+            {
+                if (buf.length() > 0)
+                    buf.append(" ");
+                buf.append(row.pv.get());
+            }
+            content.putString(buf.toString());
+            db.setContent(content);
+            event.consume();
         });
 
         return table;

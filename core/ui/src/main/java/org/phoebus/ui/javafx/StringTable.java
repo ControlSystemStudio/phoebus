@@ -8,12 +8,14 @@
 package org.phoebus.ui.javafx;
 
 import static org.phoebus.ui.javafx.JFXUtil.logger;
+import static org.phoebus.ui.javafx.UpdateThrottle.TIMER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.Cell;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
@@ -39,11 +42,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -133,9 +138,44 @@ public class StringTable extends BorderPane
      */
     private class StringTextCell extends TextFieldTableCell<List<String>, String>
     {
+        private TextField editor = null;
+
         public StringTextCell()
         {
             super(new DefaultStringConverter());
+        }
+
+        // Track the text field used for editing
+        @Override
+        public void startEdit()
+        {
+            super.startEdit();
+            // TextFieldTableCell happens to create the editor once,
+            // so attach event filter once and then remember the editor
+            // to prevent multiple event filters
+            if (editor == null)
+            {
+                editor = (TextField) getGraphic();
+                editor.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
+            }
+        }
+
+        private void handleKey(final KeyEvent event)
+        {
+            if (event.getCode() == KeyCode.TAB)
+            {
+                // Save the current text field content, since lost focus would otherwise restore previous value
+                commitEdit(editor.getText());
+
+                // Edit next/prev column in same row
+                final ObservableList<TableColumn<List<String>, ?>> columns = getTableView().getColumns();
+                final int col = columns.indexOf(getTableColumn());
+                final int next = event.isShiftDown()
+                               ? (col + columns.size() - 1) % columns.size()
+                               : (col + 1) % columns.size();
+                editCell(getIndex(), columns.get(next));
+                event.consume();
+            }
         }
 
         @Override
@@ -171,6 +211,39 @@ public class StringTable extends BorderPane
                 data.get(row).set(col, value);
                 fireDataChanged();
             });
+            checkbox.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
+        }
+
+        @Override
+        public void startEdit()
+        {
+            super.startEdit();
+            // The checkbox is always visible and active,
+            // no need to 'startEdit' as for other cells which
+            // only then show the editor,
+            // but when programatically starting edit, activate the checkbox
+            Platform.runLater(() -> checkbox.requestFocus());
+        }
+
+        private void handleKey(final KeyEvent event)
+        {
+            if (event.getCode() == KeyCode.TAB)
+            {
+                // Edit next/prev column in same row
+                final ObservableList<TableColumn<List<String>, ?>> columns = getTableView().getColumns();
+                final int col = columns.indexOf(getTableColumn());
+                final int next = event.isShiftDown()
+                               ? (col + columns.size() - 1) % columns.size()
+                               : (col + 1) % columns.size();
+                editCell(getIndex(), columns.get(next));
+                event.consume();
+            }
+            else if (event.getCode() == KeyCode.ENTER)
+            {
+                // Consume 'enter' and move to next row. Space can be used to toggle (or mouse click)
+                event.consume();
+                editCell(getIndex() + 1, getTableColumn());
+            }
         }
 
         @Override
@@ -205,10 +278,49 @@ public class StringTable extends BorderPane
     /** Cell that allows selecting options from a combo */
     private class ComboCell extends ComboBoxTableCell<List<String>, String>
     {
+        private ComboBox<String> combo = null;
+
         public ComboCell(final List<String> options)
         {
             super(FXCollections.observableArrayList(options));
             setComboBoxEditable(true);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void startEdit()
+        {
+            super.startEdit();
+            if (combo == null)
+            {
+                combo = (ComboBox<String>) getGraphic();
+                combo.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
+            }
+
+            // By default, the combo is shown, but not 'active'.
+            // requestFocus activates the text field of the combo
+            TIMER.schedule(() -> Platform.runLater(() ->  combo.requestFocus()),
+                200, TimeUnit.MILLISECONDS);
+        }
+
+        private void handleKey(final KeyEvent event)
+        {
+            if (event.getCode() == KeyCode.TAB)
+            {
+                // Commit value from combo's text field into combo's value...
+                combo.commitValue();
+                // .. and use that for the cell
+                commitEdit(combo.getValue());
+
+                // Edit next/prev column in same row
+                final ObservableList<TableColumn<List<String>, ?>> columns = getTableView().getColumns();
+                final int col = columns.indexOf(getTableColumn());
+                final int next = event.isShiftDown()
+                               ? (col + columns.size() - 1) % columns.size()
+                               : (col + 1) % columns.size();
+                editCell(getIndex(), columns.get(next));
+                event.consume();
+            }
         }
 
         @Override
@@ -250,7 +362,7 @@ public class StringTable extends BorderPane
         {
             table.setEditable(true);
             // Check for keys in both toolbar and table
-            setOnKeyPressed(this::handleKey);
+            addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
         }
         updateStyle();
         fillToolbar();
@@ -524,6 +636,9 @@ public class StringTable extends BorderPane
             }
             row.set(col, event.getNewValue());
             fireDataChanged();
+
+            // Automatically edit the next row, same column
+            editCell(event.getTablePosition().getRow() + 1, table_column);
         });
         table_column.setOnEditCancel(event -> editing = false);
         table_column.setSortable(false);
@@ -532,6 +647,21 @@ public class StringTable extends BorderPane
             table.getColumns().add(index, table_column);
         else
             table.getColumns().add(table_column);
+    }
+
+    /** Start 'edit' mode for a cell
+     *  @param row
+     *  @param table_column
+     */
+    private void editCell(final int row, final TableColumn<List<String>, ?> table_column)
+    {
+        TIMER.schedule(() ->
+            Platform.runLater(() ->
+            {
+                table.getSelectionModel().clearAndSelect(row, table_column);
+                table.edit(row, table_column);
+            }),
+            100, TimeUnit.MILLISECONDS);
     }
 
     /** @return Header labels */
@@ -687,14 +817,31 @@ public class StringTable extends BorderPane
      */
     private void handleKey(final KeyEvent event)
     {
-        if (editing)
-            return;
-        switch (event.getCode())
+        if (! editing)
         {
-        case T:
-            showToolbar(! isToolbarVisible());
-            break;
-        default:
+            // Toggle toolbar on Ctrl/Command T
+            if (event.getCode() == KeyCode.T  &&  event.isShortcutDown())
+            {
+                showToolbar(! isToolbarVisible());
+                event.consume();
+                return;
+            }
+
+            // Switch to edit mode on keypress
+            if  (event.getCode().isLetterKey() || event.getCode().isDigitKey())
+            {
+                @SuppressWarnings("unchecked")
+                final TablePosition<List<String>, ?> pos = table.getFocusModel().getFocusedCell();
+                table.edit(pos.getRow(), pos.getTableColumn());
+
+                // TODO If the cell had been edited before, i.e. the editor already exists,
+                // that editor will be shown and it will receive the key.
+                // But if the editor needed to be created for a new cell,
+                // it won't receive the key?!
+                // Attempts to re-send the event via a delayed
+                //   Event.fireEvent(table, event.copyFor(event.getSource(), table));
+                // failed to have any effect.
+            }
         }
     }
 

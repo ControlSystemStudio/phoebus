@@ -30,8 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Alarm Client Model for a *Talk topic.
- * <p>Given an alarm configuration name like "Accelerator", subscribes to the "AcceleratorTalk" topic for 
- * alarm messages that can be displayed or annunciated. 
+ * <p>Given an alarm configuration name like "Accelerator", subscribes to the "AcceleratorTalk" topic for
+ * alarm messages that can be displayed or annunciated.
  * <p> Largely based off of Kay Kasemir's {@link AlarmClient}
  * @author Evan Smith
  */
@@ -54,7 +54,7 @@ public class TalkClient
         final List<String> topics = List.of(config_name + AlarmSystem.TALK_TOPIC_SUFFIX);
         consumer = KafkaHelper.connectConsumer(server, topics, Collections.emptyList());
 
-        thread = new Thread(this::run, "AlarmClientModel");
+        thread = new Thread(this::run, "TalkClient");
         thread.setDaemon(true);
     }
 
@@ -113,7 +113,7 @@ public class TalkClient
         {
             String path = record.key();
             String jsonString = record.value();
-            
+
             final JsonNode jn;
             try
             {
@@ -123,13 +123,13 @@ public class TalkClient
                 logger.log(Level.WARNING, "Parsing of talk message for " + path + " failed.", ex);
                 continue;
             }
-            
+
             // Extract the message info from the JSON and notify the listeners.
-            
+
             final String   severity = jn.get(JsonTags.SEVERITY).textValue();
             final boolean standout = jn.get(JsonTags.STANDOUT).asBoolean();
             final String   message  = jn.get(JsonTags.TALK).textValue();
-            
+
             try
             {
                 for (final TalkClientListener listener : listeners)

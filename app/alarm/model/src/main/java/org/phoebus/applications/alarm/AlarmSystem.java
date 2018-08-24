@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,6 +42,9 @@ public class AlarmSystem
 
     /** Name of alarm tree root */
     public static final String config_name;
+
+    /** Names of selectable alarm configurations */
+    public static final List<String> config_names;
 
     /** Timeout in seconds for initial PV connection */
     public static final int connection_timeout;
@@ -80,6 +84,9 @@ public class AlarmSystem
     /** Name of the sender, the 'from' field of automated email actions */
     public static final String automated_email_sender;
 
+    /** Automated actions that request follow-up when alarm no longer active */
+    public static final List<String> automated_action_followup;
+
     /** Optional heartbeat PV */
     public static final String heartbeat_pv;
 
@@ -94,6 +101,7 @@ public class AlarmSystem
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
         server = prefs.get("server");
         config_name = prefs.get("config_name");
+        config_names = getItems(prefs.get("config_names"));
         connection_timeout = prefs.getInt("connection_timeout");
         alarm_area_level = prefs.getInt("alarm_area_level");
         alarm_area_column_count = prefs.getInt("alarm_area_column_count");
@@ -106,6 +114,7 @@ public class AlarmSystem
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
         idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;
         automated_email_sender = prefs.get("automated_email_sender");
+        automated_action_followup = getItems(prefs.get("automated_action_followup"));
         heartbeat_pv = prefs.get("heartbeat_pv");
         heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
 
@@ -121,5 +130,14 @@ public class AlarmSystem
         nag_period_ms = Math.round(Math.max(0, secs) * 1000.0);
 
         IdentificationHelper.initialize();
+    }
+
+    private static List<String> getItems(final String comma_options)
+    {
+        final String[] split = comma_options.split("\\s*,\\s*");
+        if (split.length == 1  &&  split[0].isEmpty())
+            return List.of();
+        else
+            return List.of(split);
     }
 }

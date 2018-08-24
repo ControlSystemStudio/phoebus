@@ -250,13 +250,14 @@ public class Perspective extends SplitPane
                 return;
             final Dragboard db = event.getDragboard();
 
+            // Notify lst in next UI tick...
             if (db.hasContent(SearchView.CHANNEL_INFOS))
             {
                 @SuppressWarnings("unchecked")
                 final List<ChannelInfo> channels = (List<ChannelInfo>) db.getContent(SearchView.CHANNEL_INFOS);
                 final List<ProcessVariable> pvs = new ArrayList<>(channels);
                 final List<ArchiveDataSource> archives = channels.stream().map(ChannelInfo::getArchiveDataSource).collect(Collectors.toList());
-                lst.droppedPVNames(pvs, archives);
+                Platform.runLater(() -> lst.droppedPVNames(pvs, archives));
             }
             else if (db.hasString())
             {
@@ -275,13 +276,16 @@ public class Perspective extends SplitPane
                     pvs.add(suggestion);
                 }
                 if (pvs.size() > 0)
-                    lst.droppedNames(pvs);
+                    Platform.runLater(() -> lst.droppedNames(pvs));
             }
             else if (db.hasFiles())
             {
                 for (File file : db.getFiles())
-                    lst.droppedFilename(file);
+                    Platform.runLater(() -> lst.droppedFilename(file));
             }
+            // .. and mark drop as completed ASAP so that cursor is reset.
+            // Otherwise cursor would still suggest active drag while
+            // we are for example opening a dialog to handle the dropped PVs.
             event.setDropCompleted(true);
             event.consume();
         });
@@ -432,8 +436,8 @@ public class Perspective extends SplitPane
         if (left_tabs.getTabs().contains(search_tab))
             memento.setBoolean(SHOW_SEARCH, true);
 
-        if (bottom_tabs.getTabs().contains(properties_tab))
-            memento.setBoolean(SHOW_PROPERTIES, true);
+        if (! bottom_tabs.getTabs().contains(properties_tab))
+            memento.setBoolean(SHOW_PROPERTIES, false);
 
         if (bottom_tabs.getTabs().contains(export_tab))
             memento.setBoolean(SHOW_EXPORT, true);

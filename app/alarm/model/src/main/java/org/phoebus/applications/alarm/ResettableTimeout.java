@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.alarm.server;
+package org.phoebus.applications.alarm;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -31,7 +31,7 @@ public class ResettableTimeout
 {
     private final long timeout_secs;
 
-	private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Timer"));
+	private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ResettableTimeout"));
     private final CountDownLatch no_more_messages = new CountDownLatch(1);
     private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
     private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
@@ -44,7 +44,7 @@ public class ResettableTimeout
 	}
 
 	/** Reset the timer. As long as this is called within the timeout, we keep running */
-    void reset()
+    public void reset()
     {
         final ScheduledFuture<?> previous = timeout.getAndSet(timer.schedule(signal_no_more_messages, timeout_secs, TimeUnit.SECONDS));
         if (previous != null)

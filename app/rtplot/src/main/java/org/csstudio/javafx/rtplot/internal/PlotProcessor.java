@@ -518,7 +518,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                         if (low <= 0.0)
                             low = 1;
                         if (high <= low)
-                            high = 100;
+                            high = low * 100.0;
                         low = Log10.log10(low);
                         high = Log10.log10(high);
                     }

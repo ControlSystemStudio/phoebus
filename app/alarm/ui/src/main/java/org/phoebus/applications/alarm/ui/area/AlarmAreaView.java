@@ -55,6 +55,7 @@ import javafx.scene.text.Font;
 @SuppressWarnings("nls")
 public class AlarmAreaView extends StackPane implements AlarmClientListener
 {
+    private final ContextMenu menu = new ContextMenu();
     private final GridPane grid = new GridPane();
     private final AreaFilter areaFilter;
 
@@ -233,11 +234,16 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
 
     private void createContextMenu()
     {
-        final ContextMenu menu = new ContextMenu();
         final ObservableList<MenuItem> menu_items = menu.getItems();
+
         menu_items.add(new OpenTreeViewAction());
         this.setOnContextMenuRequested(event ->
             menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY())
         );
+    }
+
+    public ContextMenu getMenu()
+    {
+        return menu;
     }
 }

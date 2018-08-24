@@ -14,17 +14,22 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.annunciator;
 
-import java.net.URL;
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.net.URI;
+import java.net.URL;
+import java.util.logging.Level;
+
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.applications.alarm.ui.AlarmURI;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 
 /** Annunciator application
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class AnnunciatorTableApplication implements AppDescriptor
+public class AnnunciatorTableApplication implements AppResourceDescriptor
 {
     public static final String NAME = "annunciator";
     public static final String DISPLAY_NAME = "Annunciator";
@@ -48,13 +53,22 @@ public class AnnunciatorTableApplication implements AppDescriptor
     }
 
     @Override
-    public AppInstance create()
+    public AnnunciatorTableInstance create()
     {
-        if (AnnunciatorTableInstance.INSTANCE == null)
-            AnnunciatorTableInstance.INSTANCE = new AnnunciatorTableInstance(this);
-        else
-            AnnunciatorTableInstance.INSTANCE.raise();
-        return AnnunciatorTableInstance.INSTANCE;
+        return create(AlarmURI.createURI(AlarmSystem.server, AlarmSystem.config_name));
     }
 
+    @Override
+    public AnnunciatorTableInstance create(final URI resource)
+    {
+        try
+        {
+            return new AnnunciatorTableInstance(this, resource);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot create alarm annunciator for " + resource, ex);
+        }
+        return null;
+    }
 }

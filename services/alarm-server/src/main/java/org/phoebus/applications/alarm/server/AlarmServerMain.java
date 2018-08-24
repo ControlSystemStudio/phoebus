@@ -51,7 +51,8 @@ public class AlarmServerMain implements ServerModelListener
                         "\tls -disconnected - List all the disconnected PVs in the entire alarm tree.\n" +
                         "\tls -disabled     - List all the disabled PVs in the entire alarm tree.\n" +
                         "\tls -all          - List all alarm tree PVs in the entire alarm tree.\n" +
-                        "\tls -alarm        - List all alarm tree PVs in the entire alarm tree which are in alarm.\n" +
+                        "\tls -active       - .. which are in active alarm.\n" +
+                        "\tls -alarm        - .. alarm, active or acknowledged.\n" +
                         "\tls dir           - List all alarm tree items in the specified directory contained in the current directory.\n" +
                         "\tls /path/to/dir  - List all alarm tree items in the specified directory at the specified path.\n" +
                         "\tcd               - Change to the root directory.\n" +
@@ -98,6 +99,10 @@ public class AlarmServerMain implements ServerModelListener
                 // a) restart (restart given with value 'true')
                 // b) shut down (restart given with value 'false')
                 run = restart.take();
+                if (run)
+                    logger.info("Restarting...");
+                else
+                    logger.info("Shutting down");
 
                 shell.stop();
 
@@ -187,6 +192,8 @@ public class AlarmServerMain implements ServerModelListener
                         listPVs(model.getRoot(), PVMode.Disabled);
                     else if (args1.equals("-all")) // Print all the PVs in the tree.
                         listPVs(model.getRoot(), PVMode.All);
+                    else if (args1.startsWith("-act")) // Print all the PVs in the tree that are in active alarm
+                        listPVs(model.getRoot(), PVMode.InActiveAlarm);
                     else if (args1.startsWith("-ala")) // Print all the PVs in the tree that are in alarm
                         listPVs(model.getRoot(), PVMode.InAlarm);
                     else // List the PVs at the specified path.
@@ -436,6 +443,7 @@ public class AlarmServerMain implements ServerModelListener
     enum PVMode
     {
         All,
+        InActiveAlarm,
         InAlarm,
         Disconnected,
         Disabled
@@ -443,18 +451,41 @@ public class AlarmServerMain implements ServerModelListener
 
     private void listPVs(final AlarmTreeItem<?> node, final PVMode which)
     {
+        listPVs(0, node, which);
+    }
+
+    private void listPVs(int count, final AlarmTreeItem<?> node, final PVMode which)
+    {
         if (node instanceof AlarmServerPV)
         {
             final AlarmServerPV pv_node = (AlarmServerPV) node;
-            if (which == PVMode.Disconnected &&  pv_node.isConnected()  ||
-                which == PVMode.Disabled     &&  pv_node.isEnabled()    ||
-                which == PVMode.InAlarm      && !pv_node.getState().severity.isActive())
-                return;
+            switch (which)
+            {
+            case Disabled:
+                if (pv_node.isEnabled())
+                    return;
+                break;
+            case Disconnected:
+                if (!pv_node.isEnabled()  ||  pv_node.isConnected())
+                    return;
+                break;
+            case InActiveAlarm:
+                if (!pv_node.isEnabled()  ||  !pv_node.getState().severity.isActive())
+                    return;
+                break;
+            case InAlarm:
+                if (!pv_node.isEnabled()  ||  pv_node.getState().severity == SeverityLevel.OK)
+                    return;
+                break;
+            default:
+                break;
+            }
+            System.out.format("%3d : ", ++count);
             System.out.println(pv_node);
         }
         else
             for (final AlarmTreeItem<?> child : node.getChildren())
-                listPVs(child, which);
+                listPVs(count, child, which);
     }
 
     private static void help()

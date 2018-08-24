@@ -25,7 +25,10 @@ import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 
 /** Base class for all JavaFX widget representations
  *  @param <JFX> JFX Widget
@@ -99,11 +102,29 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                     jfx_node.addEventHandler(MouseEvent.MOUSE_PRESSED, detect_click);
             }
             else
+            {   // Runtime context menu
                 jfx_node.setOnContextMenuRequested((event) ->
                 {
                     event.consume();
                     toolkit.fireContextMenu(model_widget, (int)event.getScreenX(), (int)event.getScreenY());
                 });
+
+                // If there is a "pv_name", allow dragging it out
+                final Optional<WidgetProperty<String>> pv_name = model_widget.checkProperty(CommonWidgetProperties.propPVName);
+                if (pv_name.isPresent())
+                    jfx_node.setOnDragDetected(event ->
+                    {
+                        final String pv = pv_name.get().getValue();
+                        if (! pv.isEmpty())
+                        {
+                            final Dragboard db = jfx_node.startDragAndDrop(TransferMode.COPY);
+                            final ClipboardContent content = new ClipboardContent();
+                            content.putString(pv);
+                            db.setContent(content);
+                        }
+                        event.consume();
+                    });
+            }
         }
         return getChildParent(parent);
     }

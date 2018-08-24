@@ -14,6 +14,7 @@ import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.javafx.StringTableListener;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -40,21 +41,25 @@ public class StringTableDemo extends Application
     public void start(final Stage stage)
     {
         // Example data
-        final List<String> headers = Arrays.asList("Left", "Middle", "Right");
+        final List<String> headers = Arrays.asList("Left", "Options", "Bool", "Right");
         // Data lacks one element to demonstrate log message.
         // Table still "works"
         final List<List<String>> data = Arrays.asList(
-                Arrays.asList("One", "Two" /*, "missing" */),
-                Arrays.asList("Uno", "Due", "Tres"));
+                Arrays.asList("One", "Two", "true"/*, "missing" */),
+                Arrays.asList("Uno", "Due", "false", "Tres"));
 
         // Table
         final StringTable table = new StringTable(true);
         table.setHeaders(headers);
         table.setColumnOptions(1, Arrays.asList("Two", "Due", "Zwo", "1+2-1"));
+        table.setColumnOptions(2, StringTable.BOOLEAN_OPTIONS);
         table.setData(data);
         table.setBackgroundColor(Color.PINK);
         table.setTextColor(Color.GREEN);
         table.setFont(Font.font("Liberation Serif", 12.0));
+
+        // Table looks OK by default, but combo box will need more space
+        table.setColumnWidth(1, 100);
 
         table.setListener(new StringTableListener()
         {
@@ -114,6 +119,8 @@ public class StringTableDemo extends Application
         layout.setTop(label);
         layout.setCenter(table);
         layout.setRight(new VBox(10, new_headers, new_data, set_color, sel_row));
+
+        BorderPane.setMargin(layout.getRight(), new Insets(10));
 
         final Scene scene = new Scene(layout, 800, 700);
         stage.setScene(scene);

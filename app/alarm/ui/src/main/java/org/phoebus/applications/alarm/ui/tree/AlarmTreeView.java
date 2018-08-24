@@ -41,6 +41,7 @@ import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -132,7 +133,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
         show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
         show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
-        return new ToolBar(ToolbarHelper.createSpring(), collapse, show_alarms);
+        return new ToolBar(no_server, ToolbarHelper.createSpring(), collapse, show_alarms);
+    }
+
+    ToolBar getToolbar()
+    {
+        return (ToolBar) getTop();
     }
 
     private void expandAlarms(final TreeItem<AlarmTreeItem<?>> node)
@@ -140,7 +146,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         if (node.isLeaf())
             return;
 
-        node.setExpanded(node.getValue().getState().severity.isActive());
+        // Always expand the root, which itself is not visible,
+        // but this will show all the top-level elements.
+        // In addition, expand those items which are in active alarm.
+        final boolean expand = node.getValue().getState().severity.isActive() ||
+                               node == tree_view.getRoot();
+        node.setExpanded(expand);
         for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
             expandAlarms(sub);
     }
@@ -166,10 +177,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         Platform.runLater(() ->
         {
-            final ToolBar toolbar = (ToolBar) getTop();
-            toolbar.getItems().remove(no_server);
+            final ObservableList<Node> items = getToolbar().getItems();
+            items.remove(no_server);
             if (! alive)
-                toolbar.getItems().add(0, no_server);
+                // Place left of spring, collapse, expand_alarms,
+                // i.e. right of potential AlarmConfigSelector
+                items.add(items.size()-3, no_server);
         });
     }
 
@@ -369,7 +382,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     menu_items.add(new RemoveComponentAction(tree_view, model, selection));
                 }
             }
-            
+
             menu_items.add(new SeparatorMenuItem());
             menu_items.add(new PrintAction(tree_view));
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));

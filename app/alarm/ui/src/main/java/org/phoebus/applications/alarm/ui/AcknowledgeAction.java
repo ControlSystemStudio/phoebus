@@ -25,12 +25,10 @@ class AcknowledgeAction extends MenuItem
     public AcknowledgeAction(final AlarmClient model, final List<AlarmTreeItem<?>> active)
     {
         super("Acknowledge", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
-        setOnAction(event -> 
+        setOnAction(event ->
         {
             JobManager.schedule(getText(), monitor ->
-            {
-                active.forEach(item -> model.acknowledge(item, true));
-            });
+                active.forEach(item -> model.acknowledge(item, true)));
         });
     }
 }

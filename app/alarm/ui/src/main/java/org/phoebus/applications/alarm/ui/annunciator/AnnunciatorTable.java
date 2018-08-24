@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
@@ -31,6 +32,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
@@ -59,11 +61,13 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final ToggleButton muteButton = new ToggleButton("", new ImageView(mute_icon));
     private final Button clearTableButton = new Button("Clear Messages");
 
+    private final ToolBar toolbar;
+
     private final TableView<AnnunciationRowInfo> table = new TableView<>();
 
-    TableColumn<AnnunciationRowInfo, Instant>       time        = new TableColumn<>("Time Received");
-    TableColumn<AnnunciationRowInfo, SeverityLevel> severity    = new TableColumn<>("Severity");
-    TableColumn<AnnunciationRowInfo, String>        description = new TableColumn<>("Description");
+    private final TableColumn<AnnunciationRowInfo, Instant>       time        = new TableColumn<>("Time Received");
+    private final TableColumn<AnnunciationRowInfo, SeverityLevel> severity    = new TableColumn<>("Severity");
+    private final TableColumn<AnnunciationRowInfo, String>        description = new TableColumn<>("Description");
 
     private final CopyOnWriteArrayList<AnnunciationRowInfo> messages = new CopyOnWriteArrayList<>();
 
@@ -106,7 +110,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                                             Paint.valueOf(color), // Set the color.
                                             new CornerRadii(0),   // We want square cells.
                                             new Insets(1))));     // Don't color over the cell borders.
-            
+
             /*
              * Upon row selection, the table will update the text color based on the darkness of the ROW background.
              * Not the cell background. So the cell may have a white background, but the row could be blue when selected.
@@ -192,10 +196,11 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
      * Create an AnnunciatorTable view.
      * @param client - TalkClient used to listen to the *Talk topic.
      */
-    public AnnunciatorTable (TalkClient client)
+    public AnnunciatorTable (final TalkClient client)
     {
         this.client = client;
         this.client.addListener(this);
+
 
         if (annunciator_retention_count < 1)
             logger.log(Level.SEVERE, "Annunciation Retention Count set below 1.");
@@ -205,6 +210,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         time.setPrefWidth(190);
         time.setResizable(false);
         table.getColumns().add(time);
+
+        // Sort by time, most recent on top
+        time.setSortType(SortType.DESCENDING);
+        table.getSortOrder().setAll(List.of(time));
 
         severity.setCellValueFactory(cell -> cell.getValue().severity);
         severity.setCellFactory(c -> new SeverityCell());
@@ -217,7 +226,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         // Width left in window is window width minus time width (190), minus severity width (90), minus width of window edges(1 * 2).
         description.prefWidthProperty().bind(table.widthProperty().subtract(282));
         table.getColumns().add(description);
-        
+
         // Table should always grow to fill VBox.
         setVgrow(table, Priority.ALWAYS);
 
@@ -250,13 +259,18 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                 .filter(response -> response == ButtonType.OK)
                 .ifPresent(response -> clearTable());
         });
-        
-        final ToolBar hbox = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
 
-        getChildren().setAll(hbox, table);
-        
+        toolbar = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
+
+        getChildren().setAll(toolbar, table);
+
         // Annunciate message so that user can determine if annunciator and table are indeed functional.
         messageReceived(SeverityLevel.OK, true, "Annunciator started");
+    }
+
+    ToolBar getToolbar()
+    {
+        return toolbar;
     }
 
     /**
@@ -299,7 +313,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         {
             AnnunciationRowInfo row = new AnnunciationRowInfo(annunciation.time, annunciation.severity, annunciation.message);
             messages.add(row);
-    
+
             // Remove the oldest messages to stay under the message retention threshold.
             if (messages.size() > annunciator_retention_count)
             {
@@ -308,7 +322,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 
                 table.getItems().remove(to_remove);
             }
-            
+
             // The table should maintain its selected sort order after message addition.
             table.getItems().add(row);
             table.getItems().sort(table.getComparator());
