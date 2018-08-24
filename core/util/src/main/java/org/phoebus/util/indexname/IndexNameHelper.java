@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.TimeZone;
 
 /**
  * Helper class for calculating the index name for time based indices.
@@ -29,7 +28,6 @@ public class IndexNameHelper
         
     private static final List<String> acceptedDateUnits = List.of("D", "W", "M", "Y");
     
-    private static final String TIMEZONE = "UTC";
     private static final String DELIMITER = "T";
     private static final String YEAR = "Y",
                                 MONTH = "M",
@@ -82,7 +80,6 @@ public class IndexNameHelper
     private void setDateSpanStartAndEnd(Instant time)
     {
         Calendar calendar = new GregorianCalendar();
-        calendar.setTimeZone(TimeZone.getTimeZone(TIMEZONE));
         calendar.setTimeInMillis(time.toEpochMilli());
         calendar.setFirstDayOfWeek(Calendar.SUNDAY);
         

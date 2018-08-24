@@ -10,7 +10,8 @@ package org.phoebus.util.indexname;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.junit.Test;
 
@@ -89,196 +90,198 @@ public class IndexNameHelperTest
     @Test 
     public void dateInCurrentYear() throws Exception
     {
-        Instant expectedSpanStart = Instant.parse("2018-01-01T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2019-01-01T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-15T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-10-15T00:00:00Z");
-
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 1, 1, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2019, 1, 1, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 15, 0, 0, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2018, 10, 15, 0, 0, 0);
+        
+        expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant();
+        
         IndexNameHelper inh = new IndexNameHelper("test_index", "y", 1);
         
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-01-01", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-01-01", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-01-01", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-01-01", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
     
     @Test
     public void dateInNextYear() throws Exception
     {
-        Instant expectedSpanStart = Instant.parse("2018-01-01T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2019-01-01T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2019-01-01T00:00:01Z");
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 1, 1, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2019, 1, 1, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2019, 1, 1, 0, 0, 1);
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "y", 1);
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        inh.getIndexName(oldSpanTime);
+        inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant());
         
-        assertEquals("test_index_2018-01-01", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-01-01", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
 
-        expectedSpanStart = Instant.parse("2019-01-01T00:00:00Z");
-        expectedSpanEnd = Instant.parse("2020-01-01T00:00:00Z");
+        expectedSpanStart = LocalDateTime.of(2019, 1, 1, 0, 0, 0);
+        expectedSpanEnd = LocalDateTime.of(2020, 1, 1, 0, 0, 0);
         
-        assertEquals("test_index_2019-01-01", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2019-01-01", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
     
     @Test
     public void dateInCurrentMonth() throws Exception
-    {        
-        Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-15T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-09-17T00:00:00Z");
+    {   
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 9, 1, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2018, 10, 1, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 15, 0, 0, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 17, 0, 0, 0);
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
         
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-09-01", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-01", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-09-01", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-01", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
     
     @Test
     public void dateInNextMonth() throws Exception
     {
-        Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-10-01T00:00:01Z");
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 9, 1, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2018, 10, 1, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2018, 10, 1, 0, 0, 1);
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        inh.getIndexName(oldSpanTime);
+        inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant());
         
-        assertEquals("test_index_2018-09-01", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-01", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
 
-        expectedSpanStart = Instant.parse("2018-10-01T00:00:00Z");
-        expectedSpanEnd = Instant.parse("2018-11-01T00:00:00Z");
+        expectedSpanStart = LocalDateTime.of(2018, 10, 1, 0, 0, 0);
+        expectedSpanEnd = LocalDateTime.of(2018, 11, 1, 0, 0, 0);
         
-        assertEquals("test_index_2018-10-01", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-10-01", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
     
     @Test
     public void dateInCurrentWeek() throws Exception
     {        
-        Instant expectedSpanStart = Instant.parse("2018-09-09T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-09-16T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-09-14T00:00:00Z");
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 9, 9, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2018, 9, 16, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 14, 0, 0, 0);
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "w", 1);
         
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-09-09", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-09", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
     
     @Test
     public void dateInNextWeek() throws Exception
     {
-        Instant expectedSpanStart = Instant.parse("2018-09-09T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-09-16T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-09-16T00:00:01Z");
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 9, 9, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2018, 9, 16, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 16, 0, 0, 1);
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "w", 1);
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        inh.getIndexName(oldSpanTime);
+        inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant());
         
-        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
 
-        expectedSpanStart = Instant.parse("2018-09-16T00:00:00Z");
-        expectedSpanEnd = Instant.parse("2018-09-23T00:00:00Z");
+        expectedSpanStart = LocalDateTime.of(2018, 9, 16, 0, 0, 0);
+        expectedSpanEnd = LocalDateTime.of(2018, 9, 23, 0, 0, 0);
         
-        assertEquals("test_index_2018-09-16", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-16", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
     
     @Test
     public void dateInCurrentDay() throws Exception
-    {        
-        Instant expectedSpanStart = Instant.parse("2018-09-09T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-09-10T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-09T00:01:00Z");
-        Instant newSpanTime = Instant.parse("2018-09-09T00:02:00Z");
+    {
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 9, 9, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2018, 9, 10, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 9, 0, 1, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 9, 0, 2, 0);
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "d", 1);
         
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-09-09", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-09", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
     
     @Test
     public void dateInNextDay() throws Exception
     {
-        Instant expectedSpanStart = Instant.parse("2018-09-13T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-09-14T00:00:00Z");   
-        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
-        Instant newSpanTime = Instant.parse("2018-09-14T00:00:01Z");
+        LocalDateTime expectedSpanStart = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
+        LocalDateTime expectedSpanEnd = LocalDateTime.of(2018, 9, 14, 0, 0, 0);
+        LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
+        LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 14, 0, 0, 1);
 
         IndexNameHelper inh = new IndexNameHelper("test_index", "d", 1);
         
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        inh.getIndexName(oldSpanTime);
+        inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant());
         
-        assertEquals("test_index_2018-09-13", inh.getIndexName(oldSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-13", inh.getIndexName(oldSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
         
-        expectedSpanStart = Instant.parse("2018-09-14T00:00:00Z");
-        expectedSpanEnd = Instant.parse("2018-09-15T00:00:00Z");
+        expectedSpanStart = LocalDateTime.of(2018, 9, 14, 0, 0, 0);
+        expectedSpanEnd = LocalDateTime.of(2018, 9, 15, 0, 0, 0);
         
-        assertEquals("test_index_2018-09-14", inh.getIndexName(newSpanTime));
-        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
-        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        assertEquals("test_index_2018-09-14", inh.getIndexName(newSpanTime.atZone(ZoneId.systemDefault()).toInstant()));
+        assertEquals(expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd.atZone(ZoneId.systemDefault()).toInstant(), inh.getCurrentDateSpanEnd());
     }
 }
