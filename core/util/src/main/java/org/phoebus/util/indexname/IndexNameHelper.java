@@ -19,11 +19,11 @@ import java.util.TimeZone;
  */
 public class IndexNameHelper
 {
-    private String dateSpanUnit;
-    private Integer dateSpanField;
-    private Integer dateSpanValue;
     private String baseIndexName;
     private String currentDateSpan;
+    private Integer dateSpanField;
+    private String dateSpanUnit;
+    private Integer dateSpanValue;
     
     private Instant spanStart;
     private Instant spanEnd;
