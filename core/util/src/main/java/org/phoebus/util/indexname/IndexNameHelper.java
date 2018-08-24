@@ -21,7 +21,6 @@ public class IndexNameHelper
 {
     private String baseIndexName;
     private String currentDateSpan;
-    private Integer dateSpanField;
     private String dateSpanUnit;
     private Integer dateSpanValue;
     
@@ -80,6 +79,8 @@ public class IndexNameHelper
         calendar.setTimeInMillis(time.toEpochMilli());
         calendar.setFirstDayOfWeek(Calendar.SUNDAY);
         
+        Integer dateSpanField = -1;
+        
         if (dateSpanUnit.equals("Y"))
         {
             // Roll the year back to the beginning (midnight of the first of the year).
@@ -94,7 +95,6 @@ public class IndexNameHelper
             dateSpanField = Calendar.MONTH;
             calendar.set(Calendar.WEEK_OF_MONTH, 1);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
-
         }
         if (dateSpanUnit.equals("W"))
         {
