@@ -47,7 +47,7 @@ public class IndexNameHelper
         if (null != dateSpanUnit)
         {
             if (! acceptedDateUnits.contains(dateSpanUnit.toUpperCase()))
-                throw new Exception("Date range unit is invalid.");
+                throw new Exception("Date Span Unit is invalid.");
             this.dateSpanUnit = dateSpanUnit.toUpperCase();
         }
         else
