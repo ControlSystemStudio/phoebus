@@ -29,6 +29,13 @@ public class IndexNameHelper
         
     private static final List<String> acceptedDateUnits = List.of("D", "W", "M", "Y");
     
+    private static final String TIMEZONE = "UTC";
+    private static final String DELIMITER = "T";
+    private static final String YEAR = "Y",
+                                MONTH = "M",
+                                WEEK = "W",
+                                DAY = "D";
+    
     /**
      * 
      * @param baseIndexName : Index base name that the date will be appended to.
@@ -75,13 +82,13 @@ public class IndexNameHelper
     private void setDateSpanStartAndEnd(Instant time)
     {
         Calendar calendar = new GregorianCalendar();
-        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        calendar.setTimeZone(TimeZone.getTimeZone(TIMEZONE));
         calendar.setTimeInMillis(time.toEpochMilli());
         calendar.setFirstDayOfWeek(Calendar.SUNDAY);
         
         Integer dateSpanField = -1;
         
-        if (dateSpanUnit.equals("Y"))
+        if (dateSpanUnit.equals(YEAR))
         {
             // Roll the year back to the beginning (midnight of the first of the year).
             dateSpanField = Calendar.YEAR;
@@ -89,20 +96,20 @@ public class IndexNameHelper
             calendar.set(Calendar.WEEK_OF_MONTH, 1);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
         }
-        if (dateSpanUnit.equals("M"))
+        if (dateSpanUnit.equals(MONTH))
         {
             // Roll the month back to the beginning (midnight of the first of the month).
             dateSpanField = Calendar.MONTH;
             calendar.set(Calendar.WEEK_OF_MONTH, 1);
             calendar.set(Calendar.DAY_OF_MONTH, 1);
         }
-        if (dateSpanUnit.equals("W"))
+        if (dateSpanUnit.equals(WEEK))
         {
             // Roll the week back to the beginning (midnight Sunday).
             dateSpanField = Calendar.WEEK_OF_YEAR;    
             calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         }
-        if (dateSpanUnit.equals("D"))
+        if (dateSpanUnit.equals(DAY))
             dateSpanField = Calendar.DATE;
         
         // Roll the day back to midnight
@@ -122,7 +129,7 @@ public class IndexNameHelper
     {
         String fullDate = spanStart.toString();
                 
-        return fullDate.split("T")[0];
+        return fullDate.split(DELIMITER)[0];
     }
     
     public Instant getCurrentDateSpanStart()
