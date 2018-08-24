@@ -47,6 +47,19 @@ public class IndexNameHelperTest
     }
 
     @Test
+    public void dateSpanUnitInvalid()
+    {
+        try
+        {
+            new IndexNameHelper("index", "Q", 5);
+        }
+        catch (Exception ex)
+        {
+            assertEquals("Date Span Unit is invalid.", ex.getMessage());
+        }
+    }
+    
+    @Test
     public void dateRangeValueNull()
     {
         try
@@ -73,19 +86,73 @@ public class IndexNameHelperTest
         }
     }
     
+    @Test 
+    public void dateInCurrentYear() throws Exception
+    {
+        Instant expectedSpanStart = Instant.parse("2018-01-01T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2019-01-01T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-15T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-10-15T00:00:00Z");
+
+        IndexNameHelper inh = new IndexNameHelper("test_index", "y", 1);
+        
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-01-01", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-01-01", inh.getIndexName(newSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+    }
+    
+    @Test
+    public void dateInNextYear() throws Exception
+    {
+        Instant expectedSpanStart = Instant.parse("2018-01-01T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2019-01-01T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2019-09-13T00:00:00Z");
+
+        IndexNameHelper inh = new IndexNameHelper("test_index", "y", 1);
+
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        inh.getIndexName(oldSpanTime);
+        
+        assertEquals("test_index_2018-01-01", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+
+        expectedSpanStart = Instant.parse("2019-01-01T00:00:00Z");
+        expectedSpanEnd = Instant.parse("2020-01-01T00:00:00Z");
+        
+        assertEquals("test_index_2019-01-01", inh.getIndexName(newSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+    }
+    
     @Test
     public void dateInCurrentMonth() throws Exception
     {        
-        Instant testTime = Instant.parse("2018-09-15T00:00:00Z");
         Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");
-        
+        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-15T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-09-17T00:00:00Z");
+
         IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
         
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        assertEquals("test_index_2018-09-01", inh.getIndexName(testTime));
+        assertEquals("test_index_2018-09-01", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-09-01", inh.getIndexName(newSpanTime));
         assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
         assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
     }
@@ -93,23 +160,124 @@ public class IndexNameHelperTest
     @Test
     public void dateInNextMonth() throws Exception
     {
+        Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-10-13T00:00:00Z");
+
         IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
-        
+
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
         
-        Instant oldSpanTime = Instant.parse("2018-09-15T00:00:00Z");
         inh.getIndexName(oldSpanTime);
         
-        Instant expectedSpanStart = Instant.parse("2018-09-01T00:00:00Z");
-        Instant expectedSpanEnd = Instant.parse("2018-10-01T00:00:00Z");   
-        
-        Instant newSpanTime = Instant.parse("2018-10-15T00:00:00Z");
-     
+        assertEquals("test_index_2018-09-01", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+
         expectedSpanStart = Instant.parse("2018-10-01T00:00:00Z");
         expectedSpanEnd = Instant.parse("2018-11-01T00:00:00Z");
         
         assertEquals("test_index_2018-10-01", inh.getIndexName(newSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+    }
+    
+    @Test
+    public void dateInCurrentWeek() throws Exception
+    {        
+        Instant expectedSpanStart = Instant.parse("2018-09-09T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2018-09-16T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-09-14T00:00:00Z");
+
+        IndexNameHelper inh = new IndexNameHelper("test_index", "w", 1);
+        
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-09-09", inh.getIndexName(newSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+    }
+    
+    @Test
+    public void dateInNextWeek() throws Exception
+    {
+        Instant expectedSpanStart = Instant.parse("2018-09-09T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2018-09-16T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-09-18T00:00:00Z");
+
+        IndexNameHelper inh = new IndexNameHelper("test_index", "w", 1);
+
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        inh.getIndexName(oldSpanTime);
+        
+        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+
+        expectedSpanStart = Instant.parse("2018-09-16T00:00:00Z");
+        expectedSpanEnd = Instant.parse("2018-09-23T00:00:00Z");
+        
+        assertEquals("test_index_2018-09-16", inh.getIndexName(newSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+    }
+    
+    @Test
+    public void dateInCurrentDay() throws Exception
+    {        
+        Instant expectedSpanStart = Instant.parse("2018-09-09T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2018-09-10T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-09T00:01:00Z");
+        Instant newSpanTime = Instant.parse("2018-09-09T00:02:00Z");
+
+        IndexNameHelper inh = new IndexNameHelper("test_index", "d", 1);
+        
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-09-09", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        
+        assertEquals("test_index_2018-09-09", inh.getIndexName(newSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+    }
+    
+    @Test
+    public void dateInNextDay() throws Exception
+    {
+        Instant expectedSpanStart = Instant.parse("2018-09-13T00:00:00Z");
+        Instant expectedSpanEnd = Instant.parse("2018-09-14T00:00:00Z");   
+        Instant oldSpanTime = Instant.parse("2018-09-13T00:00:00Z");
+        Instant newSpanTime = Instant.parse("2018-09-14T00:00:01Z");
+
+        IndexNameHelper inh = new IndexNameHelper("test_index", "d", 1);
+        
+        assertNull(inh.getCurrentDateSpanStart());
+        assertNull(inh.getCurrentDateSpanEnd());
+        
+        inh.getIndexName(oldSpanTime);
+        
+        assertEquals("test_index_2018-09-13", inh.getIndexName(oldSpanTime));
+        assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
+        assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
+        
+        expectedSpanStart = Instant.parse("2018-09-14T00:00:00Z");
+        expectedSpanEnd = Instant.parse("2018-09-15T00:00:00Z");
+        
+        assertEquals("test_index_2018-09-14", inh.getIndexName(newSpanTime));
         assertEquals(expectedSpanStart, inh.getCurrentDateSpanStart());
         assertEquals(expectedSpanEnd, inh.getCurrentDateSpanEnd());
     }
