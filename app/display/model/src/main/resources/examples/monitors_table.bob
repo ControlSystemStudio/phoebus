@@ -513,4 +513,25 @@ table.setHeaders(headers)
     <width>152</width>
     <tooltip>$(actions)</tooltip>
   </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_6</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+# 'widget' is the action button that invoked the script
+# Locate the table widget by name
+table = ScriptUtil.findWidgetByName(widget, "user_table")
+
+# Select row 0, col 0, row 1, col 2
+table.setSelection([ 0, 0, 1, 2 ])]]></text>
+        </script>
+        <description>Select Cell</description>
+      </action>
+    </actions>
+    <x>1012</x>
+    <y>811</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>  
 </display>
