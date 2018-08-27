@@ -136,8 +136,8 @@ public class Controller
             // if channel was found at least once, we do not need to report anything
             if (!channelFoundAtLeastOnce)
             {
-                logger.log(Level.WARNING,
-                          "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
+                logger.log(Level.INFO,
+                           "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
             }
         }
     };

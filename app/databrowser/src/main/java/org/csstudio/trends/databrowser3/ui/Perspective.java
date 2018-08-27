@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +108,7 @@ public class Perspective extends SplitPane
         }
         catch (Exception ex)
         {
-            Activator.logger.log(Level.SEVERE, "Cannot start data browser", ex);
+            logger.log(Level.SEVERE, "Cannot start data browser", ex);
         }
 
         // As pane is resized, assert that the minimzed left or bottom region stays minimized
@@ -261,22 +263,17 @@ public class Perspective extends SplitPane
             }
             else if (db.hasString())
             {
-                final List<String> pvs = new ArrayList<>();
-                // Allow passing in many names, assuming that white space separates them
-                final String[] names = db.getString().split("[\\r\\n\\t ]+");
-                for (String one_name : names)
-                {   // Might also have received "[pv1, pv2, pv2]", turn that into "pv1", "pv2", "pv3"
-                    String suggestion = one_name;
-                    if (suggestion.startsWith("["))
-                        suggestion = suggestion.substring(1);
-                    if (suggestion.endsWith("]")  &&  !suggestion.contains("["))
-                        suggestion = suggestion.substring(0, suggestion.length()-1);
-                    if (suggestion.endsWith(","))
-                        suggestion = suggestion.substring(0, suggestion.length()-1);
-                    pvs.add(suggestion);
+                final String dropped = db.getString();
+                try
+                {
+                    final List<String> pvs = DroppedPVNameParser.parseDroppedPVs(dropped);
+                    if (pvs.size() > 0)
+                        Platform.runLater(() -> lst.droppedNames(pvs));
                 }
-                if (pvs.size() > 0)
-                    Platform.runLater(() -> lst.droppedNames(pvs));
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot parse PV names from dropped text " + dropped, ex);
+                }
             }
             else if (db.hasFiles())
             {
