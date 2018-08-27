@@ -101,6 +101,8 @@ public class FilterUnitTest
         System.err.println("Received " + updates.get() + " updates");
 
         filter.stop();
+        PVPool.releasePV(y);
+        PVPool.releasePV(x);
     }
 
     @Test(timeout=8000)
@@ -139,6 +141,8 @@ public class FilterUnitTest
         assertThat(updates.get(), equalTo(received_updates + 1));
 
         filter.stop();
+
+        PVPool.releasePV(x);
     }
 
     @Test(timeout=50000)
@@ -166,4 +170,11 @@ public class FilterUnitTest
 
         filter.stop();
     }
+//
+//    @Test
+//    public void keepRunning() throws Exception
+//    {
+//        while (true)
+//            testFilter();
+//    }
 }
