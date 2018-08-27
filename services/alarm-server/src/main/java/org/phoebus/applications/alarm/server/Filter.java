@@ -114,11 +114,13 @@ public class Filter
     {
         for (int i=0; i<pvs.length; ++i)
         {
-            // Filter on 'last', i.e. with some latency,
-            // but never ignoring the last known value.
+            // Pass value update ASAP,
+            // except when there are multiple rapid updates,
+            // in which case the latest is passed after some time.
+            // Pass the last known value on close.
             pvs[i] = PVPool.getPV(variables[i].getName());
             flows[i] = pvs[i].onValueEvent()
-                             .throttleLast(500, TimeUnit.MILLISECONDS)
+                             .throttleLatest(500, TimeUnit.MILLISECONDS, true)
                              .subscribe(new FilterPVhandler(i));
         }
     }
@@ -141,6 +143,7 @@ public class Filter
         // Only update on _change_, not whenever inputs send an update
         synchronized (this)
         {
+            logger.log(Level.FINER, () -> "Filter avaluates to " + value + " (previous value " + previous_value + ") on " + Thread.currentThread());
             if (previous_value == value)
                 return;
             previous_value  = value;

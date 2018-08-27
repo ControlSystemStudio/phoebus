@@ -70,6 +70,8 @@ public class FilterUnitTest
         filter.start();
 
         // Await initial value
+        // FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://y = 2.0
+        // --> Filter evaluates to 3.0
         synchronized (this)
         {
             while (last_value != 3.0)
@@ -81,6 +83,15 @@ public class FilterUnitTest
         x.write(4.0);
         // Definite update for both values: Anything from 2 to 4
         y.write(6.0);
+
+        // One unit test execution saw this result:
+        // FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://x = 4.0
+        // FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://y = 6.0
+        // --> FilterPVhandler was called for the 2 PV updates
+        // Filter evaluates to 10.0
+        // Filter evaluates to 6.0
+        // --> FilterPVhandler is called on different threads,
+        //     and thus the evaluate calls happen out of order..
 
         synchronized (this)
         {
