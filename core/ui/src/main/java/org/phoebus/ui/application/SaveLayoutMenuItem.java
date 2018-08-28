@@ -85,6 +85,8 @@ class SaveLayoutMenuItem extends MenuItem
     {
         final List<Stage> stages = DockStage.getDockStages();
         DialogHelper.positionDialog(dialog, stages.get(0).getScene().getRoot(), -100, -100);
+        dialog.setResizable(true);
+        dialog.getDialogPane().setMinSize(280, 160);
     }
 
     /**
