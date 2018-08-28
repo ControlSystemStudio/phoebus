@@ -213,9 +213,11 @@ public class DockItemWithInput extends DockItem
 
         final String text = MessageFormat.format("The {0} has been modified.\n\nSave before closing?", getLabel());
         final Alert prompt = new Alert(AlertType.NONE,
-                                      text,
-                                      ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
+                                       text,
+                                       ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
         prompt.setTitle("Save File");
+        prompt.getDialogPane().setMinSize(300, 100);
+        prompt.setResizable(true);
         DialogHelper.positionDialog(prompt, getTabPane(), -200, -100);
         final ButtonType result = prompt.showAndWait().orElse(ButtonType.CANCEL);
 
