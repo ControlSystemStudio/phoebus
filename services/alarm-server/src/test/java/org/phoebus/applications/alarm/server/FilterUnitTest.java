@@ -30,6 +30,7 @@ public class FilterUnitTest
     private AtomicInteger updates = new AtomicInteger();
 
     // Most recent value from filter.
+    // SYNC on this
     private double last_value = Double.NaN;
 
     @Before
@@ -84,14 +85,18 @@ public class FilterUnitTest
         // Definite update for both values: Anything from 2 to 4
         y.write(6.0);
 
-        // One unit test execution saw this result:
-        // FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://x = 4.0
-        // FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://y = 6.0
+        // Before the Filter.TIMER was added, occasionally saw this:
+        // FilterPVhandler accept FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://x = 4.0
+        // FilterPVhandler accept FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://y = 6.0
+        // Filter evaluate FINER: Filter evaluates to 6.0 (previous value 3.0) on Thread[RxComputationThreadPool-4,5,main]
+        // Filter evaluate FINER: Filter evaluates to 10.0 (previous value 6.0) on Thread[RxComputationThreadPool-5,5,main]
         // --> FilterPVhandler was called for the 2 PV updates
+        //     and Filter.evaluate() computed in expected order
+
         // Filter evaluates to 10.0
         // Filter evaluates to 6.0
         // --> FilterPVhandler is called on different threads,
-        //     and thus the evaluate calls happen out of order..
+        //     and thus the evaluate -> listener calls happen out of order..
 
         synchronized (this)
         {
@@ -170,7 +175,7 @@ public class FilterUnitTest
 
         filter.stop();
     }
-//
+
 //    @Test
 //    public void keepRunning() throws Exception
 //    {
