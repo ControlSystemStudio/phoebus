@@ -10,6 +10,7 @@ package org.phoebus.util.indexname;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -71,6 +72,24 @@ public class IndexNameHelperTest
         {
             assertEquals("Date Span Value is null.", ex.getMessage());
         }
+    }
+    
+    @Test
+    public void dateSpanValueZero() throws Exception
+    {
+        IndexNameHelper inh = new IndexNameHelper("test_index", "y", 0);
+        String indexName = inh.getIndexName(Instant.now());
+        
+        assertEquals("test_index", indexName);
+    }
+    
+    @Test
+    public void dateSpanValueLessThanZero() throws Exception
+    {
+        IndexNameHelper inh = new IndexNameHelper("test_index", "y", -5);
+        String indexName = inh.getIndexName(Instant.now());
+        
+        assertEquals("test_index", indexName);
     }
     
     @Test 
