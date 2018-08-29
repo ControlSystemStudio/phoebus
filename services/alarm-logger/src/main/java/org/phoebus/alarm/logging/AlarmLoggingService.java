@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -42,6 +43,8 @@ public class AlarmLoggingService {
         System.out.println("-es_port  9200                           - elastic server port");
         System.out.println("-bootstrap.servers localhost:9092        - Kafka server address");
         System.out.println("-properties /opt/alarm_logger.propertier - Properties file to be used (instead of command line arguments)");
+        System.out.println("-date_span_units M                       - Date units for the time based index to span.");
+        System.out.println("-date_span_value 1                       - Date value for the time based index to span.");
         System.out.println("-logging logging.properties              - Load log settings");
         System.out.println();
     }
@@ -114,7 +117,24 @@ public class AlarmLoggingService {
                     iter.remove();
                     properties.put("bootstrap.servers",iter.next());
                     iter.remove();
-                } else if (cmd.equals("-logging"))
+                }
+                else if (cmd.equals("-date_span_units"))
+                {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -date_span_units unit type");
+                    iter.remove();
+                    properties.put("date_span_units",iter.next());
+                    iter.remove();
+                }
+                else if (cmd.equals("-date_span_value"))
+                {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -date_span_value amount");
+                    iter.remove();
+                    properties.put("date_span_value",iter.next());
+                    iter.remove();
+                }
+                else if (cmd.equals("-logging"))
                 {
                     if (! iter.hasNext())
                         throw new Exception("Missing -logging file name");
@@ -147,12 +167,19 @@ public class AlarmLoggingService {
         })) {
             logger.info("found elastic indexes for all alarm topics");
         } else {
-            logger.severe("ERROR: elastic index missing for the configured topics.");
+            logger.warning("WARNING: elastic index missing for the configured topics.");
         }
 
         // Start a new stream consumer for each topic
         topicNames.forEach(topic -> {
-            Scheduler.execute(new AlarmStateLogger(topic));
+            try
+            {
+                Scheduler.execute(new AlarmStateLogger(topic));
+            } 
+            catch (Exception ex)
+            {
+                logger.log(Level.SEVERE, "Creation of alarm logging service for '" + topic + "' failed", ex);
+            }
         });
 
         // Wait in command shell until closed

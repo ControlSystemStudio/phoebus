@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +30,7 @@ import org.apache.kafka.streams.state.Stores;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
+import org.phoebus.util.indexname.IndexNameHelper;
 
 public class AlarmStateLogger implements Runnable {
 
@@ -38,9 +40,12 @@ public class AlarmStateLogger implements Runnable {
     
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
-    public AlarmStateLogger(String topic) {
+    private IndexNameHelper indexNameHelper;
+
+    public AlarmStateLogger(String topic) throws Exception {
         super();
         this.topic = topic;
+
         MessageParser<AlarmStateMessage> messageParser = new MessageParser<AlarmStateMessage>(AlarmStateMessage.class);
         alarmStateMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
     }
@@ -120,9 +125,22 @@ public class AlarmStateLogger implements Runnable {
             }
         }, topic+"_state_store");
 
+        final String indexDateSpanUnits = props.getProperty("date_span_units");
+        final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
+
+        try
+        {
+            indexNameHelper = new IndexNameHelper(topic + "_alarms", indexDateSpanUnits, indexDateSpanValue);
+        } 
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Time based index creation failed.", ex);
+        }
+
         // Commit to elastic
         transformedAlarms.foreach((k, v) -> {
-            ElasticClientHelper.getInstance().indexAlarmStateDocument(topic + "_alarms", v);
+            String topic_name = indexNameHelper.getIndexName(v.getMessage_time());
+            ElasticClientHelper.getInstance().indexAlarmStateDocument(topic_name, v);
         });
         final KafkaStreams streams = new KafkaStreams(builder.build(), props);
         final CountDownLatch latch = new CountDownLatch(1);
