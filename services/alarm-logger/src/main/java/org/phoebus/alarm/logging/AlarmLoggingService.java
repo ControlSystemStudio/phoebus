@@ -129,7 +129,7 @@ public class AlarmLoggingService {
                 else if (cmd.equals("-date_span_value"))
                 {
                     if (!iter.hasNext())
-                        throw new Exception("Missing -index_span_value amount");
+                        throw new Exception("Missing -date_span_value amount");
                     iter.remove();
                     properties.put("date_span_value",iter.next());
                     iter.remove();
