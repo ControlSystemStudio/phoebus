@@ -125,12 +125,15 @@ public class AlarmStateLogger implements Runnable {
             }
         }, topic+"_state_store");
 
-        final String indexDateSpanUnit = props.getProperty("date_span_units");
+        final String indexDateSpanUnits = props.getProperty("date_span_units");
         final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
 
+        logger.info("Index " + topic + "* using date span units of '" + indexDateSpanUnits + "'.");
+        logger.info("Index " + topic + "* using date span value of '" + indexDateSpanValue + "'.");
+        
         try
         {
-            indexNameHelper = new IndexNameHelper(topic + "_alarms", indexDateSpanUnit, indexDateSpanValue);
+            indexNameHelper = new IndexNameHelper(topic + "_alarms", indexDateSpanUnits, indexDateSpanValue);
         } 
         catch (Exception ex)
         {

@@ -118,20 +118,20 @@ public class AlarmLoggingService {
                     properties.put("bootstrap.servers",iter.next());
                     iter.remove();
                 }
-                else if (cmd.equals("-index_span_units"))
+                else if (cmd.equals("-date_span_units"))
                 {
                     if (!iter.hasNext())
                         throw new Exception("Missing -index_span_units unit type");
                     iter.remove();
-                    properties.put("index_span_unit",iter.next());
+                    properties.put("date_span_units",iter.next());
                     iter.remove();
                 }
-                else if (cmd.equals("-index_span_value"))
+                else if (cmd.equals("-date_span_value"))
                 {
                     if (!iter.hasNext())
                         throw new Exception("Missing -index_span_value amount");
                     iter.remove();
-                    properties.put("index_span_value",iter.next());
+                    properties.put("date_span_value",iter.next());
                     iter.remove();
                 }
                 else if (cmd.equals("-logging"))
@@ -167,7 +167,7 @@ public class AlarmLoggingService {
         })) {
             logger.info("found elastic indexes for all alarm topics");
         } else {
-            logger.severe("ERROR: elastic index missing for the configured topics.");
+            logger.warning("WARNING: elastic index missing for the configured topics.");
         }
 
         // Start a new stream consumer for each topic
