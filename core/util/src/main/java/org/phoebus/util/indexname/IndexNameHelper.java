@@ -37,8 +37,8 @@ public class IndexNameHelper
     /**
      * 
      * @param baseIndexName : Index base name that the date will be appended to.
-     * @param dateRangeUnit : The unit of the date span. Years (Y/y), Months (M/m), Weeks (W/w), and Days (D/d) are supported.
-     * @param dateRangeValue : The integer number of date range units that each index will span.
+     * @param dateSpanUnit : The unit of the date span. Years (Y/y), Months (M/m), Weeks (W/w), and Days (D/d) are supported.
+     * @param dateSpanValue : The integer number of date range units that each index will span.
      * @throws Exception : If any parameters are invalid or null.
      */
     public IndexNameHelper(final String baseIndexName, final String dateSpanUnit, final Integer dateSpanValue) throws Exception
@@ -64,12 +64,15 @@ public class IndexNameHelper
     }
     
     /**
-     * Return a time based index name for the given time.
+     * Return a time based index name for the given time. If the dateSpanValue is 0 then returns the base index name.
      * @param time 
      * @return index_name
      */
     public String getIndexName(Instant time)
     {
+        if (dateSpanValue < 1)
+            return baseIndexName;
+        
         if (null != time && (null == spanEnd || time.isAfter(spanEnd)))
         {
             setDateSpanStartAndEnd(time);
