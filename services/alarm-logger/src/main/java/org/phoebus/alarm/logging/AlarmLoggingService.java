@@ -44,7 +44,7 @@ public class AlarmLoggingService {
         System.out.println("-bootstrap.servers localhost:9092        - Kafka server address");
         System.out.println("-properties /opt/alarm_logger.propertier - Properties file to be used (instead of command line arguments)");
         System.out.println("-date_span_units M                       - Date units for the time based index to span.");
-        System.out.println("-date_span_value 1                       - Date amount for the time based index to span.");
+        System.out.println("-date_span_value 1                       - Date value for the time based index to span.");
         System.out.println("-logging logging.properties              - Load log settings");
         System.out.println();
     }
