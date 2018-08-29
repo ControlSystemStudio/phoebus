@@ -20,6 +20,13 @@ public interface ProposalProvider
 
     /** Get proposals
      *
+     *  <p>Implementation should handle interruption.
+     *
+     *  <p>If the user enters another text while
+     *  a previously submitted lookup is still executing,
+     *  the PropsalService will interrupt the ongoing lookup
+     *  and start a new lookup for the user's most recent text.
+     *
      *  @param text Text entered by user
      *  @return {@link Proposal}s that could be applied to the text
      */

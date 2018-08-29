@@ -42,6 +42,9 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
     /** Cell colors changed */
     private final DirtyFlag dirty_cell_colors = new DirtyFlag(false);
 
+    /** Selection changed programmatically */
+    private final DirtyFlag dirty_set_selection = new DirtyFlag(false);
+
     /** Most recent column headers */
     private volatile List<String> headers = Collections.emptyList();
 
@@ -146,6 +149,7 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
         model_widget.propFont().addUntypedPropertyListener(listener);
         model_widget.propToolbar().addUntypedPropertyListener(listener);
         model_widget.propRowSelectionMode().addUntypedPropertyListener(listener);
+        model_widget.runtimePropSetSelection().addPropertyListener(this::setSelection);
 
         columnsChanged(model_widget.propColumns(), null, model_widget.propColumns().getValue());
         model_widget.propColumns().addPropertyListener(this::columnsChanged);
@@ -170,6 +174,12 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
 
         final VTable selection = new SelectionVTable(headers, rows, cols, columns);
         model_widget.runtimePropSelection().setValue(selection);
+    }
+
+    private void setSelection(final WidgetProperty<List<Integer>> property, final List<Integer> old_value, final List<Integer> new_value)
+    {
+        dirty_set_selection.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     /** Location, toolbar changed */
@@ -311,5 +321,7 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
             jfx_node.setData(data);
         if (dirty_cell_colors.checkAndClear())
             jfx_node.setCellColors(cell_colors);
+        if (dirty_set_selection.checkAndClear())
+            jfx_node.setSelection(model_widget.runtimePropSetSelection().getValue());
     }
 }
