@@ -13,6 +13,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.csstudio.trends.databrowser3.Activator;
@@ -34,6 +36,7 @@ import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
 import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.docking.DockPane;
@@ -67,6 +70,8 @@ public class Perspective extends SplitPane
                                 SHOW_EXPORT = "show_export",
                                 SHOW_WAVEFORM = "show_waveform";
 
+    private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(Perspective.class);
+
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
     private SearchView search;
@@ -87,10 +92,19 @@ public class Perspective extends SplitPane
         property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
         properties_tab = new Tab("Properties", property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
-        properties_tab.setOnClosed(event -> autoMinimizeBottom());
+        properties_tab.setOnClosed(event ->
+        {
+            // Update pref that properties were last closed
+            prefs.putBoolean(SHOW_PROPERTIES, false);
+            autoMinimizeBottom();
+        });
 
         if (! minimal)
-            bottom_tabs.getTabs().setAll(properties_tab);
+        {
+            // Check preferences
+            if (prefs.getBoolean(SHOW_PROPERTIES, true))
+                bottom_tabs.getTabs().setAll(properties_tab);
+        }
 
         plot_and_tabs.setOrientation(Orientation.VERTICAL);
         plot_and_tabs.setDividerPositions(0.8);
@@ -137,7 +151,12 @@ public class Perspective extends SplitPane
         show_search.setOnAction(event -> showSearchTab());
 
         final MenuItem show_properties = new MenuItem(Messages.OpenPropertiesView, Activator.getIcon("properties"));
-        show_properties.setOnAction(event -> showBottomTab(properties_tab));
+        show_properties.setOnAction(event ->
+        {
+            // Update pref that properties were last opened
+            prefs.putBoolean(SHOW_PROPERTIES, true);
+            showBottomTab(properties_tab);
+        });
 
         final MenuItem show_export = new MenuItem(Messages.OpenExportView, Activator.getIcon("export"));
         show_export.setOnAction(event ->
@@ -445,6 +464,14 @@ public class Perspective extends SplitPane
 
     public void dispose()
     {
+        try
+        {
+            prefs.flush();
+        }
+        catch (BackingStoreException ex)
+        {
+            logger.log(Level.WARNING, "Unable to flush preferences", ex);
+        }
         plot.dispose();
         controller.stop();
     }
