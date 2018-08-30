@@ -716,6 +716,45 @@ public class PhoebusApplication extends Application {
         final AppResourceDescriptor application = findApplication(resource, prompt);
         if (application == null)
             return;
+
+        final String query = resource.getQuery();
+
+        if (query != null)
+        {
+            // Query could contain _anything_, to be used by the application.
+            // Perform a simplistic search for "target=window" or "target=pane_name".
+            final int i = query.indexOf("target=");
+            if (i >= 0)
+            {
+                int end = query.indexOf('&', i+7);
+                if (end < 0)
+                    end = query.length();
+                final String target = query.substring(i+7, end);
+                if (target.equals("window"))
+                {
+                    // Open new Stage in which this app will be opened
+                    final Stage new_stage = new Stage();
+                    DockStage.configureStage(new_stage);
+                    new_stage.show();
+                }
+                else
+                {
+                    // Should the new panel open in a specific, named pane?
+                    final DockPane existing = DockStage.getDockPaneByName(target);
+                    if (existing != null)
+                        DockPane.setActiveDockPane(existing);
+                    else
+                    {
+                        // Open new Stage with pane for that name
+                        final Stage new_stage = new Stage();
+                        DockStage.configureStage(new_stage);
+                        new_stage.show();
+                        DockPane.getActiveDockPane().setName(target);
+                    }
+                }
+            }
+        }
+
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
         application.create(resource);
     }
