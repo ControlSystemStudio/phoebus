@@ -30,6 +30,7 @@ public class FilterUnitTest
     private AtomicInteger updates = new AtomicInteger();
 
     // Most recent value from filter.
+    // SYNC on this
     private double last_value = Double.NaN;
 
     @Before
@@ -70,6 +71,8 @@ public class FilterUnitTest
         filter.start();
 
         // Await initial value
+        // FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://y = 2.0
+        // --> Filter evaluates to 3.0
         synchronized (this)
         {
             while (last_value != 3.0)
@@ -82,6 +85,19 @@ public class FilterUnitTest
         // Definite update for both values: Anything from 2 to 4
         y.write(6.0);
 
+        // Before the Filter.TIMER was added, occasionally saw this:
+        // FilterPVhandler accept FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://x = 4.0
+        // FilterPVhandler accept FINER: Filter 'loc://x(1.0)' + 'loc://y(2.0)': loc://y = 6.0
+        // Filter evaluate FINER: Filter evaluates to 6.0 (previous value 3.0) on Thread[RxComputationThreadPool-4,5,main]
+        // Filter evaluate FINER: Filter evaluates to 10.0 (previous value 6.0) on Thread[RxComputationThreadPool-5,5,main]
+        // --> FilterPVhandler was called for the 2 PV updates
+        //     and Filter.evaluate() computed in expected order
+
+        // Filter evaluates to 10.0
+        // Filter evaluates to 6.0
+        // --> FilterPVhandler is called on different threads,
+        //     and thus the evaluate -> listener calls happen out of order..
+
         synchronized (this)
         {
             while (last_value != 10.0)
@@ -90,6 +106,8 @@ public class FilterUnitTest
         System.err.println("Received " + updates.get() + " updates");
 
         filter.stop();
+        PVPool.releasePV(y);
+        PVPool.releasePV(x);
     }
 
     @Test(timeout=8000)
@@ -128,6 +146,8 @@ public class FilterUnitTest
         assertThat(updates.get(), equalTo(received_updates + 1));
 
         filter.stop();
+
+        PVPool.releasePV(x);
     }
 
     @Test(timeout=50000)
@@ -155,4 +175,11 @@ public class FilterUnitTest
 
         filter.stop();
     }
+
+//    @Test
+//    public void keepRunning() throws Exception
+//    {
+//        while (true)
+//            testFilter();
+//    }
 }

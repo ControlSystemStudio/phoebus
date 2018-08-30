@@ -9,12 +9,16 @@ package org.phoebus.applications.alarm.server;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.vtype.VType;
@@ -40,6 +44,9 @@ import io.reactivex.disposables.Disposable;
 @SuppressWarnings("nls")
 public class Filter
 {
+    /** Timer shared by all filters */
+    private static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("FilterEvaluation"));
+
     /** Listener to notify when the filter computes a new value */
     final private Consumer<Double> listener;
 
@@ -56,7 +63,10 @@ public class Filter
 
     private final Disposable[] flows;
 
-    private double previous_value = Double.NaN;
+    private volatile double current_value = Double.NaN;
+
+    /** Is a call to evaluate() pending? */
+    private final AtomicBoolean evaluation_pending = new AtomicBoolean();
 
     private class FilterPVhandler implements io.reactivex.functions.Consumer<VType>
     {
@@ -81,7 +91,10 @@ public class Filter
                 logger.log(Level.FINER, () -> { return "Filter " + formula.getFormula() + ": " + pvs[index].getName() + " = " + number; });
                 variables[index].setValue(number);
             }
-            evaluate();
+
+            // If an evaluation has not already been scheduled, do it
+            if (! evaluation_pending.getAndSet(true))
+                TIMER.schedule(Filter.this::evaluate, 100, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -114,11 +127,13 @@ public class Filter
     {
         for (int i=0; i<pvs.length; ++i)
         {
-            // Filter on 'last', i.e. with some latency,
-            // but never ignoring the last known value.
+            // Pass value update ASAP,
+            // except when there are multiple rapid updates,
+            // in which case the latest is passed after some time.
+            // Pass the last known value on close.
             pvs[i] = PVPool.getPV(variables[i].getName());
             flows[i] = pvs[i].onValueEvent()
-                             .throttleLast(500, TimeUnit.MILLISECONDS)
+                             .throttleLatest(500, TimeUnit.MILLISECONDS, true)
                              .subscribe(new FilterPVhandler(i));
         }
     }
@@ -137,14 +152,18 @@ public class Filter
     /** Evaluate filter formula with current input values */
     private void evaluate()
     {
+        evaluation_pending.set(false);
+
         final double value = formula.eval();
+
+        // This code is executed on the single TIMER thread, i.e. serialized
+        // No need to synchronize on current_value.
         // Only update on _change_, not whenever inputs send an update
-        synchronized (this)
-        {
-            if (previous_value == value)
-                return;
-            previous_value  = value;
-        }
+        logger.log(Level.FINER, () -> "Filter evaluates to " + value + " (previous value " + current_value + ") on " + Thread.currentThread());
+        if (current_value == value)
+            return;
+
+        current_value  = value;
         listener.accept(value);
     }
 
