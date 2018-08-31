@@ -37,7 +37,14 @@
             <Tooltip text="Enter a base directory"/>
           </tooltip>
         </TextField>
-        <Button maxHeight="-Infinity" minHeight="-Infinity" mnemonicParsing="false" onAction="#browseNewRoot" prefHeight="25.0" text="Browse">
+        <Button maxHeight="-Infinity" minHeight="-Infinity" mnemonicParsing="false" onAction="#browseNewRoot" prefHeight="25.0">
+          <graphic>
+            <ImageView fitHeight="16.0" fitWidth="16.0">
+              <image>
+                <Image url="/icons/fldr_obj.png" />
+              </image>
+            </ImageView>
+          </graphic>
           <tooltip>
             <Tooltip text="Select a base directory"/>
           </tooltip>
