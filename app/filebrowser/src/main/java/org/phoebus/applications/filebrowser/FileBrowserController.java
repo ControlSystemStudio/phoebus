@@ -348,6 +348,12 @@ public class FileBrowserController {
         return treeView.getRoot().getValue();
     }
 
+
+    @FXML
+    public void home() {
+        setRoot(FileBrowserApp.default_root);
+    }
+
     @FXML
     public void browseNewRoot() {
         DirectoryChooser directoryChooser = new DirectoryChooser();

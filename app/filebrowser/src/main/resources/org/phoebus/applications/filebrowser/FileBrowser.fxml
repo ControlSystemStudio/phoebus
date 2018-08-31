@@ -9,25 +9,47 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
+<!-- home.png icon made by http://www.freepik.com from www.flaticon.com, http://creativecommons.org/licenses/by/3.0 -->
 <VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.filebrowser.FileBrowserController">
-   <children>
-      <HBox spacing="5.0">
-         <children>
-          <Label maxHeight="-Infinity" minHeight="-Infinity" prefHeight="25.0" text="Root Dir: " />
-          <TextField fx:id="path" maxHeight="-Infinity" minHeight="-Infinity" onAction="#setNewRoot" prefHeight="25.0" HBox.hgrow="ALWAYS" />
-            <Button maxHeight="-Infinity" minHeight="-Infinity" mnemonicParsing="false" onAction="#browseNewRoot" prefHeight="25.0" text="Browse" />
-         </children>
-         <VBox.margin>
-            <Insets bottom="5.0" />
-         </VBox.margin>
-      </HBox>
+  <children>
+    <HBox spacing="5.0">
+      <children>
+        <Button onAction="#home" prefHeight="25.0">
+          <graphic>
+            <ImageView fitHeight="16.0" fitWidth="16.0">
+              <image>
+                <Image url="/icons/home.png" />
+              </image>
+            </ImageView>
+          </graphic>
+          <tooltip>
+            <Tooltip text="Revert to default directory"/>
+          </tooltip>
+        </Button>
+        <TextField fx:id="path" maxHeight="-Infinity" minHeight="-Infinity" onAction="#setNewRoot" prefHeight="25.0" HBox.hgrow="ALWAYS">
+          <tooltip>
+            <Tooltip text="Enter a base directory"/>
+          </tooltip>
+        </TextField>
+        <Button maxHeight="-Infinity" minHeight="-Infinity" mnemonicParsing="false" onAction="#browseNewRoot" prefHeight="25.0" text="Browse">
+          <tooltip>
+            <Tooltip text="Select a base directory"/>
+          </tooltip>
+        </Button>
+      </children>
+      <VBox.margin>
+        <Insets bottom="5.0" />
+      </VBox.margin>
+    </HBox>
     <TreeView fx:id="treeView" onContextMenuRequested="#createContextMenu" onMouseClicked="#handleMouseClickEvents" prefHeight="280.0" prefWidth="350.0" VBox.vgrow="ALWAYS" />
-   </children>
-   <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-   </padding>
+  </children>
+  <padding>
+    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+  </padding>
 </VBox>
