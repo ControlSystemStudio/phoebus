@@ -537,6 +537,9 @@ public class Controller
         final List<Trace<Instant>> traces = new ArrayList<>();
         for (Trace<Instant> trace : plot.getPlot().getTraces())
             traces.add(trace);
+
+        // Initialize scroll step
+        plot.getPlot().setScrollStep(model.getScrollStep());
         createUpdateTask();
 
         model.start();
