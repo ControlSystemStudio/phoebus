@@ -44,7 +44,9 @@ public interface AppResourceDescriptor extends AppDescriptor {
      *
      * @param resource Resource to check
      * @return <code>true</code> if this application can open the resource
+     * @deprecated Not used. Remove.
      */
+    @Deprecated
     public default boolean canOpenResource(String resource) {
         return true;
     }
