@@ -112,6 +112,21 @@ To run the Phoebus application:
 * In the top right of the IDE, click the green play button
 
 
+## Developing with NetBeans
+
+First download [NetBeans 9](https://netbeans.apache.org/download/nb90/nb90.html),
+then the target platform as described above. After running NetBeans, select
+**Tools** ➜ **Java Platforms** and make sure that a Java 9 or 10 platform is set as
+the default one.
+
+To open the Maven project Select the **File** ➜ **Open Project…** and select the
+*phoebus* root project folder.
+
+On the **Projects** view right-click on the *phoebus (parent)* node and select the
+**Clean and Build** menu item. To build without the unit test, right-click the
+*phoebus (parent)* node and select **Run Maven** ➜ **Skip Tests**.
+
+
 ## Complete Distribution, including manual
 
     # Obtain sources for Documentation and Product
