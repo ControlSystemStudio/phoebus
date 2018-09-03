@@ -13,7 +13,10 @@ import static org.junit.Assert.assertNull;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Locale;
+import java.util.TimeZone;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -22,6 +25,14 @@ import org.junit.Test;
  */
 public class IndexNameHelperTest
 {
+    @BeforeClass
+    public static void setup()
+    {
+        // Perform test in known timezone and Locale
+        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
+        Locale.setDefault(Locale.ROOT);
+    }
+
     @Test
     public void baseIndexNameNull()
     {
