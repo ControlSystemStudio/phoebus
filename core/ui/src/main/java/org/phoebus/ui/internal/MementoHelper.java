@@ -348,6 +348,16 @@ public class MementoHelper
             for (Node item : items)
                 if (! closePaneOrSplit(item))
                     return false;
+
+            // All items have been closed, which triggers auto-merge.
+            // But there could have been empty panes that are not closed
+            // and thus not triggering a merge..
+            // TODO Merge
+            if (split.getItems().size() > 0)
+            {
+                System.out.println("SplitDock still has items: " + split + ", forcing merge");
+                split.merge();
+            }
         }
         else
         {

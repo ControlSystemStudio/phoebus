@@ -106,7 +106,7 @@ public class SplitDock extends SplitPane
      *  being an empty DockPane,
      *  replace ourself in the parent with that one non-empty item.
      */
-    void merge()
+    public void merge()
     {
         final DockPane empty_dock = findEmptyDock();
         if (empty_dock == null)
