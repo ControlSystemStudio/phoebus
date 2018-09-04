@@ -807,12 +807,10 @@ public class PhoebusApplication extends Application {
         if (! MementoHelper.closePaneOrSplit(node))
             return;
 
-        // System.out.println("Remaining stages:");
-        // for (Stage stage : DockStage.getDockStages())
-        //    DockStage.dump(stage);
-
-        // Load the specified memento file.
-        restoreState(memento);
+        // Allow handlers for tab changes etc. to run as everything closed.
+        
+        // On next UI tick, load content from memento file.
+        Platform.runLater(() -> restoreState(memento));
     }
 
     /** @param monitor {@link JobMonitor}
