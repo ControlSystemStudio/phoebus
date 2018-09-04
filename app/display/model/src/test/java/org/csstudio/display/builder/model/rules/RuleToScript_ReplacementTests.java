@@ -52,6 +52,15 @@ public class RuleToScript_ReplacementTests
         assertThat(RuleToScript.javascriptToPythonLogic("x != y"), equalTo("x != y"));
         assertThat(RuleToScript.javascriptToPythonLogic("!(x+y > 1)"), equalTo(" not (x+y > 1)"));
         assertThat(RuleToScript.javascriptToPythonLogic("!(a==b) && x != \"!\""), equalTo(" not (a==b)  and  x != \"!\""));
+
+        // In this nonsense input, the '!' is replaced by ' not '
+        assertThat(RuleToScript.javascriptToPythonLogic("Hello World!"), equalTo("Hello World not "));
+
+        // Inside quotes, the '!' is preserved
+        assertThat(RuleToScript.javascriptToPythonLogic("\"Hello World !\""), equalTo("\"Hello World !\""));
+
+        // Same for single quotes
+        assertThat(RuleToScript.javascriptToPythonLogic("'Hello World !'"), equalTo("'Hello World !'"));
     }
 
     @Test

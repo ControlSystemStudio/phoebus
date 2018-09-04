@@ -103,11 +103,25 @@ public class RuleToScript
         for (int i=0; i<len; ++i)
         {
             // Skip quoted text, ignoring escaped quotes
-            if (text.charAt(i) == '"'  &&  (len == 0  ||  text.charAt(i-1) != '\\'))
+            if (text.charAt(i) == '"'  &&  (i == 0  ||  text.charAt(i-1) != '\\'))
             {
                 result.append(text.charAt(i));
                 ++i;
                 while (text.charAt(i) != '"' || text.charAt(i-1) == '\\')
+                {
+                    result.append(text.charAt(i));
+                    ++i;
+                    // Unmatched quotes
+                    if (i >= len)
+                        return text;
+                }
+                result.append(text.charAt(i));
+            } // Same for single quotes
+            else if (text.charAt(i) == '\''  &&  (i == 0  ||  text.charAt(i-1) != '\\'))
+            {
+                result.append(text.charAt(i));
+                ++i;
+                while (text.charAt(i) != '\'' || text.charAt(i-1) == '\\')
                 {
                     result.append(text.charAt(i));
                     ++i;
