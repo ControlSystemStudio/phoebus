@@ -16,6 +16,7 @@ import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ReadOnlyTextCell;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -77,6 +78,7 @@ public class OpenAbout implements MenuEntry
 
         final TableColumn<List<String>, String> value_col = new TableColumn<>("Value");
         value_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(1)));
+        value_col.setCellFactory(col -> new ReadOnlyTextCell<>());
         info_table.getColumns().add(value_col);
 
         dialog.getDialogPane().setContent(info_table);

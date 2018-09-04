@@ -461,6 +461,7 @@ public class PhoebusApplication extends Application {
                         memento_files.add(filename);
                         // Use just the file name w/o ".memento" for the menu entry
                         final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                        menuItem.setMnemonicParsing(false);
                         menuItem.setOnAction(event -> startLayoutReplacement(file));
                         // Add the item to the load layout menu.
                         menuItemList.add(menuItem);
@@ -806,12 +807,10 @@ public class PhoebusApplication extends Application {
         if (! MementoHelper.closePaneOrSplit(node))
             return;
 
-        // System.out.println("Remaining stages:");
-        // for (Stage stage : DockStage.getDockStages())
-        //    DockStage.dump(stage);
-
-        // Load the specified memento file.
-        restoreState(memento);
+        // Allow handlers for tab changes etc. to run as everything closed.
+        
+        // On next UI tick, load content from memento file.
+        Platform.runLater(() -> restoreState(memento));
     }
 
     /** @param monitor {@link JobMonitor}
@@ -860,6 +859,12 @@ public class PhoebusApplication extends Application {
         if (memento == null)
             return any;
 
+        
+        System.out.println("\nRestore:");
+        
+        for (Stage stage : DockStage.getDockStages())
+            DockStage.dump(stage);
+        
         try
         {
             // Global settings

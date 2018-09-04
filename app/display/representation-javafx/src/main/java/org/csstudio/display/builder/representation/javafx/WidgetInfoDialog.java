@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import org.phoebus.vtype.Alarm;
 import org.phoebus.vtype.AlarmSeverity;
 import org.phoebus.vtype.VNumberArray;
@@ -30,10 +31,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -43,30 +42,6 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class WidgetInfoDialog extends Dialog<Boolean>
 {
-    /** Table cell that allows copying the value, but can't edit */
-    private static class ReadOnlyTextCell<T> extends TableCell<T, String>
-    {
-        private final TextField text = new TextField();
-
-        public ReadOnlyTextCell()
-        {
-            text.setEditable(false);
-        }
-
-        @Override
-        protected void updateItem(String item, boolean empty)
-        {
-            super.updateItem(item, empty);
-            if (empty)
-                setGraphic(null);
-            else
-            {
-                text.setText(item);
-                setGraphic(text);
-            }
-        }
-    }
-
     public static class NameStateValue
     {
         public final String name;
