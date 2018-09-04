@@ -162,21 +162,16 @@ public class SplitDock extends SplitPane
      */
     private DockPane findEmptyDock()
     {
-        if (getItems().size() != 2)
-        {
-            logger.log(Level.WARNING, "Expected left and right sections, got " + getItems());
-            return null;
-        }
-        final Node first = getItems().get(0);
-        final Node second = getItems().get(1);
         // If one of them is 'fixed', don't bother checking the other:
         // Need to keep this SplitDock
-        if (isFixed(first) ||  isFixed(second))
-            return null;
-        if (isEmptyDock(first))
-              return (DockPane) first;
-        if (isEmptyDock(second))
-            return (DockPane) second;
+        for (Node item : getItems())
+            if (isFixed(item))
+                return null;
+
+        // Find the first empty DockPane
+        for (Node item : getItems())
+            if (isEmptyDock(item))
+                  return (DockPane) item;
         return null;
     }
 
