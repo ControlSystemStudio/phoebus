@@ -56,6 +56,7 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class SimpleCreateController {
 
+    private static final String LAST_TO = "last_to";
     private static final String LAST_FROM = "last_from";
 
     final Preferences prefs = PhoebusPreferenceService.userNodeForClass(EmailApp.class);
@@ -177,6 +178,7 @@ public class SimpleCreateController {
             Transport.send(message);
             logger.info("Sent message successfully....");
 
+            prefs.put(LAST_TO, txtTo.getText());
             prefs.put(LAST_FROM, txtFrom.getText());
 
             Stage stage = (Stage) btnSend.getScene().getWindow();
@@ -190,6 +192,7 @@ public class SimpleCreateController {
     @FXML
     public void initialize() {
 
+        txtTo.setText(prefs.get(LAST_TO, ""));
         txtFrom.setText(prefs.get(LAST_FROM, ""));
 
         txtFrom.setPromptText("Enter your email address");
@@ -230,6 +233,22 @@ public class SimpleCreateController {
         simpleTextVBox.setDividerPositions(0.6, 0.9);
 
         attachmentTabs.getTabs().addAll(att_images, att_files);
+
+        // Set initial focus
+        // Don't check subject/title:
+        // It's OK to leave that empty,
+        // and it's usually set by the calling code via setTitle,
+        // i.e. it's empty right now but will soon be set.
+        // User may change, but doesn't have to.
+        // Body is most likely to require changes.
+        final Node focus;
+        if (txtTo.getText().isEmpty())
+            focus = txtTo;
+        else if (txtFrom.getText().isEmpty())
+            focus = txtFrom;
+        else
+            focus = textArea;
+        Platform.runLater(() -> focus.requestFocus());
     }
 
     /** @param node Node to use when taking a screenshot */
