@@ -461,6 +461,7 @@ public class PhoebusApplication extends Application {
                         memento_files.add(filename);
                         // Use just the file name w/o ".memento" for the menu entry
                         final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                        menuItem.setMnemonicParsing(false);
                         menuItem.setOnAction(event -> startLayoutReplacement(file));
                         // Add the item to the load layout menu.
                         menuItemList.add(menuItem);
