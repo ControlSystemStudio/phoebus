@@ -859,6 +859,12 @@ public class PhoebusApplication extends Application {
         if (memento == null)
             return any;
 
+        
+        System.out.println("\nRestore:");
+        
+        for (Stage stage : DockStage.getDockStages())
+            DockStage.dump(stage);
+        
         try
         {
             // Global settings
