@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
@@ -28,6 +29,7 @@ import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.docking.SplitDock;
+import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -225,7 +227,11 @@ public class MementoHelper
             // The divider position needs to be set at the end, after the complete scene has been restored.
             // Otherwise the SplitPane self-adjusts the position when the sub-elements are rendered,
             // replacing a position set now.
-            content.getNumber(POS).ifPresent(num -> Platform.runLater(() -> split.setDividerPosition(num.doubleValue())));
+            content.getNumber(POS).ifPresent(num ->
+            {
+                UpdateThrottle.TIMER.schedule(() -> Platform.runLater(() -> split.setDividerPosition(num.doubleValue())),
+                                              300, TimeUnit.MILLISECONDS);
+            });
         }
         else
             logger.log(Level.WARNING, "Expect <pane> or <split>, got " + content);
