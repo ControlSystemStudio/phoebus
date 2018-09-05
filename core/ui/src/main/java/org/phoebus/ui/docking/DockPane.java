@@ -214,7 +214,6 @@ public class DockPane extends TabPane
         // If this pane is empty, offer 'close' entry in context menu to close (merge) it.
         if (getTabs().isEmpty() &&  dock_parent instanceof SplitDock)
         {
-            System.out.println("Open context menu on pane?");
             final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
             close.setOnAction(evt -> mergeEmptyAnonymousSplit());
             final ContextMenu menu = new ContextMenu(close);
