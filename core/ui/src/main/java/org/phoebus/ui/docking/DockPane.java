@@ -502,7 +502,7 @@ public class DockPane extends TabPane
         else if (dock_parent instanceof SplitDock)
         {
             final SplitDock parent = (SplitDock) dock_parent;
-            // Remove this dock pane from BorderPane
+            // Remove this dock pane from parent
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
