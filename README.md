@@ -126,6 +126,21 @@ On the **Projects** view right-click on the *phoebus (parent)* node and select t
 **Clean and Build** menu item. To build without the unit test, right-click the
 *phoebus (parent)* node and select **Run Maven** ➜ **Skip Tests**.
 
+To run the Phoebus application:
+
+ * Open the *phoebus (parent)* project and the *Modules* node, then double-click on
+   the  *product* module;
+ * Now right-click on the opened *product* project and select *Run*;
+ * A dialog will open to select the main class to be run. Verify that
+   `org.phoebus.product.Launcher` is selected and press the *Select Main Class*
+   button to start the application.
+ * You can also select *Remember Permanently* to allow NetBeans remembering the
+   chosen class.
+ * Right-clicking the *product* project it is also possible to select
+   *Set as Main Project*. In this way the Phoebus application can be started just
+   pressing the *F6* key, the *Run Main Project* toolbar button, or the
+   *Run* ➜ *Run Main Project* menu item.
+
 
 ## Complete Distribution, including manual
 
