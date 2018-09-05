@@ -265,8 +265,11 @@ public class MementoHelper
 
         // If dock item was restored within a SplitDock,
         // its Scene is only set on a later UI tick when the SplitPane is rendered.
-        // Defer restoring the application so that DockPane.autoHideTabs can locate the tab header
-        Platform.runLater(() -> restoreApplication(item_memento, pane, app));
+        // Defer restoring the application so that DockPane.autoHideTabs can locate the tab header,
+        // and for DockPane.setActiveDockPane(pane) to actually return the pane
+        // that we're about to set via DockPane.setActiveDockPane(), which it won't do
+        // for a pane without a Scene.
+        pane.deferUntilInScene(scene -> restoreApplication(item_memento, pane, app));
 
         return true;
     }
