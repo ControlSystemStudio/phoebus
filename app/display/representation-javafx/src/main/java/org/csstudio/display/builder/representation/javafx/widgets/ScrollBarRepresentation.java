@@ -83,6 +83,12 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
     }
 
     @Override
+    protected void configurePVNameDrag()
+    {
+        // Don't drag PV name, we use drag to move the scroll bar handle
+    }
+
+    @Override
     protected void registerListeners()
     {
         super.registerListeners();

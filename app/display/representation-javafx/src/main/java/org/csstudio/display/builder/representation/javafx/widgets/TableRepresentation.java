@@ -91,6 +91,12 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
     }
 
     @Override
+    protected void configurePVNameDrag()
+    {
+        // Don't drag PV name, might conflict with scroll bars
+    }
+
+    @Override
     protected void registerListeners()
     {
         super.registerListeners();
