@@ -23,11 +23,13 @@ import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
@@ -211,14 +213,36 @@ public class DockPane extends TabPane
 
     private void showContextMenu(final ContextMenuEvent event)
     {
-        // If this pane is empty, offer 'close' entry in context menu to close (merge) it.
-        if (getTabs().isEmpty() &&  dock_parent instanceof SplitDock)
+        final ContextMenu menu = new ContextMenu();
+        final ObservableList<MenuItem> items = menu.getItems();
+
+        // If this pane is empty, offer 'name', 'un-lock', 'close' in context menu
+        if (getTabs().isEmpty())
         {
-            final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
-            close.setOnAction(evt -> mergeEmptyAnonymousSplit());
-            final ContextMenu menu = new ContextMenu(close);
-            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+            // Always possible to name a pane
+            items.add(new NamePaneMenuItem(this));
+
+            // If 'fixed', offer menu to un-lock.
+            // Happens if content of a locked pane failed to load,
+            // leaving an empty, locked pane to which nothing can be added until unlocked.
+            if (isFixed())
+                items.add(new UnlockMenuItem(this));
+            else
+            {
+                // Not fixed, but empty.
+                // Offer 'close', if possible.
+                if (dock_parent instanceof SplitDock  &&
+                    ((SplitDock) dock_parent).canMerge())
+                {
+                    final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
+                    close.setOnAction(evt -> mergeEmptyAnonymousSplit());
+                    items.addAll(new SeparatorMenuItem(), close);
+                }
+            }
         }
+
+        if (! items.isEmpty())
+            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
     }
 
     /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */

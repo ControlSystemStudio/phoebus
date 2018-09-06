@@ -40,7 +40,6 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -87,9 +86,6 @@ public class DockItem extends Tab
                                detach_icon = ImageCache.getImage(DockItem.class, "/icons/detach.png"),
                                split_horiz_icon = ImageCache.getImage(DockItem.class, "/icons/split_horiz.png"),
                                split_vert_icon = ImageCache.getImage(DockItem.class, "/icons/split_vert.png"),
-                               name_icon = ImageCache.getImage(DockItem.class, "/icons/name.png"),
-                               lock_icon = ImageCache.getImage(DockItem.class, "/icons/lock.png"),
-                               unlock_icon = ImageCache.getImage(DockItem.class, "/icons/unlock.png"),
                                close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
 
 
@@ -184,15 +180,6 @@ public class DockItem extends Tab
         final MenuItem split_vert = new MenuItem("Split Vertically", new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
-        final MenuItem name = new MenuItem("Name Pane", new ImageView(name_icon));
-        name.setOnAction(event -> editName());
-
-        final MenuItem lock = new MenuItem("Lock Pane", new ImageView(lock_icon));
-        lock.setOnAction(event -> lock(true));
-
-        final MenuItem unlock = new MenuItem("Un-lock Pane", new ImageView(unlock_icon));
-        unlock.setOnAction(event -> lock(false));
-
         final MenuItem close = new MenuItem("Close", new ImageView(DockPane.close_icon));
         close.setOnAction(event -> close());
 
@@ -228,10 +215,11 @@ public class DockItem extends Tab
             menu.getItems().setAll(info);
 
             final boolean may_lock = AuthorizationService.hasAuthorization("lock_ui");
-            if (getDockPane().isFixed())
+            final DockPane pane = getDockPane();
+            if (pane.isFixed())
             {
                 if (may_lock)
-                    menu.getItems().addAll(name, unlock);
+                    menu.getItems().addAll(new NamePaneMenuItem(pane), new UnlockMenuItem(pane));
             }
             else
             {
@@ -241,7 +229,7 @@ public class DockItem extends Tab
                                        split_vert);
 
                 if (may_lock)
-                    menu.getItems().addAll(name, lock);
+                    menu.getItems().addAll(new NamePaneMenuItem(pane), new LockMenuItem(pane));
 
                 menu.getItems().addAll(new SeparatorMenuItem(),
                                        close,
@@ -474,26 +462,6 @@ public class DockItem extends Tab
         // where UI would otherwise be stuck in context menu and not
         // allow using the mouse etc.
         Platform.runLater(() -> pane.split(horizontally));
-    }
-
-    /** Edit name of dock pane */
-    private void editName()
-    {
-        final DockPane pane = getDockPane();
-        final TextInputDialog dialog = new TextInputDialog(pane.getName());
-        dialog.setTitle("Name Pane");
-        dialog.setHeaderText("Assign a name to this pane.\nSome displays can be configured\nto appear in a named pane.");
-        DialogHelper.positionDialog(dialog, pane, -200, -100);
-        dialog.showAndWait().ifPresent(pane::setName);
-    }
-
-    /** Request DockPane to lock or not
-     *  @param fixed Lock, or un-lock?
-     */
-    private void lock(final boolean fixed)
-    {
-        final DockPane pane = getDockPane();
-        pane.setFixed(fixed);
     }
 
     /** Select this tab, i.e. raise it in case another tab is currently visible */

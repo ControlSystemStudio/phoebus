@@ -103,6 +103,16 @@ public class SplitDock extends SplitPane
             getItems().add(item);
     }
 
+    /** @return Can this split be merged ? */
+    public boolean canMerge()
+    {
+        for (Node child : new ArrayList<>(getItems()))
+            if (child instanceof SplitDock)
+                if (! ((SplitDock) child).canMerge())
+                    return false;
+        return findEmptyDock() != null;
+    }
+
     /** If this split holds only one useful item, the other one
      *  being an empty DockPane,
      *  replace ourself in the parent with that one non-empty item.
