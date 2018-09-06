@@ -22,7 +22,7 @@
       <include name="**/${build}/*-${version}.jar"/>
     </fileset>
   	
-  	<fileset dir="${dependencies}/target/lib">
+  	<fileset dir="${dependencies}/phoebus-target/target/lib">
       <include name="*.jar"/>
     </fileset>
   </path>
