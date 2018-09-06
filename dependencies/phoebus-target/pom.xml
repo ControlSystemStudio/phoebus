@@ -9,21 +9,18 @@
   <artifactId>phoebus-target</artifactId>
 
   <profiles>
-    <!-- Oracle JDBC is only available from an Oracle maven repo which requires registration, user, password ( https://blogs.oracle.com/dev2dev/get-oracle-jdbc-drivers-and-ucp-from-oracle-maven-repository-without-ides 
-      ) Since only few sites need Oracle support, have them set environment variable ORACLE_JDBC_JAR=/path/to/ojdbc8-12.2.0.1.jar -->
+    <!-- Oracle JDBC is conditionally installed by install-jars --> 
     <profile>
       <activation>
-        <property>
-          <name>env.ORACLE_JDBC_JAR</name>
-        </property>
+        <file>
+          <exists>${basedir}/../install-jars/lib/ojdbc/ojdbc8-12.2.0.1.jar</exists>
+        </file>
       </activation>
       <dependencies>
         <dependency>
           <groupId>com.oracle.jdbc</groupId>
           <artifactId>ojdbc8</artifactId>
           <version>12.2.0.1</version>
-          <scope>system</scope>
-          <systemPath>${env.ORACLE_JDBC_JAR}</systemPath>
         </dependency>
       </dependencies>
     </profile>

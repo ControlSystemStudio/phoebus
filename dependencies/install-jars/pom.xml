@@ -8,6 +8,46 @@
   </parent>
   <artifactId>install-jars</artifactId>
 
+  <profiles>
+    <!-- Oracle JDBC is only available from an Oracle.
+         If your site uses it, copy it into ${basedir}/lib/ojdbc/ojdbc8-12.2.0.1.jar,
+         from which it will be installed into local maven repo
+      -->
+    <profile>
+      <activation>
+        <file>
+          <exists>${basedir}/lib/ojdbc/ojdbc8-12.2.0.1.jar</exists>
+        </file>
+      </activation>
+	  <build>
+	    <plugins>
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-install-plugin</artifactId>
+	        <version>2.5.2</version>
+	        <configuration>
+	          <groupId>com.oracle.jdbc</groupId>
+	          <artifactId>ojdbc8</artifactId>
+	          <version>12.2.0.1</version>
+	          <packaging>jar</packaging>
+	          <file>${basedir}/lib/ojdbc/ojdbc8-12.2.0.1.jar</file>
+	          <generatePom>true</generatePom>
+	        </configuration>
+	        <executions>
+	          <execution>
+	            <id>install-jar-lib</id>
+	            <goals>
+	              <goal>install-file</goal>
+	            </goals>
+	            <phase>validate</phase>
+	          </execution>
+	        </executions>
+	      </plugin>
+	    </plugins>
+	  </build>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
