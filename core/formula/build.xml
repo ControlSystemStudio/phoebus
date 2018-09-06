@@ -7,7 +7,7 @@
       <src path="${src}"/>
       <src path="${test}"/>
       <classpath>
-        <fileset dir="../../dependencies/target/lib">
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
       </classpath>
@@ -20,7 +20,7 @@
   <target name="test-formula" depends="core-formula">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
-        <fileset dir="../../dependencies/target/lib">
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
         <pathelement path="${build}/core-formula-${version}.jar"/>
