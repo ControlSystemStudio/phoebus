@@ -283,30 +283,30 @@ public class DockStage
     }
 
     /** @param stage Stage for which to dump basic panel hierarchy */
-    public static void dump(final Stage stage)
+    public static void dump(final StringBuilder buf, final Stage stage)
     {
         final Node node = getPaneOrSplit(stage);
-        System.out.println("Stage " + stage.getTitle());
-        dump(node, 0);
+        buf.append("Stage ").append(stage.getTitle()).append("\n");
+        dump(buf, node, 0);
     }
 
-    private static void dump(final Node node, final int level)
+    private static void dump(final StringBuilder buf, final Node node, final int level)
     {
         for (int i=0; i<level; ++i)
-            System.out.print("  ");
+            buf.append("  ");
         if (node instanceof DockPane)
         {
             final DockPane pane = (DockPane) node;
-            System.out.println(pane);
+            buf.append(pane).append("\n");
         }
         else if (node instanceof SplitDock)
         {
             final SplitDock split = (SplitDock) node;
-            System.out.println("Split");
-            dump(split.getItems().get(0), level + 1);
-            dump(split.getItems().get(1), level + 1);
+            buf.append("Split").append("\n");
+            dump(buf, split.getItems().get(0), level + 1);
+            dump(buf, split.getItems().get(1), level + 1);
         }
         else
-            System.out.println(node);
+            buf.append(node).append("\n");
     }
 }

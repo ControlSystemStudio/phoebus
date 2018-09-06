@@ -214,7 +214,6 @@ public class DockPane extends TabPane
         // If this pane is empty, offer 'close' entry in context menu to close (merge) it.
         if (getTabs().isEmpty() &&  dock_parent instanceof SplitDock)
         {
-            System.out.println("Open context menu on pane?");
             final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
             close.setOnAction(evt -> mergeEmptyAnonymousSplit());
             final ContextMenu menu = new ContextMenu(close);
@@ -503,7 +502,7 @@ public class DockPane extends TabPane
         else if (dock_parent instanceof SplitDock)
         {
             final SplitDock parent = (SplitDock) dock_parent;
-            // Remove this dock pane from BorderPane
+            // Remove this dock pane from parent
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();

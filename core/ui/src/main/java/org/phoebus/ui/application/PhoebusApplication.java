@@ -808,7 +808,7 @@ public class PhoebusApplication extends Application {
             return;
 
         // Allow handlers for tab changes etc. to run as everything closed.
-        
+
         // On next UI tick, load content from memento file.
         Platform.runLater(() -> restoreState(memento));
     }
@@ -859,12 +859,20 @@ public class PhoebusApplication extends Application {
         if (memento == null)
             return any;
 
-        
-        System.out.println("\nRestore:");
-        
-        for (Stage stage : DockStage.getDockStages())
-            DockStage.dump(stage);
-        
+        // There should be just one, empty stage
+        final List<Stage> stages = DockStage.getDockStages();
+        if (stages.size() > 1  ||
+            stages.stream().map(DockStage::getDockPanes).count() > 1)
+        {
+            // More than one stage, or a stage with more than one pane
+            logger.log(Level.WARNING, "Expected single, empty stage for restoring state");
+            final StringBuilder buf = new StringBuilder();
+            buf.append("Found:\n");
+            for (Stage stage : stages)
+                DockStage.dump(buf, stage);
+            logger.log(Level.WARNING, buf.toString());
+        }
+
         try
         {
             // Global settings

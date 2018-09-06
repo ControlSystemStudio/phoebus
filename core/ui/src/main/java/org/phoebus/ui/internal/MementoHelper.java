@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.phoebus.framework.persistence.MementoTree;
@@ -28,6 +29,7 @@ import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.docking.SplitDock;
+import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -225,7 +227,11 @@ public class MementoHelper
             // The divider position needs to be set at the end, after the complete scene has been restored.
             // Otherwise the SplitPane self-adjusts the position when the sub-elements are rendered,
             // replacing a position set now.
-            content.getNumber(POS).ifPresent(num -> Platform.runLater(() -> split.setDividerPosition(num.doubleValue())));
+            content.getNumber(POS).ifPresent(num ->
+            {
+                UpdateThrottle.TIMER.schedule(() -> Platform.runLater(() -> split.setDividerPosition(num.doubleValue())),
+                                              300, TimeUnit.MILLISECONDS);
+            });
         }
         else
             logger.log(Level.WARNING, "Expect <pane> or <split>, got " + content);
@@ -259,8 +265,11 @@ public class MementoHelper
 
         // If dock item was restored within a SplitDock,
         // its Scene is only set on a later UI tick when the SplitPane is rendered.
-        // Defer restoring the application so that DockPane.autoHideTabs can locate the tab header
-        Platform.runLater(() -> restoreApplication(item_memento, pane, app));
+        // Defer restoring the application so that DockPane.autoHideTabs can locate the tab header,
+        // and for DockPane.setActiveDockPane(pane) to actually return the pane
+        // that we're about to set via DockPane.setActiveDockPane(), which it won't do
+        // for a pane without a Scene.
+        pane.deferUntilInScene(scene -> restoreApplication(item_memento, pane, app));
 
         return true;
     }
@@ -348,6 +357,12 @@ public class MementoHelper
             for (Node item : items)
                 if (! closePaneOrSplit(item))
                     return false;
+
+            // All items have been closed, which triggers auto-merge.
+            // But there could have been empty panes that are not closed
+            // and thus not triggering a merge..
+            if (split.getItems().size() > 0)
+                split.merge();
         }
         else
         {

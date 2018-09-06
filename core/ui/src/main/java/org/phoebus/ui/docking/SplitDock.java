@@ -9,6 +9,7 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 
 import javafx.collections.ObservableList;
@@ -105,9 +106,18 @@ public class SplitDock extends SplitPane
     /** If this split holds only one useful item, the other one
      *  being an empty DockPane,
      *  replace ourself in the parent with that one non-empty item.
+     *
+     *  <p>Merges 'deep', i.e. first checks if any of the child
+     *  items can itself be merged, then merges this one.
      */
-    void merge()
+    public void merge()
     {
+        // First recurse to merge child splits.
+        // Use copy to avoid comodification
+        for (Node child : new ArrayList<>(getItems()))
+            if (child instanceof SplitDock)
+                ((SplitDock) child).merge();
+
         final DockPane empty_dock = findEmptyDock();
         if (empty_dock == null)
         {
@@ -118,10 +128,10 @@ public class SplitDock extends SplitPane
         // Remove the empty dock from this split
         getItems().remove(empty_dock);
 
-        // Should be left with just one child (dock or nested split)
+        // Usually left with just one child (dock or nested split)
         if (getItems().isEmpty())
         {
-            logger.log(Level.WARNING, "Cannot merge completely empty SplitPane " + this);
+            logger.log(Level.FINE, "Cannot merge completely empty SplitPane " + this);
             return;
         }
 
