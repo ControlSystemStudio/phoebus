@@ -89,7 +89,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-controls-9.0-r1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-fxml-9.0-r1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-agenda-9.0-r1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/protobuf-java-2.4.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/pbrawclient-0.0.8.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/protobuf-java-2.4.1.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/pbrawclient-0.0.8.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

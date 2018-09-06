@@ -12,7 +12,7 @@
         <pathelement path="../security/${build}/core-security-${version}.jar"/>
         <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>
       	<pathelement path="../pv/${build}/core-pv-${version}.jar"/>
-        <fileset dir="../../dependencies/target/lib">
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
       </classpath>
@@ -29,7 +29,7 @@
       <classpath>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
         <pathelement path="../pv/${build}/core-pv-${version}.jar"/>
-        <fileset dir="../../dependencies/target/lib">
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
         <pathelement path="${build}/ui-${version}.jar"/>

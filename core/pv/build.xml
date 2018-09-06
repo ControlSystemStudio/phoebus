@@ -7,7 +7,7 @@
       <src path="${src}"/>
       <src path="${test}"/>
       <classpath>
-        <fileset dir="../../dependencies/target/lib">
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
@@ -24,7 +24,7 @@
   <target name="test-pv" depends="core-pv">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
-        <fileset dir="../../dependencies/target/lib">
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
         <pathelement path="${build}/core-pv-${version}.jar"/>
