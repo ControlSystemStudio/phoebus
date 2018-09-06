@@ -104,7 +104,7 @@
     <ant target="product" dir="phoebus-product"/>
   </target>
 
-  <target name="services" depends="app" description="Assemble services">
+  <target name="services" depends="product" description="Assemble services">
     <ant target="service-scan-server" dir="services/scan-server"/>
     <ant target="service-alarm-server" dir="services/alarm-server"/>
     <ant target="service-alarm-logger" dir="services/alarm-logger"/>
