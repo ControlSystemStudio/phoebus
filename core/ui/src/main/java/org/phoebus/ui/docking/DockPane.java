@@ -248,6 +248,8 @@ public class DockPane extends TabPane
     public void setFixed(final boolean fixed)
     {
         this.fixed = fixed;
+        if (fixed)
+            System.out.println("Locking " + this);
         // Prevent closing items in 'fixed' pane
         for (DockItem tab : getDockItems())
             tab.setClosable(! fixed);
@@ -336,6 +338,13 @@ public class DockPane extends TabPane
      */
     public void deferUntilInScene(final Consumer<Scene> user_of_scene)
     {
+        // Tried to optimize this based on
+        //     sceneProperty().addListener(...),
+        // creating list of registered users_of_scene,
+        // invoking once the scene property changes to != null,
+        // then deleting the list and removing the listener,
+        // but that added quite some code and failed for
+        // strange endless-loop type reasons.
         deferUntilInScene(0, user_of_scene);
     }
 

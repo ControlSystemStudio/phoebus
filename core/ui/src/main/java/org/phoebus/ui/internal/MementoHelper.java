@@ -212,7 +212,16 @@ public class MementoHelper
 
             // If pane is 'fixed', mark as such _after_ all items have been restored
             // to prevent changes from now on
-            content.getBoolean(FIXED).ifPresent(fixed -> Platform.runLater(() -> pane.setFixed(fixed)));
+            content.getBoolean(FIXED).ifPresent(fixed ->
+            {
+                // Defer by one UI tick,
+                // then wait until in scene, so application code which defers until-in-scene has run,
+                // then wait another tick
+                if (fixed)
+                    Platform.runLater(() ->
+                        pane.deferUntilInScene(scene ->
+                            Platform.runLater(() -> pane.setFixed(true))));
+            });
         }
         else if (content.getName().equals(SPLIT))
         {   // Split the original pane
