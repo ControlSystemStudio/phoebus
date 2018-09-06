@@ -18,10 +18,5 @@
 	<classpathentry kind="lib" path="/dependencies/target/lib/testfx-core-4.0.13-alpha.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/testfx-junit-4.0.13-alpha.jar"/>
 	<classpathentry kind="lib" path="/dependencies/target/lib/assertj-core-3.9.1.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-10">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
