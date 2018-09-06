@@ -29,28 +29,28 @@
       <artifactId>jca</artifactId>
       <version>2.4.1</version>
       <scope>system</scope>
-      <systemPath>${basedir}/../../../dependencies/target/lib/jca-2.4.1.jar</systemPath>
+      <systemPath>${basedir}/../../../dependencies/phoebus-target/target/lib/jca-2.4.1.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>epics-pvdata</artifactId>
       <version>6.1.1</version>
       <scope>system</scope>
-      <systemPath>${basedir}/../../../dependencies/target/lib/epics-pvdata-6.1.1.jar</systemPath>
+      <systemPath>${basedir}/../../../dependencies/phoebus-target/target/lib/epics-pvdata-6.1.1.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>epics-pvaccess</artifactId>
       <version>5.1.1</version>
       <scope>system</scope>
-      <systemPath>${basedir}/../../../dependencies/target/lib/epics-pvaccess-5.1.1.jar</systemPath>
+      <systemPath>${basedir}/../../../dependencies/phoebus-target/target/lib/epics-pvaccess-5.1.1.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
       <version>2.7.1</version>
       <scope>system</scope>
-      <systemPath>${basedir}/../../../dependencies/target/lib/jython-standalone-2.7.1.jar</systemPath>
+      <systemPath>${basedir}/../../../dependencies/phoebus-target/target/lib/jython-standalone-2.7.1.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>net.sf.py4j</groupId>

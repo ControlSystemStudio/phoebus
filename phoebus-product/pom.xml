@@ -128,7 +128,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>dependencies</artifactId>
+      <artifactId>phoebus-target</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

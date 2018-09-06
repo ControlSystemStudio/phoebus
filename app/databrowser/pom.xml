@@ -25,7 +25,7 @@
       <artifactId>jmatio</artifactId>
       <version>1.2</version>
       <scope>system</scope>
-      <systemPath>${basedir}/../../dependencies/target/lib/jmatio-1.2.jar</systemPath>
+      <systemPath>${basedir}/../../dependencies/phoebus-target/target/lib/jmatio-1.2.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
