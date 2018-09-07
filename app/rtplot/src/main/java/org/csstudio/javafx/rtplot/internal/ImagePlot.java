@@ -1455,4 +1455,17 @@ public class ImagePlot extends PlotCanvasBase
         if (listener != null)
             listener.changedValueRange(min, max);
     }
+
+    /** Should be invoked when plot no longer used to release resources */
+    @Override
+    public void dispose()
+    {
+        super.dispose();
+
+        // Release memory ASAP
+        removeROITracker();
+        image_data = null;
+        rois.clear();
+        plot_listener = null;
+    }
 }

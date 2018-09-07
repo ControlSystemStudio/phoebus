@@ -1300,4 +1300,20 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         for (RTPlotListener<XTYPE> listener : listeners)
             listener.changedToolbar(show);
     }
+
+    /** Should be invoked when plot no longer used to release resources */
+    @Override
+    public void dispose()
+    {
+        super.dispose();
+
+        // Release memory ASAP
+        traces.clear();
+        y_axes.clear();
+        annotations.clear();
+        listeners.clear();
+        plot_markers.clear();
+        plot_marker = null;
+        cursor_markers = null;
+    }
 }
