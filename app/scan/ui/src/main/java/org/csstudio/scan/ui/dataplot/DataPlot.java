@@ -23,6 +23,7 @@ import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
+import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
@@ -320,6 +321,12 @@ public class DataPlot extends VBox
             }
 
         plot_data = new_plot_data;
+
+        // (Re-) enable autoscale when date providers change.
+        // User can then zoom/pan to disable
+        plot.getXAxis().setAutoscale(true);
+        for (YAxis<Double> axis : plot.getYAxes())
+            axis.setAutoscale(true);
     }
 
     /** @param data New data from {@link ScanDataReader}, update plot_data and then redraw plot */

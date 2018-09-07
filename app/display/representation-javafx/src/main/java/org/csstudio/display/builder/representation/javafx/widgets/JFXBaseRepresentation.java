@@ -109,21 +109,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                     toolkit.fireContextMenu(model_widget, (int)event.getScreenX(), (int)event.getScreenY());
                 });
 
-                // If there is a "pv_name", allow dragging it out
-                final Optional<WidgetProperty<String>> pv_name = model_widget.checkProperty(CommonWidgetProperties.propPVName);
-                if (pv_name.isPresent())
-                    jfx_node.setOnDragDetected(event ->
-                    {
-                        final String pv = pv_name.get().getValue();
-                        if (! pv.isEmpty())
-                        {
-                            final Dragboard db = jfx_node.startDragAndDrop(TransferMode.COPY);
-                            final ClipboardContent content = new ClipboardContent();
-                            content.putString(pv);
-                            db.setContent(content);
-                        }
-                        event.consume();
-                    });
+                configurePVNameDrag();
             }
         }
         return getChildParent(parent);
@@ -138,6 +124,33 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     protected boolean isFilteringEditModeClicks()
     {
         return false;
+    }
+
+    /** By default, allow dragging a "pv_name" from the widget in runtime mode
+     *
+     *  <p>Derived classes can override, for example to disable
+     *  in case the representation already handles dragging moves
+     *  to for example operate a slider or pan something.
+     */
+    protected void configurePVNameDrag()
+    {
+        // If there is a "pv_name", allow dragging it out
+        final Optional<WidgetProperty<String>> pv_name = model_widget.checkProperty(CommonWidgetProperties.propPVName);
+        if (! pv_name.isPresent())
+            return;
+
+        jfx_node.setOnDragDetected(event ->
+        {
+            final String pv = pv_name.get().getValue();
+            if (! pv.isEmpty())
+            {
+                final Dragboard db = jfx_node.startDragAndDrop(TransferMode.COPY);
+                final ClipboardContent content = new ClipboardContent();
+                content.putString(pv);
+                db.setContent(content);
+            }
+            event.consume();
+        });
     }
 
     // For what it's worth, in case the node eventually has a JFX contest menu:

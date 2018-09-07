@@ -693,8 +693,10 @@ public class ImagePlot extends PlotCanvasBase
 
         // ROI uses X axis font
         gc.setFont(x_axis.label_font);
+        gc.setClip(image_area.x, image_area.y, image_area.width, image_area.height);
         for (RegionOfInterest roi : rois)
             drawROI(gc, roi);
+        gc.setClip(0, 0, area_copy.width, area_copy.height);
 
         return image;
     }
@@ -755,8 +757,7 @@ public class ImagePlot extends PlotCanvasBase
             return;
 
         gc.setColor(GraphicsUtils.convert(roi.getColor()));
-        final java.awt.geom.Rectangle2D rect = image_area.createIntersection(roiToScreen(roi));
-
+        final java.awt.geom.Rectangle2D rect = roiToScreen(roi);
         final Image image = roi.getImage();
         if (image == null)
             gc.drawRect((int)rect.getMinX(), (int)rect.getMinY(), (int)rect.getWidth(), (int)rect.getHeight());

@@ -13,6 +13,10 @@ nohup.out
 # Generated help files, html/generated
 generated/
 
+# Cannot distribute Oracle jar.
+# Sites that use it need to place here:
+dependencies/install-jars/lib/ojdbc/ojdbc8-12.2.0.1.jar
+
 # Created by https://www.gitignore.io/api/maven,eclipse
 
 ### Eclipse ###

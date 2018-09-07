@@ -162,6 +162,12 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         return new Pane(image_plot);
     }
 
+    @Override
+    protected void configurePVNameDrag()
+    {
+        // Don't drag PV name, we use drag to pan or zoom
+    }
+
     private void createROI(final ROIWidgetProperty model_roi)
     {
         final RegionOfInterest plot_roi = image_plot.addROI(model_roi.name().getValue(),
