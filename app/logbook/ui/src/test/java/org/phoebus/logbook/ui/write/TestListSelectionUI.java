@@ -31,7 +31,7 @@ import javafx.stage.Stage;
  * Test the functionality of the ListSelectionDialog
  * @author Evan Smith
  */
-public class TestListSelectionDialog extends ApplicationTest
+public class TestListSelectionUI extends ApplicationTest
 {
     /** Skip test when java.awt.headless=true */
     private boolean skip = Boolean.parseBoolean(System.getProperty("java.awt.headless"));
