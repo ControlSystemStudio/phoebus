@@ -241,6 +241,12 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
                 buf.append(widget).append(", ").append(script);
                 logger.log(Level.WARNING, buf.toString(), ex);
             }
+            finally
+            {
+                // Clear because otherwise PySystemState keeps widget and PVs in memory
+                python.set("pvs", null);
+                python.set("widget", null);
+            }
             // System.out.println("Finished " + script);
             return null;
         });
