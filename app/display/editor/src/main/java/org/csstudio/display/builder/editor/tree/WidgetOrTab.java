@@ -50,7 +50,7 @@ class WidgetOrTab
     @Override
     public int hashCode()
     {
-        return widget_or_tab.hashCode();
+        return widget_or_tab == null ? 0 : widget_or_tab.hashCode();
     }
 
     @Override

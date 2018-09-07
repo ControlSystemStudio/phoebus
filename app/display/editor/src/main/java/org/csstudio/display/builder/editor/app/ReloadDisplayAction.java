@@ -19,17 +19,9 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 class ReloadDisplayAction extends MenuItem
 {
-    private final DisplayEditorInstance editor;
-
     ReloadDisplayAction(final DisplayEditorInstance editor)
     {
         super(Messages.ReloadDisplay, ImageCache.getImageView(DockStage.class, "/icons/refresh.png"));
-        this.editor = editor;
-        setOnAction(event -> run());
-    }
-
-    private void run()
-    {
-        editor.reloadDisplay();
+        setOnAction(event -> editor.reloadDisplay());
     }
 }

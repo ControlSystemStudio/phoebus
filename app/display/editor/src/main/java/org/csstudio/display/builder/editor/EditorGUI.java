@@ -283,5 +283,6 @@ public class EditorGUI
     public void dispose()
     {
         editor.dispose();
+        tree.setModel(null);
     }
 }
