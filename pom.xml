@@ -11,6 +11,7 @@
     <maven.repo.local>${project.build.directory}/.m2</maven.repo.local>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <skipITTests>true</skipITTests>
   </properties>
   <build>
     <plugins>
@@ -26,6 +27,22 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.20</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.22.0</version>
+        <configuration>
+          <skipITs>${skipITTests}</skipITs>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <!-- Scene Builder is limited to searching for Controllers only within the same folder, thus forcing us to use src/main/java for fxml files instead 
@@ -53,6 +70,58 @@
       </testResource>
     </testResources>
   </build>
+
+
+  <profiles>
+    <!-- The it-tests profile when used will run all integration tests, these are junit test classes
+    with names ending in "IT" -->
+    <profile>
+      <id>it-tests</id>
+      <properties>
+        <skipITTests>false</skipITTests>
+      </properties>
+    </profile>
+    <!-- The ui-tests profile when used will run all user interface tests, these are testfx test 
+    where the java file names ending in "UI" -->
+    <profile>
+      <id>ui-tests</id>
+      <properties>
+        <skipITTests>false</skipITTests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*UI.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- The all-tests profile when used will run all integration and user interface tests -->
+    <profile>
+      <id>all-tests</id>
+      <properties>
+        <skipITTests>false</skipITTests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*UI.java</include>
+                <include>**/*IT.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <repositories>
     <!-- The Nexus snapshot repository hosting the latest diirt modules -->
