@@ -353,6 +353,8 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         final DisplayModel model = active_model;
         active_model = null;
+
+        // Close handler disposes representation for model
         if (model != null)
             ActionUtil.handleClose(model);
     }
@@ -393,5 +395,7 @@ public class DisplayRuntimeInstance implements AppInstance
         disposeModel();
         // Stop representation, so no more widgets can be created in this dock item
         representation.shutdown();
+
+        navigation.dispose();
     }
 }
