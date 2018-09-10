@@ -19,7 +19,6 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -27,16 +26,17 @@ import javafx.scene.image.ImageView;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class WidgetInfoAction extends MenuItem
+public class WidgetInfoAction extends WeakRefWidgetAction
 {
     private static final Image icon = ImageCache.getImage(WidgetInfoAction.class, "/icons/information.png");
 
-    public WidgetInfoAction(final Widget widget)
+    public WidgetInfoAction(final Widget the_widget)
     {
-        super("'" + widget.getName() + "' Information", new ImageView(icon));
+        super("'" + the_widget.getName() + "' Information", new ImageView(icon), the_widget);
 
         setOnAction(event ->
         {
+            final Widget widget = getWidget();
             final WidgetRuntime<?> runtime = WidgetRuntime.ofWidget(widget);
             final List<WidgetInfoDialog.NameStateValue> pvs = new ArrayList<>();
             for (RuntimePV pv : runtime.getPVs())

@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
-import java.lang.ref.WeakReference;
-
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -19,31 +17,24 @@ import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.scene.control.MenuItem;
-
 /** Open display in editor
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class OpenInEditorAction extends MenuItem
+public class OpenInEditorAction extends WeakRefWidgetAction
 {
     public OpenInEditorAction(final AppResourceDescriptor editor,
                               final Widget the_widget)
     {
         super(Messages.OpenInEditor,
-              ImageCache.getImageView(DisplayModel.class, "/icons/display.png"));
+              ImageCache.getImageView(DisplayModel.class, "/icons/display.png"),
+              the_widget);
 
-        // This menu item can be held in menu for a long time,
-        // even when never invoked and the widget's display has long been closed.
-        // To allow GC of the display, get a weak reference.
-        final WeakReference<Widget> weak_widget = new WeakReference<>(the_widget);
         setOnAction(event ->
         {
             try
             {
-                final Widget widget = weak_widget.get();
-                if (widget == null)
-                    throw new Exception("Cannot edit disposed display");
+                final Widget widget = getWidget();
                 final DisplayModel model = widget.getDisplayModel();
                 final String path;
                 // Options:
