@@ -102,10 +102,9 @@ public class ActionUtil
             // Schedule representation on UI thread...
             final DisplayModel top_model = source_widget.getTopDisplayModel();
             final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(top_model);
-            final Future<Object> wait_for_ui;
             if (action.getTarget() == OpenDisplayActionInfo.Target.TAB)
             {
-                wait_for_ui = toolkit.submit(() ->
+                toolkit.submit(() ->
                 {   // Create new panel
                     final ToolkitRepresentation<Object, Object> new_toolkit =
                         toolkit.openPanel(new_model, action.getPane(), ActionUtil::handleClose);
@@ -115,7 +114,7 @@ public class ActionUtil
             }
             else if (action.getTarget() == OpenDisplayActionInfo.Target.WINDOW)
             {
-                wait_for_ui = toolkit.submit(() ->
+                toolkit.submit(() ->
                 {   // Create new top-level window
                     final ToolkitRepresentation<Object, Object> new_toolkit =
                         toolkit.openNewWindow(new_model, ActionUtil::handleClose);
@@ -125,7 +124,7 @@ public class ActionUtil
             }
             else if (action.getTarget() == OpenDisplayActionInfo.Target.STANDALONE)
             {
-                wait_for_ui = toolkit.submit(() ->
+                toolkit.submit(() ->
                 {
                     final ToolkitRepresentation<Object, Object> new_toolkit =
                         toolkit.openStandaloneWindow(new_model, ActionUtil::handleClose);
@@ -135,19 +134,20 @@ public class ActionUtil
             }
             else
             {   // Default to OpenDisplayActionInfo.Target.REPLACE
-                // Stop old runtime.
+                // The DockItemRepresentation starts the runtime for new tabs or windows,
+                // but if we update an existing representation, we need to stop & start the runtime.
                 RuntimeUtil.stopRuntime(top_model);
-                wait_for_ui = toolkit.submit(() ->
+                final Future<Object> wait_for_ui = toolkit.submit(() ->
                 {   // Close old representation
                     final Object parent = toolkit.disposeRepresentation(top_model);
                     // Tell toolkit about new model to represent
                     toolkit.representModel(parent, new_model);
                     return null;
                 });
+                wait_for_ui.get();
+                // Back in background thread, start runtime
+                RuntimeUtil.startRuntime(new_model);
             }
-            wait_for_ui.get();
-            // Back in background thread, create new runtime
-            RuntimeUtil.startRuntime(new_model);
         }
         catch (final Exception ex)
         {

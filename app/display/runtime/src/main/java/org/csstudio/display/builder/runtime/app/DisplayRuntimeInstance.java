@@ -12,6 +12,8 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -219,7 +221,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** Load display file, represent it, start runtime
-     *  @param info Display file to load
+     *  @param info Display file to load & represent
      */
     public void loadDisplayFile(final DisplayInfo info)
     {
@@ -241,7 +243,16 @@ public class DisplayRuntimeInstance implements AppInstance
         // Note the path & macros, then
         display_info = Optional.of(info);
         // load model off UI thread
-        JobManager.schedule("Load Display", monitor -> loadModel(monitor, info));
+        JobManager.schedule("Load Display", monitor ->
+        {
+            final DisplayModel model = loadModel(monitor, info);
+
+            final Future<Void> represented = representation.submit(() -> representModel(model));
+            represented.get();
+
+            // Start runtime for the model
+            RuntimeUtil.startRuntime(model);
+        });
     }
 
     /** Re-load the current input */
@@ -250,10 +261,11 @@ public class DisplayRuntimeInstance implements AppInstance
         loadDisplayFile(getDisplayInfo());
     }
 
-    /** Load display model, schedule representation
+    /** Load display model
      *  @param info Display to load
+     *  @return Model that has been loaded
      */
-    private void loadModel(final JobMonitor monitor, final DisplayInfo info)
+    private DisplayModel loadModel(final JobMonitor monitor, final DisplayInfo info)
     {
         monitor.beginTask(info.toString());
         try
@@ -276,20 +288,20 @@ public class DisplayRuntimeInstance implements AppInstance
             // For runtime, expand macros
             if (! representation.isEditMode())
                 DisplayMacroExpander.expandDisplayMacros(model);
-
-            // Schedule representation on UI thread
-            representation.execute(() -> representModel(model));
+            return model;
         }
         catch (Exception ex)
         {
             showError("Error loading " + info, ex);
         }
+        return null;
     }
 
-    /** Represent model, schedule start of runtime
+    /** Represent model
      *  @param model Model to represent
+     *  @return {@link Void} to allow use in {@link Callable}
      */
-    private void representModel(final DisplayModel model)
+    private Void representModel(final DisplayModel model)
     {
         try
         {
@@ -301,9 +313,7 @@ public class DisplayRuntimeInstance implements AppInstance
         {
             showError("Cannot represent model", ex);
         }
-
-        // Start runtimes in background
-        RuntimeUtil.getExecutor().execute(() -> RuntimeUtil.startRuntime(model));
+        return null;
     }
 
     /** Take note of the currently displayed model
@@ -354,7 +364,7 @@ public class DisplayRuntimeInstance implements AppInstance
         final DisplayModel model = active_model;
         active_model = null;
 
-        // Close handler disposes representation for model
+        // Close handler disposes runtime and representation for model
         if (model != null)
             ActionUtil.handleClose(model);
     }
