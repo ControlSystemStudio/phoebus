@@ -80,8 +80,16 @@ import javafx.util.converter.DefaultStringConverter;
 @SuppressWarnings("nls")
 public class TracesTab extends Tab
 {
-    private static final ObservableList<String> trace_types = FXCollections.observableArrayList(TraceType.getDisplayNames());
-    private static final ObservableList<String> point_types = FXCollections.observableArrayList(PointType.getDisplayNames());
+    // Earlier version used
+    //   trace_types = FXCollections.observableArrayList(TraceType.getDisplayNames());
+    // and passed that to the UI.
+    // But UI will listen to changes in observable array. The static list would then
+    // keep receiving new listeners added to the UI, and thus keep the UI elements and
+    // their data in memory.
+    // Now keep only the trace & point types as plain list,
+    // and UI creates a short-time observable list while running, which is then disposed as UI closes.
+    private static final List<String> trace_types = List.of(TraceType.getDisplayNames());
+    private static final List<String> point_types = List.of(PointType.getDisplayNames());
 
     /** Prompt for the 'hide trace' warning'? */
     private static boolean prompt_for_not_visible = true;
@@ -541,7 +549,7 @@ public class TracesTab extends Tab
         col = new TableColumn<>(Messages.TraceType);
         col.setCellValueFactory(cell ->
             new SimpleStringProperty(cell.getValue().getTraceType().toString()));
-        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(trace_types));
+        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(FXCollections.observableArrayList(trace_types)));
         col.setOnEditCommit(event ->
         {
             final int index = trace_types.indexOf(event.getNewValue());
@@ -577,7 +585,7 @@ public class TracesTab extends Tab
         col = new TableColumn<>(Messages.PointType);
         col.setCellValueFactory(cell ->
             new SimpleStringProperty(cell.getValue().getPointType().toString()));
-        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(point_types));
+        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(FXCollections.observableArrayList(point_types)));
         col.setOnEditCommit(event ->
         {
             final int index = point_types.indexOf(event.getNewValue());
