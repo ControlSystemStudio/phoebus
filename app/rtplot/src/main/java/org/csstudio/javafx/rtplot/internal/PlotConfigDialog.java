@@ -39,7 +39,7 @@ import javafx.stage.Modality;
 @SuppressWarnings("nls")
 public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<Void>
 {
-    private final RTPlot<XTYPE> plot;
+    private RTPlot<XTYPE> plot;
 
     public PlotConfigDialog(final RTPlot<XTYPE> plot)
     {
@@ -61,7 +61,12 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);
         setResizable(true);
 
-        setResultConverter(button -> null);
+        setResultConverter(button ->
+        {
+            // Release plot since dialog is held in memory for a while
+            this.plot = null;
+            return null;
+        });
     }
 
     static ColorPicker createPicker(final Color color)
@@ -117,6 +122,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
 
         layout.add(new Separator(Orientation.VERTICAL), 4, 1, 1, row-1);
+
 
         row = 0;
         label = new Label("Traces");

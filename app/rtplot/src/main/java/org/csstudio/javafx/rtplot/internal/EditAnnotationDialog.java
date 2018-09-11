@@ -44,7 +44,7 @@ public class EditAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialo
 		}
 	}
 
-	private final RTPlot<XTYPE> plot;
+	private RTPlot<XTYPE> plot;
     private final ObservableList<AnnotationItem> annotations = FXCollections.observableArrayList();
     private ListView<AnnotationItem> annotation_list;
 
@@ -98,12 +98,21 @@ public class EditAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialo
 
         setResultConverter(button ->
         {
-        	if (button == ButtonType.OK)
-        	{
-        		updateAnnotations();
-        		return true;
-        	}
-        	return false;
+            try
+            {
+            	if (button == ButtonType.OK)
+            	{
+            		updateAnnotations();
+            		return true;
+            	}
+            	return false;
+            }
+            finally
+            {
+                // Release plot since dialog is held in memory for a while
+                this.plot = null;
+                annotations.clear();
+            }
         });
     }
 
@@ -115,7 +124,7 @@ public class EditAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialo
         dialog.showAndWait().ifPresent(new_text ->
         {
         	plot.getUndoableActionManager().execute(
-        			new UpdateAnnotationTextAction<XTYPE>(plot, annotation, new_text));
+        			new UpdateAnnotationTextAction<>(plot, annotation, new_text));
         	// Update annotation_list by causing fake update of item in observed list
         	for (int i=0; i<annotations.size(); ++i)
         	    if (annotations.get(i).annotation == annotation)
@@ -131,6 +140,6 @@ public class EditAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialo
     	for (AnnotationItem item : annotations)
     		if (! item.selected)
 	            plot.getUndoableActionManager().execute(
-	            		new RemoveAnnotationAction<XTYPE>(plot, item.annotation));
+	            		new RemoveAnnotationAction<>(plot, item.annotation));
     }
 }

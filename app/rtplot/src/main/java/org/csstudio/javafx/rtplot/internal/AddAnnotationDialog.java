@@ -36,7 +36,7 @@ import javafx.scene.layout.GridPane;
  */
 public class AddAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialog<Boolean>
 {
-    private final RTPlot<XTYPE> plot;
+    private RTPlot<XTYPE> plot;
     // Thread-save snapshot of traces at time dialog was opened
     private final ObservableList<Trace<XTYPE>> traces = FXCollections.observableArrayList();
     private ListView<Trace<XTYPE>> trace_list;
@@ -105,7 +105,13 @@ public class AddAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialog
         		event.consume();
         });
 
-        setResultConverter(button -> button == ButtonType.OK);
+        setResultConverter(button ->
+        {
+            // Release plot since dialog is held in memory for a while
+            this.plot = null;
+            traces.clear();
+            return button == ButtonType.OK;
+        });
     }
 
     private boolean checkInput()
