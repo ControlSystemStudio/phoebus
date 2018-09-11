@@ -132,7 +132,7 @@ public class Model
         while (getAxisCount() > 0)
             removeAxis(getAxis(getAxisCount()-1));
 
-        annotations.clear();
+        annotations = List.of();
         macros = new Macros();
     }
 
