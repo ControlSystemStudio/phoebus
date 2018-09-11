@@ -65,5 +65,15 @@
       <artifactId>app-logbook-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>2.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>pbrawclient</artifactId>
+      <version>0.0.8</version>
+    </dependency>
   </dependencies>
 </project>

@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.phoebus.archive.vtype;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -75,5 +76,13 @@ public class TimestampHelper
 
         // Create time for rounded HH:MM
         return midnight.toInstant().plus(Duration.ofSeconds(secs));
+    }
+
+    public static Timestamp toSQLTimestamp(Instant start) {
+        return java.sql.Timestamp.from(start);
+    }
+
+    public static Instant fromSQLTimestamp(Timestamp timestamp) {
+        return timestamp.toInstant();
     }
 }
