@@ -522,4 +522,12 @@ public class PVItem extends ModelItem
 
         return item;
     }
+
+    @Override
+    public void dispose()
+    {
+        archives.clear();
+        current_value = null;
+        samples.clear();
+    }
 }

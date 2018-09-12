@@ -127,7 +127,10 @@ public class Model
     public void clear()
     {
         for (ModelItem item : items)
+        {
+            item.dispose();
             removeItem(item);
+        }
 
         while (getAxisCount() > 0)
             removeAxis(getAxis(getAxisCount()-1));

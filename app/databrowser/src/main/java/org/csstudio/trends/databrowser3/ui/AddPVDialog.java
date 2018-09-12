@@ -51,7 +51,6 @@ import javafx.scene.layout.Priority;
 @SuppressWarnings("nls")
 public class AddPVDialog extends Dialog<Boolean>
 {
-    private final Model model;
     private final boolean formula;
     private final List<String> existing_names;
     private final List<TextField> names = new ArrayList<>();
@@ -60,9 +59,12 @@ public class AddPVDialog extends Dialog<Boolean>
     private final List<ChoiceBox<String>> axes = new ArrayList<>();
     private ObservableList<String> axis_options;
 
+    /** @param count Number of PV names to edit
+     *  @param model Model
+     *  @param formula Is this for plain PVs or formula?
+     */
     public AddPVDialog(final int count, final Model model, final boolean formula)
     {
-        this.model = model;
         this.formula = formula;
 
         existing_names = model.getItems().stream().map(ModelItem::getName).collect(Collectors.toList());
@@ -70,7 +72,7 @@ public class AddPVDialog extends Dialog<Boolean>
         setTitle(formula ? Messages.AddFormula : Messages.AddPV);
         setHeaderText(formula ? Messages.AddFormulaMsg : Messages.AddPVMsg);
 
-        getDialogPane().setContent(createContent(count));
+        getDialogPane().setContent(createContent(model, count));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         final Button ok = (Button) getDialogPane().lookupButton(ButtonType.OK);
@@ -95,7 +97,7 @@ public class AddPVDialog extends Dialog<Boolean>
         }));
     }
 
-    private Node createContent(final int count)
+    private Node createContent(final Model model, final int count)
     {
         final GridPane layout = new GridPane();
         // layout.setGridLinesVisible(true);
