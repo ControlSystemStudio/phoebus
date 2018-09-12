@@ -11,7 +11,9 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import javax.xml.stream.XMLStreamWriter;
@@ -137,7 +139,7 @@ public class FormulaItem extends ModelItem
      */
     private void compute()
     {
-        final List<PlotSample> result = new ArrayList<PlotSample>();
+        final List<PlotSample> result = new ArrayList<>();
         final Display display = ValueFactory.displayNone();
 
         try
@@ -342,7 +344,7 @@ public class FormulaItem extends ModelItem
         final String name = XMLUtil.getChildString(node, XMLPersistence.TAG_NAME).orElse(XMLPersistence.TAG_FORMULA);
         final String expression = XMLUtil.getChildString(node, XMLPersistence.TAG_FORMULA).orElse("");
         // Get inputs
-        final ArrayList<FormulaInput> inputs = new ArrayList<FormulaInput>();
+        final ArrayList<FormulaInput> inputs = new ArrayList<>();
         for (Element input : XMLUtil.getChildElements(node, XMLPersistence.TAG_INPUT))
         {
             final String pv = XMLUtil.getChildString(input, XMLPersistence.TAG_PV).orElse(XMLPersistence.TAG_PV);
@@ -356,5 +358,14 @@ public class FormulaItem extends ModelItem
         final FormulaItem formula = new FormulaItem(name, expression, inputs.toArray(new FormulaInput[inputs.size()]));
         formula.configureFromDocument(model, node);
         return formula;
+    }
+
+    @Override
+    public void dispose()
+    {
+        this.model = Optional.empty();
+        this.inputs = null;
+        this.variables = null;
+        this.samples.set(Collections.emptyList());
     }
 }
