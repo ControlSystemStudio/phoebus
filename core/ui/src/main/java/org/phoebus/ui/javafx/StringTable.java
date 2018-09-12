@@ -158,6 +158,10 @@ public class StringTable extends BorderPane
                 editor = (TextField) getGraphic();
                 editor.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
             }
+            // In last row, don't edit "Click to edit" but show empty initial value
+            final int row = getIndex();
+            if (data.get(row) == MAGIC_LAST_ROW)
+                editor.clear();
         }
 
         private void handleKey(final KeyEvent event)
