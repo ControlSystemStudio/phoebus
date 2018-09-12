@@ -153,6 +153,8 @@ public class DockItem extends Tab
         name_tab.setOnDragDone(this::handleDragDone);
 
         createContextMenu();
+
+        setOnClosed(this::handleClosed);
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
@@ -497,6 +499,7 @@ public class DockItem extends Tab
                         event.consume();
                         return;
                     }
+                close_check = null;
             });
         }
         close_check.add(ok_to_close);
@@ -509,17 +512,27 @@ public class DockItem extends Tab
     public void addClosedNotification(final Runnable closed)
     {
         if (closed_callback == null)
-        {
             closed_callback = new ArrayList<>();
-            setOnClosed(event ->
-            {
-                for (Runnable check : closed_callback)
-                    check.run();
-            });
-        }
         closed_callback.add(closed);
     }
 
+    /** Tab has been closed */
+    private void handleClosed(final Event event)
+    {
+        // If there are callbacks, invoke them
+        if (closed_callback != null)
+        {
+            for (Runnable check : closed_callback)
+                check.run();
+            closed_callback = null;
+        }
+
+        // Remove content to avoid memory leaks
+        // because this tab could linger in memory for a while
+        setContent(null);
+        // Remove "application" entry which otherwise holds on to application data model
+        getProperties().remove(KEY_APPLICATION);
+    }
 
     /** Programmatically close this tab
      *
@@ -539,9 +552,7 @@ public class DockItem extends Tab
                 return false;
         }
 
-        handler = getOnClosed();
-        if (null != handler)
-            handler.handle(null);
+        handleClosed(null);
 
         getDockPane().getTabs().remove(this);
 

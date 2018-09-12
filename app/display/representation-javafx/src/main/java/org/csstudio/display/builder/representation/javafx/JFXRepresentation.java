@@ -968,4 +968,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         }
         return CompletableFuture.completedFuture(false);
     }
+
+    @Override
+    public void shutdown()
+    {
+        if (! widget_parent.getChildren().isEmpty())
+            logger.log(Level.WARNING, "Display representation still contains items on shutdown", widget_parent.getChildren());
+        super.shutdown();
+    }
 }

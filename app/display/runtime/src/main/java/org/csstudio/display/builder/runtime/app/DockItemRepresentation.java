@@ -102,6 +102,11 @@ public class DockItemRepresentation extends JFXRepresentation
 
     private ToolkitRepresentation<Parent, Node> representModelInNewDockItem(final DisplayModel model)
     {
+        // This results in loading the model once more inside the DisplayRuntimeInstance,
+        // but has the advantage that a potentially existing display for the same model
+        // is raised instead of opening a duplicate.
+        // Potential improvement would be an API in DisplayRuntimeInstance to create with DisplayModel,
+        // then using the existing model instead of re-loading it from a resource.
         final URI resource = DisplayInfo.forModel(model).toURI();
         final DisplayRuntimeInstance instance = ApplicationService.createInstance(DisplayRuntimeApplication.NAME, resource);
         return instance.getRepresentation();

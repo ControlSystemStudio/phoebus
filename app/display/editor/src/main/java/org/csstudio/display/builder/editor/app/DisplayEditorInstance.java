@@ -97,6 +97,8 @@ public class DisplayEditorInstance implements AppInstance
         final Control menu_node = editor_gui.getDisplayEditor().getContextMenuNode();
         menu_node.setOnContextMenuRequested(event -> handleContextMenu(menu));
         menu_node.setContextMenu(menu);
+
+        dock_item.addClosedNotification(this::dispose);
     }
 
     private void extendToolbar()
@@ -274,5 +276,12 @@ public class DisplayEditorInstance implements AppInstance
             if (! dock_item.save_as(monitor))
                 dock_item.setInput(orig_input);
         }
+    }
+
+    private void dispose()
+    {
+        dock_item.setInput(null);
+        modification_marker = null;
+        editor_gui.dispose();
     }
 }

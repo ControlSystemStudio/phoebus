@@ -120,6 +120,15 @@ public class DisplayNavigation
         return current;
     }
 
+    /** Clear history etc. */
+    public void dispose()
+    {
+        forwardStack.clear();
+        backwardStack.clear();
+        current = null;
+        listeners.clear();
+    }
+
     /** @return Debug representation */
     @Override
     public String toString()

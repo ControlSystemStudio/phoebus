@@ -679,6 +679,7 @@ public class DisplayEditor
     {
         if (model != null)
             toolkit.disposeRepresentation(model);
+        model = null;
     }
 
     /** @param level_spec Zoom level specification like "123 %"

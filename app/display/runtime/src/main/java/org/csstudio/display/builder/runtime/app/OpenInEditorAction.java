@@ -17,23 +17,24 @@ import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.scene.control.MenuItem;
-
 /** Open display in editor
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class OpenInEditorAction extends MenuItem
+public class OpenInEditorAction extends WeakRefWidgetAction
 {
     public OpenInEditorAction(final AppResourceDescriptor editor,
-                              final Widget widget)
+                              final Widget the_widget)
     {
         super(Messages.OpenInEditor,
-              ImageCache.getImageView(DisplayModel.class, "/icons/display.png"));
+              ImageCache.getImageView(DisplayModel.class, "/icons/display.png"),
+              the_widget);
+
         setOnAction(event ->
         {
             try
             {
+                final Widget widget = getWidget();
                 final DisplayModel model = widget.getDisplayModel();
                 final String path;
                 // Options:

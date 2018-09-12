@@ -51,14 +51,14 @@ import javafx.scene.text.FontWeight;
 @SuppressWarnings("nls")
 public class Model
 {
+    /** Matcher for "Value N" axis name */
+    private static final Pattern axis_name_pattern = Pattern.compile(Messages.Plot_ValueAxisName + " \\d+", Pattern.MULTILINE);
+
     /** Should UI ask to save changes to the model? */
     final private AtomicBoolean save_changes = new AtomicBoolean(true);
 
     /** Default colors for newly added item */
     final private RGBFactory default_colors = new RGBFactory();
-
-    /** Matcher for "Value N" axis name */
-    private final Pattern axis_name_pattern = Pattern.compile(Messages.Plot_ValueAxisName + " \\d+", Pattern.MULTILINE);
 
     /** Macros */
     private volatile MacroValueProvider macros = new Macros();
@@ -131,6 +131,9 @@ public class Model
 
         while (getAxisCount() > 0)
             removeAxis(getAxis(getAxisCount()-1));
+
+        annotations = List.of();
+        macros = new Macros();
     }
 
     /** Load state from another model

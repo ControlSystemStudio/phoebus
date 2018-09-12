@@ -8,8 +8,8 @@
 package org.phoebus.framework.jobs;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -25,8 +25,13 @@ public class JobManager
 
     private static final ExecutorService POOL = Executors.newCachedThreadPool(new NamedThreadFactory("JobManager"));
 
-    private static final ConcurrentSkipListSet<Job> active_jobs =
-        new ConcurrentSkipListSet<>((job1, job2) -> System.identityHashCode(job2) - System.identityHashCode(job1));
+    // Used ConcurrentSkipListSet, but that keeps past Job in memory for a long time,
+    // making it harder to debug memory leaks.
+    //
+    // Don't expect too many jobs at the same time (10..50),
+    // but need fast way to get count and copy of active jobs
+    // -> Plain list, synchronized
+    private static final List<Job> active_jobs = Collections.synchronizedList(new ArrayList<>());
 
     /** Submit a new Job
      *
