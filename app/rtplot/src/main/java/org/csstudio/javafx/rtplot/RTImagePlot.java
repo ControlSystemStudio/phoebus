@@ -18,11 +18,11 @@ import org.csstudio.javafx.rtplot.internal.ImageConfigDialog;
 import org.csstudio.javafx.rtplot.internal.ImagePlot;
 import org.csstudio.javafx.rtplot.internal.ImageToolbarHandler;
 import org.csstudio.javafx.rtplot.internal.MouseMode;
-import org.csstudio.javafx.rtplot.internal.ToolbarHandler;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.javafx.rtplot.internal.undo.ChangeImageZoom;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.array.ListNumber;
 import org.phoebus.vtype.VImageType;
@@ -256,7 +256,7 @@ public class RTImagePlot extends BorderPane
         // or make room for the visible toolbar
         layoutChildren();
         if (show)
-            Platform.runLater(() -> ToolbarHandler.refreshHack(toolbar.getToolBar()));
+            Platform.runLater(() -> ToolbarHelper.refreshHack(toolbar.getToolBar()));
     }
 
     /** @param mode New {@link MouseMode}

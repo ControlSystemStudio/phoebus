@@ -30,6 +30,7 @@ import org.csstudio.javafx.rtplot.internal.undo.ChangeAxisRanges;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.Screenshot;
+import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -367,7 +368,7 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         // or make room for the visible toolbar
         layoutChildren();
         if (show)
-            Platform.runLater(() -> ToolbarHandler.refreshHack(toolbar.getToolBar()));
+            Platform.runLater(() -> ToolbarHelper.refreshHack(toolbar.getToolBar()));
 
         plot.fireToolbarChange(show);
     }
