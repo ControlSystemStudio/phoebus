@@ -52,7 +52,7 @@ public class DataBrowserInstance implements AppInstance
     public static int display_pixel_width = 0;
 
     private final DataBrowserApp app;
-    private final Perspective perspective;
+    private Perspective perspective;
     private DockItemWithInput dock_item;
 
     /** Track changes that turn the instance 'dirty' **/
@@ -245,6 +245,8 @@ public class DataBrowserInstance implements AppInstance
 
     private void dispose()
     {
+        perspective.getModel().removeListener(model_listener);
         perspective.dispose();
+        perspective = null;
     }
 }
