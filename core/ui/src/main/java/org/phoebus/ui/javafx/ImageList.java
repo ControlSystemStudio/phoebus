@@ -177,8 +177,11 @@ public class ImageList extends VBox
         clipboard.setOnAction(event ->
         {
             final Image image = Screenshot.getImageFromClipboard();
-            images.getItems().add(image);
-            selectFirstImage();
+            if (null != image)
+            {
+                images.getItems().add(image);
+                selectFirstImage();
+            }
         });
 
         final HBox row = new HBox(10, addImage, captureWindow, clipboard);

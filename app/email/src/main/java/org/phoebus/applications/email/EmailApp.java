@@ -13,9 +13,11 @@ import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 
+import org.phoebus.applications.email.ui.SimpleCreateController;
 import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.ui.docking.DockPane;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -73,12 +75,19 @@ public class EmailApp implements AppResourceDescriptor {
     @Override
     public AppInstance create() {
         try {
-            Parent root = FXMLLoader.load(this.getClass().getResource("ui/SimpleCreate.fxml"));
+            
+            final FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
+            Parent root = loader.load();
+            final SimpleCreateController controller = loader.getController();
+            
             Scene scene = new Scene(root, 600, 800);
 
             Stage stage = new Stage();
-            stage.setTitle("FXML Welcome");
+            stage.setTitle("Send Email");
             stage.setScene(scene);
+            controller.setSnapshotNode(DockPane.getActiveDockPane());
+
             stage.show();
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to create email dialog", e);
