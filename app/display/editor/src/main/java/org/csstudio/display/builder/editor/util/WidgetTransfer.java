@@ -14,7 +14,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -29,9 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
-import javax.swing.text.Document;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.rtf.RTFEditorKit;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorUtil;
@@ -185,44 +181,44 @@ public class WidgetTransfer {
         final Consumer<List<Widget>> handleDroppedModel
     ) {
 
-        node.setOnDragOver( ( DragEvent event ) -> {
-
+        node.setOnDragOver(event  ->
+        {
             final Dragboard db = event.getDragboard();
 
-            if ( db.hasString() || db.hasUrl() || db.hasRtf() || db.hasHtml() || db.hasImage() || db.hasFiles() ) {
+            if (db.hasString() || db.hasUrl() || db.hasRtf() || db.hasHtml() || db.hasImage() || db.hasFiles())
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
-            }
 
             group_handler.locateParent(event.getX(), event.getY(), 10, 10);
             event.consume();
-
         });
 
-        node.setOnDragDropped( ( DragEvent event ) -> {
-
+        node.setOnDragDropped(event ->
+        {
             final Dragboard db = event.getDragboard();
             final Point2D location = selection_tracker.gridConstrain(event.getX(), event.getY());
             final List<Widget> widgets = new ArrayList<>();
             final List<Runnable> updates = new ArrayList<>();
 
-            if ( db.hasFiles() && canAcceptFiles(db.getFiles()) ) {
+            System.out.println("DROPPED " + db.getContentTypes());
+
+            // Used to check for HTML and RTF only to extract plain text from it.
+            // On RedHat 7, dropping from email in web browser,
+            // that resulted in getting no text at all.
+            // Same for RTF from Mac TextEdit.
+            // On the other hand, plain String works, so using that.
+            if (db.hasFiles() && canAcceptFiles(db.getFiles()))
                 installWidgetsFromFiles(db, selection_tracker, widgets, updates);
-            } else if ( db.hasImage() && db.getImage() != null ) {
+            else if (db.hasImage() && db.getImage() != null)
                 installPictureWidgetFromImage(db, selection_tracker, widgets);
-            } else if ( db.hasUrl() && db.getUrl() != null ) {
+            else if (db.hasUrl() && db.getUrl() != null)
                 installWidgetsFromURL(event, widgets, updates);
-            } else if ( db.hasHtml() && db.getHtml() != null ) {
-                installWidgetsFromHTML(event, selection_tracker, widgets);
-            } else if ( db.hasRtf() && db.getRtf() != null ) {
-                installWidgetsFromRTF(event, selection_tracker, widgets);
-            } else if ( db.hasString() && db.getString() != null ) {
+            else if (db.hasString() && db.getString() != null)
                 installWidgetsFromString(event, selection_tracker, widgets);
-            }
 
-            if ( widgets.isEmpty() ) {
+            if (widgets.isEmpty())
                 event.setDropCompleted(false);
-            } else {
-
+            else
+            {
                 logger.log(Level.FINE, "Dropped {0} widgets.", widgets.size());
 
                 GeometryTools.moveWidgets((int) location.getX(), (int) location.getY(), widgets);
@@ -235,14 +231,12 @@ public class WidgetTransfer {
                 }
 
                 event.setDropCompleted(true);
-
             }
 
             event.consume();
             group_handler.hide();
 
         });
-
     }
 
     /** @param file File
@@ -555,58 +549,6 @@ public class WidgetTransfer {
      *            used in offsetting multiple widgets.
      * @param widgets The container of the created widgets.
      */
-    private static void installWidgetsFromHTML (
-        final DragEvent event,
-        final SelectedWidgetUITracker selection_tracker,
-        final List<Widget> widgets
-    ) {
-
-        final Dragboard db = event.getDragboard();
-        String html = db.getHtml();
-        HTMLEditorKit htmlParser = new HTMLEditorKit();
-        Document document = htmlParser.createDefaultDocument();
-
-        try {
-            htmlParser.read(new ByteArrayInputStream(html.getBytes()), document, 0);
-            installWidgetsFromString(event, document.getText(0, document.getLength()), selection_tracker, widgets);
-        } catch ( Exception ex ) {
-            logger.log(Level.WARNING, "Invalid HTML string", ex);
-        }
-
-    }
-
-    /**
-     * @param db The {@link Dragboard} containing the dragged data.
-     * @param selection_tracker Used to get the grid steps from its model to be
-     *            used in offsetting multiple widgets.
-     * @param widgets The container of the created widgets.
-     */
-    private static void installWidgetsFromRTF (
-        final DragEvent event,
-        final SelectedWidgetUITracker selection_tracker,
-        final List<Widget> widgets
-    ) {
-
-        final Dragboard db = event.getDragboard();
-        final String rtf = db.getRtf();
-        final RTFEditorKit rtfParser = new RTFEditorKit();
-        final Document document = rtfParser.createDefaultDocument();
-
-        try {
-            rtfParser.read(new ByteArrayInputStream(rtf.getBytes()), document, 0);
-            installWidgetsFromString(event, document.getText(0, document.getLength()), selection_tracker, widgets);
-        } catch ( Exception ex ) {
-            logger.log(Level.WARNING, "Invalid RTF string", ex);
-        }
-
-    }
-
-    /**
-     * @param event The {@link DragEvent} containing the dragged data.
-     * @param selection_tracker Used to get the grid steps from its model to be
-     *            used in offsetting multiple widgets.
-     * @param widgets The container of the created widgets.
-     */
     private static void installWidgetsFromString (
         final DragEvent event,
         final SelectedWidgetUITracker selection_tracker,
@@ -615,6 +557,8 @@ public class WidgetTransfer {
 
         final Dragboard db = event.getDragboard();
         final String xmlOrText = db.getString();
+
+        System.out.println("Dropped text " + xmlOrText);
 
         try {
             widgets.addAll(ModelReader.parseXML(xmlOrText).getChildren());
@@ -630,6 +574,8 @@ public class WidgetTransfer {
         final SelectedWidgetUITracker selection_tracker,
         final List<Widget> widgets
     ) {
+
+        System.out.println("installWidgetsFromString " + text);
 
         //  Consider each word a separate PV
         final String[] words = text.split("[ \n]+");
