@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -34,7 +33,6 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
-import org.epics.pvdata.property.Alarm;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
@@ -48,7 +46,6 @@ public class AlarmConfigLogger implements Runnable {
     private Properties props;
 
     private MessageParser<AlarmConfigMessage> messageParser = new MessageParser<AlarmConfigMessage>(AlarmConfigMessage.class);
-    private final Serde<AlarmConfigMessage> alarmConfigMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
 
     // TODO convert this to a preference.
     private final String location = "C:\\AlarmConfig";
@@ -77,6 +74,7 @@ public class AlarmConfigLogger implements Runnable {
         root.mkdirs();
 
         model = new AlarmClient(props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG), this.topic);
+        model.start();
     }
 
     KafkaStreams streams = null;
@@ -86,20 +84,7 @@ public class AlarmConfigLogger implements Runnable {
     @Override
     public void run() {
 
-        // Output the model to the restore-able scripts folder.
-        model.start();
-        File node = Paths.get(root.getParent(), ".restore-script").toFile();
-        if (!node.mkdirs()) {
-            logger.log(Level.WARNING, "Alarm config logging failed to create .restore-script folder");
-        }
-        File node_info = new File(node, "config.xml");
-        try (OutputStream fo = Files.newOutputStream(node_info.toPath());
-             XmlModelWriter modelWriter = new XmlModelWriter(fo);) {
-            modelWriter.write(model.getRoot());
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Alarm config logging failed to dump the alarm configuration to config.xml", e);
-        }
-        
+        writeAlarmModel();
         try {
             consumer = new KafkaConsumer<>(props, Serdes.String().deserializer(), Serdes.String().deserializer());
 
@@ -170,14 +155,12 @@ public class AlarmConfigLogger implements Runnable {
      */
     private synchronized void processAlarmConfigMessages(String path, String alarm_config) {
         try {
-            logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
+            logger.log(Level.FINE, "processing message:" + path + ":" + alarm_config);
             objectMapper.readValue(alarm_config, AlarmConfigMessage.class);
             if (alarm_config != null) {
                 path = path.replace(":", "");
                 File node = Paths.get(root.getParent(), path).toFile();
-                if (!node.mkdirs()) {
-                    logger.log(Level.WARNING, "Alarm config logging failed for path " + path + ", config " + alarm_config);
-                }
+                node.mkdirs();
                 File node_info = new File(node, "alarm_config.json");
                 try (FileWriter fo = new FileWriter(node_info)) {
                     fo.write(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(objectMapper.readValue(alarm_config, Object.class)));
@@ -186,7 +169,6 @@ public class AlarmConfigLogger implements Runnable {
                             "Alarm config logging failed for path " + path + ", config " + alarm_config, e);
                 }
             }
-            System.out.println(path + " " + alarm_config);
         } catch (final Exception ex) {
             logger.log(Level.WARNING, "Alarm state check error for path " + path + ", config " + alarm_config, ex);
         }
@@ -223,6 +205,21 @@ public class AlarmConfigLogger implements Runnable {
         public void close() {
         }
 
+    }
+    
+    private synchronized void writeAlarmModel() {
+        // Output the model to the restore-able scripts folder.
+        File node = Paths.get(root.getParent(), ".restore-script").toFile();
+        if (!node.mkdirs()) {
+            logger.log(Level.WARNING, "Alarm config logging failed to create .restore-script folder");
+        }
+        File node_info = new File(node, "config.xml");
+        try (OutputStream fo = Files.newOutputStream(node_info.toPath());
+             XmlModelWriter modelWriter = new XmlModelWriter(fo);) {
+            modelWriter.write(model.getRoot());
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Alarm config logging failed to dump the alarm configuration to config.xml", e);
+        }
     }
 
 }
