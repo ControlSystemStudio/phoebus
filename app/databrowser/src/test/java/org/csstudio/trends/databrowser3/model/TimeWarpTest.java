@@ -28,6 +28,7 @@ public class TimeWarpTest
     {
         assertThat(TimeWarp.formatAsLegacy(Duration.ofDays(3)), equalTo("-3 days"));
         assertThat(TimeWarp.formatAsLegacy(Duration.ofSeconds(30)), equalTo("-30 seconds"));
+        assertThat(TimeWarp.formatAsLegacy(Duration.ofHours(2)), equalTo("-2 hours"));
         assertThat(TimeWarp.formatAsLegacy(Duration.ofSeconds(120)), equalTo("-2 minutes"));
         assertThat(TimeWarp.formatAsLegacy(Duration.ofDays(3).plus(Duration.ofSeconds(10, 123000000))), equalTo("-3 days -10.123 seconds"));
     }
@@ -43,5 +44,11 @@ public class TimeWarpTest
 
         amount = TimeWarp.parseLegacy("-3 days -10.123 seconds");
         assertThat(amount, equalTo(Duration.ofSeconds(3*24*60*60 + 10, 123000000)));
+
+        amount = TimeWarp.parseLegacy("  -2.00 hours    ");
+        assertThat(amount, equalTo(Duration.ofHours(2)));
+
+        amount = TimeWarp.parseLegacy("-2.00 h");
+        assertThat(amount, equalTo(Duration.ofHours(2)));
     }
 }
