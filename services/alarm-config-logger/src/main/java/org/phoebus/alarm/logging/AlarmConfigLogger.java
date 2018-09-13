@@ -5,6 +5,8 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -36,6 +38,7 @@ import org.epics.pvdata.property.Alarm;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
+import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -83,6 +86,20 @@ public class AlarmConfigLogger implements Runnable {
     @Override
     public void run() {
 
+        // Output the model to the restore-able scripts folder.
+        model.start();
+        File node = Paths.get(root.getParent(), ".restore-script").toFile();
+        if (!node.mkdirs()) {
+            logger.log(Level.WARNING, "Alarm config logging failed to create .restore-script folder");
+        }
+        File node_info = new File(node, "config.xml");
+        try (OutputStream fo = Files.newOutputStream(node_info.toPath());
+             XmlModelWriter modelWriter = new XmlModelWriter(fo);) {
+            modelWriter.write(model.getRoot());
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Alarm config logging failed to dump the alarm configuration to config.xml", e);
+        }
+        
         try {
             consumer = new KafkaConsumer<>(props, Serdes.String().deserializer(), Serdes.String().deserializer());
 
