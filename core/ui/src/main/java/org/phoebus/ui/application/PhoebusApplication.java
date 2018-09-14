@@ -124,6 +124,12 @@ public class PhoebusApplication extends Application {
 
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
+    
+    /** Toolbar button for home layout */
+    private Button layout_home_button;
+    
+    /** Toolbar button for past layouts */
+    private MenuButton layout_menu_button;
 
     /** Last file used by 'File, Open' menu
      *  (the _directory_ is actually used by the file-open dialog)
@@ -471,7 +477,10 @@ public class PhoebusApplication extends Application {
             menuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
 
             // Update the menu with the menu items on the UI thread.
-            Platform.runLater(()-> load_layout.getItems().setAll(menuItemList));
+            Platform.runLater(()-> {
+                load_layout.getItems().setAll(menuItemList);
+                layout_menu_button.getItems().setAll(menuItemList);
+            });
         });
     }
 
@@ -620,6 +629,17 @@ public class PhoebusApplication extends Application {
 
             toolBar.getItems().add(button);
         });
+        
+        ImageView homeIcon = ImageCache.getImageView(ImageCache.class, "/icons/home.png");
+        homeIcon.setFitHeight(16.0);
+        homeIcon.setFitWidth(16.0);
+        layout_home_button = new Button(null, homeIcon);
+        layout_home_button.setTooltip(new Tooltip("Navigate to home layout."));
+        layout_menu_button = new MenuButton("Saved Layouts", ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        layout_menu_button.setTooltip(new Tooltip("Saved layout files."));
+        
+        toolBar.getItems().addAll(layout_home_button, layout_menu_button);
+        
         toolBar.setPrefWidth(600);
         return toolBar;
     }
