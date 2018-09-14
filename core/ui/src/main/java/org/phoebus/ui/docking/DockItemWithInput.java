@@ -405,6 +405,8 @@ public class DockItemWithInput extends DockItem
     @Override 
     protected void handleClosed(final Event event)
     {
+        // Do the same as in the parent class, DockItem.handleClosed, but clean up save_handler.
+        
         // If there are callbacks, invoke them
         if (closed_callback != null)
         {
