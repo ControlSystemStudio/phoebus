@@ -60,9 +60,7 @@ import javafx.scene.control.SeparatorMenuItem;
 public class DisplayEditorInstance implements AppInstance
 {
     /** Memento tags */
-    private static final String SHOW_TREE = "tree",
-                                SHOW_PROPS = "props",
-                                LEFT_DIVIDER = "left_divider",
+    private static final String LEFT_DIVIDER = "left_divider",
                                 RIGHT_DIVIDER = "right_divider";
 
     private final AppResourceDescriptor app;
@@ -175,8 +173,8 @@ public class DisplayEditorInstance implements AppInstance
     @Override
     public void restore(final Memento memento)
     {
-        memento.getBoolean(SHOW_PROPS).ifPresent(editor_gui::showProperties);
-        memento.getBoolean(SHOW_TREE).ifPresent(editor_gui::showWidgetTree);
+        memento.getBoolean(EditorGUI.SHOW_PROPS).ifPresent(editor_gui::showProperties);
+        memento.getBoolean(EditorGUI.SHOW_TREE).ifPresent(editor_gui::showWidgetTree);
         final Optional<Number> left = memento.getNumber(LEFT_DIVIDER);
         final Optional<Number> right = memento.getNumber(RIGHT_DIVIDER);
 
@@ -196,9 +194,9 @@ public class DisplayEditorInstance implements AppInstance
     public void save(final Memento memento)
     {
         if (! editor_gui.isWidgetTreeShown())
-            memento.setBoolean(SHOW_TREE, false);
+            memento.setBoolean(EditorGUI.SHOW_TREE, false);
         if (! editor_gui.arePropertiesShown())
-            memento.setBoolean(SHOW_PROPS, false);
+            memento.setBoolean(EditorGUI.SHOW_PROPS, false);
 
         final double[] dividers = editor_gui.getDividerPositions();
         if (dividers.length > 0)

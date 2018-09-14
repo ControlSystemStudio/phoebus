@@ -61,8 +61,8 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class EditorGUI
 {
-    private static final String SHOW_TREE = "tree",
-                                SHOW_PROPS = "props";
+    public static final String SHOW_TREE = "tree",
+                               SHOW_PROPS = "props";
     private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
     private class ActionWapper extends MenuItem
