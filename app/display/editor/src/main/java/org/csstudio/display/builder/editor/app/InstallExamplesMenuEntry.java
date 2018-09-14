@@ -54,7 +54,7 @@ public class InstallExamplesMenuEntry implements MenuEntry
     // then opens one of the examples with a certain application
     private static final String EXAMPLE_DIRECTORY = "Display Builder",
                                 INITIAL_EXAMPLE_TO_OPEN = "01_main.bob",
-                                INITIAL_EXAMPLE_APPLICATION = DisplayEditorApplication.NAME;
+                                INITIAL_EXAMPLE_APPLICATION = "display_runtime";
     // What's currently specific to the Display Builder is the handling
     // of the "examples:" URL used for display examples,
 
@@ -131,7 +131,7 @@ public class InstallExamplesMenuEntry implements MenuEntry
                 logger.log(Level.INFO, "Install " + resource_path + " into " + examples);
                 copy(resource_path.getNameCount(), resource_path, examples, monitor);
             }
-            // Open editor on UI thread
+            // Open runtime on UI thread
             Platform.runLater(() ->
             {
                 final URI uri = new File(examples, INITIAL_EXAMPLE_TO_OPEN).toURI();

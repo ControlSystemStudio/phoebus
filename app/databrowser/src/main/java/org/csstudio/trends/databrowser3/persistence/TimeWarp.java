@@ -88,6 +88,8 @@ public class TimeWarp
 
 
     private static final Pattern LEGACY_SECONDS = Pattern.compile("([0-9]+)\\.([0-9]+) sec.*");
+    // Actually allows "h", "hour", "hours", but also "horsurrs".. Fine.
+    private static final Pattern LEGACY_HOURS = Pattern.compile("([0-9.]+) h[ours]*");
 
     /** @param legacy_spec Legacy specification, e.g. "-3 days -3.124 seconds"
      *  @return Relative time span
@@ -95,14 +97,26 @@ public class TimeWarp
     public static TemporalAmount parseLegacy(final String legacy_spec)
     {
         String spec = legacy_spec.replace("-", "");
-        final Matcher legacy_seconds = LEGACY_SECONDS.matcher(spec);
-        if (legacy_seconds.find())
+
+        Matcher legacy = LEGACY_HOURS.matcher(spec);
+        if (legacy.find())
+        {
+            // TimeParser can only handle full hours, not floating point
+            // Convert to minutes
+            final double hours = Double.parseDouble(legacy.group(1));
+            final long minutes = Math.round(hours * 60.0);
+            // Replace "hh.hh h" with "mmmm minutes"
+            spec = spec.substring(0,legacy.start()) + minutes + " minutes" + spec.substring(legacy.end());
+        }
+
+        legacy = LEGACY_SECONDS.matcher(spec);
+        if (legacy.find())
         {
             // Pad to nanosecs
-            final String padded = (legacy_seconds.group(2) + "000000000").substring(0, 9);
+            final String padded = (legacy.group(2) + "000000000").substring(0, 9);
             final long nano = Long.parseLong(padded);
             // .. but then only use the ms
-            spec = spec.substring(0,legacy_seconds.start()) + legacy_seconds.group(1) + " seconds " + (nano/1000000) + " ms";
+            spec = spec.substring(0,legacy.start()) + legacy.group(1) + " seconds " + (nano/1000000) + " ms";
         }
         return TimeParser.parseTemporalAmount(spec);
     }

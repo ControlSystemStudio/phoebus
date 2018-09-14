@@ -447,6 +447,9 @@ abstract public class ModelItem
         setWaveformIndex(XMLUtil.getChildInteger(node, XMLPersistence.TAG_WAVEFORM_INDEX).orElse(0));
     }
 
+    /** Dispose all data */
+    public abstract void dispose();
+
     /** @return Debug representation */
     @Override
     public String toString()

@@ -56,7 +56,7 @@ public class XYVTypeDataProvider implements PlotDataProvider<Double>
     public XYVTypeDataProvider(ListNumber x_data, ListNumber y_data, ListNumber error_data)
     {
         // In principle, error_data should have 1 element or same size as X and Y..
-        if (error_data != null)
+        if (error_data == null)
             error_data = EMPTY;
 
         // Could create each PlotDataItem lazily in get(),

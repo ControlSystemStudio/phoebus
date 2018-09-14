@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.applications.pvtable.ui;
 
+import java.lang.ref.WeakReference;
+
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.SavedValue;
 import org.phoebus.applications.pvtable.model.TimestampHelper;
@@ -17,6 +19,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.WeakChangeListener;
 
 /** Proxy for a PVTableItem
  *
@@ -39,7 +42,12 @@ class TableItemProxy
      */
     final public static TableItemProxy NEW_ITEM = new TableItemProxy();
 
-    final PVTableItem item;
+    // UI can be held in memory for a little longer after the application
+    // has been closed.
+    // Use weak reference to application data (PV item)
+    // to have that GCed as soon as possible.
+    // Eventually, UI will also be GCed.
+    final private WeakReference<PVTableItem> item;
     final BooleanProperty selected = new SimpleBooleanProperty();
     final StringProperty name = new SimpleStringProperty();
     final StringProperty time = new SimpleStringProperty();
@@ -55,13 +63,18 @@ class TableItemProxy
         item = null;
     }
 
+    public PVTableItem getItem()
+    {
+        return item.get();
+    }
+
     public TableItemProxy(final PVTableItem item)
     {
-        this.item = item;
+        this.item = new WeakReference<>(item);
         update(item);
 
-        selected.addListener((prop, old, current) ->  item.setSelected(current));
-        use_completion.addListener((prop, old, current) ->  item.setUseCompletion(current));
+        selected.addListener(new WeakChangeListener<>((prop, old, current) ->  item.setSelected(current)));
+        use_completion.addListener(new WeakChangeListener<>((prop, old, current) ->  item.setUseCompletion(current)));
     }
 
     public void update(final PVTableItem item)

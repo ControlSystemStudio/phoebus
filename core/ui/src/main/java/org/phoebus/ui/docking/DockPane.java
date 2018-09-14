@@ -272,8 +272,6 @@ public class DockPane extends TabPane
     public void setFixed(final boolean fixed)
     {
         this.fixed = fixed;
-        if (fixed)
-            System.out.println("Locking " + this);
         // Prevent closing items in 'fixed' pane
         for (DockItem tab : getDockItems())
             tab.setClosable(! fixed);

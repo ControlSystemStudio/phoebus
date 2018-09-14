@@ -9,7 +9,6 @@ package org.csstudio.javafx.rtplot.internal;
 
 import static org.csstudio.javafx.rtplot.Activator.logger;
 
-import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Activator;
@@ -22,7 +21,6 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoButtons;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Separator;
@@ -42,42 +40,6 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
     // Button's auto-sizing doesn't work when toolbar is initially hidden.
     // Fixed size seems only way around that.
     static final int BUTTON_WIDTH = 32, BUTTON_HEIGHT = 26;
-
-    /** Hack ill-sized toolbar buttons
-     *
-     *  <p>When toolbar is originally hidden and then later
-     *  shown, it tends to be garbled, all icons in pile at left end,
-     *  Manual fix is to hide and show again.
-     *  Workaround is to force another layout a little later.
-     */
-    public static void refreshHack(final ToolBar toolbar)
-    {
-        if (toolbar.getParent() == null)
-            return;
-        for (Node node : toolbar.getItems())
-        {
-            if (! (node instanceof ButtonBase))
-                continue;
-            final ButtonBase button = (ButtonBase) node;
-            final Node icon = button.getGraphic();
-            if (icon == null)
-                continue;
-            // Re-set the icon to force new layout of button
-            button.setGraphic(null);
-            button.setGraphic(icon);
-            if (button.getWidth() == 0  ||  button.getHeight() == 0)
-            {   // If button has no size, yet, try again later
-                ForkJoinPool.commonPool().submit(() ->
-                {
-                    Thread.sleep(500);
-                    Platform.runLater(() -> refreshHack(toolbar));
-                    return null;
-                });
-                return;
-            }
-        }
-        Platform.runLater(() -> toolbar.layout());
-    }
 
     public enum ToolIcons
     {

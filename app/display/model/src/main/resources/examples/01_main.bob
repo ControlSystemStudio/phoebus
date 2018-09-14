@@ -313,12 +313,12 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_27</name>
+    <name>Action Button_32</name>
     <actions>
       <action type="open_display">
-        <file>monitors_gauge.bob</file>
+        <file>monitors_symbols.bob</file>
         <target>replace</target>
-        <description>Gauges</description>
+        <description>Symbols</description>
       </action>
     </actions>
     <x>330</x>
@@ -340,21 +340,31 @@ then press &lt;SPACE&gt; to activate button.</text>
     <y>360</y>
     <width>120</width>
     <height>26</height>
+    <scripts>
+      <script file="scripts/disable_missing.py">
+        <pv_name>loc://meter("meter")</pv_name>
+      </script>
+    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_32</name>
+    <name>Action Button_27</name>
     <actions>
       <action type="open_display">
-        <file>monitors_symbols.bob</file>
+        <file>monitors_gauge.bob</file>
         <target>replace</target>
-        <description>Symbols</description>
+        <description>Gauges</description>
       </action>
     </actions>
     <x>330</x>
     <y>400</y>
     <width>120</width>
     <height>26</height>
+    <scripts>
+      <script file="scripts/disable_missing.py">
+        <pv_name>loc://gauge("gauge")</pv_name>
+      </script>
+    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="label" version="2.0.0">
@@ -487,6 +497,11 @@ then press &lt;SPACE&gt; to activate button.</text>
     <y>400</y>
     <width>120</width>
     <height>26</height>
+    <scripts>
+      <script file="scripts/disable_missing.py">
+        <pv_name>loc://knob("knob")</pv_name>
+      </script>
+    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
@@ -502,6 +517,11 @@ then press &lt;SPACE&gt; to activate button.</text>
     <y>440</y>
     <width>120</width>
     <height>26</height>
+    <scripts>
+      <script file="scripts/disable_missing.py">
+        <pv_name>loc://thumb("thumbwheel")</pv_name>
+      </script>
+    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="label" version="2.0.0">
@@ -688,6 +708,11 @@ then press &lt;SPACE&gt; to activate button.</text>
     <y>160</y>
     <width>120</width>
     <height>26</height>
+    <scripts>
+      <script file="scripts/disable_missing.py">
+        <pv_name>loc://clock("clock")</pv_name>
+      </script>
+    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">

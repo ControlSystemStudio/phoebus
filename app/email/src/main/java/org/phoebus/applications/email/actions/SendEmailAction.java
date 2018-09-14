@@ -58,13 +58,13 @@ public class SendEmailAction extends MenuItem
                     controller.setImages(List.of(get_image.get()));
 
                 final Stage stage = new Stage();
-                stage.setTitle("Send EMail");
+                stage.setTitle("Send Email");
                 final Scene scene = new Scene(root, 600, 800);
                 stage.setScene(scene);
-
+                
                 if (parent != null)
                 {
-                    controller.setSnapshotNode(parent.getScene().getRoot());
+                    controller.setSnapshotNode(parent);
                     stage.setX(parent.getScene().getWindow().getX() + 100);
                     stage.setY(parent.getScene().getWindow().getY() + 50);
                 }

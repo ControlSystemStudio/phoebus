@@ -61,8 +61,6 @@ public class ImageList extends VBox
         }
     }
 
-    private static final ImageView removeIcon = ImageCache.getImageView(ImageCache.class, "/icons/delete.png");
-
     private final ImageView preview = new ImageView();
     private final ListView<Image> images = new ListView<>();
     private Node snapshot_node;
@@ -103,7 +101,7 @@ public class ImageList extends VBox
         preview.setPreserveRatio(true);
         preview.setManaged(false);
 
-        final Button removeImage   = new Button(Messages.Remove, removeIcon);
+        final Button removeImage   = new Button(Messages.Remove, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         removeImage.setTooltip(new Tooltip(Messages.RemoveImage));
         removeImage.setOnAction(event ->
         {
@@ -179,8 +177,11 @@ public class ImageList extends VBox
         clipboard.setOnAction(event ->
         {
             final Image image = Screenshot.getImageFromClipboard();
-            images.getItems().add(image);
-            selectFirstImage();
+            if (null != image)
+            {
+                images.getItems().add(image);
+                selectFirstImage();
+            }
         });
 
         final HBox row = new HBox(10, addImage, captureWindow, clipboard);

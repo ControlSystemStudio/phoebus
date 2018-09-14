@@ -19,7 +19,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Side;
+import javafx.geometry.Bounds;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -176,6 +176,13 @@ public class AutocompleteMenu
                     event.consume();
             }
         });
+
+        menu.setOnHidden(event ->
+        {
+            // Speed GC by releasing items, since menu stays in memory forever
+            menu.getItems().clear();
+            menu.setUserData(null);
+        });
     }
 
     /** Attach the completion menu to a text field
@@ -227,16 +234,32 @@ public class AutocompleteMenu
             {
                 final TextInputControl field = (TextInputControl) event.getSource();
                 // Show menu with current content,
-                // in case we were hiding and how showing the menu
+                // in case we were hiding and are now showing the menu
                 // for the same field, not loosing focus,
                 // menu already populated
-                menu.setUserData(field);
-                menu.show(field, Side.BOTTOM, 0, 0);
-                // If menu is empty, otherwise to 'refresh', start a lookup
+                showMenuForField(field);
+                // Certainly need to perform lookup if menu is empty.
+                // Otherwise, cannot hurt to 'refresh'
                 lookup(field);
             }
             event.consume();
         }
+    }
+
+    private void showMenuForField(final TextInputControl field)
+    {
+        menu.setUserData(field);
+
+        // Same functionality as
+        //    menu.show(field, Side.BOTTOM, 0, 0);
+        // but preventing the menu from keeping an `ownerNode` reference
+        // to the field, which in turn keeps a reference to the UI
+        // and thus data of the attached field.
+        final Bounds bounds = field.localToScreen(field.getLayoutBounds());
+        menu.show(field.getScene().getWindow(), bounds.getMinX(), bounds.getMaxY());
+        // Alas, the menu.focused property can still hold on for a while ..
+        // So best is for all UI to release application data when closed,
+        // since complete disposal of the UI can take some time.
     }
 
     private void updateHistory(final String text)
@@ -289,10 +312,7 @@ public class AutocompleteMenu
         {
             menu.getItems().setAll(items);
             if (! menu.isShowing())
-            {
-                menu.setUserData(field);
-                menu.show(field, Side.BOTTOM, 0, 0);
-            }
+                showMenuForField(field);
         });
     }
 
