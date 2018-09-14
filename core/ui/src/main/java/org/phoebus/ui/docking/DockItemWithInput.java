@@ -30,6 +30,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 
 import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -68,7 +69,7 @@ public class DockItemWithInput extends DockItem
 
     private final ExtensionFilter[] file_extensions;
 
-    private final JobRunnable save_handler;
+    private JobRunnable save_handler;
 
     private volatile URI input;
 
@@ -397,7 +398,30 @@ public class DockItemWithInput extends DockItem
         }
         return false;
     }
-
+    
+    /** 
+     * {@inheritDoc}
+     * */
+    @Override 
+    protected void handleClosed(final Event event)
+    {
+        // If there are callbacks, invoke them
+        if (closed_callback != null)
+        {
+            for (Runnable check : closed_callback)
+                check.run();
+            closed_callback = null;
+        }
+        
+        save_handler = null;
+        
+        // Remove content to avoid memory leaks
+        // because this tab could linger in memory for a while
+        setContent(null);
+        // Remove "application" entry which otherwise holds on to application data model
+        getProperties().remove(KEY_APPLICATION);
+    }
+    
     @Override
     public String toString()
     {
