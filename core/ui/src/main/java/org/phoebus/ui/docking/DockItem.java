@@ -118,7 +118,7 @@ public class DockItem extends Tab
     private List<BooleanSupplier> close_check = null;
 
     /** Called after tab was closed */
-    private List<Runnable> closed_callback = null;
+    protected List<Runnable> closed_callback = null;
 
     /** Create dock item for instance of an application
      *  @param application {@link AppInstance}
@@ -517,7 +517,7 @@ public class DockItem extends Tab
     }
 
     /** Tab has been closed */
-    private void handleClosed(final Event event)
+    protected void handleClosed(final Event event)
     {
         // If there are callbacks, invoke them
         if (closed_callback != null)
