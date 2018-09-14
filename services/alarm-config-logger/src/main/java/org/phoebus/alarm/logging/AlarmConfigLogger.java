@@ -9,8 +9,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -40,7 +38,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.util.FS;
 import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,15 +47,13 @@ public class AlarmConfigLogger implements Runnable {
     private final String topic;
     private Properties props;
 
-    // TODO convert this to a preference.
-    private final String location = "C:\\AlarmConfig";
     private final File root;
     private final String group_id;
 
     // The alarm tree model which holds the current state of the alarm server
     private final AlarmClient model;
 
-    public AlarmConfigLogger(String topic) {
+    public AlarmConfigLogger(String topic, String location) {
         super();
         this.topic = topic;
 
@@ -92,7 +87,7 @@ public class AlarmConfigLogger implements Runnable {
             try (Git git = Git.init().setDirectory(root).setBare(false).call()) {
                 logger.log(Level.INFO, "Created repository: " + git.getRepository().getDirectory());
             } catch (IllegalStateException | GitAPIException e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Failed to initiate the git repo", e);
             }
         }
 
@@ -115,16 +110,15 @@ public class AlarmConfigLogger implements Runnable {
             consumer.subscribe(List.of(this.topic), crl);
             final ConsumerRecords<String, String> records = consumer.poll(1000);
             syncAlarmConfigRepository(records);
-        } catch (Exception e1) {
-            e1.printStackTrace();
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to create the alarm model", e);
         }
         // Commit the initialized git repo
         try (Git git = Git.open(root)) {
             git.add().addFilepattern(".").call();
             git.commit().setAll(true).setMessage("Dump of the alarm configuration of the server").call();
         } catch (GitAPIException | IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to commit the dump of the alarm config", e);
         }
     }
 
@@ -147,8 +141,8 @@ public class AlarmConfigLogger implements Runnable {
             Topology topology = builder.build();
             logger.config(topology.describe().toString());
             streams = new KafkaStreams(topology, new StreamsConfig(props));
-        } catch (Exception e1) {
-            e1.printStackTrace();
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to commit the alarm config message", e);
         }
 
         final CountDownLatch latch = new CountDownLatch(1);

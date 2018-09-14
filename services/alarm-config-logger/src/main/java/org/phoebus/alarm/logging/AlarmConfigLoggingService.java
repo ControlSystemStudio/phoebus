@@ -19,13 +19,13 @@ public class AlarmConfigLoggingService {
         Properties properties = PropertiesHelper.getProperties();
         // Read list of Topics
         logger.info("Starting logger for: " + properties.getProperty("alarm_topics"));
-
         List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(":"));
-        // Check all the topic index already exist.
+
+        String location = properties.getProperty("location");
 
         // Start a new stream consumer for each topic
         topicNames.forEach(topic -> {
-            Scheduler.execute(new AlarmConfigLogger(topic));
+            Scheduler.execute(new AlarmConfigLogger(topic, location));
         });
 
     }
