@@ -7,7 +7,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -22,7 +25,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.Consumed;
 import org.apache.kafka.streams.KafkaStreams;
@@ -33,9 +35,12 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.RepositoryCache;
+import org.eclipse.jgit.util.FS;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
-import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,8 +49,6 @@ public class AlarmConfigLogger implements Runnable {
 
     private final String topic;
     private Properties props;
-
-    private MessageParser<AlarmConfigMessage> messageParser = new MessageParser<AlarmConfigMessage>(AlarmConfigMessage.class);
 
     // TODO convert this to a preference.
     private final String location = "C:\\AlarmConfig";
@@ -75,18 +78,27 @@ public class AlarmConfigLogger implements Runnable {
 
         model = new AlarmClient(props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG), this.topic);
         model.start();
+
+        initialize();
     }
 
-    KafkaStreams streams = null;
-
-    private Consumer<String, String> consumer;
-
-    @Override
-    public void run() {
+    private void initialize() {
+        // Check if the local git repository exists.
+        if (!root.isDirectory()) {
+            root.mkdirs();
+        }
+        if (!RepositoryCache.FileKey.isGitRepository(root, FS.detect())) {
+            // Not present or not a Git repository. Create a new git repo
+            try (Git git = Git.init().setDirectory(root).setBare(false).call()) {
+                logger.log(Level.INFO, "Created repository: " + git.getRepository().getDirectory());
+            } catch (IllegalStateException | GitAPIException e) {
+                e.printStackTrace();
+            }
+        }
 
         writeAlarmModel();
-        try {
-            consumer = new KafkaConsumer<>(props, Serdes.String().deserializer(), Serdes.String().deserializer());
+        try (Consumer<String, String> consumer = new KafkaConsumer<String, String>(props,
+                Serdes.String().deserializer(), Serdes.String().deserializer());) {
 
             // Rewind whenever assigned to partition
             final ConsumerRebalanceListener crl = new ConsumerRebalanceListener() {
@@ -104,9 +116,22 @@ public class AlarmConfigLogger implements Runnable {
             final ConsumerRecords<String, String> records = consumer.poll(1000);
             syncAlarmConfigRepository(records);
         } catch (Exception e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
         }
+        // Commit the initialized git repo
+        try (Git git = Git.open(root)) {
+            git.add().addFilepattern(".").call();
+            git.commit().setAll(true).setMessage("Dump of the alarm configuration of the server").call();
+        } catch (GitAPIException | IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    KafkaStreams streams = null;
+
+    @Override
+    public void run() {
 
         try {
             StreamsBuilder builder = new StreamsBuilder();
@@ -147,26 +172,44 @@ public class AlarmConfigLogger implements Runnable {
     }
 
     ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * Process a single alarm configuration event
      * 
      * @param path
      * @param alarm_config
+     * @param commit
      */
-    private synchronized void processAlarmConfigMessages(String path, String alarm_config) {
+    private synchronized void processAlarmConfigMessages(String path, String alarm_config, boolean commit) {
         try {
-            logger.log(Level.FINE, "processing message:" + path + ":" + alarm_config);
-            objectMapper.readValue(alarm_config, AlarmConfigMessage.class);
+            logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
             if (alarm_config != null) {
-                path = path.replace(":", "");
+//                objectMapper.readValue(alarm_config, AlarmConfigMessage.class);
+                path = path.replace(":\\/\\/", "_");
                 File node = Paths.get(root.getParent(), path).toFile();
                 node.mkdirs();
                 File node_info = new File(node, "alarm_config.json");
                 try (FileWriter fo = new FileWriter(node_info)) {
-                    fo.write(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(objectMapper.readValue(alarm_config, Object.class)));
+                    fo.write(objectMapper.writerWithDefaultPrettyPrinter()
+                            .writeValueAsString(objectMapper.readValue(alarm_config, Object.class)));
                 } catch (IOException e) {
                     logger.log(Level.WARNING,
                             "Alarm config logging failed for path " + path + ", config " + alarm_config, e);
+                }
+            } else {
+                path = path.replace(":\\/\\/", "_");
+                Path directory = Paths.get(root.getParent(), path);
+                Files.walk(directory).map(Path::toFile).forEach(File::delete);
+                directory.toFile().delete();
+            }
+            if(commit) {
+             // Commit the initialized git repo
+                try (Git git = Git.open(root)) {
+                    git.add().addFilepattern(".").call();
+                    git.commit().setAll(true).setMessage("Alarm config update "+path).call();
+                } catch (GitAPIException | IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
             }
         } catch (final Exception ex) {
@@ -182,7 +225,7 @@ public class AlarmConfigLogger implements Runnable {
      */
     private synchronized void syncAlarmConfigRepository(ConsumerRecords<String, String> messages) {
         for (final ConsumerRecord<String, String> record : messages) {
-            processAlarmConfigMessages(record.key(), record.value());
+            processAlarmConfigMessages(record.key(), record.value(), false);
         }
     }
 
@@ -194,7 +237,7 @@ public class AlarmConfigLogger implements Runnable {
 
         @Override
         public synchronized void process(String key, String value) {
-            processAlarmConfigMessages(key, value);
+            processAlarmConfigMessages(key, value, true);
         }
 
         @Override
@@ -206,16 +249,16 @@ public class AlarmConfigLogger implements Runnable {
         }
 
     }
-    
+
     private synchronized void writeAlarmModel() {
         // Output the model to the restore-able scripts folder.
-        File node = Paths.get(root.getParent(), ".restore-script").toFile();
+        File node = Paths.get(root.getPath(), ".restore-script").toFile();
         if (!node.mkdirs()) {
             logger.log(Level.WARNING, "Alarm config logging failed to create .restore-script folder");
         }
         File node_info = new File(node, "config.xml");
         try (OutputStream fo = Files.newOutputStream(node_info.toPath());
-             XmlModelWriter modelWriter = new XmlModelWriter(fo);) {
+                XmlModelWriter modelWriter = new XmlModelWriter(fo);) {
             modelWriter.write(model.getRoot());
         } catch (Exception e) {
             logger.log(Level.WARNING, "Alarm config logging failed to dump the alarm configuration to config.xml", e);
