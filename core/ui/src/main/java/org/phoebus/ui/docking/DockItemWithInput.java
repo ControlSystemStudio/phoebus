@@ -10,7 +10,6 @@ package org.phoebus.ui.docking;
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -69,7 +68,7 @@ public class DockItemWithInput extends DockItem
 
     private final ExtensionFilter[] file_extensions;
 
-    private final WeakReference<JobRunnable> save_handler;
+    private final JobRunnable save_handler;
 
     private volatile URI input;
 
@@ -96,7 +95,7 @@ public class DockItemWithInput extends DockItem
     {
         super(application, content);
         this.file_extensions =  file_extensions;
-        this.save_handler = new WeakReference<JobRunnable>(save_handler);
+        this.save_handler = save_handler;
         setInput(input);
 
         addCloseCheck(this::okToClose);
@@ -286,7 +285,7 @@ public class DockItemWithInput extends DockItem
 
             if (save_handler == null)
                 throw new Exception("No save_handler provided for 'dirty' " + toString());
-            save_handler.get().run(monitor);
+            save_handler.run(monitor);
         }
         catch (Exception ex)
         {
