@@ -398,32 +398,19 @@ public class DockItemWithInput extends DockItem
         }
         return false;
     }
-    
-    /** 
+
+    /**
      * {@inheritDoc}
      * */
-    @Override 
+    @Override
     protected void handleClosed(final Event event)
     {
         // Do the same as in the parent class, DockItem.handleClosed, but clean up save_handler.
-        
-        // If there are callbacks, invoke them
-        if (closed_callback != null)
-        {
-            for (Runnable check : closed_callback)
-                check.run();
-            closed_callback = null;
-        }
-        
+        super.handleClosed(event);
+
         save_handler = null;
-        
-        // Remove content to avoid memory leaks
-        // because this tab could linger in memory for a while
-        setContent(null);
-        // Remove "application" entry which otherwise holds on to application data model
-        getProperties().remove(KEY_APPLICATION);
     }
-    
+
     @Override
     public String toString()
     {
