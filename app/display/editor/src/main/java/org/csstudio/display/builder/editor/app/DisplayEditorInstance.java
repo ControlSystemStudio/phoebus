@@ -47,9 +47,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -58,7 +60,9 @@ import javafx.scene.control.MenuItem;
 public class DisplayEditorInstance implements AppInstance
 {
     /** Memento tags */
-    private static final String LEFT_DIVIDER = "left_divider",
+    private static final String SHOW_TREE = "tree",
+                                SHOW_PROPS = "props",
+                                LEFT_DIVIDER = "left_divider",
                                 RIGHT_DIVIDER = "right_divider";
     private final AppResourceDescriptor app;
     private DockItemWithInput dock_item;
@@ -141,6 +145,18 @@ public class DisplayEditorInstance implements AppInstance
             if (selection.isEmpty())
                 items.add(new SetDisplaySize(editor_gui.getDisplayEditor()));
         }
+
+        items.add(new SeparatorMenuItem());
+
+        final CheckMenuItem show_tree = new CheckMenuItem("Show Widget Tree");
+        show_tree.setSelected(editor_gui.isWidgetTreeShown());
+        show_tree.setOnAction(event -> editor_gui.showWidgetTree(! editor_gui.isWidgetTreeShown()));
+        items.add(show_tree);
+
+        final CheckMenuItem show_props = new CheckMenuItem("Show Properties");
+        show_props.setSelected(editor_gui.arePropertiesShown());
+        show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
+        items.add(show_props);
     }
 
     @Override
@@ -158,21 +174,36 @@ public class DisplayEditorInstance implements AppInstance
     @Override
     public void restore(final Memento memento)
     {
+        memento.getBoolean(SHOW_PROPS).ifPresent(editor_gui::showProperties);
+        memento.getBoolean(SHOW_TREE).ifPresent(editor_gui::showWidgetTree);
         final Optional<Number> left = memento.getNumber(LEFT_DIVIDER);
         final Optional<Number> right = memento.getNumber(RIGHT_DIVIDER);
-        if (left.isPresent()  &&  right.isPresent())
-            editor_gui.setDividerPositions(left.get().doubleValue(),
-                                           right.get().doubleValue());
+
+        // Divider positions will be lost by initial UI layout, so defer
+        Platform.runLater(() ->
+            dock_item.getDockPane().deferUntilInScene(scene ->
+            {
+                if (left.isPresent()  &&  right.isPresent())
+                    editor_gui.setDividerPositions(left.get().doubleValue(),
+                                                   right.get().doubleValue());
+                else if (left.isPresent())
+                    editor_gui.setDividerPositions(left.get().doubleValue());
+            }));
     }
 
     @Override
     public void save(final Memento memento)
     {
+        if (! editor_gui.isWidgetTreeShown())
+            memento.setBoolean(SHOW_TREE, false);
+        if (! editor_gui.arePropertiesShown())
+            memento.setBoolean(SHOW_PROPS, false);
+        
         final double[] dividers = editor_gui.getDividerPositions();
-        if (dividers.length != 2)
-            throw new IllegalStateException("Expect left, right");
-        memento.setNumber(LEFT_DIVIDER, dividers[0]);
-        memento.setNumber(RIGHT_DIVIDER, dividers[1]);
+        if (dividers.length > 0)
+            memento.setNumber(LEFT_DIVIDER, dividers[0]);
+        if (dividers.length > 1)
+            memento.setNumber(RIGHT_DIVIDER, dividers[1]);
     }
 
     EditorGUI getEditorGUI()

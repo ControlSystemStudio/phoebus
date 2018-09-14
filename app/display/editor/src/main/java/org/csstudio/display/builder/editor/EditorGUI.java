@@ -26,6 +26,7 @@ import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -118,9 +119,14 @@ public class EditorGUI
 
     private volatile File file = null;
 
+    private VBox tree_box;
+    private VBox properties_box;
+
     private SplitPane center_split;
 
     private volatile Consumer<DisplayModel> model_listener = null;
+
+
 
     public EditorGUI()
     {
@@ -146,18 +152,67 @@ public class EditorGUI
         return editor;
     }
 
+    /** @return Is the widget tree shown? */
+    public boolean isWidgetTreeShown()
+    {
+        return center_split.getItems().contains(tree_box);
+    }
+
+    /** @param show Show widget tree? */
+    public void showWidgetTree(final boolean show)
+    {
+        if (show == isWidgetTreeShown())
+            return;
+        if (show)
+        {
+            center_split.getItems().add(0,  tree_box);
+            if (arePropertiesShown())
+                Platform.runLater(() -> setDividerPositions(0.2, 0.8));
+            else
+                Platform.runLater(() -> setDividerPositions(0.2));
+        }
+        else
+        {
+            center_split.getItems().remove(tree_box);
+            if (arePropertiesShown())
+                Platform.runLater(() -> setDividerPositions(0.8));
+        }
+    }
+
+    /** @return Are the properties shown? */
+    public boolean arePropertiesShown()
+    {
+        return center_split.getItems().contains(properties_box);
+    }
+
+    /** @param show Show properties? */
+    public void showProperties(final boolean show)
+    {
+        if (show == arePropertiesShown())
+            return;
+
+        if (show)
+        {
+            center_split.getItems().add(properties_box);
+            if (isWidgetTreeShown())
+                Platform.runLater(() -> setDividerPositions(0.2, 0.8));
+            else
+                Platform.runLater(() -> setDividerPositions(0.8));
+        }
+        else
+            center_split.getItems().remove(properties_box);
+    }
+
     /** @return Divider positions for the 'tree', 'editor' and 'properties' */
     public double[] getDividerPositions()
     {
         return center_split.getDividerPositions();
     }
 
-    /** @param left Divider positions for 'tree' to 'editor'
-     *  @param right Divider positions for 'editor' to  'properties'
-     */
-    public void setDividerPositions(final double left, final double right)
+    /** @param positions Divider positions for 'tree', 'editor', 'properties' */
+    public void setDividerPositions(final double... positions)
     {
-        center_split.setDividerPositions(left, right);
+        center_split.setDividerPositions(positions);
     }
 
     private Parent createElements()
@@ -176,7 +231,7 @@ public class EditorGUI
         final Control tree_control = tree.create();
         VBox.setVgrow(tree_control, Priority.ALWAYS);
         hookWidgetTreeContextMenu(tree_control);
-        final VBox tree_box = new VBox(header, tree_control);
+        tree_box = new VBox(header, tree_control);
 
         // Center: Editor
         final Node editor_scene = editor.create();
@@ -185,7 +240,7 @@ public class EditorGUI
         header = new Label("Properties");
         header.setMaxWidth(Double.MAX_VALUE);
         header.getStyleClass().add("header");
-        final VBox properties_box = new VBox(header, property_panel);
+        properties_box = new VBox(header, property_panel);
 
         center_split = new SplitPane(tree_box, editor_scene, properties_box);
         center_split.setDividerPositions(0.2, 0.8);
