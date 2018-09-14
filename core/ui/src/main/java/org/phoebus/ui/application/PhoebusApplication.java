@@ -234,6 +234,7 @@ public class PhoebusApplication extends Application {
         main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
         toolbar = createToolbar();
+        createLoadLayoutsMenu();
         createTopResourcesMenu();
 
         DockStage.configureStage(main_stage);
@@ -430,7 +431,6 @@ public class PhoebusApplication extends Application {
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
         save_layout = new SaveLayoutMenuItem(this, memento_files);
-        createLoadLayoutsMenu();
 
         final Menu menu = new Menu(Messages.Window, null, show_tabs, show_toolbar, save_layout, load_layout);
         menuBar.getMenus().add(menu);
@@ -637,7 +637,7 @@ public class PhoebusApplication extends Application {
         layout_home_button.setTooltip(new Tooltip("Navigate to home layout."));
         layout_menu_button = new MenuButton("Saved Layouts", ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         layout_menu_button.setTooltip(new Tooltip("Saved layout files."));
-        
+
         toolBar.getItems().addAll(layout_home_button, layout_menu_button);
         
         toolBar.setPrefWidth(600);
@@ -659,7 +659,10 @@ public class PhoebusApplication extends Application {
         if (show)
         {
             if (! top.getChildren().contains(toolbar))
+            {
+                createLoadLayoutsMenu();
                 top.getChildren().add(toolbar);
+            }
         }
         else
             top.getChildren().remove(toolbar);
