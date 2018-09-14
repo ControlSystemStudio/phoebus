@@ -64,6 +64,7 @@ public class DisplayEditorInstance implements AppInstance
                                 SHOW_PROPS = "props",
                                 LEFT_DIVIDER = "left_divider",
                                 RIGHT_DIVIDER = "right_divider";
+
     private final AppResourceDescriptor app;
     private DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
@@ -198,7 +199,7 @@ public class DisplayEditorInstance implements AppInstance
             memento.setBoolean(SHOW_TREE, false);
         if (! editor_gui.arePropertiesShown())
             memento.setBoolean(SHOW_PROPS, false);
-        
+
         final double[] dividers = editor_gui.getDividerPositions();
         if (dividers.length > 0)
             memento.setNumber(LEFT_DIVIDER, dividers[0]);

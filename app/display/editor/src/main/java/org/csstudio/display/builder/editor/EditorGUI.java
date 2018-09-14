@@ -14,8 +14,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
 import org.csstudio.display.builder.editor.tree.FindWidgetAction;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
@@ -23,6 +26,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -57,6 +61,10 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class EditorGUI
 {
+    private static final String SHOW_TREE = "tree",
+                                SHOW_PROPS = "props";
+    private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
+
     private class ActionWapper extends MenuItem
     {
         ActionWapper(ActionDescription action)
@@ -177,6 +185,9 @@ public class EditorGUI
             if (arePropertiesShown())
                 Platform.runLater(() -> setDividerPositions(0.8));
         }
+
+        // Update pref about last tree state
+        prefs.putBoolean(SHOW_TREE, show);
     }
 
     /** @return Are the properties shown? */
@@ -201,6 +212,9 @@ public class EditorGUI
         }
         else
             center_split.getItems().remove(properties_box);
+
+        // Update pref about last prop state
+        prefs.putBoolean(SHOW_PROPS, show);
     }
 
     /** @return Divider positions for the 'tree', 'editor' and 'properties' */
@@ -244,6 +258,12 @@ public class EditorGUI
 
         center_split = new SplitPane(tree_box, editor_scene, properties_box);
         center_split.setDividerPositions(0.2, 0.8);
+
+        if (! prefs.getBoolean(SHOW_TREE, true))
+            showWidgetTree(false);
+
+        if (! prefs.getBoolean(SHOW_PROPS, true))
+            showProperties(false);
 
         final BorderPane layout = new BorderPane();
         layout.setCenter(center_split);
@@ -340,5 +360,14 @@ public class EditorGUI
         editor.dispose();
         toolkit.shutdown();
         tree.setModel(null);
+
+        try
+        {
+            prefs.flush();
+        }
+        catch (BackingStoreException ex)
+        {
+            logger.log(Level.WARNING, "Unable to flush preferences", ex);
+        }
     }
 }
