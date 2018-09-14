@@ -517,7 +517,7 @@ public class DockItem extends Tab
     }
 
     /** Tab has been closed */
-    private void handleClosed(final Event event)
+    protected void handleClosed(final Event event)
     {
         // If there are callbacks, invoke them
         if (closed_callback != null)
