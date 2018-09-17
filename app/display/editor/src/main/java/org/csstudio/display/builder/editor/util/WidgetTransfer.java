@@ -10,9 +10,6 @@ package org.csstudio.display.builder.editor.util;
 import static javafx.scene.paint.Color.GRAY;
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
@@ -57,7 +54,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
@@ -84,9 +80,6 @@ import javafx.scene.input.TransferMode;
  */
 @SuppressWarnings("nls")
 public class WidgetTransfer {
-
-    private static Color TRANSPARENT = new Color(0, 0, 0, 24);
-    private static Stroke OUTLINE_STROKE = new BasicStroke(2.2F);
 
     //  The extensions listed here MUST BE ALL UPPERCASE.
     private static List<String> IMAGE_FILE_EXTENSIONS = Arrays.asList("BMP", "GIF", "JPEG", "JPG", "PNG", "SVG");
@@ -199,8 +192,6 @@ public class WidgetTransfer {
             final List<Widget> widgets = new ArrayList<>();
             final List<Runnable> updates = new ArrayList<>();
 
-            System.out.println("DROPPED " + db.getContentTypes());
-
             // Used to check for HTML and RTF only to extract plain text from it.
             // On RedHat 7, dropping from email in web browser,
             // that resulted in getting no text at all.
@@ -293,11 +284,11 @@ public class WidgetTransfer {
 
         if ( image != null ) {
 
-            int w = (int) image.getWidth();
-            int h = (int) image.getHeight();
-            int xo = (int) ( ( width - w ) / 2.0 );
-            int yo = (int) ( ( height - h ) / 2.0 );
-            PixelReader pixelReader = image.getPixelReader();
+//            int w = (int) image.getWidth();
+//            int h = (int) image.getHeight();
+//            int xo = (int) ( ( width - w ) / 2.0 );
+//            int yo = (int) ( ( height - h ) / 2.0 );
+//            PixelReader pixelReader = image.getPixelReader();
             PixelWriter pixelWriter = dImage.getPixelWriter();
 
 //  TODO: CR: It seems there is a bug pixelReader.getArgb(...) when on Mac when
@@ -319,7 +310,7 @@ public class WidgetTransfer {
 //                }
 //            }
 
-            //  TODO: CR: Solution #1 - draw only the widget ouline.
+            //  CR: Solution #1 - draw only the widget outline.
             for ( int x = 0; x < width; x++ ) {
                 pixelWriter.setColor(x, 0, GRAY);
                 pixelWriter.setColor(x, height - 1, GRAY);
@@ -333,7 +324,7 @@ public class WidgetTransfer {
 
         return dImage;
 
-//  TODO: CR: Solution #2 - draw only the widget type image.
+//  CR: Solution #2 - draw only the widget type image.
 //        return image;
 
     }
@@ -558,8 +549,6 @@ public class WidgetTransfer {
         final Dragboard db = event.getDragboard();
         final String xmlOrText = db.getString();
 
-        System.out.println("Dropped text " + xmlOrText);
-
         try {
             widgets.addAll(ModelReader.parseXML(xmlOrText).getChildren());
         } catch ( Exception ex ) {
@@ -574,9 +563,6 @@ public class WidgetTransfer {
         final SelectedWidgetUITracker selection_tracker,
         final List<Widget> widgets
     ) {
-
-        System.out.println("installWidgetsFromString " + text);
-
         //  Consider each word a separate PV
         final String[] words = text.split("[ \n]+");
         final boolean multiple = words.length > 1;
