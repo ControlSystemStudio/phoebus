@@ -6,5 +6,4 @@ from org.csstudio.display.builder.representation.javafx.widgets import BaseWidge
 type = PVUtil.getString(pvs[0])
 
 if BaseWidgetRepresentations().getWidgetRepresentationFactories().get(type) is None:
-    print("Disable " + type)
     widget.setPropertyValue("visible", False)
