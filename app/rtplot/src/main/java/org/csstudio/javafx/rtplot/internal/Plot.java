@@ -384,6 +384,9 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         final int x = (int) (mouse_start.get().getX() + 0.5);
         for (PlotMarker<XTYPE> marker : plot_markers)
         {
+            // Ignore non-interactive marker
+            if (! marker.isInteractive())
+                continue;
             final int mx = x_axis.getScreenCoord(marker.getPosition());
             if (Math.abs(mx - x) < 5)
             {
