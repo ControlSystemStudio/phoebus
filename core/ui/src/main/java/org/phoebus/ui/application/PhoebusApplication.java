@@ -117,13 +117,19 @@ public class PhoebusApplication extends Application {
     private SaveLayoutMenuItem save_layout;
 
     /** Menu to load past layouts */
-    private final Menu load_layout = new Menu("Load Layout");
+    private final Menu load_layout = new Menu("Load Layout", ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
 
     /** List of memento files in default directory. */
     private final List<String> memento_files = new CopyOnWriteArrayList<>();
 
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
+    
+    /** Toolbar button for home layout */
+    private Button home_display_button;
+    
+    /** Toolbar button for past layouts */
+    private MenuButton layout_menu_button;
 
     /** Last file used by 'File, Open' menu
      *  (the _directory_ is actually used by the file-open dialog)
@@ -424,7 +430,6 @@ public class PhoebusApplication extends Application {
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
         save_layout = new SaveLayoutMenuItem(this, memento_files);
-        createLoadLayoutsMenu();
 
         final Menu menu = new Menu(Messages.Window, null, show_tabs, show_toolbar, save_layout, load_layout);
         menuBar.getMenus().add(menu);
@@ -447,11 +452,14 @@ public class PhoebusApplication extends Application {
             memento_files.clear();
 
             final List<MenuItem> menuItemList = new ArrayList<>();
+            final List<MenuItem> toolbarMenuItemList = new ArrayList<>();
+
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());
             final File[] filesArray = dir.listFiles();
             // For every non default memento file create a menu item for the load layout menu.
             if (filesArray != null)
+            {
                 for (final File file : filesArray)
                 {
                     final String filename = file.getName();
@@ -465,13 +473,25 @@ public class PhoebusApplication extends Application {
                         menuItem.setOnAction(event -> startLayoutReplacement(file));
                         // Add the item to the load layout menu.
                         menuItemList.add(menuItem);
+
+                        // Repeat for the same menu in the toolbar. They can't share menu items.
+                        final MenuItem toolbarMenuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                        toolbarMenuItem.setMnemonicParsing(false);
+                        toolbarMenuItem.setOnAction(event -> startLayoutReplacement(file));
+                        toolbarMenuItemList.add(toolbarMenuItem);
                     }
                 }
+            }
+            
             // Sort the menu items alphabetically.
             menuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
-
+            toolbarMenuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
+            
             // Update the menu with the menu items on the UI thread.
-            Platform.runLater(()-> load_layout.getItems().setAll(menuItemList));
+            Platform.runLater(()-> {
+                load_layout.getItems().setAll(menuItemList);
+                layout_menu_button.getItems().setAll(toolbarMenuItemList);
+            });
         });
     }
 
@@ -577,11 +597,26 @@ public class PhoebusApplication extends Application {
     private ToolBar createToolbar() {
         final ToolBar toolBar = new ToolBar();
 
+        ImageView homeIcon = ImageCache.getImageView(ImageCache.class, "/icons/home.png");
+        homeIcon.setFitHeight(16.0);
+        homeIcon.setFitWidth(16.0);
+        home_display_button = new Button(null, homeIcon);
+        home_display_button.setTooltip(new Tooltip("Navigate to home display."));
+        toolBar.getItems().add(home_display_button);
+        
+        final TopResources homeResource = TopResources.parse(Preferences.home_display);
+
+        home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
+
         top_resources_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
         top_resources_button.setDisable(true);
         toolBar.getItems().add(top_resources_button);
-
+        
+        layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/layouts.png"));
+        layout_menu_button.setTooltip(new Tooltip("Load Layouts"));
+        toolBar.getItems().add(layout_menu_button);
+        
         // Contributed Entries
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
             final AtomicBoolean open_new = new AtomicBoolean();
@@ -620,6 +655,7 @@ public class PhoebusApplication extends Application {
 
             toolBar.getItems().add(button);
         });
+        
         toolBar.setPrefWidth(600);
         return toolBar;
     }
@@ -639,7 +675,11 @@ public class PhoebusApplication extends Application {
         if (show)
         {
             if (! top.getChildren().contains(toolbar))
+            {
+                // Reload layouts menu on showing.
+                createLoadLayoutsMenu();
                 top.getChildren().add(toolbar);
+            }
         }
         else
             top.getChildren().remove(toolbar);
@@ -873,6 +913,8 @@ public class PhoebusApplication extends Application {
             logger.log(Level.WARNING, buf.toString());
         }
 
+        createLoadLayoutsMenu();
+        
         try
         {
             // Global settings

@@ -17,10 +17,12 @@ import org.phoebus.framework.preferences.PreferencesReader;
 public class Preferences
 {
     public static final String DEFAULT_APPS = "default_apps";
+    public static final String HOME_DISPLAY = "home_display";
     public static final String TOP_RESOURCES = "top_resources";
     public static final String SPLASH = "splash";
 
     public static final String[] default_apps;
+    public static final String home_display;
     public static final String top_resources;
     public static final boolean splash;
     public static final int ui_monitor_period;
@@ -29,6 +31,7 @@ public class Preferences
     {
         final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/phoebus_ui_preferences.properties");
         default_apps = prefs.get(DEFAULT_APPS).split("\\s*,\\s*");
+        home_display = prefs.get(HOME_DISPLAY);
         top_resources = prefs.get(TOP_RESOURCES);
         splash = prefs.getBoolean(SPLASH);
         ui_monitor_period = prefs.getInt("ui_monitor_period");
