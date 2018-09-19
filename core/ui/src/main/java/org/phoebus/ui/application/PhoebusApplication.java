@@ -608,12 +608,12 @@ public class PhoebusApplication extends Application {
 
         home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
 
-        top_resources_button = new MenuButton("Top Resources", ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        top_resources_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
         top_resources_button.setDisable(true);
         toolBar.getItems().add(top_resources_button);
         
-        layout_menu_button = new MenuButton("Saved Layouts", ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/layouts.png"));
         layout_menu_button.setTooltip(new Tooltip("Saved Layouts"));
         toolBar.getItems().add(layout_menu_button);
         
