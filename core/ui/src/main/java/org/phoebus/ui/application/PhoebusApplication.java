@@ -604,17 +604,17 @@ public class PhoebusApplication extends Application {
         home_display_button.setTooltip(new Tooltip("Navigate to home display."));
         toolBar.getItems().add(home_display_button);
         
-        HomeDisplay homeDisplay = HomeDisplay.parse(Preferences.home_display);
+        final TopResources homeResource = TopResources.parse(Preferences.home_display);
 
-        home_display_button.setOnAction(event -> openResource(homeDisplay.getResource(), false));
+        home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
 
-        top_resources_button = new MenuButton("Displays", ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
+        top_resources_button = new MenuButton("Top Resources", ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
         top_resources_button.setDisable(true);
         toolBar.getItems().add(top_resources_button);
         
         layout_menu_button = new MenuButton("Saved Layouts", ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
-        layout_menu_button.setTooltip(new Tooltip("Saved layout files."));
+        layout_menu_button.setTooltip(new Tooltip("Saved Layouts"));
         toolBar.getItems().add(layout_menu_button);
         
         // Contributed Entries
