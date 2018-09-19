@@ -117,7 +117,7 @@ public class PhoebusApplication extends Application {
     private SaveLayoutMenuItem save_layout;
 
     /** Menu to load past layouts */
-    private final Menu load_layout = new Menu("Load Layout");
+    private final Menu load_layout = new Menu("Load Layout", ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
 
     /** List of memento files in default directory. */
     private final List<String> memento_files = new CopyOnWriteArrayList<>();
@@ -614,7 +614,7 @@ public class PhoebusApplication extends Application {
         toolBar.getItems().add(top_resources_button);
         
         layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/layouts.png"));
-        layout_menu_button.setTooltip(new Tooltip("Saved Layouts"));
+        layout_menu_button.setTooltip(new Tooltip("Load Layouts"));
         toolBar.getItems().add(layout_menu_button);
         
         // Contributed Entries
