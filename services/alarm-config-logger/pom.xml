@@ -21,6 +21,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-alarm-model</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-streams</artifactId>
       <version>1.1.0</version>
@@ -34,6 +39,11 @@
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
       <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>5.0.3.201809091024-r</version>
     </dependency>
   </dependencies>
   <build>
