@@ -15,6 +15,7 @@ import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -36,7 +37,7 @@ class SaveLayoutMenuItem extends MenuItem
     /** Save layout menu item */
     public SaveLayoutMenuItem(final PhoebusApplication phoebus, final List<String> memento_files)
     {
-        super(Messages.SaveLayoutAs);
+        super(Messages.SaveLayoutAs, ImageCache.getImageView(ImageCache.class, "/icons/new_layout.png"));
         this.phoebus = phoebus;
         this.memento_files = memento_files;
         setOnAction(event ->  saveLayout());
