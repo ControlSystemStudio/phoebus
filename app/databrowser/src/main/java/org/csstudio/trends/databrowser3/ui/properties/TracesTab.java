@@ -28,10 +28,12 @@ import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.RequestType;
+import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.dialog.AlertWithToggle;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.SecondsParser;
@@ -46,7 +48,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -90,12 +91,6 @@ public class TracesTab extends Tab
     // and UI creates a short-time observable list while running, which is then disposed as UI closes.
     private static final List<String> trace_types = List.of(TraceType.getDisplayNames());
     private static final List<String> point_types = List.of(PointType.getDisplayNames());
-
-    /** Prompt for the 'hide trace' warning'? */
-    private static boolean prompt_for_not_visible = true;
-
-    /** Prompt for the 'raw request' warning? */
-    private static boolean prompt_for_raw_data_request = true;
 
     private final Model model;
 
@@ -172,21 +167,21 @@ public class TracesTab extends Tab
                 {
                     final RequestType type = button.isSelected() ? RequestType.OPTIMIZED : RequestType.RAW;
 
-                    if (type == RequestType.RAW  &&  prompt_for_raw_data_request)
+                    if (type == RequestType.RAW  &&  Preferences.prompt_for_raw_data_request)
                     {
-                        final Alert dialog = new Alert(AlertType.CONFIRMATION,
+                        final AlertWithToggle dialog = new AlertWithToggle(AlertType.CONFIRMATION,
                                 Messages.RequestTypeWarningDetail,
                                 ButtonType.YES, ButtonType.NO);
-                        dialog.setHeaderText(Messages.RequestTypeWarning);
-                        dialog.setResizable(true);
+                        dialog.setTitle(Messages.RequestTypeWarning);
                         dialog.getDialogPane().setMinSize(600, 350);
                         DialogHelper.positionDialog(dialog, trace_table, -600, -350);
-                        if (dialog.showAndWait().orElse(ButtonType.NO) != ButtonType.YES)
+                        final boolean optimize = dialog.showAndWait().orElse(ButtonType.NO) != ButtonType.YES;
+                        Preferences.setRawDataPrompt(! dialog.isHideSelected());
+                        if (optimize)
                         {   // Restore checkbox
                             button.setSelected(true);
                             return;
                         }
-                        prompt_for_raw_data_request = false;
                     }
                     new ChangeRequestTypeCommand(undo, (PVItem)getTableRow().getItem(), type);
                 });
@@ -360,21 +355,21 @@ public class TracesTab extends Tab
             // Update model when CheckBoxTableCell updates this property
             vis_property.addListener((p, old, visible) ->
             {
-                if (! visible  &&  prompt_for_not_visible)
+                if (! visible  &&  Preferences.prompt_for_visibility)
                 {
-                    final Alert dialog = new Alert(AlertType.CONFIRMATION,
+                    final AlertWithToggle dialog = new AlertWithToggle(AlertType.CONFIRMATION,
                                                     Messages.HideTraceWarningDetail,
                                                     ButtonType.YES, ButtonType.NO);
-                    dialog.setHeaderText(Messages.HideTraceWarning);
-                    dialog.setResizable(true);
+                    dialog.setTitle(Messages.HideTraceWarning);
                     dialog.getDialogPane().setMinSize(600, 350);
                     DialogHelper.positionDialog(dialog, trace_table, -600, -350);
-                    if (dialog.showAndWait().orElse(ButtonType.NO) != ButtonType.YES)
+                    final boolean dont_hide = dialog.showAndWait().orElse(ButtonType.NO) != ButtonType.YES;
+                    Preferences.setVisibilityPrompt(! dialog.isHideSelected());
+                    if (dont_hide)
                     {   // Restore checkbox
                         vis_property.set(true);
                         return;
                     }
-                    prompt_for_not_visible = false;
                 }
                 new ChangeVisibilityCommand(undo, cell.getValue(), visible);
             });

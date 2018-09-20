@@ -35,6 +35,17 @@ public class AlertWithToggle extends Alert
 
     /** @param type {@link AlertType}
      *  @param header Header text
+     *  @param buttons {@link ButtonType}s
+     */
+    public AlertWithToggle(final AlertType type,
+                           final String header,
+                           final ButtonType... buttons)
+    {
+        this(type, header, "", buttons);
+    }
+
+    /** @param type {@link AlertType}
+     *  @param header Header text
      *  @param content Content text
      *  @param buttons {@link ButtonType}s
      */

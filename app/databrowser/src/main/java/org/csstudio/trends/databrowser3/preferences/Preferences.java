@@ -46,6 +46,8 @@ public class Preferences
         USE_AUTO_SCALE = "use_auto_scale",
         USE_DEFAULT_ARCHIVES = "use_default_archives",
         USE_TRACE_NAMES = "use_trace_names",
+        PROMPT_FOR_RAW_DATA = "prompt_for_raw_data_request",
+        PROMPT_FOR_VISIBILITY = "prompt_for_visibility",
 
         // Later...
         PROMPT_FOR_ERRORS = "prompt_for_errors",
@@ -70,6 +72,8 @@ public class Preferences
     public static boolean use_auto_scale;
     public static boolean use_default_archives;
     public static boolean use_trace_names;
+    public static boolean prompt_for_raw_data_request;
+    public static boolean prompt_for_visibility;
 
 
     static
@@ -114,6 +118,36 @@ public class Preferences
         use_auto_scale = prefs.getBoolean(USE_AUTO_SCALE);
         use_default_archives = prefs.getBoolean(USE_DEFAULT_ARCHIVES);
         use_trace_names = prefs.getBoolean(USE_TRACE_NAMES);
+
+        prompt_for_raw_data_request = prefs.getBoolean(PROMPT_FOR_RAW_DATA);
+        prompt_for_visibility = prefs.getBoolean(PROMPT_FOR_VISIBILITY);
+    }
+
+    public static void setRawDataPrompt(final boolean value)
+    {
+        prompt_for_raw_data_request = value;
+        update(PROMPT_FOR_RAW_DATA, value);
+    }
+
+    public static void setVisibilityPrompt(final boolean value)
+    {
+        prompt_for_visibility = value;
+        update(PROMPT_FOR_VISIBILITY, value);
+    }
+
+
+    private static void update(final String setting, final boolean value)
+    {
+        final java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(Activator.class);
+        prefs.putBoolean(setting, value);
+        try
+        {
+            prefs.flush();
+        }
+        catch (Exception ex)
+        {
+            Activator.logger.log(Level.WARNING, "Cannot write preferences", ex);
+        }
     }
 
     private static List<ArchiveDataSource> parseArchives(final String setting)
