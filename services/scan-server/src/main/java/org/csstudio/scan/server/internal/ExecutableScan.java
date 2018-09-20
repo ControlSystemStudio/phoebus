@@ -375,12 +375,9 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         logger.log(Level.CONFIG, "Executing ID " + getId() + " \"" + getName() + "\" [" + new MemoryInfo() + "]");
 
         try
-        (
-            final DataLog logger = DataLogFactory.getDataLog(this);
-        )
         {
             // Set logger for execution of scan
-            data_logger = Optional.of(logger);
+            data_logger = Optional.of(DataLogFactory.getDataLog(this));
             execute_or_die_trying();
             // Exceptions will already have been caught within execute_or_die_trying,
             // hopefully updating the status PVs, but there could be exceptions
@@ -393,13 +390,22 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         }
         catch (Exception ex)
         {
-            state.set(ScanState.Failed);
             error = Optional.of(ex.getMessage());
-            logger.log(Level.WARNING, "Scan " + getName() + " failed", ex);
+            // Scan may have been aborted early on, for example in DataLogFactory.getDataLog()
+            // Otherwise consider it failed
+            if (state.get() == ScanState.Aborted)
+                logger.log(Level.WARNING, "Scan " + getName() + " aborted", ex);
+            else
+            {
+                state.set(ScanState.Failed);
+                logger.log(Level.WARNING, "Scan " + getName() + " failed", ex);
+            }
         }
         // Set actual end time, not estimated
         end_ms = System.currentTimeMillis();
-        // Un-set data logger
+        // Close data logger
+        if (data_logger.isPresent())
+            data_logger.get().close();
         data_logger = Optional.empty();
         logger.log(Level.CONFIG, "Completed ID {0}: {1}", new Object[] { getId(), state.get().name() });
         return null;
@@ -653,14 +659,15 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
 
     /** Force transition to next command */
     public void next()
-    {   // Must be running
+    {
+        // Must be running
         if (state.get() != ScanState.Running)
             return;
         // Must have active command
         final ScanCommandImpl<?> command = active_commands.peekLast();
         if (command == null)
             return;
-        logger.log(Level.INFO, "Forcing transition to next command");
+        logger.log(Level.INFO, "Forcing transition to next command of " + this);
         command.next();
     }
 
@@ -669,6 +676,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     {
         if (! state.compareAndSet(ScanState.Running, ScanState.Paused))
             return;
+        logger.log(Level.INFO, "Pause " + this);
 
         if (device_state.isPresent())
         {
@@ -688,6 +696,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     {
         if (! state.compareAndSet(ScanState.Paused, ScanState.Running))
             return;
+        logger.log(Level.INFO, "Resume " + this);
 
         if (device_state.isPresent())
         {
@@ -711,7 +720,10 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     public void abort()
     {
         // Set state to aborted unless it is already 'done'
-        state.getAndUpdate((current_state)  ->  current_state.isDone() ? current_state : ScanState.Aborted);
+        final ScanState previous = state.getAndUpdate((current_state)  ->  current_state.isDone() ? current_state : ScanState.Aborted);
+
+        if (! previous.isDone())
+            logger.log(Level.INFO, "Abort " + this);
 
         if (future.isPresent())
             future.get().cancel(true);
