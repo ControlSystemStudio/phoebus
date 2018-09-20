@@ -124,10 +124,10 @@ public class PhoebusApplication extends Application {
 
     /** Toolbar button for top resources */
     private MenuButton top_resources_button;
-    
+
     /** Toolbar button for home layout */
     private Button home_display_button;
-    
+
     /** Toolbar button for past layouts */
     private MenuButton layout_menu_button;
 
@@ -482,11 +482,11 @@ public class PhoebusApplication extends Application {
                     }
                 }
             }
-            
+
             // Sort the menu items alphabetically.
             menuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
             toolbarMenuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
-            
+
             // Update the menu with the menu items on the UI thread.
             Platform.runLater(()-> {
                 load_layout.getItems().setAll(menuItemList);
@@ -603,7 +603,7 @@ public class PhoebusApplication extends Application {
         home_display_button = new Button(null, homeIcon);
         home_display_button.setTooltip(new Tooltip("Navigate to home display."));
         toolBar.getItems().add(home_display_button);
-        
+
         final TopResources homeResource = TopResources.parse(Preferences.home_display);
 
         home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
@@ -612,16 +612,19 @@ public class PhoebusApplication extends Application {
         top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
         top_resources_button.setDisable(true);
         toolBar.getItems().add(top_resources_button);
-        
+
         layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/layouts.png"));
         layout_menu_button.setTooltip(new Tooltip("Load Layouts"));
         toolBar.getItems().add(layout_menu_button);
-        
+
         // Contributed Entries
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
             final AtomicBoolean open_new = new AtomicBoolean();
 
             final Button button = new Button(entry.getName());
+            final Image icon = entry.getIcon();
+            if (icon != null)
+                button.setGraphic(new ImageView(icon));
 
             // Want to handle button presses with 'Control' in different way,
             // but action event does not carry key modifier information.
@@ -655,7 +658,7 @@ public class PhoebusApplication extends Application {
 
             toolBar.getItems().add(button);
         });
-        
+
         toolBar.setPrefWidth(600);
         return toolBar;
     }
@@ -914,7 +917,7 @@ public class PhoebusApplication extends Application {
         }
 
         createLoadLayoutsMenu();
-        
+
         try
         {
             // Global settings
