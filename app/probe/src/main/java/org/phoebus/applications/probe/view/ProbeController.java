@@ -86,6 +86,11 @@ public class ProbeController {
         // Write entered value to PV
         txtValue.setOnKeyPressed(event ->
         {
+            if (pv.isReadonly())
+            {
+                event.consume();
+                return;
+            }
             switch (event.getCode())
             {
             case ESCAPE:
@@ -110,7 +115,11 @@ public class ProbeController {
                 setEditing(true);
             }
         });
-        txtValue.setOnMouseClicked(event -> setEditing(true));
+        txtValue.setOnMouseClicked(event ->
+        {
+            if (! pv.isReadonly())
+                setEditing(true);
+        });
         txtValue.focusedProperty().addListener((p, old, focus) ->
         {
             if (!focus)
@@ -130,7 +139,7 @@ public class ProbeController {
     }
 
     private PV pv;
-    private Disposable pv_flow;
+    private Disposable pv_flow, permission_flow;
 
     private void update(final VType value)
     {
@@ -140,11 +149,29 @@ public class ProbeController {
         });
     }
 
+    private void updateWritable(final Boolean writable)
+    {
+        Platform.runLater(() ->
+        {
+            txtValue.setEditable(false);
+        });
+    }
+
     @FXML
     private void search() {
         // The PV is different, so disconnect and reset the visuals
-        if (pv != null) {
-            pv_flow.dispose();
+        if (pv != null)
+        {
+            if (permission_flow != null)
+            {
+                permission_flow.dispose();
+                permission_flow = null;
+            }
+            if (pv_flow != null)
+            {
+                pv_flow.dispose();
+                pv_flow = null;
+            }
             PVPool.releasePV(pv);
             pv = null;
         }
@@ -161,6 +188,9 @@ public class ProbeController {
             pv_flow = pv.onValueEvent()
                         .throttleLatest(10, TimeUnit.MILLISECONDS)
                         .subscribe(this::update);
+            permission_flow = pv.onAccessRightsEvent()
+                    .throttleLatest(10, TimeUnit.MILLISECONDS)
+                    .subscribe(this::updateWritable);
         }
         catch (Exception ex)
         {
