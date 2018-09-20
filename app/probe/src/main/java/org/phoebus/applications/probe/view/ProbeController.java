@@ -143,18 +143,12 @@ public class ProbeController {
 
     private void update(final VType value)
     {
-        Platform.runLater(() ->
-        {
-            setValue(value);
-        });
+        Platform.runLater(() -> setValue(value));
     }
 
     private void updateWritable(final Boolean writable)
     {
-        Platform.runLater(() ->
-        {
-            txtValue.setEditable(false);
-        });
+        Platform.runLater(() ->  txtValue.setEditable(writable));
     }
 
     @FXML
