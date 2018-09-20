@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.phoebus</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>services</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>service-alarm-config-logger</artifactId>
@@ -34,11 +34,6 @@
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
       <version>1.1.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>app-alarm-model</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>

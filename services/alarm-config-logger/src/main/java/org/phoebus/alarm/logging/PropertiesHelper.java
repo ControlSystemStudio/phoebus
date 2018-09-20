@@ -3,6 +3,7 @@ package org.phoebus.alarm.logging;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import static org.phoebus.alarm.logging.AlarmConfigLoggingService.logger;
 
@@ -17,10 +18,11 @@ public class PropertiesHelper {
             if (input != null) {
                 // load a properties file from class path, inside static method
                 prop.load(input);
+            } else {
+                logger.warning("Unable to configuration find " + filename);
             }
-            logger.warning("Sorry, unable to find " + filename);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING,"Unable to load configuration " + filename, e);
         }
     }
 
