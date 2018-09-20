@@ -12,14 +12,13 @@ public class PropertiesHelper {
 
     static {
         String filename = "alarm_config_logging_service.properties";
-        InputStream input = null;
-        input = PropertiesHelper.class.getClassLoader().getResourceAsStream(filename);
-        if (input == null) {
+
+        try (InputStream input = PropertiesHelper.class.getClassLoader().getResourceAsStream(filename);) {
+            if (input != null) {
+                // load a properties file from class path, inside static method
+                prop.load(input);
+            }
             logger.warning("Sorry, unable to find " + filename);
-        }
-        // load a properties file from class path, inside static method
-        try {
-            prop.load(input);
         } catch (IOException e) {
             e.printStackTrace();
         }

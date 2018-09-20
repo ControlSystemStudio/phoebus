@@ -16,11 +16,12 @@ public class PropertiesHelper {
     static {
         String filename = "alarm_logging_service.properties";
         try (InputStream input = PropertiesHelper.class.getClassLoader().getResourceAsStream(filename);) {
-            if (input == null) {
+            if (input != null) {
+                // load a properties file from class path, inside static method
+                prop.load(input);
+            }else {
                 logger.warning("Sorry, unable to find " + filename);
             }
-            // load a properties file from class path, inside static method
-            prop.load(input);
         } catch (IOException e) {
             e.printStackTrace();
         }
