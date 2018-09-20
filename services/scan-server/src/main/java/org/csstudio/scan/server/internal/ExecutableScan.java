@@ -659,7 +659,8 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
 
     /** Force transition to next command */
     public void next()
-    {   // Must be running
+    {
+        // Must be running
         if (state.get() != ScanState.Running)
             return;
         // Must have active command
