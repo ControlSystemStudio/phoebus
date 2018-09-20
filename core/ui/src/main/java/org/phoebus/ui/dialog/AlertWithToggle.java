@@ -12,7 +12,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import jfxtras.scene.layout.VBox;
+import javafx.scene.layout.VBox;
 
 /** A Confirmation Alert with "Don't show again" toggle
  *
