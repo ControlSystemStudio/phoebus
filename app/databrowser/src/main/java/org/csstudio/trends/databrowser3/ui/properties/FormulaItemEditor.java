@@ -77,7 +77,7 @@ public class FormulaItemEditor
         final Model model = formula_item.getModel().get();
 
         // Create list of inputs.
-        final List<InputItem> inputs = new ArrayList<InputItem>();
+        final List<InputItem> inputs = new ArrayList<>();
         // Every model item is a possible input.
         model_loop: for (ModelItem model_item : model.getItems())
         {   // Formula cannot be an input to itself
@@ -99,7 +99,7 @@ public class FormulaItemEditor
             if (input == null)
             {
                 for (InputItem existing_item : inputs)
-                    if (existing_item.input_name.equals(model_item.getName()))
+                    if (existing_item.input_name.get().equals(model_item.getName()))
                     {    // The item with the same name was already added to the input list.
                         continue model_loop;
                     }
