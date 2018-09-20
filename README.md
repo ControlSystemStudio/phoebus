@@ -26,6 +26,13 @@ mvn clean verify  -f dependencies/pom.xml
 
 ## Building with maven
 
+### Quickstart (Build & run)
+
+To build and run the phoebus product
+
+```
+mvn install exec:java
+```
  
 ### Building
 
