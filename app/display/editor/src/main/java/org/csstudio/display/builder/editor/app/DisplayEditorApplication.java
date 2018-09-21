@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.framework.jobs.JobManager;
@@ -41,6 +42,7 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class DisplayEditorApplication implements AppResourceDescriptor
 {
+    private static final List<String> FILE_EXTENSIONS = List.of(DisplayModel.FILE_EXTENSION, DisplayModel.LEGACY_FILE_EXTENSION, WidgetClassSupport.FILE_EXTENSION);
     public static final String NAME = "display_editor";
     public static final String DISPLAY_NAME = "Display Editor";
 
@@ -70,7 +72,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
     @Override
     public List<String> supportedFileExtentions()
     {
-        return DisplayModel.FILE_EXTENSIONS;
+        return FILE_EXTENSIONS;
     }
 
     @Override
