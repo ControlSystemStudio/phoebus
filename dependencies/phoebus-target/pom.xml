@@ -267,6 +267,11 @@
       <artifactId>pbrawclient</artifactId>
       <version>0.0.8</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>5.0.3.201809091024-r</version>
+    </dependency>
   </dependencies>
 
   <build>
