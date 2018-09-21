@@ -210,11 +210,27 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Allows for the running of phoebus with mvn exec:java -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>org.phoebus.product.Launcher</mainClass>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <parent>
-  	<groupId>org.phoebus</groupId>
-  	<artifactId>parent</artifactId>
-  	<version>0.0.1-SNAPSHOT</version>
+    <groupId>org.phoebus</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
   </parent>
 </project>

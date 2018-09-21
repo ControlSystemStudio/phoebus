@@ -20,20 +20,35 @@ They could be obtained by expanding a zip-ed folder from an existing build setup
 
 
 ```
-mvn clean verify  -f dependencies/pom.xml
+mvn clean verify -f dependencies/pom.xml
 ```
 
 
 ## Building with maven
 
- 
-### Building
+### Quickstart (Build & run)  
 
+To build and run the phoebus product  
+```
+cd phoebus-product
+mvn install exec:java
+```
+
+### Building  
+
+To build the entire phoebus stack
 ```
 mvn clean install
 ```
 
-### Running test application
+### Running the phoebus application  
+
+To run with maven
+```
+cd phoebus-product
+mvn exec:java
+```
+To run the product jar
 ```
 cd phoebus-product/target
 java -jar product-0.0.1-SNAPSHOT.jar
