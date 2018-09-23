@@ -33,6 +33,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
@@ -242,8 +243,39 @@ public class FileBrowserController {
             }
             break;
         }
+        case ESCAPE: // De-select
+            treeView.selectionModelProperty().get().clearSelection();
+            break;
         default:
-            // Ignore
+            if ((event.getCode().compareTo(KeyCode.A) >= 0  &&  event.getCode().compareTo(KeyCode.Z) <= 0) ||
+                (event.getCode().compareTo(KeyCode.DIGIT0) >= 0  &&  event.getCode().compareTo(KeyCode.DIGIT9) <= 0))
+            {
+                // Move selection to first/next file that starts with that character
+                final String ch = event.getCode().getChar().toLowerCase();
+
+                final TreeItem<File> selected = treeView.selectionModelProperty().getValue().getSelectedItem();
+                final ObservableList<TreeItem<File>> siblings;
+                int index;
+                if (selected != null)
+                {   // Start after the selected item
+                    siblings = selected.getParent().getChildren();
+                    index = siblings.indexOf(selected);
+                }
+                else if (!treeView.getRoot().getChildren().isEmpty())
+                {   // Start at the root
+                    siblings = treeView.getRoot().getChildren();
+                    index = -1;
+                }
+                else
+                    break;
+                for (++index;  index < siblings.size();  ++index)
+                    if (siblings.get(index).getValue().getName().toLowerCase().startsWith(ch))
+                    {
+                        treeView.selectionModelProperty().get().clearSelection();
+                        treeView.selectionModelProperty().get().select(siblings.get(index));
+                        break;
+                    }
+            }
         }
     }
 
