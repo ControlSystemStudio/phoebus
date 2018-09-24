@@ -9,14 +9,15 @@ http://phoebus-doc.readthedocs.io
 
 
 ## Requirements
- - [JDK9 or later](http://jdk.java.net/9/)
+ - [JDK9 or later, including JavaFX](http://jdk.java.net).
+   You need a JDK that includes JavaFX.
  - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
 ## Target Platform
 
 All external dependencies are expected in `dependencies/target/lib`.
-They could be obtained by expanding a zip-ed folder from an existing build setup, or via one initial maven run:
+They could be obtained by expanding a zip-ed phoebus target from an existing build setup, or via one initial maven run:
 
 
 ```
@@ -30,8 +31,9 @@ mvn clean verify -f dependencies/pom.xml
 
 To build and run the phoebus product  
 ```
+mvn clean install
 cd phoebus-product
-mvn install exec:java
+mvn exec:java
 ```
 
 ### Building  
@@ -65,18 +67,18 @@ ant clean run
 
 ## Developing with Eclipse
 
-Download Eclipse Oxygen 4.7.1a from http://download.eclipse.org/eclipse/downloads/
+Download Eclipse Oxygen 4.7.1a or later from http://download.eclipse.org/eclipse/downloads/
 
 Start Eclipse like this:
 
-	export JAVA_HOME=/path/to/your/jdk-9
+	export JAVA_HOME=/path/to/your/jdk-9-or-later
 	export PATH="$JAVA_HOME/bin:$PATH"
 	eclipse/eclipse -consoleLog
 
 Check Eclipse Preferences:
 
- * Java, Installed JREs: JDK 9 should be the default
- * Java, Compiler: JDK Compliance should be "9"
+ * Java, Installed JREs: JDK 9-or-later should be the default
+ * Java, Compiler: JDK Compliance should be "9" or higher
 
 
 ### Use plain Java configuration
