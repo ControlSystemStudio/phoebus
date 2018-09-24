@@ -198,6 +198,7 @@ public class AutomatedActionTest
     @Test
     public void testAutomatedEmailFollowup() throws Exception
     {
+        System.out.println("testAutomatedEmailFollowup");
         if (! AlarmSystem.automated_action_followup.contains("mailto:"))
         {
             System.out.println("Skipping test of automated email follow up");
@@ -211,12 +212,20 @@ public class AutomatedActionTest
         final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
 
         // Trigger Action, get email after DELAY_MS
+        System.out.println("Expect alarm email in " + DELAY_MS + "ms");
+        long start = System.currentTimeMillis();
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR);
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
+        long passed = System.currentTimeMillis() - start;
+        checkActionDelay(passed);
 
         // .. and expect another email "right away" when the alarm is acked, i.e. no longer active
+        System.out.println("Expect 'OK' email right away");
+        start = System.currentTimeMillis();
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR_ACK);
-        assertThat(action_performed.poll(), equalTo("Send Email"));
+        assertThat(action_performed.poll(DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
+        passed = System.currentTimeMillis() - start;
+        checkActionDelay(passed);
 
         // When the alarm then clears, there's NOT another update, already had the follow-up
         auto_action.handleSeverityUpdate(SeverityLevel.OK);

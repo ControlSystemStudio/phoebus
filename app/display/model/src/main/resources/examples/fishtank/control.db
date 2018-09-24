@@ -69,3 +69,12 @@ record(calc, "$(user):PID")
     field(CALC, "A*B+C*D")
 }
 
+# Patch tank.db:
+record(ao, "$(user):heat_V")
+{
+    field(DOL, "$(user):PID MS")
+    field(OMSL,"closed_loop")
+}
+
+
+

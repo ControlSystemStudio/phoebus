@@ -88,6 +88,8 @@ public class TimeWarp
 
 
     private static final Pattern LEGACY_SECONDS = Pattern.compile("([0-9]+)\\.([0-9]+) sec.*");
+    // Actually allows "m", "min", "minuteshours", but also "mintisenu".. Fine.
+    private static final Pattern LEGACY_MINUTES = Pattern.compile("([0-9]+\\.[0-9]+) min[utes]*");
     // Actually allows "h", "hour", "hours", but also "horsurrs".. Fine.
     private static final Pattern LEGACY_HOURS = Pattern.compile("([0-9.]+) h[ours]*");
 
@@ -107,6 +109,17 @@ public class TimeWarp
             final long minutes = Math.round(hours * 60.0);
             // Replace "hh.hh h" with "mmmm minutes"
             spec = spec.substring(0,legacy.start()) + minutes + " minutes" + spec.substring(legacy.end());
+        }
+
+        legacy = LEGACY_MINUTES.matcher(spec);
+        if (legacy.find())
+        {
+            // TimeParser can only handle full minutes, not floating point
+            // Convert to seconds
+            final double minutes = Double.parseDouble(legacy.group(1));
+            final long secs = Math.round(minutes * 60.0);
+            // Replace "mm.mm m" with "mmmm secconds"
+            spec = spec.substring(0,legacy.start()) + secs + " seconds" + spec.substring(legacy.end());
         }
 
         legacy = LEGACY_SECONDS.matcher(spec);
