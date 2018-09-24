@@ -33,7 +33,7 @@ To build and run the phoebus product
 ```
 mvn clean install
 cd phoebus-product
-mvn install exec:java
+mvn exec:java
 ```
 
 ### Building  
