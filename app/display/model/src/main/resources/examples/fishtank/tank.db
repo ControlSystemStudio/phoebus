@@ -28,8 +28,9 @@ record(ao, "$(user):heat_V")
     field(DRVH,"110")
     field(HSV, "MINOR")
     field(HIGH,"110")
-    field(DOL, "$(user):PID MS")
-    field(OMSL,"closed_loop")
+#   Set by control.db
+#   field(DOL, "$(user):PID MS")
+#   field(OMSL,"closed_loop")
     field(IVOA, "Set output to IVOV")
     field(IVOV, "0")
 }
