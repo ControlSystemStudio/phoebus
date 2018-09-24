@@ -396,7 +396,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         if (dirty_enablement.checkAndClear())
         {
             base.setDisable(! enabled);
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            Styles.update(base, Styles.NOT_ENABLED, !enabled);
         }
     }
 }
