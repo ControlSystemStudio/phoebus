@@ -17,7 +17,6 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.phoebus.ui.javafx.Styles;
 import org.phoebus.vtype.Display;
 import org.phoebus.vtype.VType;
 import org.phoebus.vtype.ValueUtil;
@@ -299,10 +298,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     {
         super.updateChanges();
         if (dirty_enablement.checkAndClear())
-        {
             jfx_node.setDisable(! enabled);
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
-        }
         if (dirty_layout.checkAndClear())
         {
             final boolean horizontal = model_widget.propHorizontal().getValue();
