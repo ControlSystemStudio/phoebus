@@ -393,6 +393,10 @@ public class ActionsDialog extends Dialog<ActionInfos>
         final Target[] modes = Target.values();
         for (int i=0; i<modes.length; ++i)
         {
+            // Suppress deprecated legacy mode which is handled as WINDOW
+            if (modes[i] == Target.STANDALONE)
+                continue;
+
             final RadioButton target = new RadioButton(modes[i].toString());
             target.setToggleGroup(open_display_targets);
             target.selectedProperty().addListener(update);
