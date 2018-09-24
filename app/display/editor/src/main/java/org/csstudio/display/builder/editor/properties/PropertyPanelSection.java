@@ -662,6 +662,7 @@ public class PropertyPanelSection extends GridPane
             {   // Display file mode:
                 // Show if property is set by the class, not editable.
                 final Label indicator = new Label();
+                indicator.setPadding(new Insets(0, 5, 0, 0));
                 indicator.setTooltip(using_class_tooltip);
                 final WidgetPropertyBinding<?,?> binding = new ShowWidgetClassBinding(field, property, indicator);
                 bindings.add(binding);
