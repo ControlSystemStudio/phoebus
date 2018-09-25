@@ -16,9 +16,9 @@ package org.phoebus.pv;
  *  for creating that type of PV and registers it
  *  with the {@link PVPool}.
  *
- *  <p>A full PV name can have the form <code>type://name&lt;type>(params)</code>,
+ *  <p>A full PV name can have the form <code>type://name&lt;type&gt;(params)</code>,
  *  for example <code>loc://x(42.3)</code>
- *  or <code>loc://choices&lt;VEnum>(2, "A", "B", "C")</code>.
+ *  or <code>loc://choices&lt;VEnum&gt;(2, "A", "B", "C")</code>.
  *
  *  <p>The 'base name' is everything after the "type://" prefix.
  *  The 'core name' is used to uniquely identify the name in the PV pool.
