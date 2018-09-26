@@ -30,6 +30,11 @@ import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
+/**
+ * Class to display 3 dimensional objects in a rotating camera view.
+ * 
+ * @author Evan Smith
+ */
 public class Viewer3d extends VBox
 {
     final Group root = new Group();
@@ -74,7 +79,7 @@ public class Viewer3d extends VBox
         
         world.getChildren().add(moleculeGroup);
         
-        SubScene scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.DISABLED);
+        SubScene scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
         scene.setFill(Color.GRAY);
         
         handleKeyboard(scene);
@@ -308,15 +313,15 @@ public class Viewer3d extends VBox
 
                double modifier = 1.0;
 
-                if (me.isControlDown()) 
+                if (me.isControlDown())
                 {
                     modifier = CONTROL_MULTIPLIER;
                 } 
-                if (me.isShiftDown()) 
+                if (me.isShiftDown())
                 {
                     modifier = SHIFT_MULTIPLIER;
                 }     
-                if (me.isPrimaryButtonDown()) 
+                if (me.isPrimaryButtonDown())
                 {
                     cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED); 
                     cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
