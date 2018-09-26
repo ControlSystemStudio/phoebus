@@ -88,6 +88,10 @@ public class Viewer3d extends VBox
         world.getChildren().add(moleculeGroup);
         
         SubScene scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
+        scene.setManaged(false);
+        scene.heightProperty().bind(heightProperty());
+        scene.widthProperty().bind(widthProperty());
+        
         scene.setFill(Color.GRAY);
         
         handleKeyboard(scene);
