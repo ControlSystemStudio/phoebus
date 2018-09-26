@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,7 @@ import java.time.Instant;
  */
 public class TimeDataSearch extends PlotDataSearch<Instant>
 {
-    /** Find a sample that's bigger or equal to given value
+    /** Find the sample closest to given value
      *  @param data Data, must already be locked
      *  @param time Time near which to look for sample.
      *  @return Returns index of sample closest to time
