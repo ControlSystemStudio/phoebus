@@ -32,38 +32,47 @@ public class Viewer3dPane extends VBox
 {
     public Viewer3dPane() throws Exception
     {
-        TextField textField = new TextField();
-        Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
-        FileChooser chooser = new FileChooser();
-        HBox toolbar = new HBox();
-        toolbar.getChildren().addAll(textField, fileButton);
-        Viewer3d viewer = new Viewer3d();
+        super();
+        
         Insets insets = new Insets(10);
-        
-        VBox.setMargin(viewer, insets);
-        
+
+        TextField pathField = new TextField();
+        Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
+        FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Shape files (.shp)", "*.shp");
-        chooser.getExtensionFilters().add(extFilter);
+        
+        HBox toolbar = new HBox();
+        
+        Viewer3d viewer = new Viewer3d();
+
+        fileChooser.getExtensionFilters().add(extFilter);
+        toolbar.getChildren().addAll(pathField, fileButton);
+
+        VBox.setVgrow(viewer, Priority.ALWAYS);
+        VBox.setMargin(viewer, insets);        
 
         fileButton.setOnAction(event -> 
-        {
-            File file = chooser.showOpenDialog(this.getParent().getScene().getWindow());
+        {   
+            
+            File file = fileChooser.showOpenDialog(getScene().getWindow());
+            
             if (null != file)
             {
-                textField.setText(file.getPath());
+                pathField.setText(file.getPath());
                 viewer.buildStructure(file);
             }
         });
         
-        HBox.setHgrow(textField, Priority.ALWAYS);
+        HBox.setHgrow(pathField, Priority.ALWAYS);
         toolbar.setSpacing(10);
         toolbar.setPadding(insets);
         
-        textField.setOnKeyPressed(event ->
+        /* TODO Rework this. Study how the display runtime does it with resource files in ModelResourceUtil.java */
+        pathField.setOnKeyPressed(event ->
         {
             if (event.getCode() == KeyCode.ENTER)
             {
-                String pathway = textField.getText();
+                String pathway = pathField.getText();
                 if (pathway.startsWith("examples:"))
                 {
                     pathway = pathway.replaceFirst("examples:", "");
