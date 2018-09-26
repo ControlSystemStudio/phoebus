@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.phoebus.app.viewer3d;
 
 import java.io.BufferedReader;
@@ -36,9 +43,9 @@ public class Viewer3d extends VBox
     final Xform cameraXform2 = new Xform();
     final Xform cameraXform3 = new Xform();
     
-    private static final double CAMERA_INITIAL_DISTANCE = -450;
-    private static final double CAMERA_INITIAL_X_ANGLE = 70.0;
-    private static final double CAMERA_INITIAL_Y_ANGLE = 320.0;
+    private static final double CAMERA_INITIAL_DISTANCE = -1000;
+    private static final double CAMERA_INITIAL_X_ANGLE = 30;
+    private static final double CAMERA_INITIAL_Y_ANGLE = -135;
     private static final double CAMERA_NEAR_CLIP = 0.1;
     private static final double CAMERA_FAR_CLIP = 10000.0;
     
