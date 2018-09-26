@@ -37,16 +37,15 @@ import javafx.scene.transform.Translate;
  */
 public class Viewer3d extends VBox
 {
-    final Group root = new Group();
-    final Xform axisGroup = new Xform();
-    final Xform moleculeGroup = new Xform();
-    final Xform world = new Xform();
-    final Xform struct = new Xform();
+    final Group root;
+    final Xform axisGroup;
+    final Xform moleculeGroup;
+    final Xform world;
 
-    final PerspectiveCamera camera = new PerspectiveCamera(true);
-    final Xform cameraXform = new Xform();
-    final Xform cameraXform2 = new Xform();
-    final Xform cameraXform3 = new Xform();
+    final PerspectiveCamera camera;
+    final Xform cameraXform;
+    final Xform cameraXform2;
+    final Xform cameraXform3;
     
     private static final double CAMERA_INITIAL_DISTANCE = -1000;
     private static final double CAMERA_INITIAL_X_ANGLE = 30;
@@ -71,6 +70,15 @@ public class Viewer3d extends VBox
     
     public Viewer3d () throws Exception
     {
+        root = new Group();
+        axisGroup = new Xform();
+        moleculeGroup = new Xform();
+        world = new Xform();
+        camera = new PerspectiveCamera(true);
+        cameraXform = new Xform();
+        cameraXform2 = new Xform();
+        cameraXform3 = new Xform();
+        
         root.getChildren().add(world);
         root.setDepthTest(DepthTest.ENABLE);
                 
