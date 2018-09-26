@@ -18,7 +18,7 @@ public class Demo3dViewer extends Application
     {
         Viewer3dPane viewerPane = new Viewer3dPane();
         
-        Scene scene = new Scene(viewerPane);
+        Scene scene = new Scene(viewerPane, 1000, 1000);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
