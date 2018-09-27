@@ -80,7 +80,13 @@ public class WaveformView extends VBox
     private boolean updating_selected_items = false;
 
     private RTValuePlot plot;
+
+    /** Model item that selected the sample */
+    private ModelItem selection_item = null;
+
+    /** Index of sample in model_item */
     private final Slider sample_index = new Slider();
+
     private final TextField timestamp = new TextField(),
                             status = new TextField();
 
@@ -272,28 +278,50 @@ public class WaveformView extends VBox
 
     private void showSelectedSample()
     {
-        final int idx = (int) Math.round(sample_index.getValue());
+        // No items?
+        if (model_items.isEmpty())
+        {
+            selection_item = null;
+            return;
+        }
 
-        Instant firstWaveformSampleTime = null;
+        // If no item selected for the idx, use the first one
+        if (selection_item == null  ||  !model_items.contains(selection_item))
+            selection_item = model_items.get(0);
+
+        // Determine time stamp of selected item's sample
+        final int idx = (int) Math.round(sample_index.getValue());
+        final Instant selected_time;
+        PlotSamples samples = selection_item.getSamples();
+        samples.getLock().lock();
+        try
+        {
+            selected_time = samples.get(idx).getPosition();
+        }
+        finally
+        {
+            samples.getLock().unlock();
+        }
+
         String timestampText = "", statusText = "";
-        int n = 0;
+        int n = 0, max_size = 1;
         for (ModelItem model_item : model_items)
         {
             // Get selected sample (= one waveform)
-            final PlotSamples samples = model_item.getSamples();
+            samples = model_item.getSamples();
             PlotSample sample;
             samples.getLock().lock();
             try
             {
-                if (n == 0)
-                {
+                if (model_item == selection_item)
+                {   // idx refers to exact sample of this item
                     sample_index.setMax(samples.size());
                     sample = samples.get(idx);
                 }
                 else
-                {
+                {   // Find closest sample based on time stamp
                     final TimeDataSearch search = new TimeDataSearch();
-                    final int s = search.findClosestSample(samples, firstWaveformSampleTime);
+                    final int s = search.findClosestSample(samples, selected_time);
                     sample = samples.get(s);
                 }
             }
@@ -315,9 +343,9 @@ public class WaveformView extends VBox
                 if (n == 0)
                 {
                     final int size = value instanceof VNumberArray ? ((VNumberArray)value).getData().size() : 1;
-                    plot.getXAxis().setValueRange(0.0, (double)size);
-                    firstWaveformSampleTime = VTypeHelper.getTimestamp(value);
-                    timestampText = TimestampFormats.MILLI_FORMAT.format(firstWaveformSampleTime);
+                    if (size > max_size)
+                        max_size = size;
+                    timestampText = TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
                     statusText = MessageFormat.format(Messages.SeverityStatusFmt, VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
                 }
                 else
@@ -329,6 +357,7 @@ public class WaveformView extends VBox
 
             ++n;
         }
+        plot.getXAxis().setValueRange(0.0, (double)max_size);
 
         timestamp.setText(timestampText);
         status.setText(statusText);
@@ -341,6 +370,7 @@ public class WaveformView extends VBox
         timestamp.setText("");
         status.setText("");
         removeAnnotations();
+        selection_item = null;
     }
 
     private void userMovedAnnotation()
@@ -357,30 +387,30 @@ public class WaveformView extends VBox
                     annotation.getItemIndex() == waveform_annotation.getItemIndex()  &&
                     ! annotation.getTime().equals(waveform_annotation.getTime()))
             {
-               // System.out.println("User moved " + annotation.getText() + "\nfrom " + waveform_annotation.getTime() + "\n  to " + annotation.getTime());
+                // System.out.println("User moved " + annotation.getText() + "\nfrom " + waveform_annotation.getTime() + "\n  to " + annotation.getTime());
 
-               final ModelItem model_item = model.getItems().get(annotation.getItemIndex());
-               final PlotSamples samples = model_item.getSamples();
-               final TimeDataSearch search = new TimeDataSearch();
-               final int idx;
-               samples.getLock().lock();
-               try
-               {
-                   idx = search.findClosestSample(samples, annotation.getTime());
-               }
-               finally
-               {
-                   samples.getLock().unlock();
-               }
-               // Update waveform view for that sample on UI thread
-               Platform.runLater(() ->
-               {
-                   if (sample_index.getMax() < idx)
-                       sample_index.setMax(idx);
-                   sample_index.setValue(idx);
-                   showSelectedSample();
-               });
-               return;
+                selection_item = model.getItems().get(annotation.getItemIndex());
+                final PlotSamples samples = selection_item.getSamples();
+                final TimeDataSearch search = new TimeDataSearch();
+                final int idx;
+                samples.getLock().lock();
+                try
+                {
+                    idx = search.findClosestSample(samples, annotation.getTime());
+                }
+                finally
+                {
+                    samples.getLock().unlock();
+                }
+                // Update waveform view for that sample on UI thread
+                Platform.runLater(() ->
+                {
+                    if (sample_index.getMax() < idx)
+                        sample_index.setMax(idx);
+                    sample_index.setValue(idx);
+                    showSelectedSample();
+                });
+                return;
             }
     }
 
