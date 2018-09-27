@@ -3,6 +3,9 @@ package org.phoebus.logbook;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.FileNameMap;
+import java.net.URLConnection;
+
 
 /**
  * A default implementation of {@link Attachment}
@@ -13,6 +16,8 @@ public class AttachmentImpl implements Attachment {
     private final File file;
     private final String contentType;
     private final Boolean thumbnail;
+
+    private static FileNameMap fileNameMap = URLConnection.getFileNameMap();
 
     private AttachmentImpl(File file, String contentType, Boolean thumbnail) {
         super();
@@ -59,7 +64,9 @@ public class AttachmentImpl implements Attachment {
      * @throws IOException 
      */
     public static Attachment of(String uri) throws IOException {
-        return new AttachmentImpl(new File(uri), null, null);
+        File file = new File(uri);
+        String mimeType = fileNameMap.getContentTypeFor(file.getName());
+        return new AttachmentImpl(file, mimeType, null);
     }
 
     /**
@@ -69,7 +76,8 @@ public class AttachmentImpl implements Attachment {
      * @throws FileNotFoundException 
      */
     public static Attachment of(File file) throws FileNotFoundException {
-        return new AttachmentImpl(file, null, null);
+        String mimeType = fileNameMap.getContentTypeFor(file.getName());
+        return new AttachmentImpl(file, mimeType, null);
     }
     
     /**
