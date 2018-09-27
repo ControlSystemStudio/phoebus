@@ -15,6 +15,8 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.fxml.FXMLLoader;
 
 public class LogEntryTable implements AppInstance {
+    final static Logger log = Logger.getLogger(LogEntryTable.class.getName());
+    
     private final LogEntryTableApp app;
     private LogEntryTableController controller;
     private DockItem tab;

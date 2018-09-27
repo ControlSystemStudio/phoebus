@@ -3,13 +3,21 @@ package org.phoebus.logbook.ui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.ui.write.AttachmentsView;
+import org.phoebus.logbook.ui.write.LogEntryModel;
+import org.phoebus.logbook.ui.write.PropertiesTab;
+import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ImagesTab;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -17,19 +25,24 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -107,8 +120,20 @@ public class LogEntryTableController extends LogbookSearchController {
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
             final Label descriptionText = new Label();
-            TilePane imageGallery = new TilePane();
+
+            TabPane tabPane = new TabPane();
+            ImagesTab imagesTab = new ImagesTab();
+            FilesTab filesTab = new FilesTab();
+            PropertiesTab propertiesTab = new PropertiesTab();
+            tabPane.getTabs().addAll(imagesTab, filesTab, propertiesTab);
+            TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
+            Accordion imageGallery = new Accordion();
+            imageGallery.getPanes().add(tPane);
+
             pane.addColumn(0, titleText, descriptionText, imageGallery);
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setHgrow(Priority.ALWAYS);
+            pane.getColumnConstraints().add(cc);
 
             return new TableCell<LogEntry, LogEntry>() {
                 @Override
@@ -123,14 +148,19 @@ public class LogEntryTableController extends LogbookSearchController {
                             titleText.setVisible(true);
                             titleText.setText(logEntry.getTitle());
                         }
+
+                        final List<Image> images = new ArrayList<>();
+                        final List<File> files = new ArrayList<>();
+                        logEntry.getAttachments().stream().forEach(attachment -> {
+                            if (attachment.getContentType().startsWith(Attachment.CONTENT_IMAGE)) {
+                                images.add(createImage(attachment.getFile()));
+                            } else {
+                                files.add(attachment.getFile());
+                            }
+                        });
+                        filesTab.setFiles(files);
+                        imagesTab.setImages(images);
                         descriptionText.setText(logEntry.getDescription());
-                        // imageGallery.getChildren().clear();
-                        // logEntry.getAttachments().forEach(attachment -> {
-                        // ImageView imageView;
-                        // imageView = createImageView(attachment.getFile());
-                        // imageGallery.getChildren().addAll(imageView);
-                        // });
-                        // imageGallery.requestLayout();
                         setGraphic(pane);
                     }
                 }
@@ -199,6 +229,16 @@ public class LogEntryTableController extends LogbookSearchController {
 
     }
 
+    
+    private Image createImage(final File imageFile) {
+        try {
+            return new Image(new FileInputStream(imageFile), 150, 0, true, true);
+        } catch (FileNotFoundException e) {
+            LogEntryTable.log.log(Level.WARNING, "failed to create image from attachement", e);
+            return null;
+        }
+    }
+
     private ImageView createImageView(final File imageFile) {
 
         ImageView imageView = null;
@@ -242,7 +282,7 @@ public class LogEntryTableController extends LogbookSearchController {
                 }
             });
         } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
+            LogEntryTable.log.log(Level.WARNING, "failed to create image from attachement", ex);
         }
         return imageView;
     }
