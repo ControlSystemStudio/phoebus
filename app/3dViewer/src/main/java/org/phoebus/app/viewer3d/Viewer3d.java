@@ -153,7 +153,7 @@ public class Viewer3d extends VBox
      * @param inputStream
      * @return Xform of structure
      */
-    public Xform buildStructure(final InputStream inputStream) 
+    public Xform buildStructure(final InputStream inputStream) throws Exception
     {
         Xform struct = new Xform();
         
@@ -295,12 +295,6 @@ public class Viewer3d extends VBox
             
             return struct;
         }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-        }
-        
-        return null;
     }
     
     /**
