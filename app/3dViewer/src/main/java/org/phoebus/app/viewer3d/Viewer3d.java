@@ -298,7 +298,7 @@ public class Viewer3d extends VBox
     }
     
     /**
-     * Set the currently displaying structure.
+     * Set the currently displaying structure to the newly passed struct.
      * @param struct
      */
     public void setStructure(final Xform struct)
