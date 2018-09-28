@@ -90,9 +90,9 @@ public class Viewer3d extends StackPane
         cameraXform3 = new Xform();
         
         HBox legend = new HBox();
-        Label xLabel = new Label("   X   "), 
-              yLabel = new Label("   Y   "), 
-              zLabel = new Label("   Z   ");
+        Label xLabel = new Label("  X Axis  "), 
+              yLabel = new Label("  Y Axis  "), 
+              zLabel = new Label("  Z Axis  ");
         
         root.getChildren().add(world);
         root.setDepthTest(DepthTest.ENABLE);
