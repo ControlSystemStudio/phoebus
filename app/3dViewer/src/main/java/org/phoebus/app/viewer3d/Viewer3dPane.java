@@ -20,6 +20,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -37,14 +38,16 @@ public class Viewer3dPane extends VBox
 {
     public final static Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
     
+    private String current_resource;
+    
     public Viewer3dPane(final URI resource) throws Exception
     {
         super();
         
-        Insets insets = new Insets(10);
-
         TextField textField = new TextField();
         Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
+        Button refreshButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
+        
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Shape files (.shp)", "*.shp");
         
@@ -53,11 +56,12 @@ public class Viewer3dPane extends VBox
         Viewer3d viewer = new Viewer3d();
 
         fileChooser.getExtensionFilters().add(extFilter);
-        toolbar.getChildren().addAll(textField, fileButton);
+        toolbar.getChildren().addAll(textField, refreshButton, fileButton);
 
         VBox.setVgrow(viewer, Priority.ALWAYS);
-        VBox.setMargin(viewer, insets);        
+        VBox.setMargin(viewer, new Insets(0, 10, 10, 10));        
 
+        
         fileButton.setOnAction(event -> 
         {   
             
@@ -78,10 +82,14 @@ public class Viewer3dPane extends VBox
                 }
             }
         });
+        fileButton.setTooltip(new Tooltip("Select resource from file system."));
+        
+        refreshButton.setOnAction(event -> loadResource(current_resource, viewer));
+        refreshButton.setTooltip(new Tooltip("Refresh structure from resource."));
         
         HBox.setHgrow(textField, Priority.ALWAYS);
         toolbar.setSpacing(10);
-        toolbar.setPadding(insets);
+        toolbar.setPadding(new Insets(10));
         
         textField.setOnKeyPressed(event ->
         {
@@ -105,28 +113,34 @@ public class Viewer3dPane extends VBox
      */
     private void loadResource(final String resource, Viewer3d viewer)
     {
-        JobManager.schedule("Read 3d viewer resource", monitor -> 
+        if (null != resource && ! resource.isEmpty())
         {
-            InputStream inputStream = null;
-            try
+            JobManager.schedule("Read 3d viewer resource", monitor -> 
             {
-                inputStream = ResourceUtil.openResource(resource);
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Opening resource '" + resource + "' failed", ex);
-            }
-            
-            try
-            {
-                final Xform struct = viewer.buildStructure(inputStream);
-                if (null != struct)
-                    Platform.runLater(() -> viewer.setStructure(struct));
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Building structure failed", ex);
-            }
-        });
+                InputStream inputStream = null;
+                try
+                {
+                    inputStream = ResourceUtil.openResource(resource);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Opening resource '" + resource + "' failed", ex);
+                }
+                if (null != inputStream)
+                {
+                    try
+                    {
+                        final Xform struct = viewer.buildStructure(inputStream);
+                        if (null != struct)
+                            Platform.runLater(() -> viewer.setStructure(struct));
+                        current_resource = resource;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Building structure failed", ex);
+                    }
+                }
+            });
+        }
     }
 }
