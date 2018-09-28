@@ -8,8 +8,6 @@
 package org.phoebus.app.viewer3d;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.phoebus.ui.javafx.ImageCache;
@@ -25,7 +23,7 @@ import javafx.stage.FileChooser;
 
 /**
  * VBox that wraps a Viewer3d instance and adds support for loading
- * .shp files.
+ * <i>.shp</i> files from the file system or URLs.
  * 
  * @author Evan Smith
  *
@@ -60,12 +58,13 @@ public class Viewer3dPane extends VBox
             
             if (null != file)
             {
-                textField.setText(file.getPath());
                 try
                 {
-                    viewer.buildStructure(new FileInputStream(file));
+                    String resource = file.toURI().toURL().toString();
+                    textField.setText(resource);
+                    loadResource(resource, viewer);
                 } 
-                catch (FileNotFoundException ex)
+                catch (Exception ex)
                 {
                     ex.printStackTrace();
                 }
@@ -81,19 +80,23 @@ public class Viewer3dPane extends VBox
             if (event.getCode() == KeyCode.ENTER)
             {
                 String resource = textField.getText();
-                try
-                {
-                    InputStream inputStream = ResourceUtil.openResource(resource);
-                    viewer.buildStructure(inputStream);
-                }
-                catch (Exception ex)
-                {
-                    ex.printStackTrace();
-                }
-                
+                loadResource(resource, viewer);
             }
         });
         
         getChildren().addAll(toolbar, viewer);
+    }
+    
+    private void loadResource(final String resource, Viewer3d viewer)
+    {
+        try
+        {
+            InputStream inputStream = ResourceUtil.openResource(resource);
+            viewer.buildStructure(inputStream);
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
     }
 }
