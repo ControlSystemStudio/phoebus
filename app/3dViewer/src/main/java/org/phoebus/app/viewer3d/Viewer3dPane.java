@@ -56,7 +56,7 @@ public class Viewer3dPane extends VBox
         Viewer3d viewer = new Viewer3d();
 
         fileChooser.getExtensionFilters().add(extFilter);
-        toolbar.getChildren().addAll(textField, refreshButton, fileButton);
+        toolbar.getChildren().addAll(fileButton, refreshButton, textField);
 
         VBox.setVgrow(viewer, Priority.ALWAYS);
         VBox.setMargin(viewer, new Insets(0, 10, 10, 10));        
@@ -99,6 +99,8 @@ public class Viewer3dPane extends VBox
                 loadResource(input, viewer);
             }
         });
+        
+        textField.setTooltip(new Tooltip("Enter in the URL of a resource to load."));
         
         getChildren().addAll(toolbar, viewer);
         
