@@ -38,7 +38,7 @@ public class Viewer3d extends VBox
 {
     final Group root;
     final Xform axes;
-    final Xform structure;
+    Xform structure;
     final Xform world;
 
     final PerspectiveCamera camera;
@@ -146,10 +146,14 @@ public class Viewer3d extends VBox
         world.getChildren().addAll(axes);
     }
     
-    public void buildStructure(final InputStream inputStream) 
+    /**
+     * Build a structure from the given input stream.
+     * @param inputStream
+     * @return Xform of structure
+     */
+    public Xform buildStructure(final InputStream inputStream) 
     {
-        /* In case this isn't the first call, clear the structure. */
-        structure.getChildren().clear();
+        Xform struct = new Xform();
         
         try ( BufferedReader buffReader = new BufferedReader(new InputStreamReader(inputStream)) )
         {
@@ -190,7 +194,7 @@ public class Viewer3d extends VBox
                     sphere.setTranslateY(y);
                     sphere.setTranslateZ(z);
                     
-                    structure.getChildren().add(sphere);
+                    struct.getChildren().add(sphere);
                 } 
                 else if (type.equals("box"))
                 {
@@ -225,7 +229,7 @@ public class Viewer3d extends VBox
                     box.setTranslateY(y1);
                     box.setTranslateZ(z1);                    
                     
-                    structure.getChildren().add(box);
+                    struct.getChildren().add(box);
                 }
                 else if (type.equals("cylinder"))
                 {
@@ -278,7 +282,7 @@ public class Viewer3d extends VBox
                     
                     cylinder.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
                     
-                    structure.getChildren().add(cylinder);
+                    struct.getChildren().add(cylinder);
                 }
                 else
                 {
@@ -286,11 +290,26 @@ public class Viewer3d extends VBox
                 }
                 
             }
+            
+            return struct;
         }
         catch(Exception ex)
         {
             ex.printStackTrace();
-        }        
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Set the currently displaying structure.
+     * @param struct
+     */
+    public void setStructure(final Xform struct)
+    {
+        world.getChildren().remove(structure);
+        world.getChildren().add(struct);
+        structure = struct;
     }
     
     private void handleMouse(SubScene scene)
