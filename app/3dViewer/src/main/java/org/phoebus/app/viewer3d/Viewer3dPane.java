@@ -10,8 +10,10 @@ package org.phoebus.app.viewer3d;
 import java.io.File;
 import java.io.InputStream;
 
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -91,8 +93,12 @@ public class Viewer3dPane extends VBox
     {
         try
         {
-            InputStream inputStream = ResourceUtil.openResource(resource);
-            viewer.buildStructure(inputStream);
+            JobManager.schedule("Read 3d viewer resource", monitor -> 
+            {
+                InputStream inputStream = ResourceUtil.openResource(resource);
+                final Xform struct = viewer.buildStructure(inputStream);
+                Platform.runLater(() -> viewer.setStructure(struct));
+            });
         }
         catch (Exception ex)
         {
