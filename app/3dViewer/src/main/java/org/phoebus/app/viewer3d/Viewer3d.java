@@ -37,7 +37,7 @@ import javafx.scene.transform.Translate;
 public class Viewer3d extends VBox
 {
     final Group root;
-    final Xform axisGroup;
+    final Xform axes;
     final Xform structure;
     final Xform world;
 
@@ -70,7 +70,7 @@ public class Viewer3d extends VBox
     public Viewer3d () throws Exception
     {
         root = new Group();
-        axisGroup = new Xform();
+        axes = new Xform();
         structure = new Xform();
         world = new Xform();
         camera = new PerspectiveCamera(true);
@@ -141,9 +141,9 @@ public class Viewer3d extends VBox
         yAxis.setMaterial(greenMaterial);
         zAxis.setMaterial(blueMaterial);
  
-        axisGroup.getChildren().addAll(xAxis, yAxis, zAxis);
-        axisGroup.setVisible(true);
-        world.getChildren().addAll(axisGroup);
+        axes.getChildren().addAll(xAxis, yAxis, zAxis);
+        axes.setVisible(true);
+        world.getChildren().addAll(axes);
     }
     
     public void buildStructure(final InputStream inputStream) 
@@ -254,7 +254,7 @@ public class Viewer3d extends VBox
                      * https://stackoverflow.com/questions/38799322/javafx-3d-transforming-cylinder-to-defined-start-and-end-points
                      * https://netzwerg.ch/blog/2015/03/22/javafx-3d-line/ 
                      * 
-                     * */
+                     **/
                     
                     /* Align the cylinder from (x1, y1, z1) to (x2, y2, z2). */
                     Cylinder cylinder = new Cylinder();
@@ -354,7 +354,6 @@ public class Viewer3d extends VBox
                 double newZ = z + modifier * se.getDeltaY();
 
                 camera.setTranslateZ(newZ);
-                
            }
        });
    }
