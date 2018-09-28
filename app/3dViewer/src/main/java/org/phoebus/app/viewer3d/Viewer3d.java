@@ -62,7 +62,7 @@ public class Viewer3d extends StackPane
     
     private static final double AXIS_LENGTH = 250.0;
     
-    private static final double CONTROL_MULTIPLIER = 0.1;
+    private static final double CONTROL_MULTIPLIER = 0.5;
     private static final double SHIFT_MULTIPLIER = 10.0;
     private static final double MOUSE_SPEED = 0.1;
     private static final double ROTATION_SPEED = 2.0;
@@ -149,16 +149,16 @@ public class Viewer3d extends StackPane
     private void buildAxes()
     {
         final PhongMaterial redMaterial = new PhongMaterial();
-        redMaterial.setDiffuseColor(Color.DARKRED);
-        redMaterial.setSpecularColor(Color.RED);
+        redMaterial.setDiffuseColor(Color.RED);
+        redMaterial.setSpecularColor(Color.DARKRED);
  
         final PhongMaterial greenMaterial = new PhongMaterial();
-        greenMaterial.setDiffuseColor(Color.DARKGREEN);
-        greenMaterial.setSpecularColor(Color.GREEN);
+        greenMaterial.setDiffuseColor(Color.GREEN);
+        greenMaterial.setSpecularColor(Color.DARKGREEN);
  
         final PhongMaterial blueMaterial = new PhongMaterial();
-        blueMaterial.setDiffuseColor(Color.DARKBLUE);
-        blueMaterial.setSpecularColor(Color.BLUE);
+        blueMaterial.setDiffuseColor(Color.BLUE);
+        blueMaterial.setSpecularColor(Color.DARKBLUE);
  
         final Box xAxis = new Box(AXIS_LENGTH, 1, 1);
         final Box yAxis = new Box(1, AXIS_LENGTH, 1);
@@ -392,7 +392,7 @@ public class Viewer3d extends StackPane
             public void handle(ScrollEvent se) 
             {
                 double modifier = 1.5;
-           
+                
                 double z = camera.getTranslateZ();
                 
                 double newZ = z + modifier * se.getDeltaY();
