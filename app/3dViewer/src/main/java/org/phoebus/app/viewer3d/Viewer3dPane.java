@@ -9,6 +9,7 @@ package org.phoebus.app.viewer3d;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +37,7 @@ public class Viewer3dPane extends VBox
 {
     public final static Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
     
-    public Viewer3dPane() throws Exception
+    public Viewer3dPane(final URI resource) throws Exception
     {
         super();
         
@@ -66,9 +67,9 @@ public class Viewer3dPane extends VBox
             {
                 try
                 {
-                    String resource = file.toURI().toURL().toString();
-                    textField.setText(resource);
-                    loadResource(resource, viewer);
+                    String input = file.toURI().toURL().toString();
+                    textField.setText(input);
+                    loadResource(input, viewer);
                 } 
                 catch (Exception ex)
                 {
@@ -86,12 +87,15 @@ public class Viewer3dPane extends VBox
         {
             if (event.getCode() == KeyCode.ENTER)
             {
-                String resource = textField.getText();
-                loadResource(resource, viewer);
+                String input = textField.getText();
+                loadResource(input, viewer);
             }
         });
         
         getChildren().addAll(toolbar, viewer);
+        
+        if (null != resource)
+            loadResource(resource.toURL().toString(), viewer);
     }
     
     /**
