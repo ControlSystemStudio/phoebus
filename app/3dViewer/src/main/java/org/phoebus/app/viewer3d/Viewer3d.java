@@ -12,15 +12,23 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Point3D;
+import javafx.geometry.Pos;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
@@ -34,17 +42,17 @@ import javafx.scene.transform.Translate;
  * 
  * @author Evan Smith
  */
-public class Viewer3d extends VBox
+public class Viewer3d extends StackPane
 {
-    final Group root;
-    final Xform axes;
-    Xform structure;
-    final Xform world;
+    private final Group root;
+    private final Xform axes;
+    private Xform structure;
+    private final Xform world;
 
-    final PerspectiveCamera camera;
-    final Xform cameraXform;
-    final Xform cameraXform2;
-    final Xform cameraXform3;
+    private final PerspectiveCamera camera;
+    private final Xform cameraXform;
+    private final Xform cameraXform2;
+    private final Xform cameraXform3;
     
     private static final double CAMERA_INITIAL_DISTANCE = -1000;
     private static final double CAMERA_INITIAL_X_ANGLE = 30;
@@ -70,15 +78,21 @@ public class Viewer3d extends VBox
     public Viewer3d () throws Exception
     {
         super();
-        
+                
         root = new Group();
         axes = new Xform();
         structure = new Xform();
         world = new Xform();
+        
         camera = new PerspectiveCamera(true);
         cameraXform = new Xform();
         cameraXform2 = new Xform();
         cameraXform3 = new Xform();
+        
+        HBox legend = new HBox();
+        Label xLabel = new Label("   X   "), 
+              yLabel = new Label("   Y   "), 
+              zLabel = new Label("   Z   ");
         
         root.getChildren().add(world);
         root.setDepthTest(DepthTest.ENABLE);
@@ -86,20 +100,35 @@ public class Viewer3d extends VBox
         buildCamera();
         buildAxes();
         
-        world.getChildren().add(structure);
+        world.getChildren().add(structure);        
         
         SubScene scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
         scene.setManaged(false);
         scene.heightProperty().bind(heightProperty());
         scene.widthProperty().bind(widthProperty());
+
+        xLabel.setBackground(new Background(new BackgroundFill(Color.RED,   new CornerRadii(3), null)));
+        yLabel.setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(3), null)));
+        zLabel.setBackground(new Background(new BackgroundFill(Color.BLUE,  new CornerRadii(3), null)));
+        
+        xLabel.setTextFill(Color.WHITE);
+        yLabel.setTextFill(Color.WHITE);
+        zLabel.setTextFill(Color.WHITE);
+        
+        legend.getChildren().addAll(xLabel, yLabel, zLabel);
+        legend.setSpacing(10);
+        legend.setPadding(new Insets(0, 10, 10, 10));
+        
+        StackPane.setAlignment(legend, Pos.TOP_LEFT);
+        StackPane.setMargin(legend, new Insets(10));
         
         scene.setFill(Color.GRAY);
         
-        handleMouse(scene);
+        handleMouse(this);
         
         scene.setCamera(camera);
         
-        getChildren().add(scene);
+        getChildren().addAll(scene, legend);
     }
     
     private void buildCamera() 
@@ -177,10 +206,10 @@ public class Viewer3d extends VBox
                         throw new Exception("sphere argument list is incorrect.");
                     }
                     
-                    int x = Integer.parseInt(args[0]); // X coord
-                    int y = Integer.parseInt(args[1]); // Y coord
-                    int z = Integer.parseInt(args[2]); // Z coord
-                    int R = Integer.parseInt(args[3]); // Radius
+                    double x = Double.parseDouble(args[0]); // X coord
+                    double y = Double.parseDouble(args[1]); // Y coord
+                    double z = Double.parseDouble(args[2]); // Z coord
+                    double R = Double.parseDouble(args[3]); // Radius
                     int r = Integer.parseInt(args[4]); // red
                     int g = Integer.parseInt(args[5]); // blue
                     int b = Integer.parseInt(args[6]); // green
@@ -205,12 +234,12 @@ public class Viewer3d extends VBox
                         throw new Exception("box argument list is incorrect.");
                     }
                     
-                    int x1 = Integer.parseInt(args[0]); // X coord
-                    int y1 = Integer.parseInt(args[1]); // Y coord
-                    int z1 = Integer.parseInt(args[2]); // Z coord
-                    int x2 = Integer.parseInt(args[3]); // X coord
-                    int y2 = Integer.parseInt(args[4]); // Y coord
-                    int z2 = Integer.parseInt(args[5]); // Z coord
+                    double x1 = Double.parseDouble(args[0]); // X coord
+                    double y1 = Double.parseDouble(args[1]); // Y coord
+                    double z1 = Double.parseDouble(args[2]); // Z coord
+                    double x2 = Double.parseDouble(args[3]); // X coord
+                    double y2 = Double.parseDouble(args[4]); // Y coord
+                    double z2 = Double.parseDouble(args[5]); // Z coord
                     int r = Integer.parseInt(args[6]); // red
                     int g = Integer.parseInt(args[7]); // blue
                     int b = Integer.parseInt(args[8]); // green
@@ -240,12 +269,12 @@ public class Viewer3d extends VBox
                         throw new Exception("cylinder argument list is incorrect");
                     }
                     
-                    int x1 = Integer.parseInt(args[0]); // X coord
-                    int y1 = Integer.parseInt(args[1]); // Y coord
-                    int z1 = Integer.parseInt(args[2]); // Z coord
-                    int x2 = Integer.parseInt(args[3]); // X coord
-                    int y2 = Integer.parseInt(args[4]); // Y coord
-                    int z2 = Integer.parseInt(args[5]); // Z coord
+                    double x1 = Double.parseDouble(args[0]); // X coord
+                    double y1 = Double.parseDouble(args[1]); // Y coord
+                    double z1 = Double.parseDouble(args[2]); // Z coord
+                    double x2 = Double.parseDouble(args[3]); // X coord
+                    double y2 = Double.parseDouble(args[4]); // Y coord
+                    double z2 = Double.parseDouble(args[5]); // Z coord
                     int R = Integer.parseInt(args[6]); // Radius
                     int r = Integer.parseInt(args[7]); // red
                     int g = Integer.parseInt(args[8]); // blue
@@ -308,7 +337,7 @@ public class Viewer3d extends VBox
         structure = struct;
     }
     
-    private void handleMouse(SubScene scene)
+    private void handleMouse(Node scene)
     {
         scene.setOnMousePressed(new EventHandler<MouseEvent>()
         {
