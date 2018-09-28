@@ -8,7 +8,9 @@
 package org.phoebus.app.viewer3d;
 
 import java.io.File;
-import java.net.URL;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -36,7 +38,7 @@ public class Viewer3dPane extends VBox
         
         Insets insets = new Insets(10);
 
-        TextField pathField = new TextField();
+        TextField textField = new TextField();
         Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Shape files (.shp)", "*.shp");
@@ -46,7 +48,7 @@ public class Viewer3dPane extends VBox
         Viewer3d viewer = new Viewer3d();
 
         fileChooser.getExtensionFilters().add(extFilter);
-        toolbar.getChildren().addAll(pathField, fileButton);
+        toolbar.getChildren().addAll(textField, fileButton);
 
         VBox.setVgrow(viewer, Priority.ALWAYS);
         VBox.setMargin(viewer, insets);        
@@ -58,31 +60,37 @@ public class Viewer3dPane extends VBox
             
             if (null != file)
             {
-                pathField.setText(file.getPath());
-                viewer.buildStructure(file);
+                textField.setText(file.getPath());
+                try
+                {
+                    viewer.buildStructure(new FileInputStream(file));
+                } 
+                catch (FileNotFoundException ex)
+                {
+                    ex.printStackTrace();
+                }
             }
         });
         
-        HBox.setHgrow(pathField, Priority.ALWAYS);
+        HBox.setHgrow(textField, Priority.ALWAYS);
         toolbar.setSpacing(10);
         toolbar.setPadding(insets);
         
-        /* TODO Rework this. Study how the display runtime does it with resource files in ModelResourceUtil.java */
-        pathField.setOnKeyPressed(event ->
+        textField.setOnKeyPressed(event ->
         {
             if (event.getCode() == KeyCode.ENTER)
             {
-                String pathway = pathField.getText();
-                if (pathway.startsWith("examples:"))
+                String resource = textField.getText();
+                try
                 {
-                    pathway = pathway.replaceFirst("examples:", "");
-                    URL resource = Viewer3d.class.getResource(pathway);
-                    if (null != resource)
-                        pathway = resource.getFile();
+                    InputStream inputStream = ResourceUtil.openResource(resource);
+                    viewer.buildStructure(inputStream);
                 }
-                File file = new File(pathway);
-                if (file.exists() && !file.isDirectory())
-                    viewer.buildStructure(file);
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                
             }
         });
         
