@@ -54,36 +54,28 @@ public class FormatOptionHandler
     /** [85, 84, 70, 45, 56] */
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
-    /**
-     * Return the actual number of fraction digits.
+    /** Return the actual number of fraction digits.
      *
-     * @param value Value to format.
-     * @param precision
-     * @param precision Precision to use. -1 will try to fetch precision from
-     *            the given {@code value} ({@link VType}).
-     * @return The actual number of fraction digits.
+     *  @param value Value to format.
+     *  @param precision Precision to use. -1 will try to fetch precision from
+     *                   the given {@code value} ({@link VType}).
+     *  @return The actual number of fraction digits.
      */
-    public static int actualPrecision ( final VType value, int precision ) {
-
-        if ( precision < 0 ) {
-
-            if ( value instanceof Display ) {
-
+    public static int actualPrecision (final VType value, int precision)
+    {
+        if (precision < 0)
+        {
+            if (value instanceof Display)
+            {
                 final NumberFormat format = ( (Display) value ).getFormat();
-
-                if ( format instanceof DecimalFormat ) {
+                if (format instanceof DecimalFormat)
                     precision = ( (DecimalFormat) format ).getMaximumFractionDigits();
-                }
             }
-
-            if ( precision < 0 ) {
+            if (precision < 0)
                 precision = 2;
-            }
-
         }
 
         return precision;
-
     }
 
     /** Format value as string
