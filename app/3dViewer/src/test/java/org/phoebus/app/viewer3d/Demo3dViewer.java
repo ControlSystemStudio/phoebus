@@ -20,7 +20,7 @@ public class Demo3dViewer extends Application
     @Override
     public void start(Stage primaryStage) throws Exception
     {
-        Viewer3dPane viewerPane = new Viewer3dPane();
+        Viewer3dPane viewerPane = new Viewer3dPane(null);
         
         Scene scene = new Scene(viewerPane, 1000, 1000);
         primaryStage.setScene(scene);
