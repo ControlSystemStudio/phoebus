@@ -97,7 +97,8 @@ public class Viewer3dPane extends VBox
             {
                 InputStream inputStream = ResourceUtil.openResource(resource);
                 final Xform struct = viewer.buildStructure(inputStream);
-                Platform.runLater(() -> viewer.setStructure(struct));
+                if (null != struct)
+                    Platform.runLater(() -> viewer.setStructure(struct));
             });
         }
         catch (Exception ex)
