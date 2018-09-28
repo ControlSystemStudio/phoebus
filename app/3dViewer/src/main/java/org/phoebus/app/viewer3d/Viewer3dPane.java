@@ -9,6 +9,8 @@ package org.phoebus.app.viewer3d;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
@@ -32,6 +34,8 @@ import javafx.stage.FileChooser;
  */
 public class Viewer3dPane extends VBox
 {
+    public final static Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
+    
     public Viewer3dPane() throws Exception
     {
         super();
@@ -69,6 +73,7 @@ public class Viewer3dPane extends VBox
                 catch (Exception ex)
                 {
                     ex.printStackTrace();
+                    logger.log(Level.WARNING, "Loading Resource failed", ex);
                 }
             }
         });
@@ -89,21 +94,35 @@ public class Viewer3dPane extends VBox
         getChildren().addAll(toolbar, viewer);
     }
     
+    /**
+     * Load a resource file and update the viewer.
+     * @param resource
+     * @param viewer
+     */
     private void loadResource(final String resource, Viewer3d viewer)
     {
-        try
+        JobManager.schedule("Read 3d viewer resource", monitor -> 
         {
-            JobManager.schedule("Read 3d viewer resource", monitor -> 
+            InputStream inputStream = null;
+            try
             {
-                InputStream inputStream = ResourceUtil.openResource(resource);
+                inputStream = ResourceUtil.openResource(resource);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Opening resource '" + resource + "' failed", ex);
+            }
+            
+            try
+            {
                 final Xform struct = viewer.buildStructure(inputStream);
                 if (null != struct)
                     Platform.runLater(() -> viewer.setStructure(struct));
-            });
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-        }
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Building structure failed", ex);
+            }
+        });
     }
 }
