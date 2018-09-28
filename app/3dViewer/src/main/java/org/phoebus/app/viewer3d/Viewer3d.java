@@ -8,8 +8,8 @@
 package org.phoebus.app.viewer3d;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Point3D;
@@ -146,12 +146,12 @@ public class Viewer3d extends VBox
         world.getChildren().addAll(axisGroup);
     }
     
-    public void buildStructure(File file) 
+    public void buildStructure(final InputStream inputStream) 
     {
         /* In case this isn't the first call, clear the structure. */
         structure.getChildren().clear();
         
-        try ( BufferedReader buffReader = new BufferedReader(new FileReader(file)) )
+        try ( BufferedReader buffReader = new BufferedReader(new InputStreamReader(inputStream)) )
         {
             String line = null;
             while (null != (line = buffReader.readLine()))
@@ -295,7 +295,6 @@ public class Viewer3d extends VBox
     
     private void handleMouse(SubScene scene)
     {
-        
         scene.setOnMousePressed(new EventHandler<MouseEvent>()
         {
             @Override 
@@ -307,6 +306,7 @@ public class Viewer3d extends VBox
                 mouseOldY = me.getSceneY();
             }
         });
+        
         scene.setOnMouseDragged(new EventHandler<MouseEvent>() 
         {
             @Override 
