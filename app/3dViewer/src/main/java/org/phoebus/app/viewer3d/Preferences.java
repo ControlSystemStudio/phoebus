@@ -9,6 +9,10 @@ package org.phoebus.app.viewer3d;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 
+/**
+ * Preferences class for the {@link ResourceUtil} class.
+ * @author Evan Smith
+ */
 public class Preferences
 {
     public static String READ_TIMEOUT = "read_timeout";
