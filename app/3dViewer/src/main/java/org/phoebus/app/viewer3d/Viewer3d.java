@@ -135,9 +135,9 @@ public class Viewer3d extends VBox
         final Box yAxis = new Box(1, AXIS_LENGTH, 1);
         final Box zAxis = new Box(1, 1, AXIS_LENGTH);
         
-        xAxis.setTranslateX(AXIS_LENGTH/2);
-        yAxis.setTranslateY(AXIS_LENGTH/2);
-        zAxis.setTranslateZ(AXIS_LENGTH/2);
+        xAxis.setTranslateX(AXIS_LENGTH/2 + 0.5);
+        yAxis.setTranslateY(AXIS_LENGTH/2 + 0.5);
+        zAxis.setTranslateZ(AXIS_LENGTH/2 + 0.5);
         
         xAxis.setMaterial(redMaterial);
         yAxis.setMaterial(greenMaterial);
