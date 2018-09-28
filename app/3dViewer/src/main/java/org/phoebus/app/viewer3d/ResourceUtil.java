@@ -26,6 +26,7 @@ import org.phoebus.framework.util.IOUtils;
 
 /**
  * Resource utility class for the Viewer3dPane.
+ * <p> Derived from {@link ModelResourceUtil}
  * @author Evan Smith
  */
 public class ResourceUtil
@@ -36,8 +37,20 @@ public class ResourceUtil
     private static int timeout_ms = Preferences.read_timeout;
     private static boolean trusting_anybody = false;
     
+    /** Open a file, web location, ..
+    *
+    *  <p>In addition, understands "examples:"
+    *  to load a resource from the built-in examples.
+    *
+    *  @param resource_name Path to file, "examples:", "http:/.."
+    *  @return {@link InputStream}
+    *  @throws Exception on error
+    */
     public static InputStream openResource(final String resource_name) throws Exception
     {
+        if (null == resource_name)
+            return null;
+        
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
         
@@ -53,10 +66,18 @@ public class ResourceUtil
                 throw new Exception("Cannot open example: '" + example + "'", ex);
             }
         }
-
+        
+        if (resource_name.startsWith("file:"))
+            return new FileInputStream(resource_name.substring(5));
+        
         return new FileInputStream(resource_name);
     }
-
+    
+    /** Open URL for "http", "https", "ftp", ..
+     *  @param resource_name URL specification
+     *  @return {@link InputStream}
+     *  @throws Exception on error
+     */
     private static InputStream openURL(String resource_name) throws Exception
     {
         final byte[] content = readURL(resource_name);
@@ -70,7 +91,13 @@ public class ResourceUtil
         IOUtils.copy(in, buf);
         return buf.toByteArray();
     }
-    
+
+    /** Open URL for "http", "https", "ftp", ..
+     *  @param resource_name URL specification
+     *  @param timeout_ms Read timeout [milliseconds]
+     *  @return {@link InputStream}
+     *  @throws Exception on error
+     */
     private static InputStream openURL(final String resource_name, final int timeout_ms) throws Exception
     {
         if (resource_name.startsWith("https"))
