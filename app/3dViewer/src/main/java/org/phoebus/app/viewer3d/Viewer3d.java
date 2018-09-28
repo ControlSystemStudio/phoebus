@@ -69,6 +69,8 @@ public class Viewer3d extends VBox
     
     public Viewer3d () throws Exception
     {
+        super();
+        
         root = new Group();
         axes = new Xform();
         structure = new Xform();
