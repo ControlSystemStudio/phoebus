@@ -11,6 +11,10 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * Demo class for the {@link Viewer3dPane} class.
+ * @author Evan Smith
+ */
 public class Demo3dViewer extends Application
 {
     @Override
