@@ -26,7 +26,7 @@ import org.phoebus.framework.util.IOUtils;
 
 /**
  * Resource utility class for the Viewer3dPane.
- * <p> Derived from {@link ModelResourceUtil}
+ * <p> Based on link org.csstudio.display.builder.model.util.ModelResourceUtil
  * @author Evan Smith
  */
 public class ResourceUtil
