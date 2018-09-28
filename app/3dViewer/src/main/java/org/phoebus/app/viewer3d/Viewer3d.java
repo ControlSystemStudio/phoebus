@@ -18,7 +18,6 @@ import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.VBox;
@@ -39,7 +38,7 @@ public class Viewer3d extends VBox
 {
     final Group root;
     final Xform axisGroup;
-    final Xform moleculeGroup;
+    final Xform structure;
     final Xform world;
 
     final PerspectiveCamera camera;
@@ -72,7 +71,7 @@ public class Viewer3d extends VBox
     {
         root = new Group();
         axisGroup = new Xform();
-        moleculeGroup = new Xform();
+        structure = new Xform();
         world = new Xform();
         camera = new PerspectiveCamera(true);
         cameraXform = new Xform();
@@ -85,7 +84,7 @@ public class Viewer3d extends VBox
         buildCamera();
         buildAxes();
         
-        world.getChildren().add(moleculeGroup);
+        world.getChildren().add(structure);
         
         SubScene scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
         scene.setManaged(false);
@@ -94,7 +93,6 @@ public class Viewer3d extends VBox
         
         scene.setFill(Color.GRAY);
         
-        handleKeyboard(scene);
         handleMouse(scene);
         
         scene.setCamera(camera);
@@ -150,8 +148,8 @@ public class Viewer3d extends VBox
     
     public void buildStructure(File file) 
     {
-        moleculeGroup.getChildren().clear();
-        Xform struct = new Xform();
+        /* In case this isn't the first call, clear the structure. */
+        structure.getChildren().clear();
         
         try ( BufferedReader buffReader = new BufferedReader(new FileReader(file)) )
         {
@@ -192,7 +190,7 @@ public class Viewer3d extends VBox
                     sphere.setTranslateY(y);
                     sphere.setTranslateZ(z);
                     
-                    struct.getChildren().add(sphere);
+                    structure.getChildren().add(sphere);
                 } 
                 else if (type.equals("box"))
                 {
@@ -227,7 +225,7 @@ public class Viewer3d extends VBox
                     box.setTranslateY(y1);
                     box.setTranslateZ(z1);                    
                     
-                    struct.getChildren().add(box);
+                    structure.getChildren().add(box);
                 }
                 else if (type.equals("cylinder"))
                 {
@@ -258,6 +256,7 @@ public class Viewer3d extends VBox
                      * 
                      * */
                     
+                    /* Align the cylinder from (x1, y1, z1) to (x2, y2, z2). */
                     Cylinder cylinder = new Cylinder();
                     cylinder.setMaterial(material);
                     
@@ -279,7 +278,7 @@ public class Viewer3d extends VBox
                     
                     cylinder.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
                     
-                    struct.getChildren().add(cylinder);
+                    structure.getChildren().add(cylinder);
                 }
                 else
                 {
@@ -291,10 +290,7 @@ public class Viewer3d extends VBox
         catch(Exception ex)
         {
             ex.printStackTrace();
-        }
-        
-        moleculeGroup.getChildren().add(struct);
-        
+        }        
     }
     
     private void handleMouse(SubScene scene)
@@ -362,32 +358,4 @@ public class Viewer3d extends VBox
            }
        });
    }
-    
-    private void handleKeyboard(SubScene scene)
-    {
-        scene.setOnKeyPressed(new EventHandler<KeyEvent>()
-        {
-            @Override
-            public void handle(KeyEvent event) 
-            {
-               switch (event.getCode()) 
-               {
-                   case Z:
-                       cameraXform2.t.setX(0.0);
-                       cameraXform2.t.setY(0.0);
-                       cameraXform.ry.setAngle(CAMERA_INITIAL_Y_ANGLE);
-                       cameraXform.rx.setAngle(CAMERA_INITIAL_X_ANGLE);
-                       break;
-                   case X:
-                       axisGroup.setVisible(!axisGroup.isVisible());
-                       break;
-                   case V:
-                       moleculeGroup.setVisible(!moleculeGroup.isVisible());
-                       break;
-                   default:
-                       break;
-               }
-            }
-        });
-    }
 }
