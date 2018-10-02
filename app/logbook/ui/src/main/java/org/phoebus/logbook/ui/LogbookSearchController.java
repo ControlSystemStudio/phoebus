@@ -24,6 +24,10 @@ public abstract class LogbookSearchController {
     private Job logbookSearchJob;
     private LogClient client;
 
+    public LogClient getClient() {
+        return client;
+    }
+
     public void setClient(LogClient client) {
         this.client = client;
     }
