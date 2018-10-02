@@ -24,9 +24,13 @@ public class ListSelectionDemo extends Application {
         loader.load();
         ListSelectionController controller = loader.getController();
         controller.setAvailable(Arrays.asList("a", "b", "c"));
-        controller.setOnClose((List<String> t) -> {
+        controller.setOnApply((List<String> t) -> {
             System.out.println("On close the final selection was: ");
             t.forEach(System.out::print);
+            return true;
+        });
+        controller.setOnCancel((List<String> t) -> {
+            primaryStage.close();
             return true;
         });
 

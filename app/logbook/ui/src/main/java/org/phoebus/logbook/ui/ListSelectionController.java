@@ -2,13 +2,11 @@ package org.phoebus.logbook.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import org.phoebus.ui.javafx.ImageCache;
-import org.python.modules.synchronize;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -43,7 +41,7 @@ public class ListSelectionController {
     TextField searchField;
 
     @FXML
-    private Button closeButton;
+    private Button cancelButton;
     @FXML
     private Button applyButton;
 
@@ -52,7 +50,8 @@ public class ListSelectionController {
     // List of selected items
     private ObservableList<String> selected = FXCollections.observableArrayList();
 
-    private List<Function<List<String>, Boolean>> onClose = new ArrayList<>();
+    private List<Function<List<String>, Boolean>> onApply = new ArrayList<>();
+    private List<Function<List<String>, Boolean>> onCancel = new ArrayList<>();
 
     public synchronized void setAvailable(List<String> available) {
         this.available = FXCollections.observableArrayList(available);
@@ -64,8 +63,12 @@ public class ListSelectionController {
         refresh();
     }
 
-    public synchronized void setOnClose(Function<List<String>, Boolean> onCloseAction) {
-        onClose.add(onCloseAction);
+    public synchronized void setOnApply(Function<List<String>, Boolean> onApplyAction) {
+        onApply.add(onApplyAction);
+    }
+
+    public synchronized void setOnCancel(Function<List<String>, Boolean> onCancelAction) {
+        onCancel.add(onCancelAction);
     }
 
     public List<String> getSelectedItems() {
@@ -158,18 +161,16 @@ public class ListSelectionController {
 
     @FXML
     private void closeButtonAction() {
-        // get a handle to the stage
-        Stage stage = (Stage) closeButton.getScene().getWindow();
-        // do what you have to do
-        stage.close();
+        onCancel.forEach((function) -> {
+            function.apply(getSelectedItems());
+        });
     }
 
     @FXML
     private void applyButtonAction() {
-        onClose.forEach((function) -> {
+        onApply.forEach((function) -> {
             function.apply(getSelectedItems());
         });
-        closeButtonAction();
     }
 
     private void clearSelections() {
