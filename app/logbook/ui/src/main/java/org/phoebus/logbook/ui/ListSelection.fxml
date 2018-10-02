@@ -11,8 +11,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="400.0" prefWidth="400.0" spacing="5.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="org.phoebus.logbook.ui.ListSelectionController">
+<VBox prefHeight="400.0" prefWidth="400.0" spacing="5.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.ListSelectionController">
   <children>
     <GridPane VBox.vgrow="ALWAYS">
       <columnConstraints>
@@ -52,29 +51,22 @@
             <Insets right="5.0" />
           </GridPane.margin>
         </Label>
-        <ListView fx:id="availableItems" prefHeight="200.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3"
-          GridPane.rowSpan="5" GridPane.vgrow="ALWAYS">
+        <ListView fx:id="availableItems" prefHeight="200.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.rowSpan="5" GridPane.vgrow="ALWAYS">
           <GridPane.margin>
             <Insets left="5.0" />
           </GridPane.margin>
         </ListView>
-        <ListView fx:id="selectedItems" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS"
-          GridPane.rowIndex="3" GridPane.rowSpan="5" GridPane.vgrow="ALWAYS">
+        <ListView fx:id="selectedItems" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.rowSpan="5" GridPane.vgrow="ALWAYS">
           <GridPane.margin>
             <Insets right="5.0" />
           </GridPane.margin>
         </ListView>
-        <Button fx:id="add" mnemonicParsing="false" onAction="#addSelected" prefWidth="80.0" text="Add" GridPane.columnIndex="1"
-          GridPane.halignment="CENTER" GridPane.rowIndex="4" />
-        <Button fx:id="remove" mnemonicParsing="false" onAction="#removeSelected" prefWidth="80.0" text="Remove" GridPane.columnIndex="1"
-          GridPane.halignment="CENTER" GridPane.rowIndex="5" />
-        <Button fx:id="clear" alignment="CENTER" mnemonicParsing="false" onAction="#removeSelected" prefWidth="80.0" text="Clear"
-          GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
-        <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT" spacing="5.0" GridPane.columnSpan="3" GridPane.halignment="RIGHT"
-          GridPane.rowIndex="8">
+        <Button fx:id="add" mnemonicParsing="false" onAction="#addSelected" prefWidth="80.0" text="Add" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+        <Button fx:id="remove" mnemonicParsing="false" onAction="#removeSelected" prefWidth="80.0" text="Remove" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
+        <Button fx:id="clear" alignment="CENTER" mnemonicParsing="false" onAction="#clearSelected" prefWidth="80.0" text="Clear" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
+        <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT" spacing="5.0" GridPane.columnSpan="3" GridPane.halignment="RIGHT" GridPane.rowIndex="8">
           <children>
-            <Button fx:id="closeButton" cancelButton="true" mnemonicParsing="false" onAction="#closeButtonAction" prefWidth="80.0"
-              text="Cancel" />
+            <Button fx:id="closeButton" cancelButton="true" mnemonicParsing="false" onAction="#closeButtonAction" prefWidth="80.0" text="Cancel" />
             <Button fx:id="applyButton" mnemonicParsing="false" onAction="#applyButtonAction" prefWidth="80.0" text="Apply" />
           </children>
           <GridPane.margin>

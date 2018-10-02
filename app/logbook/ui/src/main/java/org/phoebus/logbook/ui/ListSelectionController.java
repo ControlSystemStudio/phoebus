@@ -1,6 +1,7 @@
 package org.phoebus.logbook.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -78,14 +79,17 @@ public class ListSelectionController {
             searchAvailableItemsForSubstring(newVal);
         });
         add.setTooltip(new Tooltip(Messages.Add_Tooltip));
-        add.disableProperty().bind(Bindings.isEmpty(availableItems.getSelectionModel().getSelectedItems()));
         add.setGraphic(ImageCache.getImageView(ImageCache.class, ADD_ICON));
         remove.setTooltip(new Tooltip(Messages.Remove_Tooltip));
-        remove.disableProperty().bind(Bindings.isEmpty(selectedItems.getSelectionModel().getSelectedItems()));
         remove.setGraphic(ImageCache.getImageView(ImageCache.class, REMOVE_ICON));
         clear.setTooltip(new Tooltip(Messages.Clear_Tooltip));
-        clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
         clear.setGraphic(ImageCache.getImageView(ImageCache.class, CLEAR_ICON));
+
+        Platform.runLater(() -> {
+            add.disableProperty().bind(Bindings.isEmpty(availableItems.getSelectionModel().getSelectedItems()));
+            remove.disableProperty().bind(Bindings.isEmpty(selectedItems.getSelectionModel().getSelectedItems()));
+            clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
+        });
 
         // Double click to add..
         availableItems.setOnMouseClicked(event -> {
@@ -101,7 +105,6 @@ public class ListSelectionController {
             removeSelected();
             event.consume();
         });
-
         refresh();
     }
 
@@ -130,48 +133,45 @@ public class ListSelectionController {
 
     @FXML
     public void addSelected() {
-        // defensive copy
-        ObservableList<String> selectedItemsForAddition = availableItems.getSelectionModel().getSelectedItems();
-        Platform.runLater(() -> {
-            selectedItems.getItems().addAll(selectedItemsForAddition);
-            availableItems.getItems().removeAll(selectedItemsForAddition);
-            clearSelections();
-        });
-    }
-
-    @FXML
-    public void removeSelected() {
-        ObservableList<String> selectedItemsForRemoval = selectedItems.getSelectionModel().getSelectedItems();
-        Platform.runLater(() -> {
-            selectedItems.getItems().removeAll(selectedItemsForRemoval);
-            availableItems.getItems().addAll(selectedItemsForRemoval);
-            clearSelections();
-        });
-    }
-
-    @FXML
-    public void clearSelected() {
-        refresh();
+        List<String> selectedItemsForAddition = Arrays.asList((availableItems.getSelectionModel().getSelectedItems()
+                .toArray(new String[availableItems.getSelectionModel().getSelectedItems().size()])));
+        selectedItems.getItems().addAll(selectedItemsForAddition);
+        availableItems.getItems().removeAll(selectedItemsForAddition);
         clearSelections();
     }
 
     @FXML
-    private void closeButtonAction(){
+    public void removeSelected() {
+        List<String> selectedItemsForRemoval = Arrays.asList((selectedItems.getSelectionModel().getSelectedItems()
+                .toArray(new String[selectedItems.getSelectionModel().getSelectedItems().size()])));
+        selectedItems.getItems().removeAll(selectedItemsForRemoval);
+        availableItems.getItems().addAll(selectedItemsForRemoval);
+        clearSelections();
+    }
+
+    @FXML
+    public void clearSelected() {
+        availableItems.getItems().addAll(selectedItems.getItems());
+        selectedItems.getItems().clear();
+        clearSelections();
+    }
+
+    @FXML
+    private void closeButtonAction() {
         // get a handle to the stage
         Stage stage = (Stage) closeButton.getScene().getWindow();
         // do what you have to do
         stage.close();
     }
-    
 
     @FXML
-    private void applyButtonAction(){
-        onClose.forEach((function)->{
+    private void applyButtonAction() {
+        onClose.forEach((function) -> {
             function.apply(getSelectedItems());
         });
         closeButtonAction();
     }
-    
+
     private void clearSelections() {
         selectedItems.getSelectionModel().clearSelection();
         availableItems.getSelectionModel().clearSelection();
