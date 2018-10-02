@@ -5,8 +5,13 @@ import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -15,32 +20,71 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.write.PropertiesTab;
+import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ImagesTab;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.util.Duration;
 
-public class LogEntryTableController extends LogEntryTableViewController {
+public class LogEntryTableViewController extends LogbookSearchController {
+
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
+    String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
 
+    @FXML
+    Button resize;
+    @FXML
+    Button search;
+    @FXML
+    TextField query;
+    @FXML
+    AnchorPane AdavanceSearchPane;
+
+    // elements associated with the various search
+    @FXML
+    AnchorPane ViewSearchPane;
+    @FXML
+    TextField searchText;
+    @FXML
+    TextField searchLogbooks;
+    PopOver logbookSearchpopover;
+
+    @FXML
+    TextField searchTags;
+    PopOver tagSearchpopover;
+
+    
+    // elements related to the table view of the log entires
     @FXML
     TableView<LogEntry> tableView;
 
@@ -53,8 +97,96 @@ public class LogEntryTableController extends LogEntryTableViewController {
 
     List<LogEntry> logEntries;
 
+
     @FXML
     public void initialize() {
+        // initialize the list of searchable parameters like logbooks, tags, etc...
+
+        // initially set the serach pane collapsed
+        AdavanceSearchPane.minWidthProperty().set(0);
+        AdavanceSearchPane.maxWidthProperty().set(0);
+        resize.setText("<");
+
+        List<String> logbookNames = getClient().listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
+        List<String> tagNames = getClient().listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
+
+        FXMLLoader logbookSelectionLoader = new FXMLLoader();
+        logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        try {
+            logbookSelectionLoader.load();
+            ListSelectionController controller = logbookSelectionLoader.getController();
+            controller.setAvailable(logbookNames);
+            controller.setOnApply((List<String> t) -> {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchLogbooks.setText(t.stream().collect(Collectors.joining(",")));
+                        if (logbookSearchpopover.isShowing())
+                            logbookSearchpopover.hide();
+                    }
+                });
+                return true;
+            });
+            controller.setOnCancel((List<String> t) -> {
+                if (logbookSearchpopover.isShowing())
+                    logbookSearchpopover.hide();
+                return true;
+            });
+            logbookSearchpopover = new PopOver(logbookSelectionLoader.getRoot());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        searchLogbooks.focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) {
+                if (newPropertyValue) {
+                    logbookSearchpopover.show(searchLogbooks);
+                } else {
+                    if (logbookSearchpopover.isShowing())
+                        logbookSearchpopover.hide();
+                }
+            }
+        });
+
+
+        FXMLLoader tagSelectionLoader = new FXMLLoader();
+        tagSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        try {
+            tagSelectionLoader.load();
+            ListSelectionController controller = tagSelectionLoader.getController();
+            controller.setAvailable(tagNames);
+            controller.setOnApply((List<String> t) -> {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchTags.setText(t.stream().collect(Collectors.joining(",")));
+                        if (tagSearchpopover.isShowing())
+                            tagSearchpopover.hide();
+                    }
+                });
+                return true;
+            });
+            controller.setOnCancel((List<String> t) -> {
+                if (tagSearchpopover.isShowing())
+                    tagSearchpopover.hide();
+                return true;
+            });
+            tagSearchpopover = new PopOver(tagSelectionLoader.getRoot());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        searchTags.focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
+                    Boolean newPropertyValue) {
+                if (newPropertyValue) {
+                    tagSearchpopover.show(searchTags);
+                } else {
+                    if (tagSearchpopover.isShowing())
+                        tagSearchpopover.hide();
+                }
+            }
+        });
 
         tableView.getColumns().clear();
         tableView.setEditable(false);
@@ -184,7 +316,65 @@ public class LogEntryTableController extends LogEntryTableViewController {
         tableView.getColumns().add(timeOwnerCol);
         tableView.getColumns().add(descriptionCol);
         tableView.getColumns().add(metaCol);
+    }
 
+    // Keeps track of when the animation is active. Multiple clicks will be ignored
+    // until a give resize action is completed
+    private AtomicBoolean moving = new AtomicBoolean(false);
+
+    @FXML
+    public void resize() {
+        if (!moving.compareAndExchangeAcquire(false, true)) {
+            if (resize.getText().equals(">")) {
+                Duration cycleDuration = Duration.millis(400);
+                KeyValue kv = new KeyValue(AdavanceSearchPane.minWidthProperty(), 0);
+                KeyValue kv2 = new KeyValue(AdavanceSearchPane.maxWidthProperty(), 0);
+                Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
+                timeline.play();
+                timeline.setOnFinished(event -> {
+                    resize.setText("<");
+                    moving.set(false);
+                });
+            } else {
+                Duration cycleDuration = Duration.millis(400);
+                double width = ViewSearchPane.getWidth()/3;
+                KeyValue kv = new KeyValue(AdavanceSearchPane.minWidthProperty(), width);
+                KeyValue kv2 = new KeyValue(AdavanceSearchPane.prefWidthProperty(), width);
+                Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
+                timeline.play();
+                timeline.setOnFinished(event -> {
+                    resize.setText(">");
+                    moving.set(false);
+                });
+            }
+        }
+    }
+
+    @FXML
+    public void search() {
+        super.search(query.getText());
+    }
+
+    @FXML
+    public void showLogbookSelection() {
+        if (logbookSearchpopover.isShowing())
+            logbookSearchpopover.hide();
+        else
+            logbookSearchpopover.show(searchLogbooks);
+    }
+    
+    @FXML
+    public void showTagSelection() {
+        System.out.println("gggg");
+        if (tagSearchpopover.isShowing())
+            tagSearchpopover.hide();
+        else
+            tagSearchpopover.show(searchTags);
+    }
+    
+    public void setQuery(String parsedQuery) {
+        query.setText(parsedQuery);
+        search();
     }
 
     @Override
@@ -209,5 +399,4 @@ public class LogEntryTableController extends LogEntryTableViewController {
             return null;
         }
     }
-
 }

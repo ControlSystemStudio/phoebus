@@ -25,7 +25,7 @@ public class LogEntryTable implements AppInstance {
         this.app = app;
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(this.getClass().getResource("LogEntryTable.fxml"));
+            loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
             controller.setClient(this.app.getClient());
