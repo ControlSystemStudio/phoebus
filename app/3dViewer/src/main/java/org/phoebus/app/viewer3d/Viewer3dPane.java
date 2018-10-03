@@ -152,7 +152,7 @@ public class Viewer3dPane extends VBox
                 {
                     try
                     {
-                        final Xform struct = viewer.buildStructure(inputStream);
+                        final Xform struct = Viewer3d.buildStructure(inputStream);
                         if (null != struct)
                             Platform.runLater(() -> viewer.setStructure(struct));
                         current_resource = resource;
