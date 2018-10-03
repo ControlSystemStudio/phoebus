@@ -26,14 +26,14 @@ public class Viewer3dInstance implements AppInstance
         
         Platform.runLater(() -> tab.setLabel(app.getDisplayName()));
         
-        DockPane.getActiveDockPane().addTab(tab);
+        DockPane.getActiveDockPane().addTab(tab);        
     }
     
     private Node create(URI resource)
     {
         try
         {
-            return new Viewer3dPane(resource);
+            return new Viewer3dPane(resource, this::changeInput);
         }
         catch (Exception ex)
         {
@@ -41,7 +41,13 @@ public class Viewer3dInstance implements AppInstance
             return new Label("Cannot create 3d Viewer for " + resource);
         }
     }
-
+    
+    private void changeInput(final URI resource)
+    {
+        tab.setInput(resource);
+        Platform.runLater(() -> tab.setLabel(app.getDisplayName()));
+    }
+    
     @Override
     public AppDescriptor getAppDescriptor()
     {
