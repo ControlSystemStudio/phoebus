@@ -22,9 +22,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 
 /**
@@ -37,6 +43,8 @@ import javafx.stage.FileChooser;
 public class Viewer3dPane extends VBox
 {
     public final static Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
+    
+    private final static Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(10), new BorderWidths(2)));
     
     private String current_resource;
     
@@ -73,7 +81,7 @@ public class Viewer3dPane extends VBox
                 {
                     String input = file.toURI().toURL().toString();
                     textField.setText(input);
-                    loadResource(input, viewer);
+                    loadResource(input, viewer, textField);
                 } 
                 catch (Exception ex)
                 {
@@ -84,28 +92,31 @@ public class Viewer3dPane extends VBox
         });
         fileButton.setTooltip(new Tooltip("Select resource from file system."));
         
-        refreshButton.setOnAction(event -> loadResource(current_resource, viewer));
+        refreshButton.setOnAction(event -> loadResource(current_resource, viewer, textField));
         refreshButton.setTooltip(new Tooltip("Refresh structure from resource."));
         
         HBox.setHgrow(textField, Priority.ALWAYS);
         toolbar.setSpacing(10);
         toolbar.setPadding(new Insets(10));
         
+
         textField.setOnKeyPressed(event ->
         {
             if (event.getCode() == KeyCode.ENTER)
             {
                 String input = textField.getText();
-                loadResource(input, viewer);
+                loadResource(input, viewer, textField);
+                
             }
         });
+        
         
         textField.setTooltip(new Tooltip("Enter in the URL of a resource to load."));
         
         getChildren().addAll(toolbar, viewer);
         
         if (null != resource)
-            loadResource(resource.toURL().toString(), viewer);
+            loadResource(resource.toURL().toString(), viewer, textField);
     }
     
     /**
@@ -113,8 +124,9 @@ public class Viewer3dPane extends VBox
      * @param resource
      * @param viewer
      */
-    private void loadResource(final String resource, Viewer3d viewer)
+    private void loadResource(final String resource, Viewer3d viewer, TextField textField)
     {
+
         if (null != resource && ! resource.isEmpty())
         {
             JobManager.schedule("Read 3d viewer resource", monitor -> 
@@ -127,6 +139,8 @@ public class Viewer3dPane extends VBox
                 catch (Exception ex)
                 {
                     logger.log(Level.WARNING, "Opening resource '" + resource + "' failed", ex);
+                    Platform.runLater(() -> textField.setBorder(errorBorder));
+                    return;
                 }
                 if (null != inputStream)
                 {
@@ -140,8 +154,11 @@ public class Viewer3dPane extends VBox
                     catch (Exception ex)
                     {
                         logger.log(Level.WARNING, "Building structure failed", ex);
+                        Platform.runLater(() -> textField.setBorder(errorBorder));
+                        return;
                     }
                 }
+                Platform.runLater(() -> textField.setBorder(null));
             });
         }
     }
