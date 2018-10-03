@@ -10,6 +10,7 @@ package org.phoebus.app.viewer3d;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,11 +47,15 @@ public class Viewer3dPane extends VBox
     
     private final static Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(10), new BorderWidths(2)));
     
+    private final Consumer<URI> setInput;
+    
     private String current_resource;
     
-    public Viewer3dPane(final URI resource) throws Exception
+    public Viewer3dPane(final URI resource, final Consumer<URI> setInput) throws Exception
     {
         super();
+        
+        this.setInput = setInput;
         
         TextField textField = new TextField();
         Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
@@ -80,7 +85,6 @@ public class Viewer3dPane extends VBox
                 try
                 {
                     String input = file.toURI().toURL().toString();
-                    textField.setText(input);
                     loadResource(input, viewer, textField);
                 } 
                 catch (Exception ex)
@@ -116,22 +120,22 @@ public class Viewer3dPane extends VBox
         getChildren().addAll(toolbar, viewer);
         
         if (null != resource)
-            loadResource(resource.toURL().toString(), viewer, textField);
+            loadResource(resource.toString(), viewer, textField);        
     }
     
     /**
-     * Load a resource file and update the viewer.
+     * Load a resource file and update the viewer, upon error set the textField's border to signal error.
      * @param resource
      * @param viewer
      */
-    private void loadResource(final String resource, Viewer3d viewer, TextField textField)
+    private void loadResource(final String resource, final Viewer3d viewer, final TextField textField)
     {
-
         if (null != resource && ! resource.isEmpty())
         {
             JobManager.schedule("Read 3d viewer resource", monitor -> 
             {
                 InputStream inputStream = null;
+                
                 try
                 {
                     inputStream = ResourceUtil.openResource(resource);
@@ -142,6 +146,7 @@ public class Viewer3dPane extends VBox
                     Platform.runLater(() -> textField.setBorder(errorBorder));
                     return;
                 }
+                
                 if (null != inputStream)
                 {
                     try
@@ -158,7 +163,13 @@ public class Viewer3dPane extends VBox
                         return;
                     }
                 }
+                
                 Platform.runLater(() -> textField.setBorder(null));
+                
+                textField.setText(resource);
+                
+                if (null != setInput)
+                    setInput.accept(new URI(resource));
             });
         }
     }
