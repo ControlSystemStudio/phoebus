@@ -61,6 +61,7 @@ public class Viewer3dPane extends VBox
         Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
         Button refreshButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
         Button resetViewButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/reset.png"));
+        Button clearViewerButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Shape files (.shp)", "*.shp");
@@ -70,7 +71,7 @@ public class Viewer3dPane extends VBox
         Viewer3d viewer = new Viewer3d();
 
         fileChooser.getExtensionFilters().add(extFilter);
-        toolbar.getChildren().addAll(fileButton, refreshButton, resetViewButton, textField);
+        toolbar.getChildren().addAll(fileButton, refreshButton, resetViewButton, textField, clearViewerButton);
 
         VBox.setVgrow(viewer, Priority.ALWAYS);
         VBox.setMargin(viewer, new Insets(0, 10, 10, 10));        
@@ -117,6 +118,15 @@ public class Viewer3dPane extends VBox
         });
         
         textField.setTooltip(new Tooltip("Enter in the URL of a resource to load."));
+        
+        clearViewerButton.setOnAction(event -> 
+        {
+            viewer.clear();
+            textField.clear();
+            current_resource = null;
+            setInput.accept(null);
+        });
+        clearViewerButton.setTooltip(new Tooltip("Clear the viewer of any loaded resources."));
         
         getChildren().addAll(toolbar, viewer);
         
