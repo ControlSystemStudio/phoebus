@@ -64,6 +64,7 @@ public class Viewer3d extends StackPane
     
     private static final double CONTROL_MULTIPLIER = 0.5;
     private static final double SHIFT_MULTIPLIER = 10.0;
+    private static final double TRANSFORM_MULTIPLIER = 7.5;
     private static final double MOUSE_SPEED = 0.1;
     private static final double ROTATION_SPEED = 2.0;
     private static final double TRACK_SPEED = 0.3;
@@ -150,6 +151,8 @@ public class Viewer3d extends StackPane
         camera.setTranslateZ(CAMERA_INITIAL_DISTANCE);
         cameraXform.ry.setAngle(CAMERA_INITIAL_Y_ANGLE);
         cameraXform.rx.setAngle(CAMERA_INITIAL_X_ANGLE);
+        cameraXform2.t.setX(0);
+        cameraXform2.t.setY(0);
     }
     
     private void buildAxes()
@@ -383,6 +386,11 @@ public class Viewer3d extends StackPane
                 {
                     cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED); 
                     cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
+                }
+                else if (me.isMiddleButtonDown())
+                {
+                   cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
+                   cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
                 }
             }
         });
