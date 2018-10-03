@@ -7,9 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -49,10 +47,10 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 public class LogEntryTableViewController extends LogbookSearchController {
@@ -95,8 +93,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     TableColumn<LogEntry, LogEntry> metaCol;
 
+    // Model
     List<LogEntry> logEntries;
-
+    List<String> logbookNames = Collections.emptyList();
+    List<String> tagNames = Collections.emptyList();
 
     @FXML
     public void initialize() {
@@ -107,9 +107,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         AdavanceSearchPane.maxWidthProperty().set(0);
         resize.setText("<");
 
-        List<String> logbookNames = getClient().listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
-        List<String> tagNames = getClient().listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
-
+        if (getClient() != null) {
+            logbookNames = getClient().listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
+            tagNames = getClient().listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
+        }
         FXMLLoader logbookSelectionLoader = new FXMLLoader();
         logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
         try {
@@ -234,7 +235,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final GridPane pane = new GridPane();
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
-            final Label descriptionText = new Label();
+            final Text descriptionText = new Text();
+            descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
 
             TabPane tabPane = new TabPane();
             ImagesTab imagesTab = new ImagesTab();

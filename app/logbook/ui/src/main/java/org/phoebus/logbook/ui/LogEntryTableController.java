@@ -24,6 +24,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TabPane;
@@ -36,6 +37,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.text.Text;
 
 public class LogEntryTableController extends LogEntryTableViewController {
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
@@ -102,7 +104,8 @@ public class LogEntryTableController extends LogEntryTableViewController {
             final GridPane pane = new GridPane();
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
-            final Label descriptionText = new Label();
+            final Text descriptionText = new Text();
+            descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
 
             TabPane tabPane = new TabPane();
             ImagesTab imagesTab = new ImagesTab();
@@ -118,7 +121,7 @@ public class LogEntryTableController extends LogEntryTableViewController {
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);
 
-            return new TableCell<LogEntry, LogEntry>() {
+            TableCell<LogEntry, LogEntry> cell = new TableCell<LogEntry, LogEntry>() {
                 @Override
                 public void updateItem(LogEntry logEntry, boolean empty) {
                     super.updateItem(logEntry, empty);
@@ -148,6 +151,8 @@ public class LogEntryTableController extends LogEntryTableViewController {
                     }
                 }
             };
+            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
+            return cell;
 
         });
 
