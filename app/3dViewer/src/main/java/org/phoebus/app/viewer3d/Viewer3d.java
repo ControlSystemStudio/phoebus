@@ -421,4 +421,13 @@ public class Viewer3d extends StackPane
            }
         });
     }
+    
+    public void clear()
+    {
+        if (null != structure)
+        {
+            view.getChildren().remove(structure);
+            structure = null;
+        }
+    }
 }
