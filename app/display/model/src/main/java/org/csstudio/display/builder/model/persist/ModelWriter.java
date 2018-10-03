@@ -19,6 +19,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
@@ -40,7 +41,7 @@ public class ModelWriter implements Closeable
      *
      *  <b>Not API.</b>
      */
-    public static boolean skip_defaults = true;
+    public static boolean skip_defaults = Preferences.skip_defaults;
 
     private final XMLStreamWriter writer;
 

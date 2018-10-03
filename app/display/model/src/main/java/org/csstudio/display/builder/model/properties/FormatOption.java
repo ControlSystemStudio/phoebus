@@ -29,7 +29,7 @@ public enum FormatOption
     /** Use hexadecimal representation, precision determines number of hex digits. 8 for 32 bits */
     HEX(Messages.Format_Hexadecimal),
 
-    /** Decimal for values in 0.0001 <= |value| <= 10000, else exponential, precision determines number of of decimals */
+    /** Decimal for values in 0.0001 &lt;= |value| &lt;= 10000, else exponential, precision determines number of of decimals */
     COMPACT(Messages.Format_Compact),
 
     /** Force string, most important for array-of-bytes */

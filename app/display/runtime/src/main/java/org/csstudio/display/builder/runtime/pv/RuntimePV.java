@@ -38,6 +38,7 @@ public class RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue 
     private final Disposable value_flow, writable_flow;
     private final List<RuntimePVListener> listeners = new CopyOnWriteArrayList<>();
 
+    /** @param pv PV to wrap */
     RuntimePV(final PV pv)
     {
         this.pv = pv;
@@ -63,7 +64,7 @@ public class RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue 
      *  will <b>not</b> automatically remove listeners!
      *
      *  @param listener Listener that will receive value updates
-     *  @see #removeSubscription(PVListener)
+     *  @see #removeListener(RuntimePVListener)
      */
     public void addListener(final RuntimePVListener listener)
     {
@@ -100,7 +101,6 @@ public class RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue 
 
     /** Write value, no confirmation
      *  @param new_value Value to write to the PV
-     *  @see RuntimePV#write(Object, PVWriteListener)
      *  @exception Exception on error
      */
     public void write(final Object new_value) throws Exception
@@ -135,9 +135,9 @@ public class RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue 
     static volatile boolean issued_write_warning = false;
 
     /** Legacy API that was accessed by some scripts
-     *  @param new_value
-     *  @throws Exception
-     *  @Deprecated
+     *  @param new_value Value to write to the PV
+     *  @throws Exception If the new value cannot be set.
+     *  @deprecated Use {@link #write(Object)} instead.
      *  @see #write(Object)
      */
     @Deprecated
