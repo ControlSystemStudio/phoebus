@@ -45,7 +45,7 @@ public class Viewer3dPane extends VBox
 {
     public final static Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
     
-    private final static Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(10), new BorderWidths(2)));
+    private final static Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
     
     private final Consumer<URI> setInput;
     
@@ -60,6 +60,7 @@ public class Viewer3dPane extends VBox
         TextField textField = new TextField();
         Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
         Button refreshButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
+        Button resetViewButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/reset.png"));
         
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Shape files (.shp)", "*.shp");
@@ -69,12 +70,11 @@ public class Viewer3dPane extends VBox
         Viewer3d viewer = new Viewer3d();
 
         fileChooser.getExtensionFilters().add(extFilter);
-        toolbar.getChildren().addAll(fileButton, refreshButton, textField);
+        toolbar.getChildren().addAll(fileButton, refreshButton, resetViewButton, textField);
 
         VBox.setVgrow(viewer, Priority.ALWAYS);
         VBox.setMargin(viewer, new Insets(0, 10, 10, 10));        
 
-        
         fileButton.setOnAction(event -> 
         {   
             
@@ -99,11 +99,13 @@ public class Viewer3dPane extends VBox
         refreshButton.setOnAction(event -> loadResource(current_resource, viewer, textField));
         refreshButton.setTooltip(new Tooltip("Refresh structure from resource."));
         
+        resetViewButton.setOnAction(event -> viewer.reset());
+        resetViewButton.setTooltip(new Tooltip("Reset view rotation and zoom."));
+        
         HBox.setHgrow(textField, Priority.ALWAYS);
         toolbar.setSpacing(10);
         toolbar.setPadding(new Insets(10));
         
-
         textField.setOnKeyPressed(event ->
         {
             if (event.getCode() == KeyCode.ENTER)
@@ -113,7 +115,6 @@ public class Viewer3dPane extends VBox
                 
             }
         });
-        
         
         textField.setTooltip(new Tooltip("Enter in the URL of a resource to load."));
         
