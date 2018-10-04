@@ -52,6 +52,32 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- JavaFX, since JDK 11 a separate module -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>11</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <version>11</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>11</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-fxml</artifactId>
+      <version>11</version>
+      <type>pom</type>
+    </dependency>
+
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>jca</artifactId>
@@ -235,6 +261,12 @@
       <groupId>org.jfxtras</groupId>
       <artifactId>jfxtras-common</artifactId>
       <version>9.0-r1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.controlsfx</groupId>
+      <artifactId>controlsfx</artifactId>
+      <version>9.0.0</version>
     </dependency>
 
     <!-- MQTT client library -->
