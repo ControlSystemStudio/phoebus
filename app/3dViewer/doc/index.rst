@@ -96,7 +96,7 @@ Example Shape File
 
 Transparency
 ------------
-  JavaFX does not sort 3D objects by depth. What this means is that you have to thoughtful of the order you add 3D shapes to a scene. For example, if a sphere needed to be displayed
+  JavaFX does not sort 3D objects by depth. What this means is that you have to be thoughtful of the order you add 3D shapes to a scene. For example, if a sphere needed to be displayed
   inside a translucent box, the sphere would have to be added *before* the box. If the box first were added first, it would still be translucent, but the JavaFX renderer would not draw
   the sphere because it doesn't sort the scene graph by depth.
   
