@@ -44,6 +44,8 @@ import javafx.scene.transform.Translate;
  */
 public class Viewer3d extends StackPane
 {
+    private final SubScene scene;
+    
     private final Group root;
     private final Xform axes;
     private Xform structure;
@@ -102,7 +104,7 @@ public class Viewer3d extends StackPane
         root.getChildren().add(view);
         root.setDepthTest(DepthTest.ENABLE);
 
-        SubScene scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
+        scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
         scene.setManaged(false);
         scene.heightProperty().bind(heightProperty());
         scene.widthProperty().bind(widthProperty());
@@ -211,8 +213,24 @@ public class Viewer3d extends StackPane
                 String type = typeAndArgs[0];
                 String argList = typeAndArgs[1].replaceAll("[()]", "");
                 String[] args = argList.split("\\s*,\\s*");
-
-                if (type.equals("sphere"))
+                
+                if (type.equals("background"))
+                {
+                    if (4 != args.length)
+                    {
+                        throw new Exception("background argument list is incorrect.");
+                    }
+                    
+                    int r = Integer.parseInt(args[0]); // red
+                    int g = Integer.parseInt(args[1]); // blue
+                    int b = Integer.parseInt(args[2]); // green
+                    double a = Double.parseDouble(args[3]); // alpha
+                    
+                    Color background = Color.rgb(r, g, b, a);
+                    
+                    struct.setBackground(background);
+                }
+                else if (type.equals("sphere"))
                 {
                     if (8 != args.length)
                     {
@@ -348,7 +366,10 @@ public class Viewer3d extends StackPane
         if (null != structure)
             view.getChildren().remove(structure);
         if (null != struct)
+        {
             view.getChildren().add(struct);
+            scene.setFill(struct.getBackground());
+        }
         
         structure = struct;
     }
