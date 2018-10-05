@@ -206,6 +206,7 @@ public class Viewer3d extends StackPane
             String line = null;
             while (null != (line = buffReader.readLine()))
             {
+                line = line.trim();
                 if (line.isEmpty() || line.startsWith("#"))
                     continue;
                 
