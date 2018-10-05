@@ -73,14 +73,8 @@ Example Shape File
     
     # The background of the viewer is set to be nearly black.
     background(32, 32, 32, 1)
-    
-    # A blue box is defined with one corner at the origin, and the opposite
-    # corner at (100, 100, 100). This will result in a cube with each side
-    # being of magnitude 100.
-    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 1)
-    
-    # A red sphere of radius 10, is placed at each corner of the previously
-    # defined box.
+
+    # A red sphere of radius 10, is placed at each corner of the box we are about to define.
     sphere(  0,   0,   0, 10, 255, 0, 0, 1)
     sphere(100,   0,   0, 10, 255, 0, 0, 1)
     sphere(  0,   0, 100, 10, 255, 0, 0, 1)
@@ -90,7 +84,40 @@ Example Shape File
     sphere(  0, 100, 100, 10, 255, 0, 0, 1)
     sphere(100, 100, 100, 10, 255, 0, 0, 1)
 
+    # A blue box is defined with one corner at the origin, and the opposite
+    # corner at (100, 100, 100). This will result in a cube with each side
+    # being of magnitude 100.
+    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
+    
 **Resulting Structure**
 
 .. image:: example_struct.png
+   :width: 50%
+
+Transparency
+------------
+  JavaFX does not sort 3D objects by depth. What this means is that you have to thoughtful of the order you add 3D shapes to a scene. For example, if I wanted to display a sphere
+  inside a translucent box, I would have to add the sphere *before* the box. If I were to add the box first, it would still be translucent, but the JavaFX renderer would not draw
+  the sphere because it doesn't sort the scene graph by depth.
+  
+**Example**
+
+Here, the box is added first and the sphere is not drawn.
+::
+
+    background(32, 32, 32, 1)
+    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
+    sphere(50, 50, 50, 10, 255, 0, 0, 1)
+
+.. image:: bad_transparency.png
+   :width: 50%
+
+Here, the box is added second and the sphere is drawn correctly.
+::
+
+    background(32, 32, 32, 1)
+    sphere(50, 50, 50, 10, 255, 0, 0, 1)
+    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
+    
+.. image:: good_transparency.png
    :width: 50%
