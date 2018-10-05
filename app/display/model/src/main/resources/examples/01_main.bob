@@ -2,7 +2,7 @@
 <display version="2.0.0">
   <name>Main</name>
   <width>1010</width>
-  <height>560</height>
+  <height>570</height>
   <grid_color>
     <color red="127" green="127" blue="127">
     </color>
@@ -14,8 +14,8 @@
 
 Note you can also navigate between buttons via &lt;Tab&gt; key or &lt;Shift&gt; and cursor keys,
 then press &lt;SPACE&gt; to activate button.</text>
-    <x>9</x>
-    <y>480</y>
+    <x>10</x>
+    <y>490</y>
     <width>640</width>
     <height>80</height>
     <font use_class="true">
@@ -313,18 +313,23 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_32</name>
+    <name>Action Button_27</name>
     <actions>
       <action type="open_display">
-        <file>monitors_symbols.bob</file>
+        <file>monitors_gauge.bob</file>
         <target>replace</target>
-        <description>Symbols</description>
+        <description>Gauges</description>
       </action>
     </actions>
     <x>330</x>
-    <y>320</y>
+    <y>360</y>
     <width>120</width>
     <height>26</height>
+    <scripts>
+      <script file="scripts/disable_missing.py">
+        <pv_name>loc://gauge("gauge")</pv_name>
+      </script>
+    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
@@ -337,7 +342,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>330</x>
-    <y>360</y>
+    <y>400</y>
     <width>120</width>
     <height>26</height>
     <scripts>
@@ -348,23 +353,18 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_27</name>
+    <name>Action Button_32</name>
     <actions>
       <action type="open_display">
-        <file>monitors_gauge.bob</file>
+        <file>monitors_symbols.bob</file>
         <target>replace</target>
-        <description>Gauges</description>
+        <description>Symbols</description>
       </action>
     </actions>
     <x>330</x>
-    <y>400</y>
+    <y>320</y>
     <width>120</width>
     <height>26</height>
-    <scripts>
-      <script file="scripts/disable_missing.py">
-        <pv_name>loc://gauge("gauge")</pv_name>
-      </script>
-    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="label" version="2.0.0">
@@ -398,7 +398,7 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_15</name>
     <actions>
       <action type="open_display">
-        <file>control_toggle_buttons.bob</file>
+        <file>controls_toggle_buttons.bob</file>
         <target>replace</target>
         <description>Toggle Buttons</description>
       </action>
@@ -413,7 +413,7 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_16</name>
     <actions>
       <action type="open_display">
-        <file>control_action_buttons.bob</file>
+        <file>controls_action_buttons.bob</file>
         <target>replace</target>
         <description>Action Buttons</description>
       </action>
@@ -455,6 +455,21 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
+    <name>Action Button_36</name>
+    <actions>
+      <action type="open_display">
+        <file>controls_checkboxes_slidebuttons.bob</file>
+        <target>replace</target>
+        <description>Check Boxes</description>
+      </action>
+    </actions>
+    <x>470</x>
+    <y>320</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
     <name>Action Button_23</name>
     <actions>
       <action type="open_display">
@@ -464,7 +479,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>470</x>
-    <y>320</y>
+    <y>360</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>
@@ -479,7 +494,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>470</x>
-    <y>360</y>
+    <y>400</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>
@@ -494,7 +509,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>470</x>
-    <y>400</y>
+    <y>440</y>
     <width>120</width>
     <height>26</height>
     <scripts>
@@ -514,7 +529,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>470</x>
-    <y>440</y>
+    <y>480</y>
     <width>120</width>
     <height>26</height>
     <scripts>
@@ -705,7 +720,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>890</x>
-    <y>160</y>
+    <y>200</y>
     <width>120</width>
     <height>26</height>
     <scripts>
@@ -725,7 +740,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>890</x>
-    <y>200</y>
+    <y>160</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>

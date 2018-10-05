@@ -16,7 +16,7 @@
     <name>Label_1</name>
     <text>Boolean buttons toggle one bit in a PV</text>
     <y>31</y>
-    <width>641</width>
+    <width>420</width>
     <height>30</height>
     <font>
       <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
@@ -239,5 +239,167 @@ to represent the on/off state.</text>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
     </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Slide buttons toggle one bit in a PV</text>
+    <x>460</x>
+    <y>31</y>
+    <width>330</width>
+    <height>30</height>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="slide_button" version="2.0.0">
+    <name>Slide Button</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <x>580</x>
+    <y>80</y>
+    <height>20</height>
+    <off_label>OFF</off_label>
+    <off_color>
+      <color red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_label>ON</on_label>
+    <on_color>
+      <color red="60" green="255" blue="60">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Bit 0</text>
+    <x>470</x>
+    <y>80</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Bit 1</text>
+    <x>470</x>
+    <y>109</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Bit 2</text>
+    <x>470</x>
+    <y>139</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Bit 3</text>
+    <x>470</x>
+    <y>169</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>Bit -1</text>
+    <x>470</x>
+    <y>230</y>
+    <width>90</width>
+    <background_color>
+      <color red="204" green="255" blue="204">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="slide_button" version="2.0.0">
+    <name>Slide Button_1</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>1</bit>
+    <x>580</x>
+    <y>109</y>
+    <height>20</height>
+    <off_label>OFF</off_label>
+    <off_color>
+      <color red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_label>ON</on_label>
+    <on_color>
+      <color red="60" green="255" blue="60">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="slide_button" version="2.0.0">
+    <name>Slide Button_2</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>2</bit>
+    <x>580</x>
+    <y>139</y>
+    <height>20</height>
+    <off_label>OFF</off_label>
+    <off_color>
+      <color red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_label>ON</on_label>
+    <on_color>
+      <color red="60" green="255" blue="60">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="slide_button" version="2.0.0">
+    <name>Slide Button_3</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>3</bit>
+    <x>580</x>
+    <y>169</y>
+    <height>20</height>
+    <off_label>OFF</off_label>
+    <off_color>
+      <color red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_label>ON</on_label>
+    <on_color>
+      <color red="60" green="255" blue="60">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="slide_button" version="2.0.0">
+    <name>Slide Button_4</name>
+    <pv_name>loc://boolTest(0)</pv_name>
+    <bit>-1</bit>
+    <x>580</x>
+    <y>230</y>
+    <height>20</height>
+    <off_label>OFF</off_label>
+    <on_label>ON</on_label>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
   </widget>
 </display>
