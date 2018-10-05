@@ -10,6 +10,7 @@ package org.phoebus.app.viewer3d;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,10 +44,18 @@ import javafx.stage.FileChooser;
  */
 public class Viewer3dPane extends VBox
 {
-    public final static Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
+    /** Supported file extension, shape files (*.shp) */
+    public static final String FILE_EXTENSION = "shp";
     
-    private final static Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
+    public static final List<String> FILE_EXTENSIONS = List.of(FILE_EXTENSION);
     
+    public static final Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
+    
+    /** Border for the text field when errors occur. */
+    private static final Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
+    
+    private final TextField textField;
+    private final Viewer3d viewer;
     private final Consumer<URI> setInput;
     
     private String current_resource;
@@ -57,7 +66,7 @@ public class Viewer3dPane extends VBox
         
         this.setInput = setInput;
         
-        TextField textField = new TextField();
+        textField = new TextField();
         Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
         Button refreshButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
         Button resetViewButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/reset.png"));
@@ -66,9 +75,12 @@ public class Viewer3dPane extends VBox
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Shape files (.shp)", "*.shp");
         
+        
+        fileChooser.setInitialDirectory(new File(Preferences.default_dir));
+        
         HBox toolbar = new HBox();
         
-        Viewer3d viewer = new Viewer3d();
+        viewer = new Viewer3d();
 
         fileChooser.getExtensionFilters().add(extFilter);
         toolbar.getChildren().addAll(fileButton, refreshButton, resetViewButton, textField, clearViewerButton);
@@ -97,7 +109,7 @@ public class Viewer3dPane extends VBox
         });
         fileButton.setTooltip(new Tooltip("Select resource from file system."));
         
-        refreshButton.setOnAction(event -> loadResource(current_resource, viewer, textField));
+        refreshButton.setOnAction(event -> reload());
         refreshButton.setTooltip(new Tooltip("Refresh structure from resource."));
         
         resetViewButton.setOnAction(event -> viewer.reset());
@@ -183,5 +195,13 @@ public class Viewer3dPane extends VBox
                     setInput.accept(new URI(resource));
             });
         }
+    }
+    
+    /**
+     * Reload the current_resource.
+     */
+    public void reload()
+    {
+        loadResource(current_resource, viewer, textField);
     }
 }
