@@ -69,12 +69,12 @@ public class Viewer3d extends StackPane
     private static final double ROTATION_SPEED = 2.0;
     private static final double TRACK_SPEED = 0.3;
     
-    double mousePosX;
-    double mousePosY;
-    double mouseOldX;
-    double mouseOldY;
-    double mouseDeltaX;
-    double mouseDeltaY;
+    private double mousePosX;
+    private double mousePosY;
+    private double mouseOldX;
+    private double mouseOldY;
+    private double mouseDeltaX;
+    private double mouseDeltaY;
     
     public Viewer3d () throws Exception
     {
