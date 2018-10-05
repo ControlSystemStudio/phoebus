@@ -87,7 +87,7 @@ Example Shape File
     # A blue box is defined with one corner at the origin, and the opposite
     # corner at (100, 100, 100). This will result in a cube with each side
     # being of magnitude 100.
-    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
+    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 1)
     
 **Resulting Structure**
 
@@ -96,28 +96,28 @@ Example Shape File
 
 Transparency
 ------------
-  JavaFX does not sort 3D objects by depth. What this means is that you have to thoughtful of the order you add 3D shapes to a scene. For example, if I wanted to display a sphere
-  inside a translucent box, I would have to add the sphere *before* the box. If I were to add the box first, it would still be translucent, but the JavaFX renderer would not draw
+  JavaFX does not sort 3D objects by depth. What this means is that you have to thoughtful of the order you add 3D shapes to a scene. For example, if a sphere needed to be displayed
+  inside a translucent box, the sphere would have to be added *before* the box. If the box first were added first, it would still be translucent, but the JavaFX renderer would not draw
   the sphere because it doesn't sort the scene graph by depth.
   
-**Example**
+  **Examples**
 
-Here, the box is added first and the sphere is not drawn.
-::
+    Here, the box is added first and the sphere is not drawn.
+        ::
+        
+            background(32, 32, 32, 1)
+            box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
+            sphere(50, 50, 50, 10, 255, 0, 0, 1)
+        
+        .. image:: bad_transparency.png
+           :width: 50%
 
-    background(32, 32, 32, 1)
-    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
-    sphere(50, 50, 50, 10, 255, 0, 0, 1)
-
-.. image:: bad_transparency.png
-   :width: 50%
-
-Here, the box is added second and the sphere is drawn correctly.
-::
-
-    background(32, 32, 32, 1)
-    sphere(50, 50, 50, 10, 255, 0, 0, 1)
-    box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
-    
-.. image:: good_transparency.png
-   :width: 50%
+    Here, the box is added second and the sphere is drawn correctly.
+        ::
+        
+            background(32, 32, 32, 1)
+            sphere(50, 50, 50, 10, 255, 0, 0, 1)
+            box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
+            
+        .. image:: good_transparency.png
+           :width: 50%
