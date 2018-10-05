@@ -282,14 +282,17 @@ public class Viewer3d extends StackPane
                     Box box = new Box();
                     
                     box.setMaterial(material);
-
-                    box.setWidth(Math.abs(x2 - x1));
-                    box.setDepth(Math.abs(z2 - z1));
-                    box.setHeight(Math.abs(y2 - y1));
                     
-                    box.setTranslateX(x1);
-                    box.setTranslateY(y1);
-                    box.setTranslateZ(z1);                    
+                    double xDiff = Math.abs(x2 - x1);
+                    double yDiff = Math.abs(y2 - y1);
+                    double zDiff = Math.abs(z2 - z1);
+                    box.setWidth(xDiff);
+                    box.setDepth(zDiff);
+                    box.setHeight(yDiff);
+                    
+                    box.setTranslateX(xDiff / 2);
+                    box.setTranslateY(yDiff / 2);
+                    box.setTranslateZ(zDiff / 2);                    
                     
                     struct.getChildren().add(box);
                 }
