@@ -18,11 +18,13 @@ public class Viewer3dInstance implements AppInstance
 {
     private final AppDescriptor app;
     private final DockItemWithInput tab;
-
+    private Viewer3dPane viewer;
+    
     public Viewer3dInstance(final Viewer3dApp viewerApp, final URI resource)
     {
         app = viewerApp;
         tab = new DockItemWithInput(this, create(resource), resource, null, null);
+        viewer = null;
         
         Platform.runLater(() -> tab.setLabel(app.getDisplayName()));
         
@@ -33,7 +35,8 @@ public class Viewer3dInstance implements AppInstance
     {
         try
         {
-            return new Viewer3dPane(resource, this::changeInput);
+            viewer = new Viewer3dPane(resource, this::changeInput);
+            return viewer;
         }
         catch (Exception ex)
         {
@@ -52,5 +55,18 @@ public class Viewer3dInstance implements AppInstance
     public AppDescriptor getAppDescriptor()
     {
         return app;
+    }
+    
+    public void raise()
+    {
+        tab.select();
+    }
+    
+    public void reload()
+    {
+        if (null != viewer)
+        {
+            viewer.reload();
+        }
     }
 }
