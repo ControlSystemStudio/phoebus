@@ -18,22 +18,25 @@ public class Viewer3dInstance implements AppInstance
 {
     private final AppDescriptor app;
     private final DockItemWithInput tab;
-
+    private Viewer3dPane viewer;
+    
     public Viewer3dInstance(final Viewer3dApp viewerApp, final URI resource)
     {
         app = viewerApp;
         tab = new DockItemWithInput(this, create(resource), resource, null, null);
+        viewer = null;
         
         Platform.runLater(() -> tab.setLabel(app.getDisplayName()));
         
-        DockPane.getActiveDockPane().addTab(tab);
+        DockPane.getActiveDockPane().addTab(tab);        
     }
     
     private Node create(URI resource)
     {
         try
         {
-            return new Viewer3dPane(resource);
+            viewer = new Viewer3dPane(resource, this::changeInput);
+            return viewer;
         }
         catch (Exception ex)
         {
@@ -41,10 +44,29 @@ public class Viewer3dInstance implements AppInstance
             return new Label("Cannot create 3d Viewer for " + resource);
         }
     }
-
+    
+    private void changeInput(final URI resource)
+    {
+        tab.setInput(resource);
+        Platform.runLater(() -> tab.setLabel(app.getDisplayName()));
+    }
+    
     @Override
     public AppDescriptor getAppDescriptor()
     {
         return app;
+    }
+    
+    public void raise()
+    {
+        tab.select();
+    }
+    
+    public void reload()
+    {
+        if (null != viewer)
+        {
+            viewer.reload();
+        }
     }
 }
