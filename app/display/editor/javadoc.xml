@@ -16,7 +16,7 @@
 <project name="api" default="all">
   <!-- Output directory -->
   <property name="out" value="doc/html/generated"/>
-
+  
   <path id="classpath">
     <fileset dir="../../..">
       <!-- Brute-force way to resolve all missing references:
@@ -34,6 +34,7 @@
   </target>
   <!-- Create Javadoc -->
   <target name="javadoc">
+  	<mkdir dir="${out}"/>
     <!-- Capture the path as a delimited property using the refid attribute -->
     <property name="myclasspath" refid="classpath"/>
     <!-- Emit the property to the ant console -->

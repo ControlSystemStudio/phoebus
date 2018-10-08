@@ -10,19 +10,22 @@ package org.phoebus.app.viewer3d;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /**
- * Preferences class for the {@link ResourceUtil} class.
+ * Preferences class for the org.phoebus.app.viewer3d package.
  * @author Evan Smith
  */
 public class Preferences
 {
     public static String READ_TIMEOUT = "read_timeout";
+    public static String DEFAULT_DIR = "default_dir";
     
     public final static int read_timeout;
+    public final static String default_dir;
     
     static
     {
         final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/viewer_3d_util_preferences.properties");
         
         read_timeout = prefs.getInt(READ_TIMEOUT);
+        default_dir = PreferencesReader.replaceProperties(prefs.get(DEFAULT_DIR));
     }
 }

@@ -1,5 +1,7 @@
 # This is a config file for the Phoebus 3D viewer displaying a NaCl structure
 
+background(32, 32, 32, 1)
+
 ## Level 1
 
 ### Cl-

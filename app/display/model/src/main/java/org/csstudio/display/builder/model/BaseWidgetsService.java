@@ -40,6 +40,7 @@ import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
+import org.csstudio.display.builder.model.widgets.SlideButtonWidget;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
@@ -93,6 +94,7 @@ public class BaseWidgetsService implements WidgetsService
             RectangleWidget.WIDGET_DESCRIPTOR,
             ScaledSliderWidget.WIDGET_DESCRIPTOR,
             ScrollBarWidget.WIDGET_DESCRIPTOR,
+            SlideButtonWidget.WIDGET_DESCRIPTOR,
             SpinnerWidget.WIDGET_DESCRIPTOR,
             SymbolWidget.WIDGET_DESCRIPTOR,
             TableWidget.WIDGET_DESCRIPTOR,

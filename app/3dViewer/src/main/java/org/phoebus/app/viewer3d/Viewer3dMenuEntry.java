@@ -11,7 +11,7 @@ public class Viewer3dMenuEntry implements MenuEntry
     @Override
     public String getName()
     {
-        return Viewer3dApp.DisplayName;
+        return Viewer3dApp.DISPLAY_NAME;
     }
 
     @Override
@@ -23,13 +23,13 @@ public class Viewer3dMenuEntry implements MenuEntry
     @Override
     public Image getIcon()
     {
-        return ImageCache.getImage(ImageCache.class, "/icons/viewer3d.png");
+        return ImageCache.getImage(Viewer3dPane.class, "/icons/viewer3d.png");
     }
     
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.createInstance(Viewer3dApp.Name);
+        ApplicationService.createInstance(Viewer3dApp.NAME);
         return null;
     }
 }

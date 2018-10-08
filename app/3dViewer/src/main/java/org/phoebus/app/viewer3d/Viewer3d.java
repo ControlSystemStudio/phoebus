@@ -44,10 +44,12 @@ import javafx.scene.transform.Translate;
  */
 public class Viewer3d extends StackPane
 {
+    private final SubScene scene;
+    
     private final Group root;
     private final Xform axes;
     private Xform structure;
-    private final Xform world;
+    private final Xform view;
 
     private final PerspectiveCamera camera;
     private final Xform cameraXform;
@@ -64,52 +66,52 @@ public class Viewer3d extends StackPane
     
     private static final double CONTROL_MULTIPLIER = 0.5;
     private static final double SHIFT_MULTIPLIER = 10.0;
+    private static final double TRANSFORM_MULTIPLIER = 7.5;
     private static final double MOUSE_SPEED = 0.1;
     private static final double ROTATION_SPEED = 2.0;
     private static final double TRACK_SPEED = 0.3;
     
-    double mousePosX;
-    double mousePosY;
-    double mouseOldX;
-    double mouseOldY;
-    double mouseDeltaX;
-    double mouseDeltaY;
+    private double mousePosX;
+    private double mousePosY;
+    private double mouseOldX;
+    private double mouseOldY;
+    private double mouseDeltaX;
+    private double mouseDeltaY;
     
     public Viewer3d () throws Exception
     {
         super();
                 
         root = new Group();
-        axes = new Xform();
-        structure = new Xform();
-        world = new Xform();
+        view = new Xform();
+        axes = buildAxes();
+        structure = null;
         
         camera = new PerspectiveCamera(true);
         cameraXform = new Xform();
         cameraXform2 = new Xform();
         cameraXform3 = new Xform();
+
+        buildCamera();
         
         HBox legend = new HBox();
         Label xLabel = new Label("  X Axis  "), 
               yLabel = new Label("  Y Axis  "), 
               zLabel = new Label("  Z Axis  ");
         
-        root.getChildren().add(world);
+        view.getChildren().add(axes);
+        
+        root.getChildren().add(view);
         root.setDepthTest(DepthTest.ENABLE);
-                
-        buildCamera();
-        buildAxes();
-        
-        world.getChildren().add(structure);        
-        
-        SubScene scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
+
+        scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
         scene.setManaged(false);
         scene.heightProperty().bind(heightProperty());
         scene.widthProperty().bind(widthProperty());
 
-        xLabel.setBackground(new Background(new BackgroundFill(Color.RED,   new CornerRadii(3), null)));
-        yLabel.setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(3), null)));
-        zLabel.setBackground(new Background(new BackgroundFill(Color.BLUE,  new CornerRadii(3), null)));
+        xLabel.setBackground(new Background(new BackgroundFill(Color.RED,   new CornerRadii(5), null)));
+        yLabel.setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(5), null)));
+        zLabel.setBackground(new Background(new BackgroundFill(Color.BLUE,  new CornerRadii(5), null)));
         
         xLabel.setTextFill(Color.WHITE);
         yLabel.setTextFill(Color.WHITE);
@@ -138,27 +140,40 @@ public class Viewer3d extends StackPane
         cameraXform2.getChildren().add(cameraXform3);
         cameraXform3.getChildren().add(camera);
         cameraXform3.setRotateZ(180.0);
- 
+        
         camera.setNearClip(CAMERA_NEAR_CLIP);
         camera.setFarClip(CAMERA_FAR_CLIP);
-        camera.setTranslateZ(CAMERA_INITIAL_DISTANCE);
-        cameraXform.ry.setAngle(CAMERA_INITIAL_Y_ANGLE);
-        cameraXform.rx.setAngle(CAMERA_INITIAL_X_ANGLE);
+        
+        // Use reset() to set the initial rotation, coordinate and zoom values.
+        reset(); 
     }
     
-    private void buildAxes()
+    public void reset()
     {
-        final PhongMaterial redMaterial = new PhongMaterial();
-        redMaterial.setDiffuseColor(Color.RED);
-        redMaterial.setSpecularColor(Color.DARKRED);
+        // Reset zoom.
+        camera.setTranslateZ(CAMERA_INITIAL_DISTANCE);
+        // Reset rotation
+        cameraXform.ry.setAngle(CAMERA_INITIAL_Y_ANGLE);
+        cameraXform.rx.setAngle(CAMERA_INITIAL_X_ANGLE);
+        // Reset coordinates
+        cameraXform2.t.setX(0);
+        cameraXform2.t.setY(0);
+    }
+
+    private Xform buildAxes()
+    {
+        Xform axes = new Xform();
+        final PhongMaterial red = new PhongMaterial();
+        red.setDiffuseColor(Color.RED);
+        red.setSpecularColor(Color.DARKRED);
  
-        final PhongMaterial greenMaterial = new PhongMaterial();
-        greenMaterial.setDiffuseColor(Color.GREEN);
-        greenMaterial.setSpecularColor(Color.DARKGREEN);
+        final PhongMaterial green = new PhongMaterial();
+        green.setDiffuseColor(Color.GREEN);
+        green.setSpecularColor(Color.DARKGREEN);
  
-        final PhongMaterial blueMaterial = new PhongMaterial();
-        blueMaterial.setDiffuseColor(Color.BLUE);
-        blueMaterial.setSpecularColor(Color.DARKBLUE);
+        final PhongMaterial blue = new PhongMaterial();
+        blue.setDiffuseColor(Color.BLUE);
+        blue.setSpecularColor(Color.DARKBLUE);
  
         final Box xAxis = new Box(AXIS_LENGTH, 1, 1);
         final Box yAxis = new Box(1, AXIS_LENGTH, 1);
@@ -168,13 +183,13 @@ public class Viewer3d extends StackPane
         yAxis.setTranslateY(AXIS_LENGTH/2 + 0.5);
         zAxis.setTranslateZ(AXIS_LENGTH/2 + 0.5);
         
-        xAxis.setMaterial(redMaterial);
-        yAxis.setMaterial(greenMaterial);
-        zAxis.setMaterial(blueMaterial);
+        xAxis.setMaterial(red);
+        yAxis.setMaterial(green);
+        zAxis.setMaterial(blue);
  
         axes.getChildren().addAll(xAxis, yAxis, zAxis);
-        axes.setVisible(true);
-        world.getChildren().addAll(axes);
+        
+        return axes;
     }
     
     /**
@@ -182,7 +197,7 @@ public class Viewer3d extends StackPane
      * @param inputStream
      * @return Xform of structure
      */
-    public Xform buildStructure(final InputStream inputStream) throws Exception
+    public static Xform buildStructure(final InputStream inputStream) throws Exception
     {
         Xform struct = new Xform();
         
@@ -191,6 +206,7 @@ public class Viewer3d extends StackPane
             String line = null;
             while (null != (line = buffReader.readLine()))
             {
+                line = line.trim();
                 if (line.isEmpty() || line.startsWith("#"))
                     continue;
                 
@@ -198,8 +214,24 @@ public class Viewer3d extends StackPane
                 String type = typeAndArgs[0];
                 String argList = typeAndArgs[1].replaceAll("[()]", "");
                 String[] args = argList.split("\\s*,\\s*");
-
-                if (type.equals("sphere"))
+                
+                if (type.equals("background"))
+                {
+                    if (4 != args.length)
+                    {
+                        throw new Exception("background argument list is incorrect.");
+                    }
+                    
+                    int r = Integer.parseInt(args[0]); // red
+                    int g = Integer.parseInt(args[1]); // blue
+                    int b = Integer.parseInt(args[2]); // green
+                    double a = Double.parseDouble(args[3]); // alpha
+                    
+                    Color background = Color.rgb(r, g, b, a);
+                    
+                    struct.setBackground(background);
+                }
+                else if (type.equals("sphere"))
                 {
                     if (8 != args.length)
                     {
@@ -251,14 +283,17 @@ public class Viewer3d extends StackPane
                     Box box = new Box();
                     
                     box.setMaterial(material);
-
-                    box.setWidth(Math.abs(x2 - x1));
-                    box.setDepth(Math.abs(z2 - z1));
-                    box.setHeight(Math.abs(y2 - y1));
                     
-                    box.setTranslateX(x1);
-                    box.setTranslateY(y1);
-                    box.setTranslateZ(z1);                    
+                    double xDiff = Math.abs(x2 - x1);
+                    double yDiff = Math.abs(y2 - y1);
+                    double zDiff = Math.abs(z2 - z1);
+                    box.setWidth(xDiff);
+                    box.setDepth(zDiff);
+                    box.setHeight(yDiff);
+                    
+                    box.setTranslateX(xDiff / 2);
+                    box.setTranslateY(yDiff / 2);
+                    box.setTranslateZ(zDiff / 2);                    
                     
                     struct.getChildren().add(box);
                 }
@@ -332,11 +367,21 @@ public class Viewer3d extends StackPane
      */
     public void setStructure(final Xform struct)
     {
-        world.getChildren().remove(structure);
-        world.getChildren().add(struct);
+        if (null != structure)
+            view.getChildren().remove(structure);
+        if (null != struct)
+        {
+            view.getChildren().add(struct);
+            scene.setFill(struct.getBackground());
+        }
+        
         structure = struct;
     }
     
+    /**
+     * Set the scene up to handle mouse and scroll events
+     * @param scene
+     */
     private void handleMouse(Node scene)
     {
         scene.setOnMousePressed(new EventHandler<MouseEvent>()
@@ -363,16 +408,16 @@ public class Viewer3d extends StackPane
                 mouseDeltaX = (mousePosX - mouseOldX); 
                 mouseDeltaY = (mousePosY - mouseOldY);
 
-               double modifier = 1.0;
+                double modifier = 1.0;
 
                 if (me.isControlDown())
                 {
                     modifier = CONTROL_MULTIPLIER;
-                } 
+                }
                 if (me.isShiftDown())
                 {
                     modifier = SHIFT_MULTIPLIER;
-                }     
+                }
                 if (me.isPrimaryButtonDown())
                 {
                     cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED); 
@@ -380,8 +425,8 @@ public class Viewer3d extends StackPane
                 }
                 else if (me.isMiddleButtonDown())
                 {
-                   cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*modifier*TRACK_SPEED);
-                   cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*modifier*TRACK_SPEED);
+                   cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
+                   cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
                 }
             }
         });
@@ -393,12 +438,21 @@ public class Viewer3d extends StackPane
             {
                 double modifier = 1.5;
                 
-                double z = camera.getTranslateZ();
+                double oldZ = camera.getTranslateZ();
                 
-                double newZ = z + modifier * se.getDeltaY();
+                double newZ = oldZ + modifier * se.getDeltaY();
 
                 camera.setTranslateZ(newZ);
            }
-       });
-   }
+        });
+    }
+    
+    public void clear()
+    {
+        if (null != structure)
+        {
+            view.getChildren().remove(structure);
+            structure = null;
+        }
+    }
 }

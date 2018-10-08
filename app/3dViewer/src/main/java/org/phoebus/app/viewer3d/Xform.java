@@ -33,6 +33,7 @@
 package org.phoebus.app.viewer3d;
 
 import javafx.scene.Group;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
@@ -44,7 +45,10 @@ import javafx.scene.transform.Translate;
  */
 public class Xform extends Group
 {
-    public enum RotateOrder {
+    public Color background;
+    
+    public enum RotateOrder
+    {
         XYZ, XZY, YXZ, YZX, ZXY, ZYX
     }
         
@@ -64,13 +68,17 @@ public class Xform extends Group
         return new Xform();
     }
 
-    public Xform() {
+    public Xform()
+    {
         super();
+        background = Color.GRAY;
         getTransforms().addAll(t, rz, ry, rx, s);
     }
 
-    public Xform(RotateOrder rotateOrder) { 
+    public Xform(RotateOrder rotateOrder)
+    { 
         super();
+        background = Color.GRAY;
         // choose the order of rotations based on the rotateOrder
         switch (rotateOrder)
         {
@@ -93,14 +101,26 @@ public class Xform extends Group
                 break;
         }
     }
-
-    public void setTranslate(double x, double y, double z) {
+    
+    public void setBackground(Color fill)
+    {
+        background = fill;
+    }
+    
+    public Color getBackground()
+    {
+       return background;
+    }
+    
+    public void setTranslate(double x, double y, double z)
+    {
         t.setX(x);
         t.setY(y);
         t.setZ(z);
     }
 
-    public void setTranslate(double x, double y) {
+    public void setTranslate(double x, double y)
+    {
         t.setX(x);
         t.setY(y);
     }
@@ -114,7 +134,8 @@ public class Xform extends Group
     public void setTy(double y) { t.setY(y); }
     public void setTz(double z) { t.setZ(z); }
 
-    public void setRotate(double x, double y, double z) {
+    public void setRotate(double x, double y, double z)
+    {
         rx.setAngle(x);
         ry.setAngle(y);
         rz.setAngle(z);
@@ -124,7 +145,8 @@ public class Xform extends Group
     public void setRotateY(double y) { ry.setAngle(y); }
     public void setRotateZ(double z) { rz.setAngle(z); }
 
-    public void setScale(double scaleFactor) {
+    public void setScale(double scaleFactor)
+    {
         s.setX(scaleFactor);
         s.setY(scaleFactor);
         s.setZ(scaleFactor);
@@ -139,7 +161,8 @@ public class Xform extends Group
     public void setSy(double y) { s.setY(y); }
     public void setSz(double z) { s.setZ(z); }
 
-    public void setPivot(double x, double y, double z) {
+    public void setPivot(double x, double y, double z)
+    {
         p.setX(x);
         p.setY(y);
         p.setZ(z);
@@ -148,7 +171,8 @@ public class Xform extends Group
         ip.setZ(-z); 
     }
 
-    public void reset() {
+    public void reset()
+    {
         t.setX(0.0);
         t.setY(0.0);
         t.setZ(0.0);
@@ -166,7 +190,8 @@ public class Xform extends Group
         ip.setZ(0.0);
     }
 
-    public void resetTSP() {
+    public void resetTSP()
+    {
         t.setX(0.0);
         t.setY(0.0);
         t.setZ(0.0);
@@ -181,7 +206,8 @@ public class Xform extends Group
         ip.setZ(0.0);
     }
 
-    public void debug() {
+    public void debug()
+    {
         System.out.println("t = (" +
                            t.getX() + ", " +
                            t.getY() + ", " +
