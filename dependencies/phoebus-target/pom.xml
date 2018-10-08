@@ -237,6 +237,13 @@
       <version>9.0-r1</version>
     </dependency>
 
+	<!-- Display Builder -->
+    <dependency>
+      <groupId>org.controlsfx</groupId>
+      <artifactId>controlsfx</artifactId>
+      <version>9.0.0</version>
+    </dependency>
+
     <!-- MQTT client library -->
     <dependency>
         <groupId>org.eclipse.paho</groupId>

@@ -109,6 +109,7 @@ public class Messages
     public static String Rotation_90;
     public static String ScrollBar_ShowValueTip;
     public static String ScrollBar_BarLength;
+    public static String SlideButton_Label;
     public static String Spinner_ButtonsOnLeft;
     public static String Style;
     public static String Style_Group;
