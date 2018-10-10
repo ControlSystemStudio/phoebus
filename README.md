@@ -9,8 +9,9 @@ http://phoebus-doc.readthedocs.io
 
 
 ## Requirements
- - [JDK9 or later, including JavaFX](http://jdk.java.net).
-   You need a JDK that includes JavaFX.
+ - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/11).
+   (For the time being, Phoebus still builds with Oracle JDK 9 and 10,
+    but it must be a JDK that includes JavaFX).
  - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -30,6 +31,7 @@ mvn clean verify -f dependencies/pom.xml
 ### Quickstart (Build & run)  
 
 To build and run the phoebus product  
+
 ```
 mvn clean install
 cd phoebus-product
@@ -39,6 +41,7 @@ mvn exec:java
 ### Building  
 
 To build the entire phoebus stack
+
 ```
 mvn clean install
 ```
@@ -181,5 +184,28 @@ To run the Phoebus application:
     # Build product & bundle for distribution, including the documentation
     ( cd phoebus; ant clean dist )
    
-    # The files phoebus/*product/target/*.zip can now be distributed,
+    # The files phoebus/phoebus-product/target/*.zip and
+    # services/*/target/*.zip can now be distributed,
     # unzipped, launched
+
+Note that the phoebus-product is platform dependent, you get a
+`phoebus-0.0.1-linux.zip`, `phoebus-0.0.1-mac.zip` or `phoebus-0.0.1-win.zip`
+depending on the build platform.
+
+
+## Cross-Platform Build
+
+The `dependencies` include the platform-dependent JavaFX library with different content for linux, mac and windows.
+When building as described above, the result will be an executable for the build platform.
+To build for a different platform, create the `dependencies` in one of these ways:
+
+    # Either create the build platform for Linux..
+	( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
+	
+	# or Mac OS X ..
+	( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
+	
+	# or Windows:
+	( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
+
+The remaining build is the same, for example `ant clean dist` to build the distribution.

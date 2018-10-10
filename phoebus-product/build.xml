@@ -10,9 +10,9 @@
   <target name="copy-doc" depends="-check-doc" if="have.doc">
     <copy todir="${build}/doc">
       <fileset dir="../../phoebus-doc/build/html"/>
-  	</copy>
+    </copy>
   </target>
-	
+  
   <target name="product" depends="copy-doc" description="Assemble product">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath"/>
@@ -24,10 +24,10 @@
       <!-- Copy applications -->
       <fileset dir="..">
         <include name="app/**/*.jar"/>
-      	<!-- Exclude what's not part of the UI product -->
-      	<!-- Site-specific build might remove more     -->
-      	<exclude name="app/**/app-alarm-server*.jar"/>
-      	<exclude name="app/**/app-scan-server*.jar"/>
+        <!-- Exclude what's not part of the UI product -->
+        <!-- Site-specific build might remove more     -->
+        <exclude name="app/**/app-alarm-server*.jar"/>
+        <exclude name="app/**/app-scan-server*.jar"/>
       </fileset>
     </copy>
 
@@ -57,7 +57,32 @@
 
   <!-- Create ZIP of the product.jar, lib/, [doc/,] phoebus.sh launcher -->
   <target name="dist" depends="product" description="Pack for distribution">
-    <zip destfile="${build}/phoebus-${version}.zip">
+    <!-- Check if target platform is for linux, mac, win -->
+    <fileset dir="../dependencies/phoebus-target/target/lib" id="jfxfiles">
+      <include name="javafx-base-*-linux.jar"/>
+      <include name="javafx-base-*-mac.jar"/>
+      <include name="javafx-base-*-win.jar"/>
+    </fileset>
+    
+    <echo message="JFX 'base' Files: ${toString:jfxfiles}"/>
+    
+    <condition property="jfxarch" value="linux">
+      <contains string="${toString:jfxfiles}" substring="-linux"/>
+    </condition>
+    <condition property="jfxarch" value="mac">
+      <contains string="${toString:jfxfiles}" substring="-mac"/>
+    </condition>
+    <condition property="jfxarch" value="win">
+      <contains string="${toString:jfxfiles}" substring="-win"/>
+    </condition>
+
+    <!-- Simpler, but requires full name, cannot use 'javafx-base-*-linux.jar'
+    <available file="../dependencies/phoebus-target/target/lib/javafx-base-11-linux.jar" property="jfxarch" value="linux" />
+    <available file="../dependencies/phoebus-target/target/lib/javafx-base-11-mac.jar"   property="jfxarch" value="mac" />
+    <available file="../dependencies/phoebus-target/target/lib/javafx-base-11-win.jar"   property="jfxarch" value="win" />
+    -->
+    
+    <zip destfile="${build}/phoebus-${version}-${jfxarch}.zip">
       <zipfileset dir="${build}" includes="**/*.jar" prefix="phoebus-${version}"/>
       <zipfileset dir="." includes="phoebus.sh" fullpath="phoebus-${version}/phoebus.sh" filemode="755"/>
       <zipfileset dir="." includes="phoebus.bat" fullpath="phoebus-${version}/phoebus.bat"/>
@@ -69,7 +94,6 @@
 
   <target name="run" depends="product" description="Run the product">
     <java jar="${build}/product-${version}.jar" fork="true">
-      <jvmarg value="--add-modules=java.corba"/>
-    </java>	
+    </java>  
   </target>
 </project>
