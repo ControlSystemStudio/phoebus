@@ -1,6 +1,9 @@
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
 import java.io.InputStream;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -80,7 +83,7 @@ public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, View
                 }
                 catch (Exception ex)
                 {
-                    //logger.log(Level.WARNING, "Opening resource '" + resource + "' failed", ex);
+                    logger.log(Level.WARNING, "Opening resource '" + resource + "' failed", ex);
                 }
                 
                 if (null != inputStream)
@@ -93,7 +96,7 @@ public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, View
                     }
                     catch (Exception ex)
                     {
-                        //logger.log(Level.WARNING, "Building structure failed", ex);
+                        logger.log(Level.WARNING, "Building structure failed", ex);
                     }
                 }
             });
