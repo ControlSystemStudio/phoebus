@@ -10,6 +10,7 @@ package org.phoebus.app.viewer3d;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.function.Supplier;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -78,10 +79,17 @@ public class Viewer3d extends StackPane
     private double mouseDeltaX;
     private double mouseDeltaY;
     
-    public Viewer3d () throws Exception
+    private final Supplier<Boolean> isDisabled;
+    
+    public Viewer3d (final Supplier<Boolean> isDisabled) throws Exception
     {
         super();
-                
+        
+        if (null == isDisabled)
+            this.isDisabled = () -> false;
+        else
+            this.isDisabled = isDisabled;
+        
         root = new Group();
         view = new Xform();
         axes = buildAxes();
@@ -389,10 +397,13 @@ public class Viewer3d extends StackPane
             @Override 
             public void handle(MouseEvent me)
             {
-                mousePosX = me.getSceneX();
-                mousePosY = me.getSceneY();
-                mouseOldX = me.getSceneX();
-                mouseOldY = me.getSceneY();
+                if (! isDisabled.get())
+                {
+                    mousePosX = me.getSceneX();
+                    mousePosY = me.getSceneY();
+                    mouseOldX = me.getSceneX();
+                    mouseOldY = me.getSceneY();
+                }
             }
         });
         
@@ -401,32 +412,35 @@ public class Viewer3d extends StackPane
             @Override 
             public void handle(MouseEvent me) 
             {
-                mouseOldX = mousePosX;
-                mouseOldY = mousePosY;
-                mousePosX = me.getSceneX();
-                mousePosY = me.getSceneY();
-                mouseDeltaX = (mousePosX - mouseOldX); 
-                mouseDeltaY = (mousePosY - mouseOldY);
-
-                double modifier = 1.0;
-
-                if (me.isControlDown())
+                if (! isDisabled.get())
                 {
-                    modifier = CONTROL_MULTIPLIER;
-                }
-                if (me.isShiftDown())
-                {
-                    modifier = SHIFT_MULTIPLIER;
-                }
-                if (me.isPrimaryButtonDown())
-                {
-                    cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED); 
-                    cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
-                }
-                else if (me.isMiddleButtonDown())
-                {
-                   cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
-                   cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
+                    mouseOldX = mousePosX;
+                    mouseOldY = mousePosY;
+                    mousePosX = me.getSceneX();
+                    mousePosY = me.getSceneY();
+                    mouseDeltaX = (mousePosX - mouseOldX); 
+                    mouseDeltaY = (mousePosY - mouseOldY);
+    
+                    double modifier = 1.0;
+    
+                    if (me.isControlDown())
+                    {
+                        modifier = CONTROL_MULTIPLIER;
+                    }
+                    if (me.isShiftDown())
+                    {
+                        modifier = SHIFT_MULTIPLIER;
+                    }
+                    if (me.isPrimaryButtonDown())
+                    {
+                        cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED); 
+                        cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
+                    }
+                    else if (me.isMiddleButtonDown())
+                    {
+                       cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
+                       cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
+                    }
                 }
             }
         });
@@ -436,13 +450,16 @@ public class Viewer3d extends StackPane
             @Override 
             public void handle(ScrollEvent se) 
             {
-                double modifier = 1.5;
-                
-                double oldZ = camera.getTranslateZ();
-                
-                double newZ = oldZ + modifier * se.getDeltaY();
-
-                camera.setTranslateZ(newZ);
+                if (! isDisabled.get())
+                {
+                    double modifier = 1.5;
+                    
+                    double oldZ = camera.getTranslateZ();
+                    
+                    double newZ = oldZ + modifier * se.getDeltaY();
+    
+                    camera.setTranslateZ(newZ);
+                }
            }
         });
     }
