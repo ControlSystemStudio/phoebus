@@ -45,6 +45,7 @@ import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.model.widgets.ThermometerWidget;
+import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
@@ -73,6 +74,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(ByteMonitorWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ByteMonitorRepresentation()),
             entry(CheckBoxWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new CheckBoxRepresentation()),
             entry(ComboWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new ComboRepresentation()),
+            entry(DataBrowserWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new DataBrowserRepresentation()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR, () -> (WidgetRepresentation) new EmbeddedDisplayRepresentation()),
             entry(EllipseWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new EllipseRepresentation()),
             entry(FileSelectorWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new FileSelectorRepresentation()),
@@ -100,8 +102,8 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(TextSymbolWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new TextSymbolRepresentation()),
             entry(TextUpdateWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new TextUpdateRepresentation()),
             entry(ThermometerWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ThermometerRepresentation()),
+            entry(Viewer3dWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new Viewer3dRepresentation()),
             entry(WebBrowserWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new WebBrowserRepresentation()),
-            entry(DataBrowserWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new DataBrowserRepresentation()),
             entry(XYPlotWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new XYPlotRepresentation()));
     }
 }

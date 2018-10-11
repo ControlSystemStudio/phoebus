@@ -28,6 +28,7 @@
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
     <ant target="clean" dir="app/databrowser"/>
+    <ant target="clean" dir="app/3dViewer"/>
     <ant target="clean" dir="app/display/model"/>
     <ant target="clean" dir="app/display/representation"/>
     <ant target="clean" dir="app/display/representation-javafx"/>
@@ -87,6 +88,7 @@
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>
     <ant dir="app/databrowser"/>
+    <ant dir="app/3dViewer"/>
     <ant dir="app/display/model"/>
     <ant dir="app/display/representation"/>
     <ant dir="app/display/representation-javafx"/>
@@ -98,7 +100,6 @@
     <ant dir="app/alarm/model"/>
     <ant dir="app/alarm/ui"/>
     <ant dir="app/update"/>
-    <ant dir="app/3dViewer"/>
   </target>
 
   <target name="product" depends="app" description="Assemble product">

@@ -50,6 +50,7 @@ import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.model.widgets.ThermometerWidget;
+import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
@@ -72,6 +73,7 @@ public class BaseWidgetsService implements WidgetsService
             CheckBoxWidget.WIDGET_DESCRIPTOR,
             ClockWidget.WIDGET_DESCRIPTOR,
             ComboWidget.WIDGET_DESCRIPTOR,
+            DataBrowserWidget.WIDGET_DESCRIPTOR,
             DigitalClockWidget.WIDGET_DESCRIPTOR,
             EllipseWidget.WIDGET_DESCRIPTOR,
             EmbeddedDisplayWidget.WIDGET_DESCRIPTOR,
@@ -104,8 +106,8 @@ public class BaseWidgetsService implements WidgetsService
             TextSymbolWidget.WIDGET_DESCRIPTOR,
             TextUpdateWidget.WIDGET_DESCRIPTOR,
             ThermometerWidget.WIDGET_DESCRIPTOR,
+            Viewer3dWidget.WIDGET_DESCRIPTOR,
             WebBrowserWidget.WIDGET_DESCRIPTOR,
-            DataBrowserWidget.WIDGET_DESCRIPTOR,
             XYPlotWidget.WIDGET_DESCRIPTOR);
     }
 }
