@@ -190,6 +190,7 @@ public class OlogClient implements LogClient {
         }
 
         public OlogClient create() throws Exception {
+            System.out.println("creating the olog clinet....");
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
             } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
@@ -213,8 +214,7 @@ public class OlogClient implements LogClient {
             }
             this.username = ifNullReturnPreferenceValue(this.username, "username", "username");
             this.password = ifNullReturnPreferenceValue(this.password, "password", "password");
-            return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username,
-                    this.password);
+            return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username, this.password);
         }
 
         private String ifNullReturnPreferenceValue(String value, String key, String Default) {
@@ -486,7 +486,7 @@ public class OlogClient implements LogClient {
     private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
         List<LogEntry> logs = new ArrayList<LogEntry>();
         if (!mMap.containsKey("limit")) {
-            mMap.putSingle("limit", "25");
+            mMap.putSingle("limit", "100");
         }
         try {
             logs = logEntryMapper.readValue(
@@ -562,8 +562,7 @@ public class OlogClient implements LogClient {
 
     @Override
     public InputStream getAttachment(Long logId, String attachmentName) {
-        ClientResponse response = service.path("attachments").path(logId.toString()).path(attachmentName)
-                .get(ClientResponse.class);
+        ClientResponse response = service.path("attachments").path(logId.toString()).path(attachmentName).get(ClientResponse.class);
         return response.getEntity(InputStream.class);
     }
 
@@ -585,13 +584,16 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<Logbook> listLogbooks() {
-        Collection<Logbook> allLogbooks = new HashSet<Logbook>();
-        // XmlLogbooks allXmlLogbooks =
-        // service.path("logbooks").accept(MediaType.APPLICATION_XML).get(XmlLogbooks.class);
-        // for (XmlLogbook xmlLogbook : allXmlLogbooks.getLogbooks()) {
-        // allLogbooks.add(xmlLogbook);
-        // }
-        return allLogbooks;
+        try {
+            Map<String, List<Logbook>> map = logEntryMapper.readValue(
+                    service.path("logbooks").accept(MediaType.APPLICATION_JSON).get(String.class),
+                    new TypeReference<Map<String, List<Logbook>>>() {
+            });
+            return map.get("logbook");
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            e.printStackTrace();
+            return Collections.emptySet();
+        }
     }
 
     @Override
@@ -606,24 +608,29 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<Property> listProperties() {
-        Collection<Property> allProperties = new HashSet<Property>();
-        // XmlProperties xmlProperties =
-        // service.path("properties").accept(MediaType.APPLICATION_XML)
-        // .accept(MediaType.APPLICATION_JSON).get(XmlProperties.class);
-        // for (XmlProperty xmlProperty : xmlProperties.getProperties()) {
-        // allProperties.add(xmlProperty);
-        // }
-        return allProperties;
+        try {
+            Map<String, List<Property>> map = logEntryMapper.readValue(
+                    service.path("properties").accept(MediaType.APPLICATION_JSON).get(String.class),
+                    new TypeReference<Map<String, List<Property>>>() {
+            });
+            return map.get("property");
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            e.printStackTrace();
+            return Collections.emptySet();
+        }
     }
 
     @Override
     public Collection<Tag> listTags() {
-        Collection<Tag> allTags = new HashSet<Tag>();
-        // XmlTags allXmlTags =
-        // service.path("tags").accept(MediaType.APPLICATION_XML).get(XmlTags.class);
-        // for (XmlTag xmlTag : allXmlTags.getTags()) {
-        // allTags.add(xmlTag);
-        // }
-        return allTags;
+        try {
+            Map<String, List<Tag>> map = logEntryMapper.readValue(
+                    service.path("tags").accept(MediaType.APPLICATION_JSON).get(String.class),
+                    new TypeReference<Map<String, List<Tag>>>() {
+            });
+            return map.get("tag");
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            e.printStackTrace();
+            return Collections.emptySet();
+        }
     }
 }
