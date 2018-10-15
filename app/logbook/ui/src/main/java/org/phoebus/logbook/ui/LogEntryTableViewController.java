@@ -41,6 +41,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -138,11 +139,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // Model
     List<LogEntry> logEntries;
-    List<String> logbookNames = Collections.emptyList();
-    List<String> tagNames = Collections.emptyList();
+    List<String> logbookNames;
+    List<String> tagNames;
+
+    private ListSelectionController tagController;
+    private ListSelectionController logbookController;
 
     // Search parameters
-    javafx.collections.ObservableMap<Keys, String> searchParameters;
+    ObservableMap<Keys, String> searchParameters;
 
     @FXML
     public void initialize() {
@@ -152,12 +156,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         AdavanceSearchPane.minWidthProperty().set(0);
         AdavanceSearchPane.maxWidthProperty().set(0);
         resize.setText("<");
-
-        if (getClient() != null) {
-            logbookNames = getClient().listLogbooks().stream().map(Logbook::getName).sorted()
-                    .collect(Collectors.toList());
-            tagNames = getClient().listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
-        }
 
         searchParameters = FXCollections.<Keys, String>observableHashMap();
         searchParameters.put(Keys.TEXT, "*");
@@ -198,9 +196,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
         logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
         try {
             logbookSelectionLoader.load();
-            ListSelectionController controller = logbookSelectionLoader.getController();
-            controller.setAvailable(logbookNames);
-            controller.setOnApply((List<String> t) -> {
+            logbookController = logbookSelectionLoader.getController();
+            logbookController.setOnApply((List<String> t) -> {
                 Platform.runLater(() -> {
                     searchParameters.put(Keys.LOGBOOKS, t.stream().collect(Collectors.joining(",")));
                     //searchLogbooks.setText(t.stream().collect(Collectors.joining(",")));
@@ -209,7 +206,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 });
                 return true;
             });
-            controller.setOnCancel((List<String> t) -> {
+            logbookController.setOnCancel((List<String> t) -> {
                 if (logbookSearchpopover.isShowing())
                     logbookSearchpopover.hide();
                 return true;
@@ -223,6 +220,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
             public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
                     Boolean newPropertyValue) {
                 if (newPropertyValue) {
+                    if(logbookNames == null) {
+                        logbookNames = getClient().listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
+                    }
+                    logbookController.setAvailable(logbookNames);
                     logbookSearchpopover.show(searchLogbooks);
                 } else if (logbookSearchpopover.isShowing()) {
                     logbookSearchpopover.hide();
@@ -234,9 +235,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tagSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
         try {
             tagSelectionLoader.load();
-            ListSelectionController controller = tagSelectionLoader.getController();
-            controller.setAvailable(tagNames);
-            controller.setOnApply((List<String> t) -> {
+            tagController = tagSelectionLoader.getController();
+            tagController.setOnApply((List<String> t) -> {
                 Platform.runLater(() -> {
                     searchParameters.put(Keys.TAGS, t.stream().collect(Collectors.joining(",")));
                     //searchTags.setText(t.stream().collect(Collectors.joining(",")));
@@ -245,7 +245,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 });
                 return true;
             });
-            controller.setOnCancel((List<String> t) -> {
+            tagController.setOnCancel((List<String> t) -> {
                 if (tagSearchpopover.isShowing())
                     tagSearchpopover.hide();
                 return true;
@@ -257,6 +257,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         searchTags.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
                     if (newPropertyValue) {
+                        if(tagNames == null) {
+                            tagNames = getClient().listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
+                        }
+                        tagController.setAvailable(tagNames);
                         tagSearchpopover.show(searchTags);
                     } else if (tagSearchpopover.isShowing()) {
                         tagSearchpopover.hide();
