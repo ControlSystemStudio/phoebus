@@ -27,13 +27,14 @@ public class LogEntryTable implements AppInstance {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
             loader.load();
-            tab = new DockItem(this, loader.getRoot());
             controller = loader.getController();
             if (this.app.getClient() != null) {
                 controller.setClient(this.app.getClient());
             } else {
                 log.log(Level.SEVERE, "Failed to acquire a valid logbook client");
             }
+
+            tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);
