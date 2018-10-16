@@ -49,6 +49,7 @@ public class LogEntryTable implements AppInstance {
     public void setResource(URI resource) {
         String query = resource.getQuery();
         // TODO URI parsing might be improved.
+        String queryParamerters = resource.getQuery();
         String parsedQuery = Arrays.asList(query.split("&")).stream().filter(s->{
             return s.startsWith("query");
         }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));

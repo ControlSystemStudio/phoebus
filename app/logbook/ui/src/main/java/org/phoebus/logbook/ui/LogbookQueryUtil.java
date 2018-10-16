@@ -44,7 +44,12 @@ public class LogbookQueryUtil {
     }
 
     public static Map<String, String> parseQueryString(String query) {
-        return parseQueryURI(URI.create(query));
+        if (Strings.isNullOrEmpty(query)) {
+            return Collections.emptyMap();
+        } else {
+            return Arrays.asList(query.split("&")).stream()
+                    .collect(Collectors.toMap(new KeyParser(), new ValueParser()));
+        }
     }
 
     private static class KeyParser implements Function<String, String> {

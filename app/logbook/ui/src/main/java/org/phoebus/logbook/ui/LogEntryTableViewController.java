@@ -485,10 +485,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void search() {
         // parse the various time representations to Instant
-        String text = query.getText();
-        
-        
-        super.search(query.getText());
+        super.search(LogbookQueryUtil.parseQueryString(query.getText()));
     }
 
     @FXML
