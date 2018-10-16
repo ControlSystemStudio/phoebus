@@ -139,8 +139,16 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
         if (! pv_name.isPresent())
             return;
 
-        jfx_node.setOnDragDetected(event ->
+        jfx_node.addEventFilter(MouseEvent.DRAG_DETECTED, event ->
         {
+            // Ignore drag unless Ctrl is held.
+            // When plain drag starts a PV name move,
+            // this prevents dragging within a text field
+            // from selecting content.
+            // Ctrl-drag is thus required to start dragging a PV name.
+            if (! event.isControlDown())
+                return;
+
             final String pv = pv_name.get().getValue();
             if (! pv.isEmpty())
             {
@@ -149,7 +157,6 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                 content.putString(pv);
                 db.setContent(content);
             }
-            event.consume();
         });
     }
 
