@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,6 +19,7 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
 import org.phoebus.logbook.ui.write.PropertiesTab;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.javafx.FilesTab;
@@ -76,25 +76,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
     String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
-
-    // Ordered search keys
-    static enum Keys {
-        TEXT("text"), LOGBOOKS("logbooks"), TAGS("tags"), STARTTIME("startTime"), ENDTIME("endTime");
-        private final String name;
-
-        private Keys(String name) {
-            this.name = name;
-        };
-
-        public String getName() {
-            return this.name;
-        }
-
-        @Override
-        public String toString() {
-            return this.toString();
-        }
-    }
 
     @FXML
     Button resize;
@@ -158,7 +139,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         resize.setText("<");
 
         searchParameters = FXCollections.<Keys, String>observableHashMap();
-        searchParameters.put(Keys.TEXT, "*");
+        searchParameters.put(Keys.SEARCH, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
 
@@ -175,9 +156,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
             public void onChanged(Change<? extends Keys, ? extends String> change) {
                 Platform.runLater(() -> {
                     query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-                        return e.getKey().getName().trim() + ":" + e.getValue().trim();
+                        return e.getKey().getName().trim() + "=" + e.getValue().trim();
                     }).collect(Collectors.joining(",")));
-                    searchText.setText(searchParameters.get(Keys.TEXT));
+                    searchText.setText(searchParameters.get(Keys.SEARCH));
                     searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
                     searchTags.setText(searchParameters.get(Keys.TAGS));
                 });
@@ -187,7 +168,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
         endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
 
-        searchText.setText(searchParameters.get(Keys.TEXT));
+        searchText.setText(searchParameters.get(Keys.SEARCH));
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + ":" + e.getValue().trim();
         }).collect(Collectors.joining(",")));
@@ -503,12 +484,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     public void search() {
+        // parse the various time representations to Instant
+        String text = query.getText();
+        
+        
         super.search(query.getText());
     }
 
     @FXML
     void setSearchText() {
-        searchParameters.put(Keys.TEXT, searchText.getText());
+        searchParameters.put(Keys.SEARCH, searchText.getText());
     }
 
     @FXML
