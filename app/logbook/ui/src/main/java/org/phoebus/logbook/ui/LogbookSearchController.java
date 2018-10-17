@@ -1,6 +1,7 @@
 package org.phoebus.logbook.ui;
 
 import java.util.List;
+import java.util.Map;
 
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.logbook.LogClient;
@@ -24,16 +25,20 @@ public abstract class LogbookSearchController {
     private Job logbookSearchJob;
     private LogClient client;
 
+    public LogClient getClient() {
+        return client;
+    }
+
     public void setClient(LogClient client) {
         this.client = client;
     }
 
-    public void search(String searchString) {
+    public void search(Map<String, String> map) {
         if (logbookSearchJob != null) {
             logbookSearchJob.cancel();
         }
         logbookSearchJob = LogbookSearchJob.submit(this.client,
-                searchString,
+                map,
                 logs -> Platform.runLater(() -> setLogs(logs)),
                 (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex));
     }

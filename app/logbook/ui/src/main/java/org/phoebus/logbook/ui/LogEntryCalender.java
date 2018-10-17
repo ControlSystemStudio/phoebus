@@ -112,7 +112,9 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
         if (logbookSearchJob != null) {
             logbookSearchJob.cancel();
         }
-        logbookSearchJob = LogbookSearchJob.submit(app.getClient(), "*", logs -> Platform.runLater(() -> setLogs(logs)),
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("search", "*");
+        logbookSearchJob = LogbookSearchJob.submit(app.getClient(), map, logs -> Platform.runLater(() -> setLogs(logs)),
                 (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex));
 
     }
@@ -147,7 +149,9 @@ public class LogEntryCalender extends LogbookSearchController implements AppInst
     }
 
     public void search() {
-        super.search("*");
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("search", "*");
+        super.search(map);
     }
 
     @Override

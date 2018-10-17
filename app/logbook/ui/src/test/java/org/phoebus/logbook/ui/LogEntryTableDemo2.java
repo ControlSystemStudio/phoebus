@@ -18,28 +18,21 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class LogEntryListDemo extends Application {
+public class LogEntryTableDemo2 extends Application {
 
     public static void main(String[] args) {
         launch(args);
     }
 
+    private LogEntryTableControl control;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // TODO Auto-generated method stub
-
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("LogEntryList.fxml"));
-        loader.load();
-        LogEntryListController controller = loader.getController();
-        Parent root = loader.getRoot();
-
-        primaryStage.setScene(new Scene(root, 400, 400));
+        control = new LogEntryTableControl();
+        primaryStage.setScene(new Scene(control, 400, 400));
         primaryStage.show();
 
         List<LogEntry> logs = new ArrayList<LogEntry>();
@@ -52,20 +45,23 @@ public class LogEntryListDemo extends Application {
         logbooks.add(LogbookImpl.of("logbook1", "active"));
         logbooks.add(LogbookImpl.of("logbook2", "active"));
 
-        String path = "C:\\Users\\Kunal Shroff\\Pictures\\screenshot-git\\att";
+        String path = "C:\\Users\\Kunal Shroff\\Pictures\\screenshot-git\\log-att";
         File folder = new File(path);
         List<File> listOfFiles = Arrays.asList(folder.listFiles());
 
         for (int i = 0; i < 10; i++) {
             LogEntryBuilder lb = LogEntryBuilder.log()
+                           .owner("Owner")
                            .title("log "+ i)
                            .description("First line for log " + i)
                            .createdDate(Instant.now())
                            .inLogbooks(logbooks)
                            .withTags(tags);
+            StringBuilder sb = new StringBuilder();
             for (int j = 0; j < i; j++) {
-                lb.appendDescription("Some additional log text");
+                sb.append("Some additional log text");
             }
+            lb.appendDescription(sb.toString());
             listOfFiles.forEach(file -> {
                 try {
                     lb.attach(AttachmentImpl.of(file));
@@ -75,7 +71,6 @@ public class LogEntryListDemo extends Application {
             });
             logs.add(lb.build());
         }
-
-        controller.setLogs(logs);
+        control.setLogs(logs);
     }
 }

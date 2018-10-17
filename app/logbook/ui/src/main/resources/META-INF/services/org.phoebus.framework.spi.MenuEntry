@@ -1,4 +1,3 @@
 org.phoebus.logbook.ui.menu.SendToLogBookMenuEntry
-org.phoebus.logbook.ui.LogEntryListMenuEntry
 org.phoebus.logbook.ui.LogEntryCalenderMenuEntry
 org.phoebus.logbook.ui.LogEntryTableMenuEntry

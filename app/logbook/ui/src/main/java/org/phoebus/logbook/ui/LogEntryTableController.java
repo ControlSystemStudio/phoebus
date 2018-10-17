@@ -1,49 +1,47 @@
 package org.phoebus.logbook.ui;
 
+import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.ui.write.PropertiesTab;
+import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ImagesTab;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.TilePane;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
+import javafx.scene.layout.Priority;
+import javafx.scene.text.Text;
 
-import static org.phoebus.util.time.TimestampFormats.*;
-
-public class LogEntryTableController extends LogbookSearchController {
+public class LogEntryTableController extends LogEntryTableViewController {
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
-
-    @FXML
-    TextField query;
-    @FXML
-    Button search;
 
     @FXML
     TableView<LogEntry> tableView;
@@ -106,11 +104,24 @@ public class LogEntryTableController extends LogbookSearchController {
             final GridPane pane = new GridPane();
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
-            final Label descriptionText = new Label();
-            TilePane imageGallery = new TilePane();
-            pane.addColumn(0, titleText, descriptionText, imageGallery);
+            final Text descriptionText = new Text();
+            descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
 
-            return new TableCell<LogEntry, LogEntry>() {
+            TabPane tabPane = new TabPane();
+            ImagesTab imagesTab = new ImagesTab();
+            FilesTab filesTab = new FilesTab();
+            PropertiesTab propertiesTab = new PropertiesTab();
+            tabPane.getTabs().addAll(imagesTab, filesTab, propertiesTab);
+            TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
+            Accordion imageGallery = new Accordion();
+            imageGallery.getPanes().add(tPane);
+
+            pane.addColumn(0, titleText, descriptionText, imageGallery);
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setHgrow(Priority.ALWAYS);
+            pane.getColumnConstraints().add(cc);
+
+            TableCell<LogEntry, LogEntry> cell = new TableCell<LogEntry, LogEntry>() {
                 @Override
                 public void updateItem(LogEntry logEntry, boolean empty) {
                     super.updateItem(logEntry, empty);
@@ -123,18 +134,25 @@ public class LogEntryTableController extends LogbookSearchController {
                             titleText.setVisible(true);
                             titleText.setText(logEntry.getTitle());
                         }
+
+                        final List<Image> images = new ArrayList<>();
+                        final List<File> files = new ArrayList<>();
+                        logEntry.getAttachments().stream().forEach(attachment -> {
+                            if (attachment.getContentType().startsWith(Attachment.CONTENT_IMAGE)) {
+                                images.add(createImage(attachment.getFile()));
+                            } else {
+                                files.add(attachment.getFile());
+                            }
+                        });
+                        filesTab.setFiles(files);
+                        imagesTab.setImages(images);
                         descriptionText.setText(logEntry.getDescription());
-                        // imageGallery.getChildren().clear();
-                        // logEntry.getAttachments().forEach(attachment -> {
-                        // ImageView imageView;
-                        // imageView = createImageView(attachment.getFile());
-                        // imageGallery.getChildren().addAll(imageView);
-                        // });
-                        // imageGallery.requestLayout();
                         setGraphic(pane);
                     }
                 }
             };
+            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
+            return cell;
 
         });
 
@@ -188,63 +206,13 @@ public class LogEntryTableController extends LogbookSearchController {
         }
     }
 
-    @FXML
-    public void search() {
-        super.search(query.getText());
-    }
-
-    public void setQuery(String parsedQuery) {
-        query.setText(parsedQuery);
-        search();
-
-    }
-
-    private ImageView createImageView(final File imageFile) {
-
-        ImageView imageView = null;
+    private Image createImage(final File imageFile) {
         try {
-            final Image image = new Image(new FileInputStream(imageFile), 150, 0, true, true);
-            imageView = new ImageView(image);
-            imageView.setFitWidth(150);
-            imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-
-                @Override
-                public void handle(MouseEvent mouseEvent) {
-
-                    if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-
-                        if (mouseEvent.getClickCount() == 2) {
-                            try {
-                                BorderPane borderPane = new BorderPane();
-                                ImageView imageView = new ImageView();
-                                Image image = new Image(new FileInputStream(imageFile));
-                                imageView.setImage(image);
-                                imageView.setStyle("-fx-background-color: BLACK");
-                                imageView.setFitHeight(image.getHeight() - 10);
-                                imageView.setPreserveRatio(true);
-                                imageView.setSmooth(true);
-                                imageView.setCache(true);
-                                borderPane.setCenter(imageView);
-                                borderPane.setStyle("-fx-background-color: BLACK");
-                                Stage newStage = new Stage();
-                                newStage.setWidth(image.getWidth());
-                                newStage.setHeight(image.getHeight());
-                                newStage.setTitle(imageFile.getName());
-                                Scene scene = new Scene(borderPane, Color.BLACK);
-                                newStage.setScene(scene);
-                                newStage.show();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }
-                }
-            });
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
+            return new Image(new FileInputStream(imageFile), 150, 0, true, true);
+        } catch (FileNotFoundException e) {
+            LogEntryTable.log.log(Level.WARNING, "failed to create image from attachement", e);
+            return null;
         }
-        return imageView;
     }
 
 }

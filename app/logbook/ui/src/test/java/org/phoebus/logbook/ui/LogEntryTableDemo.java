@@ -21,6 +21,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class LogEntryTableDemo extends Application {
@@ -33,8 +34,10 @@ public class LogEntryTableDemo extends Application {
     public void start(Stage primaryStage) throws Exception {
         // TODO Auto-generated method stub
 
+        VBox vbox = new VBox();
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("LogEntryTable.fxml"));
+        loader.setRoot(vbox);
         loader.load();
         LogEntryTableController controller = loader.getController();
         Parent root = loader.getRoot();
@@ -52,7 +55,7 @@ public class LogEntryTableDemo extends Application {
         logbooks.add(LogbookImpl.of("logbook1", "active"));
         logbooks.add(LogbookImpl.of("logbook2", "active"));
 
-        String path = "C:\\Users\\Kunal Shroff\\Pictures\\screenshot-git\\att";
+        String path = "C:\\Users\\Kunal Shroff\\Pictures\\screenshot-git\\log-att";
         File folder = new File(path);
         List<File> listOfFiles = Arrays.asList(folder.listFiles());
 
@@ -64,9 +67,11 @@ public class LogEntryTableDemo extends Application {
                            .createdDate(Instant.now())
                            .inLogbooks(logbooks)
                            .withTags(tags);
+            StringBuilder sb = new StringBuilder();
             for (int j = 0; j < i; j++) {
-                lb.appendDescription("Some additional log text");
+                sb.append("Some additional log text");
             }
+            lb.appendDescription(sb.toString());
             listOfFiles.forEach(file -> {
                 try {
                     lb.attach(AttachmentImpl.of(file));
