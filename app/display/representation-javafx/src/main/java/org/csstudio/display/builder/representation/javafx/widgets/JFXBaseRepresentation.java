@@ -143,8 +143,8 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
         {
             // Ignore drag unless Ctrl is held.
             // When plain drag starts a PV name move,
-            // this prevents dragging within a text field
-            // from selecting content.
+            // this prevents selecting content within a text field
+            // via a mouse drag.
             // Ctrl-drag is thus required to start dragging a PV name.
             if (! event.isControlDown())
                 return;
