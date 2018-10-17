@@ -268,17 +268,10 @@ public class Viewer3d extends StackPane
                         
                         Sphere sphere = new Sphere(R);
                         
+                        /* If the scanner has anything left, install as comment. */
                         if (scanner.hasNext())
                         {
-                            final String comment = scanner.next();
-                            
-                            if (!comment.startsWith("\""))
-                                throw new Exception("Malformed shape decleration: Shape comment missing starting quotes.");
-                            
-                            if (!comment.endsWith("\""))
-                                throw new Exception("Malformed shape decleration: Shape comment missing ending quotes.");
-                            
-                            Tooltip.install(sphere, new Tooltip(comment.substring(1, comment.length()-1)));
+                           installComment(sphere, scanner.next());
                         }
                         
                         sphere.setMaterial(material);
@@ -307,17 +300,10 @@ public class Viewer3d extends StackPane
                         
                         Box box = new Box();
                         
+                        /* If the scanner has anything left, install as comment. */
                         if (scanner.hasNext())
                         {
-                            final String comment = scanner.next();
-                            
-                            if (!comment.startsWith("\""))
-                                throw new Exception("Malformed shape decleration: Shape comment missing starting quotes.");
-                            
-                            if (!comment.endsWith("\""))
-                                throw new Exception("Malformed shape decleration: Shape comment missing ending quotes.");
-                            
-                            Tooltip.install(box, new Tooltip(comment.substring(1, comment.length()-1)));
+                           installComment(box, scanner.next());
                         }
                         
                         box.setMaterial(material);
@@ -362,17 +348,10 @@ public class Viewer3d extends StackPane
                         /* Align the cylinder from (x1, y1, z1) to (x2, y2, z2). */
                         Cylinder cylinder = new Cylinder();
                         
+                        /* If the scanner has anything left, install as comment. */
                         if (scanner.hasNext())
                         {
-                            final String comment = scanner.next();
-                            
-                            if (!comment.startsWith("\""))
-                                throw new Exception("Malformed shape decleration: Shape comment missing starting quotes.");
-                            
-                            if (!comment.endsWith("\""))
-                                throw new Exception("Malformed shape decleration: Shape comment missing ending quotes.");
-                            
-                            Tooltip.install(cylinder, new Tooltip(comment.substring(1, comment.length()-1)));
+                           installComment(cylinder, scanner.next());
                         }
                         
                         cylinder.setMaterial(material);
@@ -406,6 +385,26 @@ public class Viewer3d extends StackPane
             
             return struct;
         }
+    }
+    
+    /**
+     * Install valid comments onto node.
+     * 
+     * <p> Valid comments must begin and end with double quotes (").
+     * 
+     * @param node
+     * @param comment
+     * @throws Exception on error.
+     */
+    private static void installComment(final Node node, final String comment) throws Exception
+    {
+        if (!comment.startsWith("\""))
+            throw new Exception("Malformed shape decleration: Shape comment missing starting quotes.");
+        
+        if (!comment.endsWith("\""))
+            throw new Exception("Malformed shape decleration: Shape comment missing ending quotes.");
+        
+        Tooltip.install(node, new Tooltip(comment.substring(1, comment.length()-1)));
     }
     
     /**
