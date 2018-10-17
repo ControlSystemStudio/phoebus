@@ -22,9 +22,12 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
+import javafx.util.Callback;
 
 /** Table display of logged scan data
  *  @author Kay Kasemir
@@ -79,6 +82,26 @@ public class DataTable extends StackPane
             {
                 final TableColumn<List<SimpleStringProperty>, String> col = new TableColumn<>(device);
                 final int col_index = i;
+                
+                Callback< TableColumn<List<SimpleStringProperty>, String>, 
+                          TableCell<List<SimpleStringProperty>, String> > existingCellFactory =
+                        col.getCellFactory();
+                
+                col.setCellFactory(c ->
+                {
+                    TableCell<List<SimpleStringProperty>, String> cell = existingCellFactory.call(c);
+
+                    Tooltip tooltip = new Tooltip();
+                    
+                    //tooltip.setText(iterator.getSamples()[0].getTimestamp().toString());
+                    
+                    tooltip.setText("This is a cell...");
+                    
+                    cell.setTooltip(tooltip);
+
+                    return cell;
+                });
+
                 col.setCellValueFactory(cell ->
                 {
                     final List<SimpleStringProperty> row = cell.getValue();
