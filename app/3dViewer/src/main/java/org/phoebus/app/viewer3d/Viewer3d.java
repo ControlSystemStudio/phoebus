@@ -47,6 +47,12 @@ import javafx.scene.transform.Translate;
  */
 public class Viewer3d extends StackPane
 {
+    public static final String UNRECOGNIZED_SHAPE_TYPE_ERROR = "Unrecognized shape type: ";
+    public static final String MISSING_BEG_QUOTES_ERROR = "Malformed shape decleration: Shape comment missing starting quotes.";
+    public static final String MISSING_END_QUOTES_ERROR = "Malformed shape decleration: Shape comment missing ending quotes.";
+    public static final String BAD_TYPE_OPEN_PAREN_ERROR = "Malformed shape decleration: Bad type and open parentheses.";
+    public static final String MISSING_CLOSE_PAREN_ERROR = "Malformed shape decleration: Missing closing parentheses.";
+    
     private final SubScene scene;
     
     private final Group root;
@@ -225,7 +231,7 @@ public class Viewer3d extends StackPane
                 /* All entries are of the form type(arg_0, ... , arg_N-1) */
                 
                 if (!line.matches("\\w*\\(.*"))
-                    throw new Exception("Malformed shape decleration: Bad type and open parentheses.");
+                    throw new Exception(BAD_TYPE_OPEN_PAREN_ERROR);
                 
                 /* Split the line on the first open parentheses to get the type. */
                 String[] typeAndArgs = line.split("\\(\\s*", 2);
@@ -233,7 +239,7 @@ public class Viewer3d extends StackPane
                 
                 /* The argument list will then be the remaining string sans the closing parentheses. */
                 if (!typeAndArgs[1].endsWith(")"))
-                    throw new Exception("Malformed shape decleration: Missing closing parentheses.");
+                    throw new Exception(MISSING_CLOSE_PAREN_ERROR);
                 
                 final String argList = typeAndArgs[1].substring(0, typeAndArgs[1].length()-1);
                 
@@ -378,7 +384,7 @@ public class Viewer3d extends StackPane
                     }
                     else
                     {
-                        throw new Exception("Unrecognized shape type '" + type + "'");
+                        throw new Exception(UNRECOGNIZED_SHAPE_TYPE_ERROR + "'" + type + "'");
                     }
                 }
             }
@@ -398,13 +404,31 @@ public class Viewer3d extends StackPane
      */
     private static void installComment(final Node node, final String comment) throws Exception
     {
+        String content = checkAndParseComment(comment);
+        
+        Tooltip.install(node, new Tooltip(content));
+    }
+    
+    /**
+     * Check the passed comment to make sure it begins and ends with double quotes,
+     * and all quotes in between are escaped.
+     * @param comment
+     * @return
+     * @throws Exception
+     */
+    public static String checkAndParseComment(final String comment) throws Exception
+    {
         if (!comment.startsWith("\""))
-            throw new Exception("Malformed shape decleration: Shape comment missing starting quotes.");
+            throw new Exception(MISSING_BEG_QUOTES_ERROR);
         
         if (!comment.endsWith("\""))
-            throw new Exception("Malformed shape decleration: Shape comment missing ending quotes.");
+            throw new Exception(MISSING_END_QUOTES_ERROR);
+
+        /* TODO Throw exception for unescaped quotes? */
         
-        Tooltip.install(node, new Tooltip(comment.substring(1, comment.length()-1)));
+        String parsedComment = comment.substring(1, comment.length()-1).replaceAll("\\\"", "\"");
+        
+        return parsedComment;
     }
     
     /**
