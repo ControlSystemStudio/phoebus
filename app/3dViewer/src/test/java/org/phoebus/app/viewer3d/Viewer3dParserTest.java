@@ -8,6 +8,7 @@
 package org.phoebus.app.viewer3d;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 
@@ -95,11 +96,60 @@ public class Viewer3dParserTest
     }
     
     @Test
-    public void buildStructure_badInput_throwException()
+    public void buildStructure_badInputMissingValue_throwException()
     {
+        try
+        {
+            /* Missing radius. */
+            
+            String input = "sphere(25, 20, 35, , 155, 24, 43, 0.565)";
+            Viewer3d.buildStructure(new ByteArrayInputStream(input.getBytes()));
+            
+            /* If this is reached, the error was not caught. */
+            
+            assertTrue(false);
+        }
+        catch(Exception ex)
+        {
+            /* Exception thrown, error caught -- Success! */
+        }
         
+        try
+        {
+            /* Missing alpha value. */
+            
+            String input = "sphere(25, 20, 35, 22.8, 155, 24, 43,)";
+            Viewer3d.buildStructure(new ByteArrayInputStream(input.getBytes()));
+            
+            /* If this is reached, the error was not caught. */
+            
+            assertTrue(false);
+        }
+        catch(Exception ex)
+        {
+            /* Exception thrown, error caught -- Success! */
+        }
     }
     
+    @Test
+    public void buildStructure_badInputMalformedComment_throwException()
+    {
+        try
+        {
+            /* Malformed comment parameter. */
+            
+            String input = "sphere(25, 20, 35, 22.8, 155, 24, 43, 0.565, blah blah blah, I have no quotes!)";
+            Viewer3d.buildStructure(new ByteArrayInputStream(input.getBytes()));
+            
+            /* If this is reached, the error was not caught. */
+            
+            assertTrue(false);
+        }
+        catch(Exception ex)
+        {
+            /* Exception thrown, error caught -- Success! */
+        }
+    }
     @Test
     public void checkAndParseComment_goodComment_returnParsedComment() throws Exception
     {
@@ -110,7 +160,6 @@ public class Viewer3dParserTest
         /* Check for acceptance and parsing of valid comment. */
         
         assertEquals(correctComment, checkedComment);
-        
     }
     
     @Test
