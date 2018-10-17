@@ -40,6 +40,7 @@ import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
+import org.csstudio.display.builder.model.widgets.SlideButtonWidget;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
@@ -49,6 +50,7 @@ import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.model.widgets.ThermometerWidget;
+import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
@@ -71,6 +73,7 @@ public class BaseWidgetsService implements WidgetsService
             CheckBoxWidget.WIDGET_DESCRIPTOR,
             ClockWidget.WIDGET_DESCRIPTOR,
             ComboWidget.WIDGET_DESCRIPTOR,
+            DataBrowserWidget.WIDGET_DESCRIPTOR,
             DigitalClockWidget.WIDGET_DESCRIPTOR,
             EllipseWidget.WIDGET_DESCRIPTOR,
             EmbeddedDisplayWidget.WIDGET_DESCRIPTOR,
@@ -93,6 +96,7 @@ public class BaseWidgetsService implements WidgetsService
             RectangleWidget.WIDGET_DESCRIPTOR,
             ScaledSliderWidget.WIDGET_DESCRIPTOR,
             ScrollBarWidget.WIDGET_DESCRIPTOR,
+            SlideButtonWidget.WIDGET_DESCRIPTOR,
             SpinnerWidget.WIDGET_DESCRIPTOR,
             SymbolWidget.WIDGET_DESCRIPTOR,
             TableWidget.WIDGET_DESCRIPTOR,
@@ -102,8 +106,8 @@ public class BaseWidgetsService implements WidgetsService
             TextSymbolWidget.WIDGET_DESCRIPTOR,
             TextUpdateWidget.WIDGET_DESCRIPTOR,
             ThermometerWidget.WIDGET_DESCRIPTOR,
+            Viewer3dWidget.WIDGET_DESCRIPTOR,
             WebBrowserWidget.WIDGET_DESCRIPTOR,
-            DataBrowserWidget.WIDGET_DESCRIPTOR,
             XYPlotWidget.WIDGET_DESCRIPTOR);
     }
 }

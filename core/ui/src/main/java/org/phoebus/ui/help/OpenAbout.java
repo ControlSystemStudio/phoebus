@@ -66,6 +66,7 @@ public class OpenAbout implements MenuEntry
         infos.add(Arrays.asList("Installation Location", Locations.install().toString()));
         infos.add(Arrays.asList("User Settings Location", Locations.user().toString()));
         infos.add(Arrays.asList("Java Version", System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
+        infos.add(Arrays.asList("JavaFX Version", System.getProperty("javafx.runtime.version")));
 
         // Display in TableView
         final TableView<List<String>> info_table = new TableView<>(infos);

@@ -21,6 +21,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.controlsfx</groupId>
+      <artifactId>controlsfx</artifactId>
+      <version>9.0.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
@@ -43,6 +48,11 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-databrowser</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-3dViewer</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>

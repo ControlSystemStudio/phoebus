@@ -100,11 +100,6 @@ public class SymbolWidget extends PVWidget {
         return newFilenamePropertyDescriptor(WidgetPropertyCategory.WIDGET, "symbol", Messages.WidgetProperties_Symbol + " " + index);
     }
 
-    /**
-     * @param type Widget type.
-     * @param default_width Default widget width.
-     * @param default_height Default widget height.
-     */
     public SymbolWidget ( ) {
         super(WIDGET_DESCRIPTOR.getType(), 100, 100);
     }

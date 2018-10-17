@@ -35,6 +35,7 @@ import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
+import org.csstudio.display.builder.model.widgets.SlideButtonWidget;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
@@ -44,6 +45,7 @@ import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.model.widgets.ThermometerWidget;
+import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
@@ -72,6 +74,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(ByteMonitorWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ByteMonitorRepresentation()),
             entry(CheckBoxWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new CheckBoxRepresentation()),
             entry(ComboWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new ComboRepresentation()),
+            entry(DataBrowserWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new DataBrowserRepresentation()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR, () -> (WidgetRepresentation) new EmbeddedDisplayRepresentation()),
             entry(EllipseWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new EllipseRepresentation()),
             entry(FileSelectorWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new FileSelectorRepresentation()),
@@ -89,6 +92,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(RectangleWidget.WIDGET_DESCRIPTOR,       () -> (WidgetRepresentation) new RectangleRepresentation()),
             entry(ScaledSliderWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new ScaledSliderRepresentation()),
             entry(ScrollBarWidget.WIDGET_DESCRIPTOR,       () -> (WidgetRepresentation) new ScrollBarRepresentation()),
+            entry(SlideButtonWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new SlideButtonRepresentation()),
             entry(SpinnerWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new SpinnerRepresentation()),
             entry(SymbolWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new SymbolRepresentation()),
             entry(TableWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new TableRepresentation()),
@@ -98,8 +102,8 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(TextSymbolWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new TextSymbolRepresentation()),
             entry(TextUpdateWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new TextUpdateRepresentation()),
             entry(ThermometerWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ThermometerRepresentation()),
+            entry(Viewer3dWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new Viewer3dRepresentation()),
             entry(WebBrowserWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new WebBrowserRepresentation()),
-            entry(DataBrowserWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new DataBrowserRepresentation()),
             entry(XYPlotWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new XYPlotRepresentation()));
     }
 }

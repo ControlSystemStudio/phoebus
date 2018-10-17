@@ -278,63 +278,65 @@ public class ValueUtil
         return data;
     }
 
-    /**
-     * Get data from a structured value by name.
-     * <p>As with other structure-related get methods, full and partial names may be used. However, the
-     * name must designate a structured field, rather than a scalar data field. For example, the structure
-     * <pre>
-	 * structure value
-	 * 	  structure Foo
-	 * 		  scalar_t[] a
-	 * 		  structure Bar
-	 * 			  scalar_t[] a
-	 * 			  scalar_t[] x
-     * </pre>
-     * can match "Foo" (which returns data for Foo/a, Bar/a, and x) or "Foo/Bar" (which returns data for Bar/a and x),
-     * but not "Foo/a" or "Bar/x". For those, use {@link getStructureElement(int)}.
-     * Ambiguous names will find the first structure with a matching name.
+    /** Get data from a structured value by name.
      *
-     * @param value Value of a structured PV; should be VTable
-     * @param name Name of the substructure to get; if blank (empty String, ""), the entire structure is returned
-
-     * @return A List of "rows", where rows are lists of scalar data (Strings or Numbers)
-     * belonging to scalar fields of the matching sub-structure; if there is no matching sub-structure,
-     * the list is empty.
+     *  <p>As with other structure-related get methods, full and partial names may be used.
+     *  However, the name must designate a structured field, rather than a scalar data field.
+     *  For example, the structure
+     *  <pre>
+     *  structure value
+     *        structure Foo
+     *            scalar_t[] a
+     *           structure Bar
+     *               scalar_t[] a
+     *               scalar_t[] x
+     *  </pre>
+     *  can match "Foo" (which returns data for Foo/a, Bar/a, and x)
+     *  or "Foo/Bar" (which returns data for Bar/a and x),
+     *  but not "Foo/a" or "Bar/x".
+     *  For those, use {@link #getStructureElement(VType, String, int)}.
+     *  Ambiguous names will find the first structure with a matching name.
+     *
+     *  @param value Value of a structured PV; should be VTable
+     *  @param name Name of the substructure to get;
+     *              if blank (empty String, ""), the entire structure is returned
+     *  @return A List of "rows", where rows are lists of scalar data (Strings or Numbers)
+     *          belonging to scalar fields of the matching sub-structure;
+     *          if there is no matching sub-structure, the list is empty.
      */
     public static List<List<Object>> getStructure(final VType value, final String name)
     {
-    	List<List<Object>> data = new ArrayList<>();
-    	if (name == null)
-    		throw new IllegalArgumentException("Name cannot be null");
-    	if (value instanceof VTable)
-    	{
-    		VTable table = (VTable) value;
-    		Pattern p = Pattern.compile(name + "(/.*)?");
-    		for (int c = 0; c < table.getColumnCount(); ++c)
-    		{
-    			String colName = table.getColumnName(c);
-    			Matcher m = p.matcher(colName);
-    			m.find();
-    			int st = m.start();
-    			if (st == 0 || colName.charAt(st-1) == '/')
-    			{	//Once the first matching column (scalar field) is found, only use fields
-    				//with the same prefix (parent). The prevents matching multiple, separate
-    				//structures to ambiguous names.
-    				String prefix = colName.substring(0, st+name.length());
-    				do
-    				{
-	    				List<Object> row = new ArrayList<>();
-	    				for (int r = 0; r < table.getRowCount(); ++r)
-	    				{
-	    					row.add(getColumnCell(table.getColumnData(c), r));
-	    				}
-	    				data.add(row);
-    				} while (++c < table.getColumnCount() && table.getColumnName(c).startsWith(prefix));
-    				return data;
-    			}
-    		}
-    	}
-    	return data;
+        final List<List<Object>> data = new ArrayList<>();
+        if (name == null)
+            throw new IllegalArgumentException("Name cannot be null");
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            final Pattern p = Pattern.compile(name + "(/.*)?");
+            for (int c = 0; c < table.getColumnCount(); ++c)
+            {
+                final String colName = table.getColumnName(c);
+                final Matcher m = p.matcher(colName);
+                m.find();
+                final int st = m.start();
+                if (st == 0 || colName.charAt(st-1) == '/')
+                {    //Once the first matching column (scalar field) is found, only use fields
+                    //with the same prefix (parent). The prevents matching multiple, separate
+                    //structures to ambiguous names.
+                    String prefix = colName.substring(0, st+name.length());
+                    do
+                    {
+                        final List<Object> row = new ArrayList<>();
+                        for (int r = 0; r < table.getRowCount(); ++r)
+                            row.add(getColumnCell(table.getColumnData(c), r));
+                        data.add(row);
+                    }
+                    while (++c < table.getColumnCount() && table.getColumnName(c).startsWith(prefix));
+                    return data;
+                }
+            }
+        }
+        return data;
     }
 
     /** Get a table cell from PV
@@ -374,71 +376,72 @@ public class ValueUtil
             return Objects.toString(col_data);
     }
 
-	/**
-	* Get a structure element from a PV by field name.
-	* <p>PV should hold a VTable which represents the structure.
-	* <p> For nested structure elements represented
-	* with slash-separated names, full and partial field names are accepted. For instance, a structure "value"
-	* with the definition
-	* <pre>
-	* structure value
-	* 	  structure Foo
-	* 		  scalar_t[] a
-	* 		  structure Bar
-	* 			  scalar_t[] a
-	* 			  scalar_t[] x
-	* </pre>
-	* has the field "x" with full name "Foo/Bar/x", which can be found with "Foo/Bar/x", "Bar/x", or "x".
-	* Ambiguous names (like "a" in the example above) will find the first field with a matching name.
-	*
-	*  @param value Value of a PV (should be a VTable)
-	*  @param name Structure element name
-	*  @return If the value has an elements with a matching name, a List<String> or List<Number>
-	*  		is returned, depending on the element's data type. If not, and the value is a VTable,
-	*  		an empty list is returned. Otherwise, a List containing one element, a String representation
-	*  		of the value.
-	*/
+    /** Get a structure element from a PV by field name.
+     *
+     *  <p>Value should hold a VTable which represents the structure.
+     *
+     *  <p> For nested structure elements represented with slash-separated names,
+     *  full and partial field names are accepted. For instance, a structure "value"
+     *  with the definition
+     *  <pre>
+     *  structure value
+     *      structure Foo
+     *          scalar_t[] a
+     *          structure Bar
+     *              scalar_t[] a
+     *              scalar_t[] x
+     *  </pre>
+     *  has the field "x" with full name "Foo/Bar/x", which can be found with "Foo/Bar/x", "Bar/x", or "x".
+     *  Ambiguous names (like "a" in the example above) will find the first field with a matching name.
+     *
+     *  @param value Value of a PV (should be a VTable)
+     *  @param name Structure element name
+     *  @return If the value has an elements with a matching name, a List&lt;String&gt; or List&lt;Number&gt;
+     *          is returned, depending on the element's data type. If not, and the value is a VTable,
+     *          an empty list is returned. Otherwise, a List containing one element, a String representation
+     *          of the value.
+     */
     public static List<Object> getStructureElement(final VType value, final String name)
     {
-    	if (value instanceof VTable)
-    	{
-    		VTable table = (VTable) value;
-    		List<Object> result = new ArrayList<>();
-    		for (int c = 0; c < table.getColumnCount(); ++c)
-    		{
-    			if (isMatchColName(table.getColumnName(c), name))
-    			{
-    				for (int r = 0; r < table.getRowCount(); ++r)
-    					result.add(getColumnCell(table.getColumnData(c), r));
-    				return result;
-    			}
-    		}
-    		return result;
-    	}
-    	return Arrays.asList(Objects.toString(value));
-    }
-
-    /**
-     * Get an element from a PV structure by field name and array index. If index is valid,
-     * this method is equivalent to getStructureElement(value, name).get(index).
-	*  @param value Value of a PV (should be a VTable)
-	*  @param name Structure element name
-	*  @param index Element index in range [0, n-1], where n is the length of the structure element
-	*  @return Either String or Number for the cell's value, null if invalid name/index
-     */
-    public static Object getStructureElement(final VType value, final String name, final int index)
-    {
-    	//List<String> names = Arrays.asList(name.split("/"));
         if (value instanceof VTable)
         {
             final VTable table = (VTable) value;
-            if (index > table.getRowCount()) return null;
+            final List<Object> result = new ArrayList<>();
+            for (int c = 0; c < table.getColumnCount(); ++c)
+            {
+                if (isMatchColName(table.getColumnName(c), name))
+                {
+                    for (int r = 0; r < table.getRowCount(); ++r)
+                        result.add(getColumnCell(table.getColumnData(c), r));
+                    return result;
+                }
+            }
+            return result;
+        }
+        return Arrays.asList(Objects.toString(value));
+    }
+
+    /** Get an element from a PV structure by field name and array index.
+     *
+     *  <p>If index is valid, this method is equivalent to getStructureElement(value, name).get(index).
+     *
+     *  @param value Value of a PV (should be a VTable)
+     *  @param name Structure element name
+     *  @param index Element index in range [0, n-1], where n is the length of the structure element
+     *  @return Either String or Number for the cell's value, null if invalid name/index
+     */
+    public static Object getStructureElement(final VType value, final String name, final int index)
+    {
+        //List<String> names = Arrays.asList(name.split("/"));
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            if (index > table.getRowCount())
+                return null;
             for (int i = 0; i < table.getColumnCount(); ++i)
             {
-            	if (isMatchColName(table.getColumnName(i), name))
-            	{
-            		return getColumnCell(table.getColumnData(i), index);
-            	}
+                if (isMatchColName(table.getColumnName(i), name))
+                    return getColumnCell(table.getColumnData(i), index);
             }
         }
         return Objects.toString(value);
@@ -448,8 +451,8 @@ public class ValueUtil
     //but not "y/z"
     private static boolean isMatchColName(String colName, String searchName)
     {
-    	return (colName.endsWith(searchName) && (colName.length() - searchName.length() == 0 ||
-    			colName.charAt(colName.length() - searchName.length() - 1) == '/'));
+        return (colName.endsWith(searchName) && (colName.length() - searchName.length() == 0 ||
+                colName.charAt(colName.length() - searchName.length() - 1) == '/'));
     }
 
     /** Create a VTable for Strings

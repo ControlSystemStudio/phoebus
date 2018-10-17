@@ -20,6 +20,29 @@
       <version>1.3</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Include all JavaFX modules so single dependency
+         on core-ui will provide all that's needed
+      -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <version>11</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>11</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-fxml</artifactId>
+      <version>11</version>
+      <type>pom</type>
+    </dependency>
+
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>

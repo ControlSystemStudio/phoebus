@@ -18,6 +18,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-formula"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-security"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-3d-viewer"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-alarm-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-alarm-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-scan-ui"/>

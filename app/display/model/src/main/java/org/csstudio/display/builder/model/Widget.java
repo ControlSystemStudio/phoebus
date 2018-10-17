@@ -438,7 +438,7 @@ public class Widget
      *
      *  <p>For arrays or structures, it returns names for each array resp. structure element.
      *
-     *  @param property
+     *  @param property The widget property.
      *  @return List of property names
      */
     public static final List<String> expandPropertyNames(final WidgetProperty<?> property)
@@ -479,6 +479,7 @@ public class Widget
      *  nor allowing for complex property paths.
      *
      *  @param name Property name
+     *  @param <PT> Type of the property's value.
      *  @return Optional {@link WidgetProperty}
      *  @see #getProperty(String)
      */
@@ -490,7 +491,8 @@ public class Widget
     }
 
     /** Check if widget has a given property.
-     *  @param property Property descriptor
+     *  @param property_description Property descriptor
+     *  @param <PT> Type of the property's value.
      *  @return Optional {@link WidgetProperty}
      *  @see #checkProperty(WidgetPropertyDescriptor)
      */
@@ -505,6 +507,7 @@ public class Widget
      *  type-safe access.
      *
      *  @param property_description Property description
+     *  @param <PT> Type of the property's value.
      *  @return {@link WidgetProperty}
      *  @throws IllegalArgumentException if property is unknown
      *  @see #checkProperty(WidgetPropertyDescriptor)
@@ -621,6 +624,7 @@ public class Widget
      *  type-safe access.
      *
      *  @param property_description Property description
+     *  @param <PT> Type of the property's value.
      *  @return Value of the property
      *  @throws IllegalArgumentException if property is unknown
      */
@@ -655,6 +659,7 @@ public class Widget
      *  type-safe access.
      *
      *  @param property_description Property description
+     *  @param <PT> Type of the property's value.
      *  @param value New value of the property
      *  @throws IllegalArgumentException if property is unknown
      */
@@ -689,7 +694,6 @@ public class Widget
      *  the widget is loaded until it is included in a model.
      *
      *  @return {@link Macros}
-     *  @throws IllegalStateException
      */
     public Macros getEffectiveMacros()
     {
@@ -743,6 +747,7 @@ public class Widget
 
     /** Remove a user data entry
      *  @param key Key for which to remove user data
+     *  @param <TYPE> User data is cast to the receiver's type
      *  @return User data associated with key that has been removed, or <code>null</code>
      */
     @SuppressWarnings("unchecked")

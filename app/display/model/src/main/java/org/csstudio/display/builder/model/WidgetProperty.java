@@ -133,6 +133,8 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
      *  of the path.
      *  Instead, the path is determined at runtime by
      *  searching down from the top-level widget properties.
+     *
+     *  @return The full path to property.
      */
     public String getPath()
     {

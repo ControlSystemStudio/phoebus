@@ -28,4 +28,4 @@ fi
 # To get one instance, use server mode
 OPT="-server 4918"
 
-java --add-modules=java.corba -jar $JAR $OPT "$@" &
+java -jar $JAR $OPT "$@" &

@@ -5,6 +5,7 @@
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-vtype"/>
@@ -13,5 +14,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-display-representation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-databrowser"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-3d-viewer"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

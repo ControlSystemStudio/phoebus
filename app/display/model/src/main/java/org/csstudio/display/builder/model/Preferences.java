@@ -30,10 +30,12 @@ public class Preferences
     public static final String LEGACY_FONT_CALIBRATION = "legacy_font_calibration";
     public static final String MACROS = "macros";
     public static final String MAX_REPARSE_ITERATIONS = "max_reparse_iterations";
+    public static final String SKIP_DEFAULTS = "skip_defaults";
 
     public static String[] class_files, color_files, font_files;
     public static int read_timeout, cache_timeout, max_reparse;
     public static double legacy_font_calibration;
+    public static boolean skip_defaults;
     private static Macros macros;
 
     static
@@ -47,6 +49,7 @@ public class Preferences
         cache_timeout = prefs.getInt(CACHE_TIMEOUT);
         max_reparse = prefs.getInt(MAX_REPARSE_ITERATIONS);
         legacy_font_calibration = prefs.getDouble(LEGACY_FONT_CALIBRATION);
+        skip_defaults = prefs.getBoolean(SKIP_DEFAULTS);
         try
         {
             macros = MacroXMLUtil.readMacros(prefs.get(MACROS));
