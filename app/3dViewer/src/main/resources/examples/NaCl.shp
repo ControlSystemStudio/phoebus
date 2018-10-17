@@ -5,7 +5,8 @@ background(204, 229, 255, 1)
 ## Level 1
 
 ### Cl-
-sphere(  0,   0,   0, 9, 102, 255, 102, 1)
+# An example of how to add a comment to a shape. This will be displayed as a JavaFX tooltip.
+sphere(  0,   0,   0, 9, 102, 255, 102, 1, "Chlorine Ion at Origin.")
 sphere(  0,   0, 100, 9, 102, 255, 102, 1)
 sphere(100,   0, 100, 9, 102, 255, 102, 1)
 sphere(100,   0,   0, 9, 102, 255, 102, 1)
