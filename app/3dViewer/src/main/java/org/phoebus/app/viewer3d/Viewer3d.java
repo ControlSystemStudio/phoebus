@@ -10,7 +10,6 @@ package org.phoebus.app.viewer3d;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Scanner;
 import java.util.function.Supplier;
 
 import javafx.event.EventHandler;
@@ -24,7 +23,6 @@ import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
@@ -47,12 +45,6 @@ import javafx.scene.transform.Translate;
  */
 public class Viewer3d extends StackPane
 {
-    public static final String UNRECOGNIZED_SHAPE_TYPE_ERROR = "Unrecognized shape type: ";
-    public static final String MISSING_BEG_QUOTES_ERROR = "Malformed shape decleration: Shape comment missing starting quotes.";
-    public static final String MISSING_END_QUOTES_ERROR = "Malformed shape decleration: Shape comment missing ending quotes.";
-    public static final String BAD_TYPE_OPEN_PAREN_ERROR = "Malformed shape decleration: Bad type and open parentheses.";
-    public static final String MISSING_CLOSE_PAREN_ERROR = "Malformed shape decleration: Missing closing parentheses.";
-    
     private final SubScene scene;
     
     private final Group root;
@@ -136,9 +128,7 @@ public class Viewer3d extends StackPane
         legend.getChildren().addAll(xLabel, yLabel, zLabel);
         legend.setSpacing(10);
         legend.setPadding(new Insets(0, 10, 10, 10));
-        legend.setMaxHeight(xLabel.getHeight());
-        legend.setMaxWidth(220);
-
+        
         StackPane.setAlignment(legend, Pos.TOP_LEFT);
         StackPane.setMargin(legend, new Insets(10));
         
@@ -228,207 +218,155 @@ public class Viewer3d extends StackPane
                 if (line.isEmpty() || line.startsWith("#"))
                     continue;
                 
-                /* All entries are of the form type(arg_0, ... , arg_N-1) */
-                
-                if (!line.matches("\\w*\\(.*"))
-                    throw new Exception(BAD_TYPE_OPEN_PAREN_ERROR);
-                
-                /* Split the line on the first open parentheses to get the type. */
-                String[] typeAndArgs = line.split("\\(\\s*", 2);
+                String[] typeAndArgs = line.split("\\(\\s*");
                 String type = typeAndArgs[0];
+                String argList = typeAndArgs[1].replaceAll("[()]", "");
+                String[] args = argList.split("\\s*,\\s*");
                 
-                /* The argument list will then be the remaining string sans the closing parentheses. */
-                if (!typeAndArgs[1].endsWith(")"))
-                    throw new Exception(MISSING_CLOSE_PAREN_ERROR);
-                
-                final String argList = typeAndArgs[1].substring(0, typeAndArgs[1].length()-1);
-                
-                try (Scanner scanner = new Scanner(argList))
+                if (type.equals("background"))
                 {
-                    scanner.useDelimiter("\\s*,\\s*");
-                        
-                    if (type.equals("background"))
-                    {   
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
-                        
-                        Color background = Color.rgb(r, g, b, a);
-                        
-                        struct.setBackground(background);
-                    }
-                    else if (type.equals("sphere"))
+                    if (4 != args.length)
                     {
-                        double x = scanner.nextDouble(); // X coord
-                        double y = scanner.nextDouble(); // Y coord
-                        double z = scanner.nextDouble(); // Z coord
-                        double R = scanner.nextDouble(); // Radius
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
-
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
-                        
-                        Sphere sphere = new Sphere(R);
-                        
-                        /* If the scanner has anything left, install as comment. */
-                        if (scanner.hasNext())
-                        {
-                           installComment(sphere, scanner.next());
-                        }
-                        
-                        sphere.setMaterial(material);
-                        
-                        sphere.setTranslateX(x);
-                        sphere.setTranslateY(y);
-                        sphere.setTranslateZ(z);
-                        
-                        struct.getChildren().add(sphere);
-                    } 
-                    else if (type.equals("box"))
-                    {
-                        double x1 = scanner.nextDouble(); // X coord
-                        double y1 = scanner.nextDouble(); // Y coord
-                        double z1 = scanner.nextDouble(); // Z coord
-                        double x2 = scanner.nextDouble(); // X coord
-                        double y2 = scanner.nextDouble(); // Y coord
-                        double z2 = scanner.nextDouble(); // Z coord
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
-                        
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
-                        
-                        Box box = new Box();
-                        
-                        /* If the scanner has anything left, install as comment. */
-                        if (scanner.hasNext())
-                        {
-                           installComment(box, scanner.next());
-                        }
-                        
-                        box.setMaterial(material);
-                        
-                        double xDiff = Math.abs(x2 - x1);
-                        double yDiff = Math.abs(y2 - y1);
-                        double zDiff = Math.abs(z2 - z1);
-                        box.setWidth(xDiff);
-                        box.setDepth(zDiff);
-                        box.setHeight(yDiff);
-                        
-                        box.setTranslateX(xDiff / 2);
-                        box.setTranslateY(yDiff / 2);
-                        box.setTranslateZ(zDiff / 2);                    
-                        
-                        struct.getChildren().add(box);
+                        throw new Exception("background argument list is incorrect.");
                     }
-                    else if (type.equals("cylinder"))
-                    {
-                        double x1 = scanner.nextDouble(); // X coord
-                        double y1 = scanner.nextDouble(); // Y coord
-                        double z1 = scanner.nextDouble(); // Z coord
-                        double x2 = scanner.nextDouble(); // X coord
-                        double y2 = scanner.nextDouble(); // Y coord
-                        double z2 = scanner.nextDouble(); // Z coord
-                        double R = scanner.nextDouble(); // Radius
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
-                        
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
-                        
-                        /**
-                         * 
-                         * https://stackoverflow.com/questions/38799322/javafx-3d-transforming-cylinder-to-defined-start-and-end-points
-                         * https://netzwerg.ch/blog/2015/03/22/javafx-3d-line/ 
-                         * 
-                         **/
-                        
-                        /* Align the cylinder from (x1, y1, z1) to (x2, y2, z2). */
-                        Cylinder cylinder = new Cylinder();
-                        
-                        /* If the scanner has anything left, install as comment. */
-                        if (scanner.hasNext())
-                        {
-                           installComment(cylinder, scanner.next());
-                        }
-                        
-                        cylinder.setMaterial(material);
-                        
-                        Point3D from = new Point3D(x1, y1, z1);
-                        Point3D to = new Point3D(x2, y2, z2);
-                        Point3D diff = to.subtract(from);
-                        Point3D mid = to.midpoint(from);
-                        double height = diff.magnitude();
-                        
-                        Translate moveToMidpoint = new Translate(mid.getX(), mid.getY(), mid.getZ());
-                        
-                        Point3D axisOfRotation = diff.crossProduct(Rotate.Y_AXIS);
-                        double angle = Math.acos(diff.normalize().dotProduct(Rotate.Y_AXIS));
-                        
-                        Rotate rotateAroundCenter = new Rotate(-Math.toDegrees(angle), axisOfRotation);
-                        
-                        cylinder.setRadius(R);
-                        cylinder.setHeight(height);
-                        
-                        cylinder.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
-                        
-                        struct.getChildren().add(cylinder);
-                    }
-                    else
-                    {
-                        throw new Exception(UNRECOGNIZED_SHAPE_TYPE_ERROR + "'" + type + "'");
-                    }
+                    
+                    int r = Integer.parseInt(args[0]); // red
+                    int g = Integer.parseInt(args[1]); // blue
+                    int b = Integer.parseInt(args[2]); // green
+                    double a = Double.parseDouble(args[3]); // alpha
+                    
+                    Color background = Color.rgb(r, g, b, a);
+                    
+                    struct.setBackground(background);
                 }
+                else if (type.equals("sphere"))
+                {
+                    if (8 != args.length)
+                    {
+                        throw new Exception("sphere argument list is incorrect.");
+                    }
+                    
+                    double x = Double.parseDouble(args[0]); // X coord
+                    double y = Double.parseDouble(args[1]); // Y coord
+                    double z = Double.parseDouble(args[2]); // Z coord
+                    double R = Double.parseDouble(args[3]); // Radius
+                    int r = Integer.parseInt(args[4]); // red
+                    int g = Integer.parseInt(args[5]); // blue
+                    int b = Integer.parseInt(args[6]); // green
+                    double a = Double.parseDouble(args[7]); // alpha
+                    
+                    PhongMaterial material = new PhongMaterial();
+                    material.setDiffuseColor(Color.rgb(r, g, b, a));
+                    
+                    Sphere sphere = new Sphere(R);
+                    sphere.setMaterial(material);
+                    
+                    sphere.setTranslateX(x);
+                    sphere.setTranslateY(y);
+                    sphere.setTranslateZ(z);
+                    
+                    struct.getChildren().add(sphere);
+                } 
+                else if (type.equals("box"))
+                {
+                    if (10 != args.length)
+                    {
+                        throw new Exception("box argument list is incorrect.");
+                    }
+                    
+                    double x1 = Double.parseDouble(args[0]); // X coord
+                    double y1 = Double.parseDouble(args[1]); // Y coord
+                    double z1 = Double.parseDouble(args[2]); // Z coord
+                    double x2 = Double.parseDouble(args[3]); // X coord
+                    double y2 = Double.parseDouble(args[4]); // Y coord
+                    double z2 = Double.parseDouble(args[5]); // Z coord
+                    int r = Integer.parseInt(args[6]); // red
+                    int g = Integer.parseInt(args[7]); // blue
+                    int b = Integer.parseInt(args[8]); // green
+                    double a = Double.parseDouble(args[9]); // alpha
+                    
+                    PhongMaterial material = new PhongMaterial();
+                    material.setDiffuseColor(Color.rgb(r, g, b, a));
+                    
+                    Box box = new Box();
+                    
+                    box.setMaterial(material);
+                    
+                    double xDiff = Math.abs(x2 - x1);
+                    double yDiff = Math.abs(y2 - y1);
+                    double zDiff = Math.abs(z2 - z1);
+                    box.setWidth(xDiff);
+                    box.setDepth(zDiff);
+                    box.setHeight(yDiff);
+                    
+                    box.setTranslateX(xDiff / 2);
+                    box.setTranslateY(yDiff / 2);
+                    box.setTranslateZ(zDiff / 2);                    
+                    
+                    struct.getChildren().add(box);
+                }
+                else if (type.equals("cylinder"))
+                {
+                    if (11 != args.length)
+                    {
+                        throw new Exception("cylinder argument list is incorrect");
+                    }
+                    
+                    double x1 = Double.parseDouble(args[0]); // X coord
+                    double y1 = Double.parseDouble(args[1]); // Y coord
+                    double z1 = Double.parseDouble(args[2]); // Z coord
+                    double x2 = Double.parseDouble(args[3]); // X coord
+                    double y2 = Double.parseDouble(args[4]); // Y coord
+                    double z2 = Double.parseDouble(args[5]); // Z coord
+                    int R = Integer.parseInt(args[6]); // Radius
+                    int r = Integer.parseInt(args[7]); // red
+                    int g = Integer.parseInt(args[8]); // blue
+                    int b = Integer.parseInt(args[9]); // green
+                    double a = Double.parseDouble(args[10]); // alpha
+                    
+                    PhongMaterial material = new PhongMaterial();
+                    material.setDiffuseColor(Color.rgb(r, g, b, a));
+                    
+                    /**
+                     * 
+                     * https://stackoverflow.com/questions/38799322/javafx-3d-transforming-cylinder-to-defined-start-and-end-points
+                     * https://netzwerg.ch/blog/2015/03/22/javafx-3d-line/ 
+                     * 
+                     **/
+                    
+                    /* Align the cylinder from (x1, y1, z1) to (x2, y2, z2). */
+                    Cylinder cylinder = new Cylinder();
+                    cylinder.setMaterial(material);
+                    
+                    Point3D from = new Point3D(x1, y1, z1);
+                    Point3D to = new Point3D(x2, y2, z2);
+                    Point3D diff = to.subtract(from);
+                    Point3D mid = to.midpoint(from);
+                    double height = diff.magnitude();
+                    
+                    Translate moveToMidpoint = new Translate(mid.getX(), mid.getY(), mid.getZ());
+                    
+                    Point3D axisOfRotation = diff.crossProduct(Rotate.Y_AXIS);
+                    double angle = Math.acos(diff.normalize().dotProduct(Rotate.Y_AXIS));
+                    
+                    Rotate rotateAroundCenter = new Rotate(-Math.toDegrees(angle), axisOfRotation);
+                    
+                    cylinder.setRadius(R);
+                    cylinder.setHeight(height);
+                    
+                    cylinder.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
+                    
+                    struct.getChildren().add(cylinder);
+                }
+                else
+                {
+                    throw new Exception("Unrecognized shape type '" + type + "'");
+                }
+                
             }
             
             return struct;
         }
-    }
-    
-    /**
-     * Install valid comments onto node.
-     * 
-     * <p> Valid comments must begin and end with double quotes (").
-     * 
-     * @param node
-     * @param comment
-     * @throws Exception on error.
-     */
-    private static void installComment(final Node node, final String comment) throws Exception
-    {
-        String content = checkAndParseComment(comment);
-        
-        Tooltip.install(node, new Tooltip(content));
-    }
-    
-    /**
-     * Check the passed comment to make sure it begins and ends with double quotes,
-     * and all quotes in between are escaped.
-     * @param comment
-     * @return
-     * @throws Exception
-     */
-    public static String checkAndParseComment(final String comment) throws Exception
-    {
-        if (!comment.startsWith("\""))
-            throw new Exception(MISSING_BEG_QUOTES_ERROR);
-        
-        if (!comment.endsWith("\""))
-            throw new Exception(MISSING_END_QUOTES_ERROR);
-
-        /* TODO Throw exception for unescaped quotes? */
-        
-        String parsedComment = comment.substring(1, comment.length()-1).replaceAll("\\\"", "\"");
-        
-        return parsedComment;
     }
     
     /**
