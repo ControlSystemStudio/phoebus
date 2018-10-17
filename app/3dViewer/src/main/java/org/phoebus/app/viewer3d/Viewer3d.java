@@ -224,6 +224,9 @@ public class Viewer3d extends StackPane
                 
                 /* All entries are of the form type(arg_0, ... , arg_N-1) */
                 
+                if (!line.matches("\\w*\\(.*"))
+                    throw new Exception("Malformed shape decleration: Bad type and open parentheses.");
+                
                 /* Split the line on the first open parentheses to get the type. */
                 String[] typeAndArgs = line.split("\\(\\s*", 2);
                 String type = typeAndArgs[0];
