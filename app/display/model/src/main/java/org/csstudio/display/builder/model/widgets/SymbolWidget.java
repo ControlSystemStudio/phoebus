@@ -70,6 +70,7 @@ public class SymbolWidget extends PVWidget {
     public static final WidgetPropertyDescriptor<Integer>                       propInitialIndex  = newIntegerPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "initial_index",  Messages.WidgetProperties_InitialIndex, 0, Integer.MAX_VALUE);
     public static final WidgetPropertyDescriptor<Boolean>                       propShowIndex     = newBooleanPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "show_index",     Messages.WidgetProperties_ShowIndex);
     public static final WidgetPropertyDescriptor<Double>                        propRotation      = newDoublePropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "rotation",       Messages.WidgetProperties_Rotation);
+
     public static final WidgetPropertyDescriptor<Integer>                       propArrayIndex    = newIntegerPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "array_index",    Messages.WidgetProperties_ArrayIndex, 0, Integer.MAX_VALUE);
     public static final WidgetPropertyDescriptor<Boolean>                       propAutoSize      = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "auto_size",      Messages.WidgetProperties_AutoSize);
     public static final WidgetPropertyDescriptor<Boolean>                       propPreserveRatio = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "preserve_ratio", Messages.WidgetProperties_PreserveRatio);
@@ -173,15 +174,18 @@ public class SymbolWidget extends PVWidget {
         super.defineProperties(properties);
 
         properties.add(symbols        = propSymbols.createProperty(this, Collections.singletonList(propSymbol(0).createProperty(this, DEFAULT_SYMBOL))));
+
         properties.add(background     = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(initial_index  = propInitialIndex.createProperty(this, 0));
         properties.add(rotation       = propRotation.createProperty(this, 0.0));
         properties.add(show_index     = propShowIndex.createProperty(this, false));
         properties.add(transparent    = propTransparent.createProperty(this, true));
+
         properties.add(array_index    = propArrayIndex.createProperty(this, 0));
         properties.add(auto_size      = propAutoSize.createProperty(this, false));
         properties.add(enabled        = propEnabled.createProperty(this, true));
         properties.add(preserve_ratio = propPreserveRatio.createProperty(this, true));
+
     }
 
     /**
@@ -203,7 +207,6 @@ public class SymbolWidget extends PVWidget {
             if ( xml_version.getMajor() < 2 ) {
 
                 SymbolWidget symbol = (SymbolWidget) widget;
-                ArrayWidgetProperty<WidgetProperty<String>> propSymbols = symbol.propSymbols();
                 List<String> fileNames = new ArrayList<>(2);
 
                 symbol.importedFrom = xml.getAttribute("typeId");
@@ -220,11 +223,7 @@ public class SymbolWidget extends PVWidget {
                 }
 
                 for ( int i = 0; i < fileNames.size(); i++ ) {
-                    if ( i < propSymbols.size() ) {
-                        propSymbols.getElement(i).setValue(fileNames.get(i));
-                    } else {
-                        symbol.addOrReplaceSymbol(i, fileNames.get(i));
-                    }
+                    symbol.addOrReplaceSymbol(i, fileNames.get(i));
                 }
 
                 XMLUtil.getChildBoolean(xml, "stretch_to_fit").ifPresent(stf -> symbol.propPreserveRatio().setValue(!stf));
