@@ -554,7 +554,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private Image createImage(final File imageFile) {
         try {
-            return new Image(new FileInputStream(imageFile), 150, 0, true, true);
+            return new Image(new FileInputStream(imageFile), 0, 0, true, true);
         } catch (FileNotFoundException e) {
             LogEntryTable.log.log(Level.WARNING, "failed to create image from attachement", e);
             return null;
