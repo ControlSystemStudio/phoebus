@@ -15,4 +15,7 @@ public class PlatformInfo
 {
     /** Is JRE on Mac OS X ? */
     public final static boolean is_mac_os_x = System.getProperty("os.name").contains("Mac");
+
+    /** Is JRE on Linux? */
+    public final static boolean is_linux = System.getProperty("os.name").contains("inux");
 }
