@@ -63,7 +63,6 @@ public class ImageCache
         // concurrently adding an image for the same key.
         // Pity, but map is concurrent, i.e. no crash,
         // and better than risking blocking/deadlocks.
-        System.out.println("Fetching image " + key);
         img = provider.get();
         if (img != null)
             cache.put(key, new SoftReference<>(img));
