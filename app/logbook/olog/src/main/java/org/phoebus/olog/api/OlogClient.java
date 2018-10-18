@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -190,7 +191,6 @@ public class OlogClient implements LogClient {
         }
 
         public OlogClient create() throws Exception {
-            System.out.println("creating the olog clinet....");
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
             } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
@@ -234,7 +234,9 @@ public class OlogClient implements LogClient {
         if (withHTTPBasicAuthFilter) {
             client.addFilter(new HTTPBasicAuthFilter(username, password));
         }
-        client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
+        if (Logger.getLogger(OlogClient.class.getName()).isLoggable(Level.ALL)) {
+            client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
+        }
         client.setFollowRedirects(true);
         service = client.resource(UriBuilder.fromUri(ologURI).build());
     }
