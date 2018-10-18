@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,8 +7,10 @@
  *******************************************************************************/
 package org.phoebus.ui.javafx;
 
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import org.phoebus.ui.application.PhoebusApplication;
@@ -35,18 +37,37 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class ImageCache
 {
-    private static final ConcurrentHashMap<String, Image> cache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, SoftReference<Image>> cache = new ConcurrentHashMap<>();
 
-    /** @param clazz Class from which to load, if not already cached
-     *  @param path Path to the image, based on clazz
-     *  @return ImageView for image, always a new ImageView, even for cached Image
+    /** Cache an image
+     *
+     *  @param key Key for the image
+     *  @param provider Will be called to create image if it's not in the cache
+     *  @return Image or <code>null</code>
      */
-    public static ImageView getImageView(final Class<?> clazz, final String path)
+    public static Image cache(final String key, final Supplier<Image> provider)
     {
-        final Image image = getImage(clazz, path);
-        if (image != null)
-            return new ImageView(image);
-        return new ImageView();
+        // Atomically clean expired entry for the key
+        SoftReference<Image> ref = cache.computeIfPresent(key, (k, r) ->
+        {
+            return (r.get() == null) ? null : r;
+        });
+
+        // Have existing image?
+        Image img = ref == null ? null : ref.get();
+        if (img != null)
+            return img;
+
+        // Add new image
+        // Not atomic; small chance of multiple threads
+        // concurrently adding an image for the same key.
+        // Pity, but map is concurrent, i.e. no crash,
+        // and better than risking blocking/deadlocks.
+        System.out.println("Fetching image " + key);
+        img = provider.get();
+        if (img != null)
+            cache.put(key, new SoftReference<>(img));
+        return img;
     }
 
     /** @param clazz Class from which to load, if not already cached
@@ -55,7 +76,7 @@ public class ImageCache
      */
     public static Image getImage(final Class<?> clazz, final String path)
     {
-        return cache.computeIfAbsent(path, p ->
+        return cache(path, () ->
         {
             final URL resource = clazz.getResource(path);
             if (resource == null)
@@ -73,6 +94,18 @@ public class ImageCache
                 return null;
             }
         });
+    }
+
+    /** @param clazz Class from which to load, if not already cached
+     *  @param path Path to the image, based on clazz
+     *  @return ImageView for image, always a new ImageView, even for cached Image
+     */
+    public static ImageView getImageView(final Class<?> clazz, final String path)
+    {
+        final Image image = getImage(clazz, path);
+        if (image != null)
+            return new ImageView(image);
+        return new ImageView();
     }
 
     /** @param url Image URL
@@ -94,6 +127,6 @@ public class ImageCache
         if (url == null)
             return null;
         final String path = url.toExternalForm();
-        return cache.computeIfAbsent(path, p -> new Image(path));
+        return cache(path, () -> new Image(path));
     }
 }
