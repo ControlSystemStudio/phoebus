@@ -170,8 +170,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         searchText.setText(searchParameters.get(Keys.SEARCH));
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-            return e.getKey().getName().trim() + ":" + e.getValue().trim();
-        }).collect(Collectors.joining(",")));
+            return e.getKey().getName().trim() + "=" + e.getValue().trim();
+        }).collect(Collectors.joining("&")));
 
         FXMLLoader logbookSelectionLoader = new FXMLLoader();
         logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
@@ -477,7 +477,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     void updateQuery() {
-        Arrays.asList(query.getText().split(",")).forEach(s -> {
+        Arrays.asList(query.getText().split("&")).forEach(s -> {
             String key = s.split("=")[0];
             for (Keys k : Keys.values()) {
                 if (k.getName().equals(key)) {
