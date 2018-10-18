@@ -157,7 +157,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 Platform.runLater(() -> {
                     query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
                         return e.getKey().getName().trim() + "=" + e.getValue().trim();
-                    }).collect(Collectors.joining(",")));
+                    }).collect(Collectors.joining("&")));
                     searchText.setText(searchParameters.get(Keys.SEARCH));
                     searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
                     searchTags.setText(searchParameters.get(Keys.TAGS));

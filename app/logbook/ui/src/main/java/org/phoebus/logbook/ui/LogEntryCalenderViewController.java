@@ -1,15 +1,10 @@
 package org.phoebus.logbook.ui;
 
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
-import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -17,19 +12,14 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
-import org.phoebus.logbook.ui.write.PropertiesTab;
 import org.phoebus.ui.dialog.PopOver;
-import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.ImagesTab;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -40,42 +30,29 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import jfxtras.scene.control.agenda.Agenda;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
+import jfxtras.scene.control.agenda.Agenda.AppointmentGroup;
 import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
 
 /**
@@ -180,6 +157,9 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
         agenda.allowDraggingProperty().set(false);
         agenda.allowResizeProperty().set(false);
+
+        appointmentGroupMap = agenda.appointmentGroups().stream()
+                .collect(Collectors.toMap(AppointmentGroup::getDescription, Function.identity()));
         // find the css file
 
         try {
@@ -213,7 +193,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 Platform.runLater(() -> {
                     query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
                         return e.getKey().getName().trim() + "=" + e.getValue().trim();
-                    }).collect(Collectors.joining(",")));
+                    }).collect(Collectors.joining("&")));
                     searchText.setText(searchParameters.get(Keys.SEARCH));
                     searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
                     searchTags.setText(searchParameters.get(Keys.TAGS));
@@ -473,7 +453,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
             @Override
             public Appointment apply(LogEntry logentry) {
-                // TODO Auto-generated method stub
                 AppointmentImplLocal appointment = new Agenda.AppointmentImplLocal();
                 appointment.withSummary(logentry.getDescription());
                 appointment.withDescription(logentry.getDescription());
@@ -481,6 +460,14 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                         LocalDateTime.ofInstant(logentry.getCreatedDate(), ZoneId.systemDefault()));
                 appointment.withEndLocalDateTime(
                         LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
+                if(logbookNames !=null && !logbookNames.isEmpty()){
+                    int index = logbookNames.indexOf(logentry.getLogbooks().iterator().next().getName());
+                    if(index >= 0 && index <= 22){
+                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d",(index+1))));
+                    } else {
+                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", 23)));
+                    }
+                }
                 return appointment;
             }
         }, new Function<LogEntry, LogEntry>() {
