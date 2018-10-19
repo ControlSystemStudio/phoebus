@@ -12,6 +12,7 @@ import static org.csstudio.scan.ScanSystem.logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.logging.Level;
 
 import org.csstudio.scan.client.ScanClient;
@@ -162,34 +163,52 @@ public class DataTable extends StackPane
     private void writeToCSV(final File csv_file, final boolean include_timestamps)
     {
         StringBuilder str_builder = new StringBuilder();
-        int i, size;
+        
         ObservableList<TableColumn<DataRow, ?>> cols = table.getColumns();
         
-        size = cols.size();
+        Iterator<TableColumn<DataRow, ?>> col_iter = cols.iterator();
+        Iterator<DataRow> row_iter = rows.iterator();
         
-        for (i = 0; i < size; i++)
+        if (include_timestamps && col_iter.hasNext())
         {
-            TableColumn<DataRow, ?> col = cols.get(i);
-            str_builder.append(col.getText());
-            if (i != 0 && include_timestamps)
-                str_builder.append(", " + col.getText() + " Timestamps");
-            if (i != size - 1)
+            col_iter.next();
+            str_builder.append("ID, ");
+        }
+        
+        while (col_iter.hasNext())
+        {
+            final String col_text = col_iter.next().getText();
+            
+            if (include_timestamps)
+                str_builder.append(col_text + " Timestamps, ");
+            
+            str_builder.append(col_text);
+            
+            if (col_iter.hasNext())
                 str_builder.append(", ");
         }
         str_builder.append("\n");
-        
-        for (DataRow row : rows)
+
+        int idx = 0;
+        while(row_iter.hasNext())
         {
-            size = row.size();
-            for (i = 0; i < size; i++)
+            DataRow row = row_iter.next();
+            int i = 0;
+            if (include_timestamps)
             {
+                str_builder.append(idx + ", ");
+                i = 1;
+            }
+            for (; i < row.size(); i++)
+            {
+                if (include_timestamps)
+                    str_builder.append(row.getDataTimestamp(i).get() + ", ");
                 str_builder.append(row.getDataValue(i).get());
-                if (i != 0 && include_timestamps)
-                    str_builder.append(", " + row.getDataTimestamp(i).get());
-                if (i != size - 1)
+                if (i != row.size() -1)
                     str_builder.append(", ");
             }
             str_builder.append("\n");
+            idx++;
         }
         
         try (PrintWriter writer = new PrintWriter(csv_file))
