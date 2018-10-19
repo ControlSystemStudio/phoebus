@@ -202,8 +202,16 @@ public class DataTable extends StackPane
             for (; i < row.size(); i++)
             {
                 if (include_timestamps)
-                    str_builder.append(row.getDataTimestamp(i).get() + ", ");
-                str_builder.append(row.getDataValue(i).get());
+                {
+                    final String ts = row.getDataTimestamp(i).get();
+                    if (null != ts)
+                        str_builder.append(ts + ", ");
+                }
+                
+                final String data_val = row.getDataValue(i).get();
+                if (null != data_val)
+                    str_builder.append(data_val);
+                
                 if (i != row.size() -1)
                     str_builder.append(", ");
             }
