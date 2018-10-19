@@ -23,7 +23,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class LogEntrySearchDemo extends Application {
+public class LogEntryCalenderDemo extends Application {
 
     public static void main(String[] args) {
         launch(args);
@@ -33,9 +33,9 @@ public class LogEntrySearchDemo extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
+        loader.setLocation(this.getClass().getResource("LogEntryCalenderView.fxml"));
         loader.load();
-        LogEntryTableViewController controller = loader.getController();
+        LogEntryCalenderViewController controller = loader.getController();
         Parent root = loader.getRoot();
 
         primaryStage.setScene(new Scene(root, 400, 400));
@@ -60,7 +60,7 @@ public class LogEntrySearchDemo extends Application {
                            .owner("Owner")
                            .title("log "+ i)
                            .description("First line for log " + i)
-                           .createdDate(Instant.now())
+                           .createdDate(Instant.now().minusSeconds(i*60*60))
                            .inLogbooks(logbooks)
                            .withTags(tags);
             StringBuilder sb = new StringBuilder();
