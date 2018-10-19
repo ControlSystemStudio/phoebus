@@ -26,6 +26,10 @@ public class DataCell extends TableCell<DataRow, String>
     /** This cell's tooltip. */
     private final Tooltip tooltip;
     
+    /**
+     * Constructor. Takes the column index that the cell belongs to.
+     * @param col_idx
+     */
     public DataCell(final int col_idx)
     {
         this.col_idx = col_idx;
