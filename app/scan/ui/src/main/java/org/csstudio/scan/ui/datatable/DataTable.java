@@ -7,14 +7,9 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.datatable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.data.ScanDataIterator;
-import org.csstudio.scan.data.ScanSample;
-import org.csstudio.scan.data.ScanSampleFormatter;
 import org.csstudio.scan.ui.ScanDataReader;
 
 import javafx.application.Platform;
@@ -22,12 +17,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
-import javafx.util.Callback;
 
 /** Table display of logged scan data
  *  @author Kay Kasemir
@@ -36,14 +28,14 @@ import javafx.util.Callback;
 public class DataTable extends StackPane
 {
     private static final SimpleStringProperty EMPTY =  new SimpleStringProperty("");
-    private ObservableList<List<SimpleStringProperty>> rows = FXCollections.observableArrayList();
-    private final TableView<List<SimpleStringProperty>> table = new TableView<>(rows);
+    private ObservableList<DataRow> rows = FXCollections.observableArrayList();
+    private final TableView<DataRow> table = new TableView<>(rows);
     private ScanDataReader reader;
 
     public DataTable(final ScanClient scan_client, final long scan_id)
     {
-        final TableColumn<List<SimpleStringProperty>, String> col = new TableColumn<>("Time");
-        col.setCellValueFactory(cell -> cell.getValue().get(0));
+        final TableColumn<DataRow, String> col = new TableColumn<>("Time");
+        col.setCellValueFactory(cell -> cell.getValue().getDataValue(0));
         table.getColumns().add(col);
 
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -69,7 +61,7 @@ public class DataTable extends StackPane
         // So not only is a new column added, the data that used to be in the
         // second column moved to the 3rd one.
         // --> If the column count changes, re-populate all rows.
-        final ObservableList<TableColumn<List<SimpleStringProperty>, ?>> columns = table.getColumns();
+        final ObservableList<TableColumn<DataRow, ?>> columns = table.getColumns();
         if (columns.size() != iterator.getDevices().size() + 1)
             rows.clear();
 
@@ -80,33 +72,18 @@ public class DataTable extends StackPane
         {
             if (columns.size() <= i)
             {
-                final TableColumn<List<SimpleStringProperty>, String> col = new TableColumn<>(device);
+                final TableColumn<DataRow, String> col = new TableColumn<>(device);
                 final int col_index = i;
                 
-                Callback< TableColumn<List<SimpleStringProperty>, String>, 
-                          TableCell<List<SimpleStringProperty>, String> > existingCellFactory =
-                        col.getCellFactory();
-                
-                col.setCellFactory(c ->
-                {
-                    TableCell<List<SimpleStringProperty>, String> cell = existingCellFactory.call(c);
-
-                    Tooltip tooltip = new Tooltip();
-                    
-                    //tooltip.setText(iterator.getSamples()[0].getTimestamp().toString());
-                    
-                    tooltip.setText("This is a cell...");
-                    
-                    cell.setTooltip(tooltip);
-
-                    return cell;
-                });
+                col.setCellFactory(c -> new DataCell(col_index));
 
                 col.setCellValueFactory(cell ->
                 {
-                    final List<SimpleStringProperty> row = cell.getValue();
+                    final DataRow row = cell.getValue();
                     if (col_index < row.size())
-                        return row.get(col_index);
+                    {
+                        return row.getDataValue(col_index);
+                    }
                     return EMPTY;
                 });
                 columns.add(col);
@@ -125,12 +102,7 @@ public class DataTable extends StackPane
             if (i < rows.size())
                 continue;
 
-            // Add a new row
-            final List<SimpleStringProperty> row = new ArrayList<>(columns.size());
-            row.add(new SimpleStringProperty(ScanSampleFormatter.format(iterator.getTimestamp())));
-            for (ScanSample sample : iterator.getSamples())
-                row.add(new SimpleStringProperty(ScanSampleFormatter.asString(sample)));
-            rows.add(row);
+            rows.add(new DataRow(iterator.getTimestamp(), iterator.getSamples()));
         }
     }
 
