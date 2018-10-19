@@ -16,6 +16,10 @@ import java.util.logging.Logger;
 
 import org.phoebus.util.shell.CommandShell;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
 @SuppressWarnings("nls")
 public class AlarmLoggingService {
 
@@ -67,6 +71,7 @@ public class AlarmLoggingService {
     }
 
     public static void main(final String[] original_args) throws Exception {
+        SpringApplication.run(AlarmLoggingService.class, original_args);
         LogManager.getLogManager().readConfiguration(AlarmLoggingService.class.getResourceAsStream("/alarm_logger_logging.properties"));
 
         // load the default properties
