@@ -36,8 +36,8 @@ public class QueryParserTest {
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         assertEquals("*Fault*Motor*", queryParameters.get(Keys.SEARCH.getName()));
         assertEquals("operation", queryParameters.get(Keys.TAGS.getName()));
-        assertEquals(now, Double.valueOf(queryParameters.get(Keys.ENDTIME.getName())), 60*1000);
-        assertEquals(now-(8*60*60*1000), Double.valueOf(queryParameters.get(Keys.STARTTIME.getName())), 60*1000);
+        assertEquals(now/1000, Double.valueOf(queryParameters.get(Keys.ENDTIME.getName())), 60);
+        assertEquals((now-(8*60*60*1000))/1000, Double.valueOf(queryParameters.get(Keys.STARTTIME.getName())), 60);
     }
 
     /**

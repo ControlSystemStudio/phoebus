@@ -50,7 +50,7 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
     /**
      * Support the launching of log entry table using resource
      * logbook://?<search_string> e.g. -resource
-     * logbook://?query=*Fault*Motor*&tag=operation
+     * logbook://?search=*Fault*Motor*&tag=operation
      */
     @Override
     public AppInstance create(URI resource) {

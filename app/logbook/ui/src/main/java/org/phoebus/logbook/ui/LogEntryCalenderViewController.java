@@ -1,30 +1,25 @@
 package org.phoebus.logbook.ui;
 
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
-import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
-import org.phoebus.logbook.ui.write.PropertiesTab;
 import org.phoebus.ui.dialog.PopOver;
-import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.ImagesTab;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -35,43 +30,37 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
-import javafx.scene.control.Accordion;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.util.Callback;
 import javafx.util.Duration;
+import jfxtras.scene.control.agenda.Agenda;
+import jfxtras.scene.control.agenda.Agenda.Appointment;
+import jfxtras.scene.control.agenda.Agenda.AppointmentGroup;
+import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
 
 /**
  * A controller for a log entry table with a collapsible advance search section.
  * @author Kunal Shroff
  *
  */
-public class LogEntryTableViewController extends LogbookSearchController {
+public class LogEntryCalenderViewController extends LogbookSearchController {
 
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
@@ -107,17 +96,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     TextField endTime;
     PopOver timeSearchpopover;
 
-    // elements related to the table view of the log entires
-    @FXML
-    TableView<LogEntry> tableView;
-
-    @FXML
-    TableColumn<LogEntry, LogEntry> timeOwnerCol;
-    @FXML
-    TableColumn<LogEntry, LogEntry> descriptionCol;
-    @FXML
-    TableColumn<LogEntry, LogEntry> metaCol;
-
     // Model
     List<LogEntry> logEntries;
     List<String> logbookNames;
@@ -129,6 +107,18 @@ public class LogEntryTableViewController extends LogbookSearchController {
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
 
+
+    @FXML
+    private AnchorPane agendaPane;
+    @FXML
+    private Agenda agenda;
+    private LogEntryControl logEntryControl;
+
+    // Model
+    private Map<Appointment, LogEntry> map;
+    private Map<String, Agenda.AppointmentGroup> appointmentGroupMap = new TreeMap<String, Agenda.AppointmentGroup>();
+
+    
     @FXML
     public void initialize() {
         // initialize the list of searchable parameters like logbooks, tags, etc...
@@ -137,6 +127,52 @@ public class LogEntryTableViewController extends LogbookSearchController {
         AdavanceSearchPane.minWidthProperty().set(0);
         AdavanceSearchPane.maxWidthProperty().set(0);
         resize.setText("<");
+
+        agenda = new Agenda();
+        agenda.setEditAppointmentCallback(new Callback<Agenda.Appointment, Void>() {
+
+            @Override
+            public Void call(Appointment appointment) {
+                return null;
+            }
+        });
+
+        agenda.setActionCallback((appointment) -> {
+            // show detailed view
+            try {
+                if (map != null) {
+                    final Stage dialog = new Stage();
+                    dialog.initModality(Modality.NONE);
+                    logEntryControl = new LogEntryControl();
+                    logEntryControl.setLog(map.get(appointment));
+                    Scene dialogScene = new Scene(logEntryControl, 300, 200);
+                    dialog.setScene(dialogScene);
+                    dialog.show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+
+        agenda.allowDraggingProperty().set(false);
+        agenda.allowResizeProperty().set(false);
+
+        appointmentGroupMap = agenda.appointmentGroups().stream()
+                .collect(Collectors.toMap(AppointmentGroup::getDescription, Function.identity()));
+        // find the css file
+
+        try {
+            agenda.getStylesheets().add(this.getClass().getResource("/Agenda.css").toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        AnchorPane.setTopAnchor(agenda, 6.0);
+        AnchorPane.setBottomAnchor(agenda, 6.0);
+        AnchorPane.setLeftAnchor(agenda, 6.0);
+        AnchorPane.setRightAnchor(agenda, 6.0);
+        agendaPane.getChildren().add(agenda);
 
         searchParameters = FXCollections.<Keys, String>observableHashMap();
         searchParameters.put(Keys.SEARCH, "*");
@@ -308,139 +344,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         timeSearchpopover.hide();
                     }
                 });
-
-        // The display table.
-        tableView.getColumns().clear();
-        tableView.setEditable(false);
-
-        timeOwnerCol = new TableColumn<LogEntry, LogEntry>("Time");
-
-        descriptionCol = new TableColumn<LogEntry, LogEntry>("Log");
-
-        metaCol = new TableColumn<LogEntry, LogEntry>("Logbook/Tags");
-
-        timeOwnerCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        timeOwnerCol.setCellValueFactory(col -> {
-            return new SimpleObjectProperty(col.getValue());
-        });
-        timeOwnerCol.setCellFactory(col -> {
-            final GridPane pane = new GridPane();
-            final Label timeText = new Label();
-            timeText.setStyle("-fx-font-weight: bold");
-            final Label ownerText = new Label();
-            pane.addColumn(0, timeText, ownerText);
-
-            return new TableCell<LogEntry, LogEntry>() {
-                @Override
-                public void updateItem(LogEntry logEntry, boolean empty) {
-                    super.updateItem(logEntry, empty);
-                    if (empty) {
-                        setGraphic(null);
-                    } else {
-                        timeText.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
-                        ownerText.setText(logEntry.getOwner());
-                        setGraphic(pane);
-                    }
-                }
-            };
-        });
-
-        descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 50);
-        descriptionCol.setCellValueFactory(col -> {
-            return new SimpleObjectProperty(col.getValue());
-        });
-        descriptionCol.setCellFactory(col -> {
-            final GridPane pane = new GridPane();
-            final Label titleText = new Label();
-            titleText.setStyle("-fx-font-weight: bold");
-            final Text descriptionText = new Text();
-            descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
-
-            TabPane tabPane = new TabPane();
-            ImagesTab imagesTab = new ImagesTab();
-            FilesTab filesTab = new FilesTab();
-            PropertiesTab propertiesTab = new PropertiesTab();
-            tabPane.getTabs().addAll(imagesTab, filesTab, propertiesTab);
-            TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
-            Accordion imageGallery = new Accordion();
-            imageGallery.getPanes().add(tPane);
-
-            pane.addColumn(0, titleText, descriptionText, imageGallery);
-            ColumnConstraints cc = new ColumnConstraints();
-            cc.setHgrow(Priority.ALWAYS);
-            pane.getColumnConstraints().add(cc);
-
-            return new TableCell<LogEntry, LogEntry>() {
-                @Override
-                public void updateItem(LogEntry logEntry, boolean empty) {
-                    super.updateItem(logEntry, empty);
-                    if (empty) {
-                        setGraphic(null);
-                    } else {
-                        if (logEntry.getTitle() == null || logEntry.getTitle().isEmpty()) {
-                            titleText.setVisible(false);
-                        } else {
-                            titleText.setVisible(true);
-                            titleText.setText(logEntry.getTitle());
-                        }
-
-                        final List<Image> images = new ArrayList<>();
-                        final List<File> files = new ArrayList<>();
-                        logEntry.getAttachments().stream().forEach(attachment -> {
-                            if (attachment.getContentType().startsWith(Attachment.CONTENT_IMAGE)) {
-                                images.add(createImage(attachment.getFile()));
-                            } else {
-                                files.add(attachment.getFile());
-                            }
-                        });
-                        filesTab.setFiles(files);
-                        imagesTab.setImages(images);
-                        if(!files.isEmpty() || !images.isEmpty()) {
-                            tPane.setExpanded(true);
-                        } else {
-                            tPane.setExpanded(false);
-                        }
-                        descriptionText.setText(logEntry.getDescription());
-                        setGraphic(pane);
-                    }
-                }
-            };
-
-        });
-
-        metaCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        metaCol.setCellValueFactory(col -> {
-            return new SimpleObjectProperty(col.getValue());
-        });
-        metaCol.setCellFactory(col -> {
-            final GridPane pane = new GridPane();
-            final Label logbooks = new Label();
-            final Separator seperator = new Separator();
-            final Label tags = new Label();
-            pane.addColumn(0, logbooks, seperator, tags);
-
-            return new TableCell<LogEntry, LogEntry>() {
-                @Override
-                public void updateItem(LogEntry logEntry, boolean empty) {
-                    super.updateItem(logEntry, empty);
-                    if (empty) {
-                        setGraphic(null);
-                    } else {
-                        logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName)
-                                .collect(Collectors.joining(System.lineSeparator())));
-                        logbooks.setGraphic(new ImageView(logbook));
-                        tags.setText(logEntry.getTags().stream().map(Tag::getName)
-                                .collect(Collectors.joining(System.lineSeparator())));
-                        tags.setGraphic(new ImageView(tag));
-                        setGraphic(pane);
-                    }
-                }
-            };
-        });
-
-        tableView.getColumns().add(timeOwnerCol);
-        tableView.getColumns().add(descriptionCol);
-        tableView.getColumns().add(metaCol);
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -545,19 +448,39 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private void refresh() {
-        if (logEntries != null && !logEntries.isEmpty()) {
-            ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
-            logsList.addAll(logEntries.stream().collect(Collectors.toList()));
-            tableView.setItems(logsList);
-        }
+        map = new HashMap<Appointment, LogEntry>();
+        map = this.logEntries.stream().collect(Collectors.toMap(new Function<LogEntry, Appointment>() {
+
+            @Override
+            public Appointment apply(LogEntry logentry) {
+                AppointmentImplLocal appointment = new Agenda.AppointmentImplLocal();
+                appointment.withSummary(logentry.getDescription());
+                appointment.withDescription(logentry.getDescription());
+                appointment.withStartLocalDateTime(
+                        LocalDateTime.ofInstant(logentry.getCreatedDate(), ZoneId.systemDefault()));
+                appointment.withEndLocalDateTime(
+                        LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
+                if(logbookNames !=null && !logbookNames.isEmpty()){
+                    int index = logbookNames.indexOf(logentry.getLogbooks().iterator().next().getName());
+                    if(index >= 0 && index <= 22){
+                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d",(index+1))));
+                    } else {
+                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", 23)));
+                    }
+                }
+                return appointment;
+            }
+        }, new Function<LogEntry, LogEntry>() {
+
+            @Override
+            public LogEntry apply(LogEntry logentry) {
+                return logentry;
+            }
+
+        }));
+        agenda.appointments().clear();
+        agenda.appointments().setAll(map.keySet());
+
     }
 
-    private Image createImage(final File imageFile) {
-        try {
-            return new Image(new FileInputStream(imageFile), 0, 0, true, true);
-        } catch (FileNotFoundException e) {
-            LogEntryTable.log.log(Level.WARNING, "failed to create image from attachement", e);
-            return null;
-        }
-    }
 }

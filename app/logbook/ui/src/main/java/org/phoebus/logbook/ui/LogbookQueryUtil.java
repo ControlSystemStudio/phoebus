@@ -76,9 +76,9 @@ public class LogbookQueryUtil {
                 if (key.equals(Keys.STARTTIME.getName()) || key.equals(Keys.ENDTIME.getName())) {
                     Object time = TimeParser.parseInstantOrTemporalAmount(value);
                     if (time instanceof Instant) {
-                        return String.valueOf(((Instant)time).toEpochMilli());
+                        return String.valueOf(((Instant)time).toEpochMilli()/1000);
                     } else if (time instanceof TemporalAmount) {
-                        return String.valueOf(Instant.now().minus((TemporalAmount)time).toEpochMilli());
+                        return String.valueOf(Instant.now().minus((TemporalAmount)time).toEpochMilli()/1000);
                     }
                 }
                 return value;
