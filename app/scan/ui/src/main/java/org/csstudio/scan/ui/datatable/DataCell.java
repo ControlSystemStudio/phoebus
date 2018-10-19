@@ -17,6 +17,9 @@ import javafx.util.Duration;
  */
 public class DataCell extends TableCell<DataRow, String>
 {
+    /** Cell value and timestamp seperator for the tooltip. */
+    private static final String SEP = " / ";
+    
     /** Column index for this cell. */
     private final int col_idx;
     
@@ -46,7 +49,7 @@ public class DataCell extends TableCell<DataRow, String>
         else
         {
             setText(item);
-            tooltip.setText(row.getDataTimestamp(col_idx).get());
+            tooltip.setText(item + SEP + row.getDataTimestamp(col_idx).get());
             setTooltip(tooltip);
         }
     }
