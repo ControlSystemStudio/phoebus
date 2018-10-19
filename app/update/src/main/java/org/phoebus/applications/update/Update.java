@@ -25,6 +25,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.util.time.TimestampFormats;
 
 /** Update installation from distributed ZIP file
@@ -55,7 +56,15 @@ public class Update
     {
         final PreferencesReader prefs = new PreferencesReader(Update.class, "/update_preferences.properties");
         current_version = TimestampFormats.parse(prefs.get("current_version"));
-        update_url = prefs.get("update_url");
+
+        String url = prefs.get("update_url");
+        if (PlatformInfo.is_linux)
+            url = url.replace("$(arch)", "linux");
+        else if (PlatformInfo.is_mac_os_x)
+            url = url.replace("$(arch)", "mac");
+        else
+            url = url.replace("$(arch)", "win");
+        update_url = PreferencesReader.replaceProperties(url);
     }
 
     /** Check version (i.e. date/time) of a distribution
@@ -173,11 +182,12 @@ public class Update
     {
         if (update_url.isEmpty()  ||  current_version == null)
             return null;
-        logger.info("Checking " + update_url + " for update to " + TimestampFormats.DATETIME_FORMAT.format(current_version));
+        logger.info("Checking " + update_url);
+        logger.info("Current version  : " + TimestampFormats.DATETIME_FORMAT.format(current_version));
         final URL distribution_url = new URL(update_url);
         final Instant update_version = Update.getVersion(monitor, distribution_url);
 
-        logger.info("Found version " + TimestampFormats.DATETIME_FORMAT.format(update_version));
+        logger.info("Available version: " + TimestampFormats.DATETIME_FORMAT.format(update_version));
         if (update_version.isAfter(current_version))
             return update_version;
         logger.info("Keeping current version");

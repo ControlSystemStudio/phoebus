@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,11 +14,13 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
-import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.geometry.Dimension2D;
 import javafx.scene.Group;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -53,6 +55,22 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
 
     private volatile Rotate rotation = new Rotate(0);
     private volatile Translate translate = new Translate(0,0);
+
+    public static Dimension2D computeSize ( final PictureWidget widget ) {
+
+        final String imageFile = widget.propFile().getValue();
+
+        try {
+
+            final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
+            final Image image = new Image(ModelResourceUtil.openResourceStream(filename));
+            return new Dimension2D(image.getWidth(), image.getHeight());
+
+        } catch ( Exception ex ) {
+            return new Dimension2D(0.0, 0.0);
+        }
+
+    }
 
     @Override
     public Group createJFXNode() throws Exception
@@ -127,17 +145,22 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
 
         if (!load_failed)
         {
-            try
+            img_loaded = ImageCache.cache(img_path, () ->
             {
-                // Open the image from the stream created from the resource file
-                img_loaded = new Image(ModelResourceUtil.openResourceStream(img_path));
-                native_ratio = img_loaded.getWidth() / img_loaded.getHeight();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Failure loading image file:" + img_path, ex);
+                try
+                {
+                    // Open the image from the stream created from the resource file
+                    return new Image(ModelResourceUtil.openResourceStream(img_path));
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Failure loading image file:" + img_path, ex);
+                }
+                return null;
+            });
+
+            if ( img_loaded == null )
                 load_failed = true;
-            }
         }
 
         if (load_failed)
@@ -147,12 +170,16 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
             {
                 // Open the image from the stream created from the resource file
                 img_loaded = new Image(ModelResourceUtil.openResourceStream(dflt_img));
-                native_ratio = img_loaded.getWidth() / img_loaded.getHeight();
+                load_failed = false;
             }
             catch (Exception ex)
             {
                 logger.log(Level.WARNING, "Failure loading default image file:" + img_path, ex);
             }
+        }
+
+        if ( !load_failed ) {
+            native_ratio = img_loaded.getWidth() / img_loaded.getHeight();
         }
 
         // Resize/reorient in case we are preserving aspect ratio and changed native_ratio
@@ -179,18 +206,20 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
         }
         if (dirty_content.checkAndClear())
         {
-            //System.out.println("update change to img path at " + img_path + " on thread " + Thread.currentThread().getName());}
-            iv.setImage(img_loaded);
-            // We handle ratio internally, do not let ImageView do that
-            iv.setPreserveRatio(false);
+            if (img_loaded != null)
+            {
+                iv.setImage(img_loaded);
+                // We handle ratio internally, do not let ImageView do that
+                iv.setPreserveRatio(false);
+            }
             jfx_node.setCache(true);
         }
         if (dirty_style.checkAndClear())
         {
-            Integer widg_w = model_widget.propWidth().getValue();
-            Integer widg_h = model_widget.propHeight().getValue();
-            Integer pic_w = widg_w;
-            Integer pic_h = widg_h;
+            double widg_w = model_widget.propWidth().getValue().doubleValue();
+            double widg_h = model_widget.propHeight().getValue().doubleValue();
+            double pic_w = widg_w;
+            double pic_h = widg_h;
 
             // preserve aspect ratio
             if (!model_widget.propStretch().getValue())
@@ -200,30 +229,26 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
                 double h_prime = pic_w / native_ratio;
                 if (w_prime < pic_w)
                 {
-                    pic_h = (int) Math.round(h_prime);
+                    pic_h = h_prime;
                 }
                 else if (h_prime < pic_h)
                 {
-                    pic_w = (int) Math.round(w_prime);
+                    pic_w = w_prime;
                 }
             }
 
-            Integer final_pic_w, final_pic_h;
-
+            double final_pic_w = pic_w;
+            double final_pic_h = pic_h;
             double cos_a = Math.cos(Math.toRadians(model_widget.propRotation().getValue()));
             double sin_a = Math.sin(Math.toRadians(model_widget.propRotation().getValue()));
             double pic_bb_w = pic_w * Math.abs(cos_a) + pic_h * Math.abs(sin_a);
             double pic_bb_h = pic_w * Math.abs(sin_a) + pic_h * Math.abs(cos_a);
-
             double scale_fac = Math.min(widg_w / pic_bb_w, widg_h / pic_bb_h);
+
             if (scale_fac < 1.0)
             {
                 final_pic_w = (int) Math.floor(scale_fac * pic_w);
                 final_pic_h = (int) Math.floor(scale_fac * pic_h);
-            }
-            else {
-                final_pic_w = pic_w;
-                final_pic_h = pic_h;
             }
 
             border.setWidth(final_pic_w - 2*inset);
