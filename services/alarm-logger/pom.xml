@@ -16,17 +16,17 @@
     <dependencies>
       <!-- Spring Boot BOM -->
       <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-dependencies</artifactId>
-	<version>${spring.boot-version}</version>
-	<type>pom</type>
-	<scope>import</scope>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring.boot-version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
 
   <dependencies>
-  <!-- Spring Boot -->
+    <!-- Spring Boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
@@ -90,37 +90,15 @@
         </configuration>
       </plugin>
       <plugin>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-maven-plugin</artifactId>
-	<configuration>
-	  <executable>true</executable>
-	</configuration>
-        <executions>
-	  <execution>
-	    <goals>
-	      <goal>repackage</goal>
-	    </goals>
-	  </execution>
-	</executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <archive>
-            <manifest>
-              <mainClass>org.phoebus.alarm.logging.AlarmLoggingService</mainClass>
-            </manifest>
-          </archive>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
+          <executable>true</executable>
         </configuration>
         <executions>
           <execution>
-            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-            <phase>package</phase> <!-- bind to the packaging phase -->
             <goals>
-              <goal>single</goal>
+              <goal>repackage</goal>
             </goals>
           </execution>
         </executions>
