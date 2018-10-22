@@ -29,6 +29,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -56,7 +58,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     @Override
     protected final Spinner<String> createJFXNode() throws Exception
     {
-        final Spinner<String> spinner = new Spinner<String>();
+        final Spinner<String> spinner = new Spinner<>();
         spinner.setValueFactory(createSVF());
         styleChanged(null, null, null);
         spinner.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -96,6 +98,16 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                 active = true;
             }
         });
+
+        // Disable the contemporary triggering of a value change and of the
+        // opening of contextual menu when right-clicking on the spinner's
+        // buttons.
+        spinner.addEventFilter(MouseEvent.ANY, e ->
+        {
+            if (e.getButton() == MouseButton.SECONDARY)
+                e.consume();
+        });
+
         return spinner;
     }
 
@@ -238,7 +250,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         }
 
         //TODO: Is really better to have this separate?
-        private ObjectPropertyBase<VType> vtypeValue = new ObjectPropertyBase<VType>()
+        private ObjectPropertyBase<VType> vtypeValue = new ObjectPropertyBase<>()
         {
             @Override
             public Object getBean()

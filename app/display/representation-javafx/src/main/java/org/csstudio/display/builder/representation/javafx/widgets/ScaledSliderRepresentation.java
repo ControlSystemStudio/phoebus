@@ -26,6 +26,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Slider;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -81,6 +83,16 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             default: break;
             }
         });
+
+        // Disable the contemporary triggering of a value change and of the
+        // opening of contextual menu when right-clicking on the slider's
+        // thumb lane.
+        slider.addEventFilter(MouseEvent.ANY, e ->
+        {
+            if (e.getButton() == MouseButton.SECONDARY)
+                e.consume();
+        });
+
         slider.setValue(value);
 
         final GridPane pane = new GridPane();
