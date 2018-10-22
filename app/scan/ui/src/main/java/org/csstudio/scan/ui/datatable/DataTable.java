@@ -7,6 +7,14 @@
  ******************************************************************************/
 package org.csstudio.scan.ui.datatable;
 
+import static org.csstudio.scan.ScanSystem.logger;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.logging.Level;
+
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.data.ScanDataIterator;
@@ -16,10 +24,13 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 
 /** Table display of logged scan data
  *  @author Kay Kasemir
@@ -45,6 +56,37 @@ public class DataTable extends StackPane
 
         reader = new ScanDataReader(scan_client, this::update);
         reader.setScanId(scan_id);
+        
+        ContextMenu menu = new ContextMenu();
+        
+        MenuItem exportTable = new MenuItem("Export table to CSV");
+        exportTable.setOnAction(event -> 
+        {
+            FileChooser file_chooser = new FileChooser();
+            File csv_file = file_chooser.showSaveDialog(this.getScene().getWindow());
+            
+            if (null == csv_file)
+                return;
+            
+            writeTableToCSV(csv_file);
+        });
+        
+        MenuItem exportRawData = new MenuItem("Export raw data to CSV");
+        exportRawData.setOnAction(event -> 
+        {
+            FileChooser file_chooser = new FileChooser();
+            File csv_file = file_chooser.showSaveDialog(this.getScene().getWindow());
+            
+            if (null == csv_file)
+                return;
+            
+            writeRawDataToCSV(csv_file);
+        });
+        
+        menu.getItems().add(exportTable);
+        menu.getItems().add(exportRawData);
+        
+        table.setContextMenu(menu);
     }
 
     private void update(final ScanData data)
@@ -105,7 +147,89 @@ public class DataTable extends StackPane
             rows.add(new DataRow(iterator.getTimestamp(), iterator.getSamples()));
         }
     }
+    
+    /** Write the tables contents to the passed file in the CSV format. */
+    private void writeTableToCSV(final File csv_file)
+    {
+        writeToCSV(csv_file, false);
+    }
+    
+    /** Write the tables contents to the passed file in the CSV format. */
+    private void writeRawDataToCSV(final File csv_file)
+    {
+        writeToCSV(csv_file, true);
+    }
+    
+    private void writeToCSV(final File csv_file, final boolean include_timestamps)
+    {
+        StringBuilder str_builder = new StringBuilder();
+        
+        ObservableList<TableColumn<DataRow, ?>> cols = table.getColumns();
+        
+        Iterator<TableColumn<DataRow, ?>> col_iter = cols.iterator();
+        Iterator<DataRow> row_iter = rows.iterator();
+        
+        if (include_timestamps && col_iter.hasNext())
+        {
+            col_iter.next();
+            str_builder.append("ID, ");
+        }
+        
+        while (col_iter.hasNext())
+        {
+            final String col_text = col_iter.next().getText();
+            
+            if (include_timestamps)
+                str_builder.append(col_text + " Timestamps, ");
+            
+            str_builder.append(col_text);
+            
+            if (col_iter.hasNext())
+                str_builder.append(", ");
+        }
+        str_builder.append("\n");
 
+        int idx = 0;
+        while(row_iter.hasNext())
+        {
+            DataRow row = row_iter.next();
+            int i = 0;
+            if (include_timestamps)
+            {
+                str_builder.append(idx + ", ");
+                i = 1;
+            }
+            for (; i < row.size(); i++)
+            {
+                if (include_timestamps)
+                {
+                    final String ts = row.getDataTimestamp(i).get();
+                    if (null != ts)
+                        str_builder.append(ts + ", ");
+                }
+                
+                final String data_val = row.getDataValue(i).get();
+                if (null != data_val)
+                    str_builder.append(data_val);
+                
+                if (i != row.size() -1)
+                    str_builder.append(", ");
+            }
+            str_builder.append("\n");
+            idx++;
+        }
+        
+        try (PrintWriter writer = new PrintWriter(csv_file))
+        {            
+            writer.print(str_builder.toString());
+        } 
+        catch (FileNotFoundException ex)
+        {
+            final String output = include_timestamps ? "data" : "table";
+            logger.log(Level.WARNING, "Failed to write " + output + " to CSV.", ex);
+        }
+    }
+    
     /** Should be called to stop the reader (in case it's still running) */
     public void dispose()
     {

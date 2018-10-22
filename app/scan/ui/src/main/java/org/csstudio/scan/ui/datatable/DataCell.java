@@ -37,7 +37,6 @@ public class DataCell extends TableCell<DataRow, String>
         tooltip = new Tooltip();
         tooltip.setShowDelay(Duration.millis(250));
         tooltip.setShowDuration(Duration.seconds(30));
-        setTooltip(tooltip);
     }
     
     @Override
@@ -53,7 +52,10 @@ public class DataCell extends TableCell<DataRow, String>
         else
         {
             setText(item);
-            tooltip.setText(item + SEP + row.getDataTimestamp(col_idx).get());
+            final String timestamp = row.getDataTimestamp(col_idx).get();
+            if (null == item || null == timestamp)
+                return;
+            tooltip.setText(item + SEP + timestamp);
             setTooltip(tooltip);
         }
     }

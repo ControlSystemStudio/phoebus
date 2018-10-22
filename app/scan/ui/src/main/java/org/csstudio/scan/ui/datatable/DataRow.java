@@ -38,7 +38,10 @@ public class DataRow
         for (ScanSample sample : samples)
         {
             data.add(new SimpleStringProperty(ScanSampleFormatter.asString(sample)));
-            data_timestamps.add(new SimpleStringProperty(ScanSampleFormatter.format(sample.getTimestamp())));
+            
+            final String str_timestamp = (null == sample) ? null : ScanSampleFormatter.format(sample.getTimestamp());
+            
+            data_timestamps.add(new SimpleStringProperty(str_timestamp));
         }
     }
     
