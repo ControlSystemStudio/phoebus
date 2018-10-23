@@ -15,6 +15,10 @@ import java.util.logging.Logger;
 
 import org.phoebus.util.shell.CommandShell;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
 public class AlarmConfigLoggingService {
 
     /** Alarm system logger */
@@ -60,6 +64,7 @@ public class AlarmConfigLoggingService {
     }
 
     public static void main(String[] original_args) throws InterruptedException {
+	SpringApplication.run(AlarmConfigLoggingService.class, original_args);
         logger.info("Starting the AlarmConfigLoggingService....");
 
         Properties properties = PropertiesHelper.getProperties();
