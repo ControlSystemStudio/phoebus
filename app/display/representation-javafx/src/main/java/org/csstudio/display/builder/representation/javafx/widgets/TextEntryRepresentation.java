@@ -147,8 +147,6 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         // Don't enable when widget is disabled
         if (active  &&  !model_widget.propEnabled().getValue())
             return;
-
-new Exception("setActive " + active).printStackTrace();
         this.active = active;
         dirty_style.mark();
         updateChanges();
