@@ -262,6 +262,15 @@ public class DisplayModel extends Widget
         return gridVisible;
     }
 
+    /** Dispose the model
+     *
+     *  <p>Removes all widgets and prevents adding new widgets
+     */
+    public void dispose()
+    {
+        children.dispose();
+    }
+
     @Override
     public String toString()
     {

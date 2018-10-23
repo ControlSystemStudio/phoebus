@@ -169,6 +169,8 @@ public class ActionUtil
         // .. while UI thread removes the representation
         final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(model);
         toolkit.disposeRepresentation(model);
+
+        model.dispose();
     }
 
     /** Write a PV
