@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,12 +32,18 @@ public class TooltipSupport
     /** Legacy tool tip: "$(pv_name)\n$(pv_value)" where number of '\n' can vary */
     private final static Pattern legacy_tooltip = Pattern.compile("\\$\\(pv_name\\)\\s*\\$\\(pv_value\\)");
 
+    /** System property to disable tool tips (for debugging problems seen on Linux) */
+    private static boolean disable_tooltips = Boolean.parseBoolean(System.getProperty("org.csstudio.display.builder.disable_tooltips"));
+
     /** Attach tool tip
      *  @param node Node that should have the tool tip
      *  @param tooltip_property Tool tip to show
      */
     public static void attach(final Node node, final WidgetProperty<String> tooltip_property)
     {
+        if (disable_tooltips)
+            return;
+
         // Patch legacy tool tips that defaulted to pv name & value,
         // even for static widgets
         final StringWidgetProperty ttp = (StringWidgetProperty)tooltip_property;
