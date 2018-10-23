@@ -132,6 +132,12 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
      *  in case the representation already handles dragging moves
      *  to for example operate a slider or pan something.
      */
+    // Note: In RCP version, the D&D had to be handled in SWT,
+    // and was implemented in the org.csstudio.display.builder.rcp.RuntimeViewPart.
+    // Widget.isDragEnabled() was used to enable/disable.
+    // Now the enablement is left to the representation,
+    // and since only Ctrl-drag is supported,
+    // only very few widget representations need to disable it.
     protected void configurePVNameDrag()
     {
         // If there is a "pv_name", allow dragging it out

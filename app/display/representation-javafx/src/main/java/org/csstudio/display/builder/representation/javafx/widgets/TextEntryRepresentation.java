@@ -80,6 +80,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             {
                 switch (event.getCode())
                 {
+                case TAB:
+                    // For multiline, it's like any other entered key.
+                    if (model_widget.propMultiLine().getValue()  &&  ! event.isShiftDown())
+                        setActive(true);
+                    // Otherwise results in lost focus and is handled as thus
+                    break;
                 case ESCAPE:
                     if (active)
                     {   // Revert original value, leave active state
@@ -141,6 +147,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         // Don't enable when widget is disabled
         if (active  &&  !model_widget.propEnabled().getValue())
             return;
+
+new Exception("setActive " + active).printStackTrace();
         this.active = active;
         dirty_style.mark();
         updateChanges();
