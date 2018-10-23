@@ -621,10 +621,17 @@ public class PhoebusApplication extends Application {
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {
             final AtomicBoolean open_new = new AtomicBoolean();
 
-            final Button button = new Button(entry.getName());
+            // If entry has icon, use that with name as tool tip.
+            // Otherwise use the label as button text.
+            final Button button = new Button();
             final Image icon = entry.getIcon();
-            if (icon != null)
+            if (icon == null)
+                button.setText(entry.getName());
+            else
+            {
                 button.setGraphic(new ImageView(icon));
+                button.setTooltip(new Tooltip(entry.getName()));
+            }
 
             // Want to handle button presses with 'Control' in different way,
             // but action event does not carry key modifier information.
