@@ -35,6 +35,7 @@ import org.phoebus.util.array.ListNumber;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class XYVTypeDataProvider implements PlotDataProvider<Double>
 {
     public static final ListNumber EMPTY = new ArrayDouble(new double[0], true);
