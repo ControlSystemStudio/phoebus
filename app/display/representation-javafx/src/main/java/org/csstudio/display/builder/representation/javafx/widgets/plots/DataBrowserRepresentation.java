@@ -273,8 +273,14 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
     {
         super.dispose();
         if (controller != null  &&  controller.isRunning())
+        {
             controller.stop();
+            controller = null;
+        }
         if (plot != null)
+        {
             plot.dispose();
+            plot = null;
+        }
     }
 }
