@@ -43,4 +43,14 @@ public class StatusBar extends HBox
     {
         getChildren().add(item);
     }
+
+    /** Remove item from the status bar
+     *
+     *
+     * @param item Item to remove
+     */
+    public void removeItem(final Node item)
+    {
+        getChildren().remove(item);
+    }
 }
