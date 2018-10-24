@@ -12,7 +12,7 @@ mvn clean install
 java -jar target/alarm-config-logger-<version>.jar
 ```
 
-2. Using spring boot
+2. Using spring boot  
 ```mvn spring-boot:run```
 
 ### Description ###
