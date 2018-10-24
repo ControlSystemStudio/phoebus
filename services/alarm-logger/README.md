@@ -28,10 +28,22 @@ this would result in an elasticsearch index titled 'accelerator_alarms' to be cr
 
 ### Run the alarm logging service
 
-Start the alarm logging service
-    
-    java AlarmService
-    
-    java -jar service-alarm-logger.jar
-    
-    ...
+#### Build the alarm server
+
+``` 
+mvn clean install
+```
+
+#### Start the alarm logging service
+
+1. Run the jar
+
+```
+java -jar target/alarm-logger-<version>.jar
+```
+
+2. Using spring boot  
+
+```
+mvn spring-boot:run
+```
