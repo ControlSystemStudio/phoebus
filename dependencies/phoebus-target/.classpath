@@ -93,5 +93,14 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/protobuf-java-2.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/pbrawclient-0.0.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/org.eclipse.jgit-5.0.3.201809091024-r.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-2.0.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-2.0.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-aop-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-beans-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-autoconfigure-2.0.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-logging-2.0.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-context-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-core-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-expression-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="output" path="bin"/>
 </classpath>
