@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  */
 @RestController
-@RequestMapping("/alarmHistory")
+@RequestMapping("/alarm-history")
 public class SearchController {
 
     private static final Logger logger = Logger.getLogger(SearchController.class.getName());
