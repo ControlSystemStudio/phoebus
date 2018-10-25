@@ -89,4 +89,48 @@ public class SearchController {
         return Collections.emptyList();
     }
 
+    @RequestMapping(value = "/search/{pv}", method = RequestMethod.GET)
+    public List<AlarmStateMessage> searchPv(@PathVariable String pv) {
+
+        RestHighLevelClient client = ElasticClientHelper.getInstance().getClient();
+        QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("pv", pv);
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder = sourceBuilder.query(matchQueryBuilder);
+        sourceBuilder.sort("time", SortOrder.DESC);
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.source(sourceBuilder);
+        List<AlarmStateMessage> result;
+        try {
+            result = Arrays.asList(client.search(searchRequest).getHits().getHits()).stream()
+                    .map(new Function<SearchHit, AlarmStateMessage>() {
+                        @Override
+                        public AlarmStateMessage apply(SearchHit hit) {
+                            try {
+                                JsonNode root = objectMapper.readTree(hit.getSourceAsString());
+                                JsonNode time = ((ObjectNode) root).remove("time");
+                                JsonNode message_time = ((ObjectNode) root).remove("message_time");
+                                AlarmStateMessage alarmStateMessage = objectMapper.readValue(root.traverse(),
+                                        AlarmStateMessage.class);
+                                if (time != null) {
+                                    Instant instant = LocalDateTime.parse(time.asText(), formatter).atZone(ZoneId.systemDefault()).toInstant();
+                                    alarmStateMessage.setInstant(instant);
+                                }
+                                if (message_time != null) {
+                                    Instant instant = LocalDateTime.parse(message_time.asText(), formatter).atZone(ZoneId.systemDefault()).toInstant();
+                                    alarmStateMessage.setMessage_time(instant);
+                                }
+                                return alarmStateMessage;
+                            } catch (Exception e) {
+                                logger.log(Level.ERROR ,"Failed to search for alarm logs ", e);
+                                return null;
+                            }
+                        }
+                    }).collect(Collectors.toList());
+            return result;
+        } catch (IOException e) {
+            logger.log(Level.ERROR, "Failed to search for alarm logs ", e);
+        }
+        return Collections.emptyList();
+    }
+
 }
