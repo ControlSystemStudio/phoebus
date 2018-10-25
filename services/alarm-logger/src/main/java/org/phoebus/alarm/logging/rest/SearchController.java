@@ -43,59 +43,26 @@ public class SearchController {
     private static final Logger logger = Logger.getLogger(SearchController.class.getName());
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+            .withZone(ZoneId.systemDefault());
 
     @RequestMapping(value = "/search", method = RequestMethod.GET)
     public List<AlarmStateMessage> search() {
-
-        RestHighLevelClient client = ElasticClientHelper.getInstance().getClient();
-        QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("pv", "*");
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder = sourceBuilder.query(matchQueryBuilder);
-        sourceBuilder.sort("time", SortOrder.DESC);
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.source(sourceBuilder);
-        List<AlarmStateMessage> result;
-        try {
-            result = Arrays.asList(client.search(searchRequest).getHits().getHits()).stream()
-                    .map(new Function<SearchHit, AlarmStateMessage>() {
-                        @Override
-                        public AlarmStateMessage apply(SearchHit hit) {
-                            try {
-                                JsonNode root = objectMapper.readTree(hit.getSourceAsString());
-                                JsonNode time = ((ObjectNode) root).remove("time");
-                                JsonNode message_time = ((ObjectNode) root).remove("message_time");
-                                AlarmStateMessage alarmStateMessage = objectMapper.readValue(root.traverse(),
-                                        AlarmStateMessage.class);
-                                if (time != null) {
-                                    Instant instant = LocalDateTime.parse(time.asText(), formatter).atZone(ZoneId.systemDefault()).toInstant();
-                                    alarmStateMessage.setInstant(instant);
-                                }
-                                if (message_time != null) {
-                                    Instant instant = LocalDateTime.parse(message_time.asText(), formatter).atZone(ZoneId.systemDefault()).toInstant();
-                                    alarmStateMessage.setMessage_time(instant);
-                                }
-                                return alarmStateMessage;
-                            } catch (Exception e) {
-                                logger.log(Level.ERROR ,"Failed to search for alarm logs ", e);
-                                return null;
-                            }
-                        }
-                    }).collect(Collectors.toList());
-            return result;
-        } catch (IOException e) {
-            logger.log(Level.ERROR, "Failed to search for alarm logs ", e);
-        }
-        return Collections.emptyList();
+        QueryBuilder query = QueryBuilders.wildcardQuery("pv", "*");
+        return esSearch(query);
     }
 
     @RequestMapping(value = "/search/{pv}", method = RequestMethod.GET)
     public List<AlarmStateMessage> searchPv(@PathVariable String pv) {
+        QueryBuilder query = QueryBuilders.wildcardQuery("pv", pv);
+        return esSearch(query);
+    }
 
+    private List<AlarmStateMessage> esSearch(QueryBuilder query) {
         RestHighLevelClient client = ElasticClientHelper.getInstance().getClient();
-        QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("pv", pv);
+
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder = sourceBuilder.query(matchQueryBuilder);
+        sourceBuilder = sourceBuilder.query(query);
         sourceBuilder.sort("time", SortOrder.DESC);
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.source(sourceBuilder);
@@ -112,16 +79,18 @@ public class SearchController {
                                 AlarmStateMessage alarmStateMessage = objectMapper.readValue(root.traverse(),
                                         AlarmStateMessage.class);
                                 if (time != null) {
-                                    Instant instant = LocalDateTime.parse(time.asText(), formatter).atZone(ZoneId.systemDefault()).toInstant();
+                                    Instant instant = LocalDateTime.parse(time.asText(), formatter)
+                                            .atZone(ZoneId.systemDefault()).toInstant();
                                     alarmStateMessage.setInstant(instant);
                                 }
                                 if (message_time != null) {
-                                    Instant instant = LocalDateTime.parse(message_time.asText(), formatter).atZone(ZoneId.systemDefault()).toInstant();
+                                    Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
+                                            .atZone(ZoneId.systemDefault()).toInstant();
                                     alarmStateMessage.setMessage_time(instant);
                                 }
                                 return alarmStateMessage;
                             } catch (Exception e) {
-                                logger.log(Level.ERROR ,"Failed to search for alarm logs ", e);
+                                logger.log(Level.ERROR, "Failed to search for alarm logs ", e);
                                 return null;
                             }
                         }
