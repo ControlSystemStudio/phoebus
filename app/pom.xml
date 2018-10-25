@@ -24,5 +24,6 @@
     <module>scan</module>
     <module>channel</module>
     <module>3dViewer</module>
+    <module>perfmon</module>
   </modules>
 </project>
