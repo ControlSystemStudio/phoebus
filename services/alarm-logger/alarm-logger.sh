@@ -22,7 +22,7 @@ if [ -f ${TOP}/service-alarm-logger-${V}.jar ]
 then
   JAR="${TOP}/service-alarm-logger-${V}.jar"
 else
-  JAR="${TOP}/service-alarm-logger-${V}-SNAPSHOT-jar-with-dependencies.jar"
+  JAR="${TOP}/service-alarm-logger-${V}-SNAPSHOT.jar"
 fi
 
 java -jar $JAR "$@"
