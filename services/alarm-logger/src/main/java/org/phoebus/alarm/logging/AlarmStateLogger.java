@@ -150,7 +150,7 @@ public class AlarmStateLogger implements Runnable {
         Runtime.getRuntime().addShutdownHook(new Thread("streams-"+topic+"-alarm-shutdown-hook") {
             @Override
             public void run() {
-                streams.close(30, TimeUnit.SECONDS);
+                streams.close(10, TimeUnit.SECONDS);
                 System.out.println("\nShutting streams Done.");
                 latch.countDown();
             }

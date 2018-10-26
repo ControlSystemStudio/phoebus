@@ -207,23 +207,23 @@ public class AlarmLoggingService {
      * Clear all the resources associated with this service.
      */
     private static void close() {
-        System.out.println("\nStarted Shutdown");
+        System.out.println("\n Shutdown");
         shutdownAndAwaitTermination(Scheduler);
         if (context != null) {
             context.close();
         }
-        System.out.println("\nDone.");
     }
 
     static void shutdownAndAwaitTermination(ExecutorService pool) {
         pool.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait a while for existing tasks to terminate
-            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!pool.awaitTermination(30, TimeUnit.SECONDS)) {
                 pool.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
-                if (!pool.awaitTermination(60, TimeUnit.SECONDS))
+                if (!pool.awaitTermination(30, TimeUnit.SECONDS)) {
                     System.err.println("Pool did not terminate");
+                }
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted

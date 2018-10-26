@@ -16,17 +16,20 @@
     <copy todir="${build}/lib" flatten="true">
       <fileset dir="../..">
         <include name="dependencies/**/aggs-matrix-stats-client*.jar"/>
+      	<include name="dependencies/**/classmate*.jar"/>
       	<include name="dependencies/**/commons-codec*.jar"/>
       	<include name="dependencies/**/commons-logging*.jar"/>
       	<include name="dependencies/**/connect-api*.jar"/>
       	<include name="dependencies/**/connect-json*.jar"/>
       	<include name="dependencies/**/elasticsearch-*.jar"/>
       	<include name="dependencies/**/HdrHistogram-*.jar"/>
+      	<include name="dependencies/**/hibernate*.jar"/>
       	<include name="dependencies/**/hppc-*.jar"/>
       	<include name="dependencies/**/httpasyncclient-*.jar"/>
       	<include name="dependencies/**/httpclient-*.jar"/>
       	<include name="dependencies/**/httpcore-*.jar"/>
       	<include name="dependencies/**/jackson-*.jar"/>
+      	<include name="dependencies/**/javax.annotation*.jar"/>
       	<include name="dependencies/**/jna-*.jar"/>
       	<include name="dependencies/**/joda-time-*.jar"/>
       	<include name="dependencies/**/jopt-simple-*.jar"/>
@@ -44,6 +47,8 @@
         <include name="dependencies/**/t-digest-*.jar"/>
       	<include name="dependencies/**/spring-*.jar"/>
       	<include name="dependencies/**/tomcat-*.jar"/>
+      	<include name="dependencies/**/jboss*.jar"/>
+      	<include name="dependencies/**/validation-api-2*.jar"/>
   	  	
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-util-*.jar"/>
