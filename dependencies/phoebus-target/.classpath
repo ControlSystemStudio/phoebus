@@ -102,5 +102,15 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/spring-context-5.0.8.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/spring-core-5.0.8.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/spring-expression-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-json-2.0.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-web-2.0.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jackson-datatype-jdk8-2.9.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jackson-module-parameter-names-2.9.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-tomcat-2.0.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-web-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-webmvc-5.0.8.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/tomcat-embed-core-8.5.32.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/tomcat-embed-el-8.5.32.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/tomcat-embed-websocket-8.5.32.jar"/>
 	<classpathentry exported="true" kind="output" path="bin"/>
 </classpath>

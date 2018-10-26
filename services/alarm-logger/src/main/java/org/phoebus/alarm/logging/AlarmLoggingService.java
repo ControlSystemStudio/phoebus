@@ -207,11 +207,12 @@ public class AlarmLoggingService {
      * Clear all the resources associated with this service.
      */
     private static void close() {
-        System.out.println("\nDone.");
+        System.out.println("\nStarted Shutdown");
         shutdownAndAwaitTermination(Scheduler);
         if (context != null) {
             context.close();
         }
+        System.out.println("\nDone.");
     }
 
     static void shutdownAndAwaitTermination(ExecutorService pool) {
