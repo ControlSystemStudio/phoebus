@@ -151,7 +151,7 @@ public class AlarmStateLogger implements Runnable {
             @Override
             public void run() {
                 streams.close(30, TimeUnit.SECONDS);
-                System.out.println("\nshutting streams Done.");
+                System.out.println("\nShutting streams Done.");
                 latch.countDown();
             }
         });
