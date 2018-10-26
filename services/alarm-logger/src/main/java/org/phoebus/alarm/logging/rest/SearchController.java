@@ -8,11 +8,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -20,19 +22,21 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.jboss.logging.Logger;
 import org.jboss.logging.Logger.Level;
+import org.phoebus.alarm.logging.AlarmLoggingService;
 import org.phoebus.alarm.logging.ElasticClientHelper;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
- * 
+ * A REST service for quering the alarm message history
  * @author Kunal Shroff
  *
  */
@@ -46,9 +50,14 @@ public class SearchController {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
             .withZone(ZoneId.systemDefault());
 
+    private final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/alarm_logging_service.properties");
+
     @RequestMapping(value = "/search", method = RequestMethod.GET)
-    public List<AlarmStateMessage> search() {
-        QueryBuilder query = QueryBuilders.wildcardQuery("pv", "*");
+    public List<AlarmStateMessage> search(@RequestParam Map<String, String> allRequestParams) {
+        BoolQueryBuilder query = QueryBuilders.boolQuery();
+        allRequestParams.forEach((k, v) -> {
+            query.must(QueryBuilders.wildcardQuery(k, v));
+        });
         return esSearch(query);
     }
 
@@ -63,6 +72,7 @@ public class SearchController {
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder = sourceBuilder.query(query);
+        sourceBuilder.size(prefs.getInt("es_max_size"));
         sourceBuilder.sort("time", SortOrder.DESC);
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.source(sourceBuilder);

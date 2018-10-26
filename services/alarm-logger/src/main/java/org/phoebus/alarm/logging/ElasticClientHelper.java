@@ -4,7 +4,6 @@
 package org.phoebus.alarm.logging;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
-import static org.phoebus.alarm.logging.PropertiesHelper.getProperties;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -17,12 +16,15 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
+import org.phoebus.framework.preferences.PreferencesReader;
 
 /**
  * @author Kunal Shroff {@literal <kunalshroff9@gmail.gov>}
  *
  */
 public class ElasticClientHelper {
+
+    private final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/alarm_logging_service.properties");
 
     private static RestHighLevelClient client;
     private static ElasticClientHelper instance;
@@ -41,8 +43,7 @@ public class ElasticClientHelper {
                 }
             }));
             client = new RestHighLevelClient(
-                    RestClient.builder(new HttpHost(getProperties().getProperty("es_host", "localhost"),
-                            Integer.valueOf(getProperties().getProperty("es_port", "9200")))));
+                    RestClient.builder(new HttpHost(prefs.get("es_host"),prefs.getInt("es_port"))));
         } catch (Exception e) {
             try {
                 client.close();
