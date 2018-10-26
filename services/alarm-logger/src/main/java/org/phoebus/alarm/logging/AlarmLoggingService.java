@@ -90,6 +90,7 @@ public class AlarmLoggingService {
                 final String cmd = iter.next();
                 if (cmd.startsWith("-h")) {
                     help();
+                    close();
                     return;
                 } else if (cmd.equals("-properties")) {
                     if (!iter.hasNext())
@@ -158,6 +159,7 @@ public class AlarmLoggingService {
             help();
             System.out.println();
             ex.printStackTrace();
+            close();
             return;
         }
 
@@ -197,10 +199,19 @@ public class AlarmLoggingService {
         done.await();
         shell.stop();
 
+        close();
+        System.exit(0);
+    }
+
+    /**
+     * Clear all the resources associated with this service.
+     */
+    private static void close() {
         System.out.println("\nDone.");
         shutdownAndAwaitTermination(Scheduler);
-        context.close();
-        System.exit(0);
+        if (context != null) {
+            context.close();
+        }
     }
 
     static void shutdownAndAwaitTermination(ExecutorService pool) {
