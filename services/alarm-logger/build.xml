@@ -42,6 +42,8 @@
         <include name="dependencies/**/snakeyaml-*.jar"/>
       	<include name="dependencies/**/snappy-java-*.jar"/>
         <include name="dependencies/**/t-digest-*.jar"/>
+      	<include name="dependencies/**/spring-*.jar"/>
+      	<include name="dependencies/**/tomcat-*.jar"/>
   	  	
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-util-*.jar"/>
