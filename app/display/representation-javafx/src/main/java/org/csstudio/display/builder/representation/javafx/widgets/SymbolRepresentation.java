@@ -589,9 +589,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     }
 
     private void symbolChanged ( final WidgetProperty<String> property, final String oldValue, final String newValue ) {
-        ModelThreadPool.getExecutor().execute( ( ) -> {
-            updateSymbols();
-        });
+        ModelThreadPool.getExecutor().execute(this::updateSymbols);
     }
 
     private void symbolsChanged ( final WidgetProperty<List<WidgetProperty<String>>> property, final List<WidgetProperty<String>> oldValue, final List<WidgetProperty<String>> newValue ) {
