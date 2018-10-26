@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -149,7 +150,8 @@ public class AlarmStateLogger implements Runnable {
         Runtime.getRuntime().addShutdownHook(new Thread("streams-"+topic+"-alarm-shutdown-hook") {
             @Override
             public void run() {
-                streams.close();
+                streams.close(30, TimeUnit.SECONDS);
+                System.out.println("\nshutting streams Done.");
                 latch.countDown();
             }
         });
