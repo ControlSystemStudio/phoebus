@@ -13,6 +13,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -38,6 +39,7 @@ public class ChannelTableController extends ChannelFinderController {
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
+        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableView.getColumns().clear();
         TableColumn<Channel, String> nameCol = new TableColumn<>("Name");
         nameCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("name"));
