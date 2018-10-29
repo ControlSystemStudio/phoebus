@@ -36,7 +36,6 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jersey-server-1.19.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jsr311-api-1.1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/mimepull-1.9.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/validation-api-1.1.0.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-annotations-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-core-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-databind-2.9.4.jar"/>
