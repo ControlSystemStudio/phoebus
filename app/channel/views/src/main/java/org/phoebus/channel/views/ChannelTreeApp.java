@@ -15,8 +15,8 @@ public class ChannelTreeApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(ChannelTreeApp.class.getName());
     static final Image icon = ImageCache.getImage(ChannelTreeApp.class, "/icons/tree-property-16.png");
-    public static final String NAME = "channelTree";
-    public static final String DISPLAYNAME = "ChannelTree";
+    public static final String NAME = "channel_tree";
+    public static final String DISPLAYNAME = "Channel Tree";
 
 
     private static final String SUPPORTED_SCHEMA = "cf";

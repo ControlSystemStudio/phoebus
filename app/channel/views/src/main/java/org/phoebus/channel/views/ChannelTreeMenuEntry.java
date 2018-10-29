@@ -21,7 +21,7 @@ public class ChannelTreeMenuEntry implements MenuEntry {
 
     @Override
     public String getName() {
-        return ChannelTreeApp.NAME;
+        return ChannelTreeApp.DISPLAYNAME;
     }
 
     @Override

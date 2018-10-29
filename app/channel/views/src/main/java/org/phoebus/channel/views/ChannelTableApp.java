@@ -15,8 +15,8 @@ public class ChannelTableApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(ChannelTableApp.class.getName());
     static final Image icon = ImageCache.getImage(ChannelTableApp.class, "/icons/channel-viewer-16.png");
-    public static final String NAME = "channelTable";
-    public static final String DISPLAYNAME = "ChannelTable";
+    public static final String NAME = "channel_table";
+    public static final String DISPLAYNAME = "Channel Table";
 
     private static final String SUPPORTED_SCHEMA = "cf";
 
