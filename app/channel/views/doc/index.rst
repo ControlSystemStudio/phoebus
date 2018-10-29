@@ -15,7 +15,8 @@ From within cs-studio
 
 From command line
 
-``-resource cf://?search=SR*&app=channelTree``
+``-resource cf://?query=SR*&app=channel_tree``
+``-resource cf://?query=SR*&app=channel_table``
 
 Channel Table
 --------------
