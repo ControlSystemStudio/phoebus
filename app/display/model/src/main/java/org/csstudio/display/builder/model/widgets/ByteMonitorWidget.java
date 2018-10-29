@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOnColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRotationStep;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSquare;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
 
@@ -33,6 +34,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.IntegerWidgetProperty;
+import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -128,7 +130,8 @@ public class ByteMonitorWidget extends PVWidget
             double h = widget.propHeight().getValue();
             double n = widget.propNumBits().getValue();
             double dx, dy;
-            if (widget.propHorizontal().getValue())
+            final boolean horiz = widget.propHorizontal().getValue();
+            if (horiz)
             {
                 dy = 0;
                 dx = w / n;
@@ -144,7 +147,7 @@ public class ByteMonitorWidget extends PVWidget
             final Node next = xml.getNextSibling();
             for (String text : labels)
             {
-                final Element label = createLabelWidget(xml, (int)x, (int)y, (int)w, (int)h, text);
+                final Element label = createLabelWidget(xml, (int)x, (int)y, (int)w, (int)h, text, horiz);
                 if (next != null)
                     parent.insertBefore(label, next);
                 else
@@ -155,7 +158,7 @@ public class ByteMonitorWidget extends PVWidget
         }
 
         // Create LabelWidget XML
-        private Element createLabelWidget(final Element xml, final int x, final int y, final int w, final int h, final String text)
+        private Element createLabelWidget(final Element xml, final int x, final int y, final int w, final int h, final String text, final boolean horiz)
         {
             System.out.println(text);
             final Document doc = xml.getOwnerDocument();
@@ -193,6 +196,13 @@ public class ByteMonitorWidget extends PVWidget
             el = doc.createElement(propVerticalAlignment.getName());
             el.appendChild(doc.createTextNode(Integer.toString(VerticalAlignment.MIDDLE.ordinal())));
             label.appendChild(el);
+
+            if (horiz)
+            {
+                el = doc.createElement(propRotationStep.getName());
+                el.appendChild(doc.createTextNode(Integer.toString(RotationStep.NINETY.ordinal())));
+                label.appendChild(el);
+            }
 
             return label;
         }
