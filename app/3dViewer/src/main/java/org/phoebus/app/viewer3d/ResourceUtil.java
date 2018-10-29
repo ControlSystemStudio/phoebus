@@ -29,14 +29,15 @@ import org.phoebus.framework.util.IOUtils;
  * <p> Based on link org.csstudio.display.builder.model.util.ModelResourceUtil
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class ResourceUtil
 {
     /** Schema used for the built-in display examples */
     public static final String EXAMPLES_SCHEMA = "examples";
-    
+
     private static int timeout_ms = Preferences.read_timeout;
     private static boolean trusting_anybody = false;
-    
+
     /** Open a file, web location, ..
     *
     *  <p>In addition, understands "examples:"
@@ -50,10 +51,10 @@ public class ResourceUtil
     {
         if (null == resource_name)
             return null;
-        
+
         if (resource_name.startsWith("http"))
             return openURL(resource_name);
-        
+
         final URL example = getExampleURL(resource_name);
         if (example != null)
         {
@@ -66,13 +67,13 @@ public class ResourceUtil
                 throw new Exception("Cannot open example: '" + example + "'", ex);
             }
         }
-        
+
         if (resource_name.startsWith("file:"))
             return new FileInputStream(resource_name.substring(5));
-        
+
         return new FileInputStream(resource_name);
     }
-    
+
     /** Open URL for "http", "https", "ftp", ..
      *  @param resource_name URL specification
      *  @return {@link InputStream}
@@ -83,7 +84,7 @@ public class ResourceUtil
         final byte[] content = readURL(resource_name);
         return new ByteArrayInputStream(content);
     }
-    
+
     private static byte[] readURL(final String url) throws Exception
     {
         final InputStream in = openURL(url, timeout_ms);
@@ -108,7 +109,7 @@ public class ResourceUtil
         connection.setReadTimeout(timeout_ms);
         return connection.getInputStream();
     }
-    
+
     /** Allow https:// access to self-signed certificates
      *  @throws Exception on error
      */
@@ -152,21 +153,21 @@ public class ResourceUtil
     }
 
     /** Check for "examples:.."
-    *
-    *  @param resource_name Path to file that may be based on "examples:.."
-    *  @return URL for the example, or <code>null</code>
-    */
-   private static URL getExampleURL(final String resource_name)
-   {
-       if (resource_name.startsWith(EXAMPLES_SCHEMA + ":"))
-       {
-           String example = resource_name.substring(9);
-           if (example.startsWith("/"))
-               example = "/examples" + example;
-           else
-               example = "/examples/" + example;
-           return Viewer3dPane.class.getResource(example);
-       }
-       return null;
-   }
+     *
+     *  @param resource_name Path to file that may be based on "examples:.."
+     *  @return URL for the example, or <code>null</code>
+     */
+    private static URL getExampleURL(final String resource_name)
+    {
+        if (resource_name.startsWith(EXAMPLES_SCHEMA + ":"))
+        {
+            String example = resource_name.substring(9);
+            if (example.startsWith("/"))
+                example = "examples" + example;
+            else
+                example = "examples/" + example;
+            return Viewer3dPane.class.getResource(example);
+        }
+        return null;
+    }
 }

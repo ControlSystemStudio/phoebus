@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -132,6 +132,12 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
      *  in case the representation already handles dragging moves
      *  to for example operate a slider or pan something.
      */
+    // Note: In RCP version, the D&D had to be handled in SWT,
+    // and was implemented in the org.csstudio.display.builder.rcp.RuntimeViewPart.
+    // Widget.isDragEnabled() was used to enable/disable.
+    // Now the enablement is left to the representation,
+    // and since only Ctrl-drag is supported,
+    // only very few widget representations need to disable it.
     protected void configurePVNameDrag()
     {
         // If there is a "pv_name", allow dragging it out
@@ -208,6 +214,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     {
         Objects.requireNonNull(jfx_node);
         JFXRepresentation.getChildren(jfx_node.getParent()).remove(jfx_node);
+        jfx_node = null;
     }
 
     /** Get parent that would be used for child-widgets.

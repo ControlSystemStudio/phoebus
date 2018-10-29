@@ -47,7 +47,7 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
      *  <u>not</u> the complete old resp. new value.
      */
     public static final WidgetPropertyDescriptor<List<Widget>> DESCRIPTOR =
-            new WidgetPropertyDescriptor<List<Widget>>(
+            new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.RUNTIME, "children", "Child widgets")
     {
         @Override
@@ -239,5 +239,14 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
     public void readFromXML(final ModelReader model_reader, final Element property_xml) throws Exception
     {
         model_reader.readWidgets(this, property_xml);
+    }
+
+    /** Dispose, i.e. clear list
+     *
+     *  <p>Prevents further use by replacing it with immutable, empty list
+     */
+    void dispose()
+    {
+        value = Collections.emptyList();
     }
 }

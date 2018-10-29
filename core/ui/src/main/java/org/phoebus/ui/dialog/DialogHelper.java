@@ -61,6 +61,12 @@ public class DialogHelper
         hackModality(dialog);
 
         final Bounds pos = node.localToScreen(node.getBoundsInLocal());
+        if (pos == null)
+        {
+            logger.log(Level.WARNING, "Cannot determine dialog position", new NullPointerException());
+            return;
+        }
+
         dialog.setX(pos.getMinX() + pos.getWidth()/2 + x_offset);
         dialog.setY(pos.getMinY() + pos.getHeight()/2 + y_offset);
     }

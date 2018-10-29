@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -366,7 +366,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
         if (representation != null)
         {
             logger.log(Level.FINE, "Disposing {0} for {1}", new Object[] { representation, widget });
-            representation.dispose();
+            representation.destroy();
         }
         // else: Widget has no representation because not implemented for this toolkit
     }

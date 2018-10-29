@@ -40,6 +40,15 @@ Alarm Table: Main runtime interface, shows current alarms.
 
 Annunciator: Annunciates alarms.
 
+Each of the above alarm apps can be launched from the cmd line as follows
+
+``-resource alarm://localhost/Accelerator?app=alarm_tree``
+
+``-resource alarm://localhost/Accelerator?app=alarm_table``
+
+``-resource alarm://localhost/Accelerator?app=alarm_area``
+
+
 Guidance
 --------
 

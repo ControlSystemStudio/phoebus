@@ -23,6 +23,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
 /** Creates JavaFX item for model widget
@@ -66,9 +67,27 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
             }
         });
         if (! toolkit.isEditMode())
-        {   // Prevent UI value update while actively changing
-            scrollbar.addEventFilter(MouseEvent.MOUSE_PRESSED,  event -> isValueChanging = true);
-            scrollbar.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> isValueChanging = false);
+        {
+            scrollbar.addEventFilter(MouseEvent.ANY, e ->
+            {
+                if (e.getButton() == MouseButton.SECONDARY)
+                {
+                    // Disable the contemporary triggering of a value change and of the
+                    // opening of contextual menu when right-clicking on the scrollbar's
+                    // buttons.
+                    e.consume();
+                }
+                else if (MouseEvent.MOUSE_PRESSED.equals(e.getEventType()))
+                {
+                    // Prevent UI value update while actively changing
+                    isValueChanging = true;
+                }
+                else if (MouseEvent.MOUSE_RELEASED.equals(e.getEventType()))
+                {
+                    // Prevent UI value update while actively changing
+                    isValueChanging = false;
+                }
+            });
         }
         enablementChanged(null, null, null);
         limitsChanged(null, null, null);
@@ -80,12 +99,6 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
     protected boolean isFilteringEditModeClicks()
     {
         return true;
-    }
-
-    @Override
-    protected void configurePVNameDrag()
-    {
-        // Don't drag PV name, we use drag to move the scroll bar handle
     }
 
     @Override

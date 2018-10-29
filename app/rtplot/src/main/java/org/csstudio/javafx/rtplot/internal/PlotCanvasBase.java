@@ -128,6 +128,11 @@ abstract class PlotCanvasBase extends ImageView
 
     private WritableImage awt_jfx_convert_buffer = null;
 
+    /** Debug option to show update performance */
+    private static final boolean show_updates = Boolean.parseBoolean(System.getProperty("org.csstudio.javafx.rtplot.update_counter"));
+    private long update_counter = 0, last_counter = 0, next_rate_update = 0;
+    private double update_rate = 0;
+
     /** Redraw the plot on UI thread by painting the 'plot_image' */
     private final Runnable redraw_runnable = () ->
     {
@@ -152,6 +157,24 @@ abstract class PlotCanvasBase extends ImageView
             gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             gc.setColor(Color.BLACK);
             drawMouseModeFeedback(gc);
+
+            if (show_updates)
+            {   // Add update info to lower left corner of image
+                ++update_counter;
+                final long now = System.currentTimeMillis();
+                if (now > next_rate_update)
+                {
+                    final long diff = update_counter - last_counter;
+                    update_rate = (update_rate * 9.0 + diff) / 10.0;
+                    last_counter = update_counter;
+                    next_rate_update = now + 1000;
+                }
+                final String text = String.format("%d (%.1f Hz)", update_counter, update_rate);
+                gc.setPaint(Color.WHITE);
+                gc.drawString(text, 1, height-2);
+                gc.setPaint(Color.BLACK);
+                gc.drawString(text, 2, height-3);
+            }
 
             // Convert to JFX image and show
             if (awt_jfx_convert_buffer == null  ||
