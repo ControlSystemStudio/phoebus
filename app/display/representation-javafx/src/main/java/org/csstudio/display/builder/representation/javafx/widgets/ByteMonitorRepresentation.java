@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -80,39 +80,53 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 model_widget.propHeight().getValue(), horizontal);
     }
 
-    private void addLEDs(final Pane pane, final int w, final int h, final boolean horizontal)
+    private void addLEDs(final Pane pane, double w, double h, final boolean horizontal)
     {
         final int save_bits = numBits;
         final boolean save_sq = square_led;
         final Color [] save_colorVals = value_colors;
         final Shape [] leds = new Shape[save_bits];
+        double x = 0.0, y = 0.0;
+        double dx, dy;
+        if (horizontal)
+        {
+            dx = w / save_bits;
+            dy = 0;
+            w = dx;
+        }
+        else
+        {
+            dx = 0;
+            dy = h / save_bits;
+            h = dy;
+        }
         for (int i = 0; i < save_bits; i++)
         {
             final Shape led;
             if (save_sq)
             {
                 final Rectangle rect = new Rectangle();
-                rect.setX(horizontal ? i*w/save_bits : 0);
-                rect.setY(horizontal ? 0 : i*h/save_bits);
-                rect.setWidth(horizontal ? w/save_bits : w);
-                rect.setHeight(horizontal ? h : h/save_bits);
+                rect.setX(x);
+                rect.setY(y);
+                rect.setWidth(w);
+                rect.setHeight(h);
                 led = rect;
             }
             else
             {
                 final Ellipse ell = new Ellipse();
-                final int dh = horizontal ? w/save_bits : w;
-                final int dv = horizontal ? h : h/save_bits;
-                ell.setCenterX(horizontal ? dh/2 + i*dh : dh/2);
-                ell.setCenterY(horizontal ? dv/2 : dv/2 + i*dv);
-                ell.setRadiusX(dh/2);
-                ell.setRadiusY(dv/2);
+                ell.setCenterX(x + w/2);
+                ell.setCenterY(y + h/2);
+                ell.setRadiusX(w/2);
+                ell.setRadiusY(h/2);
                 led = ell;
             }
             led.getStyleClass().add("led");
             if (save_colorVals != null && i < save_colorVals.length)
                 led.setFill(save_colorVals[i]);
             leds[i] = led;
+            x += dx;
+            y += dy;
         }
         this.leds = leds;
         pane.getChildren().clear();
