@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.action.search.SearchRequest;
@@ -20,8 +22,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.jboss.logging.Logger;
-import org.jboss.logging.Logger.Level;
 import org.phoebus.alarm.logging.AlarmLoggingService;
 import org.phoebus.alarm.logging.ElasticClientHelper;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
@@ -100,14 +100,14 @@ public class SearchController {
                                 }
                                 return alarmStateMessage;
                             } catch (Exception e) {
-                                logger.log(Level.ERROR, "Failed to search for alarm logs ", e);
+                                logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
                                 return null;
                             }
                         }
                     }).collect(Collectors.toList());
             return result;
         } catch (IOException e) {
-            logger.log(Level.ERROR, "Failed to search for alarm logs ", e);
+            logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
         }
         return Collections.emptyList();
     }
