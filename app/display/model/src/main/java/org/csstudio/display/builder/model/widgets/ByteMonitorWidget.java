@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.model.widgets;
 
 import static  org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
@@ -31,6 +32,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.IntegerWidgetProperty;
@@ -115,14 +118,22 @@ public class ByteMonitorWidget extends PVWidget
                 for (Element e : XMLUtil.getChildElements(el, "s"))
                     labels.add(XMLUtil.getString(e));
                 if (labels.size() > 0)
-                    addLabels((ByteMonitorWidget) widget, xml, labels);
+                {
+                    final boolean reverse = XMLUtil.getChildBoolean(xml, "bitReverse").orElse(false);
+                    final WidgetProperty<WidgetColor> fg =
+                            propForegroundColor.createProperty(widget,
+                                                               WidgetColorService.getColor(NamedWidgetColors.TEXT));
+                    fg.readFromXML(model_reader, xml);
+                    addLabels((ByteMonitorWidget) widget, xml, labels, reverse, fg.getValue());
+                }
             }
 
             return true;
         }
 
         // Add LabelWidget XML for legacy labels
-        private void addLabels(final ByteMonitorWidget widget, final Element xml, final List<String> labels)
+        private void addLabels(final ByteMonitorWidget widget, final Element xml, final List<String> labels,
+                               final boolean reverse, final WidgetColor foreground)
         {
             double x = widget.propX().getValue();
             double y = widget.propY().getValue();
@@ -135,30 +146,35 @@ public class ByteMonitorWidget extends PVWidget
             {
                 dy = 0;
                 dx = w / n;
+                x = reverse ? x : x + w - dx;
                 w = dx;
             }
             else
             {
                 dx = 0;
                 dy = h / n;
+                y = reverse ? y : y + h - dy;
                 h = dy;
             }
             final Node parent = xml.getParentNode();
             final Node next = xml.getNextSibling();
+            int i = 0;
             for (String text : labels)
             {
-                final Element label = createLabelWidget(xml, (int)x, (int)y, (int)w, (int)h, text, horiz);
+                final Element label = createLabelWidget(xml, widget.getName() + "#" + i, (int)x, (int)y, (int)w, (int)h, text, horiz, foreground);
                 if (next != null)
                     parent.insertBefore(label, next);
                 else
                     parent.appendChild(label);
-                x += dx;
-                y += dy;
+                x += reverse ? dx : -dx;
+                y += reverse ? dy : -dy;
+                ++i;
             }
         }
 
         // Create LabelWidget XML
-        private Element createLabelWidget(final Element xml, final int x, final int y, final int w, final int h, final String text, final boolean horiz)
+        private Element createLabelWidget(final Element xml, final String name, final int x, final int y, final int w, final int h,
+                                          final String text, final boolean horiz, final WidgetColor foreground)
         {
             System.out.println(text);
             final Document doc = xml.getOwnerDocument();
@@ -166,7 +182,7 @@ public class ByteMonitorWidget extends PVWidget
             label.setAttribute(XMLTags.TYPE, LabelWidget.WIDGET_DESCRIPTOR.getType());
 
             Element el = doc.createElement(XMLTags.NAME);
-            el.appendChild(doc.createTextNode("ByteMonitorLabel"));
+            el.appendChild(doc.createTextNode(name));
             label.appendChild(el);
 
             el = doc.createElement(XMLTags.X);
@@ -195,6 +211,14 @@ public class ByteMonitorWidget extends PVWidget
 
             el = doc.createElement(propVerticalAlignment.getName());
             el.appendChild(doc.createTextNode(Integer.toString(VerticalAlignment.MIDDLE.ordinal())));
+            label.appendChild(el);
+
+            final Element fel = doc.createElement(XMLTags.COLOR);
+            fel.setAttribute("red", String.valueOf(foreground.getRed()));
+            fel.setAttribute("green", String.valueOf(foreground.getGreen()));
+            fel.setAttribute("blue", String.valueOf(foreground.getBlue()));
+            el = doc.createElement("foreground_color");
+            el.appendChild(fel);
             label.appendChild(el);
 
             if (horiz)
