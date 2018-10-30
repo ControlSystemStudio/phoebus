@@ -92,6 +92,7 @@ public class TimeWarp
     private static final Pattern LEGACY_MINUTES = Pattern.compile("([0-9]+\\.[0-9]+) min[utes]*");
     // Actually allows "h", "hour", "hours", but also "horsurrs".. Fine.
     private static final Pattern LEGACY_HOURS = Pattern.compile("([0-9.]+) h[ours]*");
+    private static final Pattern LEGACY_DAYS = Pattern.compile("([0-9.]+) day(s)*");
 
     /** @param legacy_spec Legacy specification, e.g. "-3 days -3.124 seconds"
      *  @return Relative time span
@@ -100,7 +101,16 @@ public class TimeWarp
     {
         String spec = legacy_spec.replace("-", "");
 
-        Matcher legacy = LEGACY_HOURS.matcher(spec);
+        Matcher legacy = LEGACY_DAYS.matcher(spec);
+        if (legacy.find())
+        {
+            // TimeParser can only handle full days, not floating point
+            // Truncate
+            final double days = Double.parseDouble(legacy.group(1));
+            spec = spec.substring(0,legacy.start()) + Math.round(days) + " days" + spec.substring(legacy.end());
+        }
+
+        legacy = LEGACY_HOURS.matcher(spec);
         if (legacy.find())
         {
             // TimeParser can only handle full hours, not floating point

@@ -106,6 +106,10 @@ public class ArchiveFetchJob implements JobRunnable
             int bins = Preferences.plot_bins;
             if (bins < 0)
                 bins = DataBrowserInstance.display_pixel_width * (-bins);
+            // Bins could be 0 when display_pixel_width has not been initialed
+            // (no DB instance had been opened)
+            if (bins <= 0)
+                bins = 800;
 
             final Collection<ArchiveDataSource> archives = item.getArchiveDataSources();
             final List<ArchiveDataSource> archives_without_channel = new ArrayList<>();
