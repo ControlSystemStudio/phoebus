@@ -8,23 +8,23 @@
     <!-- Assemble lib/ -->
     <copy todir="${build}/lib" flatten="true">
       <fileset dir="../..">
-      	<include name="dependencies/target/lib/epics-pvaccess-*.jar"/>
-      	<include name="dependencies/target/lib/epics-pvdata-*.jar"/>
-  		<include name="dependencies/target/lib/hamcrest-all-*.jar"/>
-      	<include name="dependencies/target/lib/hamcrest-core-*.jar"/>
-  		<include name="dependencies/target/lib/jackson-annotations-*.jar"/>
-      	<include name="dependencies/target/lib/jackson-core-*.jar"/>
-  		<include name="dependencies/target/lib/jackson-databind-*.jar"/>
-  		<include name="dependencies/target/lib/javax.servlet-api-*.jar"/>
-      	<include name="dependencies/target/lib/jca-*.jar"/>
-  		<include name="dependencies/target/lib/jetty-*.jar"/>
-  		<include name="dependencies/target/lib/junit-*.jar"/>
-      	<include name="dependencies/target/lib/mysql-connector-*.jar"/>
-  		<include name="dependencies/target/lib/ojdbc8-*.jar"/>
-      	<include name="dependencies/target/lib/org.eclipse.paho.client*.jar"/>
-  		<include name="dependencies/target/lib/postgresql-*.jar"/>
-      	<include name="dependencies/target/lib/reactive-streams-*.jar"/>
-  		<include name="dependencies/target/lib/rxjava-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/epics-pvaccess-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/epics-pvdata-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/hamcrest-all-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/hamcrest-core-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/jackson-annotations-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/jackson-core-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/jackson-databind-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/javax.servlet-api-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/jca-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/jetty-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/junit-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/mysql-connector-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/ojdbc8-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/org.eclipse.paho.client*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/postgresql-*.jar"/>
+      	<include name="dependencies/phoebus-target/target/lib/reactive-streams-*.jar"/>
+  		<include name="dependencies/phoebus-target/target/lib/rxjava-*.jar"/>
       	
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-pv-*.jar"/>
