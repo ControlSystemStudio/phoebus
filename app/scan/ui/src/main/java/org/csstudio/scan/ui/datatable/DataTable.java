@@ -10,9 +10,9 @@ package org.csstudio.scan.ui.datatable;
 import static org.csstudio.scan.ScanSystem.logger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.scan.client.ScanClient;
@@ -56,36 +56,36 @@ public class DataTable extends StackPane
 
         reader = new ScanDataReader(scan_client, this::update);
         reader.setScanId(scan_id);
-        
+
         ContextMenu menu = new ContextMenu();
-        
-        MenuItem exportTable = new MenuItem("Export table to CSV");
-        exportTable.setOnAction(event -> 
+
+        MenuItem exportTable = new MenuItem("Export table to file");
+        exportTable.setOnAction(event ->
         {
             FileChooser file_chooser = new FileChooser();
             File csv_file = file_chooser.showSaveDialog(this.getScene().getWindow());
-            
+
             if (null == csv_file)
                 return;
-            
+
             writeTableToCSV(csv_file);
         });
-        
-        MenuItem exportRawData = new MenuItem("Export raw data to CSV");
-        exportRawData.setOnAction(event -> 
+
+        MenuItem exportRawData = new MenuItem("Export raw data to file");
+        exportRawData.setOnAction(event ->
         {
             FileChooser file_chooser = new FileChooser();
             File csv_file = file_chooser.showSaveDialog(this.getScene().getWindow());
-            
+
             if (null == csv_file)
                 return;
-            
+
             writeRawDataToCSV(csv_file);
         });
-        
+
         menu.getItems().add(exportTable);
         menu.getItems().add(exportRawData);
-        
+
         table.setContextMenu(menu);
     }
 
@@ -116,7 +116,7 @@ public class DataTable extends StackPane
             {
                 final TableColumn<DataRow, String> col = new TableColumn<>(device);
                 final int col_index = i;
-                
+
                 col.setCellFactory(c -> new DataCell(col_index));
 
                 col.setCellValueFactory(cell ->
@@ -147,89 +147,89 @@ public class DataTable extends StackPane
             rows.add(new DataRow(iterator.getTimestamp(), iterator.getSamples()));
         }
     }
-    
+
     /** Write the tables contents to the passed file in the CSV format. */
+    // According to https://en.wikipedia.org/wiki/Comma-separated_values,
+    // "CSV" may also refer to tab-separated, which is more convenient
+    // as the data may include strings which in turn include commata,
+    // quotes etc.
     private void writeTableToCSV(final File csv_file)
     {
         writeToCSV(csv_file, false);
     }
-    
+
     /** Write the tables contents to the passed file in the CSV format. */
     private void writeRawDataToCSV(final File csv_file)
     {
         writeToCSV(csv_file, true);
     }
-    
+
     private void writeToCSV(final File csv_file, final boolean include_timestamps)
     {
-        StringBuilder str_builder = new StringBuilder();
-        
-        ObservableList<TableColumn<DataRow, ?>> cols = table.getColumns();
-        
-        Iterator<TableColumn<DataRow, ?>> col_iter = cols.iterator();
-        Iterator<DataRow> row_iter = rows.iterator();
-        
-        if (include_timestamps && col_iter.hasNext())
+        try (PrintWriter writer = new PrintWriter(csv_file))
         {
-            col_iter.next();
-            str_builder.append("ID, ");
-        }
-        
-        while (col_iter.hasNext())
-        {
-            final String col_text = col_iter.next().getText();
-            
-            if (include_timestamps)
-                str_builder.append(col_text + " Timestamps, ");
-            
-            str_builder.append(col_text);
-            
-            if (col_iter.hasNext())
-                str_builder.append(", ");
-        }
-        str_builder.append("\n");
+            writer.println("# Data for scan ID " + reader.getScanId());
 
-        int idx = 0;
-        while(row_iter.hasNext())
-        {
-            DataRow row = row_iter.next();
-            int i = 0;
-            if (include_timestamps)
+            final List<TableColumn<DataRow, ?>> cols = table.getColumns();
+            final Iterator<TableColumn<DataRow, ?>> col_iter = cols.iterator();
+            if (include_timestamps && col_iter.hasNext())
             {
-                str_builder.append(idx + ", ");
-                i = 1;
+                col_iter.next();
+                writer.append("ID\t");
             }
-            for (; i < row.size(); i++)
+
+            while (col_iter.hasNext())
             {
+                final String col_text = col_iter.next().getText();
+
+                if (include_timestamps)
+                    writer.append(col_text).append(" Time\t");
+
+                writer.append(col_text);
+
+                if (col_iter.hasNext())
+                    writer.append("\t");
+            }
+            writer.println();
+
+            int idx = 0;
+            for (DataRow row : rows)
+            {
+                int i = 0;
                 if (include_timestamps)
                 {
-                    final String ts = row.getDataTimestamp(i).get();
-                    if (null != ts)
-                        str_builder.append(ts + ", ");
+                    writer.print(idx);
+                    writer.append("\t");
+                    i = 1;
                 }
-                
-                final String data_val = row.getDataValue(i).get();
-                if (null != data_val)
-                    str_builder.append(data_val);
-                
-                if (i != row.size() -1)
-                    str_builder.append(", ");
+                for (; i < row.size(); i++)
+                {
+                    if (include_timestamps)
+                    {
+                        final String ts = row.getDataTimestamp(i).get();
+                        if (null != ts)
+                            writer.append(ts);
+                        writer.append("\t");
+                    }
+
+                    final String data_val = row.getDataValue(i).get();
+                    if (null != data_val)
+                        writer.append(data_val);
+
+                    if (i != row.size() -1)
+                        writer.append("\t");
+                }
+                writer.println();
+                ++idx;
             }
-            str_builder.append("\n");
-            idx++;
         }
-        
-        try (PrintWriter writer = new PrintWriter(csv_file))
-        {            
-            writer.print(str_builder.toString());
-        } 
-        catch (FileNotFoundException ex)
+        catch (Exception ex)
         {
             final String output = include_timestamps ? "data" : "table";
-            logger.log(Level.WARNING, "Failed to write " + output + " to CSV.", ex);
+            logger.log(Level.WARNING, "Failed to write " + output + " to " + csv_file, ex);
         }
     }
-    
+
     /** Should be called to stop the reader (in case it's still running) */
     public void dispose()
     {
