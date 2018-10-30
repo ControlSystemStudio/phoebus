@@ -59,7 +59,7 @@ public class DataTable extends StackPane
 
         ContextMenu menu = new ContextMenu();
 
-        MenuItem exportTable = new MenuItem("Export table to CSV");
+        MenuItem exportTable = new MenuItem("Export table to file");
         exportTable.setOnAction(event ->
         {
             FileChooser file_chooser = new FileChooser();
@@ -71,7 +71,7 @@ public class DataTable extends StackPane
             writeTableToCSV(csv_file);
         });
 
-        MenuItem exportRawData = new MenuItem("Export raw data to CSV");
+        MenuItem exportRawData = new MenuItem("Export raw data to file");
         exportRawData.setOnAction(event ->
         {
             FileChooser file_chooser = new FileChooser();
@@ -149,6 +149,10 @@ public class DataTable extends StackPane
     }
 
     /** Write the tables contents to the passed file in the CSV format. */
+    // According to https://en.wikipedia.org/wiki/Comma-separated_values,
+    // "CSV" may also refer to tab-separated, which is more convenient
+    // as the data may include strings which in turn include commata,
+    // quotes etc.
     private void writeTableToCSV(final File csv_file)
     {
         writeToCSV(csv_file, false);
