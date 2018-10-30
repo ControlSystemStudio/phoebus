@@ -6,7 +6,7 @@ Overview
 
 The 3d Viewer is a tool that allows users to configure 3 dimensional structures using spheres, cylinders, and boxes.
 
-These structures are defined in shape file (*.shp) and parsed by the application. 
+These structures are defined in shape file (`*.shp`) and parsed by the application. 
 
 The resultant structure is then  rendered on screen. This structure can be viewed in the application which allows rotation, zoom, and movement.
 
