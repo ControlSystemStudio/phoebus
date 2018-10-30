@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,10 +9,14 @@ package org.csstudio.display.builder.model.widgets;
 
 import static  org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOnColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRotationStep;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSquare;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -27,10 +31,16 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.XMLTags;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.IntegerWidgetProperty;
+import org.csstudio.display.builder.model.properties.RotationStep;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /** Widget that displays the bits in an Integer or Long Integer value as a set of LEDs
  *  @author Amanda Carpenter
@@ -55,7 +65,7 @@ public class ByteMonitorWidget extends PVWidget
 
     /** 'start bit' property: Number of first (smallest) bit */
     public static final WidgetPropertyDescriptor<Integer> propStartBit =
-        new WidgetPropertyDescriptor<Integer>(WidgetPropertyCategory.DISPLAY, "startBit", Messages.ByteMonitor_StartBit)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "startBit", Messages.ByteMonitor_StartBit)
         {
             @Override
             public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
@@ -66,7 +76,7 @@ public class ByteMonitorWidget extends PVWidget
 
     /** 'num. bits' property: Bit number in the integer to start displaying. */
     public static final WidgetPropertyDescriptor<Integer> propNumBits =
-        new WidgetPropertyDescriptor<Integer>(WidgetPropertyCategory.DISPLAY, "numBits", Messages.ByteMonitor_NumBits)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "numBits", Messages.ByteMonitor_NumBits)
         {
             @Override
             public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
@@ -96,7 +106,105 @@ public class ByteMonitorWidget extends PVWidget
             final Optional<Boolean> square = XMLUtil.getChildBoolean(xml, "square_led");
             if (square.isPresent())
                 ((ByteMonitorWidget) widget).propSquare().setValue(square.get());
+
+            // Legacy "labels"
+            final Element el = XMLUtil.getChildElement(xml, "label");
+            if (el != null)
+            {
+                final List<String> labels = new ArrayList<>();
+                for (Element e : XMLUtil.getChildElements(el, "s"))
+                    labels.add(XMLUtil.getString(e));
+                if (labels.size() > 0)
+                    addLabels((ByteMonitorWidget) widget, xml, labels);
+            }
+
             return true;
+        }
+
+        // Add LabelWidget XML for legacy labels
+        private void addLabels(final ByteMonitorWidget widget, final Element xml, final List<String> labels)
+        {
+            double x = widget.propX().getValue();
+            double y = widget.propY().getValue();
+            double w = widget.propWidth().getValue();
+            double h = widget.propHeight().getValue();
+            double n = widget.propNumBits().getValue();
+            double dx, dy;
+            final boolean horiz = widget.propHorizontal().getValue();
+            if (horiz)
+            {
+                dy = 0;
+                dx = w / n;
+                w = dx;
+            }
+            else
+            {
+                dx = 0;
+                dy = h / n;
+                h = dy;
+            }
+            final Node parent = xml.getParentNode();
+            final Node next = xml.getNextSibling();
+            for (String text : labels)
+            {
+                final Element label = createLabelWidget(xml, (int)x, (int)y, (int)w, (int)h, text, horiz);
+                if (next != null)
+                    parent.insertBefore(label, next);
+                else
+                    parent.appendChild(label);
+                x += dx;
+                y += dy;
+            }
+        }
+
+        // Create LabelWidget XML
+        private Element createLabelWidget(final Element xml, final int x, final int y, final int w, final int h, final String text, final boolean horiz)
+        {
+            System.out.println(text);
+            final Document doc = xml.getOwnerDocument();
+            final Element label = doc.createElement(XMLTags.WIDGET);
+            label.setAttribute(XMLTags.TYPE, LabelWidget.WIDGET_DESCRIPTOR.getType());
+
+            Element el = doc.createElement(XMLTags.NAME);
+            el.appendChild(doc.createTextNode("ByteMonitorLabel"));
+            label.appendChild(el);
+
+            el = doc.createElement(XMLTags.X);
+            el.appendChild(doc.createTextNode(Integer.toString(x)));
+            label.appendChild(el);
+
+            el = doc.createElement(XMLTags.Y);
+            el.appendChild(doc.createTextNode(Integer.toString(y)));
+            label.appendChild(el);
+
+            el = doc.createElement(XMLTags.WIDTH);
+            el.appendChild(doc.createTextNode(Integer.toString(w)));
+            label.appendChild(el);
+
+            el = doc.createElement(XMLTags.HEIGHT);
+            el.appendChild(doc.createTextNode(Integer.toString(h)));
+            label.appendChild(el);
+
+            el = doc.createElement(XMLTags.TEXT);
+            el.appendChild(doc.createTextNode(text));
+            label.appendChild(el);
+
+            el = doc.createElement(propHorizontalAlignment.getName());
+            el.appendChild(doc.createTextNode(Integer.toString(HorizontalAlignment.CENTER.ordinal())));
+            label.appendChild(el);
+
+            el = doc.createElement(propVerticalAlignment.getName());
+            el.appendChild(doc.createTextNode(Integer.toString(VerticalAlignment.MIDDLE.ordinal())));
+            label.appendChild(el);
+
+            if (horiz)
+            {
+                el = doc.createElement(propRotationStep.getName());
+                el.appendChild(doc.createTextNode(Integer.toString(RotationStep.NINETY.ordinal())));
+                label.appendChild(el);
+            }
+
+            return label;
         }
     };
 
