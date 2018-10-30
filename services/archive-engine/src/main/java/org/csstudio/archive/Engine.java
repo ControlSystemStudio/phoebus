@@ -26,8 +26,6 @@ import org.csstudio.archive.engine.server.EngineWebServer;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.util.shell.CommandShell;
 
-// TODO 'restart'
-
 /** Archive engine 'main'
  *  @author Kay Kasemir
  */
@@ -297,6 +295,21 @@ public class Engine
             return;
         }
 
+        if (export_file != null)
+        {
+            model = new EngineModel();
+            try
+            (
+                RDBConfig config = new RDBConfig();
+            )
+            {
+                config.read(model, config_name, port, true);
+            }
+            logger.log(Level.INFO, "Saving configuration to " + export_file);
+            new XMLConfig().write(model, export_file);
+            return;
+        }
+
         final CommandShell shell = new CommandShell(COMMANDS, Engine::handleShellCommands);
         shell.start();
         boolean run = true;
@@ -309,13 +322,6 @@ public class Engine
             )
             {
                 config.read(model, config_name, port, skip_last);
-            }
-
-            if (export_file != null)
-            {
-                logger.log(Level.INFO, "Saving configuration to " + export_file);
-                new XMLConfig().write(model, export_file);
-                return;
             }
 
             logger.info("Archive Engine web interface on http://localhost:" + port + "/index.html");
