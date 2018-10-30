@@ -56,6 +56,8 @@ public class TimestampHelper
      */
     public static Instant fromSQLTimestamp(final java.sql.Timestamp sql_time)
     {
+        if (sql_time == null)
+            return null;
         return sql_time.toInstant();
     }
 
