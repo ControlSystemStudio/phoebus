@@ -7,18 +7,25 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import java.util.List;
+
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.phoebus.vtype.VType;
 
+import javafx.geometry.Bounds;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -26,8 +33,9 @@ import javafx.scene.shape.Shape;
 @SuppressWarnings("nls")
 public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, ByteMonitorWidget>
 {
-    private final DirtyFlag dirty_size = new DirtyFlag();
+    private final DirtyFlag dirty_config = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
+    private final UntypedWidgetPropertyListener look_listener = this::lookChanged;
 
     private volatile Color[] colors;
 
@@ -82,10 +90,13 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
 
     private void addLEDs(final Pane pane, double w, double h, final boolean horizontal)
     {
+        final Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
+        final Font text_font = JFXUtil.convert(model_widget.propFont().getValue());
         final int save_bits = numBits;
         final boolean save_sq = square_led;
         final Color [] save_colorVals = value_colors;
         final Shape [] leds = new Shape[save_bits];
+        final Text [] texts = new Text[save_bits];
         double x = 0.0, y = 0.0;
         double dx, dy;
         if (horizontal)
@@ -124,13 +135,34 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
             led.getStyleClass().add("led");
             if (save_colorVals != null && i < save_colorVals.length)
                 led.setFill(save_colorVals[i]);
+
+            final Text text;
+            final int lbl_index = bitReverse ? i : save_bits - i - 1;
+            if (lbl_index < model_widget.propLabels().size())
+            {
+                text = new Text(model_widget.propLabels().getElement(lbl_index).getValue());
+                if (horizontal)
+                    text.setRotate(-90.0);
+                text.setFont(text_font);
+                text.applyCss();
+                final Bounds bounds = text.getBoundsInLocal();
+                text.setX(x + (w - bounds.getWidth())/2);
+                text.setY(y + (h + bounds.getHeight())/2);
+                text.setFill(text_color);
+            }
+            else
+                text = null;
+
             leds[i] = led;
+            texts[i] = text;
             x += dx;
             y += dy;
         }
         this.leds = leds;
-        pane.getChildren().clear();
-        pane.getChildren().addAll(leds);
+        pane.getChildren().setAll(leds);
+        for (Text text : texts)
+            if (text != null)
+                pane.getChildren().add(text);
     }
 
     protected Color[] createColors()
@@ -169,16 +201,31 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         model_widget.propOffColor().addUntypedPropertyListener(this::configChanged);
         model_widget.propOnColor().addUntypedPropertyListener(this::configChanged);
         model_widget.propStartBit().addUntypedPropertyListener(this::configChanged);
-        model_widget.propBitReverse().addUntypedPropertyListener(this::configChanged);
 
-        model_widget.propNumBits().addUntypedPropertyListener(this::lookChanged);
+        model_widget.propBitReverse().addUntypedPropertyListener(look_listener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(look_listener);
+        model_widget.propFont().addUntypedPropertyListener(look_listener);
+        model_widget.propLabels().addPropertyListener(this::lablesChanged);
+        model_widget.propNumBits().addUntypedPropertyListener(look_listener);
         model_widget.propHorizontal().addPropertyListener(this::orientationChanged);
-        model_widget.propSquare().addUntypedPropertyListener(this::lookChanged);
+        model_widget.propSquare().addUntypedPropertyListener(look_listener);
 
         //initialization
+        lablesChanged(model_widget.propLabels(), null, model_widget.propLabels().getValue());
         configChanged(null, null, null);
-        lookChanged(null, null, null);
         contentChanged(null, null, model_widget.runtimePropValue().getValue());
+    }
+
+    private void lablesChanged(final WidgetProperty<List<StringWidgetProperty>> prop,
+                               final List<StringWidgetProperty> removed, final List<StringWidgetProperty> added)
+    {
+        if (added != null)
+            for (StringWidgetProperty text : added)
+                text.addUntypedPropertyListener(look_listener);
+        if (removed != null)
+            for (StringWidgetProperty text : removed)
+                text.removePropertyListener(look_listener);
+        look_listener.propertyChanged(null, null, null);
     }
 
     private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
@@ -206,17 +253,18 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
      */
     protected void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+        bitReverse = model_widget.propBitReverse().getValue();
         numBits = model_widget.propNumBits().getValue();
         horizontal = model_widget.propHorizontal().getValue();
         square_led = model_widget.propSquare().getValue();
         // note: copied to array to safeguard against mid-operation changes
-        dirty_size.mark();
+        dirty_config.mark();
         contentChanged(model_widget.runtimePropValue(), null, model_widget.runtimePropValue().getValue());
     }
 
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
     {
-        dirty_size.mark();
+        dirty_config.mark();
         toolkit.scheduleUpdate(this);
     }
 
@@ -229,7 +277,6 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     protected void configChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         startBit = model_widget.propStartBit().getValue();
-        bitReverse = model_widget.propBitReverse().getValue();
         colors = createColors();
         contentChanged(model_widget.runtimePropValue(), null, model_widget.runtimePropValue().getValue());
     }
@@ -254,7 +301,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     public void updateChanges()
     {
         super.updateChanges();
-        if (dirty_size.checkAndClear())
+        if (dirty_config.checkAndClear())
         {
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
