@@ -32,11 +32,11 @@ public class MultiStateLEDRepresentation extends BaseLEDRepresentation<MultiStat
         super.registerListeners();
         // Track changes to (most of) the state details
         model_widget.propStates().addPropertyListener(this::statesChanged);
-        statesChanged(null, model_widget.propStates().getValue(), null);
+        statesChanged(null, null, model_widget.propStates().getValue());
     }
 
     private void statesChanged(final WidgetProperty<List<StateWidgetProperty>> prop,
-                               final List<StateWidgetProperty> added, final List<StateWidgetProperty> removed)
+                               final List<StateWidgetProperty> removed, final List<StateWidgetProperty> added)
     {
         if (added != null)
             for (StateWidgetProperty state : added)

@@ -8,20 +8,21 @@
 package org.csstudio.display.builder.model.widgets;
 
 import static  org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOnColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRotationStep;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSquare;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propText;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
@@ -33,17 +34,15 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.IntegerWidgetProperty;
-import org.csstudio.display.builder.model.properties.RotationStep;
-import org.csstudio.display.builder.model.properties.VerticalAlignment;
+import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 /** Widget that displays the bits in an Integer or Long Integer value as a set of LEDs
  *  @author Amanda Carpenter
@@ -92,6 +91,12 @@ public class ByteMonitorWidget extends PVWidget
     public static final WidgetPropertyDescriptor<Boolean> propBitReverse =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "bitReverse", Messages.ByteMonitor_BitReverse);
 
+    // 'labels' array
+    private static final ArrayWidgetProperty.Descriptor<StringWidgetProperty> propLabels =
+            new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.DISPLAY, "labels", "Labels",
+                    (widget, index) -> new StringWidgetProperty(propText, widget, "Label " + index),
+                    0);
+
     private static class CustomConfigurator extends WidgetConfigurator
     {
         public CustomConfigurator(final Version xml_version)
@@ -106,11 +111,12 @@ public class ByteMonitorWidget extends PVWidget
             if (! super.configureFromXML(model_reader, widget, xml))
                 return false;
 
+            final ByteMonitorWidget bm = (ByteMonitorWidget) widget;
             final Optional<Boolean> square = XMLUtil.getChildBoolean(xml, "square_led");
             if (square.isPresent())
-                ((ByteMonitorWidget) widget).propSquare().setValue(square.get());
+                bm.propSquare().setValue(square.get());
 
-            // Legacy "labels"
+            // Legacy <labels><s>...
             final Element el = XMLUtil.getChildElement(xml, "label");
             if (el != null)
             {
@@ -118,117 +124,10 @@ public class ByteMonitorWidget extends PVWidget
                 for (Element e : XMLUtil.getChildElements(el, "s"))
                     labels.add(XMLUtil.getString(e));
                 if (labels.size() > 0)
-                {
-                    final boolean reverse = XMLUtil.getChildBoolean(xml, "bitReverse").orElse(false);
-                    final WidgetProperty<WidgetColor> fg =
-                            propForegroundColor.createProperty(widget,
-                                                               WidgetColorService.getColor(NamedWidgetColors.TEXT));
-                    fg.readFromXML(model_reader, xml);
-                    addLabels((ByteMonitorWidget) widget, xml, labels, reverse, fg.getValue());
-                }
+                    bm.propLabels().setValueFromObject(labels);
             }
 
             return true;
-        }
-
-        // Add LabelWidget XML for legacy labels
-        private void addLabels(final ByteMonitorWidget widget, final Element xml, final List<String> labels,
-                               final boolean reverse, final WidgetColor foreground)
-        {
-            double x = widget.propX().getValue();
-            double y = widget.propY().getValue();
-            double w = widget.propWidth().getValue();
-            double h = widget.propHeight().getValue();
-            double n = widget.propNumBits().getValue();
-            double dx, dy;
-            final boolean horiz = widget.propHorizontal().getValue();
-            if (horiz)
-            {
-                dy = 0;
-                dx = w / n;
-                x = reverse ? x : x + w - dx;
-                w = dx;
-            }
-            else
-            {
-                dx = 0;
-                dy = h / n;
-                y = reverse ? y : y + h - dy;
-                h = dy;
-            }
-            final Node parent = xml.getParentNode();
-            final Node next = xml.getNextSibling();
-            int i = 0;
-            for (String text : labels)
-            {
-                final Element label = createLabelWidget(xml, widget.getName() + "#" + i, (int)x, (int)y, (int)w, (int)h, text, horiz, foreground);
-                if (next != null)
-                    parent.insertBefore(label, next);
-                else
-                    parent.appendChild(label);
-                x += reverse ? dx : -dx;
-                y += reverse ? dy : -dy;
-                ++i;
-            }
-        }
-
-        // Create LabelWidget XML
-        private Element createLabelWidget(final Element xml, final String name, final int x, final int y, final int w, final int h,
-                                          final String text, final boolean horiz, final WidgetColor foreground)
-        {
-            System.out.println(text);
-            final Document doc = xml.getOwnerDocument();
-            final Element label = doc.createElement(XMLTags.WIDGET);
-            label.setAttribute(XMLTags.TYPE, LabelWidget.WIDGET_DESCRIPTOR.getType());
-
-            Element el = doc.createElement(XMLTags.NAME);
-            el.appendChild(doc.createTextNode(name));
-            label.appendChild(el);
-
-            el = doc.createElement(XMLTags.X);
-            el.appendChild(doc.createTextNode(Integer.toString(x)));
-            label.appendChild(el);
-
-            el = doc.createElement(XMLTags.Y);
-            el.appendChild(doc.createTextNode(Integer.toString(y)));
-            label.appendChild(el);
-
-            el = doc.createElement(XMLTags.WIDTH);
-            el.appendChild(doc.createTextNode(Integer.toString(w)));
-            label.appendChild(el);
-
-            el = doc.createElement(XMLTags.HEIGHT);
-            el.appendChild(doc.createTextNode(Integer.toString(h)));
-            label.appendChild(el);
-
-            el = doc.createElement(XMLTags.TEXT);
-            el.appendChild(doc.createTextNode(text));
-            label.appendChild(el);
-
-            el = doc.createElement(propHorizontalAlignment.getName());
-            el.appendChild(doc.createTextNode(Integer.toString(HorizontalAlignment.CENTER.ordinal())));
-            label.appendChild(el);
-
-            el = doc.createElement(propVerticalAlignment.getName());
-            el.appendChild(doc.createTextNode(Integer.toString(VerticalAlignment.MIDDLE.ordinal())));
-            label.appendChild(el);
-
-            final Element fel = doc.createElement(XMLTags.COLOR);
-            fel.setAttribute("red", String.valueOf(foreground.getRed()));
-            fel.setAttribute("green", String.valueOf(foreground.getGreen()));
-            fel.setAttribute("blue", String.valueOf(foreground.getBlue()));
-            el = doc.createElement("foreground_color");
-            el.appendChild(fel);
-            label.appendChild(el);
-
-            if (horiz)
-            {
-                el = doc.createElement(propRotationStep.getName());
-                el.appendChild(doc.createTextNode(Integer.toString(RotationStep.NINETY.ordinal())));
-                label.appendChild(el);
-            }
-
-            return label;
         }
     };
 
@@ -240,6 +139,9 @@ public class ByteMonitorWidget extends PVWidget
     private volatile WidgetProperty<Boolean> bitReverse;
     private volatile WidgetProperty<Boolean> horizontal;
     private volatile WidgetProperty<Boolean> square;
+    private volatile WidgetProperty<WidgetColor> foreground_color;
+    private volatile WidgetProperty<WidgetFont> font;
+    private volatile ArrayWidgetProperty<StringWidgetProperty> labels;
 
     public ByteMonitorWidget()
     {
@@ -257,6 +159,9 @@ public class ByteMonitorWidget extends PVWidget
         properties.add(square = propSquare.createProperty(this,false));
         properties.add(off_color = propOffColor.createProperty(this, new WidgetColor(60, 100, 60)));
         properties.add(on_color = propOnColor.createProperty(this, new WidgetColor(60, 255, 60)));
+        properties.add(foreground_color = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
+        properties.add(labels = propLabels.createProperty(this, Collections.emptyList()));
     }
 
     @Override
@@ -306,5 +211,23 @@ public class ByteMonitorWidget extends PVWidget
     public WidgetProperty<Boolean> propSquare()
     {
         return square;
+    }
+
+    /** @return 'foreground_color' property */
+    public WidgetProperty<WidgetColor> propForegroundColor()
+    {
+        return foreground_color;
+    }
+
+    /** @return 'font' property */
+    public WidgetProperty<WidgetFont> propFont()
+    {
+        return font;
+    }
+
+    /** @return 'labels' property */
+    public ArrayWidgetProperty<StringWidgetProperty> propLabels()
+    {
+        return labels;
     }
 }
