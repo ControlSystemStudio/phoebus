@@ -14,11 +14,11 @@ import java.util.regex.Pattern;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.Consumed;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.kstream.TransformerSupplier;
@@ -38,7 +38,7 @@ public class AlarmStateLogger implements Runnable {
     private final String topic;
     private Map<String, Object> serdeProps;
     private final Serde<AlarmStateMessage> alarmStateMessageSerde;
-    
+
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
     private IndexNameHelper indexNameHelper;
@@ -65,7 +65,7 @@ public class AlarmStateLogger implements Runnable {
         KStream<String, AlarmStateMessage> alarms = builder.stream(topic+"State",
                 Consumed.with(Serdes.String(), alarmStateMessageSerde)
                         .withTimestampExtractor(new TimestampExtractor() {
-                            
+
                             @Override
                             public long extract(ConsumerRecord<Object, Object> record, long previousTimestamp) {
                                 return record.timestamp();
@@ -113,14 +113,9 @@ public class AlarmStateLogger implements Runnable {
                     }
 
                     @Override
-                    public KeyValue<String, AlarmStateMessage> punctuate(long timestamp) {
-                        return null;
-                    }
-
-                    @Override
                     public void close() {
                         // TODO Auto-generated method stub
-                        
+
                     }
                 };
             }
@@ -132,7 +127,7 @@ public class AlarmStateLogger implements Runnable {
         try
         {
             indexNameHelper = new IndexNameHelper(topic + "_alarms", indexDateSpanUnits, indexDateSpanValue);
-        } 
+        }
         catch (Exception ex)
         {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
