@@ -33,6 +33,7 @@ public class RDBConfig implements AutoCloseable
     private final RDBInfo rdb;
     private final SQL sql;
     private final Connection connection;
+    private int monitor_mode_id = 1;
 
     /** @throws Exception on error */
     public RDBConfig() throws Exception
@@ -40,6 +41,21 @@ public class RDBConfig implements AutoCloseable
         rdb = new RDBInfo(Preferences.url, Preferences.user, Preferences.password);
         sql = new SQL(rdb.getDialect(), Preferences.schema);
         connection = rdb.connect();
+
+        // Determine which mode is 'monitor'
+        try
+        (
+            final Statement stmt = connection.createStatement();
+            final ResultSet result = stmt.executeQuery(sql.sample_mode_sel);
+        )
+        {
+            while (result.next())
+                if (result.getString(2).equalsIgnoreCase("Monitor"))
+                {
+                    monitor_mode_id = result.getInt(1);
+                    break;
+                }
+        }
     }
 
     /** List available configuration names
@@ -423,7 +439,7 @@ public class RDBConfig implements AutoCloseable
                     Enablement enablement = Enablement.Passive;
                     if (channel_id == enabling_chan_id)
                         enablement = Enablement.Enabling;
-                    final SampleMode sample_mode = new SampleMode(smpl_mode_id == 2, smpl_val,  smpl_per);
+                    final SampleMode sample_mode = new SampleMode(smpl_mode_id == monitor_mode_id, smpl_val,  smpl_per);
 
                     logger.log(Level.INFO, "Channel '" + name + "' (" + channel_id + "), " + sample_mode +
                                            (last_sample_time != null ? ", last written " + last_sample_time : ""));
