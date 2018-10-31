@@ -21,11 +21,10 @@ Download Kafka as described on https://kafka.apache.org/quickstart
     cd examples
     
     # Use wget, 'curl -O', or web browser
-    wget http://mirrors.gigenet.com/apache/kafka/1.1.0/kafka_2.11-1.1.0.tgz
-
-    tar -vzxf kafka_2.11-1.1.0.tgz
-    ln -s kafka_2.11-1.1.0 kafka
-    
+    wget http://mirrors.gigenet.com/apache/kafka/2.0.0/kafka_2.11-2.0.0.tgz
+    tar -vzxf kafka_2.11-2.0.0.tgz
+    ln -s kafka_2.11-2.0.0 kafka
+     
 Check `config/zookeeper.properties` and `config/server.properties`.
 By default these contain settings for keeping data in `/tmp/`, which works for initial tests,
 but risks that Linux will delete the data.
@@ -69,21 +68,6 @@ For tests, you can use localhost:
     listeners=PLAINTEXT://localhost:9092
     advertised.host.name = localhost
     advertised.listeners=PLAINTEXT://localhost:9092
-
-If you are using Java 10 or newer, the Zookeeper start script may fail when it
-checks for the Java Version, because it mistakes Java 10 as Java "1", resulting in the following error:
-
-     kafka/bin/kafka-run-class.sh: line 252: .. syntax error in expression ..
-
-If you are using Java 10, change kafka-run-class.sh line 252 from
-
-     JAVA_MAJOR_VERSION=$($JAVA -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p')
-into
-
-     JAVA_MAJOR_VERSION=$($JAVA -version 2>&1 | sed -E -n 's/.* version "([^.-])./\1p')
-
-
-
 
 Start local instance:
 
