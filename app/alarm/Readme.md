@@ -80,7 +80,9 @@ If you are using Java 10, change kafka-run-class.sh line 252 from
      JAVA_MAJOR_VERSION=$($JAVA -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p')
 into
 
-     JAVA_MAJOR_VERSION="10"
+     JAVA_MAJOR_VERSION=$($JAVA -version 2>&1 | sed -E -n 's/.* version "([^.-])./\1p')
+
+
 
 
 Start local instance:
