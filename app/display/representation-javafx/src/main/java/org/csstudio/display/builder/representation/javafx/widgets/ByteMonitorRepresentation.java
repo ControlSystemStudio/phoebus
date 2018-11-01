@@ -18,14 +18,15 @@ import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.phoebus.vtype.VType;
 
-import javafx.geometry.Bounds;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -88,7 +89,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 model_widget.propHeight().getValue(), horizontal);
     }
 
-    private void addLEDs(final Pane pane, double w, double h, final boolean horizontal)
+    private void addLEDs(final Pane pane, final double w, final double h, final boolean horizontal)
     {
         final Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         final Font text_font = JFXUtil.convert(model_widget.propFont().getValue());
@@ -96,73 +97,97 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         final boolean save_sq = square_led;
         final Color [] save_colorVals = value_colors;
         final Shape [] leds = new Shape[save_bits];
-        final Text [] texts = new Text[save_bits];
-        double x = 0.0, y = 0.0;
-        double dx, dy;
+        final Label [] labels = new Label[save_bits];
+        final double gap = 4;
+        double led_w, led_h, dx, dy, rad;
         if (horizontal)
         {
             dx = w / save_bits;
             dy = 0;
-            w = dx;
+            led_w = dx;
+            led_h = h;
+            rad = led_w/2;
         }
         else
         {
             dx = 0;
             dy = h / save_bits;
-            h = dy;
+            led_w = w;
+            led_h = dy;
+            rad = led_h/2;
         }
+        double x = 0.0, y = 0.0;
         for (int i = 0; i < save_bits; i++)
         {
+            final Label label;
+            final int lbl_index = bitReverse ? i : save_bits - i - 1;
+            if (lbl_index < model_widget.propLabels().size())
+            {
+                label = new Label(model_widget.propLabels().getElement(lbl_index).getValue());
+                label.getStyleClass().add("led_label");
+                label.setFont(text_font);
+                label.setTextFill(text_color);
+            }
+            else
+                label = null;
+
             final Shape led;
             if (save_sq)
             {
                 final Rectangle rect = new Rectangle();
                 rect.setX(x);
                 rect.setY(y);
-                rect.setWidth(w);
-                rect.setHeight(h);
+                rect.setWidth(led_w);
+                rect.setHeight(led_h);
                 led = rect;
+                if (label != null)
+                {
+                    label.relocate(x, y);
+                    label.setPrefSize(led_w, led_h);
+                    label.setAlignment(Pos.CENTER);
+                    if (horizontal)
+                        label.setRotate(-90);
+                }
             }
             else
             {
                 final Ellipse ell = new Ellipse();
-                ell.setCenterX(x + w/2);
-                ell.setCenterY(y + h/2);
-                ell.setRadiusX(w/2);
-                ell.setRadiusY(h/2);
+                ell.setCenterX(x + rad);
+                ell.setCenterY(y + rad);
+                ell.setRadiusX(rad);
+                ell.setRadiusY(rad);
                 led = ell;
+                if (label != null)
+                {
+                    if (horizontal)
+                    {
+                        label.getTransforms().setAll(new Rotate(-90.0));
+                        // label.setBackground(new Background(new BackgroundFill(Color.BISQUE, CornerRadii.EMPTY, Insets.EMPTY)));
+                        label.relocate(x, y+led_h);
+                        label.setPrefSize(led_h - 2*rad - gap, led_w);
+                        label.setAlignment(Pos.CENTER_RIGHT);
+                    }
+                    else
+                    {
+                        label.relocate(x+2*rad+gap, y);
+                        label.setPrefSize(led_w-2*rad-gap, led_h);
+                    }
+                }
             }
             led.getStyleClass().add("led");
             if (save_colorVals != null && i < save_colorVals.length)
                 led.setFill(save_colorVals[i]);
 
-            final Text text;
-            final int lbl_index = bitReverse ? i : save_bits - i - 1;
-            if (lbl_index < model_widget.propLabels().size())
-            {
-                text = new Text(model_widget.propLabels().getElement(lbl_index).getValue());
-                if (horizontal)
-                    text.setRotate(-90.0);
-                text.setFont(text_font);
-                text.applyCss();
-                final Bounds bounds = text.getBoundsInLocal();
-                text.setX(x + (w - bounds.getWidth())/2);
-                text.setY(y + (h + bounds.getHeight())/2);
-                text.setFill(text_color);
-            }
-            else
-                text = null;
-
             leds[i] = led;
-            texts[i] = text;
+            labels[i] = label;
             x += dx;
             y += dy;
         }
         this.leds = leds;
         pane.getChildren().setAll(leds);
-        for (Text text : texts)
-            if (text != null)
-                pane.getChildren().add(text);
+        for (Label label : labels)
+            if (label != null)
+                pane.getChildren().add(label);
     }
 
     protected Color[] createColors()
@@ -205,18 +230,18 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         model_widget.propBitReverse().addUntypedPropertyListener(look_listener);
         model_widget.propForegroundColor().addUntypedPropertyListener(look_listener);
         model_widget.propFont().addUntypedPropertyListener(look_listener);
-        model_widget.propLabels().addPropertyListener(this::lablesChanged);
+        model_widget.propLabels().addPropertyListener(this::labelsChanged);
         model_widget.propNumBits().addUntypedPropertyListener(look_listener);
         model_widget.propHorizontal().addPropertyListener(this::orientationChanged);
         model_widget.propSquare().addUntypedPropertyListener(look_listener);
 
         //initialization
-        lablesChanged(model_widget.propLabels(), null, model_widget.propLabels().getValue());
+        labelsChanged(model_widget.propLabels(), null, model_widget.propLabels().getValue());
         configChanged(null, null, null);
         contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
-    private void lablesChanged(final WidgetProperty<List<StringWidgetProperty>> prop,
+    private void labelsChanged(final WidgetProperty<List<StringWidgetProperty>> prop,
                                final List<StringWidgetProperty> removed, final List<StringWidgetProperty> added)
     {
         if (added != null)
