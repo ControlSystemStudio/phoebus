@@ -14,7 +14,13 @@ They receive the most recent configuration and state, and from then on updates.
 Kafka Installation
 ------------------
 
-Download Kafka as described on https://kafka.apache.org/quickstart
+Download Kafka as described on https://kafka.apache.org/quickstart.
+
+The following describes a setup under the `examples` folder
+of the source tree, which allows using the other scripts in examples
+for a quick start.
+A production setup on for example Linux would typically install
+kafka in `/opt/kafka`.
 
     # The 'examples' folder of this project contains some example scripts
     # that can be used with a kafka server in the same directory
@@ -69,7 +75,8 @@ For tests, you can use localhost:
     advertised.host.name = localhost
     advertised.listeners=PLAINTEXT://localhost:9092
 
-Start local instance:
+Start local instance. The following describes a manual startup which is useful
+for initial tests:
 
     # Zookeeper must be started first.
     sh start_zookeeper.sh
@@ -81,7 +88,22 @@ Start local instance:
     # it will fail to start and close with a null pointer exception. 
     # Simply start kafka after zookeeper is running to recover.
 
-Refer to `*.service` scripts for installing Zookeeper and Kafka as Linux services.
+
+For a Linux-based production setup, consider using the `*.service` scripts
+for running Zookeeper, Kafka and the alarm server as Linux services:
+
+    sudo cp *.service /etc/systemd/system
+
+    # Start manually
+    sudo systemctl start zookeeper.service
+    sudo systemctl start kafka.service
+    sudo systemctl start alarm_server.service
+
+    # Enable startup when host boots
+    sudo systemctl enable zookeeper.service
+    sudo systemctl enable kafka.service
+    sudo systemctl enable alarm_server.service
+
     
 Kafka Demo
 ----------

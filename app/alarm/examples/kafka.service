@@ -19,11 +19,12 @@ After=network.target remote-fs.target zookeeper.service
 
 [Service]
 Type=simple
-User=controls
-Group=users
-Environment=JAVA_HOME=/opt/jdk-10
+User=DESIRED_USER
+Group=DESIRED_GROUP
+Environment=JAVA_HOME=/PATH/TO/JDK
 ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
 ExecStop=/opt/kafka/bin/kafka-server-stop.sh
 
 [Install]
 WantedBy=multi-user.target
+
