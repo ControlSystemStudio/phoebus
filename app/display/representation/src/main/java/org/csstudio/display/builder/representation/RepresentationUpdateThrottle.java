@@ -205,7 +205,9 @@ public class RepresentationUpdateThrottle
                     break;
                 try
                 {
-                    representation.updateChanges();
+                    // Skip updates when representation has been disposed
+                    if (representation.model_widget != null)
+                        representation.updateChanges();
                 }
                 catch (final Throwable ex)
                 {
