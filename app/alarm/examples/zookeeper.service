@@ -19,9 +19,9 @@ After=network.target remote-fs.target
 
 [Service]
 Type=simple
-User=controls
-Group=users
-Environment=JAVA_HOME=/opt/jdk-10
+User=DESIRED_USER
+Group=DESIRED_GROUP
+Environment=JAVA_HOME=/PATH/TO/JDK
 ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
 ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
 

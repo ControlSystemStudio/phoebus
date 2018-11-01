@@ -39,12 +39,12 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-annotations-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-core-2.9.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-databind-2.9.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-1.1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/slf4j-api-1.7.25.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/reactive-streams-1.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/rxjava-2.1.14.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/freetts-1.2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-1.1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/commons-codec-1.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/commons-logging-1.1.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-6.3.1.jar"/>
