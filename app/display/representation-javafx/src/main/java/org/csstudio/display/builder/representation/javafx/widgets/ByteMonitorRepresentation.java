@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.phoebus.vtype.VType;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
@@ -255,6 +256,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
 
     private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
     {
+        this.horizontal = horizontal;
         // When interactively changing orientation, swap width <-> height.
         // This will only affect interactive changes once the widget is represented on the screen.
         // Initially, when the widget is loaded from XML, the representation
@@ -289,6 +291,14 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
 
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
     {
+        // When editing round LEDs, set width & height to get snug alarm border
+        if (toolkit.isEditMode()  &&  model_widget.propLabels().size() == 0  && !square_led  &&  numBits > 0)
+        {
+            if (horizontal  &&  property == model_widget.propWidth())
+                Platform.runLater(() -> model_widget.propHeight().setValue(new_value / numBits));
+            else if (!horizontal  &&  property == model_widget.propHeight())
+                Platform.runLater(() -> model_widget.propWidth().setValue(new_value / numBits));
+        }
         dirty_config.mark();
         toolkit.scheduleUpdate(this);
     }
