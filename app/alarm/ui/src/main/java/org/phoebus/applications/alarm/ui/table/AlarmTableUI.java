@@ -109,9 +109,57 @@ public class AlarmTableUI extends BorderPane
 
     private ToolBar toolbar = createToolbar();
 
+    /** Enable dragging the PV name from a table cell.
+     *  @param cell Table cell
+     */
+    static void enablePVDrag(TableCell<AlarmInfoRow, ?> cell)
+    {
+        // Tried to use table.setOnDragDetected() to drag PV names
+        // from all selected cells, but with drag enabled on the table
+        // it is no longer possible to resize columns:
+        // Moving a column divider starts a drag.
+        // So now hooking drag to table cell.
+        cell.setOnDragDetected(event ->
+        {
+            // Anything to drag?
+            if (cell.getTableRow() == null  ||  cell.getTableRow().getItem() == null)
+                return;
+
+            final Dragboard db = cell.startDragAndDrop(TransferMode.COPY);
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(cell.getTableRow().getItem().pv.get());
+            db.setContent(content);
+            event.consume();
+        });
+    }
+
+    /** Table cell for PV, allows dragging the PV name */
+    private static class DragPVCell extends TableCell<AlarmInfoRow, String>
+    {
+        public DragPVCell()
+        {
+            enablePVDrag(this);
+        }
+
+        @Override
+        protected void updateItem(String item, boolean empty)
+        {
+            super.updateItem(item, empty);
+            if (empty  ||  item == null)
+                setText("");
+            else
+                setText(item);
+        }
+    }
+
     /** Table cell that shows a Severity as Icon */
     private class SeverityIconCell extends TableCell<AlarmInfoRow, SeverityLevel>
     {
+        public SeverityIconCell()
+        {
+            enablePVDrag(this);
+        }
+
         @Override
         protected void updateItem(final SeverityLevel item, final boolean empty)
         {
@@ -127,6 +175,11 @@ public class AlarmTableUI extends BorderPane
     /** Table cell that shows a Severity as text */
     private class SeverityLevelCell extends TableCell<AlarmInfoRow, SeverityLevel>
     {
+        public SeverityLevelCell()
+        {
+            enablePVDrag(this);
+        }
+
         @Override
         protected void updateItem(final SeverityLevel item, final boolean empty)
         {
@@ -148,6 +201,11 @@ public class AlarmTableUI extends BorderPane
     /** Table cell that shows a time stamp */
     private class TimeCell extends TableCell<AlarmInfoRow, Instant>
     {
+        public TimeCell()
+        {
+            enablePVDrag(this);
+        }
+
         @Override
         protected void updateItem(final Instant item, final boolean empty)
         {
@@ -271,6 +329,7 @@ public class AlarmTableUI extends BorderPane
         col.setPrefWidth(240);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().pv);
+        col.setCellFactory(c -> new DragPVCell());
 
         table.getColumns().add(col);
 
@@ -278,6 +337,7 @@ public class AlarmTableUI extends BorderPane
         col.setPrefWidth(400);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().description);
+        col.setCellFactory(c -> new DragPVCell());
         table.getColumns().add(col);
 
         sevcol = new TableColumn<>("Alarm Severity");
@@ -291,6 +351,7 @@ public class AlarmTableUI extends BorderPane
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().status);
+        col.setCellFactory(c -> new DragPVCell());
         table.getColumns().add(col);
 
         TableColumn<AlarmInfoRow, Instant> timecol = new TableColumn<>("Alarm Time");
@@ -304,6 +365,7 @@ public class AlarmTableUI extends BorderPane
         col.setPrefWidth(100);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().value);
+        col.setCellFactory(c -> new DragPVCell());
         table.getColumns().add(col);
 
         sevcol = new TableColumn<>("PV Severity");
@@ -317,6 +379,7 @@ public class AlarmTableUI extends BorderPane
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().pv_status);
+        col.setCellFactory(c -> new DragPVCell());
         table.getColumns().add(col);
 
         table.setPlaceholder(new Label(active ? "No active alarms" : "No acknowledged alarms"));
@@ -334,23 +397,6 @@ public class AlarmTableUI extends BorderPane
                     JobManager.schedule("ack", monitor ->  client.acknowledge(row.getItem().item, active));
             });
             return row;
-        });
-
-        // Drag selected PV names
-        table.setOnDragDetected(event ->
-        {
-            final Dragboard db = table.startDragAndDrop(TransferMode.COPY);
-            final ClipboardContent content = new ClipboardContent();
-            final StringBuilder buf = new StringBuilder();
-            for (AlarmInfoRow row : table.getSelectionModel().getSelectedItems())
-            {
-                if (buf.length() > 0)
-                    buf.append(" ");
-                buf.append(row.pv.get());
-            }
-            content.putString(buf.toString());
-            db.setContent(content);
-            event.consume();
         });
 
         return table;
