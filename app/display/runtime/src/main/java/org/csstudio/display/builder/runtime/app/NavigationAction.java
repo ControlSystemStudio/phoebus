@@ -27,13 +27,10 @@ import javafx.scene.image.ImageView;
 public abstract class NavigationAction extends SplitMenuButton
 {
     /** Icons */
-    private static final Image backward, forward;
-
-    static
-    {
-        backward = ImageCache.getImage(NavigationAction.class, "/icons/backward_nav.png");
-        forward = ImageCache.getImage(NavigationAction.class, "/icons/forward_nav.png");
-    }
+    private static final Image backward = ImageCache.getImage(NavigationAction.class, "/icons/backward_nav.png"),
+                               backward_dis = ImageCache.getImage(NavigationAction.class, "/icons/backward_disabled.png"),
+                               forward = ImageCache.getImage(NavigationAction.class, "/icons/forward_nav.png"),
+                               forward_dis = ImageCache.getImage(NavigationAction.class, "/icons/forward_disabled.png");
 
     /** @param instance {@link DisplayRuntimeInstance}
      *  @param navigation {@link DisplayNavigation} for that instance
@@ -41,7 +38,7 @@ public abstract class NavigationAction extends SplitMenuButton
      */
     public static ButtonBase createBackAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation)
     {
-        return new NavigationAction(instance, navigation, Messages.NavigateBack_TT, backward)
+        return new NavigationAction(instance, navigation, Messages.NavigateBack_TT, backward, backward_dis)
         {
             @Override
             protected List<DisplayInfo> getDisplays()
@@ -63,7 +60,7 @@ public abstract class NavigationAction extends SplitMenuButton
      */
     public static ButtonBase createForewardAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation)
     {
-        return new NavigationAction(instance, navigation, Messages.NavigateForward_TT, forward)
+        return new NavigationAction(instance, navigation, Messages.NavigateForward_TT, forward, forward_dis)
         {
             @Override
             protected List<DisplayInfo> getDisplays()
@@ -80,12 +77,30 @@ public abstract class NavigationAction extends SplitMenuButton
     }
 
     private final DisplayRuntimeInstance instance;
+    private final Image icon, disabled;
+    private final ImageView image;
 
     private NavigationAction(final DisplayRuntimeInstance instance, final DisplayNavigation navigation,
-                             final String tooltip, final Image icon)
+                             final String tooltip, final Image icon, final Image disabled)
     {
         this.instance = instance;
-        setGraphic(new ImageView(icon));
+        this.icon = icon;
+        // First implementation used just the main icon and then called
+        //   setDisable(..)
+        // to enable/disable the button.
+        // This resulted in button erroneously appearing disabled,
+        // typically after a display had been 'split'.
+        // Could not figure out why, and only the 'backward' button seemed
+        // to be effected.
+        // Using
+        //   setVisible()
+        // worked fine, but having the button appear/disappear, with a gap
+        // where the button used to be looks odd.
+        // Keeping the button enabled and visible, yet changing the image,
+        // is currently the workaround.
+        this.disabled = disabled;
+        image = new ImageView(icon);
+        setGraphic(image);
         // Don't react to '&' etc. in display names
         setMnemonicParsing(false);
         setTooltip(new Tooltip(tooltip));
@@ -106,12 +121,12 @@ public abstract class NavigationAction extends SplitMenuButton
         final int N = displays.size();
         if (N<=0)
         {
-            setDisable(true);
+            image.setImage(disabled);
             getItems().clear();
         }
         else
         {
-            setDisable(false);
+            image.setImage(icon);
             final List<MenuItem> items = new ArrayList<>(N);
             for (int i=0; i<N; ++i)
                 items.add(createNavigationItem(displays.get(N-i-1), i+1));
