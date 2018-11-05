@@ -126,7 +126,8 @@ is on the right.</text>
     <pv_name>sim://ramp(0,4,1)</pv_name>
     <x>60</x>
     <y>103</y>
-    <height>26</height>
+    <width>100</width>
+    <height>25</height>
     <numBits>4</numBits>
   </widget>
   <widget type="label" version="2.0.0">
@@ -142,8 +143,8 @@ is on the right.</text>
     <pv_name>sim://ramp(0,4,1)</pv_name>
     <x>59</x>
     <y>169</y>
-    <width>101</width>
-    <height>26</height>
+    <width>100</width>
+    <height>25</height>
     <numBits>4</numBits>
     <bitReverse>true</bitReverse>
   </widget>
@@ -180,8 +181,8 @@ is on the right.</text>
     <pv_name>sim://ramp(0,4,1)</pv_name>
     <x>59</x>
     <y>231</y>
-    <width>101</width>
-    <height>30</height>
+    <width>100</width>
+    <height>25</height>
     <startBit>1</startBit>
     <numBits>4</numBits>
   </widget>
@@ -218,7 +219,7 @@ is on the right.</text>
     <pv_name>sim://ramp(0,4,1)</pv_name>
     <x>181</x>
     <y>195</y>
-    <width>35</width>
+    <width>29</width>
     <height>116</height>
     <numBits>4</numBits>
     <horizontal>false</horizontal>
@@ -226,9 +227,9 @@ is on the right.</text>
   <widget type="byte_monitor" version="2.0.0">
     <name>Byte Monitor_4</name>
     <pv_name>sim://ramp(0,4,1)</pv_name>
-    <x>261</x>
+    <x>270</x>
     <y>195</y>
-    <width>30</width>
+    <width>29</width>
     <height>116</height>
     <numBits>4</numBits>
     <bitReverse>true</bitReverse>
