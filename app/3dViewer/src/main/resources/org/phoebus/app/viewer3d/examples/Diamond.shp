@@ -2,7 +2,7 @@
 
 background(255, 255, 153, 1)
 
-sphere(  0,   0,   0, 10, 32, 32, 32, 1)
+sphere(  0,   0,   0, 10, 32, 32, 32, 1, "C at origin of a girl's best friend")
 sphere(  0,   0,  80, 10, 32, 32, 32, 1)
 sphere( 70,   0,  40, 10, 32, 32, 32, 1)
 sphere( 30,  40,  40, 10, 32, 32, 32, 1)
