@@ -2,10 +2,19 @@ package org.phoebus.applications.probe.view;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.applications.probe.Probe;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
@@ -14,16 +23,6 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.SimpleValueFormat;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFormat;
-import org.phoebus.vtype.ValueUtil;
 
 import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
@@ -36,8 +35,6 @@ import javafx.scene.paint.Color;
 
 @SuppressWarnings("nls")
 public class ProbeController {
-
-    private ValueFormat valueFormat = new SimpleValueFormat(3);
 
     private boolean editing = false;
 
@@ -199,17 +196,21 @@ public class ProbeController {
         String valueString = null;
         if (value != null)
         {
-            if (value instanceof Display  && value instanceof VDouble)
-                valueString = ((Display)value).getFormat().format(((VDouble)value).getValue().doubleValue());
+            if (value instanceof VNumber)
+                valueString = ((VNumber)value).getDisplay().getFormat().format(((VNumber)value).getValue().doubleValue());
+            else if (value instanceof VString)
+                valueString = ((VString)value).getValue();
+            else if (value instanceof VEnum)
+                valueString = ((VEnum)value).getValue();
             else
-                valueString = valueFormat.format(value);
+                valueString = Objects.toString(value);
         }
         if (valueString != null)
             txtValue.setText(valueString);
         else
             txtValue.setText("<null>");
-        setTime(ValueUtil.timeOf(value));
-        setAlarm(ValueUtil.alarmOf(value, value != null));
+        setTime(Time.timeOf(value));
+        setAlarm(Alarm.alarmOf(value, value != null));
         setMetadata(value);
     }
 
@@ -223,16 +224,16 @@ public class ProbeController {
 
     private void setAlarm(final Alarm alarm)
     {
-        if (alarm == null  ||  alarm.getAlarmSeverity() == AlarmSeverity.NONE)
+        if (alarm == null  ||  alarm.getSeverity() == AlarmSeverity.NONE)
             txtAlarm.setText("");
         else
         {
-            final Color col = SeverityColors.getTextColor(alarm.getAlarmSeverity());
+            final Color col = SeverityColors.getTextColor(alarm.getSeverity());
             txtAlarm.setStyle("-fx-text-fill: rgba(" + (int)(col.getRed()*255) + ',' +
                                                        (int)(col.getGreen()*255) + ',' +
                                                        (int)(col.getBlue()*255) + ',' +
                                                              col.getOpacity()*255 + ");");
-            txtAlarm.setText(alarm.getAlarmSeverity() + " - " + alarm.getAlarmName());
+            txtAlarm.setText(alarm.getSeverity() + " - " + alarm.getName());
         }
     }
 
@@ -244,17 +245,17 @@ public class ProbeController {
             final VEnum eval = (VEnum) value;
             buf.append("Enumeration Labels:\n");
             int i = 0;
-            for (String label : eval.getLabels())
+            for (String label : eval.getDisplay().getChoices())
                 buf.append(i++).append(" = ").append(label).append("\n");
         }
-        else if (value instanceof Display)
+        else if (value instanceof VNumber)
         {
-            final Display dis = (Display) value;
-            buf.append("Units   : ").append(dis.getUnits()).append("\n");
+            final Display dis = ((VNumber) value).getDisplay();
+            buf.append("Units   : ").append(dis.getUnit()).append("\n");
             buf.append("Format  : ").append(dis.getFormat().format(0.123456789)).append("\n");
-            buf.append("Range   : ").append(dis.getLowerCtrlLimit()).append(" .. ").append(dis.getUpperCtrlLimit()).append("\n");
-            buf.append("Warnings: ").append(dis.getLowerWarningLimit()).append(" .. ").append(dis.getUpperWarningLimit()).append("\n");
-            buf.append("Alarms  : ").append(dis.getLowerAlarmLimit()).append(" .. ").append(dis.getUpperAlarmLimit()).append("\n");
+            buf.append("Range   : ").append(dis.getControlRange().getMinimum()).append(" .. ").append(dis.getControlRange().getMaximum()).append("\n");
+            buf.append("Warnings: ").append(dis.getWarningRange().getMinimum()).append(" .. ").append(dis.getWarningRange().getMaximum()).append("\n");
+            buf.append("Alarms  : ").append(dis.getAlarmRange().getMinimum()).append(" .. ").append(dis.getAlarmRange().getMaximum()).append("\n");
         }
 
         txtMetadata.setText(buf.toString());
