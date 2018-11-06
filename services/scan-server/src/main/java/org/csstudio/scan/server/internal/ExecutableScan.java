@@ -721,12 +721,25 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     {
         // Set state to aborted unless it is already 'done'
         final ScanState previous = state.getAndUpdate((current_state)  ->  current_state.isDone() ? current_state : ScanState.Aborted);
+        if (previous.isDone())
+            return;
 
-        if (! previous.isDone())
-            logger.log(Level.INFO, "Abort " + this);
+        logger.log(Level.INFO, "Abort " + this + " (" + previous + ")");
 
-        if (future.isPresent())
-            future.get().cancel(true);
+        // Interrupt, except when already aborted, failed, ..
+        // to prevent interruption when in the middle of updating scan state PVs
+        final Future<Object> save = future.orElse(null);
+        if (save != null  &&  ! save.isCancelled())
+        {
+            final boolean interrupt = previous == ScanState.Idle    ||
+                                      previous == ScanState.Running ||
+                                      previous == ScanState.Paused;
+            save.cancel(interrupt);
+            if (interrupt)
+                logger.log(Level.INFO, "Interrupted " + this);
+            else
+                logger.log(Level.INFO, "Cancelled " + this);
+        }
         synchronized (this)
         {
             notifyAll();
