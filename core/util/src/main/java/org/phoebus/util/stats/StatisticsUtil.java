@@ -6,8 +6,9 @@ package org.phoebus.util.stats;
 
 import java.util.Iterator;
 import java.util.List;
-import org.phoebus.util.array.CollectionNumber;
-import org.phoebus.util.array.IteratorNumber;
+
+import org.epics.util.array.CollectionNumber;
+import org.epics.util.array.IteratorNumber;
 
 /**
  * Utility class to calculate statistical information.
