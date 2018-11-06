@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>3D Demo</name>
+  <width>960</width>
+  <height>800</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>3D</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>"Can CS-Studio do 3D?"</text>
+    <x>10</x>
+    <y>31</y>
+    <width>170</width>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Embedded python script
+from javafx.scene import PerspectiveCamera
+from javafx.geometry import Point3D
+from javafx.application import Platform
+from java.lang import Runnable
+import time
+
+toolkit = widget.getDisplayModel().getUserData("_toolkit")
+scene = toolkit.getModelParent().getScene()
+
+camera = PerspectiveCamera(False)
+camera.setNearClip(0.1)
+camera.setFarClip(1000)
+camera.setTranslateZ(-1000.0)
+camera.setFieldOfView(10.0)
+camera.setRotationAxis(Point3D(1, 0, 1))
+scene.setCamera(camera)
+
+class Animation(Runnable):
+    def __init__(self):
+        self.angle = 0.0
+        self.running = True
+    
+    def isRunning(self):
+        return self.running
+        
+    def run(self):
+        self.angle += 5.0
+        camera.setRotate(self.angle)
+        if self.angle > 360.0:
+            scene.setCamera(None)
+            self.running = False
+    
+animation = Animation()
+while animation.isRunning():
+    Platform.runLater(animation)
+    time.sleep(0.05)
+
+animation = None
+]]></text>
+        </script>
+        <description>Well, yes...</description>
+      </action>
+    </actions>
+    <x>180</x>
+    <y>31</y>
+    <width>90</width>
+    <height>20</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="3dviewer" version="2.0.0">
+    <name>Viewer</name>
+    <file>examples:NaCl.shp</file>
+    <x>10</x>
+    <y>170</y>
+    <width>950</width>
+    <height>510</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>But 3D is a wide field.
+We can't magically render what you might have in mind.
+
+There is a 'shape' viewer.
+See online help for file format.</text>
+    <x>10</x>
+    <y>70</y>
+    <width>360</width>
+    <height>90</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>X Count:</text>
+    <x>10</x>
+    <y>720</y>
+    <width>70</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>XCount</name>
+    <pv_name>loc://x(5)</pv_name>
+    <x>90</x>
+    <y>720</y>
+    <precision>0</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>YCount</name>
+    <pv_name>loc://y(3)</pv_name>
+    <x>90</x>
+    <y>750</y>
+    <precision>0</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Y Count:</text>
+    <x>10</x>
+    <y>750</y>
+    <width>70</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Z Count:</text>
+    <x>10</x>
+    <y>780</y>
+    <width>70</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>ZCount</name>
+    <pv_name>loc://z(3)</pv_name>
+    <x>90</x>
+    <y>780</y>
+    <precision>0</precision>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil
+
+
+viewer = ScriptUtil.findWidgetByName(widget, "Viewer")
+nx = PVUtil.getLong(ScriptUtil.getPrimaryPV(ScriptUtil.findWidgetByName(widget, "XCount")))
+ny = PVUtil.getLong(ScriptUtil.getPrimaryPV(ScriptUtil.findWidgetByName(widget, "YCount")))
+nz = PVUtil.getLong(ScriptUtil.getPrimaryPV(ScriptUtil.findWidgetByName(widget, "ZCount")))
+
+print("%d x %d" % (nx, ny))
+
+# Always creating the same file in /tmp. Might not work on Windows...
+filename = "/tmp/demo.shp"
+
+d = 40
+with open(filename, 'w') as f:
+    f.write("background(150, 150, 200, 1)\n")
+    
+    for x in range(nx):
+        for y in range(ny):
+            for z in range(nz):
+                f.write("sphere(%d, %d, %d, 10, 200, 200, 0, 1)\n" % (x*d, y*d, z*d))
+    
+    f.write("box(0, 0, 0, %d, %d, %d, 255, 0, 255, 0.2)\n" % ((nx-1)*d, (ny-1)*d, (nz-1)*d))
+
+viewer.setPropertyValue("file", "")
+viewer.setPropertyValue("file", filename)
+
+]]></text>
+        </script>
+        <description>Create Shape</description>
+      </action>
+    </actions>
+    <x>210</x>
+    <y>720</y>
+    <width>110</width>
+    <height>40</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+viewer = ScriptUtil.findWidgetByName(widget, "Viewer")
+viewer.setPropertyValue("file", "examples:NaCl.shp")
+
+]]></text>
+        </script>
+        <description>NaCl</description>
+      </action>
+    </actions>
+    <x>360</x>
+    <y>130</y>
+    <width>70</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_3</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+viewer = ScriptUtil.findWidgetByName(widget, "Viewer")
+viewer.setPropertyValue("file", "examples:Diamond.shp")
+
+]]></text>
+        </script>
+        <description>C</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>130</y>
+    <width>70</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+
+viewer = ScriptUtil.findWidgetByName(widget, "Viewer")
+viewer.setPropertyValue("file", "examples:LiNbO3.shp")
+
+]]></text>
+        </script>
+        <description>LiNbO3</description>
+      </action>
+    </actions>
+    <x>520</x>
+    <y>130</y>
+    <width>70</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Scripts can create shape files:</text>
+    <x>10</x>
+    <y>690</y>
+    <width>220</width>
+  </widget>
+</display>
