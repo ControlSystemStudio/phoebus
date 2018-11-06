@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VType;
 import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
@@ -34,8 +36,6 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.pv.SeverityColors;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VType;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -277,7 +277,7 @@ public class PVTable extends VBox
                 // Use combo for Enum-valued data
                 final VEnum enumerated = (VEnum) value;
                 final ComboBox<String> combo = new ComboBox<>();
-                combo.getItems().addAll(enumerated.getLabels());
+                combo.getItems().addAll(enumerated.getDisplay().getChoices());
                 combo.getSelectionModel().select(enumerated.getIndex());
 
                 combo.setOnAction(event ->

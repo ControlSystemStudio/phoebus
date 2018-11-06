@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,13 +9,13 @@ package org.phoebus.applications.pvtable.model;
 
 import java.util.concurrent.TimeUnit;
 
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VFloat;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
 
 /** Saved value of a scalar table item
  *

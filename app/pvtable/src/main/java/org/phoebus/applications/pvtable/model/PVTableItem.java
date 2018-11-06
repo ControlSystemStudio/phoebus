@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,18 +15,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Time;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VByteArray;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VEnumArray;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 import io.reactivex.disposables.Disposable;
 
@@ -122,9 +123,7 @@ public class PVTableItem
         }
         try
         {
-            updateValue(ValueFactory.newVString("",
-                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "Not connected"),
-                        ValueFactory.timeNow()));
+            updateValue(VString.of("", Alarm.disconnected(), Time.now()));
             final PV new_pv = PVPool.getPV(name);
             value_flow = new_pv.onValueEvent()
                                .throttleLatest(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
@@ -136,9 +135,9 @@ public class PVTableItem
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot create PV " + name, ex);
-            updateValue(ValueFactory.newVString("PV Error",
-                        ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "No PV"),
-                        ValueFactory.timeNow()));
+            updateValue(VString.of("PV Error",
+                                   Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "No PV"),
+                                   Time.now()));
         }
 
         // For CA PVs, check the .DESC field
@@ -251,7 +250,7 @@ public class PVTableItem
         final VType copy = value;
         if (!(copy instanceof VEnum))
             return null;
-        final List<String> options = ((VEnum) copy).getLabels();
+        final List<String> options = ((VEnum) copy).getDisplay().getChoices();
         return options.toArray(new String[options.size()]);
     }
 
@@ -289,7 +288,7 @@ public class PVTableItem
             {
                 if (Settings.show_units)
                 {   // Strip units so that only the number gets written
-                    final String units = ((VNumber)pv_type).getUnits();
+                    final String units = ((VNumber)pv_type).getDisplay().getUnit();
                     if (units.length() > 0  &&  new_value.endsWith(units))
                         new_value = new_value.substring(0, new_value.length() - units.length()).trim();
                 }
@@ -323,15 +322,16 @@ public class PVTableItem
                     data[i] = Double.parseDouble(elements[i]);
                 the_pv.write(data);
             }
-            else if (pv_type instanceof VEnumArray)
-            {
-                final String[] elements = new_value.split("\\s*,\\s*");
-                final int N = elements.length;
-                final int[] data = new int[N];
-                for (int i = 0; i < N; ++i)
-                    data[i] = (int) Double.parseDouble(elements[i]);
-                the_pv.write(data);
-            }
+            // TODO Missing VEnumArray
+//            else if (pv_type instanceof VEnumArray)
+//            {
+//                final String[] elements = new_value.split("\\s*,\\s*");
+//                final int N = elements.length;
+//                final int[] data = new int[N];
+//                for (int i = 0; i < N; ++i)
+//                    data[i] = (int) Double.parseDouble(elements[i]);
+//                the_pv.write(data);
+//            }
             else // Write other types as string
                 the_pv.write(new_value);
         }

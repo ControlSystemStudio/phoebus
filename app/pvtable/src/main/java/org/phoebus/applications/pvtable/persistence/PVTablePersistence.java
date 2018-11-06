@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,11 +10,11 @@ package org.phoebus.applications.pvtable.persistence;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.model.PVTableModel;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VLong;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
 
 /** Base for persisting PVTableModel to/from file
  *  @author Kay Kasemir
