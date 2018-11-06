@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,15 +10,14 @@ package org.phoebus.applications.pvtree.model;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
 
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VByteArray;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** Helper for {@link VType} gymnastics
  *  @author Kay Kasemir
@@ -31,10 +30,10 @@ public class VTypeHelper
 
     public static AlarmSeverity getSeverity(final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm == null)
             return AlarmSeverity.UNDEFINED;
-        return alarm.getAlarmSeverity();
+        return alarm.getSeverity();
     }
 
     public static void appendValue(final StringBuilder buf, final VType value)
@@ -45,13 +44,13 @@ public class VTypeHelper
         {
             final VNumber number = (VNumber) value;
 
-            final NumberFormat format = number.getFormat();
+            final NumberFormat format = number.getDisplay().getFormat();
             if (format == null)
                 buf.append(number.getValue());
             else
                 buf.append(format.format(number.getValue()));
 
-            final String units = number.getUnits();
+            final String units = number.getDisplay().getUnit();
             if (units != null  &&  !units.isEmpty())
                 buf.append(" ").append(units);
         }
@@ -103,13 +102,13 @@ public class VTypeHelper
 
     public static void appendAlarm(final StringBuilder buf, final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm == null)
             return;
-        if (alarm.getAlarmSeverity() == AlarmSeverity.NONE)
+        if (alarm.getSeverity() == AlarmSeverity.NONE)
             return;
-        buf.append(" [").append(alarm.getAlarmSeverity());
-        buf.append(",").append(alarm.getAlarmName()).append("]");
+        buf.append(" [").append(alarm.getSeverity());
+        buf.append(",").append(alarm.getName()).append("]");
     }
 
     public static String formatValue(final VType value)
