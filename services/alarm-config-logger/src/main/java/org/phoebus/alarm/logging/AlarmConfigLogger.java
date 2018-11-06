@@ -24,11 +24,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.Consumed;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
@@ -169,7 +169,7 @@ public class AlarmConfigLogger implements Runnable {
 
     /**
      * Process a single alarm configuration event
-     * 
+     *
      * @param path
      * @param alarm_config
      * @param commit
@@ -214,7 +214,7 @@ public class AlarmConfigLogger implements Runnable {
     /**
      * Sync the local git repository with the config state as calculated from the
      * consumer records
-     * 
+     *
      * @param messages
      */
     private synchronized void syncAlarmConfigRepository(ConsumerRecords<String, String> messages) {
@@ -232,10 +232,6 @@ public class AlarmConfigLogger implements Runnable {
         @Override
         public synchronized void process(String key, String value) {
             processAlarmConfigMessages(key, value, true);
-        }
-
-        @Override
-        public void punctuate(long timestamp) {
         }
 
         @Override
