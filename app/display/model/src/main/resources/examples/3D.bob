@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
-  <name>Display</name>
+  <name>3D Demo</name>
   <width>960</width>
   <height>800</height>
   <widget type="label" version="2.0.0">
@@ -96,7 +96,7 @@ animation = None
     <text>But 3D is a wide field.
 We can't magically render what you might have in mind.
 
-There is now a 'shape' viewer.
+There is a 'shape' viewer.
 See online help for file format.</text>
     <x>10</x>
     <y>70</y>
@@ -254,7 +254,7 @@ viewer.setPropertyValue("file", "examples:LiNbO3.shp")
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_6</name>
-    <text>Scripts can create shape files...</text>
+    <text>Scripts can create shape files:</text>
     <x>10</x>
     <y>690</y>
     <width>220</width>
