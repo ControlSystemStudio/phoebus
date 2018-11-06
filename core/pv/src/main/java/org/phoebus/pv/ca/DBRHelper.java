@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,20 +7,54 @@
  ******************************************************************************/
 package org.phoebus.pv.ca;
 
-import org.phoebus.vtype.VType;
+import java.text.NumberFormat;
+import java.time.Instant;
 
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayFloat;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VByte;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VFloatArray;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VShort;
+import org.epics.vtype.VShortArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
+
+import gov.aps.jca.dbr.CTRL;
 import gov.aps.jca.dbr.DBR;
 import gov.aps.jca.dbr.DBRType;
 import gov.aps.jca.dbr.DBR_STS_Enum;
-import gov.aps.jca.dbr.DBR_String;
 import gov.aps.jca.dbr.DBR_TIME_Byte;
 import gov.aps.jca.dbr.DBR_TIME_Double;
 import gov.aps.jca.dbr.DBR_TIME_Enum;
 import gov.aps.jca.dbr.DBR_TIME_Float;
 import gov.aps.jca.dbr.DBR_TIME_Int;
 import gov.aps.jca.dbr.DBR_TIME_Short;
+import gov.aps.jca.dbr.DBR_TIME_String;
 import gov.aps.jca.dbr.GR;
 import gov.aps.jca.dbr.LABELS;
+import gov.aps.jca.dbr.PRECISION;
+import gov.aps.jca.dbr.STS;
+import gov.aps.jca.dbr.Severity;
+import gov.aps.jca.dbr.TIME;
+import gov.aps.jca.dbr.TimeStamp;
 
 /** Helper for handling DBR types
  *  @author Kay Kasemir
@@ -66,30 +100,111 @@ public class DBRHelper
         return plain ? DBRType.STRING : DBRType.TIME_STRING;
     }
 
+    private static Alarm convertAlarm(final DBR dbr)
+    {
+        if (! (dbr instanceof STS))
+            return Alarm.disconnected();
+
+        final STS sts = (STS) dbr;
+
+        final AlarmSeverity severity;
+
+        if (sts.getSeverity() == Severity.NO_ALARM)
+            severity = AlarmSeverity.NONE;
+        else if (sts.getSeverity() == Severity.MINOR_ALARM)
+            severity = AlarmSeverity.MINOR;
+        else if (sts.getSeverity() == Severity.MAJOR_ALARM)
+            severity = AlarmSeverity.MAJOR;
+        else if (sts.getSeverity() == Severity.INVALID_ALARM)
+            severity = AlarmSeverity.INVALID;
+        else
+            severity = AlarmSeverity.UNDEFINED;
+
+        return Alarm.of(severity, AlarmStatus.NONE, sts.getStatus().getName());
+    }
+
+    private static Time convertTime(final DBR dbr)
+    {
+        if (! (dbr instanceof TIME))
+            return Time.nowInvalid();
+
+        final TimeStamp epics_time = ((TIME)dbr).getTimeStamp();
+        if (epics_time == null)
+            return Time.nowInvalid();
+
+        final Instant instant = Instant.ofEpochSecond(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
+        final boolean valid = epics_time.secPastEpoch() > 0;
+        return Time.of(instant, 0, valid);
+    }
+
+    private static Display convertDisplay(final DBR dbr)
+    {
+        if (! (dbr instanceof GR))
+            return Display.none();
+
+        final GR metadata = (GR) dbr;
+
+        final NumberFormat format;
+        if (dbr instanceof PRECISION)
+        {
+            final int precision = ((PRECISION) dbr).getPrecision();
+            if (precision >= 0)
+                format = NumberFormats.precisionFormat(precision);
+            else
+                format = NumberFormats.toStringFormat();
+        }
+        else
+            format = NumberFormats.precisionFormat(0);
+
+        final Range display = Range.of(metadata.getLowerDispLimit().doubleValue(),
+                                       metadata.getUpperDispLimit().doubleValue());
+        final Range control;
+        if (dbr instanceof CTRL)
+            control = Range.of(((CTRL) dbr).getLowerCtrlLimit().doubleValue(),
+                               ((CTRL) dbr).getUpperCtrlLimit().doubleValue());
+        else
+            control = display;
+
+        return Display.of(display,
+                Range.of(metadata.getLowerAlarmLimit().doubleValue(), metadata.getUpperAlarmLimit().doubleValue()),
+                Range.of(metadata.getLowerWarningLimit().doubleValue(), metadata.getUpperWarningLimit().doubleValue()),
+                control,
+                metadata.getUnits(),
+                format);
+    }
+
     public static VType decodeValue(final boolean is_array, final Object metadata, final DBR dbr) throws Exception
     {
         // Rough guess, but somewhat in order of most frequently used type
         if (dbr instanceof DBR_TIME_Double)
         {
+            final DBR_TIME_Double xx = (DBR_TIME_Double) dbr;
             if (is_array)
-                return new VTypeForDoubleArray((GR) metadata, (DBR_TIME_Double) dbr);
-            return new VTypeForDouble((GR) metadata, (DBR_TIME_Double) dbr);
+                return VDoubleArray.of(ArrayDouble.of(xx.getDoubleValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+            return VDouble.of(xx.getDoubleValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
         }
 
-        if (dbr instanceof DBR_String)
+        if (dbr instanceof DBR_TIME_String)
         {
-            if (is_array)
-                return new VTypeForStringArray((DBR_String) dbr);
-            else
-                return new VTypeForString((DBR_String) dbr);
+            final DBR_TIME_String xx = (DBR_TIME_String) dbr;
+            // TODO Enable when string array supported
+//            if (is_array)
+//                return new VStringArray.of(xx.getStringValue(), convertAlarm(xx), convertTime(xx));
+//            else
+                return VString.of(xx.getStringValue()[0], convertAlarm(xx), convertTime(xx));
         }
 
         if (dbr instanceof DBR_TIME_Enum)
         {
-            final LABELS enum_meta = (metadata instanceof LABELS) ? (LABELS) metadata : null;
-            if (is_array)
-                return new VTypeForEnumArray(enum_meta, (DBR_TIME_Enum) dbr);
-            return new VTypeForEnum(enum_meta, (DBR_TIME_Enum) dbr);
+            final DBR_TIME_Enum xx = (DBR_TIME_Enum) dbr;
+            final EnumDisplay enum_meta;
+            if (metadata instanceof LABELS)
+                enum_meta = EnumDisplay.of(((LABELS) metadata).getLabels());
+            else
+                enum_meta = EnumDisplay.of();
+//            if (is_array)
+//                return VEnumArray.of(xx.getEnumValue(), enum_meta, convertAlarm(dbr), convertTime(dbr));
+            return VEnum.of(xx.getEnumValue()[0], enum_meta, convertAlarm(dbr), convertTime(dbr));
         }
 
         // Metadata monitor will provide DBR_CTRL_Enum, which is a DBR_STS_Enum, but lacks time stamp
@@ -100,39 +215,46 @@ public class DBRHelper
             need.setStatus(have.getStatus());
             need.setSeverity(have.getSeverity());
 
-            final LABELS enum_meta = (metadata instanceof LABELS) ? (LABELS) metadata : null;
+            final EnumDisplay enum_meta = (metadata instanceof LABELS)
+                ? EnumDisplay.of(((LABELS) metadata).getLabels())
+                : EnumDisplay.of();
 
-            if (is_array)
-                return new VTypeForEnumArray(enum_meta, need);
-            return new VTypeForEnum(enum_meta, need);
+            // TODO Implement when VEnumArray available
+//            if (is_array)
+//                return VEnumArray.of(need.getEnumValue(), enum_meta, convertAlarm(need), convertTime(need));
+            return VEnum.of(need.getEnumValue()[0], enum_meta, convertAlarm(need), convertTime(need));
         }
 
         if (dbr instanceof DBR_TIME_Float)
         {
+            final DBR_TIME_Float xx = (DBR_TIME_Float) dbr;
             if (is_array)
-                return new VTypeForFloatArray((GR) metadata, (DBR_TIME_Float) dbr);
-            return new VTypeForFloat((GR) metadata, (DBR_TIME_Float) dbr);
+                return VFloatArray.of(ArrayFloat.of(xx.getFloatValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+            return VFloat.of(xx.getFloatValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
         }
 
         if (dbr instanceof DBR_TIME_Int)
         {
+            final DBR_TIME_Int xx = (DBR_TIME_Int) dbr;
             if (is_array)
-                return new VTypeForIntArray((GR) metadata, (DBR_TIME_Int) dbr);
-            return new VTypeForInt((GR) metadata, (DBR_TIME_Int) dbr);
+                return VIntArray.of(ArrayInteger.of(xx.getIntValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+            return VInt.of(xx.getIntValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
         }
 
         if (dbr instanceof DBR_TIME_Short)
         {
+            final DBR_TIME_Short xx = (DBR_TIME_Short) dbr;
             if (is_array)
-                return new VTypeForShortArray((GR) metadata, (DBR_TIME_Short) dbr);
-           return new VTypeForShort((GR) metadata, (DBR_TIME_Short) dbr);
+                return VShortArray.of(ArrayShort.of(xx.getShortValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+            return VShort.of(xx.getShortValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
         }
 
         if (dbr instanceof DBR_TIME_Byte)
         {
+            final DBR_TIME_Byte xx = (DBR_TIME_Byte) dbr;
             if (is_array)
-                return new VTypeForByteArray((GR) metadata, (DBR_TIME_Byte) dbr);
-           return new VTypeForByte((GR) metadata, (DBR_TIME_Byte) dbr);
+                return VByteArray.of(ArrayByte.of(xx.getByteValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+            return VByte.of(xx.getByteValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
         }
 
         throw new Exception("Cannot handle " + dbr.getClass().getName());
