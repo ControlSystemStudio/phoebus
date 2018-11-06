@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,13 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VDoubleArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VType;
 
 /** Local Process Variable
  *
@@ -87,15 +85,16 @@ public class LocalPV extends PV
             final VType last_value = read();
             final boolean change_from_double = initial_value == null  &&
                                                last_value instanceof VDouble  &&
-                                               ((VDouble)last_value).getAlarmSeverity() == AlarmSeverity.UNDEFINED;
+                                               ((VDouble)last_value).getAlarm().getSeverity() == ValueHelper.UDF.getSeverity();
             final VType value = ValueHelper.adapt(new_value, type, last_value, change_from_double);
             if (change_from_double  &&  ! type.isInstance(value))
             {
                 final Class<? extends VType> new_type;
                 if (value instanceof VDoubleArray)
                     new_type = VDoubleArray.class;
-                else if (value instanceof VStringArray)
-                    new_type = VStringArray.class;
+                // TODO Re-enable when type available
+//                else if (value instanceof VStringArray)
+//                    new_type = VStringArray.class;
                 else
                     new_type = VString.class;
                 logger.log(Level.WARNING, "PV " + getName() + " changed from " + type.getSimpleName() + " to " + new_type.getSimpleName());

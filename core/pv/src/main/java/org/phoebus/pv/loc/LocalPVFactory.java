@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,17 +12,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VString;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVFactory;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VDoubleArray;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VLong;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VTable;
-import org.phoebus.vtype.VType;
 
 /** Factory for creating {@link LocalPV}s
  *  @author Kay Kasemir
@@ -69,6 +68,7 @@ public class LocalPVFactory implements PVFactory
                                           ? determineValueType(initial_value)
                                           : parseType(ntv[1]);
         LocalPV pv;
+        // TODO Use ConcurrentHashMap, computeIfAbsent
         synchronized (local_pvs)
         {
             pv = local_pvs.get(actual_name);
@@ -90,10 +90,11 @@ public class LocalPVFactory implements PVFactory
 
         if (ValueHelper.haveInitialStrings(items))
         {
-            if (items.size() == 1)
+//            if (items.size() == 1)
                 return VString.class;
-            else
-                return VStringArray.class;
+            // TODO Re-enable
+//            else
+//                return VStringArray.class;
         }
         else
         {
@@ -111,8 +112,9 @@ public class LocalPVFactory implements PVFactory
             return VDoubleArray.class;
         if (lower.contains("double")) // 'VDouble', 'vdouble', 'double'
             return VDouble.class;
-        if (lower.contains("stringarray"))
-            return VStringArray.class;
+        // TODO Re-enable
+//        if (lower.contains("stringarray"))
+//            return VStringArray.class;
         if (lower.contains("string"))
             return VString.class;
         if (lower.contains("enum"))
