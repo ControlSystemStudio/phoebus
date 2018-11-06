@@ -41,13 +41,13 @@ import gov.aps.jca.dbr.CTRL;
 import gov.aps.jca.dbr.DBR;
 import gov.aps.jca.dbr.DBRType;
 import gov.aps.jca.dbr.DBR_STS_Enum;
+import gov.aps.jca.dbr.DBR_String;
 import gov.aps.jca.dbr.DBR_TIME_Byte;
 import gov.aps.jca.dbr.DBR_TIME_Double;
 import gov.aps.jca.dbr.DBR_TIME_Enum;
 import gov.aps.jca.dbr.DBR_TIME_Float;
 import gov.aps.jca.dbr.DBR_TIME_Int;
 import gov.aps.jca.dbr.DBR_TIME_Short;
-import gov.aps.jca.dbr.DBR_TIME_String;
 import gov.aps.jca.dbr.GR;
 import gov.aps.jca.dbr.LABELS;
 import gov.aps.jca.dbr.PRECISION;
@@ -184,9 +184,9 @@ public class DBRHelper
             return VDouble.of(xx.getDoubleValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
         }
 
-        if (dbr instanceof DBR_TIME_String)
+        if (dbr instanceof DBR_String)
         {
-            final DBR_TIME_String xx = (DBR_TIME_String) dbr;
+            final DBR_String xx = (DBR_String) dbr;
             // TODO Enable when string array supported
 //            if (is_array)
 //                return new VStringArray.of(xx.getStringValue(), convertAlarm(xx), convertTime(xx));
