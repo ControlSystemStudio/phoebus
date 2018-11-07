@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.epics.util.array.ArrayInteger;
 import org.epics.util.array.ListInteger;
+import org.epics.util.array.ListNumber;
 
 /** Immutable {@link VEnumArray} implementation
  *
@@ -21,16 +22,16 @@ import org.epics.util.array.ListInteger;
 final class IVEnumArray extends VEnumArray
 {
     private final EnumDisplay display;
-    private final ListInteger indices;
+    private final ListNumber indices;
     private final List<String> labels;
     private final Alarm alarm;
     private final Time time;
 
-    public IVEnumArray(final EnumDisplay display, final ListInteger indices,
+    public IVEnumArray(final ListNumber indices, final EnumDisplay display,
                        final Alarm alarm, final Time time)
     {
-        this.display = display;
         this.indices = indices;
+        this.display = display;
         this.alarm = alarm;
         this.time = time;
         labels = new ArrayList<>(indices.size());
@@ -70,7 +71,7 @@ final class IVEnumArray extends VEnumArray
     }
 
     @Override
-    public ListInteger getIndexes()
+    public ListNumber getIndexes()
     {
         return indices;
     }

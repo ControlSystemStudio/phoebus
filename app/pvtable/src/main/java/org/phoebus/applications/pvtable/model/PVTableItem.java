@@ -21,6 +21,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
@@ -322,16 +323,15 @@ public class PVTableItem
                     data[i] = Double.parseDouble(elements[i]);
                 the_pv.write(data);
             }
-            // TODO Missing VEnumArray
-//            else if (pv_type instanceof VEnumArray)
-//            {
-//                final String[] elements = new_value.split("\\s*,\\s*");
-//                final int N = elements.length;
-//                final int[] data = new int[N];
-//                for (int i = 0; i < N; ++i)
-//                    data[i] = (int) Double.parseDouble(elements[i]);
-//                the_pv.write(data);
-//            }
+            else if (pv_type instanceof VEnumArray)
+            {
+                final String[] elements = new_value.split("\\s*,\\s*");
+                final int N = elements.length;
+                final int[] data = new int[N];
+                for (int i = 0; i < N; ++i)
+                    data[i] = (int) Double.parseDouble(elements[i]);
+                the_pv.write(data);
+            }
             else // Write other types as string
                 the_pv.write(new_value);
         }

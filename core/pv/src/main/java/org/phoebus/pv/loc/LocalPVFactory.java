@@ -17,6 +17,7 @@ import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VLong;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
@@ -90,11 +91,10 @@ public class LocalPVFactory implements PVFactory
 
         if (ValueHelper.haveInitialStrings(items))
         {
-//            if (items.size() == 1)
+            if (items.size() == 1)
                 return VString.class;
-            // TODO Re-enable
-//            else
-//                return VStringArray.class;
+            else
+                return VStringArray.class;
         }
         else
         {
@@ -112,9 +112,8 @@ public class LocalPVFactory implements PVFactory
             return VDoubleArray.class;
         if (lower.contains("double")) // 'VDouble', 'vdouble', 'double'
             return VDouble.class;
-        // TODO Re-enable
-//        if (lower.contains("stringarray"))
-//            return VStringArray.class;
+        if (lower.contains("stringarray"))
+            return VStringArray.class;
         if (lower.contains("string"))
             return VString.class;
         if (lower.contains("enum"))

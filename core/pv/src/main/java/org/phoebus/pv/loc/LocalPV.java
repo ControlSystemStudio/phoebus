@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 
@@ -92,9 +93,8 @@ public class LocalPV extends PV
                 final Class<? extends VType> new_type;
                 if (value instanceof VDoubleArray)
                     new_type = VDoubleArray.class;
-                // TODO Re-enable when type available
-//                else if (value instanceof VStringArray)
-//                    new_type = VStringArray.class;
+                else if (value instanceof VStringArray)
+                    new_type = VStringArray.class;
                 else
                     new_type = VString.class;
                 logger.log(Level.WARNING, "PV " + getName() + " changed from " + type.getSimpleName() + " to " + new_type.getSimpleName());

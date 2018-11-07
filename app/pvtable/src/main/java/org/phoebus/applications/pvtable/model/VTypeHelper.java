@@ -18,6 +18,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VFloatArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
@@ -152,17 +153,16 @@ public class VTypeHelper
                 buf.append(", ").append(numbers.nextLong());
             return buf.toString();
         }
-        // TODO Need VEnumArray
-//        if (value instanceof VEnumArray)
-//        {
-//            final StringBuilder buf = new StringBuilder();
-//            IteratorInt indices = ((VEnumArray) value).getIndexes().iterator();
-//            if (indices.hasNext())
-//                buf.append(indices.nextInt());
-//            while (indices.hasNext())
-//                buf.append(", ").append(indices.nextInt());
-//            return buf.toString();
-//        }
+        if (value instanceof VEnumArray)
+        {
+            final StringBuilder buf = new StringBuilder();
+            IteratorNumber indices = ((VEnumArray) value).getIndexes().iterator();
+            if (indices.hasNext())
+                buf.append(indices.nextInt());
+            while (indices.hasNext())
+                buf.append(", ").append(indices.nextInt());
+            return buf.toString();
+        }
         if (value == null)
             return "";
         return value.toString();

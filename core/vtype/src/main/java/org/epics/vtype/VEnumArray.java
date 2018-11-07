@@ -9,7 +9,7 @@ package org.epics.vtype;
 
 import java.util.List;
 
-import org.epics.util.array.ListInteger;
+import org.epics.util.array.ListNumber;
 
 /** Enum array
  *
@@ -20,16 +20,16 @@ import org.epics.util.array.ListInteger;
 public abstract class VEnumArray extends Array implements AlarmProvider, TimeProvider
 {
     /** Create immutable {@link VEnumArray}
-     *  @param display Enum options
      *  @param indices Enum indices
+     *  @param display Enum options
      *  @param alarm Alarm
      *  @param time Timestamp
      *  @return {@link VEnumArray}
      */
-    public static VEnumArray of(final EnumDisplay display, final ListInteger indices,
+    public static VEnumArray of(final ListNumber indices, final EnumDisplay display,
                                 final Alarm alarm, final Time time)
     {
-        return new IVEnumArray(display, indices, alarm, time);
+        return new IVEnumArray(indices, display, alarm, time);
     }
 
     /** @return the enum display information, i.e. choices */
@@ -40,5 +40,5 @@ public abstract class VEnumArray extends Array implements AlarmProvider, TimePro
     public abstract List<String> getData();
 
     /** @return Enum array elements as indices */
-    public abstract ListInteger getIndexes();
+    public abstract ListNumber getIndexes();
 }

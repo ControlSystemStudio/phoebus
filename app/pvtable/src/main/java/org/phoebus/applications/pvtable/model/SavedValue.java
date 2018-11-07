@@ -15,9 +15,11 @@ import org.epics.util.array.IteratorDouble;
 import org.epics.util.array.IteratorNumber;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 
@@ -68,17 +70,16 @@ abstract public class SavedValue
                 texts.add(Long.toString(values.nextLong()));
             return new SavedArrayValue(texts);
         }
-        // TODO No VStringArray, VEnumArray
-//        if (value instanceof VStringArray)
-//            return new SavedArrayValue(((VStringArray) value).getData());
-//        if (value instanceof VEnumArray)
-//        {
-//            // Save indices
-//            final IteratorNumber values = ((VEnumArray) value).getIndexes().iterator();
-//            while (values.hasNext())
-//                texts.add(Long.toString(values.nextLong()));
-//            return new SavedArrayValue(texts);
-//        }
+        if (value instanceof VStringArray)
+            return new SavedArrayValue(((VStringArray) value).getData());
+        if (value instanceof VEnumArray)
+        {
+            // Save indices
+            final IteratorNumber values = ((VEnumArray) value).getIndexes().iterator();
+            while (values.hasNext())
+                texts.add(Long.toString(values.nextLong()));
+            return new SavedArrayValue(texts);
+        }
         throw new Exception("Cannot handle " + value);
     }
 
