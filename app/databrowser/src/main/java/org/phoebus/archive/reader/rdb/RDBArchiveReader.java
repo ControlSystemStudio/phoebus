@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.epics.vtype.AlarmSeverity;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.AveragedValueIterator;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.rdb.RDBConnectionPool;
 import org.phoebus.util.time.TimeDuration;
-import org.phoebus.vtype.AlarmSeverity;
 
 /** {@link ArchiveReader} for RDB
  *  @author Kay Kasemir
