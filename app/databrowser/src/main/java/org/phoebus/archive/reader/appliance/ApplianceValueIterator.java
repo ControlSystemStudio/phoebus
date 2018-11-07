@@ -7,21 +7,29 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.archive.vtype.ArchiveVEnum;
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVNumberArray;
-import org.phoebus.archive.vtype.ArchiveVString;
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.phoebus.util.array.ArrayByte;
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
+import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.archive.vtype.TimestampHelper;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.FieldDescriptor;
@@ -139,33 +147,26 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      */
     protected VType extractData(EpicsMessage dataMessage) {
         PayloadType type = mainStream.getPayLoadInfo().getType();
+        final Alarm alarm = Alarm.of(getSeverity(dataMessage.getSeverity()), AlarmStatus.CLIENT, String.valueOf(dataMessage.getStatus()));
+        final Time time = Time.of(TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()));
+
         if (type == PayloadType.SCALAR_BYTE ||
-                type == PayloadType.SCALAR_DOUBLE ||
-                type == PayloadType.SCALAR_FLOAT ||
-                type == PayloadType.SCALAR_INT ||
-                type == PayloadType.SCALAR_SHORT) {
-            return new ArchiveVNumber(
-                    TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()),
-                    getSeverity(dataMessage.getSeverity()),
-                    String.valueOf(dataMessage.getStatus()),
-                    display == null ? getDisplay(mainStream.getPayLoadInfo()) : display,
-                    dataMessage.getNumberValue());
+            type == PayloadType.SCALAR_DOUBLE ||
+            type == PayloadType.SCALAR_FLOAT ||
+            type == PayloadType.SCALAR_INT ||
+            type == PayloadType.SCALAR_SHORT) {
+            return VNumber.of(dataMessage.getNumberValue(),
+                              alarm, time,
+                              display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
         } else if (type == PayloadType.SCALAR_ENUM) {
-            return new ArchiveVEnum(
-                    TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()),
-                    getSeverity(dataMessage.getSeverity()),
-                    String.valueOf(dataMessage.getStatus()),
-                     null, //TODO get the labels from somewhere
-                    dataMessage.getNumberValue().intValue());
+            return VEnum.of(dataMessage.getNumberValue().intValue(),
+                            EnumDisplay.of(), //TODO get the labels from somewhere
+                            alarm, time);
         } else if (type == PayloadType.SCALAR_STRING) {
             if (valDescriptor == null) {
                 valDescriptor = getValDescriptor(dataMessage);
             }
-            return new ArchiveVString(
-                    TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()),
-                    getSeverity(dataMessage.getSeverity()),
-                    String.valueOf(dataMessage.getStatus()),
-                    String.valueOf(dataMessage.getMessage().getField(valDescriptor)));
+            return VString.of(String.valueOf(dataMessage.getMessage().getField(valDescriptor)), alarm, time);
         } else if (type == PayloadType.WAVEFORM_DOUBLE
                 || type == PayloadType.WAVEFORM_FLOAT){
             if (valDescriptor == null) {
@@ -185,12 +186,9 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                     val[i++] = ((Float)d).doubleValue();
                 }
             }
-            return new ArchiveVNumberArray(
-                    TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()),
-                    getSeverity(dataMessage.getSeverity()),
-                    String.valueOf(dataMessage.getStatus()),
-                    display == null ? getDisplay(mainStream.getPayLoadInfo()) : display,
-                    val);
+            return VDoubleArray.of(ArrayDouble.of(val),
+                                   alarm, time,
+                                   display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
         } else if (type == PayloadType.WAVEFORM_INT
                 || type == PayloadType.WAVEFORM_SHORT) {
             if (valDescriptor == null) {
@@ -204,23 +202,17 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                 val[i++] = ((Integer)d).intValue();
             }
 
-            return new ArchiveVNumberArray(
-                    TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()),
-                    getSeverity(dataMessage.getSeverity()),
-                    String.valueOf(dataMessage.getStatus()),
-                    display == null ? getDisplay(mainStream.getPayLoadInfo()) : display,
-                    val);
+            return VIntArray.of(ArrayInteger.of(val),
+                                alarm, time,
+                                display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
         } else if (type == PayloadType.WAVEFORM_BYTE) {
             if (valDescriptor == null) {
                 valDescriptor = getValDescriptor(dataMessage);
             }
             //we could load the data directly using result.getNumberAt(index), but this is faster
-            return new ArchiveVNumberArray(
-                    TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()),
-                    getSeverity(dataMessage.getSeverity()),
-                    String.valueOf(dataMessage.getStatus()),
-                    display == null ? getDisplay(mainStream.getPayLoadInfo()) : display,
-                    new ArrayByte(((ByteString)dataMessage.getMessage().getField(valDescriptor)).toByteArray()));
+            return VByteArray.of(ArrayByte.of(((ByteString)dataMessage.getMessage().getField(valDescriptor)).toByteArray()),
+                                 alarm, time,
+                                 display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
         }
         throw new UnsupportedOperationException("PV type " + type + " is not supported.");
     }
@@ -270,7 +262,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      * @return the display
      */
     protected Display getDisplay(PayloadInfo info) {
-        Map<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<>();
         for (FieldValue fieldValue : info.getHeadersList()) {
             if (!headers.containsKey(fieldValue.getName())) {
                 headers.put(fieldValue.getName(), fieldValue.getVal());
@@ -286,17 +278,17 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         String hihi = headers.get(ApplianceArchiveReaderConstants.HIHI);
         String hopr = headers.get(ApplianceArchiveReaderConstants.HOPR);
 
-        return ValueFactory.newDisplay(
-            (lopr != null) ? Double.parseDouble(lopr) : Double.NaN,
-            (low != null) ? Double.parseDouble(low) : Double.NaN,
-            (lolo != null) ? Double.parseDouble(lolo) : Double.NaN, (egu != null) ? egu : "",
-            (prec != null) ? NumberFormats.format((int) Math.round(Double.parseDouble(prec)))
-                : NumberFormats.toStringFormat(),
-            (high != null) ? Double.parseDouble(high) : Double.NaN,
-            (hihi != null) ? Double.parseDouble(hihi) : Double.NaN,
-            (hopr != null) ? Double.parseDouble(hopr) : Double.NaN,
-            (lopr != null) ? Double.parseDouble(lopr) : Double.NaN,
-            (hopr != null) ? Double.parseDouble(hopr) : Double.NaN);
+        final Range range = Range.of((lopr != null) ? Double.parseDouble(lopr) : Double.NaN,
+                                     (hopr != null) ? Double.parseDouble(hopr) : Double.NaN);
+        return Display.of(range,
+                Range.of((lolo != null) ? Double.parseDouble(lolo) : Double.NaN,
+                         (hihi != null) ? Double.parseDouble(hihi) : Double.NaN),
+                Range.of((low != null) ? Double.parseDouble(low) : Double.NaN,
+                         (high != null) ? Double.parseDouble(high) : Double.NaN),
+                range,
+                (egu != null) ? egu : "",
+                (prec != null) ? NumberFormats.precisionFormat((int) Math.round(Double.parseDouble(prec)))
+                               : NumberFormats.toStringFormat());
     }
 
 

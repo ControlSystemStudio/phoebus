@@ -4,16 +4,17 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Iterator;
 
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVStatistics;
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VType;
+import org.phoebus.archive.vtype.TimestampHelper;
 
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
@@ -104,8 +105,7 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
             }
         }
 
-        return ValueFactory.newDisplay(Double.NaN, Double.NaN, Double.NaN, "", NumberFormats.toStringFormat(),
-                Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+        return Display.none();
     }
 
     /**
@@ -137,24 +137,18 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
 //                throw new ArchiverApplianceException(
 //                        "The optimized post processor returned less than 5 values per sample.");
             }
+
+            final Alarm alarm = Alarm.of(getSeverity(message.getSeverity()), AlarmStatus.CLIENT, String.valueOf(message.getStatus()));
+            final Time time = Time.of(TimestampHelper.fromSQLTimestamp(message.getTimestamp()));
             if (useStatistics) {
-                return new ArchiveVStatistics(
-                        TimestampHelper.fromSQLTimestamp(message.getTimestamp()),
-                        getSeverity(message.getSeverity()),
-                        String.valueOf(message.getStatus()),
-                        display,
-                        message.getNumberAt(0).doubleValue(),
-                        message.getNumberAt(2).doubleValue(),
-                        message.getNumberAt(3).doubleValue(),
-                        message.getNumberAt(1).doubleValue(),
-                        message.getNumberAt(4).intValue());
+                return VStatistics.of(message.getNumberAt(0).doubleValue(),
+                                      message.getNumberAt(1).doubleValue(),
+                                      message.getNumberAt(2).doubleValue(),
+                                      message.getNumberAt(3).doubleValue(),
+                                      message.getNumberAt(4).intValue(),
+                                      alarm, time);
             } else {
-                return new ArchiveVNumber(
-                        TimestampHelper.fromSQLTimestamp(message.getTimestamp()),
-                        getSeverity(message.getSeverity()),
-                        String.valueOf(message.getStatus()),
-                        display,
-                        message.getNumberAt(0).doubleValue());
+                return VNumber.of(message.getNumberAt(0), alarm, time, display);
             }
         } else {
             // raw data

@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Iterator;
 
-import org.phoebus.archive.vtype.ArchiveVStatistics;
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Time;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VType;
+import org.phoebus.archive.vtype.TimestampHelper;
 
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
 
@@ -140,15 +143,13 @@ public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator
                 if (closed)
                     return null;
                 EpicsMessage meanResult = mainIterator.next();
-                return new ArchiveVStatistics(TimestampHelper.fromSQLTimestamp(meanResult.getTimestamp()),
-                    getSeverity(meanResult.getSeverity()),
-                    String.valueOf(meanResult.getStatus()),
-                    display,
-                    meanResult.getNumberValue().doubleValue(),
-                    minIterator.next().getNumberValue().doubleValue(),
-                    maxIterator.next().getNumberValue().doubleValue(),
-                    stdIterator.next().getNumberValue().doubleValue(),
-                    countIterator.next().getNumberValue().intValue());
+                return VStatistics.of(meanResult.getNumberValue().doubleValue(),
+                                      stdIterator.next().getNumberValue().doubleValue(),
+                                      minIterator.next().getNumberValue().doubleValue(),
+                                      maxIterator.next().getNumberValue().doubleValue(),
+                                      countIterator.next().getNumberValue().intValue(),
+                                      Alarm.of(getSeverity(meanResult.getSeverity()), AlarmStatus.CLIENT, String.valueOf(meanResult.getStatus())),
+                                      Time.of(TimestampHelper.fromSQLTimestamp(meanResult.getTimestamp())));
             }
         }
         throw new UnsupportedOperationException("PV type " + type + " is not supported.");
