@@ -10,7 +10,7 @@ package org.csstudio.trends.databrowser3.imports;
 import java.io.InputStream;
 import java.util.List;
 
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** SPI for tool that imports data
  *

@@ -19,13 +19,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVStatistics;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VType;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 /** {@link SampleImporter} for comma, space, tab separated value file of time, value
  *  @author Jaka Bobnar - Parse min, max
@@ -35,7 +35,7 @@ import org.phoebus.vtype.ValueFactory;
 public class CSVSampleImporter implements SampleImporter
 {
     final private Logger logger = Logger.getLogger(getClass().getName());
-    final private Display meta_data = ValueFactory.displayNone();
+    final private Display meta_data = Display.none();
 
     @Override
     public String getType()
@@ -59,7 +59,7 @@ public class CSVSampleImporter implements SampleImporter
                 "\\s*([0-9][0-9][0-9][0-9][-/][0-9][0-9][-/][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\\.[0-9]*)[ \\t,]+([-+0-9.,eE]+)[ \\t,]+([-+0-9.,eE]+)[ \\t,]+([-+0-9.,eE]+)\\s*.*");
 
 
-        final List<VType> values = new ArrayList<VType>();
+        final List<VType> values = new ArrayList<>();
 
         final BufferedReader reader =
                 new BufferedReader(new InputStreamReader(input));
@@ -110,10 +110,10 @@ public class CSVSampleImporter implements SampleImporter
                         remove(matcher.group(3),groupingSeparator).replace(decimalSeparator, '.'));
                 final double max = Double.parseDouble(
                         remove(matcher.group(4),groupingSeparator).replace(decimalSeparator, '.'));
-                values.add(new ArchiveVStatistics(time, AlarmSeverity.NONE, "", meta_data, number, number-min, number+max, 0, 1));
+                values.add(VStatistics.of(number, 0.0, number-min, number+max, 1, Alarm.none(), Time.of(time)));
             }
             else
-                values.add(new ArchiveVNumber(time, AlarmSeverity.NONE, "", meta_data, number));
+                values.add(VNumber.of(number, Alarm.none(), Time.of(time), meta_data));
         }
         reader.close();
 

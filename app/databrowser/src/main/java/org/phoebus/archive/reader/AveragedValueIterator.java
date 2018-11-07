@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,16 +14,18 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.logging.Level;
 
-import org.phoebus.archive.vtype.ArchiveVStatistics;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.StatisticsAccumulator;
 import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
 
 /** Averaging sample iterator.
  *
@@ -118,10 +120,7 @@ public class AveragedValueIterator implements ValueIterator
                     System.out.println("Using " + base_value.toString());
                 // Remember the first meta data that we can use
                 if (display == null)
-                {
-                    if (base_value instanceof Display)
-                        display = (Display) base_value;
-                }
+                        display = Display.displayOf(base_value);
                 // Value average
                 stats.add(num.doubleValue());
                 // Maximize the severity
@@ -155,7 +154,7 @@ public class AveragedValueIterator implements ValueIterator
         final Instant bin_time = average_window_end.minus(Duration.ofSeconds(seconds/2));
 
         // Return the min/max/average
-        final ArchiveVStatistics result = new ArchiveVStatistics(bin_time, severity, status, display, stats);
+        final VStatistics result = VStatistics.of(stats.getAverage(), stats.getStdDev(), stats.getMin(), stats.getMax(), stats.getNSamples(), Alarm.none(), Time.of(bin_time));
         if (debug)
             System.out.println("Result: " + result.toString());
         return result;
@@ -181,13 +180,13 @@ public class AveragedValueIterator implements ValueIterator
         if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;
-            if (number.getAlarmSeverity() != AlarmSeverity.UNDEFINED)
+            if (number.getAlarm().getSeverity() != AlarmSeverity.UNDEFINED)
                 return number.getValue();
         }
         if (value instanceof VNumberArray)
         {
             final VNumberArray numbers = (VNumberArray) value;
-            if (numbers.getAlarmSeverity() != AlarmSeverity.UNDEFINED  &&
+            if (numbers.getAlarm().getSeverity() != AlarmSeverity.UNDEFINED  &&
                 numbers.getData().size() > 0)
                 return numbers.getData().getDouble(0);
         }
