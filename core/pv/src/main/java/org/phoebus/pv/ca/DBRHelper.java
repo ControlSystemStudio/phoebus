@@ -140,7 +140,7 @@ public class DBRHelper
         return Time.of(instant, 0, valid);
     }
 
-    private static Display convertDisplay(final DBR dbr)
+    private static Display convertDisplay(final Object dbr)
     {
         if (! (dbr instanceof GR))
             return Display.none();
@@ -183,8 +183,8 @@ public class DBRHelper
         {
             final DBR_TIME_Double xx = (DBR_TIME_Double) dbr;
             if (is_array)
-                return VDoubleArray.of(ArrayDouble.of(xx.getDoubleValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
-            return VDouble.of(xx.getDoubleValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+                return VDoubleArray.of(ArrayDouble.of(xx.getDoubleValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
+            return VDouble.of(xx.getDoubleValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
         }
 
         if (dbr instanceof DBR_String)
@@ -230,32 +230,32 @@ public class DBRHelper
         {
             final DBR_TIME_Float xx = (DBR_TIME_Float) dbr;
             if (is_array)
-                return VFloatArray.of(ArrayFloat.of(xx.getFloatValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
-            return VFloat.of(xx.getFloatValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+                return VFloatArray.of(ArrayFloat.of(xx.getFloatValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
+            return VFloat.of(xx.getFloatValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
         }
 
         if (dbr instanceof DBR_TIME_Int)
         {
             final DBR_TIME_Int xx = (DBR_TIME_Int) dbr;
             if (is_array)
-                return VIntArray.of(ArrayInteger.of(xx.getIntValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
-            return VInt.of(xx.getIntValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+                return VIntArray.of(ArrayInteger.of(xx.getIntValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
+            return VInt.of(xx.getIntValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
         }
 
         if (dbr instanceof DBR_TIME_Short)
         {
             final DBR_TIME_Short xx = (DBR_TIME_Short) dbr;
             if (is_array)
-                return VShortArray.of(ArrayShort.of(xx.getShortValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
-            return VShort.of(xx.getShortValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+                return VShortArray.of(ArrayShort.of(xx.getShortValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
+            return VShort.of(xx.getShortValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
         }
 
         if (dbr instanceof DBR_TIME_Byte)
         {
             final DBR_TIME_Byte xx = (DBR_TIME_Byte) dbr;
             if (is_array)
-                return VByteArray.of(ArrayByte.of(xx.getByteValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
-            return VByte.of(xx.getByteValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(dbr));
+                return VByteArray.of(ArrayByte.of(xx.getByteValue()), convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
+            return VByte.of(xx.getByteValue()[0], convertAlarm(dbr), convertTime(dbr), convertDisplay(metadata));
         }
 
         throw new Exception("Cannot handle " + dbr.getClass().getName());
