@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.channelarchiver;
 
-import org.phoebus.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmSeverity;
 
 /** Wrapper for {@link AlarmSeverity} that adds ChannelArchiver detail
  *  @author Kay Kasemir

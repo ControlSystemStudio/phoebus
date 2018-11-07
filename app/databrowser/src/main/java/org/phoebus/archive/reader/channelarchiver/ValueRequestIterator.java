@@ -14,17 +14,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.archive.vtype.ArchiveVEnum;
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVNumberArray;
-import org.phoebus.archive.vtype.ArchiveVStatistics;
-import org.phoebus.archive.vtype.ArchiveVString;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 import org.w3c.dom.Element;
 
 /** Value iterator for XML-RPC
@@ -42,8 +51,8 @@ class ValueRequestIterator implements ValueIterator
     private final int method;
     private final int count;
     private int index;
-    private List<String> labels = List.of();
-    private Display display = ValueFactory.displayNone();
+    private EnumDisplay labels = EnumDisplay.of();
+    private Display display = Display.none();
     private List<VType> samples;
 
     /** Constructor for new value request.
@@ -214,7 +223,7 @@ class ValueRequestIterator implements ValueIterator
             // Decode time stamp
             final Integer secs = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "secs"));
             final Integer nano = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "nano"));
-            final Instant time = Instant.ofEpochSecond(secs, nano);
+            final Time time = Time.of(Instant.ofEpochSecond(secs, nano));
 
             // Decode severity, status
             Integer code = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "sevr"));
@@ -227,6 +236,7 @@ class ValueRequestIterator implements ValueIterator
                 status = reader.status_strings.get(code);
             else
                 status = code.toString();
+            final Alarm alarm = Alarm.of(sevr.getSeverity(), AlarmStatus.CLIENT, status);
 
             // Decode value
             VType sample = null;
@@ -245,14 +255,13 @@ class ValueRequestIterator implements ValueIterator
                     {
                         final double min = XmlRpc.getValue(min_el);
                         final double max = XmlRpc.getValue(max_el);
-                        sample = new ArchiveVStatistics(time, sevr.getSeverity(), status, display, values[0],
-                                                        min, max, 0.0, 1);
+                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time);
                     }
                     else
-                        sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                        sample = VDouble.of(values[0], alarm, time, display);
                 }
                 else
-                    sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
+                    sample = VDoubleArray.of(ArrayDouble.of(values), alarm, time, display);
             }
             else if (type == Integer.class)
             {
@@ -269,14 +278,13 @@ class ValueRequestIterator implements ValueIterator
                     {
                         final double min = XmlRpc.getValue(min_el);
                         final double max = XmlRpc.getValue(max_el);
-                        sample = new ArchiveVStatistics(time, sevr.getSeverity(), status, display, values[0],
-                                                        min, max, 0.0, 1);
+                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time);
                     }
                     else
-                        sample = new ArchiveVNumber(time, sevr.getSeverity(), status, display, values[0]);
+                        sample = VInt.of(values[0], alarm, time, display);
                 }
                 else
-                    sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
+                    sample = VIntArray.of(ArrayInteger.of(values), alarm, time, display);
             }
             else if (type == Enum.class)
             {
@@ -286,14 +294,14 @@ class ValueRequestIterator implements ValueIterator
                     values[i++] = XmlRpc.getValue(val);
 
                 if (values.length == 1)
-                    sample = new ArchiveVEnum(time, sevr.getSeverity(), status, labels, values[0]);
+                    sample = VEnum.of(values[i], labels, alarm, time);
                 else // Return indices..
-                    sample = new ArchiveVNumberArray(time, sevr.getSeverity(), status, display, values);
+                    sample = VEnumArray.of(ArrayInteger.of(values), labels, alarm, time);
             }
             else if (type == String.class)
             {
                 final String value = XmlRpc.getValue(XmlRpc.getFirstArrayValue(XmlRpc.getStructMember(value_struct, "value")));
-                sample = new ArchiveVString(time, sevr.getSeverity(), status, value);
+                sample = VString.of(value, alarm, time);
             }
             else
                 throw new Exception("Cannot decode samples for " + type.getSimpleName());
@@ -308,17 +316,20 @@ class ValueRequestIterator implements ValueIterator
         final Integer meta_type = XmlRpc.getValue(XmlRpc.getStructMember(meta, "type"));
         if (meta_type == 0)
         {   // Enum labels
-            labels = new ArrayList<>();
+            final List<String> options = new ArrayList<>();
             for (Element e : XmlRpc.getArrayValues(XmlRpc.getStructMember(meta, "states")))
-                labels.add(XmlRpc.getValue(e));
+                options.add(XmlRpc.getValue(e));
+            labels = EnumDisplay.of(options);
         }
         else
         {   // Numeric display
             final String units = XmlRpc.getValue(XmlRpc.getStructMember(meta, "units"));
             final Integer prec = XmlRpc.getValue(XmlRpc.getStructMember(meta, "prec"));
-            display = ValueFactory.newDisplay(0.0, 0.0, 0.0,
-                                              units,
-                                              NumberFormats.format(prec), 0.0, 0.0, 10.0, 0.0, 10.0);
+            display = Display.of(Range.of(0,  10),
+                                 Range.undefined(),
+                                 Range.undefined(),
+                                 Range.undefined(),
+                                 units, NumberFormats.precisionFormat(prec));
         }
     }
 

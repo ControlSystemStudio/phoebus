@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,15 +16,24 @@ import java.util.List;
 import java.util.Queue;
 import java.util.logging.Level;
 
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayInteger;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VShort;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.archive.vtype.ArchiveVEnum;
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVNumberArray;
-import org.phoebus.archive.vtype.ArchiveVString;
-import org.phoebus.archive.vtype.ArchiveVType;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
 
 import gov.aps.jca.dbr.Status;
 
@@ -50,7 +59,7 @@ public class ArchiveFileSampleReader implements ValueIterator
     private DataHeader header;
 
     /** sample that will be returned by nextSample(), or else <code>null</code> */
-    private ArchiveVType next;
+    private VType next;
 
     private long samples_left;
 
@@ -93,8 +102,8 @@ public class ArchiveFileSampleReader implements ValueIterator
         {
             long mid = (low + high) / 2;
             buffer.offset(initOffset + mid * size);
-            final ArchiveVType sample = getSample(header.dbrType, header.dbrCount, header.info, buffer);
-            final int compare = sample.getTimestamp().compareTo(time);
+            final VType sample = getSample(header.dbrType, header.dbrCount, header.info, buffer);
+            final int compare = Time.timeOf(sample).getTimestamp().compareTo(time);
             if (compare > 0)
             {
                 // 'mid' is after the start time, search lower half
@@ -136,7 +145,7 @@ public class ArchiveFileSampleReader implements ValueIterator
         return -1;
     }
 
-    private ArchiveVType nextSample() throws Exception
+    private VType nextSample() throws Exception
     {
         if (samples_left <= 0)
         {
@@ -153,9 +162,9 @@ public class ArchiveFileSampleReader implements ValueIterator
             if (samples_left <= 0)
                 return null;
         }
-        ArchiveVType sample = getSample(header.dbrType, header.dbrCount, header.info, buffer);
+        VType sample = getSample(header.dbrType, header.dbrCount, header.info, buffer);
         --samples_left;
-        if (sample.getTimestamp().compareTo(iteratorStop) <= 0)
+        if (Time.timeOf(sample).getTimestamp().compareTo(iteratorStop) <= 0)
             return sample;
         else
             return null;
@@ -197,7 +206,7 @@ public class ArchiveFileSampleReader implements ValueIterator
     }
 
     /** Read sample at current 'buffer' offset */
-    private static ArchiveVType getSample(DbrType dbrType, short dbrCount,
+    private static VType getSample(DbrType dbrType, short dbrCount,
             CtrlInfoReader info, ArchiveFileBuffer dataBuff) throws Exception
     {
         // All data is of type dbr_time_* and starts with
@@ -206,7 +215,7 @@ public class ArchiveFileSampleReader implements ValueIterator
         // epicsTimeStamp  stamp
         short statusCode = dataBuff.getShort();
         short severity = dataBuff.getShort();
-        Instant timestamp = dataBuff.getEpicsTime();
+        Time timestamp = Time.of(dataBuff.getEpicsTime());
 
         // Next is a type-specific padding, example for dbr_time_double:
         // dbr_long_t      RISC_pad;
@@ -214,8 +223,9 @@ public class ArchiveFileSampleReader implements ValueIterator
 
         AlarmSeverity sev = getSeverity(severity);
         String stat = getStatus(severity, statusCode);
+        final Alarm alarm = Alarm.of(sev, AlarmStatus.CLIENT, stat);
         Display display = info.getDisplay(dataBuff);
-        ArchiveVType sample = null;
+        VType sample = null;
         switch (dbrType)
         {
             case DBR_TIME_STRING:
@@ -228,20 +238,20 @@ public class ArchiveFileSampleReader implements ValueIterator
                 dataBuff.get(valueBytes);
                 dataBuff.skip(dbrType.getValuePad(dbrCount));
                 String strValue = new String(valueBytes).split("\0", 2)[0];
-                sample = new ArchiveVString(timestamp, sev, stat, strValue);
+                sample = VString.of(strValue, alarm, timestamp);
                 break;
             case DBR_TIME_ENUM:
                 if (dbrCount != 1)
                     throw new Exception("Enum type DBR value must be scalar (count = 1), got " + dbrCount);
-                List<String> labels = info.getLabels(dataBuff);
+                EnumDisplay labels = EnumDisplay.of(info.getLabels(dataBuff));
                 int index = dataBuff.getShort();
-                sample = new ArchiveVEnum(timestamp, sev, stat, labels, index);
+                sample = VEnum.of(index, labels, alarm, timestamp);
                 break;
             case DBR_TIME_FLOAT:
                 if (dbrCount == 1)
                 {
                     float value = dataBuff.getFloat();
-                    sample = new ArchiveVNumber(timestamp, sev, stat, display, value);
+                    sample = VFloat.of(value, alarm, timestamp, display);
                 }
                 else
                 {
@@ -249,14 +259,14 @@ public class ArchiveFileSampleReader implements ValueIterator
                     for (int i = 0; i < dbrCount; ++i)
                         value[i] = dataBuff.getFloat();
                     dataBuff.skip(dbrType.getValuePad(dbrCount));
-                    sample = new ArchiveVNumberArray(timestamp, sev, stat, display, value);
+                    sample = VDoubleArray.of(ArrayDouble.of(value), alarm, timestamp, display);
                 }
                 break;
             case DBR_TIME_DOUBLE:
                 if (dbrCount == 1)
                 {
                     double value = dataBuff.getDouble();
-                    sample = new ArchiveVNumber(timestamp, sev, stat, display, value);
+                    sample = VDouble.of(value, alarm, timestamp, display);
                 }
                 else
                 {
@@ -264,14 +274,14 @@ public class ArchiveFileSampleReader implements ValueIterator
                     for (int i = 0; i < dbrCount; ++i)
                         value[i] = dataBuff.getDouble();
                     dataBuff.skip(dbrType.getValuePad(dbrCount));
-                    sample = new ArchiveVNumberArray(timestamp, sev, stat, display, value);
+                    sample = VDoubleArray.of(ArrayDouble.of(value), alarm, timestamp, display);
                 }
                 break;
             case DBR_TIME_SHORT: //==DBR_TIME_INT
                 if (dbrCount == 1)
                 {
                     short value = dataBuff.getShort();
-                    sample = new ArchiveVNumber(timestamp, sev, stat, display, value);
+                    sample = VShort.of(value, alarm, timestamp, display);
                     dataBuff.skip(dbrType.getValuePad(dbrCount));
                 }
                 else
@@ -280,14 +290,14 @@ public class ArchiveFileSampleReader implements ValueIterator
                     for (int i = 0; i < dbrCount; ++i)
                         value[i] = dataBuff.getShort();
                     dataBuff.skip(dbrType.getValuePad(dbrCount));
-                    sample = new ArchiveVNumberArray(timestamp, sev, stat, display, value);
+                    sample = VIntArray.of(ArrayInteger.of(value), alarm, timestamp, display);
                 }
                 break;
             case DBR_TIME_LONG:
                 if (dbrCount == 1)
                 {
-                    int value = dataBuff.getInt();
-                    sample = new ArchiveVNumber(timestamp, sev, stat, display, value);
+                    int value = dataBuff.getInt(); // DBR only has int..
+                    sample = VLong.of(value, alarm, timestamp, display);
                 }
                 else
                 {
@@ -295,7 +305,7 @@ public class ArchiveFileSampleReader implements ValueIterator
                     for (int i = 0; i < dbrCount; ++i)
                         value[i] = dataBuff.getInt();
                     dataBuff.skip(dbrType.getValuePad(dbrCount));
-                    sample = new ArchiveVNumberArray(timestamp, sev, stat, display, value);
+                    sample = VIntArray.of(ArrayInteger.of(value), alarm, timestamp, display);
                 }
                 break;
         } //end switch(type)

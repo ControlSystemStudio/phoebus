@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Display;
 
 /** Lazily reads CtrlInfo (Display- or Enum-related information) for Channel Archiver
  *  data files.
@@ -55,10 +55,11 @@ public class CtrlInfoReader
                 byte unitsBytes [] = new byte [size];
                 buffer.get(unitsBytes);
                 String units = new String(unitsBytes).split("\0", 2)[0];
-                display = ValueFactory.newDisplay(lowerDisplayLimit, lowerAlarmLimit, lowerWarningLimit, units,
-                                                  NumberFormats.format(precision),
-                                                  upperWarningLimit, upperAlarmLimit, upperDisplayLimit,
-                                                  Double.NaN, Double.NaN);
+                display = Display.of(Range.of(lowerDisplayLimit, upperDisplayLimit),
+                                     Range.of(lowerAlarmLimit, upperAlarmLimit),
+                                     Range.of(lowerWarningLimit, upperWarningLimit),
+                                     Range.undefined(),
+                                     units, NumberFormats.precisionFormat(precision));
                 break;
             case 2: //Enum
                 short num_states = buffer.getShort();
