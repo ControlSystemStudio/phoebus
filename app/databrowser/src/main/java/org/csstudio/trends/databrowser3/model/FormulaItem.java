@@ -22,16 +22,16 @@ import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVStatistics;
-import org.phoebus.archive.vtype.ArchiveVType;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.persistence.XMLUtil;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VStatistics;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 import org.w3c.dom.Element;
 
 /** A {@link Model} item that implements a formula.
@@ -47,6 +47,9 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class FormulaItem extends ModelItem
 {
+    private static final Alarm OK_FORMULA = Alarm.of(AlarmSeverity.NONE, AlarmStatus.CLIENT, Messages.Formula);
+    private static final Alarm INVALID_FORMULA = Alarm.of(AlarmSeverity.INVALID, AlarmStatus.CLIENT, Messages.Formula);
+
     /** Evaluate-able Formula
      *  <p>
      *  The formula as well as inputs and variables can be changed
@@ -140,7 +143,7 @@ public class FormulaItem extends ModelItem
     private void compute()
     {
         final List<PlotSample> result = new ArrayList<>();
-        final Display display = ValueFactory.displayNone();
+        final Display display = Display.none();
 
         try
         {
@@ -246,17 +249,14 @@ public class FormulaItem extends ModelItem
                         for (int i = 0; i < values.length; i++)
                             variables[i].setValue(max[i]);
                         final double res_max = formula.eval();
-                        value = new ArchiveVStatistics(time, AlarmSeverity.NONE, Messages.Formula,
-                                display, res_val, res_min, res_max, 0.0, 1);
+                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, Time.now());
                     }
                     else
                     {   // No min/max.
                         if (Double.isNaN(res_val))
-                            value = new ArchiveVNumber(time, AlarmSeverity.INVALID, Messages.Formula,
-                                        display, res_val);
+                            value = VDouble.of(res_val, INVALID_FORMULA, Time.now(), display);
                         else
-                            value = new ArchiveVNumber(time, AlarmSeverity.NONE, ArchiveVType.STATUS_OK,
-                                        display, res_val);
+                            value = VDouble.of(res_val, OK_FORMULA, Time.now(), display);
                     }
                     result.add(new PlotSample(Messages.Formula, value));
                 }

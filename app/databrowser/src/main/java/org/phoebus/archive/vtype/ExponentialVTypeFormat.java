@@ -10,7 +10,7 @@ package org.phoebus.archive.vtype;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** Formatter for {@link VType} values that uses exponential formatting
  *  @author Kay Kasemir

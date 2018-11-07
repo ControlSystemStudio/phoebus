@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,13 +11,16 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VStatistics;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 /** Data Sample from control system ({@link VType})
  *  with interface for XYGraph ({@link ISample})
@@ -62,12 +65,12 @@ public class PlotSample implements PlotDataItem<Instant>
 
     private static String decodeAlarm(VType value)
     {
-        if (value instanceof Alarm)
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (alarm != null)
         {
-            final Alarm alarm = (Alarm) value;
-            if (alarm.getAlarmSeverity() == AlarmSeverity.NONE)
+            if (alarm.getSeverity() == AlarmSeverity.NONE)
                 return "";
-            return alarm.getAlarmSeverity() + " / " + alarm.getAlarmName();
+            return alarm.getSeverity() + " / " + alarm.getName();
         }
         return "";
     }
@@ -97,15 +100,15 @@ public class PlotSample implements PlotDataItem<Instant>
     public PlotSample(final String source, final String info)
     {
         this(default_waveform_index, source,
-                ValueFactory.newVString(info, ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, info), ValueFactory.timeNow()),
-                info);
+             VString.of(info, Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.UNDEFINED, info), Time.now()),
+             info);
     }
 
     /** Package-level constructor, only used in unit tests */
     PlotSample(final double x, final double y)
     {
         this("Test",
-                ValueFactory.newVDouble(y, ValueFactory.newTime(Instant.ofEpochSecond((int) x, 0))));
+             VDouble.of(y, Alarm.none(), Time.of(Instant.ofEpochSecond((int) x, 0)), Display.none()));
     }
 
     /** @param index Waveform index to plot */
@@ -133,8 +136,9 @@ public class PlotSample implements PlotDataItem<Instant>
         // because that actually takes quite some time.
         // We just plot what we have, and that includes
         // the case where the time stamp is invalid.
-        if (value instanceof Time)
-            return ((Time) value).getTimestamp();
+        final Time time = Time.timeOf(value);
+        if (time != null)
+            return time.getTimestamp();
         return Instant.now();
     }
 

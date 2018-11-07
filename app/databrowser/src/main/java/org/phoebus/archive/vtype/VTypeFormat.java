@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,14 @@
  ******************************************************************************/
 package org.phoebus.archive.vtype;
 
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VStatistics;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Display;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** Formatter for {@link VType} values
  *  @author Kay Kasemir
@@ -83,13 +83,13 @@ abstract public class VTypeFormat
         else if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;
-            final Display display = number;
+            final Display display = number.getDisplay();
             format(number.getValue().doubleValue(), display, buf);
         }
         else if (value instanceof VNumberArray)
         {
             final VNumberArray array = (VNumberArray) value;
-            final Display display = array;
+            final Display display = array.getDisplay();
             final ListNumber list = array.getData();
             final int N = list.size();
             if (max_array_elements <= 0  ||  N <= max_array_elements)
@@ -121,7 +121,7 @@ abstract public class VTypeFormat
         else if (value instanceof VStatistics)
         {
             final VStatistics stats = (VStatistics) value;
-            final Display display = stats;
+            final Display display = Display.displayOf(stats);
             format(stats.getAverage(), display, buf);
             buf.append(" [").append(stats.getMin()).append(" ... ").append(stats.getMax());
             buf.append(", ").append(stats.getNSamples()).append(" samples");

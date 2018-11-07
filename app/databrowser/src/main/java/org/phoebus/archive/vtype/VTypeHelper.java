@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,21 +9,19 @@ package org.phoebus.archive.vtype;
 
 import java.time.Instant;
 
-import org.phoebus.util.array.ListInt;
-import org.phoebus.util.array.ListNumber;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VEnumArray;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VStatistics;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
 
 /** {@link VType} helper
  *  @author Kay Kasemir
@@ -51,7 +49,7 @@ public class VTypeHelper
         }
         if (value instanceof VEnumArray)
         {
-            final ListInt data = ((VEnumArray) value).getIndexes();
+            final ListNumber data = ((VEnumArray) value).getIndexes();
             if (data.size() > 0)
                 return data.getDouble(0);
         }
@@ -75,7 +73,7 @@ public class VTypeHelper
         }
         if (value instanceof VEnumArray)
         {
-            final ListInt data = ((VEnumArray) value).getIndexes();
+            final ListNumber data = ((VEnumArray) value).getIndexes();
             if (index < data.size())
                 return data.getDouble(index);
         }
@@ -89,12 +87,9 @@ public class VTypeHelper
      */
     final public static Instant getTimestamp(final VType value)
     {
-        if (value instanceof Time)
-        {
-            final Time time = (Time) value;
-            if (time.isTimeValid())
-                return time.getTimestamp();
-        }
+        final Time time = Time.timeOf(value);
+        if (time != null  &&  time.isValid())
+            return time.getTimestamp();
         return Instant.now();
     }
 
@@ -115,22 +110,22 @@ public class VTypeHelper
         if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;
-            return new ArchiveVNumber(time, number.getAlarmSeverity(), number.getAlarmName(), number, number.getValue());
+            return VNumber.of(number.getValue(), number.getAlarm(), number.getTime(), number.getDisplay());
         }
         if (value instanceof VString)
         {
             final VString string = (VString) value;
-            return new ArchiveVString(time, string.getAlarmSeverity(), string.getAlarmName(), string.getValue());
+            return VString.of(string.getValue(), string.getAlarm(), string.getTime());
         }
         if (value instanceof VNumberArray)
         {
             final VNumberArray number = (VNumberArray) value;
-            return new ArchiveVNumberArray(time, number.getAlarmSeverity(), number.getAlarmName(), number, number.getData());
+            return VNumberArray.of(number.getData(), number.getAlarm(), number.getTime(), number.getDisplay());
         }
         if (value instanceof VEnum)
         {
             final VEnum labelled = (VEnum) value;
-            return new ArchiveVEnum(time, labelled.getAlarmSeverity(), labelled.getAlarmName(), labelled.getLabels(), labelled.getIndex());
+            return VEnum.of(labelled.getIndex(), labelled.getDisplay(), labelled.getAlarm(), labelled.getTime());
         }
         return null;
     }
@@ -149,10 +144,10 @@ public class VTypeHelper
      */
     final public static AlarmSeverity getSeverity(final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm == null)
             return AlarmSeverity.NONE;
-        return alarm.getAlarmSeverity();
+        return alarm.getSeverity();
     }
 
     /** @param value {@link VType} value
@@ -160,10 +155,10 @@ public class VTypeHelper
      */
     final public static String getMessage(final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm == null)
             return "";
-        return alarm.getAlarmName();
+        return alarm.getName();
     }
 
     /** @param buf Buffer where value's alarm info is added (unless OK)
@@ -171,12 +166,12 @@ public class VTypeHelper
      */
     final public static void addAlarm(final StringBuilder buf, final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
-        if (alarm == null  ||  alarm.getAlarmSeverity() == AlarmSeverity.NONE)
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (alarm == null  ||  alarm.getSeverity() == AlarmSeverity.NONE)
             return;
-        buf.append(alarm.getAlarmSeverity().toString())
+        buf.append(alarm.getSeverity().toString())
               .append("/")
-              .append(alarm.getAlarmName());
+              .append(alarm.getName());
     }
 
     /** Format value as string
@@ -192,12 +187,9 @@ public class VTypeHelper
         addTimestamp(buf, value);
         buf.append("\t");
         format.format(value, buf);
-        if (value instanceof Display)
-        {
-            final Display display = (Display) value;
-            if (display != null  &&  display.getUnits() != null)
-                buf.append(" ").append(display.getUnits());
-        }
+        final Display display = Display.displayOf(value);
+        if (display != null  &&  display.getUnit() != null  &&  !display.getUnit().isEmpty())
+            buf.append(" ").append(display.getUnit());
         buf.append("\t");
         addAlarm(buf, value);
         return buf.toString();

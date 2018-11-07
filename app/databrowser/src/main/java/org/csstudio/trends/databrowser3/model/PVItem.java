@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,13 +25,13 @@ import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.imports.ImportArchiveReaderFactory;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
 
 import io.reactivex.BackpressureStrategy;
@@ -373,10 +373,8 @@ public class PVItem extends ModelItem
 
     private void updateUnits(final VType value)
     {
-        if (! (value instanceof Display))
-            return;
-        final Display display = (Display) value;
-        setUnits(display.getUnits());
+        final Display display = Display.displayOf(value);
+        setUnits(display.getUnit());
     }
 
     /** Scan, i.e. add 'current' value to live samples */

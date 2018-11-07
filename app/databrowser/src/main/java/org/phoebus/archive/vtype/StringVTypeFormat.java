@@ -7,10 +7,10 @@
  ******************************************************************************/
 package org.phoebus.archive.vtype;
 
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 
 /** Formatter for {@link VType} values that uses strings for some numeric arrays
  *  @author Kay Kasemir
