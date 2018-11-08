@@ -38,8 +38,8 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.epics.vtype.VType;
 import org.phoebus.framework.persistence.XMLUtil;
-import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
 
 

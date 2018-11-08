@@ -33,9 +33,9 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
+import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
-import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
 
 /** Model for persisting data browser widget configuration.

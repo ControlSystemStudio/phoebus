@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,23 +15,22 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.FormatOption;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VEnumArray;
-import org.phoebus.vtype.VImage;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VTable;
-import org.phoebus.vtype.VType;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Display;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VImage;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 
 /** Utility for formatting data as string.
  *  @author Kay Kasemir
@@ -65,9 +64,9 @@ public class FormatOptionHandler
     {
         if (precision < 0)
         {
-            if (value instanceof Display)
+            if (value instanceof VNumber)
             {
-                final NumberFormat format = ( (Display) value ).getFormat();
+                final NumberFormat format = ( (VNumber) value ).getDisplay().getFormat();
                 if (format instanceof DecimalFormat)
                     precision = ( (DecimalFormat) format ).getMaximumFractionDigits();
             }
@@ -97,9 +96,9 @@ public class FormatOptionHandler
         if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;
-            final String text = formatNumber(number.getValue(), number, option, precision);
-            if (show_units  &&  !number.getUnits().isEmpty())
-                return text + " " + number.getUnits();
+            final String text = formatNumber(number.getValue(), number.getDisplay(), option, precision);
+            if (show_units  &&  !number.getDisplay().getUnit().isEmpty())
+                return text + " " + number.getDisplay().getUnit();
             return text;
         }
         else if (value instanceof VString)
@@ -115,20 +114,20 @@ public class FormatOptionHandler
             if (data.size() <= 0)
                 return "[]";
             final StringBuilder buf = new StringBuilder("[");
-            buf.append(formatNumber(data.getDouble(0), array, option, precision));
+            buf.append(formatNumber(data.getDouble(0), array.getDisplay(), option, precision));
             for (int i=1; i<data.size(); ++i)
             {
                 buf.append(", ");
-                buf.append(formatNumber(data.getDouble(i), array, option, precision));
+                buf.append(formatNumber(data.getDouble(i), array.getDisplay(), option, precision));
             }
             buf.append("]");
-            if (show_units  &&  !array.getUnits().isEmpty())
-                buf.append(" ").append(array.getUnits());
+            if (show_units  &&  !array.getDisplay().getUnit().isEmpty())
+                buf.append(" ").append(array.getDisplay().getUnit());
             return buf.toString();
         }
         else if (value instanceof VEnumArray)
         {
-            final List<String> labels = ((VEnumArray)value).getLabels();
+            final List<String> labels = ((VEnumArray)value).getDisplay().getChoices();
             final StringBuilder buf = new StringBuilder("[");
             for (int i=0; i<labels.size(); ++i)
             {
@@ -268,78 +267,80 @@ public class FormatOptionHandler
      */
     private static String formatTable(final VTable table)
     {
-        final int rows = table.getRowCount(),  cols = table.getColumnCount();
-        final String[][] cell = new String[rows+1][cols];
-        final int[] width = new int[cols];
-
-        // Determine string for headers and each table cell
-        for (int c=0; c<cols; ++c)
-        {
-            cell[0][c] = table.getColumnName(c);
-
-            // Table columns use ListNumber for ListDouble or an integer-typed ListNumber
-            // Otherwise it's a List<?> for String, Instant, alarm, ...
-            final Object col = table.getColumnData(c);
-            if (col instanceof ListNumber)
-            {
-                final ListNumber list = (ListNumber) col;
-                if (table.getColumnType(c).equals(Integer.TYPE))
-                    for (int r=0; r<list.size(); ++r)
-                        cell[1+r][c] = Integer.toString(list.getInt(r));
-                else
-                    for (int r=0; r<list.size(); ++r)
-                        cell[1+r][c] = Double.toString(list.getDouble(r));
-                for (int r=list.size(); r<rows; ++r)
-                    cell[1+r][c] = "";
-            }
-            else
-            {
-                final List<?> list = (List<?>) col;
-                for (int r=0; r<list.size(); ++r)
-                    cell[1+r][c] = Objects.toString(list.get(r)); // handle null
-                for (int r=list.size(); r<rows; ++r)
-                    cell[1+r][c] = "";
-            }
-
-            // Determine maximum width of all cells in this column
-            for (int r=0; r<rows+1; ++r)
-                width[c] = Math.max(width[c], cell[r][c].length());
-        }
-
-        // Format cells into one big string
-        final StringBuilder buf = new StringBuilder();
-        if (rows == 1)
-        {   // Single-row
-            for (int c=0; c<cols; ++c)
-            {
-                if (c > 0)
-                    buf.append(", ");
-                buf.append(cell[0][c]);
-                buf.append(": ");
-                buf.append(cell[1][c]);
-            }
-        }
-        else
-        {   // Table header followed by rows
-            for (int c=0; c<cols; ++c)
-            {
-                if (c > 0)
-                    buf.append(' ');
-                buf.append(pad(cell[0][c], width[c]));
-            }
-            for (int r=1; r<rows+1; ++r)
-            {
-                buf.append('\n');
-                for (int c=0; c<cols; ++c)
-                {
-                    if (c > 0)
-                        buf.append(' ');
-                    buf.append(pad(cell[r][c], width[c]));
-                }
-            }
-        }
-
-        return buf.toString();
+//        final int rows = table.getRowCount(),  cols = table.getColumnCount();
+//        final String[][] cell = new String[rows+1][cols];
+//        final int[] width = new int[cols];
+//
+//        // Determine string for headers and each table cell
+//        for (int c=0; c<cols; ++c)
+//        {
+//            cell[0][c] = table.getColumnName(c);
+//
+//            // Table columns use ListNumber for ListDouble or an integer-typed ListNumber
+//            // Otherwise it's a List<?> for String, Instant, alarm, ...
+//            final Object col = table.getColumnData(c);
+//            if (col instanceof ListNumber)
+//            {
+//                final ListNumber list = (ListNumber) col;
+//                if (table.getColumnType(c).equals(Integer.TYPE))
+//                    for (int r=0; r<list.size(); ++r)
+//                        cell[1+r][c] = Integer.toString(list.getInt(r));
+//                else
+//                    for (int r=0; r<list.size(); ++r)
+//                        cell[1+r][c] = Double.toString(list.getDouble(r));
+//                for (int r=list.size(); r<rows; ++r)
+//                    cell[1+r][c] = "";
+//            }
+//            else
+//            {
+//                final List<?> list = (List<?>) col;
+//                for (int r=0; r<list.size(); ++r)
+//                    cell[1+r][c] = Objects.toString(list.get(r)); // handle null
+//                for (int r=list.size(); r<rows; ++r)
+//                    cell[1+r][c] = "";
+//            }
+//
+//            // Determine maximum width of all cells in this column
+//            for (int r=0; r<rows+1; ++r)
+//                width[c] = Math.max(width[c], cell[r][c].length());
+//        }
+//
+//        // Format cells into one big string
+//        final StringBuilder buf = new StringBuilder();
+//        if (rows == 1)
+//        {   // Single-row
+//            for (int c=0; c<cols; ++c)
+//            {
+//                if (c > 0)
+//                    buf.append(", ");
+//                buf.append(cell[0][c]);
+//                buf.append(": ");
+//                buf.append(cell[1][c]);
+//            }
+//        }
+//        else
+//        {   // Table header followed by rows
+//            for (int c=0; c<cols; ++c)
+//            {
+//                if (c > 0)
+//                    buf.append(' ');
+//                buf.append(pad(cell[0][c], width[c]));
+//            }
+//            for (int r=1; r<rows+1; ++r)
+//            {
+//                buf.append('\n');
+//                for (int c=0; c<cols; ++c)
+//                {
+//                    if (c > 0)
+//                        buf.append(' ');
+//                    buf.append(pad(cell[r][c], width[c]));
+//                }
+//            }
+//        }
+//
+//        return buf.toString();
+        // TODO Update when VTable is usable
+        return "VTable 7.0.2 doesn't want you to see the data";
     }
 
     /** @param text Text
@@ -434,7 +435,7 @@ public class FormatOptionHandler
                 }
                 if (value instanceof VEnum)
                 {   // Send index for valid enumeration string
-                    final List<String> labels = ((VEnum)value).getLabels();
+                    final List<String> labels = ((VEnum)value).getDisplay().getChoices();
                     text = text.trim();
                     for (int i=0; i<labels.size(); ++i)
                         if (labels.get(i).equals(text))
