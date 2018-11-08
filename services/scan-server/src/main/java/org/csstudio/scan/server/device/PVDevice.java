@@ -25,14 +25,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.scan.device.DeviceInfo;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Time;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimeDuration;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VByteArray;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 import io.reactivex.disposables.Disposable;
 
@@ -47,9 +47,6 @@ public class PVDevice extends Device
 {
     /** 'compile time' option to treat byte arrays as string */
     private static final boolean TREAT_BYTES_AS_STRING = true; // XXX Make treat-byte-as-string configurable?
-
-    /** Alarm that is used to identify a disconnected PV */
-    private static final Alarm DISCONNECTED = ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, PV.DISCONNECTED);
 
     /** Is the underlying PV type a BYTE[]?
      *  @see #TREAT_BYTES_AS_STRING
@@ -101,8 +98,7 @@ public class PVDevice extends Device
         {
             is_byte_array = true;
             final VByteArray barray = (VByteArray) new_value;
-            new_value = ValueFactory.newVString(
-                    ByteHelper.toString(barray), barray, barray);
+            new_value = VString.of(ByteHelper.toString(barray), barray.getAlarm(), barray.getTime());
             logger.log(Level.FINE,
                     "PV BYTE[] converted to {0}", new_value);
             return new_value;
@@ -200,7 +196,7 @@ public class PVDevice extends Device
     /** @return 'Disconnected' Value with current time stamp */
     final private static VType getDisconnectedValue()
     {
-        return ValueFactory.newVString(PV.DISCONNECTED, DISCONNECTED, ValueFactory.timeNow());
+        return VString.of(Alarm.disconnected().getName(), Alarm.disconnected(), Time.now());
     }
 
     /** Handle write conversions

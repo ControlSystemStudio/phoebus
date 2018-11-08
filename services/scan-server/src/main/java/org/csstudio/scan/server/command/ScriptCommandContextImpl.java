@@ -20,11 +20,10 @@ import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.VTypeHelper;
-import org.phoebus.util.array.IteratorNumber;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
+import org.epics.util.array.IteratorNumber;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 
 /** Implementation of the {@link ScanScriptContext}
  *
@@ -92,7 +91,7 @@ public class ScriptCommandContextImpl extends ScanScriptContext
         // Active read of current value
         final VType value = device.read(value_check_timeout);
         if (value instanceof VNumber)
-            return ValueUtil.numericValueOf(value);
+            return ((VNumber)value).getValue();
         if (value instanceof VNumberArray)
             return VTypeHelper.toDoubles(value);
         return VTypeHelper.toString(value);

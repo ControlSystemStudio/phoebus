@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.csstudio.scan.device.DeviceInfo;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** Base interface for all devices
  *
@@ -32,7 +32,7 @@ import org.phoebus.vtype.VType;
 @SuppressWarnings("nls")
 public class Device extends DeviceInfo
 {
-    final private List<DeviceListener> listeners = new CopyOnWriteArrayList<DeviceListener>();
+    final private List<DeviceListener> listeners = new CopyOnWriteArrayList<>();
 
     /** Initialize
      *  @param info {@link DeviceInfo}

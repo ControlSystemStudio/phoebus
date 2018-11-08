@@ -9,14 +9,13 @@ package org.phoebus.applications.alarm.server;
 
 import java.time.Instant;
 
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
 
 /** Helper for handling {@link VType}
  *  @author Kay Kasemir
@@ -56,10 +55,10 @@ public class VTypeHelper
      */
     final public static SeverityLevel decodeSeverity(final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm == null)
             return SeverityLevel.OK;
-        switch (alarm.getAlarmSeverity())
+        switch (alarm.getSeverity())
         {
         case NONE:
             return SeverityLevel.OK;
@@ -80,9 +79,9 @@ public class VTypeHelper
      */
     final public static String getStatusMessage(final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm != null)
-            return alarm.getAlarmName();
+            return alarm.getName();
         return SeverityLevel.OK.toString();
     }
 
@@ -92,8 +91,8 @@ public class VTypeHelper
      */
     final public static Instant getTimestamp(final VType value)
     {
-        final Time time = ValueUtil.timeOf(value);
-        if (time != null  &&  time.isTimeValid())
+        final Time time = Time.timeOf(value);
+        if (time != null  &&  time.isValid())
             return time.getTimestamp();
         return Instant.now();
     }

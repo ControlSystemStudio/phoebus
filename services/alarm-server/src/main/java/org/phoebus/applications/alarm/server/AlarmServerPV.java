@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.epics.vtype.VType;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -33,7 +34,6 @@ import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.VType;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;

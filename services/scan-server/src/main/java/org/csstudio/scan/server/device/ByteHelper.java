@@ -7,8 +7,8 @@
  ******************************************************************************/
 package org.csstudio.scan.server.device;
 
-import org.phoebus.util.array.ListByte;
-import org.phoebus.vtype.VByteArray;
+import org.epics.util.array.ListByte;
+import org.epics.vtype.VByteArray;
 
 /** Helper for handling byte arrays
  *  @author Kay Kasemir
