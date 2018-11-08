@@ -10,9 +10,9 @@ package org.phoebus.archive.reader;
 import java.time.Instant;
 
 import org.epics.vtype.Alarm;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
-import org.phoebus.archive.vtype.TimestampHelper;
 
 
 /** Value iterator that produces demo samples 1 ... 10
@@ -29,7 +29,7 @@ class DemoDataIterator implements ValueIterator
     {
         final VType[] values = new VType[10];
         for (int i=0; i<10; ++i)
-            values[i] = VString.of(name + " " + (i + 1), Alarm.none(), TimestampHelper.timeOf(Instant.ofEpochSecond(start_time + i + 1, 0)));
+            values[i] = VString.of(name + " " + (i + 1), Alarm.none(), TimeHelper.fromInstant(Instant.ofEpochSecond(start_time + i + 1, 0)));
         return new DemoDataIterator(values);
     }
 

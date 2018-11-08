@@ -14,6 +14,7 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
@@ -107,7 +108,7 @@ public class VTypeHelper
     public static VType transformTimestamp(final VType value,
                                            final Instant time)
     {
-        final Time xformed = TimestampHelper.timeOf(time);
+        final Time xformed = TimeHelper.fromInstant(time);
         if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;

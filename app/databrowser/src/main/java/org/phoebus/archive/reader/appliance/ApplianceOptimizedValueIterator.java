@@ -11,6 +11,7 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
@@ -139,7 +140,7 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
             }
 
             final Alarm alarm = Alarm.of(getSeverity(message.getSeverity()), AlarmStatus.CLIENT, String.valueOf(message.getStatus()));
-            final Time time = TimestampHelper.timeOf(TimestampHelper.fromSQLTimestamp(message.getTimestamp()));
+            final Time time = TimeHelper.fromInstant(TimestampHelper.fromSQLTimestamp(message.getTimestamp()));
             if (useStatistics) {
                 return VStatistics.of(message.getNumberAt(0).doubleValue(),
                                       message.getNumberAt(1).doubleValue(),

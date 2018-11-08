@@ -25,13 +25,13 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
 
 /** Base for ValueIterators that read from the RDB
@@ -181,7 +181,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
         // Oracle has nanoseconds in TIMESTAMP, other RDBs in separate column
         if (reader.getPool().getDialect() != Dialect.Oracle)
             stamp.setNanos(result.getInt(7));
-        final Time time = TimestampHelper.timeOf(stamp.toInstant());
+        final Time time = TimeHelper.fromInstant(stamp.toInstant());
 
         // Get severity/status
         final String status = reader.getStatus(result.getInt(3));

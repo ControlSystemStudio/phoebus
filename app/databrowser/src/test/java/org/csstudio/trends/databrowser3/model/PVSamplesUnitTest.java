@@ -19,10 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.junit.Test;
-import org.phoebus.archive.vtype.TimestampHelper;
 
 /** JUnit test for PVSamples
  *  @author Kay Kasemir
@@ -87,7 +87,7 @@ public class PVSamplesUnitTest
         assertEquals(0, samples.size());
 
         // Add sample w/ null time stamp, INVALID/UDF
-        final Time null_time = TimestampHelper.timeOf(Instant.ofEpochMilli(0));
+        final Time null_time = TimeHelper.fromInstant(Instant.ofEpochMilli(0));
         VType value = VNumber.of(0.0, Alarm.none(), null_time, Display.none());
         assertThat(Time.timeOf(value).isValid(), equalTo(false));
 

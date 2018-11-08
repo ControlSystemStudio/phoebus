@@ -21,6 +21,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -148,7 +149,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     protected VType extractData(EpicsMessage dataMessage) {
         PayloadType type = mainStream.getPayLoadInfo().getType();
         final Alarm alarm = Alarm.of(getSeverity(dataMessage.getSeverity()), AlarmStatus.CLIENT, String.valueOf(dataMessage.getStatus()));
-        final Time time = TimestampHelper.timeOf(TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()));
+        final Time time = TimeHelper.fromInstant(TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()));
 
         if (type == PayloadType.SCALAR_BYTE ||
             type == PayloadType.SCALAR_DOUBLE ||

@@ -14,21 +14,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 
-import org.epics.vtype.Time;
-
 public class TimestampHelper
 {
-    /** Convert Instant into Time, considering 0 seconds as invalid
-     *  @param instant
-     *  @return Time
-     */
-    public static Time timeOf(final Instant instant)
-    {
-        if (instant.getEpochSecond() <= 0)
-            return Time.of(instant, 0, false);
-        return Time.of(instant);
-    }
-
     /** Round time to next multiple of given duration
      *  @param time Original time stamp
      *  @param duration Duration to use for rounding

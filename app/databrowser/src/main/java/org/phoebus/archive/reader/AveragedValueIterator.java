@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
@@ -154,7 +155,7 @@ public class AveragedValueIterator implements ValueIterator
 
         // Return the min/max/average
         final VStatistics result = VStatistics.of(stats.getAverage(), stats.getStdDev(), stats.getMin(), stats.getMax(),
-                                                  stats.getNSamples(), Alarm.none(), TimestampHelper.timeOf(bin_time));
+                                                  stats.getNSamples(), Alarm.none(), TimeHelper.fromInstant(bin_time));
         if (debug)
             System.out.println("Result: " + result.toString());
         return result;
