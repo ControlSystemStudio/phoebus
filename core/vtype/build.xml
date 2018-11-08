@@ -6,6 +6,10 @@
     <javac destdir="${classes}">
       <src path="${src}"/>
       <classpath>
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
+          <include name="epics-util-*.jar"/>
+          <include name="vtype-*.jar"/>
+        </fileset>
         <pathelement path="../util/${build}/core-util-${version}.jar"/>
       </classpath>
     </javac>
