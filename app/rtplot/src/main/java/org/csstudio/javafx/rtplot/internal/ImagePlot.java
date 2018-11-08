@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,17 +35,17 @@ import org.csstudio.javafx.rtplot.internal.undo.ChangeImageZoom;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.csstudio.javafx.rtplot.internal.util.LinearScreenTransform;
 import org.csstudio.javafx.rtplot.internal.util.Log10;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.IteratorNumber;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VImageType;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.ChildCare;
 import org.phoebus.ui.javafx.DoubleBuffer;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.javafx.Tracker;
-import org.phoebus.util.array.ArrayByte;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ArrayShort;
-import org.phoebus.util.array.IteratorNumber;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VImageType;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Point2D;
@@ -532,7 +532,7 @@ public class ImagePlot extends PlotCanvasBase
             			next_rgb[2] = (iter) -> getShortForRGB(iter) >>> 8;
     				}
         		}
-        		if (numbers instanceof ArrayInt)
+        		if (numbers instanceof ArrayInteger)
         		{
         			if (unsigned)
         			{
@@ -573,7 +573,7 @@ public class ImagePlot extends PlotCanvasBase
 	                    next_sample_func = ImagePlot::getUnsignedShort;
 	                else if (numbers instanceof ArrayByte)
 	                    next_sample_func = ImagePlot::getUnsignedByte;
-	                else if (numbers instanceof ArrayInt)
+	                else if (numbers instanceof ArrayInteger)
 	                    next_sample_func = ImagePlot::getUnsignedInt;
 	                else
 	                    logger.log(Level.WARNING, "Cannot handle unsigned data of type " + numbers.getClass().getName());
@@ -1255,7 +1255,7 @@ public class ImagePlot extends PlotCanvasBase
                         pixel = Byte.toUnsignedInt(data.getByte(offset));
                     else if (data instanceof ArrayShort)
                         pixel = Short.toUnsignedInt(data.getShort(offset));
-                    else if (data instanceof ArrayInt)
+                    else if (data instanceof ArrayInteger)
                         pixel = Integer.toUnsignedLong(data.getInt(offset));
                     else
                         pixel = data.getDouble(offset);
