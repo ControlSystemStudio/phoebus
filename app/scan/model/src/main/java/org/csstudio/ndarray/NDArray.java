@@ -13,14 +13,15 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.phoebus.util.array.ArrayByte;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ArrayFloat;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ArrayLong;
-import org.phoebus.util.array.ArrayShort;
-import org.phoebus.util.array.IteratorNumber;
-import org.phoebus.util.array.ListNumber;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayFloat;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.CollectionNumbers;
+import org.epics.util.array.IteratorNumber;
+import org.epics.util.array.ListNumber;
 
 /** N-dimensional array
  *
@@ -201,15 +202,17 @@ public class NDArray
      */
     static ListNumber createDataArray(final NDType type, final int size)
     {
+
+
         switch (type)
         {
-        case FLOAT64: return new ArrayDouble(new double[size], false);
-        case FLOAT32: return new ArrayFloat(new float[size], false);
-        case INT64:   return new ArrayLong(new long[size], false);
-        case INT32:   return new ArrayInt(new int[size], false);
-        case INT16:   return new ArrayShort(new short[size], false);
-        case INT8:    return new ArrayByte(new byte[size], false);
-        case BOOL:    return new ArrayByte(new byte[size], false);
+        case FLOAT64: return CollectionNumbers.toListDouble(new double[size]);
+        case FLOAT32: return CollectionNumbers.toListFloat(new float[size]);
+        case INT64:   return CollectionNumbers.toListLong(new long[size]);
+        case INT32:   return CollectionNumbers.toListInt(new int[size]);
+        case INT16:   return CollectionNumbers.toListShort(new short[size]);
+        case INT8:    return CollectionNumbers.toListByte(new byte[size]);
+        case BOOL:    return CollectionNumbers.toListByte(new byte[size]);
         default:
             throw new IllegalArgumentException("Unsupported data type " + type);
         }
@@ -248,7 +251,7 @@ public class NDArray
      */
     private static NDShape determineShape(final Object data)
     {
-        final List<Integer> shape = new ArrayList<Integer>();
+        final List<Integer> shape = new ArrayList<>();
         doDetermineShape(shape, data);
         // Convert to int[]
         final int[] result = new int[shape.size()];
@@ -336,7 +339,7 @@ public class NDArray
             return NDType.FLOAT32;
         if (data instanceof ArrayLong)
             return NDType.INT64;
-        else if (data instanceof ArrayInt)
+        else if (data instanceof ArrayInteger)
             return NDType.INT32;
         if (data instanceof ArrayShort)
             return NDType.INT16;
@@ -510,8 +513,8 @@ public class NDArray
         final int offset = this.offset + stride.getIndex(shape, start);
 
         // Determine new shape and stride
-        final List<Integer> n_shape = new ArrayList<Integer>();
-        final List<Integer> n_stride = new ArrayList<Integer>();
+        final List<Integer> n_shape = new ArrayList<>();
+        final List<Integer> n_stride = new ArrayList<>();
         for (int i=0; i<start.length; ++i)
         {
             // System.out.println("Requesting " + start[i] + ":" + stop[i] + ":" + step[i]

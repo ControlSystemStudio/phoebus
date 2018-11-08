@@ -11,7 +11,7 @@ package org.csstudio.ndarray;
 
 import java.util.Arrays;
 
-import org.phoebus.util.array.ListNumber;
+import org.epics.util.array.ListNumber;
 
 /** Matrix-type operations for {@link NDArray}
  *

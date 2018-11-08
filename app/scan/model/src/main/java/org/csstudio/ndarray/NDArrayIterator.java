@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.ndarray;
 
-import org.phoebus.util.array.IteratorDouble;
+import org.epics.util.array.IteratorDouble;
 
 /** Iterate over NDArray elements
  *
@@ -17,7 +17,7 @@ import org.phoebus.util.array.IteratorDouble;
  *
  *  @author Kay Kasemir
  */
-public class NDArrayIterator extends IteratorDouble
+public class NDArrayIterator implements IteratorDouble
 {
     final private NDArray array;
     final private ShapeIterator shape_iter;
