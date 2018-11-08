@@ -24,6 +24,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VByte;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
@@ -136,8 +137,7 @@ public class DBRHelper
             return Time.nowInvalid();
 
         final Instant instant = Instant.ofEpochSecond(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
-        final boolean valid = epics_time.secPastEpoch() > 0;
-        return Time.of(instant, 0, valid);
+        return TimeHelper.fromInstant(instant);
     }
 
     private static Display convertDisplay(final Object dbr)

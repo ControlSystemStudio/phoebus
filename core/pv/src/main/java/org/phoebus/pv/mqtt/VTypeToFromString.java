@@ -13,25 +13,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.phoebus.util.array.ListBoolean;
-import org.phoebus.util.array.ListByte;
-import org.phoebus.util.array.ListInt;
-import org.phoebus.util.array.ListLong;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.util.array.ListShort;
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.VBoolean;
-import org.phoebus.vtype.VBooleanArray;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VDoubleArray;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VLong;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ListBoolean;
+import org.epics.util.array.ListByte;
+import org.epics.util.array.ListInteger;
+import org.epics.util.array.ListLong;
+import org.epics.util.array.ListNumber;
+import org.epics.util.array.ListShort;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VBooleanArray;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
 
 /** Parser for initial value
  *  @author Kay Kasemir, Megan Grodowitz
@@ -49,7 +52,7 @@ public class VTypeToFromString
             if (i != 0) {
                 sb.append(", ");
             }
-            if (data instanceof ListByte || data instanceof ListShort || data instanceof ListInt || data instanceof ListLong) {
+            if (data instanceof ListByte || data instanceof ListShort || data instanceof ListInteger || data instanceof ListLong) {
                 sb.append(nf.format(data.getLong(i)));
             } else {
                 sb.append(nf.format(data.getDouble(i)));
@@ -182,7 +185,7 @@ public class VTypeToFromString
     {
         try
         {
-            return ValueFactory.newVDouble( Double.parseDouble(text) );
+            return VDouble.of(Double.parseDouble(text), Alarm.none(), Time.now(), Display.none());
         }
         catch (NumberFormatException ex)
         {
@@ -194,7 +197,7 @@ public class VTypeToFromString
     {
         try
         {
-            return ValueFactory.toVType( (long) Double.parseDouble(text) );
+            return VLong.of(Double.valueOf(text).longValue(), Alarm.none(), Time.now(), Display.none());
         }
         catch (NumberFormatException ex)
         {
@@ -204,14 +207,14 @@ public class VTypeToFromString
 
     public static VType FromStringVString(final String text)
     {
-        return ValueFactory.newVString(stripQuotes(text), ValueFactory.alarmNone(), ValueFactory.timeNow());
+        return VString.of(stripQuotes(text), Alarm.none(), Time.now());
     }
 
     public static VType FromStringVDoubleArray(final String text) throws Exception
     {
         final List<String> items = splitStringList(text);
         final double[] numbers = parseDoubles(items);
-        return ValueFactory.toVType(numbers);
+        return VDoubleArray.of(ArrayDouble.of(numbers), Alarm.none(), Time.now(), Display.none());
     }
 
     public static VType FromStringVStringArray(final String text) throws Exception
@@ -222,7 +225,7 @@ public class VTypeToFromString
         for (String item : items)
             strings.add(stripQuotes(item));
 
-        return ValueFactory.newVStringArray(strings, ValueFactory.alarmNone(), ValueFactory.timeNow());
+        return VStringArray.of(strings, Alarm.none(), Time.now());
     }
 
     /** Split text into comma separated list
@@ -368,7 +371,7 @@ public class VTypeToFromString
         if (type == VDouble.class)
         {
             if (new_value instanceof Number)
-                return ValueFactory.newVDouble( ((Number)new_value).doubleValue());
+                return VDouble.of((Number)new_value, Alarm.none(), Time.now(), Display.none());
 
             return FromStringVDouble(Objects.toString(new_value));
         }
@@ -376,8 +379,7 @@ public class VTypeToFromString
         if (type == VLong.class)
         {
             if (new_value instanceof Number)
-                return ValueFactory.toVType(((Number)new_value).longValue());
-
+                return VDouble.of(((Number)new_value).longValue(), Alarm.none(), Time.now(), Display.none());
             return FromStringVLong(Objects.toString(new_value));
         }
 
@@ -387,12 +389,12 @@ public class VTypeToFromString
         if (type == VDoubleArray.class)
         {   // Pass double[]
             if (new_value instanceof double[])
-                return ValueFactory.toVType(new_value);
+                return VDoubleArray.of(ArrayDouble.of((double[])new_value), Alarm.none(), Time.now(), Display.none());
             // Pass List
             if (new_value instanceof List)
             {
                 final double[] numbers = parseDoubles((List<?>)new_value);
-                return ValueFactory.toVType(numbers);
+                return VDoubleArray.of(ArrayDouble.of(numbers), Alarm.none(), Time.now(), Display.none());
             }
             return FromStringVDoubleArray(Objects.toString(new_value));
         }
@@ -400,14 +402,14 @@ public class VTypeToFromString
         if (type == VStringArray.class)
         {
             if (new_value instanceof String[])
-                return ValueFactory.newVStringArray(Arrays.asList((String[]) new_value), ValueFactory.alarmNone(), ValueFactory.timeNow());
+                return VStringArray.of(Arrays.asList((String[]) new_value), Alarm.none(), Time.now());
 
             if (new_value instanceof List)
             {   // Assert each list element is a String
                 final List<String> strings = new ArrayList<>();
                 for (Object item : (List<?>)new_value)
                     strings.add(Objects.toString(item));
-                return ValueFactory.newVStringArray(strings, ValueFactory.alarmNone(), ValueFactory.timeNow());
+                return VStringArray.of(strings, Alarm.none(), Time.now());
             }
             return FromStringVStringArray(Objects.toString(new_value));
         }
@@ -415,4 +417,3 @@ public class VTypeToFromString
         throw new Exception("Expected type " + type.getSimpleName() + " but got " + new_value.getClass().getName());
     }
 }
-
