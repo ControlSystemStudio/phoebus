@@ -13,6 +13,7 @@ package org.epics.vtype;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public abstract class VStatistics extends VType implements AlarmProvider, TimeProvider
 {
     /** Create immutable {@link VStatistics}
@@ -47,4 +48,23 @@ public abstract class VStatistics extends VType implements AlarmProvider, TimePr
 
     /** @return The number of samples */
     public abstract int getNSamples();
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(typeOf(this).getSimpleName())
+                .append('[')
+                .append(getAverage())
+                .append(" (")
+                .append(getMin())
+                .append(" .. ")
+                .append(getMax())
+                .append("), ")
+                .append(getAlarm())
+                .append(", ")
+                .append(getTime())
+                .append(']');
+        return builder.toString();
+    }
 }
