@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,9 +12,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ThermometerWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
 
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
@@ -206,11 +205,11 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
         if (limits_from_pv)
         {
             // Try display range from PV
-            final Display display_info = ValueUtil.displayOf(vtype);
+            final Display display_info = Display.displayOf(vtype);
             if (display_info != null)
             {
-                min_val = display_info.getLowerDisplayLimit();
-                max_val = display_info.getUpperDisplayLimit();
+                min_val = display_info.getDisplayRange().getMinimum();
+                max_val = display_info.getDisplayRange().getMaximum();
             }
         }
         // Fall back to 0..100 range

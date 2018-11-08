@@ -14,8 +14,8 @@ import org.csstudio.javafx.rtplot.data.InstrumentedReadWriteLock;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.PlotDataProvider;
 import org.csstudio.javafx.rtplot.data.SimpleDataItem;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ListNumber;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ListNumber;
 
 /** Data provider for RTPlot
  *
@@ -38,7 +38,7 @@ import org.phoebus.util.array.ListNumber;
 @SuppressWarnings("nls")
 public class XYVTypeDataProvider implements PlotDataProvider<Double>
 {
-    public static final ListNumber EMPTY = new ArrayDouble(new double[0], true);
+    public static final ListNumber EMPTY = ArrayDouble.of(new double[0]);
 
     /** Sharing the _read_ half of just one lock.
      *  Never using the _write_ half, since this class is immutable

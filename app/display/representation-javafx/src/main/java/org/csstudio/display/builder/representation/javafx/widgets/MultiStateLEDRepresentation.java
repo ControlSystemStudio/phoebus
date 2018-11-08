@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,7 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget;
 import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget.StateWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 import javafx.scene.paint.Color;
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,10 +11,7 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.Messages;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ListInt;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VTable;
+import org.epics.util.array.ListNumber;
 
 /** VTable that holds current table widget selection
  *

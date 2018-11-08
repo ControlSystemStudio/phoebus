@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,20 +18,22 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.util.VTypeUtil;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VEnumArray;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 import io.reactivex.disposables.Disposable;
 
@@ -120,9 +122,9 @@ public class ArrayPVDispatcher implements AutoCloseable
                 dispatchArrayUpdate(((VStringArray)value).getData());
             // Dispatch scalar PVs as one-element arrays
             else if (value instanceof VNumber)
-                dispatchArrayUpdate(new ArrayDouble(((VNumber)value).getValue().doubleValue()));
+                dispatchArrayUpdate(ArrayDouble.of(((VNumber)value).getValue().doubleValue()));
             else if (value instanceof VEnum)
-                dispatchArrayUpdate(new ArrayInt(((VEnum)value).getIndex()));
+                dispatchArrayUpdate(ArrayInteger.of(((VEnum)value).getIndex()));
             else if (value instanceof VString)
                 dispatchArrayUpdate(Arrays.asList(((VString)value).getValue()));
             else
@@ -176,9 +178,9 @@ public class ArrayPVDispatcher implements AutoCloseable
             }
             else
             {   // Update existing element PVs
-                final Time now = ValueFactory.timeNow();
+                final Time now = Time.now();
                 for (int i=0; i<N; ++i)
-                    pvs.get(i).write(ValueFactory.newVDouble(value.getDouble(i), now));
+                    pvs.get(i).write(VDouble.of(value.getDouble(i), Alarm.none(), now, Display.none()));
             }
         }
         finally
@@ -209,9 +211,9 @@ public class ArrayPVDispatcher implements AutoCloseable
             }
             else
             {   // Update existing element PVs
-                final Time now = ValueFactory.timeNow();
+                final Time now = Time.now();
                 for (int i=0; i<N; ++i)
-                    pvs.get(i).write(ValueFactory.newVString(value.get(i), ValueFactory.alarmNone(), now));
+                    pvs.get(i).write(VString.of(value.get(i), Alarm.none(), now));
             }
         }
         finally

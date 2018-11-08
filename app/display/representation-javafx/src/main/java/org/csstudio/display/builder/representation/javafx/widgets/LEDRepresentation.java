@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,8 +12,8 @@ import java.util.List;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.LEDWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VType;
 
 import javafx.scene.paint.Color;
 
@@ -48,7 +48,7 @@ public class LEDRepresentation extends BaseLEDRepresentation<LEDWidget>
         if ((value instanceof VEnum)  &&
             model_widget.propLabelsFromPV().getValue())
         {
-            final List<String> labels = ((VEnum) value).getLabels();
+            final List<String> labels = ((VEnum) value).getDisplay().getChoices();
             if (labels.size() == 2)
             {
                 model_widget.propOffLabel().setValue(labels.get(0));

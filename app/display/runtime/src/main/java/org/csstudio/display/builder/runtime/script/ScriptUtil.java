@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,10 +34,10 @@ import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
+import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.application.ApplicationLauncherService;
-import org.phoebus.vtype.VType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

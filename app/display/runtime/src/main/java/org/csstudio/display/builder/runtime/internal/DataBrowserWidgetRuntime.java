@@ -17,9 +17,9 @@ import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.VType;
 
 /** Runtime for the {@link DataBrowserWidget}
  *

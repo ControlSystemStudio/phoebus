@@ -16,8 +16,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.vtype.VType;
 
 import javafx.application.Platform;
 import javafx.scene.control.ButtonBase;

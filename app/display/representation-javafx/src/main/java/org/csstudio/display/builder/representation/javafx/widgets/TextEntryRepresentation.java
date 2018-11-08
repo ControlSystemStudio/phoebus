@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,8 +20,8 @@ import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.vtype.VType;
 
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;

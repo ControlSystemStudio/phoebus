@@ -17,12 +17,12 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -141,13 +141,10 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                     text = vtype.toString();
                 else
                     text = VTypeUtil.getValueString(vtype, true);
-                if (vtype instanceof Alarm)
-                {
-                    final Alarm alarm = (Alarm) vtype;
-                    if (alarm.getAlarmSeverity() != AlarmSeverity.NONE)
-                        text = text + " [" + alarm.getAlarmSeverity().toString() + ", " +
-                                             alarm.getAlarmName() + "]";
-                }
+                final Alarm alarm = Alarm.alarmOf(vtype);
+                if (alarm != null  &&  alarm.getSeverity() != AlarmSeverity.NONE)
+                    text = text + " [" + alarm.getSeverity().toString() + ", " +
+                                         alarm.getName() + "]";
             }
             return new ReadOnlyStringWrapper(text);
         });

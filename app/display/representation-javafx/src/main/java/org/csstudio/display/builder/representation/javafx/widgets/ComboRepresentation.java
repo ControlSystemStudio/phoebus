@@ -18,9 +18,9 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ComboWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VType;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -169,7 +169,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
         if (fromPV)
         {
             index = ((VEnum)value).getIndex();
-            return ((VEnum)value).getLabels();
+            return ((VEnum)value).getDisplay().getChoices();
         }
         else
         {

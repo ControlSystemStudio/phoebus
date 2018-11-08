@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,9 +17,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
 
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
@@ -185,15 +184,18 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         if (model_widget.propLimitsFromPV().getValue())
         {
             // Try to get display range from PV
-            final Display display_info = ValueUtil.displayOf(model_widget.runtimePropValue().getValue());
+            final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
             if (display_info != null)
             {
-                new_min = display_info.getLowerCtrlLimit();
-                new_max = display_info.getUpperCtrlLimit();
-                new_lolo = display_info.getLowerAlarmLimit();
-                new_low = display_info.getLowerWarningLimit();
-                new_high = display_info.getUpperWarningLimit();
-                new_hihi = display_info.getUpperAlarmLimit();
+                new_min = display_info.getControlRange().getMinimum();
+                new_max = display_info.getControlRange().getMaximum();
+
+                new_lolo = display_info.getAlarmRange().getMinimum();
+
+                new_low = display_info.getWarningRange().getMinimum();
+                new_high = display_info.getWarningRange().getMaximum();
+
+                new_hihi = display_info.getAlarmRange().getMaximum();
             }
         }
         if (! model_widget.propShowLoLo().getValue())

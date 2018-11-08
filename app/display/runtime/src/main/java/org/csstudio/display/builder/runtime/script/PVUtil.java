@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,12 +16,12 @@ import java.util.concurrent.TimeUnit;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VTable;
-import org.phoebus.vtype.VType;
 
 /** Utility for handling PVs and their values in scripts.
  *
@@ -181,11 +181,9 @@ public class PVUtil
     public final static int getSeverity(final RuntimePV pv)
     {
         final VType value = pv.read();
-        if (value instanceof Alarm)
-        {
-            final Alarm alarm = (Alarm) value;
-            return alarm.getAlarmSeverity().ordinal();
-        }
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (alarm != null)
+            return alarm.getSeverity().ordinal();
         return -1;
     }
 
@@ -201,10 +199,9 @@ public class PVUtil
     public final static int getLegacySeverity(final RuntimePV pv)
     {
         final VType value = pv.read();
-        if (value instanceof Alarm)
-        {
-            final Alarm alarm = (Alarm) value;
-            switch (alarm.getAlarmSeverity())
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (alarm != null)
+            switch (alarm.getSeverity())
             {
             case NONE:
                 return 0;
@@ -217,7 +214,6 @@ public class PVUtil
             default:
                 break;
             }
-        }
         return -1;
     }
 
@@ -228,11 +224,9 @@ public class PVUtil
     public final static String getSeverityString(final RuntimePV pv)
     {
         final VType value = pv.read();
-        if (value instanceof Alarm)
-        {
-            final Alarm alarm = (Alarm) value;
-            return alarm.getAlarmSeverity().name();
-        }
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (alarm != null)
+            return alarm.getSeverity().name();
         return AlarmSeverity.UNDEFINED.name();
     }
 
@@ -243,11 +237,9 @@ public class PVUtil
     public final static String getStatus(final RuntimePV pv)
     {
         final VType value = pv.read();
-        if (value instanceof Alarm)
-        {
-            final Alarm alarm = (Alarm) value;
-            return alarm.getAlarmName();
-        }
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (alarm != null)
+            return alarm.getName();
         return "Disconnected";
     }
 
