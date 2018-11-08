@@ -10,16 +10,14 @@ package org.phoebus.pv.mqtt;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVFactory;
 
-/**
- * MQTT implementation of org.phoebus.pv.PVFactory.
- * @author Kay Kasemir
+/** MQTT implementation of org.phoebus.pv.PVFactory.
+ *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class MQTT_PVFactory implements PVFactory
 {
-    
     final public static String TYPE = "mqtt";
-    final public static String BROKER_URL = "tcp://diane:1883";
-    
+
     @Override
     public String getType()
     {
@@ -31,5 +29,4 @@ public class MQTT_PVFactory implements PVFactory
     {
        return new MQTT_PV(name, base_name);
     }
-
 }

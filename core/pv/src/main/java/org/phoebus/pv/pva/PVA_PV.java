@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,9 +23,10 @@ import org.epics.pvdata.pv.MessageType;
 import org.epics.pvdata.pv.PVStructure;
 import org.epics.pvdata.pv.Status;
 import org.epics.pvdata.pv.Structure;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VType;
 
 /** pvAccess {@link PV}
  *
@@ -208,9 +209,13 @@ class PVA_PV extends PV implements ChannelRequester, MonitorRequester
         if (value instanceof VEnum)
         {   // Remember most recent labels, but note that
             // not all updates will include the complete labels?!
-            final List<String> labels = ((VEnum)value).getLabels();
-            if (! labels.isEmpty())
-                enum_labels = labels;
+            final EnumDisplay display = ((VEnum)value).getDisplay();
+            if (display != null)
+            {
+                final List<String> labels = display.getChoices();
+                if (! labels.isEmpty())
+                    enum_labels = labels;
+            }
         }
         notifyListenersOfValue(value);
         return value;

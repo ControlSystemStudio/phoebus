@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,27 +23,24 @@ import org.epics.pvdata.pv.PVULongArray;
 import org.epics.pvdata.pv.PVUShortArray;
 import org.epics.pvdata.pv.PVUnion;
 import org.epics.pvdata.pv.StructureArrayData;
-import org.phoebus.util.array.ArrayByte;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ArrayLong;
-import org.phoebus.util.array.ArrayShort;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VImage;
-import org.phoebus.vtype.VImageDataType;
-import org.phoebus.vtype.VImageType;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Time;
+import org.epics.vtype.VImage;
+import org.epics.vtype.VImageDataType;
+import org.epics.vtype.VImageType;
 
 /** VImage for a ListNumber
  *  @author Kay Kasemir
  *  @author Amanda Carpenter - handle unsigned VImageDataType, detect VImageType
  */
 @SuppressWarnings("nls")
-class VImageForNTNDArray extends VTypeTimeAlarmBase implements VImage
+class ImageDecoder
 {
-    private final int width, height;
-    private final ListNumber data;
-    private final VImageDataType data_type;
-    private final VImageType image_type;
-
     // Could just use VImageType.values()[i+1] instead of color_mode_types[i], but
     // (a) there are more VImageType values than defined color modes, and
     // (b) the NTNDArray specification for color mode might eventually change
@@ -51,10 +48,9 @@ class VImageForNTNDArray extends VTypeTimeAlarmBase implements VImage
             VImageType.TYPE_RGB1, VImageType.TYPE_RGB2, VImageType.TYPE_RGB3, VImageType.TYPE_YUV444,
             VImageType.TYPE_YUV422, VImageType.TYPE_YUV411 };
 
-    public VImageForNTNDArray(final PVStructure struct) throws Exception
+    public static VImage decode(final PVStructure struct) throws Exception
     {
-        // Decode timestamp, alarm
-        super(struct);
+        // TODO Decode timestamp, alarm
 
         // Get dimensions
         final PVStructureArray dim_field = struct.getSubField(PVStructureArray.class, "dimension");
@@ -119,13 +115,14 @@ class VImageForNTNDArray extends VTypeTimeAlarmBase implements VImage
                     ") requires 3 dimensions, got " + dimensions.length);
         }
 
+        final VImageType image_type;
         if (colorMode >= color_mode_types.length || colorMode < 0)
             image_type = VImageType.TYPE_CUSTOM;
         else
             image_type = color_mode_types[colorMode];
 
         // Init. width, height, and size
-        int size;
+        final int width, height, size;
         switch (image_type)
         {
             case TYPE_RGB1:
@@ -150,93 +147,69 @@ class VImageForNTNDArray extends VTypeTimeAlarmBase implements VImage
         }
 
         // Get data and data type
+        final ListNumber data;
+        final VImageDataType data_type;
         if (value instanceof PVByteArray)
         {
             final byte[] values = new byte[size];
             PVStructureHelper.convert.toByteArray((PVByteArray) value, 0, size, values, 0);
-            data = new ArrayByte(values);
+            data = ArrayByte.of(values);
             data_type = VImageDataType.pvByte;
         }
         else if (value instanceof PVUByteArray)
         {
             final byte[] values = new byte[size];
             PVStructureHelper.convert.toByteArray((PVUByteArray) value, 0, size, values, 0);
-            data = new ArrayByte(values);
+            data = ArrayByte.of(values);
             data_type = VImageDataType.pvUByte;
         }
         else if (value instanceof PVShortArray)
         {
             final short[] values = new short[size];
             PVStructureHelper.convert.toShortArray((PVShortArray) value, 0, size, values, 0);
-            data = new ArrayShort(values);
+            data = ArrayShort.of(values);
             data_type = VImageDataType.pvShort;
         }
         else if (value instanceof PVUShortArray)
         {
             final short[] values = new short[size];
             PVStructureHelper.convert.toShortArray((PVUShortArray) value, 0, size, values, 0);
-            data = new ArrayShort(values);
+            data = ArrayShort.of(values);
             data_type = VImageDataType.pvUShort;
         }
         else if (value instanceof PVIntArray)
         {
             final int[] values = new int[size];
             PVStructureHelper.convert.toIntArray((PVIntArray) value, 0, size, values, 0);
-            data = new ArrayInt(values);
+            data = ArrayInteger.of(values);
             data_type = VImageDataType.pvInt;
         }
         else if (value instanceof PVUIntArray)
         {
             final int[] values = new int[size];
             PVStructureHelper.convert.toIntArray((PVUIntArray) value, 0, size, values, 0);
-            data = new ArrayInt(values);
+            data = ArrayInteger.of(values);
             data_type = VImageDataType.pvUInt;
         }
         else if (value instanceof PVLongArray)
         {
             final long[] values = new long[size];
             PVStructureHelper.convert.toLongArray((PVLongArray) value, 0, size, values, 0);
-            data = new ArrayLong(values);
+            data = ArrayLong.of(values);
             data_type = VImageDataType.pvLong;
         }
         else if (value instanceof PVULongArray)
         {
             final long[] values = new long[size];
             PVStructureHelper.convert.toLongArray((PVULongArray) value, 0, size, values, 0);
-            data = new ArrayLong(values);
+            data = ArrayLong.of(values);
             data_type = VImageDataType.pvULong;
         }
         else
             throw new Exception("Cannot decode NTNDArray type of value " + value);
-    }
 
-    @Override
-    public int getHeight()
-    {
-        return height;
-    }
-
-    @Override
-    public int getWidth()
-    {
-        return width;
-    }
-
-    @Override
-    public ListNumber getData()
-    {
-        return data;
-    }
-
-    @Override
-    public VImageDataType getDataType()
-    {
-        return data_type;
-    }
-
-    @Override
-    public VImageType getVImageType()
-    {
-        return image_type;
+        final Alarm alarm = Decoders.decodeAlarm(struct);
+        final Time time = Decoders.decodeTime(struct);
+        return VImage.of(height, width, data, data_type, image_type, alarm, time);
     }
 }
