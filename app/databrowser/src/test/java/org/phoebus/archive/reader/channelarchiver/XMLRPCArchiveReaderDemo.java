@@ -10,13 +10,13 @@ package org.phoebus.archive.reader.channelarchiver;
 import java.time.Instant;
 import java.util.List;
 
+import org.epics.vtype.VType;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.VType;
 
 /** Demo of XML-RPC archive reader
  *  @author Kay Kasemir

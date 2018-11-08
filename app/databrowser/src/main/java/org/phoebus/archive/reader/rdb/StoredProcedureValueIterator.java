@@ -30,6 +30,7 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
 
 /** Value Iterator that provides 'optimized' data by calling
@@ -190,7 +191,7 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
         while (result.next())
         {
             // Time stamp
-            final Time time = Time.of(result.getTimestamp(2).toInstant());
+            final Time time = TimestampHelper.timeOf(result.getTimestamp(2).toInstant());
 
             // Get severity/status
             final Alarm alarm;

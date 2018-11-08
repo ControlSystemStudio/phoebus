@@ -34,6 +34,7 @@ import org.epics.vtype.VShort;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.archive.vtype.TimestampHelper;
 
 import gov.aps.jca.dbr.Status;
 
@@ -215,7 +216,7 @@ public class ArchiveFileSampleReader implements ValueIterator
         // epicsTimeStamp  stamp
         short statusCode = dataBuff.getShort();
         short severity = dataBuff.getShort();
-        Time timestamp = Time.of(dataBuff.getEpicsTime());
+        Time timestamp = TimestampHelper.timeOf(dataBuff.getEpicsTime());
 
         // Next is a type-specific padding, example for dbr_time_double:
         // dbr_long_t      RISC_pad;

@@ -16,11 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VType;
 import org.junit.Test;
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
+import org.phoebus.archive.vtype.TimestampHelper;
 
 /** JUnit test for PVSamples
  *  @author Kay Kasemir
@@ -38,7 +40,7 @@ public class PVSamplesUnitTest
         assertEquals(0, samples.size());
 
         // Add 'historic' samples
-        final List<VType> history = new ArrayList<VType>();
+        final List<VType> history = new ArrayList<>();
         for (int i=0; i<10; ++i)
             history.add(TestHelper.makeValue(i));
         samples.mergeArchivedData("Test", history);
@@ -85,9 +87,9 @@ public class PVSamplesUnitTest
         assertEquals(0, samples.size());
 
         // Add sample w/ null time stamp, INVALID/UDF
-        final Instant null_time = Instant.ofEpochMilli(0);
-        VType value = new ArchiveVNumber(null_time, AlarmSeverity.NONE, "", null, 0.0);
-        assertThat(ValueUtil.timeOf(value).isTimeValid(), equalTo(false));
+        final Time null_time = TimestampHelper.timeOf(Instant.ofEpochMilli(0));
+        VType value = VNumber.of(0.0, Alarm.none(), null_time, Display.none());
+        assertThat(Time.timeOf(value).isValid(), equalTo(false));
 
         samples.addLiveSample(value);
         System.out.println("Original: " + value);
@@ -97,6 +99,6 @@ public class PVSamplesUnitTest
 
         value = samples.get(0).getVType();
         System.out.println("Sampled : " + value);
-        assertThat(ValueUtil.timeOf(value).isTimeValid(), equalTo(true));
+        assertThat(Time.timeOf(value).isValid(), equalTo(true));
     }
 }

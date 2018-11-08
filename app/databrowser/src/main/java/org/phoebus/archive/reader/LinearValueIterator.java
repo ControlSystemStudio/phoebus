@@ -13,7 +13,6 @@ import java.time.Instant;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.Time;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
@@ -188,7 +187,7 @@ public class LinearValueIterator implements ValueIterator
             }
             else
                 return VStatistics.of(interpol, accumulator.getStdDev(), accumulator.getMin(), accumulator.getMax(),
-                                      accumulator.getNSamples(), Alarm.none(), Time.of(end_of_bin));
+                                      accumulator.getNSamples(), Alarm.none(), TimestampHelper.timeOf(end_of_bin));
         }
 
         // Have nothing in this bin

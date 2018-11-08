@@ -33,6 +33,7 @@ import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.w3c.dom.Element;
 
@@ -223,7 +224,7 @@ class ValueRequestIterator implements ValueIterator
             // Decode time stamp
             final Integer secs = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "secs"));
             final Integer nano = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "nano"));
-            final Time time = Time.of(Instant.ofEpochSecond(secs, nano));
+            final Time time = TimestampHelper.timeOf(Instant.ofEpochSecond(secs, nano));
 
             // Decode severity, status
             Integer code = XmlRpc.getValue(XmlRpc.getStructMember(value_struct, "sevr"));
@@ -294,7 +295,7 @@ class ValueRequestIterator implements ValueIterator
                     values[i++] = XmlRpc.getValue(val);
 
                 if (values.length == 1)
-                    sample = VEnum.of(values[i], labels, alarm, time);
+                    sample = VEnum.of(values[0], labels, alarm, time);
                 else // Return indices..
                     sample = VEnumArray.of(ArrayInteger.of(values), labels, alarm, time);
             }

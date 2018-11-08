@@ -148,7 +148,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     protected VType extractData(EpicsMessage dataMessage) {
         PayloadType type = mainStream.getPayLoadInfo().getType();
         final Alarm alarm = Alarm.of(getSeverity(dataMessage.getSeverity()), AlarmStatus.CLIENT, String.valueOf(dataMessage.getStatus()));
-        final Time time = Time.of(TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()));
+        final Time time = TimestampHelper.timeOf(TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()));
 
         if (type == PayloadType.SCALAR_BYTE ||
             type == PayloadType.SCALAR_DOUBLE ||

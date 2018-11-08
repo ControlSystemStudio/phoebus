@@ -107,25 +107,26 @@ public class VTypeHelper
     public static VType transformTimestamp(final VType value,
                                            final Instant time)
     {
+        final Time xformed = TimestampHelper.timeOf(time);
         if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;
-            return VNumber.of(number.getValue(), number.getAlarm(), number.getTime(), number.getDisplay());
+            return VNumber.of(number.getValue(), number.getAlarm(), xformed, number.getDisplay());
         }
         if (value instanceof VString)
         {
             final VString string = (VString) value;
-            return VString.of(string.getValue(), string.getAlarm(), string.getTime());
+            return VString.of(string.getValue(), string.getAlarm(), xformed);
         }
         if (value instanceof VNumberArray)
         {
             final VNumberArray number = (VNumberArray) value;
-            return VNumberArray.of(number.getData(), number.getAlarm(), number.getTime(), number.getDisplay());
+            return VNumberArray.of(number.getData(), number.getAlarm(), xformed, number.getDisplay());
         }
         if (value instanceof VEnum)
         {
             final VEnum labelled = (VEnum) value;
-            return VEnum.of(labelled.getIndex(), labelled.getDisplay(), labelled.getAlarm(), labelled.getTime());
+            return VEnum.of(labelled.getIndex(), labelled.getDisplay(), labelled.getAlarm(), xformed);
         }
         return null;
     }

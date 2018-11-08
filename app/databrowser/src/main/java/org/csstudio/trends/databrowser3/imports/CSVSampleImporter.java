@@ -21,10 +21,10 @@ import java.util.regex.Pattern;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
-import org.epics.vtype.Time;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
+import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 /** {@link SampleImporter} for comma, space, tab separated value file of time, value
@@ -110,10 +110,10 @@ public class CSVSampleImporter implements SampleImporter
                         remove(matcher.group(3),groupingSeparator).replace(decimalSeparator, '.'));
                 final double max = Double.parseDouble(
                         remove(matcher.group(4),groupingSeparator).replace(decimalSeparator, '.'));
-                values.add(VStatistics.of(number, 0.0, number-min, number+max, 1, Alarm.none(), Time.of(time)));
+                values.add(VStatistics.of(number, 0.0, number-min, number+max, 1, Alarm.none(), TimestampHelper.timeOf(time)));
             }
             else
-                values.add(VNumber.of(number, Alarm.none(), Time.of(time), meta_data));
+                values.add(VNumber.of(number, Alarm.none(), TimestampHelper.timeOf(time), meta_data));
         }
         reader.close();
 

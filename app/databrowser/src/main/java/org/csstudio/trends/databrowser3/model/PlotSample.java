@@ -20,6 +20,7 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.archive.vtype.VTypeHelper;
 
 /** Data Sample from control system ({@link VType})
@@ -108,7 +109,7 @@ public class PlotSample implements PlotDataItem<Instant>
     PlotSample(final double x, final double y)
     {
         this("Test",
-             VDouble.of(y, Alarm.none(), Time.of(Instant.ofEpochSecond((int) x, 0)), Display.none()));
+             VDouble.of(y, Alarm.none(), TimestampHelper.timeOf(Instant.ofEpochSecond((int) x, 0)), Display.none()));
     }
 
     /** @param index Waveform index to plot */
