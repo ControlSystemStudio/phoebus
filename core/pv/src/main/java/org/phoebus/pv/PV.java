@@ -40,7 +40,7 @@ import io.reactivex.Flowable;
 abstract public class PV
 {
     /** Suggested logger for all vtype.pv packages */
-    public static final Logger logger = Logger.getLogger(PV.class.getName());
+    public static final Logger logger = Logger.getLogger(PV.class.getPackageName());
 
     final private String name;
 
