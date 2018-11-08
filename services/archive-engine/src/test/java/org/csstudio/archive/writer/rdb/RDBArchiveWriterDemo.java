@@ -12,19 +12,27 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-import java.util.List;
-
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.writer.WriteChannel;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VString;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
 //import org.junit.Ignore;
-import org.phoebus.vtype.ValueFactory;
 
 /** Archive Writer Demo
  *
@@ -37,7 +45,8 @@ import org.phoebus.vtype.ValueFactory;
 @SuppressWarnings("nls")
 public class RDBArchiveWriterDemo
 {
-    final Display display = ValueFactory.newDisplay(0.0, 1.0, 2.0, "a.u.", NumberFormats.format(2), 8.0, 9.0, 10.0, 0.0, 10.0);
+    final Display display = Display.of(Range.of(0, 10), Range.of(1, 9), Range.of(2,  8), Range.of(0, 10), "a.u.", NumberFormats.precisionFormat(2));
+
     private String name = "jane", array_name = "sim://noiseWaveform(0,10,100,10)";
     private RDBArchiveWriter writer;
 
@@ -80,9 +89,9 @@ public class RDBArchiveWriterDemo
         System.out.println("Writing double sample for channel " + name);
         final WriteChannel channel = writer.getChannel(name);
         // Write double
-        writer.addSample(channel, ValueFactory.newVDouble(3.14,  ValueFactory.alarmNone(), ValueFactory.timeNow(), display));
+        writer.addSample(channel, VDouble.of(3.14,  Alarm.none(), Time.now(), display));
         // .. double that could be int
-        writer.addSample(channel, ValueFactory.newVLong(3L, ValueFactory.alarmNone(), ValueFactory.timeNow(), display));
+        writer.addSample(channel, VLong.of(3L, Alarm.none(), Time.now(), display));
         writer.flush();
     }
 
@@ -93,7 +102,7 @@ public class RDBArchiveWriterDemo
             return;
         System.out.println("Writing double array sample for channel " + array_name);
         final WriteChannel channel = writer.getChannel(array_name);
-        writer.addSample(channel, ValueFactory.newVDoubleArray(new ArrayDouble(10, 2, 3, 4), ValueFactory.alarmNone(), ValueFactory.timeNow(), display));
+        writer.addSample(channel, VDoubleArray.of(ArrayDouble.of(10, 2, 3, 4), Alarm.none(), Time.now(), display));
         writer.flush();
     }
 
@@ -105,16 +114,16 @@ public class RDBArchiveWriterDemo
         final WriteChannel channel = writer.getChannel(name);
 
         // Enum, sets enumerated meta data
-        writer.addSample(channel, ValueFactory.newVEnum(0, List.of("Zero", "One"), ValueFactory.alarmNone(), ValueFactory.timeNow()));
-        writer.addSample(channel, ValueFactory.newVEnum(1, List.of("Zero", "One"), ValueFactory.newAlarm(AlarmSeverity.MINOR, "STATE"), ValueFactory.timeNow()));
+        writer.addSample(channel, VEnum.of(0, EnumDisplay.of("Zero", "One"), Alarm.none(), Time.now()));
+        writer.addSample(channel, VEnum.of(1, EnumDisplay.of("Zero", "One"), Alarm.of(AlarmSeverity.MINOR, AlarmStatus.DB, "STATE"), Time.now()));
         writer.flush();
 
         // Writing string leaves the enumerated meta data untouched
-        writer.addSample(channel,ValueFactory.newVString("Hello", ValueFactory.alarmNone(), ValueFactory.timeNow()));
+        writer.addSample(channel, VString.of("Hello", Alarm.none(), Time.now()));
         writer.flush();
 
         // Integer, sets numeric meta data
-        writer.addSample(channel, ValueFactory.newVInt(42, ValueFactory.alarmNone(), ValueFactory.timeNow(), display));
+        writer.addSample(channel, VInt.of(42, Alarm.none(), Time.now(), display));
         writer.flush();
     }
 

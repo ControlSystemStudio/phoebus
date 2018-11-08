@@ -11,8 +11,8 @@ import static org.csstudio.archive.Engine.logger;
 
 import java.util.logging.Level;
 
+import org.epics.vtype.VType;
 import org.phoebus.util.time.SecondsParser;
-import org.phoebus.vtype.VType;
 
 /** An ArchiveChannel that stores each incoming value.
  *  @author Kay Kasemir

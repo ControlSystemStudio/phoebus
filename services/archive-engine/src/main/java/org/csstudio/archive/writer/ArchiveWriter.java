@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.archive.writer;
 
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** Interface for writing samples to an archive
  *

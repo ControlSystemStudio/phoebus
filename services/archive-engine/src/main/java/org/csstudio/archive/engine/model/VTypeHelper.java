@@ -10,19 +10,18 @@ package org.csstudio.archive.engine.model;
 import java.time.Instant;
 import java.util.Objects;
 
-import org.phoebus.util.array.ListInt;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VDoubleArray;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VEnumArray;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VStatistics;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** {@link VType} helper
  *  @author Kay Kasemir
@@ -49,7 +48,7 @@ public class VTypeHelper
         }
         if (value instanceof VEnumArray)
         {
-            final ListInt data = ((VEnumArray) value).getIndexes();
+            final ListNumber data = ((VEnumArray) value).getIndexes();
             if (data.size() > 0)
                 return data.getDouble(0);
         }
@@ -62,12 +61,9 @@ public class VTypeHelper
      */
     final public static Instant getTimestamp(final VType value)
     {
-        if (value instanceof Time)
-        {
-            final Time time = (Time) value;
-            if (time.isTimeValid())
-                return time.getTimestamp();
-        }
+        final Time time = Time.timeOf(value);
+        if (time != null  &&  time.isValid())
+            return time.getTimestamp();
         return Instant.now();
     }
 
@@ -80,27 +76,27 @@ public class VTypeHelper
         if (value instanceof VDouble)
         {
             final VDouble number = (VDouble) value;
-            return ValueFactory.newVDouble(number.getValue().doubleValue(), number, ValueFactory.newTime(time), number);
+            return VDouble.of(number.getValue().doubleValue(), number.getAlarm(), Time.of(time), number.getDisplay());
         }
         if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;
-            return ValueFactory.newVInt(number.getValue().intValue(), number, ValueFactory.newTime(time), number);
+            return VInt.of(number.getValue().intValue(), number.getAlarm(), Time.of(time), number.getDisplay());
         }
         if (value instanceof VString)
         {
             final VString string = (VString) value;
-            return ValueFactory.newVString(string.getValue(), string, ValueFactory.newTime(time));
+            return VString.of(string.getValue(), string.getAlarm(), Time.of(time));
         }
         if (value instanceof VDoubleArray)
         {
             final VDoubleArray number = (VDoubleArray) value;
-            return ValueFactory.newVDoubleArray(number.getData(), number, ValueFactory.newTime(time), number);
+            return VDoubleArray.of(number.getData(), number.getAlarm(), Time.of(time), number.getDisplay());
         }
         if (value instanceof VEnum)
         {
             final VEnum labelled = (VEnum) value;
-            return ValueFactory.newVEnum(labelled.getIndex(), labelled.getLabels(), labelled, ValueFactory.newTime(time));
+            return VEnum.of(labelled.getIndex(), labelled.getDisplay(), labelled.getAlarm(), Time.of(time));
         }
         return null;
     }

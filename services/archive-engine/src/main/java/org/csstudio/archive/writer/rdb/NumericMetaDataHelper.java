@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.text.NumberFormat;
 
-import org.phoebus.vtype.Display;
+import org.epics.vtype.Display;
 
 /** Helper for handling the numeric meta data table.
  *  @author Kay Kasemir
@@ -61,19 +61,19 @@ public class NumericMetaDataHelper
         )
         {
             insert.setInt(1, channel.getId());
-            setDoubleOrNull(insert, 2, meta.getLowerDisplayLimit());
-            setDoubleOrNull(insert, 3, meta.getUpperDisplayLimit());
-            setDoubleOrNull(insert, 4, meta.getLowerWarningLimit());
-            setDoubleOrNull(insert, 5, meta.getUpperWarningLimit());
-            setDoubleOrNull(insert, 6, meta.getLowerAlarmLimit());
-            setDoubleOrNull(insert, 7, meta.getUpperAlarmLimit());
+            setDoubleOrNull(insert, 2, meta.getDisplayRange().getMinimum());
+            setDoubleOrNull(insert, 3, meta.getDisplayRange().getMaximum());
+            setDoubleOrNull(insert, 4, meta.getWarningRange().getMinimum());
+            setDoubleOrNull(insert, 5, meta.getWarningRange().getMaximum());
+            setDoubleOrNull(insert, 6, meta.getAlarmRange().getMinimum());
+            setDoubleOrNull(insert, 7, meta.getAlarmRange().getMaximum());
             final NumberFormat format = meta.getFormat();
             if (format == null)
                 insert.setInt(8, 0);
             else
                 insert.setInt(8, format.getMinimumFractionDigits());
             // Oracle schema has NOT NULL units...
-            String units = meta.getUnits();
+            String units = meta.getUnit();
             if (units == null  ||  units.length() < 1)
                 units = " "; //$NON-NLS-1$
             insert.setString(9, units);
