@@ -137,6 +137,9 @@ public class DBRHelper
             return Time.nowInvalid();
 
         final Instant instant = Instant.ofEpochSecond(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
+        if (epics_time.secPastEpoch() <= 0)
+            return Time.of(instant, 0, false);
+
         return TimeHelper.fromInstant(instant);
     }
 
