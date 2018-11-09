@@ -25,4 +25,4 @@ else
   JAR="${TOP}/service-archive-engine-${V}-SNAPSHOT.jar"
 fi
 
-java --add-modules=java.corba -jar $JAR $OPT "$@"
+java -jar $JAR $OPT "$@"

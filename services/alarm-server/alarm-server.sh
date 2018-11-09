@@ -25,4 +25,4 @@ else
   JAR="${TOP}/service-alarm-server-${V}-SNAPSHOT.jar"
 fi
 
-java --add-modules=java.corba -jar $JAR "$@"
+java -jar $JAR "$@"
