@@ -23,6 +23,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
@@ -183,8 +184,12 @@ public class AlarmClient
                     final AlarmTreeItem<?> node = deleteNode(path);
                     // If this was a known node, notify listeners
                     if (node != null)
+                    {
+                        if (node instanceof AlarmTreeLeaf)
+                            logger.log(Level.FINE, "Delete " + path);
                         for (final AlarmClientListener listener : listeners)
                             listener.itemRemoved(node);
+                    }
                 }
                 else
                 {
