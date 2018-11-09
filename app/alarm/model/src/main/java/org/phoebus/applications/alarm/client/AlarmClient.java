@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.client;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -155,6 +156,9 @@ public class AlarmClient
         }
     }
 
+    /** Time spent in checkUpdates() waiting for, well, updates */
+    private static final Duration POLL_PERIOD = Duration.ofMillis(100);
+
     /** Perform one check for updates */
     private void checkUpdates()
     {
@@ -162,7 +166,7 @@ public class AlarmClient
         // TODO Because of Kafka bug, this will hang if Kafka isn't running.
         // Fixed according to https://issues.apache.org/jira/browse/KAFKA-1894 ,
         // but update to kafka-client 1.1.1 (latest in July 2018) makes no difference.
-        final ConsumerRecords<String, String> records = consumer.poll(100);
+        final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
         for (final ConsumerRecord<String, String> record : records)
         {
             final String path = record.key();
@@ -205,8 +209,11 @@ public class AlarmClient
                         need_update = JsonModelReader.updateAlarmItemConfig(node, json);
                     // If there were changes, notify listeners
                     if (need_update)
+                    {
+                        logger.log(Level.FINE, "Update " + path + " to " + node.getState());
                         for (final AlarmClientListener listener : listeners)
                             listener.itemUpdated(node);
+                    }
                 }
             }
             catch (final Exception ex)
@@ -299,6 +306,7 @@ public class AlarmClient
                 if (last &&  is_leaf)
                 {
                     node = new AlarmClientLeaf(parent, name);
+                    logger.log(Level.FINE, "Create " + path);
                     for (final AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
                     return node;

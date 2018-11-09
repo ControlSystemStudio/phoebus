@@ -14,6 +14,7 @@ import java.util.Objects;
  *  @param STATE Type used for the alarm state
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AlarmTreeItemWithState<STATE extends BasicState> extends AlarmTreeItem<STATE>
 {
     protected AlarmTreeItemWithState(final AlarmTreeItem<BasicState> parent, final String name,
@@ -39,5 +40,11 @@ public class AlarmTreeItemWithState<STATE extends BasicState> extends AlarmTreeI
     public STATE getState()
     {
         return state;
+    }
+
+    @Override
+    public String toString()
+    {
+        return getName() + " = " + state;
     }
 }
