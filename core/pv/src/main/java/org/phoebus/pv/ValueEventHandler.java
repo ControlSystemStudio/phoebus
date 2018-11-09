@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;

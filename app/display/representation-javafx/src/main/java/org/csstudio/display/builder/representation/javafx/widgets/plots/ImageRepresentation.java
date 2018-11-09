@@ -35,14 +35,14 @@ import org.csstudio.javafx.rtplot.NamedColorMappings;
 import org.csstudio.javafx.rtplot.RTImagePlot;
 import org.csstudio.javafx.rtplot.RTImagePlotListener;
 import org.csstudio.javafx.rtplot.RegionOfInterest;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayInteger;
+import org.epics.vtype.VImage;
+import org.epics.vtype.VImageType;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.vtype.VImage;
-import org.phoebus.vtype.VImageType;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -73,11 +73,11 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         public void changedCursorInfo(final double x, final double y, final int xi, final int yi, final double value)
         {
             model_widget.runtimePropCursorInfo().setValue(
-                ValueFactory.newVTable(cursor_info_types,
-                                       cursor_info_names,
-                                       Arrays.asList(new ArrayDouble(x), new ArrayDouble(y),
-                                                     new ArrayDouble(value),
-                                                     new ArrayInt(xi), new ArrayInt(yi))));
+                    VTable.of(cursor_info_types,
+                              cursor_info_names,
+                              Arrays.asList(ArrayDouble.of(x), ArrayDouble.of(y),
+                                            ArrayDouble.of(value),
+                                            ArrayInteger.of(xi), ArrayInteger.of(yi))));
         }
 
         @Override

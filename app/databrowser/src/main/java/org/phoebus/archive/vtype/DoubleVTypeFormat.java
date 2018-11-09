@@ -7,8 +7,8 @@
  ******************************************************************************/
 package org.phoebus.archive.vtype;
 
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
 
 /** Formatter for {@link VType} values that uses {@link Double#toString()}
  *  @author Kay Kasemir

@@ -26,6 +26,7 @@ import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.model.RequestType;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.ArchiveReaders;
 import org.phoebus.archive.reader.UnknownChannelException;
@@ -36,7 +37,6 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.VType;
 
 /** JobRunnable for fetching archived data.
  *

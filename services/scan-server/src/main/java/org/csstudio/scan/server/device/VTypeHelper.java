@@ -11,13 +11,13 @@ import java.time.Instant;
 
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.data.ScanSampleFactory;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** Helper for handling {@link VType} data
  *  @author Kay Kasemir
@@ -102,7 +102,7 @@ public class VTypeHelper
      */
     public static ScanSample createSample(final long serial, final VType value) throws IllegalArgumentException
     {
-        final Instant date = ValueUtil.timeOf(value).getTimestamp();
+        final Instant date = Time.timeOf(value).getTimestamp();
         // Log anything numeric as NumberSample
         if (value instanceof VNumber)
             return ScanSampleFactory.createSample(date, serial, ((VNumber) value).getValue());

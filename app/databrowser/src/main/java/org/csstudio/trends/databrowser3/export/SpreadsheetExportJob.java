@@ -17,11 +17,11 @@ import java.util.function.Consumer;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.SpreadsheetIterator;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.VType;
 
 /** Ecipse Job for exporting data from Model to file
  *  @author Kay Kasemir
@@ -79,5 +79,6 @@ public class SpreadsheetExportJob extends PlainExportJob
             if (monitor.isCanceled())
                 break;
         }
+        sheet.close();
     }
 }

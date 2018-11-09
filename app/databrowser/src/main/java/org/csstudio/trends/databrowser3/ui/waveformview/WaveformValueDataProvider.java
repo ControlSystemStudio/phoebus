@@ -14,11 +14,11 @@ import org.csstudio.javafx.rtplot.data.InstrumentedReadWriteLock;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.PlotDataProvider;
 import org.csstudio.javafx.rtplot.data.SimpleDataItem;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
 
 /** Data provider for the plot that shows waveform elements of a VNumberArray
  *  @author Kay Kasemir
@@ -46,7 +46,7 @@ public class WaveformValueDataProvider implements PlotDataProvider<Double>
         if (value instanceof VNumberArray)
             new_numbers = ((VNumberArray) value).getData();
         else
-            new_numbers = new ArrayDouble(VTypeHelper.toDouble(value));
+            new_numbers = ArrayDouble.of(VTypeHelper.toDouble(value));
 
         lock.writeLock().lock();
         try
@@ -68,7 +68,7 @@ public class WaveformValueDataProvider implements PlotDataProvider<Double>
     @Override
     public PlotDataItem<Double> get(final int index)
     {
-        return new SimpleDataItem<Double>((double)index, numbers.getDouble(index));
+        return new SimpleDataItem<>((double)index, numbers.getDouble(index));
     }
 
     @Override

@@ -34,17 +34,16 @@ import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.util.array.ListInt;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VBoolean;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VEnumArray;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
@@ -282,7 +281,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
                     } else if ( value instanceof VEnumArray ) {
 
-                        ListInt array = ( (VEnumArray) value ).getIndexes();
+                        ListNumber array = ( (VEnumArray) value ).getIndexes();
 
                         if ( array.size() > 0 ) {
                             idx = array.getInt(Math.min(arrayIndex, array.size() - 1));

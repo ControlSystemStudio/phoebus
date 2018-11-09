@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,10 +13,9 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
 
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Orientation;
@@ -144,11 +143,11 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         if (model_widget.propLimitsFromPV().getValue())
         {
             //Try to get display range from PV
-            final Display display_info = ValueUtil.displayOf(model_widget.runtimePropValue().getValue());
+            final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
             if (display_info != null)
             {
-                min_val = display_info.getLowerDisplayLimit();
-                max_val = display_info.getUpperDisplayLimit();
+                min_val = display_info.getControlRange().getMinimum();
+                max_val = display_info.getControlRange().getMaximum();
             }
         }
         //If invalid limits, fall back to 0..100 range

@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.archive.vtype;
 
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** User-selected style for formatting {@link VType}
  *  @author Kay Kasemir

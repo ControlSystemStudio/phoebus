@@ -19,7 +19,7 @@ import org.csstudio.archive.engine.model.BufferStats;
 import org.csstudio.archive.engine.model.SampleBuffer;
 import org.csstudio.archive.engine.model.VTypeHelper;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;

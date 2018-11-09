@@ -40,11 +40,11 @@ import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.internal.NumericAxis;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -258,7 +258,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 x_data = (x_value instanceof VNumberArray) ? ((VNumberArray)x_value).getData() : null;
 
                 final VNumberArray y_array = (VNumberArray)y_value;
-                trace.setUnits(y_array.getUnits());
+                trace.setUnits(y_array.getDisplay().getUnit());
                 y_data = y_array.getData();
 
                 final VType error_value = model_trace.traceErrorValue().getValue();
@@ -267,22 +267,22 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 else if (error_value instanceof VNumberArray)
                     error = ((VNumberArray)error_value).getData();
                 else
-                    error = new ArrayDouble(VTypeUtil.getValueNumber(error_value).doubleValue());
+                    error = ArrayDouble.of(VTypeUtil.getValueNumber(error_value).doubleValue());
             }
             else if (y_value instanceof VNumber)
             {
                 final VType x_value = model_trace.traceXValue().getValue();
-                x_data = (x_value instanceof VNumber) ? new ArrayDouble(((VNumber)x_value).getValue().doubleValue()) : null;
+                x_data = (x_value instanceof VNumber) ? ArrayDouble.of(((VNumber)x_value).getValue().doubleValue()) : null;
 
                 final VNumber y_array = (VNumber)y_value;
-                trace.setUnits(y_array.getUnits());
-                y_data = new ArrayDouble(y_array.getValue().doubleValue());
+                trace.setUnits(y_array.getDisplay().getUnit());
+                y_data = ArrayDouble.of(y_array.getValue().doubleValue());
 
                 final VType error_value = model_trace.traceErrorValue().getValue();
                 if (error_value == null)
                     error = null;
                 else
-                    error = new ArrayDouble(VTypeUtil.getValueNumber(error_value).doubleValue());
+                    error = ArrayDouble.of(VTypeUtil.getValueNumber(error_value).doubleValue());
             }
             else // Clear all unless there's Y data
                 x_data = y_data = error = XYVTypeDataProvider.EMPTY;

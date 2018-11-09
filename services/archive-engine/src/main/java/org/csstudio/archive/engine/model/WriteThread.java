@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import org.csstudio.archive.writer.ArchiveWriter;
 import org.csstudio.archive.writer.ArchiveWriterFactory;
 import org.csstudio.archive.writer.WriteChannel;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** Thread that writes values from multiple <code>SampleBuffer</code>s
  *  to an <code>RDBArchiveServer</code>.

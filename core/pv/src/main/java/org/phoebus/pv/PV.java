@@ -14,12 +14,13 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VTable;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
@@ -39,10 +40,7 @@ import io.reactivex.Flowable;
 abstract public class PV
 {
     /** Suggested logger for all vtype.pv packages */
-    public static final Logger logger = Logger.getLogger(PV.class.getName());
-
-    /** Alarm message used with UNDEFINED severity for disconnected state */
-    public static final String DISCONNECTED = "Disconnected";
+    public static final Logger logger = Logger.getLogger(PV.class.getPackageName());
 
     final private String name;
 
@@ -160,11 +158,8 @@ abstract public class PV
         // but receiving a table means we're not disconnected
         if (value instanceof VTable)
             return false;
-        if (! (value instanceof Alarm))
-            return true;
-        final Alarm alarm = (Alarm) value;
-        return alarm.getAlarmSeverity() == AlarmSeverity.UNDEFINED  &&
-               DISCONNECTED.equals(alarm.getAlarmName());
+        final Alarm alarm = Alarm.alarmOf(value);
+        return Alarm.disconnected().equals(alarm);
     }
 
     /** Read current value
@@ -247,7 +242,7 @@ abstract public class PV
     /** Helper for PV implementation to notify listeners */
     protected void notifyListenersOfDisconnect()
     {
-        final VType disconnected = VDouble.create(Double.NaN, ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, PV.DISCONNECTED), ValueFactory.timeNow(), ValueFactory.displayNone());
+        final VType disconnected = VDouble.of(Double.NaN, Alarm.disconnected(), Time.now(), Display.none());
         notifyListenersOfValue(disconnected);
     }
 

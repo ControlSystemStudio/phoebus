@@ -18,12 +18,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Time;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeRelativeInterval;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
 
 /** Samples of a {@link PVItem}.
  *  <p>
@@ -187,7 +187,7 @@ public class PVSamples extends PlotSamples
      */
     public void addLiveSample(VType value)
     {
-        if (! ValueUtil.timeOf(value).isTimeValid())
+        if (! Time.timeOf(value).isValid())
             value = VTypeHelper.transformTimestampToNow(value);
         addLiveSample(new PlotSample(Messages.LiveData, value));
     }

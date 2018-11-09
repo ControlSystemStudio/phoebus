@@ -19,11 +19,11 @@ import java.util.logging.Logger;
 
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.ThrottledLogger;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VType;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;
@@ -237,13 +237,13 @@ abstract public class ArchiveChannel
      */
     private VType checkReceivedValue(VType value)
     {
-        if (value instanceof Time)
+        final Time time = Time.timeOf(value);
+        if (time != null)
         {
             try
             {
-                final Time time = (Time) value;
                 // Invoke time.getTimestamp() to detect RuntimeError in VType 2013/11/01
-                if (time.isTimeValid()  &&  time.getTimestamp() != null)
+                if (time.isValid()  &&  time.getTimestamp() != null)
                     return value;
                 else
                 {

@@ -11,7 +11,7 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.phoebus.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmSeverity;
 
 /** Caching RDB interface to severity info.
  *  @author Kay Kasemir

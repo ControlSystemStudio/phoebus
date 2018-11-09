@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,9 +20,9 @@ import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget.ColumnProperty;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.VTable;
 import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.javafx.StringTableListener;
-import org.phoebus.vtype.VTable;
 
 import javafx.scene.paint.Color;
 
@@ -179,7 +179,7 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
             columns.add(column);
         }
 
-        final VTable selection = new SelectionVTable(headers, rows, cols, columns);
+        final VTable selection = SelectionVTable.create(headers, rows, cols, columns);
         model_widget.runtimePropSelection().setValue(selection);
     }
 
@@ -243,23 +243,25 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
         }
         else
         {
-            // new_value == model_widget.runtimeValue().getValue() might be
-            // a List<List<String>> or a VTable.
-            // getValue() fetches either one as deep-copied List<List<String>>
-            data = model_widget.getValue();
-            if (new_value instanceof VTable)
-            {   // Use table's column headers
-                final VTable table = (VTable) new_value;
-                final int cols = table.getColumnCount();
-                final List<String> new_headers = new ArrayList<>(cols);
-                for (int c=0; c<cols; ++c)
-                    new_headers.add(table.getColumnName(c));
-                if (! new_headers.equals(headers))
-                {
-                    headers = new_headers;
-                    dirty_columns.mark();
-                }
-            }
+// TODO Fix when VTable 7.0.2 no longer write-only
+
+//            // new_value == model_widget.runtimeValue().getValue() might be
+//            // a List<List<String>> or a VTable.
+//            // getValue() fetches either one as deep-copied List<List<String>>
+//            data = model_widget.getValue();
+//            if (new_value instanceof VTable)
+//            {   // Use table's column headers
+//                final VTable table = (VTable) new_value;
+//                final int cols = table.getColumnCount();
+//                final List<String> new_headers = new ArrayList<>(cols);
+//                for (int c=0; c<cols; ++c)
+//                    new_headers.add(table.getColumnName(c));
+//                if (! new_headers.equals(headers))
+//                {
+//                    headers = new_headers;
+//                    dirty_columns.mark();
+//                }
+//            }
         }
         dirty_data.mark();
         toolkit.scheduleUpdate(this);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,9 +9,9 @@ package org.phoebus.archive.vtype;
 
 import java.text.NumberFormat;
 
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.Display;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VType;
 
 /** Formatter for {@link VType} values that uses the default {@link Display} info
  *  @author Kay Kasemir

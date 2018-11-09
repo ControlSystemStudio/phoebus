@@ -12,15 +12,14 @@ import static org.csstudio.archive.Engine.logger;
 import java.util.logging.Level;
 
 import org.csstudio.archive.writer.rdb.TimestampHelper;
-import org.phoebus.util.array.ListNumber;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.util.time.SecondsParser;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-
 
 /** An ArchiveChannel that stores value in a periodic scan.
  *  @author Kay Kasemir
@@ -189,11 +188,9 @@ public class ScannedArchiveChannel extends ArchiveChannel implements Runnable
         else
             return false; // Assume that unknown type differs in value
         // Compare severity, status
-        if (! ((val1 instanceof Alarm)  &&  (val2 instanceof Alarm)))
-            return false;
-        final Alarm a1 = (Alarm)val1;
-        final Alarm a2 = (Alarm)val2;
-        return a1.getAlarmSeverity() == a2.getAlarmSeverity()
-            && a1.getAlarmName().equals(a2.getAlarmName());
+        final Alarm a1 = Alarm.alarmOf(val1);
+        final Alarm a2 = Alarm.alarmOf(val2);
+        return a1.getSeverity() == a2.getSeverity()
+            && a1.getName().equals(a2.getName());
     }
 }

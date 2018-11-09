@@ -8,11 +8,11 @@
 package org.csstudio.trends.databrowser3.export;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.Style;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VType;
 
 /** Format an IValue to show the value as well as the severity/status
  *  @author Kay Kasemir

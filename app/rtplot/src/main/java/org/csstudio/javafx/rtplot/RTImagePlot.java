@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,11 +21,11 @@ import org.csstudio.javafx.rtplot.internal.MouseMode;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.javafx.rtplot.internal.undo.ChangeImageZoom;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VImageType;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VImageType;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;

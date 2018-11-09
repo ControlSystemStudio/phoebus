@@ -10,7 +10,7 @@ package org.csstudio.trends.databrowser3.model;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** One input to the formula: Model item that provides data, Variable name
  *  for use in the formula

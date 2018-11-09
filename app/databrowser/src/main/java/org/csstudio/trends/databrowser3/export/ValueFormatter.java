@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,14 +8,15 @@
 package org.csstudio.trends.databrowser3.export;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.epics.vtype.Display;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.StringVTypeFormat;
 import org.phoebus.archive.vtype.Style;
 import org.phoebus.archive.vtype.VTypeFormat;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.vtype.VStatistics;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VType;
 
 /** Format an IValue as default, decimal, ...
  *
@@ -82,7 +83,7 @@ public class ValueFormatter
         final StringBuilder buf = new StringBuilder();
         if (stats != null)
             // Show only the average, since min/max handled separately
-            format_for_this_value.format(stats.getAverage(), stats, buf);
+            format_for_this_value.format(stats.getAverage(), Display.displayOf(stats), buf);
         else
             format_for_this_value.format(value, buf);
         // Optional min, max

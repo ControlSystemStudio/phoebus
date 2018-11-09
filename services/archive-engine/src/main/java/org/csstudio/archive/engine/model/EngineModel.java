@@ -19,8 +19,11 @@ import org.csstudio.archive.Preferences;
 import org.csstudio.archive.engine.scanner.ScanThread;
 import org.csstudio.archive.engine.scanner.Scanner;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** Data model of the archive engine.
  *  @author Kay Kasemir
@@ -226,8 +229,8 @@ public class EngineModel
         // Create fake string sample with that time, using the current time
         // if we don't have a known last value resulting from the "-skip_last" option.
         final VType last_sample = last_sample_time == null
-        ? ValueFactory.newVString("Engine start time", ValueFactory.alarmNone(), ValueFactory.timeNow())
-        : ValueFactory.newVString("Last timestamp in archive", ValueFactory.alarmNone(), ValueFactory.newTime(last_sample_time));
+        ? VString.of("Engine start time", Alarm.none(), Time.now())
+        : VString.of("Last timestamp in archive", Alarm.none(), TimeHelper.fromInstant(last_sample_time));
 
         // Determine buffer capacity
         int buffer_capacity = (int) (Preferences.write_period / sample_mode.getPeriod() * Preferences.buffer_reserve);

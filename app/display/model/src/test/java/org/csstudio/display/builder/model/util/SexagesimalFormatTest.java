@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,9 +14,9 @@ import static org.junit.Assert.assertThat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import org.epics.util.stats.Range;
+import org.epics.vtype.Display;
 import org.junit.Test;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.ValueFactory;
 
 /** JUnit test of {@link SexagesimalFormat}
  *  @author Kay Kasemir
@@ -26,7 +26,10 @@ import org.phoebus.vtype.ValueFactory;
 public class SexagesimalFormatTest
 {
     final NumberFormat fmt = DecimalFormat.getNumberInstance();
-    final Display display = ValueFactory.newDisplay(-10.0, -9.0, -8.0, "V", fmt, 8.0, 9.0, 10.0, -10.0, 10.0);
+    final Display display = Display.of(Range.of(-10, 10),
+                                       Range.of(-9, 9),
+                                       Range.of(-8, 8),
+                                       Range.of(-10, 10), "V", fmt);
 
     @Test
     public void testSexagesimal() throws Exception

@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.ui.pv;
 
-import org.phoebus.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmSeverity;
 
 import javafx.scene.paint.Color;
 

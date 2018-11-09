@@ -20,7 +20,7 @@ import org.csstudio.scan.server.condition.TextValueCondition;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.VTypeHelper;
 import org.csstudio.scan.server.log.DataLog;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** Helper for writing a PV
  *

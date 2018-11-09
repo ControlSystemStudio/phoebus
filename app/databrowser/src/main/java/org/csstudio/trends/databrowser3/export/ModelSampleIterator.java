@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,9 +18,9 @@ import java.util.logging.Level;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.vtype.VType;
 
 /** Iterator for the samples in a ModelItem, not fetching archived data
  *  @author Kay Kasemir

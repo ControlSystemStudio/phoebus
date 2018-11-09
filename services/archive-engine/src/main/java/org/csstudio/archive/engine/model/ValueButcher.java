@@ -7,9 +7,12 @@
  ******************************************************************************/
 package org.csstudio.archive.engine.model;
 
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Time;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** Helper that does various unspeakable things to values.
  *  @author Kay Kasemir
@@ -59,6 +62,6 @@ public class ValueButcher
     /** Create sample with status set to some info */
     private static VType createInfoSample(final String info)
     {
-        return ValueFactory.newVString(info, ValueFactory.newAlarm(AlarmSeverity.INVALID, info), ValueFactory.timeNow());
+        return VString.of(info, Alarm.of(AlarmSeverity.INVALID, AlarmStatus.CLIENT, info), Time.now());
     }
 }

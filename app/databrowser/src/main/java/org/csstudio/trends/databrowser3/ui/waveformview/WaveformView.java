@@ -29,13 +29,13 @@ import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
 import org.csstudio.trends.databrowser3.ui.ToggleToolbarMenuItem;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.MultiCheckboxCombo;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VType;
 
 import javafx.application.Platform;
 import javafx.beans.Observable;

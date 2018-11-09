@@ -12,8 +12,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Iterator;
 
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.vtype.VType;
 
 /** Iterates several <code>ValueIterator</code> instances 'in lockstep'
  *  as required to generate spreadsheet-type output.

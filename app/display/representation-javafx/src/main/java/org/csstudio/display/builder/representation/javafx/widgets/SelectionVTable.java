@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.Messages;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ListInt;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VTable;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VTable;
 
 /** VTable that holds current table widget selection
  *
@@ -38,77 +37,27 @@ import org.phoebus.vtype.VTable;
  *  @author Kay Kasemir
  */
 // Access limited to package
-class SelectionVTable implements VTable
+class SelectionVTable
 {
-    private final List<String> headers;
-    private final ListInt rows, cols;
-    private final List<List<String>> columns;
-
-    public SelectionVTable(final List<String> headers, final int[] rows, final int[] cols, final List<List<String>> columns)
+    public static VTable create(final List<String> headers, final int[] rows, final int[] cols, final List<List<String>> columns)
     {
-        this.headers = headers;
-        this.rows = new ArrayInt(rows);
-        this.cols = new ArrayInt(cols);
-        this.columns = columns;
-    }
+        final List<String> names = new ArrayList<>(2 + headers.size());
+        names.add(Messages.Row);
+        names.add(Messages.Column);
+        names.addAll(headers);
 
-    @Override
-    public int getRowCount()
-    {
-        return rows.size();
-    }
+        final List<Class<?>> types = new ArrayList<>(names.size());
+        types.add(Integer.TYPE);
+        types.add(Integer.TYPE);
+        for (int i=2; i<names.size(); ++i)
+            types.add(ListNumber.class);
 
-    @Override
-    public int getColumnCount()
-    {
-        return 2 + headers.size();
-    }
+        final List<Object> values = new ArrayList<>(names.size());
+        values.add(ArrayInteger.of(rows));
+        values.add(ArrayInteger.of(cols));
+        for (Object col : columns)
+            values.add(col);
 
-    @Override
-    public String getColumnName(final int column)
-    {
-        switch (column)
-        {
-        case 0:
-            return Messages.Row;
-        case 1:
-            return Messages.Column;
-        default:
-            return headers.get(column-2);
-        }
-    }
-
-    @Override
-    public Class<?> getColumnType(final int column)
-    {
-        switch (column)
-        {
-        case 0:
-            return Integer.TYPE;
-        case 1:
-            return Integer.TYPE;
-        default:
-            return ListNumber.class;
-        }
-    }
-
-    @Override
-    public Object getColumnData(final int column)
-    {
-        switch (column)
-        {
-        case 0:
-            return rows;
-        case 1:
-            return cols;
-        default:
-            return columns.get(column-2);
-        }
-    }
-
-    @Override
-    public String toString()
-    {
-        return VTypeUtil.getValueString(this, false);
+        return VTable.of(types, names, values);
     }
 }

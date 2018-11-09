@@ -11,8 +11,8 @@ import java.util.logging.Level;
 
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.ThrottledLogger;
+import org.epics.vtype.VType;
 import org.phoebus.framework.util.RingBuffer;
-import org.phoebus.vtype.VType;
 
 /** Buffer for the samples of one channel.
  *

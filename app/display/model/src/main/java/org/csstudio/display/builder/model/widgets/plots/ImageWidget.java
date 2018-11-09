@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,8 +48,8 @@ import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.PVWidget;
+import org.epics.vtype.VType;
 import org.phoebus.framework.persistence.XMLUtil;
-import org.phoebus.vtype.VType;
 import org.w3c.dom.Element;
 
 /** Widget that displays an image
@@ -74,19 +74,19 @@ public class ImageWidget extends PVWidget
     };
 
     private static final WidgetPropertyDescriptor<InterpolationType> interpolationType =
-            new WidgetPropertyDescriptor<InterpolationType>(WidgetPropertyCategory.BEHAVIOR, "interpolation", Messages.WidgetProperties_Interpolation)
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "interpolation", Messages.WidgetProperties_Interpolation)
     {
         @Override
         public WidgetProperty<InterpolationType> createProperty(final Widget widget,
                                                                 final InterpolationType default_value)
         {
-            return new EnumWidgetProperty<InterpolationType>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
     /** Color map: Maps values to colors in the image */
     private static final WidgetPropertyDescriptor<ColorMap> propDataColormap =
-        new WidgetPropertyDescriptor<ColorMap>(WidgetPropertyCategory.DISPLAY, "color_map", Messages.WidgetProperties_ColorMap)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "color_map", Messages.WidgetProperties_ColorMap)
     {
         @Override
         public WidgetProperty<ColorMap> createProperty(final Widget widget, final ColorMap map)
@@ -166,7 +166,7 @@ public class ImageWidget extends PVWidget
 
     /** Image data information */
     private static final WidgetPropertyDescriptor<Integer> propDataWidth =
-        new WidgetPropertyDescriptor<Integer>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "data_width", Messages.WidgetProperties_DataWidth)
     {
         @Override
@@ -178,7 +178,7 @@ public class ImageWidget extends PVWidget
     };
 
     private static final WidgetPropertyDescriptor<Integer> propDataHeight =
-        new WidgetPropertyDescriptor<Integer>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "data_height", Messages.WidgetProperties_DataHeight)
     {
         @Override
@@ -210,12 +210,12 @@ public class ImageWidget extends PVWidget
         CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.MISC, "cursor_crosshair", Messages.WidgetProperties_CursorCrosshair);
 
     private static final WidgetPropertyDescriptor<Double[]> propCrosshairLocation =
-        new WidgetPropertyDescriptor<Double[]>(WidgetPropertyCategory.RUNTIME, "crosshair_location", "Crosshair Location")
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, "crosshair_location", "Crosshair Location")
         {
             @Override
             public WidgetProperty<Double[]> createProperty(final Widget widget, final Double[] value)
             {
-                return new RuntimeWidgetProperty<Double[]>(this, widget, value)
+                return new RuntimeWidgetProperty<>(this, widget, value)
                 {
                     @Override
                     public void setValueFromObject(final Object value) throws Exception

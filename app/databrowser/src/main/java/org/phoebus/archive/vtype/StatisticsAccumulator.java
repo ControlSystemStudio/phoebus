@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,18 +7,21 @@
  ******************************************************************************/
 package org.phoebus.archive.vtype;
 
-import org.phoebus.vtype.Statistics;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Time;
+import org.epics.vtype.VStatistics;
 
 /** Accumulator that tracks the {@link Statistics} of received values
  *  @author Kay Kasemir
  */
-public class StatisticsAccumulator implements Statistics
+public class StatisticsAccumulator extends VStatistics
 {
     private double sum = 0.0;
     private double square = 0.0;
     private double min = Double.MAX_VALUE;
     private double max = -Double.MAX_VALUE;
     private int count = 0;
+    private Time time = Time.now();
 
     /** Initialize empty statistics */
     public StatisticsAccumulator()
@@ -44,35 +47,48 @@ public class StatisticsAccumulator implements Statistics
         if (value > max)
             max = value;
         ++count;
+        time = Time.now();
     }
 
     @Override
-    public Double getAverage()
+    public double getAverage()
     {
         return sum / count;
     }
 
     @Override
-    public Double getStdDev()
+    public double getStdDev()
     {
         return Math.sqrt(count * square - sum * sum) / count;
     }
 
     @Override
-    public Double getMin()
+    public double getMin()
     {
         return min;
     }
 
     @Override
-    public Double getMax()
+    public double getMax()
     {
         return max;
     }
 
     @Override
-    public Integer getNSamples()
+    public int getNSamples()
     {
         return count;
+    }
+
+    @Override
+    public Alarm getAlarm()
+    {
+        return Alarm.none();
+    }
+
+    @Override
+    public Time getTime()
+    {
+        return time;
     }
 }

@@ -27,20 +27,19 @@ import java.util.logging.Level;
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.writer.ArchiveWriter;
 import org.csstudio.archive.writer.WriteChannel;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.framework.rdb.RDBInfo;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.Time;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
 
 /** ArchiveWriter implementation for RDB
  *  @author Kay Kasemir
@@ -193,9 +192,9 @@ public class RDBArchiveWriter implements ArchiveWriter
         // In order to not delete any existing meta data,
         // we just do nothing for strings
 
-        if (sample instanceof Display)
+        final Display display = Display.displayOf(sample);
+        if (display != null)
         {
-            final Display display = (Display)sample;
             if (MetaDataHelper.equals(display, channel.getMetadata()))
                 return;
 
@@ -207,7 +206,7 @@ public class RDBArchiveWriter implements ArchiveWriter
         }
         else if (sample instanceof VEnum)
         {
-            final List<String> labels = ((VEnum)sample).getLabels();
+            final List<String> labels = ((VEnum)sample).getDisplay().getChoices();
             if (MetaDataHelper.equals(labels, channel.getMetadata()))
                 return;
 
@@ -221,29 +220,26 @@ public class RDBArchiveWriter implements ArchiveWriter
 
     private static Instant getTimestamp(final VType value)
     {
-        if (value instanceof Time)
-        {
-            final Time time = (Time) value;
-            if (time.isTimeValid())
-                return time.getTimestamp();
-        }
+        final Time time = Time.timeOf(value);
+        if (time != null  &&  time.isValid())
+            return time.getTimestamp();
         return Instant.now();
     }
 
     private static AlarmSeverity getSeverity(final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm == null)
             return AlarmSeverity.NONE;
-        return alarm.getAlarmSeverity();
+        return alarm.getSeverity();
     }
 
     private static String getMessage(final VType value)
     {
-        final Alarm alarm = ValueUtil.alarmOf(value);
+        final Alarm alarm = Alarm.alarmOf(value);
         if (alarm == null)
             return "";
-        return alarm.getAlarmName();
+        return alarm.getName();
     }
 
     /** Perform 'batched' insert for sample.

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,15 +32,33 @@ import org.epics.pvdata.pv.Scalar;
 import org.epics.pvdata.pv.ScalarArray;
 import org.epics.pvdata.pv.ScalarType;
 import org.epics.pvdata.pv.Structure;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ArrayFloat;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ArrayLong;
-import org.phoebus.util.array.ArrayShort;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VTable;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayFloat;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VByte;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VFloatArray;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VLongArray;
+import org.epics.vtype.VShort;
+import org.epics.vtype.VShortArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 
 /** Helper for reading & writing PVStructure
  *
@@ -94,11 +112,11 @@ class PVStructureHelper
         if (type.equals("NTScalar:1.0"))
             return decodeNTScalar(actual_struct);
         if (type.equals("NTEnum:1.0"))
-            return new VTypeForEnum(actual_struct);
+            return Decoders.decodeEnum(actual_struct);
         if (type.equals("NTScalarArray:1.0"))
             return decodeNTArray(actual_struct);
         if (type.equals("NTNDArray:1.0"))
-            return new VImageForNTNDArray(actual_struct);
+            return ImageDecoder.decode(actual_struct);
         if (type.equals("NTTable:1.0"))
             return decodeNTTable(actual_struct);
 
@@ -123,9 +141,9 @@ class PVStructureHelper
         }
 
         // Create string that indicates name of unknown type
-        return ValueFactory.newVString(actual_struct.getStructure().toString(),
-                ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "Unknown type"),
-                ValueFactory.timeNow());
+        return VString.of(actual_struct.getStructure().toString(),
+                Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "Unknown type"),
+                Time.now());
     }
 
     /** Attempt to decode a scalar {@link VType}
@@ -139,32 +157,26 @@ class PVStructureHelper
         switch (type)
         {
         case pvDouble:
-            return ValueFactory.newVDouble(convert.toDouble(field));
+            return VDouble.of(convert.toDouble(field), Alarm.none(), Time.now(), Display.none());
         case pvFloat:
-            return ValueFactory.newVFloat(convert.toFloat(field), ValueFactory.alarmNone(),
-                    ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VFloat.of(convert.toFloat(field), Alarm.none(), Time.now(), Display.none());
         case pvLong:
+        // TODO Handle unsigned data
         case pvUInt: // Update UInt to Long
         case pvULong: // Keep ULong as Long
-            return ValueFactory.newVLong(convert.toLong(field), ValueFactory.alarmNone(),
-                                         ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VLong.of(convert.toLong(field), Alarm.none(), Time.now(), Display.none());
         case pvInt:
         case pvUShort: // Update UShort to Int
-            return ValueFactory.newVInt(convert.toInt(field), ValueFactory.alarmNone(),
-                    ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VInt.of(convert.toInt(field), Alarm.none(), Time.now(), Display.none());
         case pvShort:
         case pvUByte: // Update UByte to Short
-            return ValueFactory.newVShort(convert.toShort(field), ValueFactory.alarmNone(),
-                                          ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VShort.of(convert.toShort(field), Alarm.none(), Time.now(), Display.none());
         case pvByte:
-            return ValueFactory.newVByte(convert.toByte(field), ValueFactory.alarmNone(),
-                                         ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VByte.of(convert.toByte(field), Alarm.none(), Time.now(), Display.none());
         case pvBoolean:
-            return ValueFactory.newVBoolean(convert.toInt(field) != 0, ValueFactory.alarmNone(),
-                                            ValueFactory.timeNow());
+            return VBoolean.of(convert.toInt(field) != 0, Alarm.none(), Time.now());
         case pvString:
-            return ValueFactory.newVString(convert.toString(field), ValueFactory.alarmNone(),
-                                           ValueFactory.timeNow());
+            return VString.of(convert.toString(field), Alarm.none(), Time.now());
         default:
             throw new Exception("Cannot handle " + type.name());
         }
@@ -188,15 +200,13 @@ class PVStructureHelper
         {
             final double[] data = new double[length];
             PVStructureHelper.convert.toDoubleArray(pv_array, 0, length, data, 0);
-            return ValueFactory.newVDoubleArray(new ArrayDouble(data), ValueFactory.alarmNone(),
-                                                ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VDoubleArray.of(ArrayDouble.of(data), Alarm.none(), Time.now(), Display.none());
         }
         case pvFloat:
         {
             final float[] data = new float[length];
             PVStructureHelper.convert.toFloatArray(pv_array, 0, length, data, 0);
-            return ValueFactory.newVFloatArray(new ArrayFloat(data), ValueFactory.alarmNone(),
-                    ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VFloatArray.of(ArrayFloat.of(data), Alarm.none(), Time.now(), Display.none());
         }
         case pvLong:
         case pvULong:
@@ -204,16 +214,14 @@ class PVStructureHelper
         {
             final long[] data = new long[length];
             PVStructureHelper.convert.toLongArray(pv_array, 0, length, data, 0);
-            return ValueFactory.newVLongArray(new ArrayLong(data), ValueFactory.alarmNone(),
-                                              ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VLongArray.of(ArrayLong.of(data), Alarm.none(), Time.now(), Display.none());
         }
         case pvInt:
         case pvUShort:
         {
             final int[] data = new int[length];
             PVStructureHelper.convert.toIntArray(pv_array, 0, length, data, 0);
-            return ValueFactory.newVIntArray(new ArrayInt(data), ValueFactory.alarmNone(),
-                    ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VIntArray.of(ArrayInteger.of(data), Alarm.none(), Time.now(), Display.none());
         }
         case pvShort:
         case pvByte: // There is no ValueFactory.newVByteArray, so upgrade to short
@@ -221,10 +229,9 @@ class PVStructureHelper
         {
             final short[] data = new short[length];
             PVStructureHelper.convert.toShortArray(pv_array, 0, length, data, 0);
-            return ValueFactory.newVShortArray(new ArrayShort(data), ValueFactory.alarmNone(),
-                                               ValueFactory.timeNow(), ValueFactory.displayNone());
+            return VShortArray.of(ArrayShort.of(data), Alarm.none(), Time.now(), Display.none());
         }
-        // There is no convert.toBoolArray(), and pvaSrv example has no boolArray01 example to test
+        // TODO There is no convert.toBoolArray(), and pvaSrv example has no boolArray01 example to test
 //        case pvBoolean:
 //        {
 //            final boolean[] data = new boolean[length];
@@ -236,8 +243,7 @@ class PVStructureHelper
         {
             final String[] data = new String[length];
             PVStructureHelper.convert.toStringArray(pv_array, 0, length, data, 0);
-            return ValueFactory.newVStringArray(Arrays.asList(data), ValueFactory.alarmNone(),
-                                                ValueFactory.timeNow());
+            return VStringArray.of(Arrays.asList(data), Alarm.none(), Time.now());
         }
         default:
             throw new Exception("Cannot handle " + type.name());
@@ -256,7 +262,7 @@ class PVStructureHelper
             return decodeScalar((PVScalar) value);
         if (value instanceof PVScalarArray)
             return decodeArray((PVScalarArray) value);
-        throw new Exception("Canot decode union from " + value);
+        throw new Exception("Cannot decode union from " + value);
     }
 
     /** Decode 'value', 'timeStamp', 'alarm' of NTScalar
@@ -273,27 +279,27 @@ class PVStructureHelper
         switch (type)
         {
         case pvDouble:
-            return new VTypeForDouble(struct);
+            return Decoders.decodeDouble(struct);
         case pvFloat:
-            return new VTypeForFloat(struct);
+            return Decoders.decodeFloat(struct);
         case pvInt:
         case pvUInt:
-            return new VTypeForInt(struct);
+            return Decoders.decodeInt(struct);
         case pvLong:
         case pvULong:
-            return new VTypeForLong(struct);
+            return Decoders.decodeLong(struct);
         case pvString:
-            return new VTypeForString(struct);
+            return Decoders.decodeString(struct);
         case pvShort:
         case pvUShort:
-            return new VTypeForShort(struct);
+            return Decoders.decodeShort(struct);
         case pvByte:
         case pvUByte:
-            return new VTypeForByte(struct);
+            return Decoders.decodeByte(struct);
         default:
-            return ValueFactory.newVString(struct.getStructure().toString(),
-                    ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "Unknown scalar type"),
-                    ValueFactory.timeNow());
+            return VString.of(struct.getStructure().toString(),
+                              Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "Unknown scalar type"),
+                              Time.now());
         }
     }
 
@@ -311,27 +317,27 @@ class PVStructureHelper
         switch (type)
         {
         case pvDouble:
-            return new VTypeForDoubleArray(struct);
+            return Decoders.decodeDoubleArray(struct);
         case pvFloat:
-            return new VTypeForFloatArray(struct);
+            return Decoders.decodeFloatArray(struct);
         case pvInt:
         case pvUInt:
-            return new VTypeForIntArray(struct);
+            return Decoders.decodeIntArray(struct);
         case pvLong:
         case pvULong:
-            return new VTypeForLongArray(struct);
+            return Decoders.decodeLongArray(struct);
         case pvShort:
         case pvUShort:
-            return new VTypeForShortArray(struct);
+            return Decoders.decodeShortArray(struct);
         case pvByte:
         case pvUByte:
-            return new VTypeForByteArray(struct);
+            return Decoders.decodeByteArray(struct);
         case pvString:
-            return new VTypeForStringArray(struct);
+            return Decoders.decodeStringArray(struct);
         default:
-            return ValueFactory.newVString(struct.getStructure().toString(),
-                    ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "Unknown scalar type"),
-                    ValueFactory.timeNow());
+            return VString.of(struct.getStructure().toString(),
+                    Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "Unknown array type"),
+                    Time.now());
         }
     }
 
@@ -432,7 +438,7 @@ class PVStructureHelper
             }
             //TODO: other kinds of Field
         } //end while not empty
-        return ValueFactory.newVTable(types, names, values);
+        return VTable.of(types, names, values);
     }
 
     private static void getTableTypeAndValue(PVScalar scalar, List<Class<?>> types, List<Object> values)
@@ -442,36 +448,36 @@ class PVStructureHelper
             case pvDouble:
                 types.add(Double.TYPE);
                 double double_value = convert.toDouble(scalar);
-                values.add(new ArrayDouble(double_value));
+                values.add(ArrayDouble.of(double_value));
                 break;
             case pvFloat:
                 types.add(Float.TYPE);
                 float float_value = convert.toFloat(scalar);
-                values.add(new ArrayFloat(float_value));
+                values.add(ArrayFloat.of(float_value));
                 break;
             case pvLong:
             case pvUInt:
             case pvULong:
                 types.add(Long.TYPE);
                 long long_value = convert.toLong(scalar);
-                values.add(new ArrayLong(long_value));
+                values.add(ArrayLong.of(long_value));
                 break;
             case pvUShort:
             case pvInt:
                 types.add(Integer.TYPE);
                 int int_value = convert.toInt(scalar);
-                values.add(new ArrayInt(int_value));
+                values.add(ArrayInteger.of(int_value));
                 break;
             case pvUByte:
             case pvShort:
                 types.add(Short.TYPE);
                 short short_value = convert.toShort(scalar);
-                values.add(new ArrayShort(short_value));
+                values.add(ArrayShort.of(short_value));
                 break;
             case pvByte:
                 types.add(Byte.TYPE);
                 byte byte_value = convert.toByte(scalar);
-                values.add(new org.phoebus.util.array.ArrayByte(byte_value));
+                values.add(ArrayByte.of(byte_value));
                 break;
             case pvBoolean: //Table can't handle ArrayBoolean, so use List<Boolean> instead
                 types.add(Boolean.TYPE);
@@ -497,13 +503,13 @@ class PVStructureHelper
                 types.add(Double.TYPE);
                 double [] double_value = new double [length];
                 convert.toDoubleArray(array, 0, length, double_value, 0);
-                values.add(new ArrayDouble(double_value));
+                values.add(ArrayDouble.of(double_value));
                 break;
             case pvFloat:
                 types.add(Float.TYPE);
                 float [] float_value = new float [length];
                 convert.toFloatArray(array, 0, length, float_value, 0);
-                values.add(new ArrayFloat(float_value));
+                values.add(ArrayFloat.of(float_value));
                 break;
             case pvLong:
             case pvUInt:
@@ -511,33 +517,33 @@ class PVStructureHelper
                 types.add(Long.TYPE);
                 long [] long_value = new long[length];
                 convert.toLongArray(array, 0, length, long_value, 0);
-                values.add(new ArrayLong(long_value));
+                values.add(ArrayLong.of(long_value));
                 break;
             case pvUShort:
             case pvInt:
                 types.add(Integer.TYPE);
                 int [] int_value = new int [length];
                 convert.toIntArray(array, 0, length, int_value, 0);
-                values.add(new ArrayInt(int_value));
+                values.add(ArrayInteger.of(int_value));
                 break;
             case pvUByte:
             case pvShort:
                 types.add(Short.TYPE);
                 short [] short_value = new short [length];
                 convert.toShortArray(array, 0, length, short_value, 0);
-                values.add(new ArrayShort(short_value));
+                values.add(ArrayShort.of(short_value));
                 break;
             case pvByte:
                 types.add(Byte.TYPE);
                 byte [] byte_value = new byte [length];
                 convert.toByteArray(array, 0, length, byte_value, 0);
-                values.add(new org.phoebus.util.array.ArrayByte(byte_value));
+                values.add(ArrayByte.of(byte_value));
                 break;
             case pvBoolean:
                 types.add(Boolean.TYPE);
                 //No Convert method for boolean. Have to do it the hard way.
                 boolean [] bool_value = getArray((PVBooleanArray)array, length);
-                List<Boolean> value = new ArrayList<Boolean>(length);
+                List<Boolean> value = new ArrayList<>(length);
                 for (boolean bool : bool_value)
                     value.add(bool);
                 values.add(value);

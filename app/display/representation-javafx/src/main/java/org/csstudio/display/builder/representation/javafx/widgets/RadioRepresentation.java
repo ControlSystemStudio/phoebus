@@ -21,10 +21,10 @@ import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VType;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -170,7 +170,7 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
     private List<String> computeItems(final VType value, final boolean fromPV)
     {
         if (value instanceof VEnum  &&  fromPV)
-            return ((VEnum)value).getLabels();
+            return ((VEnum)value).getDisplay().getChoices();
 
         final List<WidgetProperty<String>> itemProps = model_widget.propItems().getValue();
         final List<String> new_items = new ArrayList<>(itemProps.size());

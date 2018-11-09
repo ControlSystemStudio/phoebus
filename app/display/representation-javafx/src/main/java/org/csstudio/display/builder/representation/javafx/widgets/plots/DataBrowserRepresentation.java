@@ -35,11 +35,11 @@ import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.Controller;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+import org.epics.util.array.ArrayDouble;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.util.array.ArrayDouble;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 import javafx.scene.layout.Pane;
 
@@ -101,10 +101,10 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
                     values[i++] = Double.NaN;
                 }
             }
-            final VType value = ValueFactory.newVTable(
+            final VType value = VTable.of(
                     List.of(String.class, String.class, double.class),
                     List.of("Trace", "Timestamp", "Value"),
-                    List.of(names, times, new ArrayDouble(values)));
+                    List.of(names, times, ArrayDouble.of(values)));
             model_widget.propSelectionValue().setValue(value);
         }
     };

@@ -28,9 +28,12 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.TimeHelper;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** A base class for all widgets having a primary PV and value.
  *
@@ -50,9 +53,9 @@ public class PVWidget extends VisibleWidget
      *
      *  <p>When the widget has a PV but becomes disconnected, the value will be <code>null</code>
      */
-    public static final VType RUNTIME_VALUE_NO_PV = ValueFactory.newVString(Messages.ValueNoPV,
-                                                                            ValueFactory.newAlarm(AlarmSeverity.NONE, Messages.ValueNoPV),
-                                                                            ValueFactory.newTime(Instant.ofEpochSecond(0)));
+    public static final VType RUNTIME_VALUE_NO_PV = VString.of(Messages.ValueNoPV,
+                                                               Alarm.of(AlarmSeverity.NONE, AlarmStatus.CLIENT, Messages.ValueNoPV),
+                                                               TimeHelper.fromInstant(Instant.ofEpochSecond(0)));
 
     private volatile WidgetProperty<String> pv_name;
     private volatile WidgetProperty<VType>  pv_value;

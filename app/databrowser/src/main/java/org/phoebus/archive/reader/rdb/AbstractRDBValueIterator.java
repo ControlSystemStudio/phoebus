@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,21 +13,26 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.NumberFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.archive.vtype.ArchiveVEnum;
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVNumberArray;
-import org.phoebus.archive.vtype.ArchiveVString;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 /** Base for ValueIterators that read from the RDB
  *  @author Kay Kasemir
@@ -41,7 +46,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
     final protected int channel_id;
 
     protected Display display = null;
-    protected List<String> labels = null;
+    protected EnumDisplay labels = null;
 
     /** SELECT ... for the array samples. */
     private PreparedStatement sel_array_samples = null;
@@ -79,7 +84,8 @@ abstract class AbstractRDBValueIterator implements ValueIterator
         try
         {
             this.display = determineDisplay();
-            this.labels = determineLabels();
+            final List<String> options = determineLabels();
+            this.labels = options == null ? null : EnumDisplay.of(options);
         }
         catch (final Exception ex)
         {
@@ -90,7 +96,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
             // Else: Not a real error, return empty iterator
         }
         if (labels == null  &&  display == null)
-            display = ValueFactory.newDisplay(0.0, 0.0, 0.0, "", NumberFormats.format(0), 0.0, 0.0, 10.0, 0.0, 10.0);
+            display = Display.of(Range.of(0, 10), Range.undefined(), Range.undefined(), Range.undefined(), "", NumberFormats.precisionFormat(0));
     }
 
     /** @return Numeric meta data information for the channel or <code>null</code>
@@ -110,18 +116,13 @@ abstract class AbstractRDBValueIterator implements ValueIterator
             final ResultSet result = statement.executeQuery();
             if (result.next())
             {
-                final NumberFormat format = NumberFormats.format(result.getInt(7));   // prec
-                display = ValueFactory.newDisplay(
-                        result.getDouble(1),  // lowerDisplayLimit
-                        result.getDouble(5),  // lowerAlarmLimit
-                        result.getDouble(3),  // lowerWarningLimit
-                        result.getString(8),  // units
-                        format,               // numberFormat
-                        result.getDouble(4),  // upperWarningLimit
-                        result.getDouble(6),  // upperAlarmLimit
-                        result.getDouble(2),  // upperDisplayLimit
-                        result.getDouble(1),  // lowerCtrlLimit
-                        result.getDouble(2)); // upperCtrlLimit
+                final NumberFormat format = NumberFormats.precisionFormat(result.getInt(7));   // prec
+                display = Display.of(Range.of(result.getDouble(1), result.getDouble(2)),
+                                     Range.of(result.getDouble(5), result.getDouble(6)),
+                                     Range.of(result.getDouble(3), result.getDouble(4)),
+                                     Range.of(result.getDouble(1), result.getDouble(2)),
+                                     result.getString(8),
+                                     format);
             }
             result.close();
         }
@@ -146,7 +147,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
             final ResultSet result = statement.executeQuery();
             if (result.next())
             {
-                labels = new ArrayList<String>();
+                labels = new ArrayList<>();
                 do
                 {
                     final int id = result.getInt(1);
@@ -180,11 +181,12 @@ abstract class AbstractRDBValueIterator implements ValueIterator
         // Oracle has nanoseconds in TIMESTAMP, other RDBs in separate column
         if (reader.getPool().getDialect() != Dialect.Oracle)
             stamp.setNanos(result.getInt(7));
-        final Instant time = stamp.toInstant();
+        final Time time = TimeHelper.fromInstant(stamp.toInstant());
 
         // Get severity/status
         final String status = reader.getStatus(result.getInt(3));
         final AlarmSeverity severity = filterSeverity(reader.getSeverity(result.getInt(2)), status);
+        final Alarm alarm = Alarm.of(severity, AlarmStatus.CLIENT, status);
 
         // Determine the value type
         // Try double
@@ -195,7 +197,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
             // In here, we handle it by returning enumeration samples,
             // because the meta data would be wrong for double values.
             if (labels != null)
-                return new ArchiveVEnum(time, severity, status, labels, (int) dbl0);
+                return VEnum.of((int) dbl0, labels, alarm, time);
             // Double data.
             if (handle_array)
             {   // Get array elements - if any.
@@ -203,12 +205,12 @@ abstract class AbstractRDBValueIterator implements ValueIterator
                     ? readBlobArrayElements(dbl0, result)
                     : readArrayElements(time, dbl0, severity);
                 if (data.length == 1)
-                    return new ArchiveVNumber(time, severity, status, display, data[0]);
+                    return VDouble.of(data[0], alarm, time, display);
                 else
-                    return new ArchiveVNumberArray(time, severity, status, display, data);
+                    return VDoubleArray.of(ArrayDouble.of(data), alarm, time, display);
             }
             else
-                return new ArchiveVNumber(time, severity, status, display, dbl0);
+                return VDouble.of(dbl0, alarm, time, display);
         }
 
         // Try integerRDBUtil
@@ -216,13 +218,13 @@ abstract class AbstractRDBValueIterator implements ValueIterator
         if (! result.wasNull())
         {   // Enumerated integer?
             if (labels != null)
-                return new ArchiveVEnum(time, severity, status, labels, num);
-            return new ArchiveVNumber(time, severity, status, display, num);
+                return VEnum.of(num, labels, alarm, time);
+            return VDouble.of(num, alarm, time, display);
         }
 
         // Default to string
         final String txt = result.getString(6);
-        return new ArchiveVString(time, severity, status, txt);
+        return VString.of(txt, alarm, time);
     }
 
     /** @param severity Original severity
@@ -252,7 +254,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
      *  @return Array with given element and maybe more.
      *  @throws Exception on error, including 'cancel'
      */
-    private double[] readArrayElements(final Instant stamp,
+    private double[] readArrayElements(final Time time,
             final double dbl0,
             final AlarmSeverity severity) throws Exception
     {
@@ -267,13 +269,13 @@ abstract class AbstractRDBValueIterator implements ValueIterator
                     reader.getSQL().sample_sel_array_vals);
         }
         sel_array_samples.setInt(1, channel_id);
-        sel_array_samples.setTimestamp(2, java.sql.Timestamp.from(stamp));
+        sel_array_samples.setTimestamp(2, java.sql.Timestamp.from(time.getTimestamp()));
         // MySQL keeps nanoseconds in designated column, not TIMESTAMP
         if (reader.getPool().getDialect() != Dialect.Oracle)
-            sel_array_samples.setInt(3, stamp.getNano());
+            sel_array_samples.setInt(3, time.getTimestamp().getNano());
 
         // Assemble array of unknown size in ArrayList ....
-        final ArrayList<Double> vals = new ArrayList<Double>();
+        final ArrayList<Double> vals = new ArrayList<>();
         reader.addForCancellation(sel_array_samples);
         try
         {

@@ -16,12 +16,12 @@ import java.util.function.Consumer;
 
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
 
 import com.jmatio.io.MatFileIncrementalWriter;
 import com.jmatio.types.MLCell;
@@ -60,9 +60,9 @@ public class MatlabFileExportJob extends ExportJob
         {   // Get data
             monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getName()));
             final ValueIterator iter = createValueIterator(item);
-            final List<Instant> times = new ArrayList<Instant>();
-            final List<Double> values = new ArrayList<Double>();
-            final List<AlarmSeverity> severities = new ArrayList<AlarmSeverity>();
+            final List<Instant> times = new ArrayList<>();
+            final List<Double> values = new ArrayList<>();
+            final List<AlarmSeverity> severities = new ArrayList<>();
             while (iter.hasNext()  &&  !monitor.isCanceled())
             {
                 final VType value = iter.next();

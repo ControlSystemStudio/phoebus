@@ -9,10 +9,13 @@ package org.phoebus.pv.sim;
 
 import java.text.NumberFormat;
 
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
-import org.phoebus.vtype.ValueUtil;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 
 /** Base for simulated scalar PVs
  *
@@ -28,7 +31,7 @@ import org.phoebus.vtype.ValueUtil;
 abstract public class SimulatedDoublePV extends SimulatedPV
 {
     /** Format for Display */
-    private final static NumberFormat format = ValueUtil.getDefaultNumberFormat();
+    final static NumberFormat format = NumberFormats.precisionFormat(2);
 
     /** Display for value updates, also defines warning/alarm range */
     protected Display display;
@@ -39,6 +42,23 @@ abstract public class SimulatedDoublePV extends SimulatedPV
         super(name);
     }
 
+    static Display createDisplay(final double min, final double max)
+    {
+        final double range = max - min;
+        if (range > 0)
+            return Display.of(Range.of(min, max),
+                              Range.of(min + range * 0.1, min + range * 0.9),
+                              Range.of(min + range * 0.2, min + range * 0.8),
+                              Range.of(min, max),
+                              "a.u.", format);
+        return Display.of(Range.of(0, 10),
+                          Range.undefined(),
+                          Range.undefined(),
+                          Range.of(0, 10),
+                          "a.u.", format);
+
+    }
+
     /** Init. 'display' and start periodic updates
      *  @param min Display ..
      *  @param max .. range
@@ -46,13 +66,7 @@ abstract public class SimulatedDoublePV extends SimulatedPV
      */
     protected void start(final double min, final double max, final double update_seconds)
     {
-        final double range = max - min;
-        if (range > 0)
-            display = ValueFactory.newDisplay(min, min + range * 0.1, min + range * 0.2, "a.u.", format,
-                                              min + range * 0.8, min + range * 0.9, max, min, max);
-        else
-            display = ValueFactory.newDisplay(0.0, Double.NaN, Double.NaN, "a.u.", format,
-                                              Double.NaN, Double.NaN, 10.0, 0.0, 10.0);
+        display = createDisplay(min, max);
         super.start(update_seconds);
     }
 
@@ -62,7 +76,7 @@ abstract public class SimulatedDoublePV extends SimulatedPV
     {
         final double value = compute();
         // Creates vtype with alarm according to display warning/alarm ranges
-        final VType vtype = ValueFactory.newVDouble(value, display);
+        final VType vtype = VDouble.of(value, Alarm.none(), Time.now(), display);
         notifyListenersOfValue(vtype);
     }
 

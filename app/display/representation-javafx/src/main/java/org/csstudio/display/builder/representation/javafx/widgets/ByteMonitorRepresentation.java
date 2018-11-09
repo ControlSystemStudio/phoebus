@@ -16,7 +16,7 @@ import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;

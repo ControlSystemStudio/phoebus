@@ -12,10 +12,15 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.util.array.ArrayDouble;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VType;
 
 /** Unit-test helper for creating samples
  *  @author Kay Kasemir
@@ -39,7 +44,7 @@ public class TestHelper
      */
     public static VType makeValue(final int i)
     {
-        return ValueFactory.newVDouble(Double.valueOf(i), ValueFactory.newTime(Instant.ofEpochMilli(i)));
+        return VDouble.of(Double.valueOf(i), Alarm.none(), Time.of(Instant.ofEpochMilli(i)), Display.none());
     }
 
     /**@param ts timestamp
@@ -48,10 +53,10 @@ public class TestHelper
      */
     public static VType makeWaveform(final int ts, final double array[])
     {
-        return ValueFactory.newVDoubleArray(new ArrayDouble(array),
-                ValueFactory.alarmNone(),
-                ValueFactory.timeNow(),
-                ValueFactory.displayNone());
+        return VDoubleArray.of(ArrayDouble.of(array),
+                               Alarm.none(),
+                               Time.now(),
+                               Display.none());
     }
 
     /** @param i Pseudo-timestamp
@@ -59,10 +64,10 @@ public class TestHelper
      */
     public static VType makeError(final int i, final String error)
     {
-        return ValueFactory.newVDouble(Double.NaN,
-                ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, error),
-                ValueFactory.newTime(Instant.ofEpochMilli(i)),
-                ValueFactory.displayNone());
+        return VDouble.of(Double.NaN,
+                          Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, error),
+                          Time.of(Instant.ofEpochMilli(i)),
+                          Display.none());
     }
 }
 

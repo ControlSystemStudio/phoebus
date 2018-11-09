@@ -28,9 +28,9 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.phoebus.vtype.Alarm;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VType;
 
 import javafx.geometry.Insets;
 import javafx.scene.input.Clipboard;
@@ -235,9 +235,10 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
             if (value_prop != null  && alarm_sensitive_border_prop.getValue())
             {
                 final Object value = value_prop.getValue();
-                if (value instanceof Alarm)
+                final Alarm alarm = Alarm.alarmOf(value);
+                if (alarm != null  &&  alarm.getSeverity() != AlarmSeverity.NONE)
                     // Have alarm info
-                    severity = ((Alarm)value).getAlarmSeverity();
+                    severity = alarm.getSeverity();
                 else if (value instanceof VType)
                     // VType that doesn't provide alarm, always OK
                     severity = AlarmSeverity.NONE;

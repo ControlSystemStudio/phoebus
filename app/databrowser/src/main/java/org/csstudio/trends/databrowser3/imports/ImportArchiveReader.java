@@ -11,10 +11,10 @@ import java.io.FileInputStream;
 import java.time.Instant;
 import java.util.List;
 
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.vtype.VType;
 
 /** Archive reader that imports data from a file
  *

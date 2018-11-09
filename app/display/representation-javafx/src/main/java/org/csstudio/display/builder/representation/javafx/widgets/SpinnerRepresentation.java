@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,11 +16,10 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Display;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VNumber;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectPropertyBase;
@@ -437,12 +436,12 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         if (model_widget.propLimitsFromPV().getValue())
         {
             //  Try to get display range from PV.
-            final Display display_info = ValueUtil.displayOf(model_widget.runtimePropValue().getValue());
+            final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
 
             if (display_info != null)
             {
-                double infoMin = display_info.getLowerCtrlLimit();
-                double infoMax = display_info.getUpperCtrlLimit();
+                double infoMin = display_info.getControlRange().getMinimum();
+                double infoMax = display_info.getControlRange().getMaximum();
 
                 if (!Double.isNaN(infoMin) && !Double.isNaN(infoMax) && infoMin < infoMax)
                 {

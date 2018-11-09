@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,16 +13,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VDouble;
-import org.phoebus.vtype.VDoubleArray;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VLong;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VTable;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.util.array.ArrayDouble;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
 
 /** Parser for initial value
  *  @author Kay Kasemir
@@ -30,6 +35,8 @@ import org.phoebus.vtype.ValueFactory;
 @SuppressWarnings("nls")
 public class ValueHelper
 {
+    static final Alarm UDF = Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.UNDEFINED, "UDF");
+
     /** Parse local PV name
      *  @param base_name "name", "name(value)" or "name&lt;type>(value)"
      *  @return Name, type-or-null, value-or-null
@@ -190,12 +197,9 @@ public class ValueHelper
         if (type == VDouble.class)
         {
             if (items == null)
-                return ValueFactory.newVDouble(0.0,
-                                               ValueFactory.newAlarm(AlarmSeverity.UNDEFINED, "UDF"),
-                                               ValueFactory.timeNow(),
-                                               ValueFactory.displayNone());
+                return VDouble.of(0.0, UDF, Time.now(), Display.none());
             if (items.size() == 1)
-                return ValueFactory.toVType(getInitialDoubles(items)[0]);
+                return VDouble.of(getInitialDoubles(items)[0], Alarm.none(), Time.now(), Display.none());
             else
                 throw new Exception("Expected one number, got " + items);
         }
@@ -203,7 +207,7 @@ public class ValueHelper
         if (type == VLong.class)
         {
             if (items.size() == 1)
-                return ValueFactory.toVType((long) getInitialDoubles(items)[0]);
+                return VLong.of((long) getInitialDoubles(items)[0], Alarm.none(), Time.now(), Display.none());
             else
                 throw new Exception("Expected one number, got " + items);
         }
@@ -211,16 +215,16 @@ public class ValueHelper
         if (type == VString.class)
         {
             if (items == null  ||  items.size() == 1)
-                return ValueFactory.toVType(getInitialStrings(items).get(0));
+                return VString.of(getInitialStrings(items).get(0), Alarm.none(), Time.now());
             else
                 throw new Exception("Expected one string, got " + items);
         }
 
         if (type == VDoubleArray.class)
-            return ValueFactory.toVType(getInitialDoubles(items));
+            return VDoubleArray.of(ArrayDouble.of(getInitialDoubles(items)), Alarm.none(), Time.now(), Display.none());
 
         if (type == VStringArray.class)
-            return ValueFactory.toVType(getInitialStrings(items));
+            return VStringArray.of(getInitialStrings(items), Alarm.none(), Time.now());
 
         if (type == VEnum.class)
         {
@@ -240,7 +244,7 @@ public class ValueHelper
             for (int i=1; i<items.size(); ++i)
                 copy.add(items.get(i));
             final List<String> labels = getInitialStrings(copy);
-            return ValueFactory.newVEnum(initial, labels, ValueFactory.alarmNone(), ValueFactory.timeNow());
+            return VEnum.of(initial, EnumDisplay.of(labels), Alarm.none(), Time.now());
         }
 
         if (type == VTable.class)
@@ -253,7 +257,7 @@ public class ValueHelper
                 types.add(String.class);
                 values.add(Collections.emptyList());
             }
-            return ValueFactory.newVTable(types, headers, values);
+            return VTable.of(types, headers, values);
         }
         throw new Exception("Cannot obtain type " + type.getSimpleName() + " from " + items);
     }
@@ -286,10 +290,10 @@ public class ValueHelper
         if (type == VDouble.class)
         {
             if (new_value instanceof Number)
-                return ValueFactory.newVDouble( ((Number)new_value).doubleValue());
+                return VDouble.of(((Number)new_value).doubleValue(), Alarm.none(), Time.now(), Display.none());
             try
             {
-                return ValueFactory.newVDouble( Double.parseDouble(Objects.toString(new_value)) );
+                return VDouble.of(Double.parseDouble(Objects.toString(new_value)), Alarm.none(), Time.now(), Display.none());
             }
             catch (NumberFormatException ex)
             {
@@ -298,16 +302,16 @@ public class ValueHelper
                 if (change_from_double)
                 {   // Change to string?
                     if (new_value instanceof String)
-                        return ValueFactory.newVString(Objects.toString(new_value), ValueFactory.alarmNone(), ValueFactory.timeNow());
+                        return VString.of(Objects.toString(new_value), Alarm.none(), Time.now());
                     // Change to double[]?
                     if (new_value instanceof double[])
-                        return ValueFactory.toVType(new_value);
+                        return VDoubleArray.of(ArrayDouble.of((double[])new_value), Alarm.none(), Time.now(), Display.none());
                     try
                     {
                         if (new_value instanceof List)
                         {
                             final double[] numbers = getInitialDoubles((List<?>)new_value);
-                            return ValueFactory.toVType(numbers);
+                            return VDoubleArray.of(ArrayDouble.of(numbers), Alarm.none(), Time.now(), Display.none());
                         }
                     }
                     catch (Exception e)
@@ -315,13 +319,13 @@ public class ValueHelper
                         // Ignore, try next type
                     }
                     if (new_value instanceof String[])
-                        return ValueFactory.newVStringArray(Arrays.asList((String[]) new_value), ValueFactory.alarmNone(), ValueFactory.timeNow());
+                        return VStringArray.of(List.of((String[]) new_value), Alarm.none(), Time.now());
                     if (new_value instanceof List)
                     {   // Assert each list element is a String
                         final List<String> strings = new ArrayList<>();
                         for (Object item : (List<?>)new_value)
                             strings.add(Objects.toString(item));
-                        return ValueFactory.newVStringArray(strings, ValueFactory.alarmNone(), ValueFactory.timeNow());
+                        return VStringArray.of(strings, Alarm.none(), Time.now());
                     }
                 }
                 throw new Exception("Cannot parse number from '" + new_value + "'");
@@ -331,10 +335,10 @@ public class ValueHelper
         if (type == VLong.class)
         {
             if (new_value instanceof Number)
-                return ValueFactory.toVType(((Number)new_value).longValue());
+                return VLong.of(((Number)new_value).longValue(), Alarm.none(), Time.now(), Display.none());
             try
             {
-                return ValueFactory.toVType( (long) Double.parseDouble(Objects.toString(new_value)) );
+                return VLong.of((long) Double.parseDouble(Objects.toString(new_value)), Alarm.none(), Time.now(), Display.none());
             }
             catch (NumberFormatException ex)
             {
@@ -344,17 +348,17 @@ public class ValueHelper
 
         if (type == VString.class)
             // Stringify anything
-            return ValueFactory.newVString(Objects.toString(new_value), ValueFactory.alarmNone(), ValueFactory.timeNow());
+            return VString.of(Objects.toString(new_value), Alarm.none(), Time.now());
 
         if (type == VDoubleArray.class)
         {   // Pass double[]
             if (new_value instanceof double[])
-                return ValueFactory.toVType(new_value);
+                return VDoubleArray.of(ArrayDouble.of((double[])new_value), Alarm.none(), Time.now(), Display.none());
             // Pass List
             if (new_value instanceof List)
             {
                 final double[] numbers = getInitialDoubles((List<?>)new_value);
-                return ValueFactory.toVType(numbers);
+                return VDoubleArray.of(ArrayDouble.of(numbers), Alarm.none(), Time.now(), Display.none());
             }
 
             // Parse string "1, 2, 3"
@@ -362,35 +366,36 @@ public class ValueHelper
             {
                 final List<String> items = splitInitialItems(Objects.toString(new_value));
                 final double[] numbers = getInitialDoubles(items);
-                return ValueFactory.toVType(numbers);
+                return VDoubleArray.of(ArrayDouble.of(numbers), Alarm.none(), Time.now(), Display.none());
             }
         }
 
         if (type == VStringArray.class)
         {   // Pass String
             if (new_value instanceof String)
-                return ValueFactory.newVStringArray(Arrays.asList((String) new_value), ValueFactory.alarmNone(), ValueFactory.timeNow());
+                return VStringArray.of(List.of((String) new_value), Alarm.none(), Time.now());
             // Pass String[]
             if (new_value instanceof String[])
-                return ValueFactory.newVStringArray(Arrays.asList((String[]) new_value), ValueFactory.alarmNone(), ValueFactory.timeNow());
+                return VStringArray.of(List.of((String[]) new_value), Alarm.none(), Time.now());
             if (new_value instanceof List)
             {   // Assert each list element is a String
                 final List<String> strings = new ArrayList<>();
                 for (Object item : (List<?>)new_value)
                     strings.add(Objects.toString(item));
-                return ValueFactory.newVStringArray(strings, ValueFactory.alarmNone(), ValueFactory.timeNow());
+                return VStringArray.of(strings, Alarm.none(), Time.now());
             }
         }
 
         if (type == VEnum.class)
         {
-            final List<String> labels = ((VEnum)old_value).getLabels();
+            final EnumDisplay meta = ((VEnum)old_value).getDisplay();
+            final List<String> labels = meta.getChoices();
             final int index;
             if (new_value instanceof Number)
                 index = ((Number)new_value).intValue();
             else
                 index = labels.indexOf(Objects.toString(new_value));
-            return ValueFactory.newVEnum(index, labels, ValueFactory.alarmNone(), ValueFactory.timeNow());
+            return VEnum.of(index, meta, Alarm.none(), Time.now());
         }
 
         throw new Exception("Expected type " + type.getSimpleName() + " but got " + new_value.getClass().getName());

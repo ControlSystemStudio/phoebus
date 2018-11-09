@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Iterator;
 
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.phoebus.util.text.NumberFormats;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.vtype.Display;
+import org.phoebus.archive.vtype.TimestampHelper;
 
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
@@ -95,8 +93,7 @@ public class ApplianceMeanValueIterator extends ApplianceValueIterator {
             }
         }
 
-        return ValueFactory.newDisplay(Double.NaN, Double.NaN, Double.NaN, "",
-                NumberFormats.toStringFormat(),    Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+        return Display.none();
     }
 
     /**

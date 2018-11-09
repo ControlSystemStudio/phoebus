@@ -34,7 +34,24 @@ public class PVA_Context
         provider = registry.getProvider("pva");
         if (provider == null)
             throw new Exception("Tried to locate 'pva' provider, found " + Arrays.toString(registry.getProviderNames()));
-        logger.log(Level.CONFIG, "PVA Provider {0}", provider.getProviderName());
+        logger.log(Level.CONFIG, "PVA Provider {0}:", provider.getProviderName());
+        logger.log(Level.CONFIG, getConfig("EPICS_PVA_DEBUG"));
+        logger.log(Level.CONFIG, getConfig("EPICS_PVA_ADDR_LIST"));
+        logger.log(Level.CONFIG, getConfig("EPICS_PVA_AUTO_ADDR_LIST"));
+        logger.log(Level.CONFIG, getConfig("EPICS_PVA_CONN_TMO"));
+        logger.log(Level.CONFIG, getConfig("EPICS_PVA_BROADCAST_PORT"));
+    }
+
+    private String getConfig(final String key)
+    {
+        // PVA ClientContextImpl uses system properties, falling back to environment variables
+        String value = System.getProperty(key);
+        if (value != null)
+            return String.format("%-24s = '%s' (property)", key, value);
+        value = System.getenv(key);
+        if (value != null)
+            return String.format("%-24s = '%s' (environment)", key, value);
+        return String.format("%-24s - not set", key);
     }
 
     /** @return Singleton instance */
@@ -42,6 +59,7 @@ public class PVA_Context
     {
         if (instance == null)
             instance = new PVA_Context();
+
         return instance;
     }
 

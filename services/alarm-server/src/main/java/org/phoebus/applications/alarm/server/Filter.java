@@ -18,10 +18,10 @@ import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
+import org.epics.vtype.VType;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.vtype.VType;
 
 import io.reactivex.disposables.Disposable;
 

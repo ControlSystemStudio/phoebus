@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,15 +17,23 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 
 import org.csstudio.display.builder.model.properties.FormatOption;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ListNumber;
+import org.epics.util.stats.Range;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
 import org.junit.Before;
 import org.junit.Test;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ArrayInt;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VEnum;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 /** JUnit test of {@link FormatOptionHandler}
  *  @author Kay Kasemir
@@ -34,7 +42,10 @@ import org.phoebus.vtype.ValueFactory;
 public class FormatOptionHandlerTest
 {
     final NumberFormat fmt = DecimalFormat.getNumberInstance(FormatOptionHandler.LOCALE);
-    final Display display = ValueFactory.newDisplay(-10.0, -9.0, -8.0, "V", fmt, 8.0, 9.0, 10.0, -10.0, 10.0);
+    final Display display = Display.of(Range.of(-10, 10),
+            Range.of(-9, 9),
+            Range.of(-8, 8),
+            Range.of(-10, 10), "V", fmt);
 
     @Before
     public void setup()
@@ -48,17 +59,17 @@ public class FormatOptionHandlerTest
     @Test
     public void testNaNInf() throws Exception
     {
-        VType number = ValueFactory.newVDouble(Double.NaN, display);
+        VType number = VDouble.of(Double.NaN, Alarm.none(), Time.now(), display);
         String text = FormatOptionHandler.format(number, FormatOption.DEFAULT, -1, true);
         System.out.println(text);
         assertThat(text, equalTo("NaN V"));
 
-        number = ValueFactory.newVDouble(Double.POSITIVE_INFINITY, display);
+        number = VDouble.of(Double.POSITIVE_INFINITY, Alarm.none(), Time.now(), display);
         text = FormatOptionHandler.format(number, FormatOption.DEFAULT, -1, true);
         System.out.println(text);
         assertThat(text, equalTo("Infinity V"));
 
-        number = ValueFactory.newVDouble(Double.NEGATIVE_INFINITY, display);
+        number = VDouble.of(Double.NEGATIVE_INFINITY, Alarm.none(), Time.now(), display);
         text = FormatOptionHandler.format(number, FormatOption.DEFAULT, -1, true);
         System.out.println(text);
         assertThat(text, equalTo("-Infinity V"));
@@ -67,7 +78,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testDecimal() throws Exception
     {
-        VType number = ValueFactory.newVDouble(3.16, display);
+        VType number = VDouble.of(3.16, Alarm.none(), Time.now(), display);
 
         assertThat(fmt.format(3.16), equalTo("3.16"));
 
@@ -96,7 +107,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testEnum() throws Exception
     {
-        final VEnum value = ValueFactory.newVEnum(1, Arrays.asList("One", "Two"), ValueFactory.alarmNone(), ValueFactory.timeNow());
+        final VEnum value = VEnum.of(1, EnumDisplay.of("One", "Two"), Alarm.none(), Time.now());
         String text = FormatOptionHandler.format(value, FormatOption.DECIMAL, 4, true);
         System.out.println(text);
         assertThat(text, equalTo("1"));
@@ -109,7 +120,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testExponential() throws Exception
     {
-        VType number = ValueFactory.newVDouble(3.16, display);
+        VType number = VDouble.of(3.16, Alarm.none(), Time.now(), display);
 
         String text = FormatOptionHandler.format(number, FormatOption.DEFAULT, -1, true);
         System.out.println(text);
@@ -127,7 +138,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testEngineering() throws Exception
     {
-        VType number = ValueFactory.newVDouble(0.0316, display);
+        VType number = VDouble.of(0.0316, Alarm.none(), Time.now(), display);
 
         // 1 'significant digits': 31.6
         String text = FormatOptionHandler.format(number, FormatOption.ENGINEERING, 1, true);
@@ -144,7 +155,7 @@ public class FormatOptionHandlerTest
         System.out.println(text);
         assertThat(text, equalTo("31.6000E-3 V"));
 
-        number = ValueFactory.newVDouble(12345678.0, display);
+        number = VDouble.of(12345678.0, Alarm.none(), Time.now(), display);
         text = FormatOptionHandler.format(number, FormatOption.ENGINEERING, 2, true);
         System.out.println(text);
         assertThat(text, equalTo("12.35E6 V"));
@@ -154,7 +165,7 @@ public class FormatOptionHandlerTest
         assertThat(text, equalTo("12.346E6 V"));
 
         // Can't use that to compute more digits for pi
-        number = ValueFactory.newVDouble(3.14, display);
+        number = VDouble.of(3.14, Alarm.none(), Time.now(), display);
         text = FormatOptionHandler.format(number, FormatOption.ENGINEERING, 10, true);
         System.out.println(text);
         assertThat(text, equalTo("3.1400000000E0 V"));
@@ -163,7 +174,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testHexFormat() throws Exception
     {
-        VType number = ValueFactory.newVDouble(65535.0, display);
+        VType number = VDouble.of(65535.0, Alarm.none(), Time.now(), display);
 
         String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
         System.out.println(text);
@@ -181,7 +192,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testHexParse() throws Exception
     {
-        final VType number = ValueFactory.newVDouble(65535.0, display);
+        final VType number = VDouble.of(65535.0, Alarm.none(), Time.now(), display);
 
         // Parse hex as hex
         Object parsed = FormatOptionHandler.parse(number, "0xFF", FormatOption.HEX);
@@ -205,7 +216,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testString() throws Exception
     {   // Actual String
-        VType value = ValueFactory.newVString("Test1", ValueFactory.alarmNone(), ValueFactory.timeNow());
+        VType value = VString.of("Test1", Alarm.none(), Time.now());
         String text = FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true);
         System.out.println(text);
         assertThat(text, equalTo("Test1"));
@@ -219,21 +230,21 @@ public class FormatOptionHandlerTest
         assertThat(text, equalTo("Test1"));
 
         // Number interpreted as char
-        value = ValueFactory.newVDouble(65.0, display);
+        value = VDouble.of(65.0, Alarm.none(), Time.now(), display);
         text = FormatOptionHandler.format(value, FormatOption.STRING, -1, true);
         System.out.println(text);
         assertThat(text, equalTo("A V"));
 
         // Number array interpreted as long string
-        ListNumber data = new ArrayInt(72, 101, 108, 108, 111); // UTF-8 for 'Hello'
-        value = ValueFactory.newVNumberArray(data, ValueFactory.alarmNone(), ValueFactory.timeNow(), display);
+        ListNumber data = ArrayInteger.of(72, 101, 108, 108, 111); // UTF-8 for 'Hello'
+        value = VIntArray.of(data, Alarm.none(), Time.now(), display);
         System.out.println(value);
         text = FormatOptionHandler.format(value, FormatOption.STRING, -1, true);
         System.out.println(text);
         assertThat(text, equalTo("Hello"));
 
-        data = new ArrayInt(/* Dollar */ 0x24,  /* Euro */ 0xE2, 0x82, 0xAC);
-        value = ValueFactory.newVNumberArray(data, ValueFactory.alarmNone(), ValueFactory.timeNow(), display);
+        data = ArrayInteger.of(/* Dollar */ 0x24,  /* Euro */ 0xE2, 0x82, 0xAC);
+        value = VIntArray.of(data, Alarm.none(), Time.now(), display);
         System.out.println(value);
         text = FormatOptionHandler.format(value, FormatOption.STRING, -1, true);
         System.out.println(text);
@@ -245,15 +256,15 @@ public class FormatOptionHandlerTest
     @Test
     public void testCompact() throws Exception
     {
-        String text = FormatOptionHandler.format(ValueFactory.newVDouble(65.43, display), FormatOption.COMPACT, 2, true);
+        String text = FormatOptionHandler.format(VDouble.of(65.43, Alarm.none(), Time.now(), display), FormatOption.COMPACT, 2, true);
         System.out.println(text);
         assertThat(text, equalTo("65.43 V"));
 
-        text = FormatOptionHandler.format(ValueFactory.newVDouble(0.00006543, display), FormatOption.COMPACT, 2, true);
+        text = FormatOptionHandler.format(VDouble.of(0.00006543, Alarm.none(), Time.now(), display), FormatOption.COMPACT, 2, true);
         System.out.println(text);
         assertThat(text, equalTo("6.54E-5 V"));
 
-        text = FormatOptionHandler.format(ValueFactory.newVDouble(65430000.0, display), FormatOption.COMPACT, 2, true);
+        text = FormatOptionHandler.format(VDouble.of(65430000.0, Alarm.none(), Time.now(), display), FormatOption.COMPACT, 2, true);
         System.out.println(text);
         assertThat(text, equalTo("6.54E7 V"));
     }
@@ -261,8 +272,8 @@ public class FormatOptionHandlerTest
     @Test
     public void testArray() throws Exception
     {
-        final ListNumber data = new ArrayDouble(1.0, 2.0, 3.0, 4.0);
-        VType value = ValueFactory.newVNumberArray(data, ValueFactory.alarmNone(), ValueFactory.timeNow(), display);
+        final ListNumber data = ArrayDouble.of(1.0, 2.0, 3.0, 4.0);
+        VType value = VNumberArray.of(data, Alarm.none(), Time.now(), display);
         System.out.println(value);
         String text = FormatOptionHandler.format(value, FormatOption.DEFAULT, 0, true);
         System.out.println(text);
@@ -276,9 +287,9 @@ public class FormatOptionHandlerTest
     @Test
     public void testSexagesimalFormat() throws Exception
     {
-        final VType sexaPositiveValue = ValueFactory.newVDouble(12.5824414),
-                    sexaNegativeValue = ValueFactory.newVDouble(-12.5824414),
-                    sexaRoundedValue = ValueFactory.newVDouble(12.9999999);
+        final VType sexaPositiveValue = VDouble.of(12.5824414, Alarm.none(), Time.now(), display),
+                    sexaNegativeValue = VDouble.of(-12.5824414, Alarm.none(), Time.now(), display),
+                    sexaRoundedValue = VDouble.of(12.9999999, Alarm.none(), Time.now(), display);
         assertThat(FormatOptionHandler.format(sexaPositiveValue, FormatOption.SEXAGESIMAL, 7, false), equalTo("12:34:56.789"));
         assertThat(FormatOptionHandler.format(sexaPositiveValue, FormatOption.SEXAGESIMAL, 2, false), equalTo("12:35"));
         assertThat(FormatOptionHandler.format(sexaPositiveValue, FormatOption.SEXAGESIMAL, 4, false), equalTo("12:34:57"));
@@ -286,11 +297,11 @@ public class FormatOptionHandlerTest
         assertThat(FormatOptionHandler.format(sexaRoundedValue, FormatOption.SEXAGESIMAL, 7, false), equalTo("13:00:00.000"));
         assertThat(FormatOptionHandler.format(sexaRoundedValue, FormatOption.SEXAGESIMAL, 8, false), equalTo("12:59:59.9996"));
 
-        assertThat(FormatOptionHandler.format(ValueFactory.newVDouble(2*Math.PI), FormatOption.SEXAGESIMAL_HMS, 7, false), equalTo("24:00:00.000"));
+        assertThat(FormatOptionHandler.format(VDouble.of(2*Math.PI, Alarm.none(), Time.now(), display), FormatOption.SEXAGESIMAL_HMS, 7, false), equalTo("24:00:00.000"));
         assertThat(FormatOptionHandler.format(sexaPositiveValue, FormatOption.SEXAGESIMAL_HMS, 7, false), equalTo("48:03:40.989"));
         assertThat(FormatOptionHandler.format(sexaNegativeValue, FormatOption.SEXAGESIMAL_HMS, 7, false), equalTo("-48:03:40.989"));
 
-        assertThat(FormatOptionHandler.format(ValueFactory.newVDouble(2*Math.PI), FormatOption.SEXAGESIMAL_DMS, 7, false), equalTo("360:00:00.000"));
+        assertThat(FormatOptionHandler.format(VDouble.of(2*Math.PI, Alarm.none(), Time.now(), display), FormatOption.SEXAGESIMAL_DMS, 7, false), equalTo("360:00:00.000"));
         assertThat(FormatOptionHandler.format(sexaPositiveValue, FormatOption.SEXAGESIMAL_DMS, 7, false), equalTo("720:55:14.837"));
         assertThat(FormatOptionHandler.format(sexaNegativeValue, FormatOption.SEXAGESIMAL_DMS, 7, false), equalTo("-720:55:14.837"));
         assertThat(FormatOptionHandler.format(sexaRoundedValue, FormatOption.SEXAGESIMAL_DMS, 7, false), equalTo("744:50:42.461"));
@@ -299,7 +310,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testSexagesimalParser() throws Exception
     {
-        final VType number = ValueFactory.newVDouble(0.0);
+        final VType number = VDouble.of(0.0, Alarm.none(), Time.now(), display);
         assertEquals(12.5824414, (Double)FormatOptionHandler.parse(number, "12:34:56.789", FormatOption.SEXAGESIMAL), 0.0000001);
         assertEquals(Math.PI, (Double)FormatOptionHandler.parse(number, "12:00:00.000", FormatOption.SEXAGESIMAL_HMS), 0.0000001);
         assertEquals(12.5824414, (Double)FormatOptionHandler.parse(number, "48:03:40.989", FormatOption.SEXAGESIMAL_HMS), 0.0000001);
@@ -310,7 +321,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testNumberParsing() throws Exception
     {
-        VType value = ValueFactory.newVDouble(3.16, display);
+        VType value = VDouble.of(3.16, Alarm.none(), Time.now(), display);
 
         Object parsed = FormatOptionHandler.parse(value, "42.5 Socks", FormatOption.DEFAULT);
         assertThat(parsed, instanceOf(Number.class));
@@ -320,8 +331,8 @@ public class FormatOptionHandlerTest
     @Test
     public void testNumberArrayParsing() throws Exception
     {
-        final ListNumber data = new ArrayDouble(1.0, 2.0, 3.0, 4.0);
-        final VType value = ValueFactory.newVNumberArray(data, ValueFactory.alarmNone(), ValueFactory.timeNow(), display);
+        final ListNumber data = ArrayDouble.of(1.0, 2.0, 3.0, 4.0);
+        final VType value = VNumberArray.of(data, Alarm.none(), Time.now(), display);
 
         Object parsed = FormatOptionHandler.parse(value, " [  1, 2.5  ,  3 ] ", FormatOption.DEFAULT);
         assertThat(parsed, instanceOf(double[].class));
@@ -332,7 +343,7 @@ public class FormatOptionHandlerTest
     @Test
     public void testStringArrayParsing() throws Exception
     {
-        final VType value = ValueFactory.newVStringArray(Arrays.asList("Flintstone, \"Al\" Fred", "Jane"), ValueFactory.alarmNone(), ValueFactory.timeNow());
+        final VType value = VStringArray.of(Arrays.asList("Flintstone, \"Al\" Fred", "Jane"), Alarm.none(), Time.now());
 
         final String text = FormatOptionHandler.format(value, FormatOption.DEFAULT, 0, true);
         System.out.println(text);

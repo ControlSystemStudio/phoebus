@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,9 +16,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.csstudio.javafx.rtplot.internal.ImagePlot;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ListDouble;
 import org.phoebus.ui.javafx.Styles;
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.util.array.ListDouble;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -64,7 +64,7 @@ public class ImagePlotDemo extends Application
                 data[i++] = Math.exp(-r/(WIDTH/2)) * (1.0 + Math.cos(2*Math.PI*(r/(WIDTH/6) - phase)));
             }
         }
-        return new ArrayDouble(data);
+        return ArrayDouble.of(data);
     }
 
     volatile boolean show_colorbar = true;

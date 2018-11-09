@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,12 @@
  ******************************************************************************/
 package org.phoebus.pv.sim;
 
-import java.text.NumberFormat;
-
-import org.phoebus.util.array.ArrayDouble;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
-import org.phoebus.vtype.ValueUtil;
+import org.epics.util.array.ArrayDouble;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VType;
 
 /** Base for simulated array PVs
  *
@@ -25,12 +24,8 @@ import org.phoebus.vtype.ValueUtil;
  *
  *  @author Kay Kasemir, based on similar code in org.csstudio.utility.pv
  */
-@SuppressWarnings("nls")
 abstract public class SimulatedDoubleArrayPV extends SimulatedPV
 {
-    /** Format for Display */
-    private final static NumberFormat format = ValueUtil.getDefaultNumberFormat();
-
     /** Display for value updates, also defines warning/alarm range */
     protected Display display;
 
@@ -47,13 +42,7 @@ abstract public class SimulatedDoubleArrayPV extends SimulatedPV
      */
     protected void start(final double min, final double max, final double update_seconds)
     {
-        final double range = max - min;
-        if (range > 0)
-            display = ValueFactory.newDisplay(min, min + range * 0.1, min + range * 0.2, "a.u.", format,
-                                              min + range * 0.8, min + range * 0.9, max, min, max);
-        else
-            display = ValueFactory.newDisplay(0.0, Double.NaN, Double.NaN, "a.u.", format,
-                                              Double.NaN, Double.NaN, 10.0, 0.0, 10.0);
+        display = SimulatedDoublePV.createDisplay(min, max);
         super.start(update_seconds);
     }
 
@@ -63,10 +52,8 @@ abstract public class SimulatedDoubleArrayPV extends SimulatedPV
     {
         final double value[] = compute();
         // Creates vtype with alarm according to display warning/alarm ranges
-        final VType vtype = ValueFactory.newVDoubleArray(new ArrayDouble(value),
-                                                         ValueFactory.alarmNone(),
-                                                         ValueFactory.timeNow(),
-                                                         display);
+        final VType vtype = VDoubleArray.of(ArrayDouble.of(value),
+                                            Alarm.none(), Time.now(), display);
         notifyListenersOfValue(vtype);
     }
 

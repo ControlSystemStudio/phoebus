@@ -11,15 +11,18 @@ import java.time.Duration;
 
 import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.server.config.ScanConfig;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 
 /** Simulated device
  *  @author Kay Kasemir
  */
 public class SimulatedDevice extends Device
 {
-    private volatile VType value = ValueFactory.newVDouble(Double.NaN);
+    private volatile VType value = VDouble.of(Double.NaN, Alarm.none(), Time.now(), Display.none());
 
     final private double slew_rate;
 
@@ -74,7 +77,7 @@ public class SimulatedDevice extends Device
     public void write(final Object value) throws Exception
     {
         if (value instanceof Number)
-            this.value = ValueFactory.newVDouble( ((Number) value).doubleValue() );
+            this.value = VDouble.of( ((Number) value).doubleValue(), Alarm.none(), Time.now(), Display.none() );
         fireDeviceUpdate();
     }
 

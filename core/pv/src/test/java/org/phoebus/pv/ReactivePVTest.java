@@ -17,10 +17,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VType;
 import org.junit.Test;
 import org.phoebus.util.time.TimestampFormats;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueUtil;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;
@@ -79,7 +80,7 @@ public class ReactivePVTest
         final CountDownLatch count = new CountDownLatch(3);
         final Disposable dis = pv
             .onValueEvent(BackpressureStrategy.BUFFER)
-            .map(vtype -> ValueUtil.timeOf(vtype).getTimestamp())
+            .map(vtype -> Time.timeOf(vtype).getTimestamp())
             .buffer(2, TimeUnit.SECONDS)
             .subscribe(value ->
             {
@@ -90,6 +91,13 @@ public class ReactivePVTest
         dis.dispose();
 
         PVPool.releasePV(pv);
+    }
+
+    private static double numericValueOf(final VType vtype)
+    {
+        if (vtype instanceof VNumber)
+            return ((VNumber)vtype).getValue().doubleValue();
+        return Double.NaN;
     }
 
     @Test
@@ -110,7 +118,7 @@ public class ReactivePVTest
             .subscribe(value ->
             {
                 count.countDown();
-                final List<Double> values = value.stream().map(vtype -> ValueUtil.numericValueOf(vtype)).collect(Collectors.toList());
+                final List<Double> values = value.stream().map(vtype -> numericValueOf(vtype)).collect(Collectors.toList());
                 System.out.println(values);
                 final Double previous = last.getAndSet(values.get(values.size() - 1));
                 if (previous != null)

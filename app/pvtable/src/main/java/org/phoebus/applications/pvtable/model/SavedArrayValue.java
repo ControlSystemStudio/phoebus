@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,18 +10,17 @@ package org.phoebus.applications.pvtable.model;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VFloatArray;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.pv.PV;
-import org.phoebus.util.array.ListInt;
-import org.phoebus.util.array.ListNumber;
-import org.phoebus.vtype.VByteArray;
-import org.phoebus.vtype.VDoubleArray;
-import org.phoebus.vtype.VEnumArray;
-import org.phoebus.vtype.VFloatArray;
-import org.phoebus.vtype.VNumberArray;
-import org.phoebus.vtype.VString;
-import org.phoebus.vtype.VStringArray;
-import org.phoebus.vtype.VType;
 
 /** Saved value of an array table item
  *
@@ -98,7 +97,7 @@ public class SavedArrayValue extends SavedValue
             return ((VStringArray) current_value).getData().equals(saved_value);
         if (current_value instanceof VEnumArray)
         {
-            final ListInt indices = ((VEnumArray) current_value).getIndexes();
+            final ListNumber indices = ((VEnumArray) current_value).getIndexes();
             final int N = indices.size();
             if (N != saved_value.size())
                 return false;
@@ -137,7 +136,7 @@ public class SavedArrayValue extends SavedValue
             else
                 pv.write(data);
         }
-        else if (pv_type instanceof VNumberArray || pv_type instanceof VEnumArray)
+        else if (pv_type instanceof VNumberArray  || pv_type instanceof VEnumArray)
         {   // Write any non-floating  number as int.
             // JCA_PV doesn't handle long[], so int[] is the widest type
             final int N = saved_value.size();

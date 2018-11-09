@@ -17,10 +17,10 @@ import java.util.function.Consumer;
 
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.jobs.JobMonitor;
-import org.phoebus.vtype.VType;
 
 /** Eclipse Job for exporting data from Model to Matlab-format file.
  *  @author Kay Kasemir

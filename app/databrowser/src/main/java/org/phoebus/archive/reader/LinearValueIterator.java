@@ -11,14 +11,16 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 
-import org.phoebus.archive.vtype.ArchiveVStatistics;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.TimeHelper;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.StatisticsAccumulator;
 import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.util.time.TimeDuration;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.Display;
-import org.phoebus.vtype.VType;
 
 /** {@link ValueIterator} that performs linear interpolation
  *
@@ -176,7 +178,7 @@ public class LinearValueIterator implements ValueIterator
             else
                 interpol = (v0 + v1)/2; // Use average?
 
-            if (! (base_value instanceof Display))
+            if (! (base_value instanceof VNumber))
             {   // Cannot be packaged as ArchiveVStatistics since there's no Display info,
                 // so pass the base value with 'interpolated' time stamp.
                 // This typically coincides with interpol == NaN:
@@ -185,8 +187,8 @@ public class LinearValueIterator implements ValueIterator
                 return VTypeHelper.transformTimestamp(base_value, end_of_bin);
             }
             else
-                return new ArchiveVStatistics(end_of_bin, max_severity, max_status, (Display) base_value,
-                        interpol, accumulator.getMin(), accumulator.getMax(), accumulator.getStdDev(), accumulator.getNSamples());
+                return VStatistics.of(interpol, accumulator.getStdDev(), accumulator.getMin(), accumulator.getMax(),
+                                      accumulator.getNSamples(), Alarm.none(), TimeHelper.fromInstant(end_of_bin));
         }
 
         // Have nothing in this bin

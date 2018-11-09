@@ -22,15 +22,22 @@ import java.util.logging.Level;
 public class SampleImporters
 {
     /** Map of file types to importers */
-    private static final Map<String, SampleImporter> importers = new HashMap<String, SampleImporter>();
+    private static final Map<String, SampleImporter> importers = new HashMap<>();
 
     /** Locate all available importers */
     static
     {
-        for (SampleImporter importer : ServiceLoader.load(SampleImporter.class))
+        try
         {
-            logger.log(Level.CONFIG, "SampleImporter for '" + importer.getType() + "'");
-            importers.put(importer.getType(), importer);
+            for (SampleImporter importer : ServiceLoader.load(SampleImporter.class))
+            {
+                logger.log(Level.CONFIG, "SampleImporter for '" + importer.getType() + "'");
+                importers.put(importer.getType(), importer);
+            }
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.SEVERE, "Cannot locate SampleImporters", ex);
         }
     }
 

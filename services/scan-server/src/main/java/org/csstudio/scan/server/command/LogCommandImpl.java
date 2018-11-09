@@ -29,7 +29,7 @@ import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.VTypeHelper;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.server.log.DataLog;
-import org.phoebus.vtype.VType;
+import org.epics.vtype.VType;
 
 /** {@link ScanCommandImpl} that reads data from devices and logs it
  *  @author Kay Kasemir

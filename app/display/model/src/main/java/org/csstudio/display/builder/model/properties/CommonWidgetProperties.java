@@ -18,9 +18,13 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
-import org.phoebus.vtype.VType;
-import org.phoebus.vtype.ValueFactory;
 
 /** Common widget properties.
  *
@@ -229,9 +233,9 @@ public class CommonWidgetProperties
                             setValue((VType) value);
                         // Questionable legacy scripts/rules set double and string
                         else if (value instanceof Double)
-                            setValue(ValueFactory.newVDouble((Double) value));
+                            setValue(VDouble.of((Double) value, Alarm.none(), Time.now(), Display.none()));
                         else if (value instanceof String)
-                            setValue(ValueFactory.newVString((String) value, ValueFactory.alarmNone(), ValueFactory.timeNow()));
+                            setValue(VString.of((String) value, Alarm.none(), Time.now()));
                         else
                             throw new Exception("Need VType, got " + value);
                     }

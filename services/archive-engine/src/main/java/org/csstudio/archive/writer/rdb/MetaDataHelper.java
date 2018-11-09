@@ -10,7 +10,7 @@ package org.csstudio.archive.writer.rdb;
 import java.text.NumberFormat;
 import java.util.List;
 
-import org.phoebus.vtype.Display;
+import org.epics.vtype.Display;
 
 /** Helper for dealing with {@link Display}
  *  @author Kay Kasemir
@@ -36,15 +36,11 @@ public class MetaDataHelper
         if (! (obj instanceof Display))
             return false;
         final Display other = (Display) obj;
-        if (! (equals(display.getLowerDisplayLimit(), other.getLowerDisplayLimit())
-            && equals(display.getUpperDisplayLimit(), other.getUpperDisplayLimit())
-            && equals(display.getLowerCtrlLimit(), other.getLowerCtrlLimit())
-            && equals(display.getUpperCtrlLimit(), other.getUpperCtrlLimit())
-            && equals(display.getLowerAlarmLimit(), other.getLowerAlarmLimit())
-            && equals(display.getUpperAlarmLimit(), other.getUpperAlarmLimit())
-            && equals(display.getLowerWarningLimit(), other.getLowerWarningLimit())
-            && equals(display.getUpperWarningLimit(), other.getUpperWarningLimit())
-            && display.getUnits().equals(other.getUnits())))
+        if (! (display.getDisplayRange().equals(other.getDisplayRange())  &&
+               display.getControlRange().equals(other.getControlRange())  &&
+               display.getWarningRange().equals(other.getWarningRange())  &&
+               display.getAlarmRange().equals(other.getAlarmRange())  &&
+               display.getUnit().equals(other.getUnit())))
             return false;
 
         // Compare formats by result on some test value. Not perfect.
@@ -59,15 +55,6 @@ public class MetaDataHelper
         // Else result of formatting a test value must match.
         return format.format(TEST_VALUE)
               .equals(format2.format(TEST_VALUE));
-    }
-
-    /** @param a Double to compare
-     *  @param b Double to compare
-     *  @return true if both are <code>null</code>, or both are numerically equal
-     */
-    final private static boolean equals(final Double a, final Double b)
-    {
-        return (a == null)  ?  (b == null)  :  a.equals(b);
     }
 
     /** @param labels {@link Enum} labels to compare

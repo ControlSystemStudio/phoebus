@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,13 +22,16 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.phoebus.archive.vtype.ArchiveVNumber;
-import org.phoebus.archive.vtype.ArchiveVStatistics;
-import org.phoebus.archive.vtype.ArchiveVString;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Time;
+import org.epics.vtype.TimeHelper;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
-import org.phoebus.vtype.AlarmSeverity;
-import org.phoebus.vtype.VType;
-
 
 /** Value Iterator that provides 'optimized' data by calling
  *  a stored database procedure.
@@ -178,7 +181,7 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
      */
     private List<VType> decodeOptimizedTable(final ResultSet result) throws Exception
     {
-        final List<VType> values = new ArrayList<VType>();
+        final List<VType> values = new ArrayList<>();
 
         // Row with min/max/average data:
         // WB: 1, SMPL_TIME: 2010/01/22 21:07:18.772633666, SEVERITY_ID: null, STATUS_ID: null, MIN_VAL: 8.138729867823713E-8, MAX_VAL: 6.002717327646678E-7, AVG_VAL: 8.240168908036992E-8, STR_VAL: null, CNT: 3611
@@ -188,41 +191,37 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
         while (result.next())
         {
             // Time stamp
-            final Instant time = result.getTimestamp(2).toInstant();
+            final Time time = TimeHelper.fromInstant(result.getTimestamp(2).toInstant());
 
             // Get severity/status
-            final AlarmSeverity severity;
-            final String status;
+            final Alarm alarm;
             final int sev_id = result.getInt(3);
             if (result.wasNull())
-            {
-                severity = AlarmSeverity.NONE;
-                status = "";
-            }
+                alarm = Alarm.none();
             else
             {
-                status = reader.getStatus(result.getInt(4));
-                severity = filterSeverity(reader.getSeverity(sev_id), status);
+                final String status = reader.getStatus(result.getInt(4));
+                final AlarmSeverity severity = filterSeverity(reader.getSeverity(sev_id), status);
+                alarm = Alarm.of(severity, AlarmStatus.CLIENT, status);
             }
+
 
             // WB==-1 indicates a String sample
             final VType value;
             if (result.getInt(1) < 0)
-                value = new ArchiveVString(time, severity, status, result.getString(8));
+                value = VString.of(result.getString(8), alarm, time);
             else
             {   // Only one value within averaging bucket?
                 final int cnt = result.getInt(9);
                 final double val_or_avg = result.getDouble(7);
                 if (cnt == 1)
-                    value = new ArchiveVNumber(time, severity, status, display, val_or_avg);
+                    value = VDouble.of(val_or_avg, alarm, time, display);
                 else // Decode min/max/average
                 {
                     final double min = result.getDouble(5);
                     final double max = result.getDouble(6);
                     final double stddev = 0.0; // not known
-                    value = new ArchiveVStatistics(time, severity,
-                            status, display,
-                            val_or_avg, min, max, stddev, cnt);
+                    value = VStatistics.of(val_or_avg, stddev, min, max, cnt, alarm, time);
                 }
             }
             values.add(value);
@@ -237,7 +236,7 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
      */
     private List<VType> decodeSampleTable(final ResultSet result) throws Exception
     {
-        final ArrayList<VType> values = new ArrayList<VType>();
+        final ArrayList<VType> values = new ArrayList<>();
         while (result.next())
         {
             final VType value = decodeSampleTableValue(result, false);
