@@ -48,7 +48,7 @@ public class PVTableXMLPersistence extends PVTablePersistence
     final private static String READBACK_SAVED = "readback_value";
     final private static String COMPLETION = "completion";
     final private static String TIMEOUT = "timeout";
-    final private static String ENABLE_SAVE_RESTORE = "EnableSaveRestore";
+    final private static String ENABLE_SAVE_RESTORE = "enable_save_restore";
 
     /** {@inheritDoc} */
     @Override
@@ -76,12 +76,11 @@ public class PVTableXMLPersistence extends PVTablePersistence
         doc.getDocumentElement().normalize();
         Element root_node = doc.getDocumentElement();
         String root_name = root_node.getNodeName();
-        
-        boolean enableSaveRestore = Boolean.parseBoolean(root_node.getAttribute(ENABLE_SAVE_RESTORE));
-        model.setSaveRestore(enableSaveRestore);
-        
+
         if (!root_name.equals(ROOT))
             throw new Exception("Expected <" + ROOT + ">, found <" + root_name + ">");
+
+        model.setSaveRestore(XMLUtil.getChildBoolean(root_node, ENABLE_SAVE_RESTORE).orElse(true));
 
         // Get the default <tolerance> entry
         final double default_tolerance = XMLUtil.getChildDouble(root_node, TOLERANCE).orElse(Settings.tolerance);
@@ -101,7 +100,6 @@ public class PVTableXMLPersistence extends PVTablePersistence
                 final double tolerance = XMLUtil.getChildDouble(pv, TOLERANCE).orElse(default_tolerance);
                 final boolean selected = XMLUtil.getChildBoolean(pv, SELECTED).orElse(true);
 
-            
                 final String time_saved = model.isSaveRestoreEnabled() ? XMLUtil.getChildString(pv, SAVED_TIME).orElse("") : "";
                 final SavedValue saved  = model.isSaveRestoreEnabled() ? readSavedValue(pv) : null;
                 final PVTableItem pvItem = model.addItem(pv_name, tolerance, saved, time_saved);
@@ -146,7 +144,7 @@ public class PVTableXMLPersistence extends PVTablePersistence
     public void write(final PVTableModel model, final OutputStream stream) throws Exception
     {
         Boolean saveRestore = model.isSaveRestoreEnabled();
-        
+
         final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         final Element root = doc.createElement("pvtable");
         root.setAttribute("version", "3.0");
@@ -163,11 +161,11 @@ public class PVTableXMLPersistence extends PVTablePersistence
             pv.appendChild(XMLUtil.createTextElement(doc, SELECTED, Boolean.toString(item.isSelected())));
             pv.appendChild(XMLUtil.createTextElement(doc, NAME, item.getName()));
             pv.appendChild(XMLUtil.createTextElement(doc, TOLERANCE, Double.toString(item.getTolerance())));
-            
+
             if (saveRestore)
             {
                 pv.appendChild(XMLUtil.createTextElement(doc, SAVED_TIME, item.getTime_saved()));
-    
+
                 final SavedValue saved = item.getSavedValue().orElse(null);
                 if (saved instanceof SavedScalarValue)
                     pv.appendChild(XMLUtil.createTextElement(doc, SAVED_VALUE, saved.toString()));
@@ -175,15 +173,15 @@ public class PVTableXMLPersistence extends PVTablePersistence
                 {
                     final SavedArrayValue array = (SavedArrayValue) saved;
                     final Element el = doc.createElement(SAVED_ARRAY);
-    
+
                     final int N = array.size();
                     for (int i=0; i<N; ++i)
                         el.appendChild(XMLUtil.createTextElement(doc, ITEM, array.get(i)));
-    
+
                     pv.appendChild(el);
-    
+
                 }
-            
+
                 pv.appendChild(XMLUtil.createTextElement(doc, COMPLETION, Boolean.toString(item.isUsingCompletion())));
             }
 
