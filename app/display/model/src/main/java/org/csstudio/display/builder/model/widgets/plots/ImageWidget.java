@@ -396,6 +396,12 @@ public class ImageWidget extends PVWidget
     }
 
     @Override
+    protected String getInitialTooltip()
+    {
+        return "$(pv_name)";
+    }
+
+    @Override
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception
     {
