@@ -226,6 +226,11 @@ public class TracesTab extends Tab
         @Override
         public void changedAxis(final Optional<AxisConfig> axis)
         {
+            if (trace_table.getEditingCell() != null)
+            {
+                Platform.runLater(() -> changedAxis(axis));
+                return;
+            }
             // In case an axis _name_ changed, this needs to be shown
             // in the "Axis" column.
             updateFromModel();
