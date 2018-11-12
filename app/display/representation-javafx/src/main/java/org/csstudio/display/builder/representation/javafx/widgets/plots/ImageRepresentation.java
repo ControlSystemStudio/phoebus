@@ -38,7 +38,6 @@ import org.csstudio.javafx.rtplot.RegionOfInterest;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayInteger;
 import org.epics.vtype.VImage;
-import org.epics.vtype.VImageType;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
@@ -365,7 +364,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
                                 model_widget.propDataHeight().getValue(),
                                 ((VNumberArray) value).getData(),
                                 model_widget.propDataUnsigned().getValue(),
-                                VImageType.TYPE_MONO);
+                                model_widget.propDataColorMode().getValue());
         else if (value instanceof VImage)
         {
             final VImage image = (VImage) value;
