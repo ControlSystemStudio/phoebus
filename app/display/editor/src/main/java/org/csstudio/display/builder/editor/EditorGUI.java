@@ -271,7 +271,14 @@ public class EditorGUI
 
         editor_scene.addEventFilter(MouseEvent.MOUSE_MOVED, mouse_tracker);
 
+        // Handle copy/paste/...
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
+
+        // Request keyboard focus when mouse enters,
+        // to allow 'paste' etc.
+        // Without this filter, user would first need to select some widget
+        // before 'paste' is possible
+        layout.addEventFilter(MouseEvent.MOUSE_ENTERED, event ->  layout.requestFocus());
 
         return layout;
     }

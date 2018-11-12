@@ -50,8 +50,6 @@ class ImageDecoder
 
     public static VImage decode(final PVStructure struct) throws Exception
     {
-        // TODO Decode timestamp, alarm
-
         // Get dimensions
         final PVStructureArray dim_field = struct.getSubField(PVStructureArray.class, "dimension");
         if (dim_field == null || dim_field.getLength() < 2)

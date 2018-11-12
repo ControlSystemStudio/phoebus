@@ -352,7 +352,9 @@ public class DisplayRuntimeInstance implements AppInstance
             display_info = Optional.of(info);
             dock_item.setInput(info.toURI());
         }
-        dock_item.setLabel(info.getName());
+        // setInput sets the tab name based on the input via runLater.
+        // Update to the display name via another runLater.
+        Platform.runLater(() -> dock_item.setLabel(info.getName()));
 
         navigation.setCurrentDisplay(info);
         active_model = model;

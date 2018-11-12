@@ -156,15 +156,17 @@ public class AutocompleteMenu
             {   // The menu will see 'ENTER' keys.
                 selected_menu_item = false;
                 // Let menu react, then check later
-                Platform.runLater(() ->
-                {
-                    // If that key invokes a menu item -> Done.
-                    // Sometimes, however, when no menu item is active,
-                    // the ENTER key goes nowhere.
-                    // In that case, simulate 'enter' on the text field.
-                    if (selected_menu_item == false)
-                        invokeAction((TextInputControl) menu.getUserData());
-                });
+                final TextInputControl field = (TextInputControl) menu.getUserData();
+                if (field != null)
+                    Platform.runLater(() ->
+                    {
+                        // If that key invokes a menu item -> Done.
+                        // Sometimes, however, when no menu item is active,
+                        // the ENTER key goes nowhere.
+                        // In that case, simulate 'enter' on the text field.
+                        if (selected_menu_item == false)
+                            invokeAction(field);
+                    });
             }
             else
             {
