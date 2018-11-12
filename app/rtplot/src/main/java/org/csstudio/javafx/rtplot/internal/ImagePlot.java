@@ -886,7 +886,7 @@ public class ImagePlot extends PlotCanvasBase
      *  @return {@link BufferedImage}, sized to match data
      */
     private Object drawDataRGB(final int data_width, final int data_height, final ListNumber numbers,
-                                      final ToIntFunction<IteratorNumber> next_rgbs [], final VImageType type)
+                               final ToIntFunction<IteratorNumber> next_rgbs [], final VImageType type)
     {
         if (data_width <= 0  ||  data_height <= 0)
         {
@@ -913,7 +913,7 @@ public class ImagePlot extends PlotCanvasBase
 	        	{
 	        		//red
         			for (int x = 0; x < data_width; ++x)
-        				data[y_times_width + x] = next_rgbs[0].applyAsInt(iter);;
+        				data[y_times_width + x] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);;
         			//green
         			for (int x = 0; x < data_width; ++x)
         				data[y_times_width + x] |= next_rgbs[1].applyAsInt(iter);
@@ -925,7 +925,7 @@ public class ImagePlot extends PlotCanvasBase
 	        case TYPE_RGB3:
 	        	//red
         		for (int i = 0; i < data_height*data_width; ++i)
-        			data[i] = next_rgbs[0].applyAsInt(iter);
+        			data[i] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);
         		//green
         		for (int i = 0; i < data_height*data_width; ++i)
         			data[i] |= next_rgbs[1].applyAsInt(iter);
@@ -938,7 +938,7 @@ public class ImagePlot extends PlotCanvasBase
         		//no "break;"
 	        case TYPE_RGB1:
 	        	for (int i = 0; i < data_height*data_width; ++i)
-	            	data[i] = next_rgbs[0].applyAsInt(iter) | next_rgbs[1].applyAsInt(iter) | next_rgbs[2].applyAsInt(iter);
+	            	data[i] = 0xFF000000 | next_rgbs[0].applyAsInt(iter) | next_rgbs[1].applyAsInt(iter) | next_rgbs[2].applyAsInt(iter);
         }
 
         return image;
