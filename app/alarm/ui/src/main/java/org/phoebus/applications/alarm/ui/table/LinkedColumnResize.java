@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.table;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.ResizeFeatures;
+import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 
 /** When column in 'master' table is resized, update column in 'other' table.
@@ -26,12 +27,27 @@ class LinkedColumnResize implements Callback<ResizeFeatures, Boolean>
     {
         this.master = master;
         this.other = other;
+
+        // call() is invoked when user moves the table column separator,
+        // but not when double-clicking it.
+        // => Force update on double-click anywhere in the table
+        master.addEventHandler(MouseEvent.MOUSE_CLICKED, event ->
+        {
+            if (event.getClickCount() >= 2)
+                updateOther();
+        });
     }
 
     @Override
     public Boolean call(final ResizeFeatures param)
     {
         final Boolean result = TableView.UNCONSTRAINED_RESIZE_POLICY.call(param);
+        updateOther();
+        return result;
+    }
+
+    private void updateOther()
+    {
         if (! updating)
         {
             updating = true;
@@ -40,6 +56,5 @@ class LinkedColumnResize implements Callback<ResizeFeatures, Boolean>
                 other.getColumns().get(i++).setPrefWidth(col.getWidth());
             updating = false;
         }
-        return result;
     }
 }
