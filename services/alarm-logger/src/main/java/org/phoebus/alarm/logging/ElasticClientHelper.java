@@ -7,6 +7,7 @@ import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.Properties;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.DocWriteResponse.Result;
@@ -23,9 +24,7 @@ import org.phoebus.framework.preferences.PreferencesReader;
  *
  */
 public class ElasticClientHelper {
-
-    private final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/alarm_logging_service.properties");
-
+    Properties props = PropertiesHelper.getProperties();
     private static RestHighLevelClient client;
     private static ElasticClientHelper instance;
 
@@ -43,7 +42,7 @@ public class ElasticClientHelper {
                 }
             }));
             client = new RestHighLevelClient(
-                    RestClient.builder(new HttpHost(prefs.get("es_host"),prefs.getInt("es_port"))));
+                    RestClient.builder(new HttpHost(props.getProperty("es_host"),Integer.parseInt(props.getProperty("es_port")))));
         } catch (Exception e) {
             try {
                 client.close();
