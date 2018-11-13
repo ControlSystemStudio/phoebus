@@ -144,6 +144,11 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     {
         if (this.active == active)
             return;
+
+        // When activated, start by selecting all
+        if (active)
+            jfx_node.selectAll();
+
         // Don't enable when widget is disabled
         if (active  &&  !model_widget.propEnabled().getValue())
             return;
