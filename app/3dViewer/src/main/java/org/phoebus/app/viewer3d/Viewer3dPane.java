@@ -38,68 +38,69 @@ import javafx.stage.FileChooser;
 /**
  * VBox that wraps a Viewer3d instance and adds support for loading
  * <i>.shp</i> files from the file system or URLs.
- * 
+ *
  * @author Evan Smith
  *
  */
+@SuppressWarnings("nls")
 public class Viewer3dPane extends VBox
 {
     /** Supported file extension, shape files (*.shp) */
     public static final String FILE_EXTENSION = "shp";
-    
+
     public static final List<String> FILE_EXTENSIONS = List.of(FILE_EXTENSION);
-    
+
     public static final Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
-    
+
     /** Border for the text field when errors occur. */
     private static final Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
-    
+
     private final TextField textField;
     private final Viewer3d viewer;
     private final Consumer<URI> setInput;
-    
+
     private String current_resource;
-    
+
     public Viewer3dPane(final URI resource, final Consumer<URI> setInput) throws Exception
     {
         super();
-        
+
         this.setInput = setInput;
-        
+
         textField = new TextField();
         Button fileButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/fldr_obj.png"));
         Button refreshButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
         Button resetViewButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/reset.png"));
         Button clearViewerButton = new Button(null, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
-        
+
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Shape files (.shp)", "*.shp");
-        
-        
+
+
         fileChooser.setInitialDirectory(new File(Preferences.default_dir));
-        
+
         HBox toolbar = new HBox();
-        
+
         viewer = new Viewer3d(null);
 
         fileChooser.getExtensionFilters().add(extFilter);
         toolbar.getChildren().addAll(fileButton, refreshButton, resetViewButton, textField, clearViewerButton);
 
         VBox.setVgrow(viewer, Priority.ALWAYS);
-        VBox.setMargin(viewer, new Insets(0, 10, 10, 10));        
+        VBox.setMargin(viewer, new Insets(0, 10, 10, 10));
 
-        fileButton.setOnAction(event -> 
-        {   
-            
+        fileButton.setOnAction(event ->
+        {
+
             File file = fileChooser.showOpenDialog(getScene().getWindow());
-            
+
             if (null != file)
             {
                 try
                 {
                     String input = file.toURI().toURL().toString();
                     loadResource(input, viewer, textField);
-                } 
+                }
                 catch (Exception ex)
                 {
                     ex.printStackTrace();
@@ -108,30 +109,30 @@ public class Viewer3dPane extends VBox
             }
         });
         fileButton.setTooltip(new Tooltip("Select resource from file system."));
-        
+
         refreshButton.setOnAction(event -> reload());
         refreshButton.setTooltip(new Tooltip("Refresh structure from resource."));
-        
+
         resetViewButton.setOnAction(event -> viewer.reset());
         resetViewButton.setTooltip(new Tooltip("Reset view rotation and zoom."));
-        
+
         HBox.setHgrow(textField, Priority.ALWAYS);
         toolbar.setSpacing(10);
         toolbar.setPadding(new Insets(10));
-        
+
         textField.setOnKeyPressed(event ->
         {
             if (event.getCode() == KeyCode.ENTER)
             {
                 String input = textField.getText();
                 loadResource(input, viewer, textField);
-                
+
             }
         });
-        
+
         textField.setTooltip(new Tooltip("Enter in the URL of a resource to load."));
-        
-        clearViewerButton.setOnAction(event -> 
+
+        clearViewerButton.setOnAction(event ->
         {
             viewer.clear();
             textField.clear();
@@ -139,13 +140,13 @@ public class Viewer3dPane extends VBox
             setInput.accept(null);
         });
         clearViewerButton.setTooltip(new Tooltip("Clear the viewer of any loaded resources."));
-        
+
         getChildren().addAll(toolbar, viewer);
-        
+
         if (null != resource)
-            loadResource(resource.toString(), viewer, textField);        
+            loadResource(resource.toString(), viewer, textField);
     }
-    
+
     /**
      * Load a resource file and update the viewer, upon error set the textField's border to signal error.
      * @param resource
@@ -155,10 +156,10 @@ public class Viewer3dPane extends VBox
     {
         if (null != resource && ! resource.isEmpty())
         {
-            JobManager.schedule("Read 3d viewer resource", monitor -> 
+            JobManager.schedule("Read 3d viewer resource", monitor ->
             {
                 InputStream inputStream = null;
-                
+
                 try
                 {
                     inputStream = ResourceUtil.openResource(resource);
@@ -169,7 +170,7 @@ public class Viewer3dPane extends VBox
                     Platform.runLater(() -> textField.setBorder(errorBorder));
                     return;
                 }
-                
+
                 if (null != inputStream)
                 {
                     try
@@ -186,17 +187,17 @@ public class Viewer3dPane extends VBox
                         return;
                     }
                 }
-                
+
                 Platform.runLater(() -> textField.setBorder(null));
-                
+
                 textField.setText(resource);
-                
+
                 if (null != setInput)
                     setInput.accept(new URI(resource));
             });
         }
     }
-    
+
     /**
      * Reload the current_resource.
      */

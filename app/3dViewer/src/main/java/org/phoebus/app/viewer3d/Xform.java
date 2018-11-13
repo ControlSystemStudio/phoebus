@@ -40,18 +40,19 @@ import javafx.scene.transform.Translate;
 
 /**
  * This class comes from the Oracle "building a 3D sample app" tutorial.
- * 
+ *
  * Taken from https://docs.oracle.com/javase/8/javafx/graphics-tutorial/sampleapp3d-code.htm#CJAGGIFG
  */
+@SuppressWarnings("nls")
 public class Xform extends Group
 {
     public Color background;
-    
+
     public enum RotateOrder
     {
         XYZ, XZY, YXZ, YZX, ZXY, ZYX
     }
-        
+
     public Translate t  = new Translate();
     public Translate p = new Translate();
     public Translate ip = new Translate();
@@ -62,7 +63,7 @@ public class Xform extends Group
     public Rotate rz = new Rotate();
     { rz.setAxis(Rotate.Z_AXIS); }
     public Scale s = new Scale();
-    
+
     public static Xform valueOf()
     {
         return new Xform();
@@ -76,7 +77,7 @@ public class Xform extends Group
     }
 
     public Xform(RotateOrder rotateOrder)
-    { 
+    {
         super();
         background = Color.GRAY;
         // choose the order of rotations based on the rotateOrder
@@ -101,17 +102,17 @@ public class Xform extends Group
                 break;
         }
     }
-    
+
     public void setBackground(Color fill)
     {
         background = fill;
     }
-    
+
     public Color getBackground()
     {
        return background;
     }
-    
+
     public void setTranslate(double x, double y, double z)
     {
         t.setX(x);
@@ -168,7 +169,7 @@ public class Xform extends Group
         p.setZ(z);
         ip.setX(-x);
         ip.setY(-y);
-        ip.setZ(-z); 
+        ip.setZ(-z);
     }
 
     public void reset()

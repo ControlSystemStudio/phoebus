@@ -7,11 +7,14 @@
  *******************************************************************************/
 package org.phoebus.app.viewer3d;
 
+import static org.phoebus.app.viewer3d.Viewer3dPane.logger;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Scanner;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -36,7 +39,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.Cylinder;
+import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Sphere;
+import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
@@ -44,11 +50,16 @@ import javafx.util.Duration;
 /**
  * Class to display 3 dimensional objects in a rotating camera view.
  *
+ * @author Kay Kasemir - Cone
  * @author Evan Smith
  */
 @SuppressWarnings("nls")
 public class Viewer3d extends StackPane
 {
+    /** Faces used to approximate a cone */
+    private static final int CONE_FACES = 8;
+
+
     /** Reduced tool tip delay (default: 1 second) */
     private static final Duration SHOW_QUICKLY = Duration.millis(100);
 
@@ -236,20 +247,23 @@ public class Viewer3d extends StackPane
                 if (line.isEmpty() || line.startsWith("#"))
                     continue;
 
-                /* All entries are of the form type(arg_0, ... , arg_N-1) */
+                // All entries are of the form type (arg_0, ... , arg_N-1)
 
-                if (!line.matches("\\w*\\(.*"))
+                int sep = line.indexOf('(');
+                if (sep < 0)
                     throw new Exception(BAD_TYPE_OPEN_PAREN_ERROR);
 
-                /* Split the line on the first open parentheses to get the type. */
-                String[] typeAndArgs = line.split("\\(\\s*", 2);
-                String type = typeAndArgs[0];
+                // Split the line on the first open parentheses to get the type.
+                String type = line.substring(0, sep).trim();
 
-                /* The argument list will then be the remaining string sans the closing parentheses. */
-                if (!typeAndArgs[1].endsWith(")"))
+                // The argument list will then be the remaining string sans the closing parentheses.
+                if (! line.endsWith(")"))
                     throw new Exception(MISSING_CLOSE_PAREN_ERROR);
 
-                final String argList = typeAndArgs[1].substring(0, typeAndArgs[1].length()-1);
+                final String argList = line.substring(sep+1, line.length()-1).trim();
+
+                logger.log(Level.FINE, "TYPE: '" + type + "'");
+                logger.log(Level.FINE, "ARGS: '" + argList + "'");
 
                 try (Scanner scanner = new Scanner(argList))
                 {
@@ -272,21 +286,13 @@ public class Viewer3d extends StackPane
                         double y = scanner.nextDouble(); // Y coord
                         double z = scanner.nextDouble(); // Z coord
                         double R = scanner.nextDouble(); // Radius
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
+                        final PhongMaterial material = getMaterial(scanner);
 
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
+                        final Sphere sphere = new Sphere(R);
 
-                        Sphere sphere = new Sphere(R);
-
-                        /* If the scanner has anything left, install as comment. */
+                        // If the scanner has anything left, install as comment.
                         if (scanner.hasNext())
-                        {
                            installComment(sphere, scanner.next());
-                        }
 
                         sphere.setMaterial(material);
 
@@ -304,21 +310,13 @@ public class Viewer3d extends StackPane
                         double x2 = scanner.nextDouble(); // X coord
                         double y2 = scanner.nextDouble(); // Y coord
                         double z2 = scanner.nextDouble(); // Z coord
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
+                        final PhongMaterial material = getMaterial(scanner);
 
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
+                        final Box box = new Box();
 
-                        Box box = new Box();
-
-                        /* If the scanner has anything left, install as comment. */
+                        // If the scanner has anything left, install as comment.
                         if (scanner.hasNext())
-                        {
                            installComment(box, scanner.next());
-                        }
 
                         box.setMaterial(material);
 
@@ -337,41 +335,27 @@ public class Viewer3d extends StackPane
                     }
                     else if (type.equals("cylinder"))
                     {
-                        double x1 = scanner.nextDouble(); // X coord
-                        double y1 = scanner.nextDouble(); // Y coord
-                        double z1 = scanner.nextDouble(); // Z coord
-                        double x2 = scanner.nextDouble(); // X coord
-                        double y2 = scanner.nextDouble(); // Y coord
-                        double z2 = scanner.nextDouble(); // Z coord
+                        final Point3D from = new Point3D(scanner.nextDouble(),
+                                                         scanner.nextDouble(),
+                                                         scanner.nextDouble());
+                        final Point3D to = new Point3D(scanner.nextDouble(),
+                                                       scanner.nextDouble(),
+                                                       scanner.nextDouble());
                         double R = scanner.nextDouble(); // Radius
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
+                        final PhongMaterial material = getMaterial(scanner);
 
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
+                        // https://stackoverflow.com/questions/38799322/javafx-3d-transforming-cylinder-to-defined-start-and-end-points
+                        // https://netzwerg.ch/blog/2015/03/22/javafx-3d-line/
 
-                        /**
-                         *
-                         * https://stackoverflow.com/questions/38799322/javafx-3d-transforming-cylinder-to-defined-start-and-end-points
-                         * https://netzwerg.ch/blog/2015/03/22/javafx-3d-line/
-                         *
-                         **/
-
-                        /* Align the cylinder from (x1, y1, z1) to (x2, y2, z2). */
+                        // Align the cylinder from (x1, y1, z1) to (x2, y2, z2)
                         Cylinder cylinder = new Cylinder();
 
-                        /* If the scanner has anything left, install as comment. */
+                        // If the scanner has anything left, install as comment
                         if (scanner.hasNext())
-                        {
                            installComment(cylinder, scanner.next());
-                        }
 
                         cylinder.setMaterial(material);
 
-                        Point3D from = new Point3D(x1, y1, z1);
-                        Point3D to = new Point3D(x2, y2, z2);
                         Point3D diff = to.subtract(from);
                         Point3D mid = to.midpoint(from);
                         double height = diff.magnitude();
@@ -390,15 +374,102 @@ public class Viewer3d extends StackPane
 
                         struct.getChildren().add(cylinder);
                     }
-                    else
+                    else if (type.equals("cone"))
                     {
-                        throw new Exception(UNRECOGNIZED_SHAPE_TYPE_ERROR + "'" + type + "'");
+                        final Point3D base = new Point3D(scanner.nextDouble(),
+                                                         scanner.nextDouble(),
+                                                         scanner.nextDouble());
+                        double R = scanner.nextDouble();
+                        final Point3D tip = new Point3D(scanner.nextDouble(),
+                                                        scanner.nextDouble(),
+                                                        scanner.nextDouble());
+                        final PhongMaterial material = getMaterial(scanner);
+
+                        float H = (float) tip.distance(base);
+
+                        // Cone idea:
+                        // https://www.dummies.com/programming/java/javafx-add-a-mesh-object-to-a-3d-world/
+
+                        final TriangleMesh mesh = new TriangleMesh();
+                        mesh.getTexCoords().addAll(0,0);
+
+                        // Point 0: Top
+                        mesh.getPoints().setAll(H, 0, 0);
+                        // Points around the base
+                        for (int i=0; i<CONE_FACES; ++i)
+                        {
+                            final double angle = 2*Math.PI*i/CONE_FACES;
+                            mesh.getPoints().addAll(0, (float)(R*Math.cos(angle)), (float)(R*Math.sin(angle)));
+                        }
+
+//                        // Visualize points as sphere (only valid for x1,y1,z1=0, x2=height
+//                        for (int i=0; i<mesh.getPoints().size(); i+=3)
+//                        {
+//                            final Sphere sphere = new Sphere(5);
+//                            sphere.setMaterial(material);
+//                            sphere.setTranslateX(mesh.getPoints().get(i));
+//                            sphere.setTranslateY(mesh.getPoints().get(i+1));
+//                            sphere.setTranslateZ(mesh.getPoints().get(i+2));
+//                            installComment(sphere, "\"Point " + (i/3) + "\"");
+//                            struct.getChildren().add(sphere);
+//                        }
+
+                        // Each 'face' has 3 pairs for the 3 points of a triangle.
+                        // First value is the point index,
+                        // second value in pair is texture index (0).
+                        // Point order is critical.
+                        // Need to be in "right hand" order, thumb facing outwards.
+                        // Faces that are viewed from behind tend to disappear.
+
+                        // Faces from the top (0) to all the base edges
+                        for (int i=1; i<=CONE_FACES; ++i)
+                            mesh.getFaces().addAll(0,0,  i,0, i==CONE_FACES?1:(i+1),0);
+
+                        // Fill the base
+                        for (int i=CONE_FACES; i>=3; --i)
+                            mesh.getFaces().addAll(i,0,  i-1,0,  1,0);
+
+                        final MeshView cone = new MeshView(mesh);
+                        cone.setDrawMode(DrawMode.FILL);
+                        cone.setMaterial(material);
+
+                        // If the scanner has anything left, install as comment
+                        if (scanner.hasNext())
+                         installComment(cone, scanner.next());
+
+                        Point3D direction = tip.subtract(base);
+                        Point3D axisOfRotation = direction.crossProduct(Rotate.X_AXIS);
+                        System.out.println("Direction: " + direction);
+                        System.out.println("axisOfRotation: " + axisOfRotation);
+                        double angle = Math.acos(direction.normalize().dotProduct(Rotate.X_AXIS));
+                        System.out.println("angle: " + Math.toDegrees(angle));
+
+                        Rotate rotate = new Rotate(-Math.toDegrees(angle), axisOfRotation);
+
+                        final Translate move_base = new Translate(base.getX(), base.getY(), base.getZ());
+                        cone.getTransforms().addAll(move_base, rotate);
+
+                        struct.getChildren().add(cone);
                     }
+                    else
+                        throw new Exception(UNRECOGNIZED_SHAPE_TYPE_ERROR + "'" + type + "'");
                 }
             }
 
             return struct;
         }
+    }
+
+    private static PhongMaterial getMaterial(final Scanner scanner)
+    {
+        final int r = scanner.nextInt();
+        final int g = scanner.nextInt();
+        final int b = scanner.nextInt();
+        final double a = scanner.nextDouble();
+
+        final PhongMaterial material = new PhongMaterial();
+        material.setDiffuseColor(Color.rgb(r, g, b, a));
+        return material;
     }
 
     /**
@@ -412,7 +483,7 @@ public class Viewer3d extends StackPane
      */
     private static void installComment(final Node node, final String comment) throws Exception
     {
-        String content = checkAndParseComment(comment);
+        final String content = checkAndParseComment(comment);
 
         final Tooltip tt = new Tooltip(content);
         tt.setShowDelay(SHOW_QUICKLY);

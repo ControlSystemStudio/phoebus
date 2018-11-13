@@ -24,10 +24,10 @@ import javax.net.ssl.X509TrustManager;
 
 import org.phoebus.framework.util.IOUtils;
 
-/**
- * Resource utility class for the Viewer3dPane.
- * <p> Based on link org.csstudio.display.builder.model.util.ModelResourceUtil
- * @author Evan Smith
+/** Resource utility class for the Viewer3dPane.
+ *
+ *  <p> Based on link org.csstudio.display.builder.model.util.ModelResourceUtil
+ *  @author Evan Smith
  */
 @SuppressWarnings("nls")
 public class ResourceUtil
