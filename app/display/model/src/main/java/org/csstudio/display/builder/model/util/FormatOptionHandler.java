@@ -15,12 +15,14 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.FormatOption;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Display;
+import org.epics.vtype.TableHack;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
@@ -267,80 +269,79 @@ public class FormatOptionHandler
      */
     private static String formatTable(final VTable table)
     {
-//        final int rows = table.getRowCount(),  cols = table.getColumnCount();
-//        final String[][] cell = new String[rows+1][cols];
-//        final int[] width = new int[cols];
-//
-//        // Determine string for headers and each table cell
-//        for (int c=0; c<cols; ++c)
-//        {
-//            cell[0][c] = table.getColumnName(c);
-//
-//            // Table columns use ListNumber for ListDouble or an integer-typed ListNumber
-//            // Otherwise it's a List<?> for String, Instant, alarm, ...
-//            final Object col = table.getColumnData(c);
-//            if (col instanceof ListNumber)
-//            {
-//                final ListNumber list = (ListNumber) col;
-//                if (table.getColumnType(c).equals(Integer.TYPE))
-//                    for (int r=0; r<list.size(); ++r)
-//                        cell[1+r][c] = Integer.toString(list.getInt(r));
-//                else
-//                    for (int r=0; r<list.size(); ++r)
-//                        cell[1+r][c] = Double.toString(list.getDouble(r));
-//                for (int r=list.size(); r<rows; ++r)
-//                    cell[1+r][c] = "";
-//            }
-//            else
-//            {
-//                final List<?> list = (List<?>) col;
-//                for (int r=0; r<list.size(); ++r)
-//                    cell[1+r][c] = Objects.toString(list.get(r)); // handle null
-//                for (int r=list.size(); r<rows; ++r)
-//                    cell[1+r][c] = "";
-//            }
-//
-//            // Determine maximum width of all cells in this column
-//            for (int r=0; r<rows+1; ++r)
-//                width[c] = Math.max(width[c], cell[r][c].length());
-//        }
-//
-//        // Format cells into one big string
-//        final StringBuilder buf = new StringBuilder();
-//        if (rows == 1)
-//        {   // Single-row
-//            for (int c=0; c<cols; ++c)
-//            {
-//                if (c > 0)
-//                    buf.append(", ");
-//                buf.append(cell[0][c]);
-//                buf.append(": ");
-//                buf.append(cell[1][c]);
-//            }
-//        }
-//        else
-//        {   // Table header followed by rows
-//            for (int c=0; c<cols; ++c)
-//            {
-//                if (c > 0)
-//                    buf.append(' ');
-//                buf.append(pad(cell[0][c], width[c]));
-//            }
-//            for (int r=1; r<rows+1; ++r)
-//            {
-//                buf.append('\n');
-//                for (int c=0; c<cols; ++c)
-//                {
-//                    if (c > 0)
-//                        buf.append(' ');
-//                    buf.append(pad(cell[r][c], width[c]));
-//                }
-//            }
-//        }
-//
-//        return buf.toString();
-        // TODO Update when VTable is usable
-        return "VTable 7.0.2 doesn't want you to see the data";
+        final int rows = TableHack.getRowCount(table),     // table.getRowCount(),
+                  cols = TableHack.getColumnCount(table);  // table.getColumnCount();
+        final String[][] cell = new String[rows+1][cols];
+        final int[] width = new int[cols];
+
+        // Determine string for headers and each table cell
+        for (int c=0; c<cols; ++c)
+        {
+            cell[0][c] = TableHack.getColumnName(table, c); // table.getColumnName(c);
+
+            // Table columns use ListNumber for ListDouble or an integer-typed ListNumber
+            // Otherwise it's a List<?> for String, Instant, alarm, ...
+            final Object col = TableHack.getColumnData(table, c); // table.getColumnData(c);
+            if (col instanceof ListNumber)
+            {
+                final ListNumber list = (ListNumber) col;
+                if (/* table.getColumnType(c) */ TableHack.getColumnType(table, c).equals(Integer.TYPE))
+                    for (int r=0; r<list.size(); ++r)
+                        cell[1+r][c] = Integer.toString(list.getInt(r));
+                else
+                    for (int r=0; r<list.size(); ++r)
+                        cell[1+r][c] = Double.toString(list.getDouble(r));
+                for (int r=list.size(); r<rows; ++r)
+                    cell[1+r][c] = "";
+            }
+            else
+            {
+                final List<?> list = (List<?>) col;
+                for (int r=0; r<list.size(); ++r)
+                    cell[1+r][c] = Objects.toString(list.get(r)); // handle null
+                for (int r=list.size(); r<rows; ++r)
+                    cell[1+r][c] = "";
+            }
+
+            // Determine maximum width of all cells in this column
+            for (int r=0; r<rows+1; ++r)
+                width[c] = Math.max(width[c], cell[r][c].length());
+        }
+
+        // Format cells into one big string
+        final StringBuilder buf = new StringBuilder();
+        if (rows == 1)
+        {   // Single-row
+            for (int c=0; c<cols; ++c)
+            {
+                if (c > 0)
+                    buf.append(", ");
+                buf.append(cell[0][c]);
+                buf.append(": ");
+                buf.append(cell[1][c]);
+            }
+        }
+        else
+        {   // Table header followed by rows
+            for (int c=0; c<cols; ++c)
+            {
+                if (c > 0)
+                    buf.append(' ');
+                buf.append(pad(cell[0][c], width[c]));
+            }
+            for (int r=1; r<rows+1; ++r)
+            {
+                buf.append('\n');
+                for (int c=0; c<cols; ++c)
+                {
+                    if (c > 0)
+                        buf.append(' ');
+                    buf.append(pad(cell[r][c], width[c]));
+                }
+            }
+        }
+
+        return buf.toString();
     }
 
     /** @param text Text

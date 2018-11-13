@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.properties.FormatOption;
 import org.csstudio.display.builder.model.util.FormatOptionHandler;
@@ -20,11 +22,13 @@ import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListNumber;
 import org.epics.util.array.UnsafeUnwrapper;
 import org.epics.util.array.UnsafeUnwrapper.Array;
+import org.epics.vtype.TableHack;
 import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
@@ -102,16 +106,15 @@ public class ValueUtil
             final List<String> labels = ((VEnum) value).getDisplay().getChoices();
             return labels.toArray(new String[labels.size()]);
         }
-        // TODO Fix when VTable again usable
-//        if (value instanceof VTable)
-//        {
-//            final VTable table = (VTable) value;
-//            final int num = table.getColumnCount();
-//            final String[] headers = new String[num];
-//            for (int i=0; i<num; ++i)
-//                headers[i] = table.getColumnName(i);
-//            return headers;
-//        }
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            final int num = TableHack.getColumnCount(table);    // table.getColumnCount();
+            final String[] headers = new String[num];
+            for (int i=0; i<num; ++i)
+                headers[i] = TableHack.getColumnName(table, i); // table.getColumnName(i);
+            return headers;
+        }
         return new String[0];
     }
 
@@ -225,46 +228,44 @@ public class ValueUtil
     @SuppressWarnings("rawtypes")
     public static List<List<Object>> getTable(final VType value)
     {
-//        final List<List<Object>> data = new ArrayList<>();
-//        if (value instanceof VTable)
-//        {
-//            final VTable table = (VTable) value;
-//            final int rows = table.getRowCount();
-//            final int cols = table.getColumnCount();
-//            // Extract 2D string matrix for data
-//            for (int r=0; r<rows; ++r)
-//            {
-//                final List<Object> row = new ArrayList<>(cols);
-//                for (int c=0; c<cols; ++c)
-//                {
-//                    final Object col_data = table.getColumnData(c);
-//                    if (col_data instanceof List)
-//                        row.add( Objects.toString(((List)col_data).get(r)) );
-//                    else if (col_data instanceof ListDouble)
-//                        row.add( ((ListDouble)col_data).getDouble(r) );
-//                    else if (col_data instanceof ListNumber)
-//                        row.add( ((ListNumber)col_data).getLong(r) );
-//                    else
-//                        row.add( Objects.toString(col_data) );
-//                }
-//                data.add(row);
-//            }
-//        }
-//        else if (value instanceof VNumberArray)
-//        {
-//            final ListNumber numbers = ((VNumberArray) value).getData();
-//            final int num = numbers.size();
-//            for (int i=0; i<num; ++i)
-//                data.add(Arrays.asList(numbers.getDouble(i)));
-//        }
-//        else if (value instanceof VNumber)
-//            data.add(Arrays.asList( ((VNumber)value).getValue() ));
-//        else
-//            data.add(Arrays.asList( Objects.toString(value) ));
-//
-//        return data;
-        // TODO Fix table
-        throw new IllegalStateException("VTable 7.0.2 is useless");
+        final List<List<Object>> data = new ArrayList<>();
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            final int rows = TableHack.getRowCount(table);    // table.getRowCount();
+            final int cols = TableHack.getColumnCount(table); // table.getColumnCount();
+            // Extract 2D string matrix for data
+            for (int r=0; r<rows; ++r)
+            {
+                final List<Object> row = new ArrayList<>(cols);
+                for (int c=0; c<cols; ++c)
+                {
+                    final Object col_data = TableHack.getColumnData(table,  c); // table.getColumnData(c);
+                    if (col_data instanceof List)
+                        row.add( Objects.toString(((List)col_data).get(r)) );
+                    else if (col_data instanceof ListDouble)
+                        row.add( ((ListDouble)col_data).getDouble(r) );
+                    else if (col_data instanceof ListNumber)
+                        row.add( ((ListNumber)col_data).getLong(r) );
+                    else
+                        row.add( Objects.toString(col_data) );
+                }
+                data.add(row);
+            }
+        }
+        else if (value instanceof VNumberArray)
+        {
+            final ListNumber numbers = ((VNumberArray) value).getData();
+            final int num = numbers.size();
+            for (int i=0; i<num; ++i)
+                data.add(Arrays.asList(numbers.getDouble(i)));
+        }
+        else if (value instanceof VNumber)
+            data.add(Arrays.asList( ((VNumber)value).getValue() ));
+        else
+            data.add(Arrays.asList( Objects.toString(value) ));
+
+        return data;
     }
 
     /** Get data from a structured value by name.
@@ -295,39 +296,39 @@ public class ValueUtil
      */
     public static List<List<Object>> getStructure(final VType value, final String name)
     {
-        // TODO Fix table
-        throw new IllegalStateException("VTable 7.0.2 is useless");
-//        final List<List<Object>> data = new ArrayList<>();
-//        if (name == null)
-//            throw new IllegalArgumentException("Name cannot be null");
-//        if (value instanceof VTable)
-//        {
-//            final VTable table = (VTable) value;
-//            final Pattern p = Pattern.compile(name + "(/.*)?");
-//            for (int c = 0; c < table.getColumnCount(); ++c)
-//            {
-//                final String colName = table.getColumnName(c);
-//                final Matcher m = p.matcher(colName);
-//                m.find();
-//                final int st = m.start();
-//                if (st == 0 || colName.charAt(st-1) == '/')
-//                {    //Once the first matching column (scalar field) is found, only use fields
-//                    //with the same prefix (parent). The prevents matching multiple, separate
-//                    //structures to ambiguous names.
-//                    String prefix = colName.substring(0, st+name.length());
-//                    do
-//                    {
-//                        final List<Object> row = new ArrayList<>();
-//                        for (int r = 0; r < table.getRowCount(); ++r)
-//                            row.add(getColumnCell(table.getColumnData(c), r));
-//                        data.add(row);
-//                    }
-//                    while (++c < table.getColumnCount() && table.getColumnName(c).startsWith(prefix));
-//                    return data;
-//                }
-//            }
-//        }
-//        return data;
+        final List<List<Object>> data = new ArrayList<>();
+        if (name == null)
+            throw new IllegalArgumentException("Name cannot be null");
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            final Pattern p = Pattern.compile(name + "(/.*)?");
+            for (int c = 0; c < TableHack.getColumnCount(table) /* table.getColumnCount() */; ++c)
+            {
+                final String colName = TableHack.getColumnName(table, c); // table.getColumnName(c);
+                final Matcher m = p.matcher(colName);
+                m.find();
+                final int st = m.start();
+                if (st == 0 || colName.charAt(st-1) == '/')
+                {
+                    // Once the first matching column (scalar field) is found, only use fields
+                    // with the same prefix (parent). The prevents matching multiple, separate
+                    // structures to ambiguous names.
+                    String prefix = colName.substring(0, st+name.length());
+                    do
+                    {
+                        final List<Object> row = new ArrayList<>();
+                        for (int r = 0; r < TableHack.getRowCount(table)/* table.getRowCount() */; ++r)
+                            row.add(getColumnCell(TableHack.getColumnData(table, c)/* table.getColumnData(c) */, r));
+                        data.add(row);
+                    }
+                    while (++c < TableHack.getColumnCount(table) /* table.getColumnCount() */ &&
+                           TableHack.getColumnName(table, c).startsWith(prefix)     /* table.getColumnName(c) */);
+                    return data;
+                }
+            }
+        }
+        return data;
     }
 
     /** Get a table cell from PV
@@ -341,19 +342,17 @@ public class ValueUtil
      */
     public static Object getTableCell(final VType value, final int row, final int column)
     {
-        // TODO Fix table
-        throw new IllegalStateException("VTable 7.0.2 is useless");
-//        if (value instanceof VTable)
-//        {
-//            final VTable table = (VTable) value;
-//            if (column >= table.getColumnCount() ||
-//                row >= table.getRowCount())
-//                return null;
-//            final Object col_data = table.getColumnData(column);
-//            return getColumnCell(col_data, row);
-//        }
-//        else
-//            return Objects.toString(value);
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            if (column >= TableHack.getColumnCount(table) /* table.getColumnCount() */ ||
+                row >=    TableHack.getRowCount(table)    /* table.getRowCount() */)
+                return null;
+            final Object col_data = TableHack.getColumnData(table, column); // table.getColumnData(column);
+            return getColumnCell(col_data, row);
+        }
+        else
+            return Objects.toString(value);
     }
 
     @SuppressWarnings("rawtypes")
@@ -396,22 +395,21 @@ public class ValueUtil
      */
     public static List<Object> getStructureElement(final VType value, final String name)
     {
-        // TODO Fix table
-//        if (value instanceof VTable)
-//        {
-//            final VTable table = (VTable) value;
-//            final List<Object> result = new ArrayList<>();
-//            for (int c = 0; c < table.getColumnCount(); ++c)
-//            {
-//                if (isMatchColName(table.getColumnName(c), name))
-//                {
-//                    for (int r = 0; r < table.getRowCount(); ++r)
-//                        result.add(getColumnCell(table.getColumnData(c), r));
-//                    return result;
-//                }
-//            }
-//            return result;
-//        }
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            final List<Object> result = new ArrayList<>();
+            for (int c = 0; c < TableHack.getColumnCount(table)/* table.getColumnCount() */; ++c)
+            {
+                if (isMatchColName(TableHack.getColumnName(table, c)/* table.getColumnName(c) */, name))
+                {
+                    for (int r = 0; r < TableHack.getRowCount(table)/* table.getRowCount() */; ++r)
+                        result.add(getColumnCell(TableHack.getColumnData(table, c)/*table.getColumnData(c)*/, r));
+                    return result;
+                }
+            }
+            return result;
+        }
         return Arrays.asList(Objects.toString(value));
     }
 
@@ -426,18 +424,17 @@ public class ValueUtil
      */
     public static Object getStructureElement(final VType value, final String name, final int index)
     {
-        // TODO Fix table
-//        if (value instanceof VTable)
-//        {
-//            final VTable table = (VTable) value;
-//            if (index > table.getRowCount())
-//                return null;
-//            for (int i = 0; i < table.getColumnCount(); ++i)
-//            {
-//                if (isMatchColName(table.getColumnName(i), name))
-//                    return getColumnCell(table.getColumnData(i), index);
-//            }
-//        }
+        if (value instanceof VTable)
+        {
+            final VTable table = (VTable) value;
+            if (index > TableHack.getRowCount(table)/*table.getRowCount()*/)
+                return null;
+            for (int i = 0; i < TableHack.getColumnCount(table)/*table.getColumnCount()*/; ++i)
+            {
+                if (isMatchColName(TableHack.getColumnName(table, i)/*table.getColumnName(i)*/, name))
+                    return getColumnCell(TableHack.getColumnData(table, i)/*table.getColumnData(i)*/, index);
+            }
+        }
         return Objects.toString(value);
     }
 

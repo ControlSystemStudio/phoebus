@@ -47,6 +47,9 @@ import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.epics.util.array.ListDouble;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.TableHack;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -556,35 +559,32 @@ public class TableWidget extends VisibleWidget
         }
         else if (the_value instanceof VTable)
         {
-
-            // TODO VTable 7.0.2 has removed 'public' from get*() ?!?!
-//            final VTable table = (VTable) the_value;
-//            final int rows = table.getRowCount();
-//            final int cols = table.getColumnCount();
-//            // Extract 2D string matrix for data
-//            final List<List<String>> data = new ArrayList<>(rows);
-//            for (int r=0; r<rows; ++r)
-//            {
-//                final List<String> row = new ArrayList<>(cols);
-//                for (int c=0; c<cols; ++c)
-//                {
-//                    final Object col_data = table.getColumnData(c);
-//                    if (col_data instanceof List)
-//                        row.add( Objects.toString(((List)col_data).get(r)) );
-//                    else if (col_data instanceof ListDouble)
-//                        row.add( Double.toString(((ListDouble)col_data).getDouble(r)) );
-//                    else if (col_data instanceof ListNumber)
-//                        row.add( Long.toString(((ListNumber)col_data).getLong(r)) );
-//                    else
-//                        row.add( Objects.toString(col_data) );
-//                }
-//                data.add(row);
-//            }
-            // return data;
+            final VTable table = (VTable) the_value;
+            final int rows = TableHack.getRowCount(table); // table.getRowCount();
+            final int cols = TableHack.getColumnCount(table); // table.getColumnCount();
+            // Extract 2D string matrix for data
+            final List<List<String>> data = new ArrayList<>(rows);
+            for (int r=0; r<rows; ++r)
+            {
+                final List<String> row = new ArrayList<>(cols);
+                for (int c=0; c<cols; ++c)
+                {
+                    final Object col_data = TableHack.getColumnData(table, c); // table.getColumnData(c);
+                    if (col_data instanceof List)
+                        row.add( Objects.toString(((List)col_data).get(r)) );
+                    else if (col_data instanceof ListDouble)
+                        row.add( Double.toString(((ListDouble)col_data).getDouble(r)) );
+                    else if (col_data instanceof ListNumber)
+                        row.add( Long.toString(((ListNumber)col_data).getLong(r)) );
+                    else
+                        row.add( Objects.toString(col_data) );
+                }
+                data.add(row);
+            }
+             return data;
         }
-//        else
-//            return Arrays.asList(Arrays.asList(Objects.toString(the_value)));
-        return null;
+        else
+            return Arrays.asList(Arrays.asList(Objects.toString(the_value)));
     }
 
     /** @return Runtime 'cell_colors' */

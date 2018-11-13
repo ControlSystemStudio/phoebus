@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget.ColumnProperty;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.TableHack;
 import org.epics.vtype.VTable;
 import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.javafx.StringTableListener;
@@ -243,25 +244,23 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
         }
         else
         {
-// TODO Fix when VTable 7.0.2 no longer write-only
-
-//            // new_value == model_widget.runtimeValue().getValue() might be
-//            // a List<List<String>> or a VTable.
-//            // getValue() fetches either one as deep-copied List<List<String>>
-//            data = model_widget.getValue();
-//            if (new_value instanceof VTable)
-//            {   // Use table's column headers
-//                final VTable table = (VTable) new_value;
-//                final int cols = table.getColumnCount();
-//                final List<String> new_headers = new ArrayList<>(cols);
-//                for (int c=0; c<cols; ++c)
-//                    new_headers.add(table.getColumnName(c));
-//                if (! new_headers.equals(headers))
-//                {
-//                    headers = new_headers;
-//                    dirty_columns.mark();
-//                }
-//            }
+            // new_value == model_widget.runtimeValue().getValue() might be
+            // a List<List<String>> or a VTable.
+            // getValue() fetches either one as deep-copied List<List<String>>
+            data = model_widget.getValue();
+            if (new_value instanceof VTable)
+            {   // Use table's column headers
+                final VTable table = (VTable) new_value;
+                final int cols = TableHack.getColumnCount(table); // table.getColumnCount();
+                final List<String> new_headers = new ArrayList<>(cols);
+                for (int c=0; c<cols; ++c)
+                    new_headers.add(TableHack.getColumnName(table, c));  // table.getColumnName(c));
+                if (! new_headers.equals(headers))
+                {
+                    headers = new_headers;
+                    dirty_columns.mark();
+                }
+            }
         }
         dirty_data.mark();
         toolkit.scheduleUpdate(this);

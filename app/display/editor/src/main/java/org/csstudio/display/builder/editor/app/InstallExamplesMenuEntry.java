@@ -112,10 +112,16 @@ public class InstallExamplesMenuEntry implements MenuEntry
             monitor.beginTask("Install " + examples);
             final URL resource = DisplayModel.class.getResource("/examples");
             if (resource.getProtocol().equals("jar"))
-            {   // Open JAR as filesystem
-                final Path jar = Paths.get(resource.getPath()
-                                                   .replace("file:", "")
-                                                   .replaceFirst("\\!/.*", ""));
+            {
+                // Resource is inside a jar:  file:/C:/Users/.../app-display-model.jar!/examples
+                logger.log(Level.INFO, "Install from " + resource.getPath() + " into " + examples);
+
+                // Strip "!/examples" to get just the jar
+                final String path = resource.getPath().replaceFirst("\\!/.*", "");
+                logger.log(Level.INFO, "Jar file: " + path);
+
+                // Go via URI and file to handle "file:/C:.." on windows
+                final Path jar = new File(URI.create(path)).toPath();
                 logger.log(Level.INFO, "Install " + jar + " into " + examples);
                 try
                 (
