@@ -78,6 +78,8 @@ public class PolylineRepresentation extends JFXBaseRepresentation<Group, Polylin
     @Override
     protected void registerListeners()
     {
+        if (! toolkit.isEditMode())
+            attachTooltip();
         // Polyline can't use the default x/y handling from super.registerListeners();
         model_widget.propVisible().addUntypedPropertyListener(this::displayChanged);
         model_widget.propX().addUntypedPropertyListener(this::displayChanged);

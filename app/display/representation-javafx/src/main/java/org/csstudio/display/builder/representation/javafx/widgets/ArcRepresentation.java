@@ -41,6 +41,8 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
     @Override
     protected void registerListeners()
     {
+        if (! toolkit.isEditMode())
+            attachTooltip();
         // JFX Arc is based on center, not top-left corner,
         // so can't use the default from super.registerListeners();
         model_widget.propVisible().addUntypedPropertyListener(this::positionChanged);
