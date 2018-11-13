@@ -56,10 +56,10 @@ public class ApplicationService
         }
 
         // External applications, defined in preferences
-        // TODO Use preference
-
         for (String definition : WorkbenchPreferences.external_apps.split(";"))
         {
+            if (definition.isEmpty())
+                continue;
             final String[] items = definition.split(",");
             if (items.length != 3)
             {
