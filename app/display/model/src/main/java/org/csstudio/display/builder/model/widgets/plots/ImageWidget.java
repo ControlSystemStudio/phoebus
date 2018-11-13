@@ -48,6 +48,7 @@ import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.PVWidget;
+import org.epics.vtype.VImageType;
 import org.epics.vtype.VType;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -73,12 +74,23 @@ public class ImageWidget extends PVWidget
         }
     };
 
-    private static final WidgetPropertyDescriptor<InterpolationType> interpolationType =
+    private static final WidgetPropertyDescriptor<InterpolationType> propInterpolationType =
             new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "interpolation", Messages.WidgetProperties_Interpolation)
     {
         @Override
         public WidgetProperty<InterpolationType> createProperty(final Widget widget,
                                                                 final InterpolationType default_value)
+        {
+            return new EnumWidgetProperty<>(this, widget, default_value);
+        }
+    };
+
+    private static final WidgetPropertyDescriptor<VImageType> propColorMode =
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "color_mode", Messages.WidgetProperties_ColorMode)
+    {
+        @Override
+        public WidgetProperty<VImageType> createProperty(final Widget widget,
+                                                         final VImageType default_value)
         {
             return new EnumWidgetProperty<>(this, widget, default_value);
         }
@@ -351,6 +363,7 @@ public class ImageWidget extends PVWidget
     private volatile AxisWidgetProperty x_axis, y_axis;
     private volatile WidgetProperty<Integer> data_width, data_height;
     private volatile WidgetProperty<InterpolationType> data_interpolation;
+    private volatile WidgetProperty<VImageType> data_color_mode;
     private volatile WidgetProperty<Boolean> data_unsigned;
     private volatile WidgetProperty<Boolean> data_autoscale;
     private volatile WidgetProperty<Boolean> data_logscale;
@@ -379,7 +392,8 @@ public class ImageWidget extends PVWidget
         properties.add(y_axis = new YAxisWidgetProperty(this));
         properties.add(data_width = propDataWidth.createProperty(this, 100));
         properties.add(data_height = propDataHeight.createProperty(this, 100));
-        properties.add(data_interpolation = interpolationType.createProperty(this, InterpolationType.AUTOMATIC));
+        properties.add(data_interpolation = propInterpolationType.createProperty(this, InterpolationType.AUTOMATIC));
+        properties.add(data_color_mode = propColorMode.createProperty(this, VImageType.TYPE_MONO));
         properties.add(data_unsigned = propDataUnsigned.createProperty(this, false));
         properties.add(data_autoscale = PlotWidgetProperties.propAutoscale.createProperty(this, true));
         properties.add(data_logscale = PlotWidgetProperties.propLogscale.createProperty(this, false));
@@ -460,6 +474,12 @@ public class ImageWidget extends PVWidget
     public WidgetProperty<InterpolationType> propDataInterpolation()
     {
         return data_interpolation;
+    }
+
+    /** @return 'color_mode' property */
+    public WidgetProperty<VImageType> propDataColorMode()
+    {
+        return data_color_mode;
     }
 
     /** @return 'unsigned' property */
