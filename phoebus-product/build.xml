@@ -56,32 +56,7 @@
   </target>
 
   <!-- Create ZIP of the product.jar, lib/, [doc/,] phoebus.sh launcher -->
-  <target name="dist" depends="product" description="Pack for distribution">
-    <!-- Check if target platform is for linux, mac, win -->
-    <fileset dir="../dependencies/phoebus-target/target/lib" id="jfxfiles">
-      <include name="javafx-base-*-linux.jar"/>
-      <include name="javafx-base-*-mac.jar"/>
-      <include name="javafx-base-*-win.jar"/>
-    </fileset>
-    
-    <echo message="JFX 'base' Files: ${toString:jfxfiles}"/>
-    
-    <condition property="jfxarch" value="linux">
-      <contains string="${toString:jfxfiles}" substring="-linux"/>
-    </condition>
-    <condition property="jfxarch" value="mac">
-      <contains string="${toString:jfxfiles}" substring="-mac"/>
-    </condition>
-    <condition property="jfxarch" value="win">
-      <contains string="${toString:jfxfiles}" substring="-win"/>
-    </condition>
-
-    <!-- Simpler, but requires full name, cannot use 'javafx-base-*-linux.jar'
-    <available file="../dependencies/phoebus-target/target/lib/javafx-base-11-linux.jar" property="jfxarch" value="linux" />
-    <available file="../dependencies/phoebus-target/target/lib/javafx-base-11-mac.jar"   property="jfxarch" value="mac" />
-    <available file="../dependencies/phoebus-target/target/lib/javafx-base-11-win.jar"   property="jfxarch" value="win" />
-    -->
-    
+  <target name="dist" depends="jfxarch, product" description="Pack for distribution">
     <zip destfile="${build}/phoebus-${version}-${jfxarch}.zip">
       <zipfileset dir="${build}" includes="**/*.jar" prefix="phoebus-${version}"/>
       <zipfileset dir="." includes="phoebus.sh" fullpath="phoebus-${version}/phoebus.sh" filemode="755"/>
