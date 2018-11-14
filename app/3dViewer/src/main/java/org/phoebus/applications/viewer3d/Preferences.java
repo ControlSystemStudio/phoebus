@@ -17,9 +17,11 @@ public class Preferences
 {
     public static String READ_TIMEOUT = "read_timeout";
     public static String DEFAULT_DIR = "default_dir";
+    public static String CONE_FACES = "cone_faces";
 
     public final static int read_timeout;
     public final static String default_dir;
+    public final static int cone_faces;
 
     static
     {
@@ -27,5 +29,6 @@ public class Preferences
 
         read_timeout = prefs.getInt(READ_TIMEOUT);
         default_dir = PreferencesReader.replaceProperties(prefs.get(DEFAULT_DIR));
+        cone_faces = prefs.getInt(CONE_FACES);
     }
 }

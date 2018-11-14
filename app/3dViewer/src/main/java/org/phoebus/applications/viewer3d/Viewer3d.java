@@ -51,9 +51,6 @@ import javafx.util.Duration;
 @SuppressWarnings("nls")
 public class Viewer3d extends Pane
 {
-    /** Faces used to approximate a cone */
-    private static final int CONE_FACES = 8;
-
     /** Reduced tool tip delay (default: 1 second) */
     private static final Duration SHOW_QUICKLY = Duration.millis(100);
 
@@ -362,9 +359,9 @@ public class Viewer3d extends Pane
                         // Point 0: Top
                         mesh.getPoints().setAll(H, 0, 0);
                         // Points around the base
-                        for (int i=0; i<CONE_FACES; ++i)
+                        for (int i=0; i<Preferences.cone_faces; ++i)
                         {
-                            final double angle = 2*Math.PI*i/CONE_FACES;
+                            final double angle = 2*Math.PI*i/Preferences.cone_faces;
                             mesh.getPoints().addAll(0, (float)(R*Math.cos(angle)), (float)(R*Math.sin(angle)));
                         }
 
@@ -388,11 +385,11 @@ public class Viewer3d extends Pane
                         // Faces that are viewed from behind tend to disappear.
 
                         // Faces from the top (0) to all the base edges
-                        for (int i=1; i<=CONE_FACES; ++i)
-                            mesh.getFaces().addAll(0,0,  i,0, i==CONE_FACES?1:(i+1),0);
+                        for (int i=1; i<=Preferences.cone_faces; ++i)
+                            mesh.getFaces().addAll(0,0,  i,0, i==Preferences.cone_faces?1:(i+1),0);
 
                         // Fill the base
-                        for (int i=CONE_FACES; i>=3; --i)
+                        for (int i=Preferences.cone_faces; i>=3; --i)
                             mesh.getFaces().addAll(i,0,  i-1,0,  1,0);
 
                         final MeshView cone = new MeshView(mesh);
