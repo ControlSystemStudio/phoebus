@@ -81,7 +81,7 @@ public class Viewer3dPane extends VBox
 
         HBox toolbar = new HBox();
 
-        viewer = new Viewer3d(null);
+        viewer = new Viewer3d(false);
 
         fileChooser.getExtensionFilters().add(extFilter);
         toolbar.getChildren().addAll(fileButton, refreshButton, resetViewButton, textField, clearViewerButton);

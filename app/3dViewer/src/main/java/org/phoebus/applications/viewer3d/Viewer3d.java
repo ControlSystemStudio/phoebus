@@ -13,10 +13,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Scanner;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
@@ -28,8 +26,6 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -58,7 +54,6 @@ public class Viewer3d extends StackPane
 {
     /** Faces used to approximate a cone */
     private static final int CONE_FACES = 8;
-
 
     /** Reduced tool tip delay (default: 1 second) */
     private static final Duration SHOW_QUICKLY = Duration.millis(100);
@@ -106,17 +101,12 @@ public class Viewer3d extends StackPane
     private double mouseDeltaX;
     private double mouseDeltaY;
 
-    private final Supplier<Boolean> isDisabled;
 
-    public Viewer3d (final Supplier<Boolean> isDisabled) throws Exception
+    /** @param disabled Disable mouse interaction?
+     *  @throws Exception on error
+     */
+    public Viewer3d (final boolean disabled) throws Exception
     {
-        super();
-
-        if (null == isDisabled)
-            this.isDisabled = () -> false;
-        else
-            this.isDisabled = isDisabled;
-
         root = new Group();
         view = new Xform();
         axes = buildAxes();
@@ -129,11 +119,6 @@ public class Viewer3d extends StackPane
 
         buildCamera();
 
-        HBox legend = new HBox();
-        Label xLabel = new Label("  X Axis  "),
-              yLabel = new Label("  Y Axis  "),
-              zLabel = new Label("  Z Axis  ");
-
         view.getChildren().add(axes);
 
         root.getChildren().add(view);
@@ -144,30 +129,31 @@ public class Viewer3d extends StackPane
         scene.heightProperty().bind(heightProperty());
         scene.widthProperty().bind(widthProperty());
 
-        xLabel.setBackground(new Background(new BackgroundFill(Color.RED,   new CornerRadii(5), null)));
-        yLabel.setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(5), null)));
-        zLabel.setBackground(new Background(new BackgroundFill(Color.BLUE,  new CornerRadii(5), null)));
-
-        xLabel.setTextFill(Color.WHITE);
-        yLabel.setTextFill(Color.WHITE);
-        zLabel.setTextFill(Color.WHITE);
-
-        legend.getChildren().addAll(xLabel, yLabel, zLabel);
-        legend.setSpacing(10);
-        legend.setPadding(new Insets(0, 10, 10, 10));
-        legend.setMaxHeight(xLabel.getHeight());
-        legend.setMaxWidth(220);
-
+        final HBox legend = new HBox(10, createAxisLabel("X Axis", Color.RED),
+                                         createAxisLabel("Y Axis", Color.GREEN),
+                                         createAxisLabel("Z Axis", Color.BLUE));
         StackPane.setAlignment(legend, Pos.TOP_LEFT);
         StackPane.setMargin(legend, new Insets(10));
 
         scene.setFill(Color.GRAY);
 
-        handleMouse(this);
+        if (! disabled)
+            handleMouse(this);
 
         scene.setCamera(camera);
 
         getChildren().addAll(scene, legend);
+    }
+
+    private static final Insets LABEL_PADDING = new Insets(3, 10, 3, 10);
+
+    private Label createAxisLabel(final String text, final Color color)
+    {
+        final Label l = new Label(text);
+        l.setPadding(LABEL_PADDING);
+        l.setBackground(new Background(new BackgroundFill(color,   new CornerRadii(5), null)));
+        l.setTextFill(Color.WHITE);
+        return l;
     }
 
     private void buildCamera()
@@ -270,16 +256,7 @@ public class Viewer3d extends StackPane
                     scanner.useDelimiter("\\s*,\\s*");
 
                     if (type.equals("background"))
-                    {
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
-
-                        Color background = Color.rgb(r, g, b, a);
-
-                        struct.setBackground(background);
-                    }
+                        struct.setBackground(getColor(scanner));
                     else if (type.equals("sphere"))
                     {
                         double x = scanner.nextDouble(); // X coord
@@ -437,14 +414,14 @@ public class Viewer3d extends StackPane
                         if (scanner.hasNext())
                          installComment(cone, scanner.next());
 
-                        Point3D direction = tip.subtract(base);
-                        Point3D axisOfRotation = direction.crossProduct(Rotate.X_AXIS);
-                        System.out.println("Direction: " + direction);
-                        System.out.println("axisOfRotation: " + axisOfRotation);
+                        final Point3D direction = tip.subtract(base);
+                        final Point3D axisOfRotation = direction.crossProduct(Rotate.X_AXIS);
                         double angle = Math.acos(direction.normalize().dotProduct(Rotate.X_AXIS));
-                        System.out.println("angle: " + Math.toDegrees(angle));
+                        // System.out.println("Direction: " + direction);
+                        // System.out.println("axisOfRotation: " + axisOfRotation);
+                        // System.out.println("angle: " + Math.toDegrees(angle));
 
-                        Rotate rotate = new Rotate(-Math.toDegrees(angle), axisOfRotation);
+                        final Rotate rotate = new Rotate(-Math.toDegrees(angle), axisOfRotation);
 
                         final Translate move_base = new Translate(base.getX(), base.getY(), base.getZ());
                         cone.getTransforms().addAll(move_base, rotate);
@@ -460,15 +437,19 @@ public class Viewer3d extends StackPane
         }
     }
 
-    private static PhongMaterial getMaterial(final Scanner scanner)
+    private static Color getColor(final Scanner scanner)
     {
         final int r = scanner.nextInt();
         final int g = scanner.nextInt();
         final int b = scanner.nextInt();
         final double a = scanner.nextDouble();
+        return Color.rgb(r, g, b, a);
+    }
 
+    private static PhongMaterial getMaterial(final Scanner scanner)
+    {
         final PhongMaterial material = new PhongMaterial();
-        material.setDiffuseColor(Color.rgb(r, g, b, a));
+        material.setDiffuseColor(getColor(scanner));
         return material;
     }
 
@@ -506,7 +487,7 @@ public class Viewer3d extends StackPane
         if (!comment.endsWith("\""))
             throw new Exception(MISSING_END_QUOTES_ERROR);
 
-        /* TODO Throw exception for unescaped quotes? */
+        // TODO Throw exception for unescaped quotes?
 
         String parsedComment = comment.substring(1, comment.length()-1).replaceAll("\\\"", "\"");
 
@@ -536,75 +517,47 @@ public class Viewer3d extends StackPane
      */
     private void handleMouse(Node scene)
     {
-        scene.setOnMousePressed(new EventHandler<MouseEvent>()
+        scene.setOnMousePressed(me ->
         {
-            @Override
-            public void handle(MouseEvent me)
+            mousePosX = me.getSceneX();
+            mousePosY = me.getSceneY();
+            mouseOldX = me.getSceneX();
+            mouseOldY = me.getSceneY();
+        });
+
+        scene.setOnMouseDragged(me ->
+        {
+            mouseOldX = mousePosX;
+            mouseOldY = mousePosY;
+            mousePosX = me.getSceneX();
+            mousePosY = me.getSceneY();
+            mouseDeltaX = (mousePosX - mouseOldX);
+            mouseDeltaY = (mousePosY - mouseOldY);
+
+            double modifier = 1.0;
+
+            if (me.isControlDown())
+                modifier = CONTROL_MULTIPLIER;
+            if (me.isShiftDown())
+                modifier = SHIFT_MULTIPLIER;
+            if (me.isPrimaryButtonDown())
             {
-                if (! isDisabled.get())
-                {
-                    mousePosX = me.getSceneX();
-                    mousePosY = me.getSceneY();
-                    mouseOldX = me.getSceneX();
-                    mouseOldY = me.getSceneY();
-                }
+                cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED);
+                cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
+            }
+            else if (me.isMiddleButtonDown())
+            {
+               cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
+               cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
             }
         });
 
-        scene.setOnMouseDragged(new EventHandler<MouseEvent>()
+        scene.setOnScroll(se ->
         {
-            @Override
-            public void handle(MouseEvent me)
-            {
-                if (! isDisabled.get())
-                {
-                    mouseOldX = mousePosX;
-                    mouseOldY = mousePosY;
-                    mousePosX = me.getSceneX();
-                    mousePosY = me.getSceneY();
-                    mouseDeltaX = (mousePosX - mouseOldX);
-                    mouseDeltaY = (mousePosY - mouseOldY);
-
-                    double modifier = 1.0;
-
-                    if (me.isControlDown())
-                    {
-                        modifier = CONTROL_MULTIPLIER;
-                    }
-                    if (me.isShiftDown())
-                    {
-                        modifier = SHIFT_MULTIPLIER;
-                    }
-                    if (me.isPrimaryButtonDown())
-                    {
-                        cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED);
-                        cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
-                    }
-                    else if (me.isMiddleButtonDown())
-                    {
-                       cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
-                       cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
-                    }
-                }
-            }
-        });
-
-        scene.setOnScroll(new EventHandler<ScrollEvent>()
-        {
-            @Override
-            public void handle(ScrollEvent se)
-            {
-                if (! isDisabled.get())
-                {
-                    double modifier = 1.5;
-
-                    double oldZ = camera.getTranslateZ();
-
-                    double newZ = oldZ + modifier * se.getDeltaY();
-
-                    camera.setTranslateZ(newZ);
-                }
-           }
+            double modifier = 1.5;
+            double oldZ = camera.getTranslateZ();
+            double newZ = oldZ + modifier * se.getDeltaY();
+            camera.setTranslateZ(newZ);
         });
     }
 
