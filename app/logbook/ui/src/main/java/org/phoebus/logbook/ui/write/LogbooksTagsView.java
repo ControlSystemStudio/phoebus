@@ -40,10 +40,11 @@ import javafx.scene.paint.Color;
  * View for selecting log books and tags for a log entry.
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class LogbooksTagsView extends VBox
 {
     private final LogEntryModel model;
-    
+
     private static final Image tag_icon = ImageCache.getImage(LogbooksTagsView.class, "/icons/add_tag.png");
     private static final Image logbook_icon = ImageCache.getImage(LogbooksTagsView.class, "/icons/logbook-16.png");
     private static final Image down_icon = ImageCache.getImage(LogbooksTagsView.class, "/icons/down_triangle.png");
@@ -54,7 +55,7 @@ public class LogbooksTagsView extends VBox
     private final ContextMenu  logbookDropDown, tagDropDown;
     private final ToggleButton logbookSelector, tagSelector; // Opens context menu (dropDown).
     private final Button       addLogbook, addTag;
-    
+
     /**
      * Constructor.
      * @param model - Log Entry Application Model
@@ -62,30 +63,30 @@ public class LogbooksTagsView extends VBox
     public LogbooksTagsView(LogEntryModel model)
     {
         this.model = model;
-        
+
         logbookBox = new HBox();
         logbookLabel = new Label(Messages.Logbooks);
         logbookField = new TextField();
         logbookDropDown = new ContextMenu();
         logbookSelector = new ToggleButton(null, new ImageView(down_icon));
         addLogbook = new Button(null, new ImageView(logbook_icon));
-        
+
         tagBox = new HBox();
         tagLabel = new Label(Messages.Tags);
         tagField = new TextField();
         tagDropDown = new ContextMenu();
         tagSelector = new ToggleButton(null, new ImageView(down_icon));
         addTag = new Button(null, new ImageView(tag_icon));
-        
+
         setSpacing(10);
-        
+
         formatLogbooks();
         formatTags();
         initializeSelectors();
-        
+
         getChildren().addAll(logbookBox, tagBox);
     }
-    
+
     /** Format log books HBox */
     private void formatLogbooks()
     {
@@ -101,47 +102,47 @@ public class LogbooksTagsView extends VBox
             else
                 logbookLabel.setTextFill(Color.BLACK);
         });
-        
-        logbookSelector.setOnAction(actionEvent -> 
+
+        logbookSelector.setOnAction(actionEvent ->
         {
             if (logbookSelector.isSelected())
                 logbookDropDown.show(logbookField, Side.BOTTOM, 0, 0);
             else
                 logbookDropDown.hide();
         });
-        
+
         logbookDropDown.showingProperty().addListener((changeListener, oldVal, newVal) ->
         {
             if (newVal && tagSelector.isSelected())
                 tagSelector.setSelected(false);
         });
-        
+
         logbookSelector.focusedProperty().addListener((changeListener, oldVal, newVal) ->
         {
             if (!newVal && !tagDropDown.isShowing() && !logbookDropDown.isShowing())
                 logbookSelector.setSelected(false);
         });
-        
+
         logbookField.setEditable(false);
-       
+
         HBox.setHgrow(logbookField, Priority.ALWAYS);
-        
+
         addLogbook.setOnAction(event ->
         {
             ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), Messages.LogbooksTitle, model::getLogbooks, model::getSelectedLogbooks, model::addSelectedLogbook, model::removeSelectedLogbook);
-            
+
             Optional<Boolean> result = select.showAndWait();
             if (result.isPresent() && result.get())
                 setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
         });
-        
+
         logbookBox.getChildren().addAll(logbookLabel, logbookField, logbookSelector, addLogbook);
-        
+
 
         logbookBox.setSpacing(5);
         logbookBox.setAlignment(Pos.CENTER);
     }
-    
+
     /** Format tags HBox */
     private void formatTags()
     {
@@ -149,75 +150,75 @@ public class LogbooksTagsView extends VBox
         addTag.setTooltip(tooltip);
         tagSelector.setTooltip(tooltip);
         tagLabel.setPrefWidth(LogEntryDialog.labelWidth);
-        tagSelector.setOnAction(actionEvent -> 
+        tagSelector.setOnAction(actionEvent ->
         {
             if (tagSelector.isSelected())
                 tagDropDown.show(tagField, Side.BOTTOM, 0, 0);
             else
                 tagDropDown.hide();
         });
-        
+
         tagDropDown.showingProperty().addListener((changeListener, oldVal, newVal) ->
         {
             if (newVal && logbookSelector.isSelected())
                 logbookSelector.setSelected(false);
         });
-        
+
         tagSelector.focusedProperty().addListener((changeListener, oldVal, newVal) ->
         {
             if (!newVal && !tagDropDown.isShowing() && !logbookDropDown.isShowing())
                 tagSelector.setSelected(false);
         });
-        
+
         tagField.setEditable(false);
-       
+
         HBox.setHgrow(tagField, Priority.ALWAYS);
-        
+
         addTag.setOnAction(event ->
         {
             ListSelectionDialog select = new ListSelectionDialog(getScene().getRoot(), Messages.TagsTitle, model::getTags, model::getSelectedTags, model::addSelectedTag, model::removeSelectedTag);
-            
+
             Optional<Boolean> result = select.showAndWait();
             if (result.isPresent() && result.get())
                 setFieldText(tagDropDown, model.getSelectedTags(), tagField);
         });
-        
+
         tagBox.getChildren().addAll(tagLabel, tagField, tagSelector, addTag);
-        
+
         tagBox.setSpacing(5);
         tagBox.setAlignment(Pos.CENTER);
     }
-    
+
     /** Initialize the drop down context menus by adding listeners to their content lists. */
     private void initializeSelectors()
     {
-        Comparator<MenuItem> comp = (a, b) -> 
+        Comparator<MenuItem> comp = (a, b) ->
         {
             CheckBox checkA = (CheckBox)((CustomMenuItem) a).getContent();
             CheckBox checkB = (CheckBox)((CustomMenuItem) b).getContent();
 
             return checkA.getText().compareTo(checkB.getText());
         };
-        model.addLogbookListener((ListChangeListener.Change<? extends String> c) -> 
+        model.addLogbookListener((ListChangeListener.Change<? extends String> c) ->
         {
             if (c.next())
                 c.getAddedSubList().forEach(newLogbook -> addToLogbookDropDown(newLogbook));
             FXCollections.sort(logbookDropDown.getItems(), comp);
         });
 
-        model.addTagListener((ListChangeListener.Change<? extends String> c) -> 
+        model.addTagListener((ListChangeListener.Change<? extends String> c) ->
         {
             if (c.next())
                 c.getAddedSubList().forEach(newTag -> addToTagDropDown(newTag));
             FXCollections.sort(tagDropDown.getItems(), comp);
         });
-        
+
         // Once the listeners are added ask the model to fetch the lists.
         // This is done on a separate thread since network I/O can take some time or not ever return.
         // Only start it once the listeners are in place or else the drop down's won't have all the items.
         model.fetchLists();
     }
-    
+
     /**
      * Add a new CheckMenuItem to the drop down ContextMenu.
      * @param item - Item to be added.
@@ -229,6 +230,7 @@ public class LogbooksTagsView extends VBox
         newLogbook.setHideOnClick(false);
         checkBox.setOnAction(new EventHandler<ActionEvent>()
         {
+            @Override
             public void handle(ActionEvent e)
             {
                 CheckBox source = (CheckBox) e.getSource();
@@ -252,7 +254,7 @@ public class LogbooksTagsView extends VBox
             checkBox.fire();
         logbookDropDown.getItems().add(newLogbook);
     }
-    
+
     /**
      * Add a new CheckMenuItem to the drop down ContextMenu.
      * @param item - Item to be added.
@@ -264,6 +266,7 @@ public class LogbooksTagsView extends VBox
         newTag.setHideOnClick(false);
         checkBox.setOnAction(new EventHandler<ActionEvent>()
         {
+            @Override
             public void handle(ActionEvent e)
             {
                 CheckBox source = (CheckBox) e.getSource();
@@ -285,9 +288,9 @@ public class LogbooksTagsView extends VBox
         });
         if (model.hasSelectedTag(item))
             checkBox.fire();
-        tagDropDown.getItems().add(newTag);   
+        tagDropDown.getItems().add(newTag);
     }
-    
+
     /** Sets the field's text based on the selected items list. */
     private void setFieldText(ContextMenu dropDown, List<String> selectedItems, TextField field)
     {
@@ -297,10 +300,10 @@ public class LogbooksTagsView extends VBox
             CustomMenuItem custom = (CustomMenuItem) menuItem;
             CheckBox check = (CheckBox) custom.getContent();
             // If the item is selected make sure it is checked.
-            
+
             if (selectedItems.contains(check.getText()))
             {
-                if (! check.isSelected()) 
+                if (! check.isSelected())
                     check.setSelected(true);
             }
             // If the item is not selected, make sure it is not checked.
@@ -310,14 +313,14 @@ public class LogbooksTagsView extends VBox
                     check.setSelected(false);
             }
         }
-        
+
         // Build the field text string.
         String fieldText = "";
         for (String item : selectedItems)
         {
             fieldText += (fieldText.isEmpty() ? "" : ", ") + item;
         }
-        
+
         field.setText(fieldText);
     }
 }
