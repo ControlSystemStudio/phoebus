@@ -396,9 +396,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         filesTab.setFiles(files);
                         imagesTab.setImages(images);
                         if(!files.isEmpty() || !images.isEmpty()) {
+                            tPane.setVisible(true);
                             tPane.setExpanded(true);
                         } else {
                             tPane.setExpanded(false);
+                            tPane.setVisible(false);
                         }
                         descriptionText.setText(logEntry.getDescription());
                         setGraphic(pane);
