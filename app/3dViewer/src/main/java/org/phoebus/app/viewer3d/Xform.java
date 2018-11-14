@@ -72,7 +72,7 @@ public class Xform extends Group
     public Xform()
     {
         super();
-        background = Color.GRAY;
+        background = Color.LIGHTGRAY;
         getTransforms().addAll(t, rz, ry, rx, s);
     }
 
