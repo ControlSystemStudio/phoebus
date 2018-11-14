@@ -17,7 +17,6 @@ import java.util.logging.Level;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Point3D;
-import javafx.geometry.Pos;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -30,7 +29,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
@@ -50,7 +49,7 @@ import javafx.util.Duration;
  * @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class Viewer3d extends StackPane
+public class Viewer3d extends Pane
 {
     /** Faces used to approximate a cone */
     private static final int CONE_FACES = 8;
@@ -71,13 +70,13 @@ public class Viewer3d extends StackPane
 
     private final Group root;
     private final Xform axes;
-    private Xform structure;
-    private final Xform view;
+    private Xform structure = null;
+    private final Xform view = new Xform();
 
-    private final PerspectiveCamera camera;
-    private final Xform cameraXform;
-    private final Xform cameraXform2;
-    private final Xform cameraXform3;
+    private final PerspectiveCamera camera = new PerspectiveCamera(true);
+    private final Xform cameraXform = new Xform();
+    private final Xform cameraXform2 = new Xform();
+    private final Xform cameraXform3 = new Xform();
 
     private static final double CAMERA_INITIAL_DISTANCE = -1000;
     private static final double CAMERA_INITIAL_X_ANGLE = 30;
@@ -87,7 +86,7 @@ public class Viewer3d extends StackPane
 
     private static final double AXIS_LENGTH = 250.0;
 
-    private static final double CONTROL_MULTIPLIER = 0.5;
+    private static final double CONTROL_MULTIPLIER = 0.1;
     private static final double SHIFT_MULTIPLIER = 10.0;
     private static final double TRANSFORM_MULTIPLIER = 7.5;
     private static final double MOUSE_SPEED = 0.1;
@@ -107,42 +106,32 @@ public class Viewer3d extends StackPane
      */
     public Viewer3d (final boolean disabled) throws Exception
     {
-        root = new Group();
-        view = new Xform();
         axes = buildAxes();
-        structure = null;
-
-        camera = new PerspectiveCamera(true);
-        cameraXform = new Xform();
-        cameraXform2 = new Xform();
-        cameraXform3 = new Xform();
-
-        buildCamera();
-
         view.getChildren().add(axes);
 
-        root.getChildren().add(view);
+        root = new Group(view);
         root.setDepthTest(DepthTest.ENABLE);
 
         scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
         scene.setManaged(false);
+        scene.setFill(Color.GRAY);
         scene.heightProperty().bind(heightProperty());
         scene.widthProperty().bind(widthProperty());
 
-        final HBox legend = new HBox(10, createAxisLabel("X Axis", Color.RED),
-                                         createAxisLabel("Y Axis", Color.GREEN),
-                                         createAxisLabel("Z Axis", Color.BLUE));
-        StackPane.setAlignment(legend, Pos.TOP_LEFT);
-        StackPane.setMargin(legend, new Insets(10));
-
-        scene.setFill(Color.GRAY);
-
-        if (! disabled)
-            handleMouse(this);
+        buildCamera();
 
         scene.setCamera(camera);
 
-        getChildren().addAll(scene, legend);
+        // Legend, placed on top of 3D scene
+        final HBox legend = new HBox(10, createAxisLabel("X Axis", Color.RED),
+                createAxisLabel("Y Axis", Color.GREEN),
+                createAxisLabel("Z Axis", Color.BLUE));
+        legend.setPadding(new Insets(10));
+
+        getChildren().setAll(scene, legend);
+
+        if (! disabled)
+            handleMouse(this);
     }
 
     private static final Insets LABEL_PADDING = new Insets(3, 10, 3, 10);
