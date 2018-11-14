@@ -11,7 +11,6 @@ import java.text.NumberFormat;
 
 import org.epics.util.stats.Range;
 import org.epics.util.text.NumberFormats;
-import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
@@ -76,7 +75,7 @@ abstract public class SimulatedDoublePV extends SimulatedPV
     {
         final double value = compute();
         // Creates vtype with alarm according to display warning/alarm ranges
-        final VType vtype = VDouble.of(value, Alarm.none(), Time.now(), display);
+        final VType vtype = VDouble.of(value, display.newAlarmFor(value), Time.now(), display);
         notifyListenersOfValue(vtype);
     }
 
