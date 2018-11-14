@@ -52,7 +52,7 @@ public class ResourceUtil
         if (null == resource_name)
             return null;
 
-        if (resource_name.startsWith("http"))
+        if (resource_name.startsWith("http") ||  resource_name.startsWith("file:"))
             return openURL(resource_name);
 
         final URL example = getExampleURL(resource_name);
@@ -67,9 +67,6 @@ public class ResourceUtil
                 throw new Exception("Cannot open example: '" + example + "'", ex);
             }
         }
-
-        if (resource_name.startsWith("file:"))
-            return new FileInputStream(resource_name.substring(5));
 
         return new FileInputStream(resource_name);
     }
@@ -163,9 +160,9 @@ public class ResourceUtil
         {
             String example = resource_name.substring(9);
             if (example.startsWith("/"))
-                example = "examples" + example;
+                example = "/3d_viewer_examples" + example;
             else
-                example = "examples/" + example;
+                example = "/3d_viewer_examples/" + example;
             return Viewer3dPane.class.getResource(example);
         }
         return null;

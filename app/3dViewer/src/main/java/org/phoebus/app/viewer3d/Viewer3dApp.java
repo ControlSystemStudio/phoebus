@@ -24,7 +24,7 @@ public class Viewer3dApp implements AppResourceDescriptor
 {
     public static final String NAME = "3d_viewer";
 
-    public static final String DISPLAY_NAME = "3d Viewer";
+    public static final String DISPLAY_NAME = "3D Viewer";
 
     @Override
     public String getName()
