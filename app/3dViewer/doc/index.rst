@@ -18,6 +18,9 @@ Shape (.shp) File Syntax
 The viewer parses shape files from beginning to end. Any error in the shape file will cause the parsing of the entire file to fail and no resulting
 structure will be rendered.
 
+**Comments**
+  Shape files can have comments. A comment is a line of text that starts with a '#'. This line will be ignored when parsing the shape file.
+
 **Background Color**
   The background color of the viewer can be controlled using the following command.
   
@@ -61,8 +64,19 @@ structure will be rendered.
   If the first corner of a box was defined at (0, 0, 0) and the second corner at (100, 100, 100) then the box would have one corner at the origin and one corner at (100, 100, 100).
   Each of the boxes sides would be of length 100, and the boxes center point would be (50, 50, 50).
 
-**Comments**
-  Shape files can have comments. A comment is a line of text that starts with a '#'. This line will be ignored when parsing the shape file.
+**Cones**
+  A cone may be defined using the following command.
+  
+    ``cone(x1, y1, z1, R, x2, y2, z2, r, g, b, A)``
+    
+  This command has eleven parameters.
+  The first three parameters are the x, y, and z values of the base, followed by the radius of the base.
+  The second three parameters are the x, y, and z values of the tip of the cone. 
+  The final four parameters are the red, green, blue, and alpha values used to define the color.
+
+**Tool Tips**
+  A final string added to a shape defines a tool tip for the shape.
+  
 
 Example Shape File
 ------------------
@@ -75,7 +89,7 @@ Example Shape File
     background(32, 32, 32, 1)
 
     # A red sphere of radius 10, is placed at each corner of the box we are about to define.
-    sphere(  0,   0,   0, 10, 255, 0, 0, 1)
+    sphere(  0,   0,   0, 10, 255, 0, 0, 1, "Origin")
     sphere(100,   0,   0, 10, 255, 0, 0, 1)
     sphere(  0,   0, 100, 10, 255, 0, 0, 1)
     sphere(100,   0, 100, 10, 255, 0, 0, 1)
@@ -88,6 +102,10 @@ Example Shape File
     # corner at (100, 100, 100). This will result in a cube with each side
     # being of magnitude 100.
     box(0, 0, 0, 100, 100, 100, 0, 0, 255, 1)
+
+    # Cone along the X axis, base at x=200, radius 20, tip at x=300 
+    cone ( 200,   0,   0, 10,   300,   0,   0,   255, 100, 100, 1, "X")
+
     
 **Resulting Structure**
 

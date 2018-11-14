@@ -44,6 +44,7 @@ import javafx.scene.layout.VBox;
  * The button to submit entry will be disabled if they are not all set.
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class LogEntryDialog extends Dialog<LogEntry>
 {
     /** Width of labels on views leftmost column. */
@@ -64,13 +65,12 @@ public class LogEntryDialog extends Dialog<LogEntry>
     /** Button type for submitting log entry. */
     private final ButtonType submitType;
 
-    /* Non NLS Strings */
     private static final String SUBMIT_ID = "submitButton",
                                 CANCEL_ID = "cancelButton";
-    
+
     public LogEntryDialog(final Node parent, LogEntry template)
     {
-        
+
         model = new LogEntryModel(parent);
 
         if (null != template)
@@ -109,16 +109,16 @@ public class LogEntryDialog extends Dialog<LogEntry>
 
         Button submitButton = (Button) getDialogPane().lookupButton(submitType);
         Button cancelButton = (Button) getDialogPane().lookupButton(ButtonType.CANCEL);
-        
+
         submitButton.setId(SUBMIT_ID);
         cancelButton.setId(CANCEL_ID);
-        
+
         cancelButton.setTooltip(new Tooltip(Messages.CancelTooltip));
         submitButton.setTooltip(new Tooltip(Messages.SubmitTooltip));
 
         // Bind the submit button's disable property to the inverse of the model's ready to submit property.
         submitButton.disableProperty().bind(model.getReadyToSubmitProperty().not());
-        
+
         // Prevent enter from causing log entry submission. We want the button to be clicked.
         // If the button doesn't have focus, it wasn't clicked.
         submitButton.addEventFilter(ActionEvent.ACTION, eventFilter ->

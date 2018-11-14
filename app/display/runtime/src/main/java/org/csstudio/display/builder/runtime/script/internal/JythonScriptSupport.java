@@ -218,11 +218,19 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             try
             {
                 // Executor is single-threaded.
-                // OK to set 'widget' etc.
+                // Should be OK to set 'widget' etc.
                 // of the shared python interpreter
                 // because only one script will execute at a time.
-                python.set("widget", widget);
-                python.set("pvs", pvs);
+                // Still, occasionally saw NullPointerException at
+                // org.python.core.PyType$MROMergeState.isMerged(PyType.java:2094)
+                // from the set("widget"..) call.
+                // Moving those into sync. section to see if that makes a difference
+                synchronized (JythonScriptSupport.class)
+                {
+                    python.set("widget", widget);
+                    python.set("pvs", pvs);
+                }
+                // .. but don't want to block for the duration of the script
                 python.exec(script.getCode());
             }
             catch (final Throwable ex)

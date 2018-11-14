@@ -5,18 +5,18 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.app.viewer3d;
+package org.phoebus.applications.viewer3d;
+
+import static org.phoebus.applications.viewer3d.Viewer3dPane.logger;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Scanner;
-import java.util.function.Supplier;
+import java.util.logging.Level;
 
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point3D;
-import javafx.geometry.Pos;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -25,18 +25,19 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.Cylinder;
+import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Sphere;
+import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
@@ -44,10 +45,11 @@ import javafx.util.Duration;
 /**
  * Class to display 3 dimensional objects in a rotating camera view.
  *
+ * @author Kay Kasemir - Cone
  * @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class Viewer3d extends StackPane
+public class Viewer3d extends Pane
 {
     /** Reduced tool tip delay (default: 1 second) */
     private static final Duration SHOW_QUICKLY = Duration.millis(100);
@@ -65,13 +67,13 @@ public class Viewer3d extends StackPane
 
     private final Group root;
     private final Xform axes;
-    private Xform structure;
-    private final Xform view;
+    private Xform structure = null;
+    private final Xform view = new Xform();
 
-    private final PerspectiveCamera camera;
-    private final Xform cameraXform;
-    private final Xform cameraXform2;
-    private final Xform cameraXform3;
+    private final PerspectiveCamera camera = new PerspectiveCamera(true);
+    private final Xform cameraXform = new Xform();
+    private final Xform cameraXform2 = new Xform();
+    private final Xform cameraXform3 = new Xform();
 
     private static final double CAMERA_INITIAL_DISTANCE = -1000;
     private static final double CAMERA_INITIAL_X_ANGLE = 30;
@@ -81,7 +83,7 @@ public class Viewer3d extends StackPane
 
     private static final double AXIS_LENGTH = 250.0;
 
-    private static final double CONTROL_MULTIPLIER = 0.5;
+    private static final double CONTROL_MULTIPLIER = 0.1;
     private static final double SHIFT_MULTIPLIER = 10.0;
     private static final double TRANSFORM_MULTIPLIER = 7.5;
     private static final double MOUSE_SPEED = 0.1;
@@ -95,68 +97,49 @@ public class Viewer3d extends StackPane
     private double mouseDeltaX;
     private double mouseDeltaY;
 
-    private final Supplier<Boolean> isDisabled;
 
-    public Viewer3d (final Supplier<Boolean> isDisabled) throws Exception
+    /** @param disabled Disable mouse interaction?
+     *  @throws Exception on error
+     */
+    public Viewer3d (final boolean disabled) throws Exception
     {
-        super();
-
-        if (null == isDisabled)
-            this.isDisabled = () -> false;
-        else
-            this.isDisabled = isDisabled;
-
-        root = new Group();
-        view = new Xform();
         axes = buildAxes();
-        structure = null;
-
-        camera = new PerspectiveCamera(true);
-        cameraXform = new Xform();
-        cameraXform2 = new Xform();
-        cameraXform3 = new Xform();
-
-        buildCamera();
-
-        HBox legend = new HBox();
-        Label xLabel = new Label("  X Axis  "),
-              yLabel = new Label("  Y Axis  "),
-              zLabel = new Label("  Z Axis  ");
-
         view.getChildren().add(axes);
 
-        root.getChildren().add(view);
+        root = new Group(view);
         root.setDepthTest(DepthTest.ENABLE);
 
         scene = new SubScene(root, 1024, 768, true, SceneAntialiasing.BALANCED);
         scene.setManaged(false);
+        scene.setFill(Color.GRAY);
         scene.heightProperty().bind(heightProperty());
         scene.widthProperty().bind(widthProperty());
 
-        xLabel.setBackground(new Background(new BackgroundFill(Color.RED,   new CornerRadii(5), null)));
-        yLabel.setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(5), null)));
-        zLabel.setBackground(new Background(new BackgroundFill(Color.BLUE,  new CornerRadii(5), null)));
-
-        xLabel.setTextFill(Color.WHITE);
-        yLabel.setTextFill(Color.WHITE);
-        zLabel.setTextFill(Color.WHITE);
-
-        legend.getChildren().addAll(xLabel, yLabel, zLabel);
-        legend.setSpacing(10);
-        legend.setPadding(new Insets(0, 10, 10, 10));
-        legend.setMaxHeight(xLabel.getHeight());
-        legend.setMaxWidth(220);
-
-        StackPane.setAlignment(legend, Pos.TOP_LEFT);
-        StackPane.setMargin(legend, new Insets(10));
-
-        scene.setFill(Color.GRAY);
-
-        handleMouse(this);
+        buildCamera();
 
         scene.setCamera(camera);
 
-        getChildren().addAll(scene, legend);
+        // Legend, placed on top of 3D scene
+        final HBox legend = new HBox(10, createAxisLabel("X Axis", Color.RED),
+                createAxisLabel("Y Axis", Color.GREEN),
+                createAxisLabel("Z Axis", Color.BLUE));
+        legend.setPadding(new Insets(10));
+
+        getChildren().setAll(scene, legend);
+
+        if (! disabled)
+            handleMouse(this);
+    }
+
+    private static final Insets LABEL_PADDING = new Insets(3, 10, 3, 10);
+
+    private Label createAxisLabel(final String text, final Color color)
+    {
+        final Label l = new Label(text);
+        l.setPadding(LABEL_PADDING);
+        l.setBackground(new Background(new BackgroundFill(color,   new CornerRadii(5), null)));
+        l.setTextFill(Color.WHITE);
+        return l;
     }
 
     private void buildCamera()
@@ -236,57 +219,43 @@ public class Viewer3d extends StackPane
                 if (line.isEmpty() || line.startsWith("#"))
                     continue;
 
-                /* All entries are of the form type(arg_0, ... , arg_N-1) */
+                // All entries are of the form type (arg_0, ... , arg_N-1)
 
-                if (!line.matches("\\w*\\(.*"))
+                int sep = line.indexOf('(');
+                if (sep < 0)
                     throw new Exception(BAD_TYPE_OPEN_PAREN_ERROR);
 
-                /* Split the line on the first open parentheses to get the type. */
-                String[] typeAndArgs = line.split("\\(\\s*", 2);
-                String type = typeAndArgs[0];
+                // Split the line on the first open parentheses to get the type.
+                String type = line.substring(0, sep).trim();
 
-                /* The argument list will then be the remaining string sans the closing parentheses. */
-                if (!typeAndArgs[1].endsWith(")"))
+                // The argument list will then be the remaining string sans the closing parentheses.
+                if (! line.endsWith(")"))
                     throw new Exception(MISSING_CLOSE_PAREN_ERROR);
 
-                final String argList = typeAndArgs[1].substring(0, typeAndArgs[1].length()-1);
+                final String argList = line.substring(sep+1, line.length()-1).trim();
+
+                logger.log(Level.FINE, "TYPE: '" + type + "'");
+                logger.log(Level.FINE, "ARGS: '" + argList + "'");
 
                 try (Scanner scanner = new Scanner(argList))
                 {
                     scanner.useDelimiter("\\s*,\\s*");
 
                     if (type.equals("background"))
-                    {
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
-
-                        Color background = Color.rgb(r, g, b, a);
-
-                        struct.setBackground(background);
-                    }
+                        struct.setBackground(getColor(scanner));
                     else if (type.equals("sphere"))
                     {
                         double x = scanner.nextDouble(); // X coord
                         double y = scanner.nextDouble(); // Y coord
                         double z = scanner.nextDouble(); // Z coord
                         double R = scanner.nextDouble(); // Radius
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
+                        final PhongMaterial material = getMaterial(scanner);
 
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
+                        final Sphere sphere = new Sphere(R);
 
-                        Sphere sphere = new Sphere(R);
-
-                        /* If the scanner has anything left, install as comment. */
+                        // If the scanner has anything left, install as comment.
                         if (scanner.hasNext())
-                        {
                            installComment(sphere, scanner.next());
-                        }
 
                         sphere.setMaterial(material);
 
@@ -304,21 +273,13 @@ public class Viewer3d extends StackPane
                         double x2 = scanner.nextDouble(); // X coord
                         double y2 = scanner.nextDouble(); // Y coord
                         double z2 = scanner.nextDouble(); // Z coord
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
+                        final PhongMaterial material = getMaterial(scanner);
 
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
+                        final Box box = new Box();
 
-                        Box box = new Box();
-
-                        /* If the scanner has anything left, install as comment. */
+                        // If the scanner has anything left, install as comment.
                         if (scanner.hasNext())
-                        {
                            installComment(box, scanner.next());
-                        }
 
                         box.setMaterial(material);
 
@@ -337,41 +298,27 @@ public class Viewer3d extends StackPane
                     }
                     else if (type.equals("cylinder"))
                     {
-                        double x1 = scanner.nextDouble(); // X coord
-                        double y1 = scanner.nextDouble(); // Y coord
-                        double z1 = scanner.nextDouble(); // Z coord
-                        double x2 = scanner.nextDouble(); // X coord
-                        double y2 = scanner.nextDouble(); // Y coord
-                        double z2 = scanner.nextDouble(); // Z coord
+                        final Point3D from = new Point3D(scanner.nextDouble(),
+                                                         scanner.nextDouble(),
+                                                         scanner.nextDouble());
+                        final Point3D to = new Point3D(scanner.nextDouble(),
+                                                       scanner.nextDouble(),
+                                                       scanner.nextDouble());
                         double R = scanner.nextDouble(); // Radius
-                        int r = scanner.nextInt(); // red
-                        int g = scanner.nextInt(); // blue
-                        int b = scanner.nextInt(); // green
-                        double a = scanner.nextDouble(); // alpha
+                        final PhongMaterial material = getMaterial(scanner);
 
-                        PhongMaterial material = new PhongMaterial();
-                        material.setDiffuseColor(Color.rgb(r, g, b, a));
+                        // https://stackoverflow.com/questions/38799322/javafx-3d-transforming-cylinder-to-defined-start-and-end-points
+                        // https://netzwerg.ch/blog/2015/03/22/javafx-3d-line/
 
-                        /**
-                         *
-                         * https://stackoverflow.com/questions/38799322/javafx-3d-transforming-cylinder-to-defined-start-and-end-points
-                         * https://netzwerg.ch/blog/2015/03/22/javafx-3d-line/
-                         *
-                         **/
-
-                        /* Align the cylinder from (x1, y1, z1) to (x2, y2, z2). */
+                        // Align the cylinder from (x1, y1, z1) to (x2, y2, z2)
                         Cylinder cylinder = new Cylinder();
 
-                        /* If the scanner has anything left, install as comment. */
+                        // If the scanner has anything left, install as comment
                         if (scanner.hasNext())
-                        {
                            installComment(cylinder, scanner.next());
-                        }
 
                         cylinder.setMaterial(material);
 
-                        Point3D from = new Point3D(x1, y1, z1);
-                        Point3D to = new Point3D(x2, y2, z2);
                         Point3D diff = to.subtract(from);
                         Point3D mid = to.midpoint(from);
                         double height = diff.magnitude();
@@ -390,15 +337,106 @@ public class Viewer3d extends StackPane
 
                         struct.getChildren().add(cylinder);
                     }
-                    else
+                    else if (type.equals("cone"))
                     {
-                        throw new Exception(UNRECOGNIZED_SHAPE_TYPE_ERROR + "'" + type + "'");
+                        final Point3D base = new Point3D(scanner.nextDouble(),
+                                                         scanner.nextDouble(),
+                                                         scanner.nextDouble());
+                        double R = scanner.nextDouble();
+                        final Point3D tip = new Point3D(scanner.nextDouble(),
+                                                        scanner.nextDouble(),
+                                                        scanner.nextDouble());
+                        final PhongMaterial material = getMaterial(scanner);
+
+                        float H = (float) tip.distance(base);
+
+                        // Cone idea:
+                        // https://www.dummies.com/programming/java/javafx-add-a-mesh-object-to-a-3d-world/
+
+                        final TriangleMesh mesh = new TriangleMesh();
+                        mesh.getTexCoords().addAll(0,0);
+
+                        // Point 0: Top
+                        mesh.getPoints().setAll(H, 0, 0);
+                        // Points around the base
+                        for (int i=0; i<Preferences.cone_faces; ++i)
+                        {
+                            final double angle = 2*Math.PI*i/Preferences.cone_faces;
+                            mesh.getPoints().addAll(0, (float)(R*Math.cos(angle)), (float)(R*Math.sin(angle)));
+                        }
+
+//                        // Visualize points as sphere (only valid for x1,y1,z1=0, x2=height
+//                        for (int i=0; i<mesh.getPoints().size(); i+=3)
+//                        {
+//                            final Sphere sphere = new Sphere(5);
+//                            sphere.setMaterial(material);
+//                            sphere.setTranslateX(mesh.getPoints().get(i));
+//                            sphere.setTranslateY(mesh.getPoints().get(i+1));
+//                            sphere.setTranslateZ(mesh.getPoints().get(i+2));
+//                            installComment(sphere, "\"Point " + (i/3) + "\"");
+//                            struct.getChildren().add(sphere);
+//                        }
+
+                        // Each 'face' has 3 pairs for the 3 points of a triangle.
+                        // First value is the point index,
+                        // second value in pair is texture index (0).
+                        // Point order is critical.
+                        // Need to be in "right hand" order, thumb facing outwards.
+                        // Faces that are viewed from behind tend to disappear.
+
+                        // Faces from the top (0) to all the base edges
+                        for (int i=1; i<=Preferences.cone_faces; ++i)
+                            mesh.getFaces().addAll(0,0,  i,0, i==Preferences.cone_faces?1:(i+1),0);
+
+                        // Fill the base
+                        for (int i=Preferences.cone_faces; i>=3; --i)
+                            mesh.getFaces().addAll(i,0,  i-1,0,  1,0);
+
+                        final MeshView cone = new MeshView(mesh);
+                        cone.setDrawMode(DrawMode.FILL);
+                        cone.setMaterial(material);
+
+                        // If the scanner has anything left, install as comment
+                        if (scanner.hasNext())
+                         installComment(cone, scanner.next());
+
+                        final Point3D direction = tip.subtract(base);
+                        final Point3D axisOfRotation = direction.crossProduct(Rotate.X_AXIS);
+                        double angle = Math.acos(direction.normalize().dotProduct(Rotate.X_AXIS));
+                        // System.out.println("Direction: " + direction);
+                        // System.out.println("axisOfRotation: " + axisOfRotation);
+                        // System.out.println("angle: " + Math.toDegrees(angle));
+
+                        final Rotate rotate = new Rotate(-Math.toDegrees(angle), axisOfRotation);
+
+                        final Translate move_base = new Translate(base.getX(), base.getY(), base.getZ());
+                        cone.getTransforms().addAll(move_base, rotate);
+
+                        struct.getChildren().add(cone);
                     }
+                    else
+                        throw new Exception(UNRECOGNIZED_SHAPE_TYPE_ERROR + "'" + type + "'");
                 }
             }
 
             return struct;
         }
+    }
+
+    private static Color getColor(final Scanner scanner)
+    {
+        final int r = scanner.nextInt();
+        final int g = scanner.nextInt();
+        final int b = scanner.nextInt();
+        final double a = scanner.nextDouble();
+        return Color.rgb(r, g, b, a);
+    }
+
+    private static PhongMaterial getMaterial(final Scanner scanner)
+    {
+        final PhongMaterial material = new PhongMaterial();
+        material.setDiffuseColor(getColor(scanner));
+        return material;
     }
 
     /**
@@ -412,7 +450,7 @@ public class Viewer3d extends StackPane
      */
     private static void installComment(final Node node, final String comment) throws Exception
     {
-        String content = checkAndParseComment(comment);
+        final String content = checkAndParseComment(comment);
 
         final Tooltip tt = new Tooltip(content);
         tt.setShowDelay(SHOW_QUICKLY);
@@ -435,7 +473,7 @@ public class Viewer3d extends StackPane
         if (!comment.endsWith("\""))
             throw new Exception(MISSING_END_QUOTES_ERROR);
 
-        /* TODO Throw exception for unescaped quotes? */
+        // TODO Throw exception for unescaped quotes?
 
         String parsedComment = comment.substring(1, comment.length()-1).replaceAll("\\\"", "\"");
 
@@ -465,75 +503,47 @@ public class Viewer3d extends StackPane
      */
     private void handleMouse(Node scene)
     {
-        scene.setOnMousePressed(new EventHandler<MouseEvent>()
+        scene.setOnMousePressed(me ->
         {
-            @Override
-            public void handle(MouseEvent me)
+            mousePosX = me.getSceneX();
+            mousePosY = me.getSceneY();
+            mouseOldX = me.getSceneX();
+            mouseOldY = me.getSceneY();
+        });
+
+        scene.setOnMouseDragged(me ->
+        {
+            mouseOldX = mousePosX;
+            mouseOldY = mousePosY;
+            mousePosX = me.getSceneX();
+            mousePosY = me.getSceneY();
+            mouseDeltaX = (mousePosX - mouseOldX);
+            mouseDeltaY = (mousePosY - mouseOldY);
+
+            double modifier = 1.0;
+
+            if (me.isControlDown())
+                modifier = CONTROL_MULTIPLIER;
+            if (me.isShiftDown())
+                modifier = SHIFT_MULTIPLIER;
+            if (me.isPrimaryButtonDown())
             {
-                if (! isDisabled.get())
-                {
-                    mousePosX = me.getSceneX();
-                    mousePosY = me.getSceneY();
-                    mouseOldX = me.getSceneX();
-                    mouseOldY = me.getSceneY();
-                }
+                cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED);
+                cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
+            }
+            else if (me.isMiddleButtonDown())
+            {
+               cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
+               cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
             }
         });
 
-        scene.setOnMouseDragged(new EventHandler<MouseEvent>()
+        scene.setOnScroll(se ->
         {
-            @Override
-            public void handle(MouseEvent me)
-            {
-                if (! isDisabled.get())
-                {
-                    mouseOldX = mousePosX;
-                    mouseOldY = mousePosY;
-                    mousePosX = me.getSceneX();
-                    mousePosY = me.getSceneY();
-                    mouseDeltaX = (mousePosX - mouseOldX);
-                    mouseDeltaY = (mousePosY - mouseOldY);
-
-                    double modifier = 1.0;
-
-                    if (me.isControlDown())
-                    {
-                        modifier = CONTROL_MULTIPLIER;
-                    }
-                    if (me.isShiftDown())
-                    {
-                        modifier = SHIFT_MULTIPLIER;
-                    }
-                    if (me.isPrimaryButtonDown())
-                    {
-                        cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*MOUSE_SPEED*modifier*ROTATION_SPEED);
-                        cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*MOUSE_SPEED*modifier*ROTATION_SPEED);
-                    }
-                    else if (me.isMiddleButtonDown())
-                    {
-                       cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
-                       cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*TRANSFORM_MULTIPLIER*TRACK_SPEED);
-                    }
-                }
-            }
-        });
-
-        scene.setOnScroll(new EventHandler<ScrollEvent>()
-        {
-            @Override
-            public void handle(ScrollEvent se)
-            {
-                if (! isDisabled.get())
-                {
-                    double modifier = 1.5;
-
-                    double oldZ = camera.getTranslateZ();
-
-                    double newZ = oldZ + modifier * se.getDeltaY();
-
-                    camera.setTranslateZ(newZ);
-                }
-           }
+            double modifier = 1.5;
+            double oldZ = camera.getTranslateZ();
+            double newZ = oldZ + modifier * se.getDeltaY();
+            camera.setTranslateZ(newZ);
         });
     }
 

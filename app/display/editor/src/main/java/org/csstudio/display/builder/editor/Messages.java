@@ -33,9 +33,6 @@ public class Messages
     public static String EditEmbededDisplay;
     public static String FindWidget;
     public static String Grid;
-    public static String InstallExamples;
-    public static String InstallExamplesDoneFMT;
-    public static String InstallExamplesTitle;
     public static String LoadDisplay;
     public static String LoadDisplay_TT;
     public static String MacroEditButton;
@@ -53,7 +50,6 @@ public class Messages
     public static String RemoveElement;
     public static String RemoveGroup;
     public static String RemoveWidgets;
-    public static String ReplaceExamplesWarningFMT;
     public static String ReplaceWith;
     public static String RuleCountFMT;
     public static String Run;

@@ -18,6 +18,7 @@ public class Messages
     public static String AddColumn;
     public static String AddRow;
     public static String DefaultNewColumnName;
+    public static String InstallExamples;
     public static String MagicLastRow;
     public static String MoveColumnLeft;
     public static String MoveColumnRight;
@@ -29,6 +30,7 @@ public class Messages
     public static String RenameColumn;
     public static String RenameColumnInfo;
     public static String RenameColumnTitle;
+    public static String ReplaceExamplesWarningFMT;
     public static String Undo_TT;
 
     static

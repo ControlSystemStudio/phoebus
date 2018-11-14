@@ -14,6 +14,7 @@ import org.phoebus.logbook.ui.Messages;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TabPane;
@@ -34,19 +35,25 @@ public class AttachmentsView extends Accordion
 
     public AttachmentsView(final Node parent, final LogEntryModel model)
     {
-        super();
         tabPane    = new TabPane();
         images     = new ImagesTab();
         images.setSnapshotNode(parent.getScene().getRoot());
         files      = new FilesTab();
         properties = new PropertiesTab();
-        
+
         images.setImages(model.getImages());
         files.setFiles(model.getFiles());
-        
+
         tabPane.getTabs().addAll(images, files, properties);
 
         TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
+
+        // Open/close the attachments pane if there's something to see resp. not
+        Platform.runLater(() ->
+        {
+            final boolean anything = !model.getImages().isEmpty()  ||  !model.getFiles().isEmpty();
+            tPane.setExpanded(anything);
+        });
 
         getPanes().add(tPane);
     }

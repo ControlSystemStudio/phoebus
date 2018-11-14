@@ -15,9 +15,9 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
-import org.phoebus.app.viewer3d.ResourceUtil;
-import org.phoebus.app.viewer3d.Viewer3d;
-import org.phoebus.app.viewer3d.Xform;
+import org.phoebus.applications.viewer3d.ResourceUtil;
+import org.phoebus.applications.viewer3d.Viewer3d;
+import org.phoebus.applications.viewer3d.Xform;
 import org.phoebus.framework.jobs.JobManager;
 
 import javafx.application.Platform;
@@ -26,15 +26,16 @@ import javafx.application.Platform;
  * JFX Representation of the 3D Viewer Widget
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, Viewer3dWidget>
 {
     private final DirtyFlag dirty_position = new DirtyFlag();
     private final DirtyFlag dirty_resource = new DirtyFlag();
-    
+
     @Override
     protected Viewer3d createJFXNode() throws Exception
     {
-       return new Viewer3d(toolkit::isEditMode);
+       return new Viewer3d(toolkit.isEditMode());
     }
 
     @Override
@@ -45,22 +46,22 @@ public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, View
         model_widget.propY().addUntypedPropertyListener(this::positionChanged);
         model_widget.propWidth().addUntypedPropertyListener(this::positionChanged);
         model_widget.propHeight().addUntypedPropertyListener(this::positionChanged);
-        
+
         model_widget.propResource().addUntypedPropertyListener(this::resourceChanged);
     }
-    
+
     private void positionChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         dirty_position.mark();
         toolkit.scheduleUpdate(this);
     }
-    
+
     private void resourceChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         dirty_resource.mark();
         toolkit.scheduleUpdate(this);
     }
-    
+
     @Override
     public void updateChanges()
     {
@@ -87,7 +88,7 @@ public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, View
             {
                 final String resource = model_widget.propResource().getValue();
                 InputStream inputStream = null;
-                
+
                 try
                 {
                     inputStream = ResourceUtil.openResource(resource);
@@ -96,7 +97,7 @@ public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, View
                 {
                     logger.log(Level.WARNING, "Opening resource '" + resource + "' failed", ex);
                 }
-                
+
                 if (null != inputStream)
                 {
                     try

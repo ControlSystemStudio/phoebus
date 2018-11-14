@@ -1,0 +1,9 @@
+# 3D Viewer example with Cones
+
+# One cone at the end of each axis
+cone ( 200,   0,   0, 10,   300,   0,   0,   255, 100, 100, 1, "X")
+cone (   0, 200,   0, 10,     0, 300,   0,   100, 255, 100, 1, "Y")
+cone (   0,   0, 200, 10,     0,   0, 300,   100, 100, 255, 1, "Z")
+
+# Cone in space, tip touching Y axis at 100
+cone ( 200, 50, 150, 50,    0, 100, 0,   255, 200, 200, 0.5, "Cone")
