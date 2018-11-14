@@ -13,6 +13,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
+import org.phoebus.applications.viewer3d.Viewer3d;
+import org.phoebus.applications.viewer3d.Xform;
 
 import javafx.application.Platform;
 import javafx.scene.paint.Color;

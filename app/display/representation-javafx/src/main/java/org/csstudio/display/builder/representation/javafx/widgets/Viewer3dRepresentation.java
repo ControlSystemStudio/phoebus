@@ -15,9 +15,9 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
-import org.phoebus.app.viewer3d.ResourceUtil;
-import org.phoebus.app.viewer3d.Viewer3d;
-import org.phoebus.app.viewer3d.Xform;
+import org.phoebus.applications.viewer3d.ResourceUtil;
+import org.phoebus.applications.viewer3d.Viewer3d;
+import org.phoebus.applications.viewer3d.Xform;
 import org.phoebus.framework.jobs.JobManager;
 
 import javafx.application.Platform;

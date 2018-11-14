@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.app.viewer3d;
+package org.phoebus.applications.viewer3d;
 
 import java.io.File;
 import java.io.InputStream;
@@ -50,7 +50,7 @@ public class Viewer3dPane extends VBox
 
     public static final List<String> FILE_EXTENSIONS = List.of(FILE_EXTENSION);
 
-    public static final Logger logger = Logger.getLogger(Viewer3dPane.class.getName());
+    public static final Logger logger = Logger.getLogger(Viewer3dPane.class.getPackageName());
 
     /** Border for the text field when errors occur. */
     private static final Border errorBorder = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
@@ -91,7 +91,17 @@ public class Viewer3dPane extends VBox
 
         fileButton.setOnAction(event ->
         {
-
+            if (current_resource != null)
+            {
+                if (current_resource.startsWith("file:"))
+                {
+                    final File file = new File(URI.create(current_resource));
+                    fileChooser.setInitialDirectory(file.getParentFile());
+                    fileChooser.setInitialFileName(file.getName());
+                }
+                else
+                    fileChooser.setInitialFileName(current_resource);
+            }
             File file = fileChooser.showOpenDialog(getScene().getWindow());
 
             if (null != file)

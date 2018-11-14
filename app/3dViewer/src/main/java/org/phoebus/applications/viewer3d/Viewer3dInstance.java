@@ -5,9 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.app.viewer3d;
+package org.phoebus.applications.viewer3d;
 
-import static org.phoebus.app.viewer3d.Viewer3dPane.logger;
+import static org.phoebus.applications.viewer3d.Viewer3dPane.logger;
 
 import java.net.URI;
 import java.util.logging.Level;

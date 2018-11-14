@@ -1,2 +1,2 @@
-org.phoebus.app.viewer3d.Viewer3dMenuEntry
-org.phoebus.app.viewer3d.InstallExamplesMenuEntry
+org.phoebus.applications.viewer3d.Viewer3dMenuEntry
+org.phoebus.applications.viewer3d.InstallExamplesMenuEntry

@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.app.viewer3d;
+package org.phoebus.applications.viewer3d;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

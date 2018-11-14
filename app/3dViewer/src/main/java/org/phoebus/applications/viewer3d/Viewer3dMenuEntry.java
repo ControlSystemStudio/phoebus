@@ -5,30 +5,30 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.app.viewer3d;
+package org.phoebus.applications.viewer3d;
 
 import org.phoebus.framework.spi.MenuEntry;
-import org.phoebus.ui.examples.ExampleInstaller;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
 /** Menu entry
- *  @author Kay Kasemir
+ *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class InstallExamplesMenuEntry implements MenuEntry
+public class Viewer3dMenuEntry implements MenuEntry
 {
     @Override
     public String getName()
     {
-        return "Install Example 3D Viewer Files";
+        return Viewer3dApp.DISPLAY_NAME;
     }
 
     @Override
     public String getMenuPath()
     {
-        return "Display.Examples";
+        return "Display";
     }
 
     @Override
@@ -40,14 +40,7 @@ public class InstallExamplesMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        new ExampleInstaller("Select Directory for Installing 3D Viewer Examples",
-                Viewer3dApp.class.getResource("/3d_viewer_examples"),
-                "3D Viewer",
-                "NaCl.shp",
-                Viewer3dApp.NAME,
-                "Examples have been installed in\n\n  {0}")
-           .call();
-
-           return null;
+        ApplicationService.createInstance(Viewer3dApp.NAME);
+        return null;
     }
 }

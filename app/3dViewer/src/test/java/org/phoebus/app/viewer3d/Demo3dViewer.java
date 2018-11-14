@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.app.viewer3d;
 
+import org.phoebus.applications.viewer3d.Viewer3dPane;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;

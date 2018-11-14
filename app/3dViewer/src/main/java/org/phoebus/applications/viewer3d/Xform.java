@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.phoebus.app.viewer3d;
+package org.phoebus.applications.viewer3d;
 
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
