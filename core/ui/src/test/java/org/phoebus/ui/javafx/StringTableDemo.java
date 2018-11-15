@@ -1,82 +1,139 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- ******************************************************************************/
+ *******************************************************************************/
 package org.phoebus.ui.javafx;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-/** Table of strings that allows editing while a cell updates
+/** {@link StringTable} demo
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class StringTableDemo extends Application
 {
-    private ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
-    private TableView<List<StringProperty>> table = new TableView<>(data);
-
-    public void updateCell(final int row, final int col, final String value)
+    public static void main(final String[] args)
     {
-        data.get(row).get(col).set(value);
+        launch(args);
     }
 
     @Override
-    public void start(Stage stage) throws Exception
+    public void start(final Stage stage)
     {
-        TableColumn<List<StringProperty>, String> tc = new TableColumn<>("A");
-        tc.setCellValueFactory(param ->  param.getValue().get(0));
-        tc.setCellFactory(TextFieldTableCell.forTableColumn());
+        // Example data
+        final List<String> headers = Arrays.asList("Left", "Options", "Bool", "Right");
+        // Data lacks one element to demonstrate log message.
+        // Table still "works"
+        final List<List<String>> data = Arrays.asList(
+                Arrays.asList("One", "Two", "true" /*, "missing" */),
+                Arrays.asList("Uno", "Due", "false", "Tres"));
 
-        tc.setOnEditCommit(event ->
+        // Table
+        final StringTable table = new StringTable(true);
+        table.setHeaders(headers);
+        table.setColumnOptions(1, Arrays.asList("Two", "Due", "Zwo", "1+2-1"));
+        table.setColumnOptions(2, StringTable.BOOLEAN_OPTIONS);
+        table.setColumnWidth(3, 200);
+        table.setData(data);
+        table.setBackgroundColor(Color.PINK);
+        table.setTextColor(Color.GREEN);
+        table.setFont(Font.font("Liberation Serif", 12.0));
+
+        // Table looks OK by default, but combo box will need more space
+        table.setColumnWidth(1, 100);
+
+        table.setListener(new StringTableListener()
         {
-            final int col = event.getTablePosition().getColumn();
-            event.getRowValue().get(col).set(event.getNewValue());
+            @Override
+            public void tableChanged(final StringTable table)
+            {
+                System.out.println("Table headers and data changed");
+            }
+
+            @Override
+            public void dataChanged(final StringTable table)
+            {
+                System.out.println("Data changed");
+            }
+
+            @Override
+            public void selectionChanged(final StringTable table, final int[] rows, final int[] cols)
+            {
+                System.out.println("Selection: rows " + Arrays.toString(rows) + ", cols " + Arrays.toString(cols));
+            }
         });
 
-        tc.setEditable(true);
-        table.getColumns().add(tc);
+        // Example scene
+        final Label label = new Label("Demo:");
 
-        tc = new TableColumn<>("B");
-        tc.setCellValueFactory(param ->  param.getValue().get(1));
-        tc.setCellFactory(TextFieldTableCell.forTableColumn());
-        tc.setEditable(true);
-        table.getColumns().add(tc);
+        final Button new_headers = new Button("New Headers");
+        new_headers.setOnAction(event ->
+        {
+            table.setHeaders(Arrays.asList("One", "Other"));
+            table.setColumnOptions(0, null);
+            table.setColumnOptions(1, Arrays.asList("Two", "Due", "Zwo", "1+2-1"));
+        });
 
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        final Button new_data = new Button("New Data");
+        new_data.setOnAction(event ->
+        {
+            table.setData(Arrays.asList(
+                    Arrays.asList("A 1", "B 1"),
+                    Arrays.asList("A 2", "B 2")));
+        });
 
-        table.setEditable(true);
+        final Button set_color = new Button("Set Color");
+        set_color.setOnAction(event ->
+        {
+            table.setCellColors(Arrays.asList(Arrays.asList(null, Color.ORANGE),
+                                              Arrays.asList(null, null, Color.BLUEVIOLET)));
+        });
 
-        final Scene scene = new Scene(table, 800, 600);
+        final CheckBox sel_row = new CheckBox("Select rows");
+        sel_row.setOnAction(event ->
+        {
+            table.setRowSelectionMode(sel_row.isSelected());
+        });
+
+        final BorderPane layout = new BorderPane();
+        layout.setTop(label);
+        layout.setCenter(table);
+        layout.setRight(new VBox(10, new_headers, new_data, set_color, sel_row));
+        BorderPane.setMargin(layout.getRight(), new Insets(10));
+
+        final Scene scene = new Scene(layout, 800, 700);
         stage.setScene(scene);
+        stage.setTitle("Table Demo");
+        stage.setOnCloseRequest(event ->
+        {   // Fetch data from table view
+            System.out.println(table.getHeaders());
+            for (List<String> row : table.getData())
+                System.out.println(row);
+
+            System.out.println("Original data:");
+            for (List<String> row : data)
+                System.out.println(row);
+        });
         stage.show();
-
-        List<StringProperty> row = new ArrayList<>();
-        row.add(new SimpleStringProperty("One"));
-        row.add(new SimpleStringProperty("Another"));
-        data.add(row);
-
-        row = new ArrayList<>();
-        row.add(new SimpleStringProperty("Two"));
-        row.add(new SimpleStringProperty("Something"));
-        data.add(row);
-
 
         final Thread change_cell = new Thread(() ->
         {
@@ -90,15 +147,11 @@ public class StringTableDemo extends Application
                 {
                     e.printStackTrace();
                 }
-                Platform.runLater(() ->  updateCell(0, 1, LocalDateTime.now().toString().replace('T', ' ')));
+                Platform.runLater(() ->  table.updateCell(1, 3, LocalDateTime.now().toString().replace('T', ' ')));
             }
         });
         change_cell.setDaemon(true);
         change_cell.start();
-    }
 
-    public static void main(String[] args)
-    {
-        launch(args);
     }
 }

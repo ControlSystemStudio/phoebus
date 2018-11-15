@@ -23,6 +23,7 @@ import org.phoebus.ui.Messages;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -93,34 +94,28 @@ public class StringTable extends BorderPane
      *
      *  <p>Table data is compared as exact identity (== MAGIC_LAST_ROW).
      */
-    private static final List<String> MAGIC_LAST_ROW = Arrays.asList(Messages.MagicLastRow);
+    private static final List<StringProperty> MAGIC_LAST_ROW = Arrays.asList(new SimpleStringProperty(Messages.MagicLastRow));
 
     /** Value used to temporarily detach the 'data' from table */
-    private static final ObservableList<List<String>> NO_DATA = FXCollections.observableArrayList();
+    private static final ObservableList<List<StringProperty>> NO_DATA = FXCollections.observableArrayList();
 
     /** Data shown in the table, includes MAGIC_LAST_ROW */
-    private final ObservableList<List<String>> data = FXCollections.observableArrayList();
+    private final ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
 
     /** Optional cell coloring, does not include MAGIC_LAST_ROW */
     private volatile List<List<Color>> cell_colors = null;
 
-    /** Cell factory for displaying the text
-     *
-     *  <p>special coloring of MAGIC_LAST_ROW which only has one column
-     */
-    private static final Callback<CellDataFeatures<List<String>, String>, ObservableValue<String>> CELL_FACTORY = param ->
+    /** Cell value factory aware of MAGIC_LAST_ROW which only has one column */
+    private static final Callback<CellDataFeatures<List<StringProperty>, String>, ObservableValue<String>> VALUE_FACTORY = param ->
     {
-        final TableView<List<String>> table = param.getTableView();
+        final TableView<List<StringProperty>> table = param.getTableView();
         final int col_index = table.getColumns().indexOf(param.getTableColumn());
-        final List<String> value = param.getValue();
-        final String text;
+        final List<StringProperty> value = param.getValue();
         if (value == MAGIC_LAST_ROW)
-            text = col_index == 0 ? MAGIC_LAST_ROW.get(0): "";
+            return col_index == 0 ? MAGIC_LAST_ROW.get(0): new SimpleStringProperty("");
         else if (col_index < value.size())
-            text = value.get(col_index);
-        else
-        	text = "<col " + col_index + "?>";
-        return new SimpleStringProperty(text);
+            return value.get(col_index);
+        return new SimpleStringProperty("<col " + col_index + "?>");
     };
 
     private final boolean editable;
@@ -136,7 +131,7 @@ public class StringTable extends BorderPane
     /** Table cell that displays a String,
      *  with special coloring of the MAGIC_LAST_ROW
      */
-    private class StringTextCell extends TextFieldTableCell<List<String>, String>
+    private class StringTextCell extends TextFieldTableCell<List<StringProperty>, String>
     {
         private TextField editor = null;
 
@@ -172,7 +167,7 @@ public class StringTable extends BorderPane
                 commitEdit(editor.getText());
 
                 // Edit next/prev column in same row
-                final ObservableList<TableColumn<List<String>, ?>> columns = getTableView().getColumns();
+                final ObservableList<TableColumn<List<StringProperty>, ?>> columns = getTableView().getColumns();
                 final int col = columns.indexOf(getTableColumn());
                 final int next = event.isShiftDown()
                                ? (col + columns.size() - 1) % columns.size()
@@ -199,7 +194,7 @@ public class StringTable extends BorderPane
     public static final List<String> BOOLEAN_OPTIONS = Arrays.asList("false", "true");
 
     /** Cell with checkbox, sets data to "true"/"false" */
-    private class BooleanCell extends TableCell<List<String>, String>
+    private class BooleanCell extends TableCell<List<StringProperty>, String>
     {
         private final CheckBox checkbox = new CheckBox();
 
@@ -212,7 +207,7 @@ public class StringTable extends BorderPane
                 final int row = getIndex();
                 final int col = getTableView().getColumns().indexOf(getTableColumn());
                 final String value = Boolean.toString(checkbox.isSelected());
-                data.get(row).set(col, value);
+                data.get(row).get(col).set(value);
                 fireDataChanged();
             });
             checkbox.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
@@ -234,7 +229,7 @@ public class StringTable extends BorderPane
             if (event.getCode() == KeyCode.TAB)
             {
                 // Edit next/prev column in same row
-                final ObservableList<TableColumn<List<String>, ?>> columns = getTableView().getColumns();
+                final ObservableList<TableColumn<List<StringProperty>, ?>> columns = getTableView().getColumns();
                 final int col = columns.indexOf(getTableColumn());
                 final int next = event.isShiftDown()
                                ? (col + columns.size() - 1) % columns.size()
@@ -280,7 +275,7 @@ public class StringTable extends BorderPane
     };
 
     /** Cell that allows selecting options from a combo */
-    private class ComboCell extends ComboBoxTableCell<List<String>, String>
+    private class ComboCell extends ComboBoxTableCell<List<StringProperty>, String>
     {
         private ComboBox<String> combo = null;
 
@@ -317,7 +312,7 @@ public class StringTable extends BorderPane
                 commitEdit(combo.getValue());
 
                 // Edit next/prev column in same row
-                final ObservableList<TableColumn<List<String>, ?>> columns = getTableView().getColumns();
+                final ObservableList<TableColumn<List<StringProperty>, ?>> columns = getTableView().getColumns();
                 final int col = columns.indexOf(getTableColumn());
                 final int next = event.isShiftDown()
                                ? (col + columns.size() - 1) % columns.size()
@@ -342,7 +337,7 @@ public class StringTable extends BorderPane
 
     private final ToolBar toolbar = new ToolBar();
 
-    private final TableView<List<String>> table = new TableView<>(data);
+    private final TableView<List<StringProperty>> table = new TableView<>(data);
 
     /** Currently editing a cell? */
     private boolean editing = false;
@@ -378,7 +373,7 @@ public class StringTable extends BorderPane
         scroll.setFitToHeight(true);
         setCenter(scroll);
 
-        setData(Arrays.asList(Arrays.asList()));
+        setData(Arrays.asList());
     }
 
     /** @param select_rows Select complete rows, or individual cells? */
@@ -395,13 +390,13 @@ public class StringTable extends BorderPane
      */
     public void setSelection(final List<Integer> sel_row_col)
     {
-        final TableViewSelectionModel<List<String>> selection = table.getSelectionModel();
+        final TableViewSelectionModel<List<StringProperty>> selection = table.getSelectionModel();
         selection.clearSelection();
 
         if (sel_row_col == null)
             return;
 
-        final ObservableList<TableColumn<List<String>, ?>> columns = table.getColumns();
+        final ObservableList<TableColumn<List<StringProperty>, ?>> columns = table.getColumns();
         int i = 0;
         while (i < sel_row_col.size())
         {
@@ -440,7 +435,7 @@ public class StringTable extends BorderPane
         {
             // Icons are not centered inside the button until the
             // button is once pressed, or at least focused via "tab"
-            button.setGraphic(ImageCache.getImageView(getClass(), "/icons/" + id + ".png"));
+            button.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/" + id + ".png"));
 
             // Using the image as a background like this centers the image,
             // but replaces the complete characteristic button outline with just the icon.
@@ -586,8 +581,8 @@ public class StringTable extends BorderPane
     public void setColumnOptions(final int column, final List<String> options)
     {
         @SuppressWarnings("unchecked")
-        final TableColumn<List<String>, String> table_column = (TableColumn<List<String>, String>) table.getColumns().get(column);
-        final Callback<TableColumn<List<String>, String>, TableCell<List<String>, String>> factory;
+        final TableColumn<List<StringProperty>, String> table_column = (TableColumn<List<StringProperty>, String>) table.getColumns().get(column);
+        final Callback<TableColumn<List<StringProperty>, String>, TableCell<List<StringProperty>, String>> factory;
 
         if (options == null || options.isEmpty())
             factory = list -> new StringTextCell();
@@ -605,7 +600,7 @@ public class StringTable extends BorderPane
      */
     public List<String> getColumnOptions(final int column)
     {
-        final TableCell<List<String>, ?> cell = table.getColumns().get(column).getCellFactory().call(null);
+        final TableCell<List<StringProperty>, ?> cell = table.getColumns().get(column).getCellFactory().call(null);
         if (cell instanceof ComboCell)
             return ((ComboCell)cell).getItems();
         else if (cell instanceof BooleanCell)
@@ -629,8 +624,8 @@ public class StringTable extends BorderPane
      */
     private void createTableColumn(final int index, final String header)
     {
-        final TableColumn<List<String>, String> table_column = new TableColumn<>(header);
-        table_column.setCellValueFactory(CELL_FACTORY);
+        final TableColumn<List<StringProperty>, String> table_column = new TableColumn<>(header);
+        table_column.setCellValueFactory(VALUE_FACTORY);
         // Prevent column re-ordering
         // (handled via moveColumn which also re-orders the data)
         table_column.setReorderable(false);
@@ -642,15 +637,15 @@ public class StringTable extends BorderPane
         {
             editing = false;
             final int col = event.getTablePosition().getColumn();
-            List<String> row = event.getRowValue();
+            List<StringProperty> row = event.getRowValue();
             if (row == MAGIC_LAST_ROW)
             {
                 // Entered in last row? Create new row
                 row = createEmptyRow();
-                final List<List<String>> data = table.getItems();
+                final List<List<StringProperty>> data = table.getItems();
                 data.add(data.size()-1, row);
             }
-            row.set(col, event.getNewValue());
+            row.get(col).set(event.getNewValue());
             fireDataChanged();
 
             // Automatically edit the next row, same column
@@ -669,7 +664,7 @@ public class StringTable extends BorderPane
      *  @param row
      *  @param table_column
      */
-    private void editCell(final int row, final TableColumn<List<String>, ?> table_column)
+    private void editCell(final int row, final TableColumn<List<StringProperty>, ?> table_column)
     {
         TIMER.schedule(() ->
             Platform.runLater(() ->
@@ -686,18 +681,27 @@ public class StringTable extends BorderPane
         return table.getColumns().stream().map(col -> col.getText()).collect(Collectors.toList());
     }
 
-    private List<String> createEmptyRow()
+    private List<StringProperty> createEmptyRow()
     {
         final int size = getColumnCount();
-        final List<String> row = new ArrayList<>(size);
+        final List<StringProperty> row = new ArrayList<>(size);
         for (int i=0; i<size; ++i)
-            row.add("");
+            row.add(new SimpleStringProperty(""));
         return row;
     }
 
     private int getColumnCount()
     {
         return table.getColumns().size();
+    }
+
+    /** @return Number of data rows, excluding the MAGIC_LAST_ROW when editable */
+    private int getDataRowCount()
+    {
+        int rows = data.size();
+        if (editable && rows > 0 && data.get(rows-1) == MAGIC_LAST_ROW)
+            return rows-1;
+        return rows;
     }
 
     /** Set or update data
@@ -709,6 +713,7 @@ public class StringTable extends BorderPane
     @SuppressWarnings("rawtypes")
     public void setData(final List<List<String>> new_data)
     {
+        // TODO Is selection automatically preserved since we just update StringProperty cells?
         // Save row, col, .. indices of selection
         final ObservableList<TablePosition> sel = table.getSelectionModel().getSelectedCells();
         final List<Integer> sel_row_col = new ArrayList<>();
@@ -718,33 +723,49 @@ public class StringTable extends BorderPane
             sel_row_col.add(pos.getColumn());
         }
 
-        final int columns = getColumnCount();
-        data.clear();
-        for (List<String> new_row : new_data)
+        // TODO Don't replace all the data, try to update existing StringProperty cells
+        // Update common rows
+        final int rows = getDataRowCount();
+        final int both = Math.min(rows, new_data.size());
+        for (int r=0; r<both; ++r)
+            copyRow(r, new_data.get(r), data.get(r));
+
+        // Add new rows
+        for (int r=rows; r<new_data.size(); ++r)
         {
-            final ArrayList<String> row;
-            if (new_row instanceof ArrayList)
-                row = (ArrayList<String>)new_row;
-            else
-                row = new ArrayList<>(new_row);
-            if (row.size() < columns)
-            {
-                logger.log(Level.WARNING, "Table needs " + columns +
-                           " columns " + getHeaders() +
-                           " but got row with just " + row.size() + ": " + row);
-                for (int i=row.size(); i<columns; ++i)
-                    row.add("");
-            }
-            data.add(row);
+            final List<StringProperty> row = createEmptyRow();
+            copyRow(r, new_data.get(r), row);
+            data.add(r, row);
         }
 
-        if (editable)
+        // Delete superfluous rows
+        for (int r=rows-1; r>=new_data.size(); --r)
+            data.remove(r);
+
+        if (editable  &&  data.size() <= new_data.size())
             data.add(MAGIC_LAST_ROW);
+
         // Don't fire, since external source changed data, not user
         // fireDataChanged();
 
-        // Restore selection
+        // Restore selection TODO No need to save/restore selection?
         setSelection(sel_row_col);
+    }
+
+    private void copyRow(final int row, final List<String> src, final List<StringProperty> dst)
+    {
+        if (src.size() != dst.size())
+            logger.log(Level.WARNING, "Table needs " + dst.size() + " columns " + getHeaders() +
+                       " but row " + row + " received just " + src.size() + " cells: " + src);
+
+        // Update common cells
+        int both = Math.min(src.size(), dst.size());
+        for (int c=0; c<both; ++c)
+            dst.get(c).set(src.get(c));
+
+        // Clear remaining cells
+        for (int c=src.size(); c<dst.size(); ++c)
+            dst.get(c).set("");
     }
 
     /** Get complete table content
@@ -752,10 +773,17 @@ public class StringTable extends BorderPane
      */
     public List<List<String>> getData()
     {
-        final List<List<String>> data = new ArrayList<>(table.getItems());
-        while (data.size() > 0  &&  data.get(data.size()-1) == MAGIC_LAST_ROW)
-            data.remove(data.size()-1);
-        return data;
+        final int rows = getDataRowCount();
+        final int cols = getColumnCount();
+        final List<List<String>> result = new ArrayList<>(rows);
+        for (int r=0; r<rows; ++r)
+        {
+            final List<String> row = new ArrayList<>(cols);
+            for (StringProperty cell : data.get(r))
+                row.add(cell.get());
+            result.add(row);
+        }
+        return result;
     }
 
     /** Get data of one table cell
@@ -767,14 +795,36 @@ public class StringTable extends BorderPane
     {
         try
         {
-            final List<String> row_data = table.getItems().get(row);
+            final List<StringProperty> row_data = data.get(row);
             if (row_data == MAGIC_LAST_ROW)
                 return "";
-            return row_data.get(col);
+            return row_data.get(col).get();
         }
         catch (IndexOutOfBoundsException ex)
         {
             return "";
+        }
+    }
+
+    /** Update one table cell
+     *  @param row Table row
+     *  @param col Table column
+     *  @param value New cell value
+     */
+    public void updateCell(final int row, final int col, final String value)
+    {
+        try
+        {
+            final List<StringProperty> row_data = data.get(row);
+            if (row_data == MAGIC_LAST_ROW)
+                throw new IndexOutOfBoundsException("Magic Last Row");
+            row_data.get(col).set(value);
+        }
+        catch (IndexOutOfBoundsException ex)
+        {
+            logger.log(Level.WARNING,
+                       "Cannot update row " + row + ", col " + col + " to '" + value +
+                       "' in table sized " + getDataRowCount() + " by " + getColumnCount(), ex);
         }
     }
 
@@ -824,7 +874,7 @@ public class StringTable extends BorderPane
      *  @param row Table row
      *  @param col Table column
      */
-    private void setCellStyle(Cell<String> cell, final int row, final int col)
+    private void setCellStyle(final Cell<String> cell, final int row, final int col)
     {
         final Color color = getCellColor(row, col);
         if (color == null)
@@ -860,7 +910,7 @@ public class StringTable extends BorderPane
             if  (event.getCode().isLetterKey() || event.getCode().isDigitKey())
             {
                 @SuppressWarnings("unchecked")
-                final TablePosition<List<String>, ?> pos = table.getFocusModel().getFocusedCell();
+                final TablePosition<List<StringProperty>, ?> pos = table.getFocusModel().getFocusedCell();
                 table.edit(pos.getRow(), pos.getTableColumn());
 
                 // TODO If the cell had been edited before, i.e. the editor already exists,
@@ -880,7 +930,6 @@ public class StringTable extends BorderPane
     private void addRow()
     {
         int row = table.getSelectionModel().getSelectedIndex();
-        final List<List<String>> data = table.getItems();
         final int len = data.size();
         if (row < 0  ||  row > len-1)
             row = len-1;
@@ -918,7 +967,7 @@ public class StringTable extends BorderPane
     private void moveRow(final int row, final int target)
     {
         final int column = getSelectedColumn();
-        final List<String> line = data.remove(row);
+        final List<StringProperty> line = data.remove(row);
         data.add(target, line);
 
         if (cell_colors != null  && row < cell_colors.size()  && target < cell_colors.size())
@@ -933,7 +982,6 @@ public class StringTable extends BorderPane
     private void deleteRow()
     {
         int row = table.getSelectionModel().getSelectedIndex();
-        final List<List<String>> data = table.getItems();
         final int len = data.size();
         if (row < 0  ||  row >= len-1)
             return;
@@ -998,7 +1046,7 @@ public class StringTable extends BorderPane
         final int column = getSelectedColumn();
         if (column < 0)
             return;
-        final TableColumn<List<String>, ?> table_col = table.getColumns().get(column);
+        final TableColumn<List<StringProperty>, ?> table_col = table.getColumns().get(column);
         final String name = getColumnName(table_col.getText());
         if (name == null)
             return;
@@ -1025,10 +1073,10 @@ public class StringTable extends BorderPane
         // Add empty col. to data
         for (int r=0; r<data.size(); ++r)
         {
-            final List<String> row = data.get(r);
+            final List<StringProperty> row = data.get(r);
             if (row == MAGIC_LAST_ROW)
                 break;
-            row.add(column, "");
+            row.add(column, new SimpleStringProperty(""));
             if (cell_colors != null)
             {
                 final List<Color> colors = cell_colors.get(r);
@@ -1081,13 +1129,13 @@ public class StringTable extends BorderPane
         table.setItems(NO_DATA);
 
         // Move table column
-        final TableColumn<List<String>, ?> col = table.getColumns().remove(column);
+        final TableColumn<List<StringProperty>, ?> col = table.getColumns().remove(column);
         table.getColumns().add(target, col);
 
         // Move column in data
         for (int r=0; r<data.size(); ++r)
         {
-            final List<String> data_row = data.get(r);
+            final List<StringProperty> data_row = data.get(r);
             if (data_row == MAGIC_LAST_ROW)
                 break;
             data_row.add(target, data_row.remove(column));
@@ -1129,7 +1177,7 @@ public class StringTable extends BorderPane
         // Remove that column from data
         for (int r=0; r<data.size(); ++r)
         {
-            final List<String> row = data.get(r);
+            final List<StringProperty> row = data.get(r);
             if (row == MAGIC_LAST_ROW)
                 break;
             if (column < row.size())
@@ -1160,4 +1208,3 @@ public class StringTable extends BorderPane
             copy.dataChanged(this);
     }
 }
-
