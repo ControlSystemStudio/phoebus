@@ -35,6 +35,7 @@ import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseReprese
 import org.csstudio.javafx.rtplot.ColorMappingFunction;
 import org.csstudio.javafx.rtplot.NamedColorMapping;
 import org.csstudio.javafx.rtplot.NamedColorMappings;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.SaveAsDialog;
@@ -973,13 +974,29 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     @Override
     public void openFile(final String path) throws Exception
     {
-        // TODO Don't use AWT.. Desktop.getDesktop().open(new File(path));
+        logger.log(Level.SEVERE, "Opening file " + path);
+
+        execute(() ->
+        {
+            // First try opening with phoebus
+            final File file = new File(path);
+            if (file.exists()  &&
+                ApplicationLauncherService.openFile(file, false, null))
+                return;
+            // Fall back to OS, which might open in web browser
+            else
+                PhoebusApplication.INSTANCE.getHostServices().showDocument(path);
+
+            // AWT API has  Desktop.getDesktop().open(File),
+            // but that results in hangup
+            // https://github.com/shroffk/phoebus/issues/433
+        });
     }
 
     @Override
     public void openWebBrowser(final String url) throws Exception
     {
-        logger.log(Level.INFO, "Opening " + url);
+        logger.log(Level.SEVERE, "Opening web page " + url);
         execute(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(url));
     }
 
