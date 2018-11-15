@@ -710,21 +710,9 @@ public class StringTable extends BorderPane
      *                  where each row must contain the same number
      *                  of elements as the column headers
      */
-    @SuppressWarnings("rawtypes")
     public void setData(final List<List<String>> new_data)
     {
-        // TODO Is selection automatically preserved since we just update StringProperty cells?
-        // Save row, col, .. indices of selection
-        final ObservableList<TablePosition> sel = table.getSelectionModel().getSelectedCells();
-        final List<Integer> sel_row_col = new ArrayList<>();
-        for (TablePosition pos : sel)
-        {
-            sel_row_col.add(pos.getRow());
-            sel_row_col.add(pos.getColumn());
-        }
-
-        // TODO Don't replace all the data, try to update existing StringProperty cells
-        // Update common rows
+        // Try to update existing StringProperty cells for common rows
         final int rows = getDataRowCount();
         final int both = Math.min(rows, new_data.size());
         for (int r=0; r<both; ++r)
@@ -747,11 +735,12 @@ public class StringTable extends BorderPane
 
         // Don't fire, since external source changed data, not user
         // fireDataChanged();
-
-        // Restore selection TODO No need to save/restore selection?
-        setSelection(sel_row_col);
     }
 
+    /** @param row Row index (for error message)
+     *  @param src Strings to place into table row
+     *  @param dst Table row
+     */
     private void copyRow(final int row, final List<String> src, final List<StringProperty> dst)
     {
         if (src.size() != dst.size())
