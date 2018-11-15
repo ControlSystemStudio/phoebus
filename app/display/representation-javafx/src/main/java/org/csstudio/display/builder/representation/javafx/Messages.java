@@ -18,6 +18,7 @@ public class Messages
     public static String ActionButton_N_ActionsFmt;
     public static String ActionButton_NoActions;
     public static String ActionsDialog_Actions;
+    public static String ActionsDialog_Command;
     public static String ActionsDialog_Description;
     public static String ActionsDialog_Detail;
     public static String ActionsDialog_DisplayPath;
