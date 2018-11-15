@@ -18,8 +18,6 @@ import java.util.prefs.Preferences;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Dialog;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /** Helper for dialogs
  *  @author Kay Kasemir
@@ -31,16 +29,6 @@ public class DialogHelper
     // Prevent instantiation
     private DialogHelper()
     {
-    }
-
-    /** Ensure the dialog stays always on top of his {@link Stage}.
-     *  @param dialog Dialog to position whose modality must be changed.
-     */
-    public static void hackModality (final Dialog<?> dialog)
-    {
-        final Window window = dialog.getDialogPane().getScene().getWindow();
-        if (window instanceof Stage)
-            ((Stage) window).setAlwaysOnTop(true);
     }
 
     /** Position dialog relative to another widget
@@ -58,8 +46,6 @@ public class DialogHelper
      */
     public static void positionDialog(final Dialog<?> dialog, final Node node, final int x_offset, final int y_offset)
     {
-        hackModality(dialog);
-
         final Bounds pos = node.localToScreen(node.getBoundsInLocal());
         if (pos == null)
         {
@@ -168,8 +154,6 @@ public class DialogHelper
                                        final Consumer<Preferences> projector)
     {
         Objects.requireNonNull(dialog, "Null dialog.");
-
-        hackModality(dialog);
 
         if (injector != null  &&  prefs != null)
             injector.accept(prefs);

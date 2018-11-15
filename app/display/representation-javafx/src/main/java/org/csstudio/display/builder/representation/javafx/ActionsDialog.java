@@ -632,7 +632,7 @@ public class ActionsDialog extends Dialog<ActionInfos>
         execute_command_details.add(execute_command_description, 1, 0);
         GridPane.setHgrow(execute_command_description, Priority.ALWAYS);
 
-        execute_command_details.add(new Label(Messages.ActionsDialog_FilePath), 0, 1);
+        execute_command_details.add(new Label(Messages.ActionsDialog_Command), 0, 1);
         execute_command_file.textProperty().addListener(update);
         final Button select = new Button("...");
         select.setOnAction(event ->

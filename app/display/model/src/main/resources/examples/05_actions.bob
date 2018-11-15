@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>Actions</name>
-  <height>635</height>
+  <width>810</width>
+  <height>810</height>
   <widget type="label" version="2.0.0">
     <name>Label_6</name>
     <text>Typical actions buttons have exactly one
@@ -131,7 +132,7 @@ it is more obvious to end users.</text>
       </action>
     </actions>
     <x>440</x>
-    <y>560</y>
+    <y>660</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -144,7 +145,7 @@ it is more obvious to end users.</text>
       </action>
     </actions>
     <x>440</x>
-    <y>640</y>
+    <y>740</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -157,7 +158,7 @@ it is more obvious to end users.</text>
       </action>
     </actions>
     <x>440</x>
-    <y>600</y>
+    <y>700</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -165,7 +166,7 @@ it is more obvious to end users.</text>
     <name>Label_2</name>
     <class>SECTION</class>
     <text>External Commands</text>
-    <y>500</y>
+    <y>660</y>
     <width>331</width>
     <height>30</height>
     <font use_class="true">
@@ -187,7 +188,7 @@ unless an absolute path is provided.
 The standard output and the error output of the command
 are printed as log messages.
 </text>
-    <y>520</y>
+    <y>680</y>
     <width>410</width>
     <height>110</height>
   </widget>
@@ -200,7 +201,7 @@ are printed as log messages.
       </action>
     </actions>
     <x>440</x>
-    <y>680</y>
+    <y>780</y>
     <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
@@ -264,11 +265,11 @@ are printed as log messages.
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_7</name>
-    <text>The is an action button with
+    <text>There is an action button with
 transparent background color,
 i.e. an invisible button on
 top of this label.</text>
-    <x>590</x>
+    <x>600</x>
     <y>400</y>
     <width>210</width>
     <height>80</height>
@@ -296,7 +297,7 @@ ScriptUtil.showMessageDialog(widget, message)]]></text>
       </action>
     </actions>
     <text></text>
-    <x>590</x>
+    <x>600</x>
     <y>400</y>
     <width>190</width>
     <height>70</height>
@@ -305,6 +306,82 @@ ScriptUtil.showMessageDialog(widget, message)]]></text>
       </color>
     </background_color>
     <transparent>true</transparent>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_10</name>
+    <actions>
+      <action type="open_file">
+        <file>plots_databrowser.plt</file>
+        <description>Open *.plt File</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>560</y>
+    <width>140</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Open Webpage</text>
+    <x>600</x>
+    <y>520</y>
+    <width>130</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Open Display</text>
+    <x>600</x>
+    <y>140</y>
+    <width>130</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Execute Command</text>
+    <x>600</x>
+    <y>660</y>
+    <width>160</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Open File</text>
+    <x>600</x>
+    <y>560</y>
+    <width>130</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Write PV</text>
+    <x>600</x>
+    <y>251</y>
+    <width>130</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Actions to open a file will look for a known application to handle the file.
+File names may be relative to the display that invokes the action.</text>
+    <y>560</y>
+    <width>380</width>
+    <height>40</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Web pages are opened in the web browser chosen by the OS.</text>
+    <y>520</y>
+    <width>380</width>
+    <height>40</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_11</name>
+    <actions>
+      <action type="open_file">
+        <file>color.def</file>
+        <description>Open *.def File</description>
+      </action>
+    </actions>
+    <x>440</x>
+    <y>600</y>
+    <width>140</width>
     <tooltip>$(actions)</tooltip>
   </widget>
 </display>
