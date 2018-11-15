@@ -40,19 +40,18 @@ public class StringTableDemo extends Application
     public void start(final Stage stage)
     {
         // Example data
-        final List<String> headers = Arrays.asList("Left", "Options", "Bool", "Right");
+        final List<String> headers = List.of("Left", "Options", "Bool", "Right");
         // Data lacks one element to demonstrate log message.
         // Table still "works"
-        final List<List<String>> data = Arrays.asList(
-                Arrays.asList("One", "Two", "true" /*, "missing" */),
-                Arrays.asList("Uno", "Due", "false", "Tres"));
+        final List<List<String>> data = List.of(
+                List.of("One", "Two", "true" /*, "missing" */),
+                List.of("Uno", "Due", "false", "Tres"));
 
         // Table
         final StringTable table = new StringTable(true);
         table.setHeaders(headers);
-        table.setColumnOptions(1, Arrays.asList("Two", "Due", "Zwo", "1+2-1"));
+        table.setColumnOptions(1, List.of("Two", "Due", "Zwo", "1+2-1"));
         table.setColumnOptions(2, StringTable.BOOLEAN_OPTIONS);
-        table.setColumnWidth(3, 200);
         table.setData(data);
         table.setBackgroundColor(Color.PINK);
         table.setTextColor(Color.GREEN);
@@ -60,6 +59,8 @@ public class StringTableDemo extends Application
 
         // Table looks OK by default, but combo box will need more space
         table.setColumnWidth(1, 100);
+        // Arrange for time stamp set via updateCell(..)
+        table.setColumnWidth(3, 200);
 
         table.setListener(new StringTableListener()
         {
@@ -88,31 +89,24 @@ public class StringTableDemo extends Application
         final Button new_headers = new Button("New Headers");
         new_headers.setOnAction(event ->
         {
-            table.setHeaders(Arrays.asList("One", "Other"));
+            table.setHeaders(List.of("One", "Other"));
             table.setColumnOptions(0, null);
-            table.setColumnOptions(1, Arrays.asList("Two", "Due", "Zwo", "1+2-1"));
+            table.setColumnOptions(1, List.of("Two", "Due", "Zwo", "1+2-1"));
         });
 
         final Button new_data = new Button("New Data");
-        new_data.setOnAction(event ->
-        {
-            table.setData(Arrays.asList(
-                    Arrays.asList("A 1", "B 1"),
-                    Arrays.asList("A 2", "B 2")));
-        });
+        new_data.setOnAction(event -> table.setData(List.of( List.of("A 1", "B 1"),
+                                                             List.of("A 2", "B 2"))) );
 
         final Button set_color = new Button("Set Color");
         set_color.setOnAction(event ->
         {
-            table.setCellColors(Arrays.asList(Arrays.asList(null, Color.ORANGE),
-                                              Arrays.asList(null, null, Color.BLUEVIOLET)));
+            table.setCellColors(List.of(List.of(null, Color.ORANGE),
+                                        List.of(null, null, Color.BLUEVIOLET)));
         });
 
         final CheckBox sel_row = new CheckBox("Select rows");
-        sel_row.setOnAction(event ->
-        {
-            table.setRowSelectionMode(sel_row.isSelected());
-        });
+        sel_row.setOnAction(event ->  table.setRowSelectionMode(sel_row.isSelected()) );
 
         final BorderPane layout = new BorderPane();
         layout.setTop(label);
@@ -135,6 +129,7 @@ public class StringTableDemo extends Application
         });
         stage.show();
 
+        // Thread that keeps updating a cell
         final Thread change_cell = new Thread(() ->
         {
             while (true)
@@ -152,6 +147,5 @@ public class StringTableDemo extends Application
         });
         change_cell.setDaemon(true);
         change_cell.start();
-
     }
 }
