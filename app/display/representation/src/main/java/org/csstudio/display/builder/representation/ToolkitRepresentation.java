@@ -7,9 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation;
 
-import java.awt.Desktop;
-import java.io.File;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -503,10 +500,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @param path Path to file
      *  @throws Exception on error
      */
-    public void openFile(final String path) throws Exception
-    {
-        Desktop.getDesktop().open(new File(path));
-    }
+    abstract public void openFile(final String path) throws Exception;
 
     /** Open a URL with the OS-assigned default tool
      *
@@ -516,10 +510,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @param path URL
      *  @throws Exception on error
      */
-    public void openWebBrowser(final String url) throws Exception
-    {
-        Desktop.getDesktop().browse(new URI(url));
-    }
+    abstract public void openWebBrowser(final String url) throws Exception;
 
     /** Execute callable in toolkit's UI thread.
      *  @param <T> Type to return

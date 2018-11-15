@@ -35,6 +35,7 @@ import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseReprese
 import org.csstudio.javafx.rtplot.ColorMappingFunction;
 import org.csstudio.javafx.rtplot.NamedColorMapping;
 import org.csstudio.javafx.rtplot.NamedColorMappings;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.javafx.Styles;
@@ -967,6 +968,19 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             logger.log(Level.WARNING, "Audio playback error for " + url, ex);
         }
         return CompletableFuture.completedFuture(false);
+    }
+
+    @Override
+    public void openFile(final String path) throws Exception
+    {
+        // TODO Don't use AWT.. Desktop.getDesktop().open(new File(path));
+    }
+
+    @Override
+    public void openWebBrowser(final String url) throws Exception
+    {
+        logger.log(Level.INFO, "Opening " + url);
+        execute(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(url));
     }
 
     @Override
