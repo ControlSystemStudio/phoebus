@@ -315,6 +315,7 @@ public class Engine
         boolean run = true;
         while (run)
         {
+            logger.log(Level.INFO, "Reading configuration");
             model = new EngineModel();
             try
             (
@@ -324,7 +325,7 @@ public class Engine
                 config.read(model, config_name, port, skip_last);
             }
 
-            logger.info("Archive Engine web interface on http://localhost:" + port + "/index.html");
+            logger.log(Level.INFO, "Archive Engine web interface on http://localhost:" + port + "/index.html");
             final EngineWebServer httpd = new EngineWebServer(port);
             try
             {
