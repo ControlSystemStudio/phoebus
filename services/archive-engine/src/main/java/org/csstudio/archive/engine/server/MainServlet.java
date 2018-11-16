@@ -137,7 +137,7 @@ public class MainServlet extends HttpServlet
                     : "OK"));
 
             html.tableLine(Messages.HTTP_LastWriteTime, last_write_time == null ? "Never" : TimestampHelper.format(last_write_time));
-            html.tableLine(Messages.HTTP_WriteCount, model.getWriteCount() + " samples");
+            html.tableLine(Messages.HTTP_WriteCount, (int) model.getWriteCount() + " samples");
             html.tableLine(Messages.HTTP_WriteDuration, String.format("%.1f sec", model.getWriteDuration()));
 
             html.tableLine(Messages.HTTP_Idletime, String.format("%.1f %%", model.getIdlePercentage()));
