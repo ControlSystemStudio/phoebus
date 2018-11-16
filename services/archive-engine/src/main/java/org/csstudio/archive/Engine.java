@@ -143,7 +143,15 @@ public class Engine
             while (iter.hasNext())
             {
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h"))
+                if (cmd.equals("-host"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -host name");
+                    iter.remove();
+                    host_name = iter.next();
+                    iter.remove();
+                }
+                else if (cmd.startsWith("-h"))
                 {
                     help();
                     return;
