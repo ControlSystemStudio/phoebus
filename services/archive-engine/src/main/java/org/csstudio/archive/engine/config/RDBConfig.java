@@ -33,6 +33,7 @@ public class RDBConfig implements AutoCloseable
     private final RDBInfo rdb;
     private final SQL sql;
     private final Connection connection;
+    private int scan_mode_id = 0;
     private int monitor_mode_id = 1;
 
     /** @throws Exception on error */
@@ -51,10 +52,9 @@ public class RDBConfig implements AutoCloseable
         {
             while (result.next())
                 if (result.getString(2).equalsIgnoreCase("Monitor"))
-                {
                     monitor_mode_id = result.getInt(1);
-                    break;
-                }
+                else if (result.getString(2).equalsIgnoreCase("Scan"))
+                    scan_mode_id = result.getInt(1);
         }
     }
 
@@ -237,7 +237,7 @@ public class RDBConfig implements AutoCloseable
             {
                 statement.setInt(1, group_id);
                 statement.setString(2, name);
-                statement.setInt(3, monitor ? 1 : 2);
+                statement.setInt(3, monitor ? monitor_mode_id : scan_mode_id);
                 statement.setDouble(4, delta);
                 statement.setDouble(5, period);
                 statement.setInt(6, channel_id);
@@ -267,7 +267,7 @@ public class RDBConfig implements AutoCloseable
             {
                 statement.setInt(1, group_id);
                 statement.setString(2, name);
-                statement.setInt(3, monitor ? 1 : 2);
+                statement.setInt(3, monitor ? monitor_mode_id : scan_mode_id);
                 statement.setDouble(4, delta);
                 statement.setDouble(5, period);
                 statement.setInt(6, channel_id);
