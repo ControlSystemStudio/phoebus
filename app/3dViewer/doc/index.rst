@@ -1,4 +1,4 @@
-3d Viewer
+3D Viewer
 =========
 
 Overview
@@ -139,3 +139,25 @@ Transparency
             
         .. image:: good_transparency.png
            :width: 50%
+           
+
+Compatibility
+-------------
+The 3D Viewer requires support from the graphics system.
+
+Known to work:
+
+ * OpenJDK 11 on Mac OS 10.13.6
+ * OpenJDK 11 on Windows 10
+ * Oracle JDK 9, Oracle JDK 10, and OpenJDK 11 on RHEL 7.6
+
+Running on Linux requires direct graphics on a local machine.
+
+Can be made to work:
+
+ * Oracle JDK 10 or OpenJDK 11 on Centros 7.5 running inside VirtualBox, hosted on RHEL 7.6,
+   when setting ``-Dprism.forceGPU=true``
+
+In case of problems which usually include error messages
+``System can't support ConditionalFeature.SCENE3D``,
+start the program with ``-Dprism.verbose=true`` and ``-Djdk.gtk.verbose=true``
