@@ -56,6 +56,7 @@ public class Engine
         System.out.println();
         System.out.println("-help                         This text");
         System.out.println("-engine demo                  Engine configuration name");
+        System.out.println("-host localhost               HTTP Host name");
         System.out.println("-port 4812                    HTTP Server port");
         System.out.println("-skip_last                    Skip reading last sample time from RDB on start-up");
         System.out.println("-list                         List engine names");
@@ -126,6 +127,7 @@ public class Engine
         LogManager.getLogManager().readConfiguration(Engine.class.getResourceAsStream("/engine_logging.properties"));
 
         String config_name = "Demo";
+        String host_name = "localhost";
         String description = "";
 
         int port = 4812;
@@ -141,7 +143,15 @@ public class Engine
             while (iter.hasNext())
             {
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h"))
+                if (cmd.equals("-host"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -host name");
+                    iter.remove();
+                    host_name = iter.next();
+                    iter.remove();
+                }
+                else if (cmd.startsWith("-h"))
                 {
                     help();
                     return;
@@ -152,6 +162,14 @@ public class Engine
                         throw new Exception("Missing -engine config name");
                     iter.remove();
                     config_name = iter.next();
+                    iter.remove();
+                }
+                else if (cmd.equals("-host"))
+                {
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -host name");
+                    iter.remove();
+                    host_name = iter.next();
                     iter.remove();
                 }
                 else if (cmd.equals("-port"))
@@ -277,7 +295,7 @@ public class Engine
 
         if (import_file != null)
         {
-            final String url = "http://localhost:" + port;
+            final String url = "http://" + host_name + ":" + port + "/main";
             logger.log(Level.INFO, "Importing config    : " + import_file);
             logger.log(Level.INFO, "Description         : " + description);
             logger.log(Level.INFO, "URL                 : " + url);
@@ -315,6 +333,7 @@ public class Engine
         boolean run = true;
         while (run)
         {
+            logger.log(Level.INFO, "Reading configuration");
             model = new EngineModel();
             try
             (
@@ -324,7 +343,7 @@ public class Engine
                 config.read(model, config_name, port, skip_last);
             }
 
-            logger.info("Archive Engine web interface on http://localhost:" + port + "/index.html");
+            logger.log(Level.INFO, "Archive Engine web interface on http://localhost:" + port + "/index.html");
             final EngineWebServer httpd = new EngineWebServer(port);
             try
             {

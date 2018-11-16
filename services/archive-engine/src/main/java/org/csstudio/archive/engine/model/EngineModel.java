@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.engine.scanner.ScanThread;
@@ -321,7 +322,10 @@ public class EngineModel
     {
         if (state == State.RUNNING ||
             state == State.RESTART_REQUESTED)
+        {
             state = State.SHUTDOWN_REQUESTED;
+            logger.log(Level.INFO, "Shutdown requested");
+        }
     }
 
     /** Ask the model to restart.
@@ -331,7 +335,10 @@ public class EngineModel
     public void requestRestart()
     {
         if (state == State.RUNNING)
+        {
             state = State.RESTART_REQUESTED;
+            logger.log(Level.INFO, "Restart requested");
+        }
     }
 
     /** Reset engine statistics */

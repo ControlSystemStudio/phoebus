@@ -24,6 +24,7 @@ import org.csstudio.archive.engine.model.MonitoredArchiveChannel;
 import org.csstudio.archive.engine.model.ScannedArchiveChannel;
 import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.time.SecondsParser;
 import org.w3c.dom.Element;
 
 /** XML-based engine configuration
@@ -143,7 +144,7 @@ public class XMLConfig
                 final String name = XMLUtil.getChildString(ce, NAME)
                                            .orElseThrow(() -> new Exception(import_file + " line " + XMLUtil.getLineInfo(ce) + " Missing channel name"));
                 final boolean monitor = XMLUtil.getChildElement(ce, MONITOR) != null;
-                final double period = XMLUtil.getChildDouble(ce, PERIOD).orElse(60.0);
+                final double period = SecondsParser.parseSeconds(XMLUtil.getChildString(ce, PERIOD).orElse("60.0"));
                 final double delta = XMLUtil.getChildDouble(ce, DELTA).orElse(-1.0);
                 final boolean enable = XMLUtil.getChildBoolean(ce, ENABLE).orElse(false);
 
