@@ -26,6 +26,7 @@ import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.Perspective;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -186,6 +187,15 @@ public class DataBrowserInstance implements AppInstance
             {
                 // Load model from file in background
                 XMLPersistence.load(new_model, ResourceParser.getContent(input));
+
+                // Check for macros
+                final Macros macros = new Macros();
+                ResourceParser.getQueryItemStream(input)
+                              .filter(item -> item.getValue() != null)
+                              .forEach(item -> macros.add(item.getKey(),
+                                                          item.getValue()));
+                new_model.setMacros(macros);
+
                 Platform.runLater(() ->
                 {
                     try

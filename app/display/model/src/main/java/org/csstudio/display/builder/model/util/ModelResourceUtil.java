@@ -264,6 +264,11 @@ public class ModelResourceUtil
     {
         logger.log(Level.FINE, "Resolving {0} relative to {1}", new Object[] { resource_name, parent_display });
 
+        // Leave absolute file resources unchanged
+        if (resource_name.startsWith("file:/"))
+            return resource_name;
+
+        // For relative file names, try to resolve
         if (resource_name.startsWith("file:"))
             resource_name = resource_name.substring(5);
 
