@@ -13,6 +13,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -974,7 +976,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     @Override
     public void openFile(final String path) throws Exception
     {
-        logger.log(Level.SEVERE, "Opening file " + path);
+        logger.log(Level.INFO, "Opening file " + path);
 
         execute(() ->
         {
@@ -983,9 +985,21 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             if (file.exists()  &&
                 ApplicationLauncherService.openFile(file, false, null))
                 return;
+
+            // Check for a resource
+            try
+            {
+                final URI resource = new URI(path);
+                if (ApplicationLauncherService.openResource(resource, false, null))
+                    return;
+            }
+            catch (URISyntaxException ex)
+            {
+                // Ignore
+            }
+
             // Fall back to OS, which might open in web browser
-            else
-                PhoebusApplication.INSTANCE.getHostServices().showDocument(path);
+            PhoebusApplication.INSTANCE.getHostServices().showDocument(path);
 
             // AWT API has  Desktop.getDesktop().open(File),
             // but that results in hangup
@@ -996,7 +1010,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     @Override
     public void openWebBrowser(final String url) throws Exception
     {
-        logger.log(Level.SEVERE, "Opening web page " + url);
+        logger.log(Level.INFO, "Opening web page " + url);
         execute(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(url));
     }
 
