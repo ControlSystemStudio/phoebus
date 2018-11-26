@@ -101,7 +101,9 @@ public class ResourceParser
     {
         if (resource == null  ||  !resource.getScheme().equals("file"))
             return null;
-        return new File(resource);
+        // URI might be file:/some/path/file.plt?MACRO1=Value1
+        // Create file for just the path, not the query params.
+        return new File(resource.getPath());
     }
 
     /** Get URI for file
