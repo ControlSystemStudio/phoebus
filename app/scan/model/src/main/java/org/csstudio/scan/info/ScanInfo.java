@@ -180,7 +180,7 @@ public class ScanInfo extends Scan
     public String toString()
     {
         final StringBuilder buf = new StringBuilder();
-        buf.append("Scan '").append(getName()).append("' [").append(getId()).append("]: ").append(state);
+        buf.append("Scan ").append(getId()).append(" '").append(getName()).append("': ").append(state);
         if (error.isPresent())
             buf.append(" (").append(error.get()).append(")");
         if (state.isActive())

@@ -388,7 +388,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
             state.set(ScanState.Aborted);
             error = Optional.of(ScanState.Aborted.name());
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
             error = Optional.of(ex.getMessage());
             // Scan may have been aborted early on, for example in DataLogFactory.getDataLog()
