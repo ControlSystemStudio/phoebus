@@ -117,7 +117,8 @@ public class DisplayEditorInstance implements AppInstance
     {
         ActionWapper(ActionDescription action)
         {
-            super(action.getToolTip(),
+            // Always use 'simple' text without " [Some Shortcut Key]"
+            super(action.getToolTip().replaceAll(" \\[.*", ""),
                   ImageCache.getImageView(action.getIconResourcePath()));
             setOnAction(event -> action.run(getEditorGUI().getDisplayEditor()));
         }
@@ -130,28 +131,37 @@ public class DisplayEditorInstance implements AppInstance
         items.setAll(ExecuteDisplayAction.asMenuItem(this));
         items.add(new SeparatorMenuItem());
 
-        // Edit copy, paste, ..
-        items.add(new ActionWapper(ActionDescription.COPY));
-        items.add(new ActionWapper(ActionDescription.DELETE));
-        items.add(new PasteWidgets(getEditorGUI()));
-        items.add(new SeparatorMenuItem());
-
         // Depending on number of selected widgets,
         // allow grouping, ungrouping, morphing
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
+
+        // Edit copy, paste, ..
+        if (selection.size() > 0)
+        {
+            items.add(new ActionWapper(ActionDescription.COPY));
+            items.add(new ActionWapper(ActionDescription.DELETE));
+        }
+        items.add(new PasteWidgets(getEditorGUI()));
+        items.add(new SeparatorMenuItem());
+
         // OK to create (resp. 'start') a group with just one widget.
         // Even better when there's more than one widget.
         if (selection.size() >= 1)
+        {
             items.add(new CreateGroupAction(editor_gui.getDisplayEditor(), selection));
 
-        if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
-            items.add(new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0)));
+            if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
+                items.add(new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0)));
 
-        if (selection.size() == 1  &&  selection.get(0) instanceof EmbeddedDisplayWidget)
-            items.add(new EditEmbeddedDisplayAction(app, (EmbeddedDisplayWidget)selection.get(0)));
+            if (selection.size() == 1  &&  selection.get(0) instanceof EmbeddedDisplayWidget)
+                items.add(new EditEmbeddedDisplayAction(app, (EmbeddedDisplayWidget)selection.get(0)));
 
-        if (selection.size() > 0)
             items.add(new MorphWidgetsMenu(editor_gui.getDisplayEditor()));
+
+            items.add(new ActionWapper(ActionDescription.TO_BACK));
+            items.add(new ActionWapper(ActionDescription.TO_FRONT));
+            items.add(new SeparatorMenuItem());
+        }
 
         // Reload display, classes
         items.add(new ReloadDisplayAction(this));
