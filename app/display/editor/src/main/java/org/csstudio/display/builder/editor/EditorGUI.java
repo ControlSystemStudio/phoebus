@@ -102,6 +102,7 @@ public class EditorGUI
     private final EventHandler<KeyEvent> key_handler = event ->
     {
         final KeyCode code = event.getCode();
+        // System.out.println("Editor Key: " + event);
 
         // Only handle delete, copy, paste when mouse inside editor
         final boolean in_editor = editor.getContextMenuNode()
@@ -114,7 +115,7 @@ public class EditorGUI
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  ((meta  &&  code == KeyCode.X) || code == KeyCode.DELETE))
+        else if (in_editor  &&  ((meta  &&  code == KeyCode.X) || code == KeyCode.DELETE || code == KeyCode.BACK_SPACE))
             editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
