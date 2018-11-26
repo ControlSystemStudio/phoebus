@@ -120,7 +120,7 @@ public class EditorGUI
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.V)
-            editor.pasteFromClipboard(mouse_x, mouse_y);
+            pasteFromClipboard();
         else // Pass on, don't consume
             return;
         event.consume();
@@ -159,6 +159,12 @@ public class EditorGUI
     public DisplayEditor getDisplayEditor()
     {
         return editor;
+    }
+
+    /** Try to paste widgets from clipboard at last known mouse position */
+    public void pasteFromClipboard()
+    {
+        editor.pasteFromClipboard(mouse_x, mouse_y);
     }
 
     /** @return Is the widget tree shown? */

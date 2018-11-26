@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
+import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
@@ -39,6 +40,7 @@ import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
@@ -111,10 +113,28 @@ public class DisplayEditorInstance implements AppInstance
         toolbar.add(ExecuteDisplayAction.asButton(this));
     }
 
+    private class ActionWapper extends MenuItem
+    {
+        ActionWapper(ActionDescription action)
+        {
+            super(action.getToolTip(),
+                  ImageCache.getImageView(action.getIconResourcePath()));
+            setOnAction(event -> action.run(getEditorGUI().getDisplayEditor()));
+        }
+    }
+
     private void handleContextMenu(final ContextMenu menu)
     {
         final ObservableList<MenuItem> items = menu.getItems();
+        // Execute
         items.setAll(ExecuteDisplayAction.asMenuItem(this));
+        items.add(new SeparatorMenuItem());
+
+        // Edit copy, paste, ..
+        items.add(new ActionWapper(ActionDescription.COPY));
+        items.add(new ActionWapper(ActionDescription.DELETE));
+        items.add(new PasteWidgets(getEditorGUI()));
+        items.add(new SeparatorMenuItem());
 
         // Depending on number of selected widgets,
         // allow grouping, ungrouping, morphing
@@ -133,6 +153,7 @@ public class DisplayEditorInstance implements AppInstance
         if (selection.size() > 0)
             items.add(new MorphWidgetsMenu(editor_gui.getDisplayEditor()));
 
+        // Reload display, classes
         items.add(new ReloadDisplayAction(this));
 
         final DisplayModel model = editor_gui.getDisplayEditor().getModel();
@@ -145,6 +166,7 @@ public class DisplayEditorInstance implements AppInstance
                 items.add(new SetDisplaySize(editor_gui.getDisplayEditor()));
         }
 
+        // Show/hide other panels
         items.add(new SeparatorMenuItem());
 
         final CheckMenuItem show_tree = new CheckMenuItem("Show Widget Tree");

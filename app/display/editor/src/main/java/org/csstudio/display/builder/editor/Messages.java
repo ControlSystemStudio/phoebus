@@ -43,6 +43,7 @@ public class Messages
     public static String MoveToFront;
     public static String MoveUp;
     public static String NewDisplay;
+    public static String Paste;
     public static String PointCount_Fmt;
     public static String PropertyFilterTT;
     public static String ReloadClasses;

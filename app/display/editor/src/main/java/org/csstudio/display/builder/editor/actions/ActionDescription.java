@@ -215,7 +215,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propX().getValue();
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propX(), dest));
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propX(), dest));
         }
     };
 
@@ -232,7 +232,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propX().getValue() + widgets.get(0).propWidth().getValue() / 2;
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propX(),
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propX(),
                                                                   dest - widgets.get(i).propWidth().getValue()/2));
         }
     };
@@ -250,7 +250,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propX().getValue() + widgets.get(0).propWidth().getValue();
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propX(),
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propX(),
                                                                   dest - widgets.get(i).propWidth().getValue()));
         }
     };
@@ -268,7 +268,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propY().getValue();
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propY(), dest));
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propY(), dest));
         }
     };
 
@@ -285,7 +285,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propY().getValue() + widgets.get(0).propHeight().getValue()/2;
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propY(),
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propY(),
                                                                   dest - widgets.get(i).propHeight().getValue()/2));
         }
     };
@@ -303,7 +303,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propY().getValue() + widgets.get(0).propHeight().getValue();
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propY(),
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propY(),
                                                                   dest - widgets.get(i).propHeight().getValue()));
         }
     };
@@ -321,7 +321,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propWidth().getValue();
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propWidth(), dest));
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propWidth(), dest));
         }
     };
 
@@ -338,7 +338,7 @@ public abstract class ActionDescription
                 return;
             final int dest = widgets.get(0).propHeight().getValue();
             for (int i=1; i<widgets.size(); ++i)
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propHeight(), dest));
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propHeight(), dest));
         }
     };
 
@@ -369,7 +369,7 @@ public abstract class ActionDescription
             for (int i=0; i<N; ++i)
             {
                 final int dest = left + i*(right - left)/(N-1);
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propX(),
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propX(),
                                                                   dest - widgets.get(i).propWidth().getValue()/2));
             }
         }
@@ -402,7 +402,7 @@ public abstract class ActionDescription
             for (int i=0; i<N; ++i)
             {
                 final int dest = top + i*(bottom - top)/(N-1);
-                undo.execute(new SetWidgetPropertyAction<Integer>(widgets.get(i).propY(),
+                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propY(),
                                                                   dest - widgets.get(i).propHeight().getValue()/2));
             }
         }
