@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets.plots;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propInteractive;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
@@ -357,6 +358,7 @@ public class ImageWidget extends PVWidget
     }
 
     private volatile WidgetProperty<WidgetColor> background;
+    private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<ColorMap> data_colormap;
     private volatile ColorBarProperty color_bar;
@@ -385,6 +387,7 @@ public class ImageWidget extends PVWidget
     {
         super.defineProperties(properties);
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
+        properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(show_toolbar = propToolbar.createProperty(this,false));
         properties.add(data_colormap = propDataColormap.createProperty(this, PredefinedColorMaps.VIRIDIS));
         properties.add(color_bar = new ColorBarProperty(this));
@@ -426,6 +429,12 @@ public class ImageWidget extends PVWidget
     public WidgetProperty<WidgetColor> propBackground()
     {
         return background;
+    }
+
+    /** @return 'foreground_color' property */
+    public WidgetProperty<WidgetColor> propForegroundColor()
+    {
+        return foreground;
     }
 
     /** @return 'show_toolbar' property */
