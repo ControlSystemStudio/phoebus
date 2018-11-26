@@ -36,6 +36,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -405,6 +406,12 @@ public class RTImagePlot extends BorderPane
     public void setColorMapFont(final Font font)
     {
         plot.setColorMapFont(font);
+    }
+
+    /** @param foreground Color bar text color. */
+    public void setColorMapForeground(final Color foreground)
+    {
+        plot.setColorMapForeground(foreground);
     }
 
     /** @param show Show crosshair, moved on click?

@@ -296,6 +296,13 @@ public class ImagePlot extends PlotCanvasBase
         requestLayout();
     }
 
+    /** @param foreground Color bar text color. */
+    public void setColorMapForeground(final javafx.scene.paint.Color foreground)
+    {
+        colorbar_axis.setColor(foreground);
+        requestRedraw();
+    }
+
     /** @param show Show crosshair, moved on click?
      *              Or update cursor listener with each mouse move,
      *              not showing a persistent crosshair?

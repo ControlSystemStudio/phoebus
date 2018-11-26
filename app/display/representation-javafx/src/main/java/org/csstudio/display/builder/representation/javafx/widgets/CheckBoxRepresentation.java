@@ -114,6 +114,7 @@ public class CheckBoxRepresentation extends RegionBaseRepresentation<CheckBox, C
 
         labelChanged(model_widget.propLabel(), null, model_widget.propLabel().getValue());
         model_widget.propLabel().addPropertyListener(this::labelChanged);
+        model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
         model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
         model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
         model_widget.runtimePropPVWritable().addUntypedPropertyListener(this::styleChanged);
@@ -181,6 +182,7 @@ public class CheckBoxRepresentation extends RegionBaseRepresentation<CheckBox, C
         {
             jfx_node.setText(label);
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            jfx_node.setTextFill(JFXUtil.convert(model_widget.propForegroundColor().getValue()));
 
             // Don't disable the widget, because that would also remove the
             // context menu etc.
