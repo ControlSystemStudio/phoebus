@@ -12,6 +12,7 @@ import static org.phoebus.applications.viewer3d.Viewer3dPane.logger;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 
@@ -239,6 +240,8 @@ public class Viewer3d extends Pane
 
                 try (Scanner scanner = new Scanner(argList))
                 {
+                    // Always parse numbers as "3.14"
+                    scanner.useLocale(Locale.ROOT);
                     scanner.useDelimiter("\\s*,\\s*");
 
                     if (type.equals("background"))
