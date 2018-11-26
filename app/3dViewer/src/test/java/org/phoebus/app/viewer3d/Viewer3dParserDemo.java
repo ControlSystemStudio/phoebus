@@ -21,13 +21,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
 
-/**
- * Unit tests for the Viewer3d buildStructure() and checkAndParseComment() methods.
+/** Demo of 3D parser.
  *
- * @author Evan Smith
+ *  Can't run as Unit test because it depends on JavaFX,
+ *  i.e. won't run with cross-compilation.
+ *
+ *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class Viewer3dParserTest
+public class Viewer3dParserDemo
 {
     /* Initialize the JavaFX platform manually. */
     static
