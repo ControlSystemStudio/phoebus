@@ -83,12 +83,20 @@ public class AutomatedActionTest
         auto_action.cancel();
     }
 
+    /** @param passed Actual time delay
+     *  @param expected Expected time delay
+     */
+    private void checkActionDelay(final long passed, final long expected)
+    {
+        System.out.println("Action performed after " + passed + " ms (expected: " + expected + " ms)");
+        // Very lenient, actual delay should be within 100% of the expected delay
+        assertTrue(Math.abs(expected - passed) < DELAY_MS);
+    }
+
     /** @param passed Actual time delay, to be checked against expected DELAY_MS */
     private void checkActionDelay(final long passed)
     {
-        System.out.println("Action performed after " + passed + " ms");
-        // Very lenient, actual delay should be within 100% of the expected delay
-        assertTrue(Math.abs(DELAY_MS - passed) < DELAY_MS);
+        checkActionDelay(passed, DELAY_MS);
     }
 
     @Test
@@ -225,7 +233,7 @@ public class AutomatedActionTest
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR_ACK);
         assertThat(action_performed.poll(DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         passed = System.currentTimeMillis() - start;
-        checkActionDelay(passed);
+        checkActionDelay(passed, 0);
 
         // When the alarm then clears, there's NOT another update, already had the follow-up
         auto_action.handleSeverityUpdate(SeverityLevel.OK);
