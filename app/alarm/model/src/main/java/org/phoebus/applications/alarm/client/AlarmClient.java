@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.client;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,6 +22,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.record.TimestampType;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
@@ -28,6 +30,7 @@ import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
 import org.phoebus.applications.alarm.model.json.JsonTags;
+import org.phoebus.util.time.TimestampFormats;
 
 /** Alarm client model
  *
@@ -170,18 +173,55 @@ public class AlarmClient
         final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
         for (final ConsumerRecord<String, String> record : records)
         {
+            final long timestamp = record.timestamp();
             final String path = record.key();
             final String node_config = record.value();
+
+            if (record.timestampType() != TimestampType.CREATE_TIME)
+                logger.log(Level.WARNING, "Expect updates with CreateTime, got " + record.timestampType() + ": " + record.timestamp() + " " + path + " = " + node_config);
+
+            logger.log(Level.FINE, () ->
+                TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
+                record.topic() + " " +
+                path + " = " + node_config);
+
+            // Messages within a topic are ordered by time,
+            // but messages from the 'config' and 'state' topic can be mixed.
+            // Deleting an item and adding it back creates these messages:
+            //
+            // Config, Time  1: PV description="Original description"
+            // State , Time  2: PV state=MINOR
+            // Config, Time  5: PV null  (deleted)
+            // Config, Time 10: PV description="Added back in"
+            // State , Time 11: PV state=MINOR
+            //
+            // We could receive them like this:
+            //
+            // Config, Time  1: PV description="Original description"
+            // State , Time  2: PV state=MINOR
+            // State , Time 11: PV state=MINOR
+            // Config, Time  5: PV null  (deleted)
+            // Config, Time 10: PV description="Added back in"
+            //
+            // As a result, the PV would be deleted and then re-created
+            // with an OK state, missing the correct MINOR state.
+            //
+            // To guard against this, each leaf tracks the timestamp of the last state update.
+            // When receiving a deletion with an _older_ time stamp, we ignore it:
+            // Config, Time  1: PV description="Original description"
+            // State , Time  2: PV state=MINOR
+            // State , Time 11: PV state=MINOR
+            // Config, Time 10: PV description="Added back in"
+
             try
             {
-                // System.out.printf("\n%s - %s:\n", path, node_config);
                 if (node_config == null)
                 {   // No config -> Delete node
                     // Message may actually come from either config topic,
                     // where some client originally requested the removal,
                     // or the state topic, where running alarm server
                     // replaced the last state update with an empty one.
-                    final AlarmTreeItem<?> node = deleteNode(path);
+                    final AlarmTreeItem<?> node = deleteNode(timestamp, path);
                     // If this was a known node, notify listeners
                     if (node != null)
                     {
@@ -207,7 +247,7 @@ public class AlarmClient
                             for (final AlarmClientListener listener : listeners)
                                 listener.serverModeChanged(maint);
 
-                        need_update = JsonModelReader.updateAlarmState(node, json);
+                        need_update = JsonModelReader.updateAlarmState(timestamp, node, json);
                         last_state_update = System.currentTimeMillis();
                     }
                     else
@@ -265,15 +305,31 @@ public class AlarmClient
      *  A new model that reads this node-to-delete information
      *  thus never knew the node.
      *
+     *  @param timestamp Timestamp of the deletion request
      *  @param path Path to node to delete
      *  @return Node that was removed, or <code>null</code> if model never knew that node
      *  @throws Exception on error
      */
-    private AlarmTreeItem<?> deleteNode(final String path) throws Exception
+    private AlarmTreeItem<?> deleteNode(final long timestamp, final String path) throws Exception
     {
         final AlarmTreeItem<?> node = findNode(path);
         if (node == null)
             return null;
+
+        if (node instanceof AlarmClientLeaf)
+        {
+            final AlarmClientLeaf leaf = (AlarmClientLeaf) node;
+            if (leaf.getLastUpdateTimestamp() > timestamp)
+            {
+                logger.log(Level.INFO,
+                           "Ignoring deletion of " + leaf + " at " +
+                           TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) +
+                           ". Superceded by more recent state update at " +
+                           TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(leaf.getLastUpdateTimestamp()))
+                          );
+                return null;
+            }
+        }
         // Node is known: Detach it
         node.detachFromParent();
         return node;

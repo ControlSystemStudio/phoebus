@@ -26,6 +26,8 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
 {
     private volatile String description;
 
+    private volatile long timestamp = 0;
+
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicBoolean latching = new AtomicBoolean(true);
     private final AtomicBoolean annunciating = new AtomicBoolean(true);
@@ -40,6 +42,22 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         super(parent, name, Collections.emptyList());
         description = name;
         state = new ClientState(SeverityLevel.OK, "", "", Instant.now(), SeverityLevel.OK, "");
+    }
+
+    /** @param timestamp Timestamp for this update (epoch millisec)
+     *  @param state State
+     *  @return <code>true</code> if this changed the state
+     */
+    public boolean setState(final long timestamp, ClientState state)
+    {
+        this.timestamp = timestamp;
+        return setState(state);
+    }
+
+    /** @return Timestamp of last state update (epoch millisec) */
+    public long getLastUpdateTimestamp()
+    {
+        return timestamp;
     }
 
     /** When requesting a configuration update,
