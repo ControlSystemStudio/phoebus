@@ -211,9 +211,10 @@ public class ScanServerImpl implements ScanServer
             // Submit scan to engine for execution
             final ExecutableScan scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl);
             scan_engine.submit(scan, queue);
+            logger.log(Level.CONFIG, "Submitted ID " + scan.getId() + " \"" + scan.getName() + "\"");
             return scan.getId();
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Scan submission failed", ex);
             throw ex;

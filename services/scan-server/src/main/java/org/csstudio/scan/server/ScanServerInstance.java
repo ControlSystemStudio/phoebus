@@ -92,8 +92,9 @@ public class ScanServerInstance
     private static final String COMMANDS =
         "Scan Server Commands:\n" +
         "help            -  Show commands\n" +
-        "scans           -  Show commands\n" +
+        "scans           -  List scans\n" +
         "info ID         -  Show info about scan with given ID\n" +
+        "commands ID     -  Dump scan's commands\n" +
         "devices ID      -  Show devices used by scan\n" +
         "data ID         -  Dump log data for scan\n" +
         "abort ID        -  Abort given scan\n" +
@@ -127,7 +128,13 @@ public class ScanServerInstance
         else if (args.length == 2)
         {
             final int id = Integer.parseInt(args[1]);
-            if (args[0].startsWith("dev"))
+            if (args[0].startsWith("com"))
+            {
+                System.out.println("Commands of scan " + id + ":");
+                final String commands = getScanServer().getScanCommands(id);
+                System.out.println(commands);
+            }
+            else if (args[0].startsWith("dev"))
             {
                 System.out.println("Devices of scan " + id + ":");
                 for (DeviceInfo dev : getScanServer().getDeviceInfos(id))
