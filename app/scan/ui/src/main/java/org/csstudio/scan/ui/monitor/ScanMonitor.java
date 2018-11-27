@@ -17,6 +17,7 @@ import org.csstudio.scan.client.ScanInfoModel;
 import org.csstudio.scan.client.ScanInfoModelListener;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -25,6 +26,7 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
 
 /** Scan monitor application instance (singleton)
  *  @author Kay Kasemir
@@ -104,6 +106,22 @@ public class ScanMonitor implements AppInstance
             logger.log(Level.WARNING, "Cannot create scan monitor", ex);
             return new Label("Cannot create scan monitor");
         }
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        int i = 0;
+        for (TableColumn<?, ?> col : scans.getTableColumns())
+            memento.getNumber("COL" + i++).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        int i = 0;
+        for (TableColumn<?,?> col : scans.getTableColumns())
+            memento.setNumber("COL" + i++, col.getWidth());
     }
 
     private void dispose()
