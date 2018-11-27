@@ -152,6 +152,7 @@ public abstract class NavigationAction extends SplitMenuButton
     /** @param steps Steps to navigate */
     private void navigate(final int steps)
     {
-        instance.loadDisplayFile(getDisplayInfo(steps));
+        if (steps <= getDisplays().size())
+            instance.loadDisplayFile(getDisplayInfo(steps));
     }
 }
