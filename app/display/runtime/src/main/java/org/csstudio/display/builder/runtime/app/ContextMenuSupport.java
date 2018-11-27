@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Targe
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
+import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
@@ -141,6 +142,30 @@ class ContextMenuSupport
             }
             items.add(new SeparatorMenuItem());
         }
+
+        // If toolbar is hidden, offer forward/backward navigation
+        if (!instance.isToolbarVisible())
+        {
+            boolean navigate = false;
+            final DisplayNavigation navigation = instance.getNavigation();
+            if (navigation.getBackwardDisplays().size() > 0)
+            {
+                final MenuItem item = new MenuItem(Messages.NavigateBack_TT, new ImageView(NavigationAction.backward));
+                item.setOnAction(event -> instance.loadDisplayFile(navigation.goBackward(1)));
+                items.add(item);
+                navigate = true;
+            }
+            if (navigation.getForwardDisplays().size() > 0)
+            {
+                final MenuItem item = new MenuItem(Messages.NavigateForward_TT, new ImageView(NavigationAction.forward));
+                item.setOnAction(event -> instance.loadDisplayFile(navigation.goForward(1)));
+                items.add(item);
+                navigate = true;
+            }
+            if (navigate)
+                items.add(new SeparatorMenuItem());
+        }
+
 
         final Scene scene = node.getScene();
         final Parent model_parent = instance.getRepresentation().getModelParent();

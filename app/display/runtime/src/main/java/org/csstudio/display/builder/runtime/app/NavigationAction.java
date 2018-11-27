@@ -27,10 +27,10 @@ import javafx.scene.image.ImageView;
 public abstract class NavigationAction extends SplitMenuButton
 {
     /** Icons */
-    private static final Image backward = ImageCache.getImage(NavigationAction.class, "/icons/backward_nav.png"),
-                               backward_dis = ImageCache.getImage(NavigationAction.class, "/icons/backward_disabled.png"),
-                               forward = ImageCache.getImage(NavigationAction.class, "/icons/forward_nav.png"),
-                               forward_dis = ImageCache.getImage(NavigationAction.class, "/icons/forward_disabled.png");
+    static final Image backward = ImageCache.getImage(NavigationAction.class, "/icons/backward_nav.png"),
+                       backward_dis = ImageCache.getImage(NavigationAction.class, "/icons/backward_disabled.png"),
+                       forward = ImageCache.getImage(NavigationAction.class, "/icons/forward_nav.png"),
+                       forward_dis = ImageCache.getImage(NavigationAction.class, "/icons/forward_disabled.png");
 
     /** @param instance {@link DisplayRuntimeInstance}
      *  @param navigation {@link DisplayNavigation} for that instance
