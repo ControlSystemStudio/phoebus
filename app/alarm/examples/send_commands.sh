@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# Send text to topic.
+# Originally created for commands, but can also be used to create test messages
+# by for example connecting to the Accelerator (config) topic and sending
+# /Accelerator/Main/SomePV!{"user":"me","host":"my.host","description":"SomePV"}
 
 if [ $# -ne 1 ]
 then
@@ -6,7 +11,7 @@ then
     exit 1
 fi
 
-topic="$1Command"
+topic="$1"
 
 echo "Example commands:"
 echo "dump!"
