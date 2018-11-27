@@ -3,7 +3,7 @@
 
   <target name="core-email">
     <mkdir dir="${classes}"/>
-    <javac srcdir="${src}" destdir="${classes}">
+    <javac srcdir="${src}" destdir="${classes}" debug="${debug}">
       <classpath>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
       </classpath>

@@ -4,7 +4,7 @@
   <target name="service-alarm-server">
    	<!-- Compile src -->
     <mkdir dir="${classes}"/>
-    <javac destdir="${classes}">
+    <javac destdir="${classes}" debug="${debug}">
       <src path="${src}"/>
       <classpath>
         <path refid="app-classpath"/>

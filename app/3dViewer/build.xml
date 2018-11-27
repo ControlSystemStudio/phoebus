@@ -3,7 +3,7 @@
 
   <target name="app-3dViewer">
     <mkdir dir="${classes}"/>
-    <javac destdir="${classes}">
+    <javac destdir="${classes}" debug="${debug}">
       <src path="${src}"/>
       <classpath>
         <path refid="app-classpath"/>
