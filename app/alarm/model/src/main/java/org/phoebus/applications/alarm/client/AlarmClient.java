@@ -195,7 +195,8 @@ public class AlarmClient
             // Config, Time 10: PV description="Added back in"
             // State , Time 11: PV state=MINOR
             //
-            // We could receive them like this:
+            // We could receive them like this, with State updates combined,
+            // i.e. no longer ordered by time:
             //
             // Config, Time  1: PV description="Original description"
             // State , Time  2: PV state=MINOR
@@ -206,8 +207,10 @@ public class AlarmClient
             // As a result, the PV would be deleted and then re-created
             // with an OK state, missing the correct MINOR state.
             //
-            // To guard against this, each leaf tracks the timestamp of the last state update.
+            // To guard against this, each PV node (leaf) tracks the timestamp
+            // of the last _state_ update.
             // When receiving a deletion with an _older_ time stamp, we ignore it:
+            //
             // Config, Time  1: PV description="Original description"
             // State , Time  2: PV state=MINOR
             // State , Time 11: PV state=MINOR
@@ -226,7 +229,7 @@ public class AlarmClient
                     if (node != null)
                     {
                         if (node instanceof AlarmTreeLeaf)
-                            logger.log(Level.FINE, "Delete " + path);
+                            logger.log(Level.FINE, () -> "Delete " + path);
                         for (final AlarmClientListener listener : listeners)
                             listener.itemRemoved(node);
                     }
@@ -255,9 +258,10 @@ public class AlarmClient
                     // If there were changes, notify listeners
                     if (need_update)
                     {
-                        logger.log(Level.FINE, "Update " + path + " to " + node.getState());
+                        final AlarmTreeItem<?> changed_node = node;
+                        logger.log(Level.FINE, () -> "Update " + path + " to " + changed_node.getState());
                         for (final AlarmClientListener listener : listeners)
-                            listener.itemUpdated(node);
+                            listener.itemUpdated(changed_node);
                     }
                 }
             }
@@ -321,10 +325,10 @@ public class AlarmClient
             final AlarmClientLeaf leaf = (AlarmClientLeaf) node;
             if (leaf.getLastUpdateTimestamp() > timestamp)
             {
-                logger.log(Level.INFO,
-                           "Ignoring deletion of " + leaf + " at " +
+                logger.log(Level.FINE,
+                           "Ignoring deletion of " + leaf.getPathName() + " at " +
                            TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) +
-                           ". Superceded by more recent state update at " +
+                           ". Superseded by more recent state update at " +
                            TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(leaf.getLastUpdateTimestamp()))
                           );
                 return null;
