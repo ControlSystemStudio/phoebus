@@ -105,6 +105,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
     {
         super.registerListeners();
         model_widget.propWidth().addUntypedPropertyListener(this::sizeChanged);
+        model_widget.propHeight().addUntypedPropertyListener(this::sizeChanged);
         model_widget.propLimitsFromPV().addUntypedPropertyListener(this::limitsChanged);
         model_widget.propMinimum().addUntypedPropertyListener(this::limitsChanged);
         model_widget.propMaximum().addUntypedPropertyListener(this::limitsChanged);

@@ -10,9 +10,7 @@ package org.phoebus.applications.alarm.client;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -88,7 +86,6 @@ public class KafkaHelper
                     }
                     else
                         logger.info("Reading updates for " + part.topic());
-
             }
 
             @Override
@@ -120,7 +117,7 @@ public class KafkaHelper
 
         return producer;
     }
-    
+
     /**
      * Aggregate multiple topics into a single topic using KafkaStreams.
      * @param kafka_servers - Sever to connect to.
@@ -131,23 +128,17 @@ public class KafkaHelper
      */
     public static KafkaStreams aggregateTopics(String kafka_servers, List<String> topics, String aggregate_topic)
     {
-        Map<String, Object> props = new HashMap<>();
-        
+        final Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "Stream-To-Long-Term");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafka_servers);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        
-        StreamsConfig config = new StreamsConfig(props);
 
-        StreamsBuilder builder = new StreamsBuilder();
-        
+        final StreamsBuilder builder = new StreamsBuilder();
+
         // Aggregate the topics by mapping the topic key value pairs one to one into the aggregate topic.
         builder.<String, String>stream(topics).mapValues(pair -> pair).to(aggregate_topic);
-        
-        KafkaStreams aggregate_stream = new KafkaStreams(builder.build(), config);
-        
-        return aggregate_stream;
-    }
 
+        return new KafkaStreams(builder.build(), props);
+    }
 }
