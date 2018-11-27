@@ -7,9 +7,12 @@
  ******************************************************************************/
 package org.phoebus.pv.ca;
 
+import static org.phoebus.pv.PV.logger;
+
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
@@ -207,9 +210,19 @@ public class DBRHelper
                 enum_meta = EnumDisplay.of(((LABELS) metadata).getLabels());
             else
                 enum_meta = EnumDisplay.of();
-            if (is_array)
-                return VEnumArray.of(ArrayShort.of(xx.getEnumValue()), enum_meta, convertAlarm(dbr), convertTime(dbr));
-            return VEnum.of(xx.getEnumValue()[0], enum_meta, convertAlarm(dbr), convertTime(dbr));
+            try
+            {
+                if (is_array)
+                    return VEnumArray.of(ArrayShort.of(xx.getEnumValue()), enum_meta, convertAlarm(dbr), convertTime(dbr));
+                return VEnum.of(xx.getEnumValue()[0], enum_meta, convertAlarm(dbr), convertTime(dbr));
+            }
+            catch (IndexOutOfBoundsException ex)
+            {
+                final short index = xx.getEnumValue()[0];
+                logger.log(Level.WARNING, "Invalid enum index " + index + " for PV with enum options " + enum_meta.getChoices());
+                return VShort.of(index, Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "Invalid Enum Index"),
+                                 convertTime(dbr), Display.none());
+            }
         }
 
         // Metadata monitor will provide DBR_CTRL_Enum, which is a DBR_STS_Enum, but lacks time stamp
