@@ -204,6 +204,11 @@ public class ScansTable extends VBox
         sorted_scans.comparatorProperty().bind(scan_table.comparatorProperty());
     }
 
+    List<TableColumn<ScanInfoProxy,?>> getTableColumns()
+    {
+        return scan_table.getColumns();
+    }
+
     /** Rank states
      *
      *  <p>Assumes that 'Running' is most interesting and 'Logged' is at the bottom

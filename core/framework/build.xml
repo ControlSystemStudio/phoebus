@@ -3,7 +3,7 @@
 
   <target name="core-framework">
     <mkdir dir="${classes}"/>
-    <javac destdir="${classes}">
+    <javac destdir="${classes}" debug="${debug}">
       <src path="${src}"/>
       <classpath>
         <fileset dir="${dependencies}/phoebus-target/target/lib">

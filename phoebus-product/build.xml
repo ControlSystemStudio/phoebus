@@ -15,7 +15,7 @@
   
   <target name="product" depends="copy-doc" description="Assemble product">
     <mkdir dir="${classes}"/>
-    <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath"/>
+    <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath" debug="${debug}"/>
 
     <!-- Assemble lib/ -->
     <copy todir="${build}/lib" flatten="true">

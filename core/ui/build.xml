@@ -3,7 +3,7 @@
 
   <target name="core-ui">
     <mkdir dir="${classes}"/>
-    <javac destdir="${classes}">
+    <javac destdir="${classes}" debug="${debug}">
       <src path="${src}"/>
       <src path="${test}"/>
       <classpath>

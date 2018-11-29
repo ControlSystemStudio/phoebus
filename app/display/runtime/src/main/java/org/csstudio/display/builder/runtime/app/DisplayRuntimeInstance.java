@@ -138,6 +138,11 @@ public class DisplayRuntimeInstance implements AppInstance
         return dock_item;
     }
 
+    DisplayNavigation getNavigation()
+    {
+        return navigation;
+    }
+
     private Node createToolbar()
     {
         zoom_action = new ZoomAction(this);

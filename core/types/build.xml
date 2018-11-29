@@ -3,7 +3,7 @@
 
   <target name="core-types">
     <mkdir dir="${classes}"/>
-    <javac srcdir="${src}" destdir="${classes}">
+    <javac srcdir="${src}" destdir="${classes}" debug="${debug}">
       <classpath>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
         <pathelement path="../logbook/${build}/core-logbook-${version}.jar"/>
