@@ -30,20 +30,20 @@ public class RenameAction extends MenuItem
      */
     public RenameAction(final Node node, final TreeItem<File> item)
     {
-        super("Rename", ImageCache.getImageView(ImageCache.class, "/icons/name.png"));
+        super(Messages.Rename, ImageCache.getImageView(ImageCache.class, "/icons/name.png"));
 
         setOnAction(event ->
         {
             final File file = item.getValue();
             final TextInputDialog prompt = new TextInputDialog(file.getName());
             prompt.setTitle(getText());
-            prompt.setHeaderText("Enter new name:");
+            prompt.setHeaderText(Messages.RenameHdr);
             DialogHelper.positionDialog(prompt, node, 0, 0);
             final String new_name = prompt.showAndWait().orElse(null);
             if (new_name == null)
                 return;
 
-            JobManager.schedule("Rename " + item.getValue(), monitor ->
+            JobManager.schedule(Messages.RenameJobName + item.getValue(), monitor ->
             {
                 file.renameTo(new File(file.getParentFile(), new_name));
 

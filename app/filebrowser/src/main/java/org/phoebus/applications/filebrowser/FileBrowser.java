@@ -2,9 +2,14 @@ package org.phoebus.applications.filebrowser;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -30,25 +35,27 @@ public class FileBrowser implements AppInstance
     {
         this.app = app;
 
-        final FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("FileBrowser.fxml"));
+        final FXMLLoader fxmlLoader;
 
         Node content;
         try
         {
-            content = loader.load();
+            final URL fxml = getClass().getResource("FileBrowser.fxml");
+            final InputStream iStream = NLS.getMessages(FileBrowser.class);
+            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            fxmlLoader = new FXMLLoader(fxml, bundle);
+            content = (Node) fxmlLoader.load();
+            controller = fxmlLoader.getController();
         }
         catch (IOException ex)
         {
             logger.log(Level.WARNING, "Cannot load UI", ex);
             content = new Label("Cannot load UI");
-
         }
 
         final DockItem tab = new DockItem(this, content);
         DockPane.getActiveDockPane().addTab(tab);
 
-        controller = loader.getController();
         if (controller != null  &&  directory != null)
             controller.setRoot(directory);
 

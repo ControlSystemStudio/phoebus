@@ -33,7 +33,7 @@ public class CreateDirectoryAction extends MenuItem
      */
     public CreateDirectoryAction(final Node node, final TreeItem<File> item)
     {
-        super("New Folder", new ImageView(FileTreeCell.folder_icon));
+        super(Messages.NewFolder, new ImageView(FileTreeCell.folder_icon));
 
         setOnAction(event ->
         {
@@ -53,7 +53,7 @@ public class CreateDirectoryAction extends MenuItem
             {
                 final Alert alert = new Alert(AlertType.WARNING);
                 alert.setTitle(getText());
-                alert.setHeaderText("Folder\n   " + new_folder + "\nalready exists");
+                alert.setHeaderText(Messages.NewFolderAlert1 + new_folder + Messages.NewFolderAlert2);
                 DialogHelper.positionDialog(alert, node, 0, 0);
                 alert.showAndWait();
                 return;

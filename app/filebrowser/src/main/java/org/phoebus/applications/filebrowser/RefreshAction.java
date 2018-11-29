@@ -27,7 +27,7 @@ public class RefreshAction extends MenuItem
      */
     public RefreshAction(final Node node, final TreeItem<File> item)
     {
-        super("Refresh", ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
+        super(Messages.Refresh, ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
 
         setOnAction(event ->
         {
