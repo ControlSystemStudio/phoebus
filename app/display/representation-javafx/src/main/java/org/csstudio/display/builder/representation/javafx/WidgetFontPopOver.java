@@ -19,6 +19,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.FontWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.PopOver;
 
 import javafx.fxml.FXMLLoader;
@@ -43,7 +44,7 @@ public class WidgetFontPopOver extends PopOver
         try
         {
             final URL fxml = WidgetFontPopOver.class.getResource("WidgetFontPopOver.fxml");
-            final InputStream iStream = WidgetFontPopOver.class.getResourceAsStream("messages.properties");
+            InputStream iStream = NLS.getMessages(WidgetFontPopOver.class);
             final ResourceBundle bundle = new PropertyResourceBundle(iStream);
             final FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
             final Node content = (Node) fxmlLoader.load();

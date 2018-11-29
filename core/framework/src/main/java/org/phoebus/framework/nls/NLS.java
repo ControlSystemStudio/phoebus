@@ -120,4 +120,29 @@ public class NLS
             getLogger().log(Level.SEVERE, "Error reading properties for " + clazz.getName(), ex);
         }
     }
+
+    /** Get stream for messages
+     *  Tries to open "messages_{LOCALE}.properties",
+     *  falling back to generic "messages.properties" 
+     *  @param clazz Class relative to which message resources are located
+     *  @returns Stream for messages or null
+     */
+    public static InputStream getMessages(Class<?> clazz)
+    {
+        // First try "messages_de.properties", "messages_fr.properties", "messages_zh.properties", ...
+        // based on locale
+        String filename = "messages_" + Locale.getDefault().getLanguage() + ".properties";
+        InputStream msg_props = clazz.getResourceAsStream(filename);
+
+        // Fall back to default file
+        if (msg_props == null)
+        {
+            filename = "messages.properties";
+            msg_props = clazz.getResourceAsStream(filename);
+        }
+
+        if (msg_props == null)
+            getLogger().log(Level.SEVERE, "Cannot open '" + filename  + "' for " + clazz.getName());
+        return msg_props;
+    }
 }
