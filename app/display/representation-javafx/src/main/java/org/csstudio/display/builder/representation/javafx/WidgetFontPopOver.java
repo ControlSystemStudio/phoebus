@@ -44,7 +44,7 @@ public class WidgetFontPopOver extends PopOver
         try
         {
             final URL fxml = WidgetFontPopOver.class.getResource("WidgetFontPopOver.fxml");
-            InputStream iStream = NLS.getMessages(WidgetFontPopOver.class);
+            final InputStream iStream = NLS.getMessages(WidgetFontPopOver.class);
             final ResourceBundle bundle = new PropertyResourceBundle(iStream);
             final FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
             final Node content = (Node) fxmlLoader.load();
