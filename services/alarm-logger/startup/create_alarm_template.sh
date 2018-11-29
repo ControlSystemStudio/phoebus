@@ -66,6 +66,9 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_cmd_template -H 'C
           "APPLICATION-ID" : {
             "type" : "text"
           },
+          "config" : {
+            "type" : "keyword"
+          },
           "user" : {
             "type" : "keyword"
           },

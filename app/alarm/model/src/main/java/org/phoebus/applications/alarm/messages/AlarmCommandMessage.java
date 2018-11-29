@@ -27,6 +27,8 @@ public class AlarmCommandMessage {
     private String host;
     private String command;
 
+    // The following fields are for logging purposes
+    private String config;
     private Instant message_time;
 
     public AlarmCommandMessage() {
@@ -65,13 +67,23 @@ public class AlarmCommandMessage {
         this.message_time = message_time;
     }
 
+    public String getConfig() {
+        return config;
+    }
+
+    public void setConfig(String config) {
+        this.config = config;
+    }
+
     @JsonIgnore
     public Map<String, String> sourceMap() {
         Map<String, String> map = new HashMap<>();
+        map.put("config", getConfig());
         map.put("user", getUser());
         map.put("host", getHost());
         map.put("command", getCommand());
         map.put("message_time", formatter.format(getMessage_time()));
         return map;
     }
+
 }

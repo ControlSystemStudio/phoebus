@@ -69,6 +69,9 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
           "APPLICATION-ID" : {
             "type" : "text"
           },
+          "config" : {
+            "type" : "keyword"
+          },
           "user" : {
             "type" : "keyword"
           },

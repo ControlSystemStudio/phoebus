@@ -2,21 +2,28 @@ package org.phoebus.alarm.logging;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
+import java.time.Instant;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Transformer;
+import org.apache.kafka.streams.kstream.TransformerSupplier;
+import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.util.indexname.IndexNameHelper;
 
@@ -66,9 +73,36 @@ public class AlarmCmdLogger implements Runnable {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
         }
+        KStream<String, AlarmCommandMessage> timeStampedAlarms = alarms.transform(new TransformerSupplier<String, AlarmCommandMessage, KeyValue<String,AlarmCommandMessage>>() {
+
+            @Override
+            public Transformer<String, AlarmCommandMessage, KeyValue<String, AlarmCommandMessage>> get() {
+                return new Transformer<String, AlarmCommandMessage, KeyValue<String, AlarmCommandMessage>>() {
+                    private ProcessorContext context;
+                    @Override
+                    public void init(ProcessorContext context) {
+                        this.context = context;
+                    }
+
+                    @Override
+                    public KeyValue<String, AlarmCommandMessage> transform(String key, AlarmCommandMessage value) {
+                        key = key.replace("\\", "");
+                        value.setConfig(key);
+                        value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
+                        return new KeyValue<String, AlarmCommandMessage>(key, value);
+                    }
+
+                    @Override
+                    public void close() {
+                        
+                    }
+                    
+                };
+            }
+        });
 
         // Commit to elastic
-        alarms.foreach((k, v) -> {
+        timeStampedAlarms.foreach((k, v) -> {
             String topic_name = indexNameHelper.getIndexName(v.getMessage_time());
             ElasticClientHelper.getInstance().indexAlarmCmdDocument(topic_name, v);
         });
