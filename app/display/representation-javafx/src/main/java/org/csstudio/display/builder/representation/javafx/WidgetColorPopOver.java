@@ -21,6 +21,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.ColorWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.PopOver;
 
 import javafx.fxml.FXMLLoader;
@@ -50,7 +51,7 @@ public class WidgetColorPopOver extends PopOver
 	    try
         {
             final URL fxml = WidgetColorPopOver.class.getResource("WidgetColorPopOver.fxml");
-            final InputStream iStream = WidgetColorPopOver.class.getResourceAsStream("messages.properties");
+            final InputStream iStream = NLS.getMessages(WidgetColorPopOver.class);
             final ResourceBundle bundle = new PropertyResourceBundle(iStream);
             final FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
             final Node content = (Node) fxmlLoader.load();
