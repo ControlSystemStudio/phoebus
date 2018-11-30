@@ -20,6 +20,7 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.write.LogEntryDialog;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
@@ -60,21 +61,24 @@ public class SendLogbookAction extends MenuItem
     {
         super(MESSAGE, ImageCache.getImageView(SendLogbookAction.class, "/icons/logentry-add-16.png"));
 
-        setOnAction(event ->
-        {
-            // On UI thread, create screenshot etc.
-            final String body = get_body == null ? "" : get_body.get();
-            final Image image = get_image == null ? null : get_image.get();
-
-            // Save to file in background thread
-            JobManager.schedule(MESSAGE, monitor ->
+        if (LogbookUiPreferences.is_supported)
+            setOnAction(event ->
             {
-                final File image_file = image == null ? null : new Screenshot(image).writeToTempfile("image");
+                // On UI thread, create screenshot etc.
+                final String body = get_body == null ? "" : get_body.get();
+                final Image image = get_image == null ? null : get_image.get();
 
-                // Create log entry via dialog on UI thread
-                Platform.runLater(() ->  submitLogEntry(parent, title, body, image_file));
+                // Save to file in background thread
+                JobManager.schedule(MESSAGE, monitor ->
+                {
+                    final File image_file = image == null ? null : new Screenshot(image).writeToTempfile("image");
+
+                    // Create log entry via dialog on UI thread
+                    Platform.runLater(() ->  submitLogEntry(parent, title, body, image_file));
+                });
             });
-        });
+        else
+            setDisable(true);
     }
 
     private void submitLogEntry(final Node parent, final String title, final String body, final File image_file)
@@ -97,7 +101,7 @@ public class SendLogbookAction extends MenuItem
                 logger.log(Level.WARNING, "Cannot attach " + image_file, ex);
             }
         }
-        
+
         final LogEntry template = logEntryBuilder.createdDate(Instant.now()).build();
 
         final LogEntryDialog logEntryDialog = new LogEntryDialog(parent, template);

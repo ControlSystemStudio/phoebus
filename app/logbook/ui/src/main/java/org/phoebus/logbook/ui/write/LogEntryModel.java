@@ -95,6 +95,8 @@ public class LogEntryModel
         logService = LogService.getInstance();
 
         logFactory = logService.getLogFactories().get(LogbookUiPreferences.logbook_factory);
+        if (logFactory == null)
+            logger.log(Level.WARNING, "Undefined logbook factory " + LogbookUiPreferences.logbook_factory);
 
         tags     = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
@@ -487,11 +489,7 @@ public class LogEntryModel
                 }
             }
 
-            if (null == logFactory)
-            {
-                logger.log(Level.WARNING, "Logbook Factory Undefined.");
-            }
-            else
+            if (null != logFactory)
                 logFactory.getLogClient(new SimpleAuthenticationToken(username, password)).set(logEntry);
 
             // Delete the temporary files.
@@ -508,13 +506,8 @@ public class LogEntryModel
     /** Fetch the available log book and tag lists on a separate thread.*/
     public void fetchLists()
     {
-        JobManager.schedule("Fetch Logbooks and Tags", monitor ->
-        {
-            if (null == logFactory)
-            {
-                logger.log(Level.WARNING, "Logbook Factory Undefined.");
-            }
-            else
+        if (null != logFactory)
+            JobManager.schedule("Fetch Logbooks and Tags", monitor ->
             {
                 LogClient logClient = logFactory.getLogClient();
 
@@ -533,8 +526,7 @@ public class LogEntryModel
                     Collections.sort(logbooks);
                     Collections.sort(tags);
                 });
-            }
-        });
+            });
     }
 
     /**
