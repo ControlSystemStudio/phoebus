@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,8 +35,10 @@ import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.RepositoryCache;
+import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.util.FS;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
@@ -45,6 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class AlarmConfigLogger implements Runnable {
 
     private final String topic;
+    private final String remoteLocation;
     private Properties props;
 
     private final File root;
@@ -53,9 +57,10 @@ public class AlarmConfigLogger implements Runnable {
     // The alarm tree model which holds the current state of the alarm server
     private final AlarmClient model;
 
-    public AlarmConfigLogger(String topic, String location) {
+    public AlarmConfigLogger(String topic, String location, String remoteLocation) {
         super();
         this.topic = topic;
+        this.remoteLocation = remoteLocation;
 
         group_id = "Alarm-" + UUID.randomUUID();
 
@@ -77,6 +82,7 @@ public class AlarmConfigLogger implements Runnable {
         initialize();
     }
 
+    private static final String REMOTE_NAME="remote";
     private void initialize() {
         // Check if the local git repository exists.
         if (!root.isDirectory()) {
@@ -88,6 +94,16 @@ public class AlarmConfigLogger implements Runnable {
                 logger.log(Level.INFO, "Created repository: " + git.getRepository().getDirectory());
             } catch (IllegalStateException | GitAPIException e) {
                 logger.log(Level.WARNING, "Failed to initiate the git repo", e);
+            }
+        }
+        // Check if it is configured with the appropriate remotes
+        if (remoteLocation != null && !remoteLocation.isEmpty()) {
+            try {
+                Git git = Git.open(root, FS.detect());
+                URIish uri = new URIish(remoteLocation + "/" + this.topic);
+                git.remoteAdd().setName(REMOTE_NAME).setUri(uri).call();
+            } catch (IOException | URISyntaxException | GitAPIException e) {
+                e.printStackTrace();
             }
         }
 
@@ -201,9 +217,16 @@ public class AlarmConfigLogger implements Runnable {
                 try (Git git = Git.open(root)) {
                     git.add().addFilepattern(".").call();
                     git.commit().setAll(true).setMessage("Alarm config update "+path).call();
+
+                    // Check if it is configured with the appropriate remotes
+                    if (remoteLocation != null && !remoteLocation.isEmpty()) {
+                        // If remote defined push to remote
+                        PushCommand pushCommand = git.push();
+                        pushCommand.setRemote(REMOTE_NAME);
+                        pushCommand.call();
+                    }
                 } catch (GitAPIException | IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    logger.log(Level.WARNING, "Failed to commit the configuration changes", e);
                 }
             }
         } catch (final Exception ex) {
