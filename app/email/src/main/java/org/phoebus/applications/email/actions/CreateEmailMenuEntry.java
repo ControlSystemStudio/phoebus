@@ -8,8 +8,10 @@
 package org.phoebus.applications.email.actions;
 
 import org.phoebus.applications.email.EmailApp;
+import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -19,6 +21,7 @@ import javafx.scene.image.Image;
  *
  * @author Kunal Shroff
  */
+@SuppressWarnings("nls")
 public class CreateEmailMenuEntry implements MenuEntry {
 
     @Override
@@ -32,7 +35,10 @@ public class CreateEmailMenuEntry implements MenuEntry {
      */
     @Override
     public Void call() throws Exception {
-        ApplicationService.createInstance(EmailApp.NAME);
+        if (EmailPreferences.isEmailSupported())
+            ApplicationService.createInstance(EmailApp.NAME);
+        else
+            ExceptionDetailsErrorDialog.openError("No Email Support", "EMail is not enabled", new Exception("No email host configured"));
         return null;
     }
 
@@ -40,7 +46,7 @@ public class CreateEmailMenuEntry implements MenuEntry {
     public String getMenuPath() {
         return "Utility";
     }
-    
+
     @Override
     public Image getIcon()
     {
