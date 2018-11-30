@@ -24,7 +24,7 @@
           <graphic>
             <ImageView fitHeight="16.0" fitWidth="16.0">
               <image>
-                <Image url="/icons/home.png" />
+                <Image url="/icons/fb_home.png" />
               </image>
             </ImageView>
           </graphic>
