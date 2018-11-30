@@ -1,8 +1,13 @@
 package org.phoebus.applications.probe;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
 import org.phoebus.applications.probe.view.ProbeController;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -33,9 +38,11 @@ public class ProbeInstance implements AppInstance {
     private FXMLLoader loader;
 
     public Node create() {
-        loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("view/ProbeView.fxml"));
         try {
+            final URL fxml = getClass().getResource("view/ProbeView.fxml");
+            final InputStream iStream = NLS.getMessages(ProbeInstance.class);
+            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            loader = new FXMLLoader(fxml, bundle);
             return loader.load();
         } catch (IOException e) {
             e.printStackTrace();
