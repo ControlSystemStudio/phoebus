@@ -124,7 +124,7 @@ final class FileTreeCell extends TreeCell<File> {
         if (file.getParentFile().equals(dir))
             return;
 
-        JobManager.schedule("Move file", monitor ->
+        JobManager.schedule(Messages.MoveJobName, monitor ->
         {
             // System.out.println("Move " + file + " into " + dir);
             final File new_name = new File(dir, file.getName());
@@ -144,7 +144,7 @@ final class FileTreeCell extends TreeCell<File> {
             catch (Exception ex)
             {
                 final TreeView<File> tree = getTreeView();
-                ExceptionDetailsErrorDialog.openError(tree, "Error", "Failed to move\n" + file + " to " + target_item, ex);
+                ExceptionDetailsErrorDialog.openError(tree, Messages.MoveAlertTitle, Messages.MoveAlert1 + file + " " + Messages.MoveAlert2 + target_item, ex);
                 // Force full refresh
                 Platform.runLater(() ->
                     tree.setRoot(new FileTreeItem(mon, tree.getRoot().getValue())) );
@@ -169,7 +169,7 @@ final class FileTreeCell extends TreeCell<File> {
                 else
                 {
                     setGraphic(new ImageView(file_icon));
-                    JobManager.schedule("File Lookup", monitor -> lookup_icon(file));
+                    JobManager.schedule(Messages.LookupJobName, monitor -> lookup_icon(file));
                 }
                 setText(file.getName());
             }

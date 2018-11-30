@@ -27,7 +27,7 @@ public class CopyPath extends MenuItem
     /** @param items Items which paths to copy to clipboard */
     public CopyPath(final List<TreeItem<File>> items)
     {
-        super("Copy Path to Clipboard", ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+        super(Messages.CopyPathClp, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
 
         setOnAction(event ->
         {

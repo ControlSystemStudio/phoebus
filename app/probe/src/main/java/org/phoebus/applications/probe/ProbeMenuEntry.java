@@ -39,6 +39,6 @@ public class ProbeMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Display";
+        return Messages.ProbeMenuPath;
     }
 }

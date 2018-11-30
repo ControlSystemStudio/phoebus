@@ -34,12 +34,12 @@ public class DeleteAction extends MenuItem
      */
     public DeleteAction(final Node node, final List<TreeItem<File>> items)
     {
-        super("Delete", ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
+        super(Messages.Delete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
 
         setOnAction(event ->
         {
             final Alert prompt = new Alert(AlertType.CONFIRMATION);
-            prompt.setTitle("Delete");
+            prompt.setTitle(Messages.DeletePromptTitle);
 
             final StringBuilder buf = new StringBuilder();
             for (TreeItem<File> item : items)
@@ -49,12 +49,12 @@ public class DeleteAction extends MenuItem
                 buf.append(item.getValue().getName());
             }
 
-            prompt.setHeaderText("Delete " + buf.toString() + "?");
+            prompt.setHeaderText(Messages.DeletePromptHeader + buf.toString() + "?");
             DialogHelper.positionDialog(prompt, node, 0, 0);
             if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return;
 
-            JobManager.schedule("Delete " + buf.toString(), monitor ->
+            JobManager.schedule(Messages.DeleteJobName + buf.toString(), monitor ->
             {
                 for (TreeItem<File> item : items)
                 {

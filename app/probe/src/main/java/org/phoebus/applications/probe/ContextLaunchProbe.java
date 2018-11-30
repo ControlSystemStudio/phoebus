@@ -17,6 +17,7 @@ import javafx.scene.image.Image;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("rawtypes")
 public class ContextLaunchProbe implements ContextMenuEntry {
 
     private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);

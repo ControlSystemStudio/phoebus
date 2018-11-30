@@ -15,6 +15,7 @@ import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.applications.probe.Messages;
 import org.phoebus.applications.probe.Probe;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
@@ -243,7 +244,7 @@ public class ProbeController {
         if (value instanceof VEnum)
         {
             final VEnum eval = (VEnum) value;
-            buf.append("Enumeration Labels:\n");
+            buf.append(Messages.EnumLbls).append("\n");
             int i = 0;
             for (String label : eval.getDisplay().getChoices())
                 buf.append(i++).append(" = ").append(label).append("\n");
@@ -251,11 +252,11 @@ public class ProbeController {
         else if (value instanceof VNumber)
         {
             final Display dis = ((VNumber) value).getDisplay();
-            buf.append("Units   : ").append(dis.getUnit()).append("\n");
-            buf.append("Format  : ").append(dis.getFormat().format(0.123456789)).append("\n");
-            buf.append("Range   : ").append(dis.getControlRange().getMinimum()).append(" .. ").append(dis.getControlRange().getMaximum()).append("\n");
-            buf.append("Warnings: ").append(dis.getWarningRange().getMinimum()).append(" .. ").append(dis.getWarningRange().getMaximum()).append("\n");
-            buf.append("Alarms  : ").append(dis.getAlarmRange().getMinimum()).append(" .. ").append(dis.getAlarmRange().getMaximum()).append("\n");
+            buf.append(Messages.Units).append(dis.getUnit()).append("\n");
+            buf.append(Messages.Format).append(dis.getFormat().format(0.123456789)).append("\n");
+            buf.append(Messages.Range).append(dis.getControlRange().getMinimum()).append(" .. ").append(dis.getControlRange().getMaximum()).append("\n");
+            buf.append(Messages.Warnings).append(dis.getWarningRange().getMinimum()).append(" .. ").append(dis.getWarningRange().getMaximum()).append("\n");
+            buf.append(Messages.Alarms).append(dis.getAlarmRange().getMinimum()).append(" .. ").append(dis.getAlarmRange().getMaximum()).append("\n");
         }
 
         txtMetadata.setText(buf.toString());

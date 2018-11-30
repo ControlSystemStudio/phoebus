@@ -20,7 +20,7 @@ import org.phoebus.ui.docking.DockPane;
 public class Probe implements AppResourceDescriptor {
 
     public static final String NAME = "probe";
-    public static final String DISPLAYNAME = "Probe";
+    public static final String DISPLAYNAME = Messages.Probe;
 
     @Override
     public String getName() {

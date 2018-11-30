@@ -12,7 +12,7 @@ public class FileBrowserApp implements AppResourceDescriptor {
 
     public static final String Name = "file_browser";
 
-    public static final String DisplayName = "File Browser";
+    public static final String DisplayName = Messages.DisplayName;
 
     /** Initial root directory for newly opened file browser */
     public static final File default_root;

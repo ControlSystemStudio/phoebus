@@ -29,12 +29,12 @@
             </ImageView>
           </graphic>
           <tooltip>
-            <Tooltip text="Revert to default directory"/>
+            <Tooltip text="%HomeButtonTT"/>
           </tooltip>
         </Button>
         <TextField fx:id="path" maxHeight="-Infinity" minHeight="-Infinity" onAction="#setNewRoot" prefHeight="25.0" HBox.hgrow="ALWAYS">
           <tooltip>
-            <Tooltip text="Enter a base directory"/>
+            <Tooltip text="%BaseDirectoryTT"/>
           </tooltip>
         </TextField>
         <Button maxHeight="-Infinity" minHeight="-Infinity" mnemonicParsing="false" onAction="#browseNewRoot" prefHeight="25.0">
@@ -46,7 +46,7 @@
             </ImageView>
           </graphic>
           <tooltip>
-            <Tooltip text="Select a base directory"/>
+            <Tooltip text="%BaseDirectorySelTT"/>
           </tooltip>
         </Button>
       </children>

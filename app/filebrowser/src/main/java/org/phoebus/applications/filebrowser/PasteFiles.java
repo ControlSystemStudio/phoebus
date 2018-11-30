@@ -30,7 +30,7 @@ public class PasteFiles extends MenuItem
     /** @param target_item Item (directory) into which files from clipboard should be copied */
     public PasteFiles(TreeItem<File> target_item)
     {
-        super("Paste files from Clipboard", ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
+        super(Messages.Paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
 
         setOnAction(event ->
         {

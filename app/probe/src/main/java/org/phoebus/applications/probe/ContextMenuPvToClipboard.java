@@ -37,7 +37,7 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry<ProcessVariabl
     @Override
     public String getName()
     {
-        return "Copy PV to Clipboard";
+        return Messages.Copy;
     }
 
     @Override

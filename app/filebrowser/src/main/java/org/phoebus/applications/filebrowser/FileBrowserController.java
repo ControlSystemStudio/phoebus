@@ -57,8 +57,8 @@ public class FileBrowserController {
     @FXML
     TreeView<File> treeView;
 
-    private final MenuItem open = new MenuItem("Open", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
-    private final Menu openWith = new Menu("Open With...", ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final MenuItem open = new MenuItem(Messages.Open, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
     public FileBrowserController()
@@ -157,7 +157,7 @@ public class FileBrowserController {
         if (! ApplicationLauncherService.openFile(file, stage != null, stage))
         {
             final Alert alert = new Alert(AlertType.ERROR);
-            alert.setHeaderText("Cannot open\n  " + file + ",\nsee log for details");
+            alert.setHeaderText(Messages.OpenAlert1 + file + Messages.OpenAlert2);
             DialogHelper.positionDialog(alert, treeView, -300, -200);
             alert.showAndWait();
         }
@@ -389,7 +389,7 @@ public class FileBrowserController {
     @FXML
     public void browseNewRoot() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select Browser Root");
+        directoryChooser.setTitle(Messages.BrowserRootTitle);
         if (Paths.get(path.getText()).toFile().isDirectory()) {
             directoryChooser.setInitialDirectory(Paths.get(path.getText()).toFile());
         }

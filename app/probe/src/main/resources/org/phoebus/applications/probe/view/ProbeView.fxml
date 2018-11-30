@@ -20,21 +20,21 @@
           hgap="5" vgap="5">
   <padding><Insets top="5" right="5" bottom="5" left="5"/></padding>
   <children>
-    <Label text="PV Name: " />
+    <Label text="%PvNameLbl" />
 
 	<HBox prefHeight="33.0" prefWidth="578.0" spacing="5" GridPane.columnIndex="1">
 	  <children>
-	    <TextField fx:id="txtPVName" promptText="Enter PV Name" onAction="#search" HBox.hgrow="ALWAYS" /> 
-	    <Button mnemonicParsing="false" onAction="#search" text="Search" />
+	    <TextField fx:id="txtPVName" promptText="%PromptTxt" onAction="#search" HBox.hgrow="ALWAYS" /> 
+	    <Button mnemonicParsing="false" onAction="#search" text="%Search" />
 	  </children>
 	</HBox>
 
     <Separator  GridPane.rowIndex="1" GridPane.columnSpan="2" />
   
-    <Label text="Value:" GridPane.rowIndex="2" />
-    <Label text="Alarm:" GridPane.rowIndex="3" />
-    <Label text="Time Stamp:" GridPane.rowIndex="4" />
-    <Label text="Metadata:" minWidth="100" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+    <Label text="%Value" GridPane.rowIndex="2" />
+    <Label text="%Alarm" GridPane.rowIndex="3" />
+    <Label text="%TimeStamp" GridPane.rowIndex="4" />
+    <Label text="%Metadata" minWidth="100" GridPane.rowIndex="5" GridPane.valignment="TOP" />
     
     
     <TextField fx:id="txtValue" GridPane.columnIndex="1" GridPane.rowIndex="2"/>

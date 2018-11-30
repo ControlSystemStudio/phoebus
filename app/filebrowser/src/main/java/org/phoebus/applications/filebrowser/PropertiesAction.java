@@ -36,13 +36,13 @@ public class PropertiesAction extends MenuItem
     private static class FilePropertiesDialog extends Dialog<Void>
     {
         private final File file;
-        private final CheckBox writable = new CheckBox("Writeable");
-        private final CheckBox executable = new CheckBox("Executable");
+        private final CheckBox writable = new CheckBox(Messages.PropDlgWritable);
+        private final CheckBox executable = new CheckBox(Messages.PropDlgExecutable);
 
         public FilePropertiesDialog(final File file)
         {
             this.file = file;
-            setTitle("File Properties");
+            setTitle(Messages.PropDlgTitle);
             setResizable(true);
 
             getDialogPane().setContent(createContent());
@@ -69,26 +69,26 @@ public class PropertiesAction extends MenuItem
             final TextField filename = new TextField(file.getAbsolutePath());
             filename.setEditable(false);
             GridPane.setHgrow(filename, Priority.ALWAYS);
-            layout.add(new Label("Path: "), 0, row);
+            layout.add(new Label(Messages.PropDlgPath), 0, row);
             layout.add(filename, 1, row);
 
             final TextField date = new TextField(TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(file.lastModified())));
             date.setEditable(false);
             date.setMinWidth(200);
             GridPane.setHgrow(date, Priority.ALWAYS);
-            layout.add(new Label("Date: "), 0, ++row);
+            layout.add(new Label(Messages.PropDlgDate), 0, ++row);
             layout.add(date, 1, row);
 
             if (!file.isDirectory())
             {
-                final TextField size = new TextField(file.length() + " bytes");
+                final TextField size = new TextField(file.length() + " " + Messages.PropDlgBytes);
                 size.setEditable(false);
                 GridPane.setHgrow(size, Priority.ALWAYS);
-                layout.add(new Label("Size: "), 0, ++row);
+                layout.add(new Label(Messages.PropDlgSize), 0, ++row);
                 layout.add(size, 1, row);
             }
 
-            layout.add(new Label("Permissions: "), 0, ++row);
+            layout.add(new Label(Messages.PropDlgPermissions), 0, ++row);
             layout.add(writable, 1, row);
             layout.add(executable, 1, ++row);
 
@@ -111,7 +111,7 @@ public class PropertiesAction extends MenuItem
      */
     public PropertiesAction(final Node node, final TreeItem<File> item)
     {
-        super("Properties", ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
+        super(Messages.Properties, ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
 
         setOnAction(event ->
         {

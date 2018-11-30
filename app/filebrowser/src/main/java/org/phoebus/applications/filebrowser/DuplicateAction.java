@@ -34,20 +34,20 @@ public class DuplicateAction extends MenuItem
      */
     public DuplicateAction(final Node node, final TreeItem<File> item)
     {
-        super("Duplicate", ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+        super(Messages.Duplicate, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
 
         setOnAction(event ->
         {
             final File file = item.getValue();
-            final TextInputDialog prompt = new TextInputDialog("Copy_of_" + file.getName());
+            final TextInputDialog prompt = new TextInputDialog(Messages.DuplicatePrefix + file.getName());
             prompt.setTitle(getText());
-            prompt.setHeaderText("Enter name for duplicated file:");
+            prompt.setHeaderText(Messages.DuplicatePromptHeader);
             DialogHelper.positionDialog(prompt, node, 0, 0);
             final String new_name = prompt.showAndWait().orElse(null);
             if (new_name == null)
                 return;
 
-            JobManager.schedule("Rename " + item.getValue(), monitor ->
+            JobManager.schedule(Messages.DuplicateJobName + item.getValue(), monitor ->
             {
                 final File new_file = new File(file.getParentFile(), new_name);
 
@@ -57,7 +57,7 @@ public class DuplicateAction extends MenuItem
                     {
                         final Alert dialog = new Alert(AlertType.ERROR);
                         dialog.setTitle(getText());
-                        dialog.setHeaderText("File " + new_file + " already exists");
+                        dialog.setHeaderText(Messages.DuplicateAlert1 + new_file + " " + Messages.DuplicateAlert2);
                         DialogHelper.positionDialog(dialog, node, 0, 0);
                         dialog.showAndWait();
                     });
