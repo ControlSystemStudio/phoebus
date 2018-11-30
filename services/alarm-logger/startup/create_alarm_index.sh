@@ -56,3 +56,37 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
   }
 }
 '
+
+
+# Create the elastic index with the correct mapping for alarm command messages.
+# Create the Index
+# Set the mapping
+curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_cmd -d'
+{
+  "mappings" : {  
+    "alarm_cmd" : {
+        "properties" : {
+          "APPLICATION-ID" : {
+            "type" : "text"
+          },
+          "config" : {
+            "type" : "keyword"
+          },
+          "user" : {
+            "type" : "keyword"
+          },
+          "host" : {
+            "type" : "keyword"
+          },
+          "command" : {
+            "type" : "keyword"
+          },
+          "message_time" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+  }
+}
+'

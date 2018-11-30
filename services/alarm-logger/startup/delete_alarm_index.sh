@@ -10,3 +10,6 @@ es_port=9200
 
 # Delete the elastic index with the correct mapping for alarm state messages.
 curl -XDELETE http://${es_host}:${es_port}/${1}_alarms
+
+# Delete the elastic index with the correct mapping for alarm cmd messages.
+curl -XDELETE http://${es_host}:${es_port}/${1}_alarms_cmd
