@@ -7,7 +7,12 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.util.logging.Level;
+
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.logbook.LogService;
 
 /** Preference settings for logbook.ui
  *  @author Evan Smith
@@ -16,8 +21,9 @@ import org.phoebus.framework.preferences.PreferencesReader;
 public class LogbookUiPreferences
 {
     public static final String[] default_logbooks;
-    public static final boolean save_credentials;
+    public static final boolean  save_credentials;
     public static final String   logbook_factory;
+    public static final boolean  is_supported;
 
     static
     {
@@ -27,5 +33,17 @@ public class LogbookUiPreferences
         default_logbooks = prefs.get("default_logbooks").split("(\\s)*,(\\s)*");
         save_credentials = prefs.getBoolean("save_credentials");
         logbook_factory  = prefs.get("logbook_factory");
+
+        if (logbook_factory.isEmpty())
+        {
+            is_supported = false;
+            logger.log(Level.INFO, "No logbook factory selected");
+        }
+        else
+        {
+            is_supported = LogService.getInstance().getLogFactories(logbook_factory) != null;
+            if (! is_supported)
+                logger.log(Level.WARNING, "Cannot locate logbook factory '" + logbook_factory + "'");
+        }
     }
 }
