@@ -3,7 +3,6 @@ package org.phoebus.alarm.logging;
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -35,8 +34,8 @@ import org.phoebus.util.indexname.IndexNameHelper;
 
 public class AlarmStateLogger implements Runnable {
 
+    private static final String INDEX_FORMAT = "_alarms_state";
     private final String topic;
-    private Map<String, Object> serdeProps;
     private final Serde<AlarmStateMessage> alarmStateMessageSerde;
 
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
@@ -126,7 +125,7 @@ public class AlarmStateLogger implements Runnable {
 
         try
         {
-            indexNameHelper = new IndexNameHelper(topic + "_alarms", indexDateSpanUnits, indexDateSpanValue);
+            indexNameHelper = new IndexNameHelper(topic + INDEX_FORMAT, indexDateSpanUnits, indexDateSpanValue);
         }
         catch (Exception ex)
         {

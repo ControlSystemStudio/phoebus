@@ -29,6 +29,7 @@ import org.phoebus.util.indexname.IndexNameHelper;
 
 public class AlarmCmdLogger implements Runnable {
 
+    private static final String INDEX_FORMAT = "_alarms_cmd";
     private final String topic;
     private final Serde<AlarmCommandMessage> alarmCommandMessageSerde;
 
@@ -69,7 +70,7 @@ public class AlarmCmdLogger implements Runnable {
         final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
 
         try {
-            indexNameHelper = new IndexNameHelper(topic + "_alarms_cmd", indexDateSpanUnits, indexDateSpanValue);
+            indexNameHelper = new IndexNameHelper(topic + INDEX_FORMAT , indexDateSpanUnits, indexDateSpanValue);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
         }
