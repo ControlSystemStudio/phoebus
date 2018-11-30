@@ -21,8 +21,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class AlarmStateMessage {
 
     private static DateTimeFormatter formatter = TimestampFormats.MILLI_FORMAT;
-    private String config;
-    private String pv;
 
     private String severity;
     private String message;
@@ -31,7 +29,13 @@ public class AlarmStateMessage {
     private String current_severity;
     private String current_message;
     private String mode;
+
+    // The following fields are for logging purposes
     private Instant message_time;
+
+    private String config;
+    private String pv;
+
 
     public AlarmStateMessage() {
         super();
