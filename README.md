@@ -162,7 +162,7 @@ To run the Phoebus application:
    *Run* ➜ *Run Main Project* menu item.
 
 
-## Complete Distribution, including manual
+## Complete Distribution, including manual and self-update
 
     # Obtain sources for Documentation and Product
     git clone https://github.com/kasemir/phoebus-doc.git
@@ -181,6 +181,18 @@ To run the Phoebus application:
     # Fetch dependencies
 	( cd phoebus; mvn clean verify -f dependencies/pom.xml )
 
+    # Create settings.ini for the product with current date
+    # and URL of your update site.
+    # Update site contains '$(arch)' which client will replace with
+    # its host OS (linux, mac, win).
+    # Note that this example replaces an existing product/settings.ini.
+    # If your product already contains settings.ini,
+    # consider using '>>' to append instead of replacing.
+    URL='https://controlssoftware.sns.ornl.gov/css_phoebus/nightly/phoebus-$(arch).zip'
+    ( cd phoebus;
+      app/update/mk_update_settings.sh $URL > phoebus-product/settings.ini
+    ) 
+    
     # Build product & bundle for distribution, including the documentation
     ( cd phoebus; ant clean dist )
    
