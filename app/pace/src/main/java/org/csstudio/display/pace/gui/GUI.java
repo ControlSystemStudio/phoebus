@@ -49,12 +49,9 @@ public class GUI extends BorderPane
         final TableView<Instance> table = new TableView<>(FXCollections.observableList(model.getInstances()));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        table.setEditable(true);
+        table.getSelectionModel().setCellSelectionEnabled(true);
 
-        // By default, selected cells have changed colors that
-        // conflict with the PACETableCell coloring.
-        // -> Set fixed colors
-        table.setStyle("-fx-base: #ddd; -fx-text-background-color: #000;");
+        table.setEditable(true);
 
         TableColumn<Instance, String> col = new TableColumn<>(Messages.SystemColumn);
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
