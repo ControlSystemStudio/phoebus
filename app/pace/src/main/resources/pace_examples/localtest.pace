@@ -12,7 +12,7 @@
      <pv>loc://limit${N}(${N})</pv>
    </column>
    <column>
-     <name>StuffLimit</name>
+     <name>Stuff</name>
      <access>ro</access>
      <pv>sim://ramp(1, 10, 1)</pv>
    </column>

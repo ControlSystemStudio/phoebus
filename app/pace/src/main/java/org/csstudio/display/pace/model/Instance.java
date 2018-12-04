@@ -108,8 +108,9 @@ public class Instance
      */
     public Cell getCell(final Column column)
     {
-        for (int c=0; c<model.getColumnCount(); ++c)
-            if (model.getColumn(c) == column)
+        final List<Column> columns = model.getColumns();
+        for (int c=0; c<columns.size(); ++c)
+            if (columns.get(c) == column)
                 return cells[c];
         return null;
     }

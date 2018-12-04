@@ -81,16 +81,16 @@ public class ModelUnitTest
 
         assertThat(model.getTitle(), equalTo("Demo"));
 
-        assertThat(model.getColumnCount(), equalTo(3));
-        assertThat(model.getColumn(0).getName(), equalTo("Setpoint"));
-        assertThat(model.getColumn(1).getName(), equalTo("Limit"));
+        assertThat(model.getColumns().size(), equalTo(3));
+        assertThat(model.getColumns().get(0).getName(), equalTo("Setpoint"));
+        assertThat(model.getColumns().get(1).getName(), equalTo("Limit"));
 
-        assertThat(model.getInstanceCount(), equalTo(5));
-        assertThat(model.getInstance(0).getName(), equalTo("System 1"));
-        assertThat(model.getInstance(0).getCell(0).getName(), equalTo("loc://setpoint1(1)"));
+        assertThat(model.getInstances().size(), equalTo(5));
+        assertThat(model.getInstances().get(0).getName(), equalTo("System 1"));
+        assertThat(model.getInstances().get(0).getCell(0).getName(), equalTo("loc://setpoint1(1)"));
 
-        assertThat(model.getInstance(4).getName(), equalTo("System 5"));
-        assertThat(model.getInstance(4).getCell(1).getName(), equalTo("loc://limit5(5)"));
+        assertThat(model.getInstances().get(4).getName(), equalTo("System 5"));
+        assertThat(model.getInstances().get(4).getCell(1).getName(), equalTo("loc://limit5(5)"));
     }
 
     /** Check editing */
@@ -109,7 +109,7 @@ public class ModelUnitTest
         assertFalse(model.isEdited());
 
         // Assert that we have a non-readonly cell to test
-        final Cell cell = model.getInstance(1).getCell(1);
+        final Cell cell = model.getInstances().get(1).getCell(1);
         assertFalse(cell.isReadOnly());
 
         // Edit the cell
@@ -186,26 +186,26 @@ public class ModelUnitTest
         // Start model
         final Model model = new Model(Model.class.getResourceAsStream("/pace_examples/localtest.pace"));
         model.addListener(listener);
-        assertThat(model.getInstance(0).getCell(0).getName(), equalTo("loc://setpoint1(1)"));
+        assertThat(model.getInstances().get(0).getCell(0).getName(), equalTo("loc://setpoint1(1)"));
         model.start();
 
         // Model should reflect the current value of the PV in one of its cells
         for (int timeout=0; timeout<10; ++timeout)
         {
-            if ("3.14".equals(model.getInstance(0).getCell(0).getCurrentValue()))
+            if ("3.14".equals(model.getInstances().get(0).getCell(0).getCurrentValue()))
                 break;
             Thread.sleep(200);
         }
         assertFalse(model.isEdited());
-        assertThat(model.getInstance(0).getCell(0).getCurrentValue(), equalTo("3.14"));
+        assertThat(model.getInstances().get(0).getCell(0).getCurrentValue(), equalTo("3.14"));
 
         // Simulate user-entered value
-        model.getInstance(0).getCell(0).setUserValue("6.28");
+        model.getInstances().get(0).getCell(0).setUserValue("6.28");
         assertTrue(model.isEdited());
         // PV and original value are unchanged, but cell shows the user data
         assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
-        assertThat(model.getInstance(0).getCell(0).getCurrentValue(), equalTo("3.14"));
-        assertThat(model.getInstance(0).getCell(0).getValue(), equalTo("6.28"));
+        assertThat(model.getInstances().get(0).getCell(0).getCurrentValue(), equalTo("3.14"));
+        assertThat(model.getInstances().get(0).getCell(0).getValue(), equalTo("6.28"));
 
         // Write model to PVs
         have_pv_update.drainPermits();
@@ -239,7 +239,7 @@ public class ModelUnitTest
         assertFalse(model.isEdited());
 
         // Simulate user-entered value
-        model.getInstance(0).getCell(0).setUserValue("10.0");
+        model.getInstances().get(0).getCell(0).setUserValue("10.0");
         assertTrue(model.isEdited());
 
         // Write model to PVs, submit

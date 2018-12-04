@@ -9,6 +9,8 @@ package org.csstudio.display.pace.model;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
@@ -38,10 +40,10 @@ public class Model
     final private String title;
 
     /** Column definitions */
-    final private ArrayList<Column> columns = new ArrayList<>();
+    final private List<Column> columns;
 
     /** Instances, rows with cells */
-    final private ArrayList<Instance> instances = new ArrayList<>();
+    final private List<Instance> instances;
 
     /** Listener to be notified of model changes */
     final private CopyOnWriteArrayList<Consumer<Cell>> listeners = new CopyOnWriteArrayList<>();
@@ -72,26 +74,30 @@ public class Model
         // Get Title
         title = XMLUtil.getChildString(root_node, XML_TITLE).orElse("Title");
 
+        final List<Column> the_columns = new ArrayList<>();
+        final List<Instance> the_instances = new ArrayList<>();
+
         // Read column definitions
         final Element cols_node = XMLUtil.getChildElement(root_node, XML_COLUMNS);
-        if (cols_node == null)
-            return; // empty file? Is that an error or just empty?
+        if (cols_node != null)
+        {
+            // Loop over column definitions
+            for (Element col_node : XMLUtil.getChildElements(cols_node, XML_COLUMN))
+                the_columns.add(Column.fromDOM(col_node));
 
-        // Loop over column definitions
-        for (Element col_node : XMLUtil.getChildElements(cols_node, XML_COLUMN))
-            columns.add(Column.fromDOM(col_node));
-
-        // Locate instance definitions
-        final Element insts_node = XMLUtil.getChildElement(root_node, XML_INSTANCES);
-        if (insts_node == null)
-            return;
-        // Loop over instance definitions
-        for (Element inst_node : XMLUtil.getChildElements(insts_node, XML_INSTANCE))
-            instances.add(Instance.fromDOM(this, inst_node));
-
-        // Create cells, passing exceptions back up
-        for (Instance instance : instances)
-            instance.createCells(columns);
+            // Locate instance definitions
+            final Element insts_node = XMLUtil.getChildElement(root_node, XML_INSTANCES);
+            if (insts_node != null)
+                for (Element inst_node : XMLUtil.getChildElements(insts_node, XML_INSTANCE))
+                {
+                    final Instance instance = Instance.fromDOM(this, inst_node);
+                    // Create cells, passing exceptions back up
+                    instance.createCells(the_columns);
+                    the_instances.add(instance);
+                }
+        }
+        columns = Collections.unmodifiableList(the_columns);
+        instances = Collections.unmodifiableList(the_instances);
     }
 
     /** @param listener Listener to add */
@@ -112,32 +118,16 @@ public class Model
         return title;
     }
 
-    /** @return The number of columns. */
-    public int getColumnCount()
+    /** @return {@link Column}s */
+    public List<Column> getColumns()
     {
-        return columns.size();
+        return columns;
     }
 
-    /** @param i Index 0 .. getColumnCount()-1
-     *  @return Column at given index
-     */
-    public Column getColumn(final int i)
+    /** @return {@link Instance}s */
+    public List<Instance> getInstances()
     {
-        return columns.get(i);
-    }
-
-    /** @return The number of rows in the table. */
-    public int getInstanceCount()
-    {
-        return instances.size();
-    }
-
-    /** @param i Index 0 .. getInstanceCount()-1
-     *  @return Instance at given index
-     */
-    public Instance getInstance(final int i)
-    {
-        return instances.get(i);
+        return instances;
     }
 
     /** Fast check if model is 'dirty'
@@ -155,7 +145,7 @@ public class Model
     private boolean isAnyCellEdited()
     {
         for (Instance instance : instances)
-            for (int c = 0; c < getColumnCount(); c++)
+            for (int c = 0; c < columns.size(); c++)
                 if (instance.getCell(c).isEdited())
                     return true;
         return false;
@@ -167,7 +157,7 @@ public class Model
     public void start() throws Exception
     {
         for (Instance instance : instances)
-            for (int c = 0; c < getColumnCount(); c++)
+            for (int c = 0; c < columns.size(); c++)
                 instance.getCell(c).start();
     }
 
@@ -175,7 +165,7 @@ public class Model
     public void stop()
     {
         for (Instance instance : instances)
-            for (int c = 0; c < getColumnCount(); c++)
+            for (int c = 0; c < columns.size(); c++)
                 instance.getCell(c).stop();
     }
 
@@ -190,7 +180,7 @@ public class Model
     {
         for (Instance instance : instances)
         {
-            for (int c = 0; c < getColumnCount(); c++)
+            for (int c = 0; c < columns.size(); c++)
                 instance.getCell(c).saveUserValue(user_name);
         }
     }
@@ -203,7 +193,7 @@ public class Model
         dirty = false;
         for (Instance instance : instances)
         {
-            for (int c = 0; c < getColumnCount(); c++)
+            for (int c = 0; c < columns.size(); c++)
                 instance.getCell(c).revertOriginalValue();
         }
     }
@@ -217,7 +207,7 @@ public class Model
         dirty = false;
         for (Instance instance : instances)
         {
-            for (int c = 0; c < getColumnCount(); c++)
+            for (int c = 0; c < columns.size(); c++)
                 instance.getCell(c).clearUserValue();
         }
     }

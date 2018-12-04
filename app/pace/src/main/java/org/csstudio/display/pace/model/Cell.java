@@ -19,6 +19,8 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimestampFormats;
 
 import io.reactivex.disposables.Disposable;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 
 /** One cell in the model.
  *
@@ -33,6 +35,7 @@ import io.reactivex.disposables.Disposable;
  *  @author Kay Kasemir
  *  @author Delphy Nypaver Armstrong
  */
+@SuppressWarnings("nls")
 public class Cell
 {
     final private Instance instance;
@@ -62,6 +65,8 @@ public class Cell
     private PV last_name_pv, last_date_pv, last_comment_pv;
     private Disposable last_name_subscription, last_date_subscription, last_comment_subscription;
     private volatile String last_name = null, last_date = null, last_comment = null;
+
+    final private SimpleStringProperty gui_value = new SimpleStringProperty(Messages.UnknownValue);
 
     /** Initialize
      *  @param instance Instance (row) that holds this cell
@@ -110,13 +115,15 @@ public class Cell
      *  if we have nothing.
      *  @return Value of this cell
      */
-    public String getValue()
+    public ObservableValue<String> getValue()
     {
         if (user_value != null)
-            return user_value;
-        if (current_value != null)
-            return current_value;
-        return Messages.UnknownValue;
+            gui_value.set(user_value);
+        else if (current_value != null)
+            gui_value.set(current_value);
+        else
+            gui_value.set(Messages.UnknownValue);
+        return gui_value;
     }
 
     /** @return Original value of PV or <code>null</code>
@@ -376,7 +383,6 @@ public class Cell
     }
 
     /** @return String representation for debugging */
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {
