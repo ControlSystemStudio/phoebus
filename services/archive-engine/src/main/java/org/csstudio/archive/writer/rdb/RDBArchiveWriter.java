@@ -273,7 +273,10 @@ public class RDBArchiveWriter implements ArchiveWriter
         else if (sample instanceof VNumberArray)
         {
             final ListNumber data = ((VNumberArray)sample).getData();
-            batchDoubleSamples(channel, stamp, severity, status, data.getDouble(0), data);
+            if (data.size() > 0)
+                batchDoubleSamples(channel, stamp, severity, status, data.getDouble(0), data);
+            else
+                batchDoubleSamples(channel, stamp, severity, status, Double.NaN, data);
         }
         else if (sample instanceof VEnum)
             batchLongSample(channel, stamp, severity, status, ((VEnum)sample).getIndex());
