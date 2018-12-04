@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -242,6 +243,17 @@ public class Macros implements MacroValueProvider
         }
         Collections.sort(names);
         return names;
+    }
+
+    /** Perform given action for each name/value
+     *  @param action Invoked with each name/value
+     */
+    public void forEach(final BiConsumer<String, String> action)
+    {
+        synchronized (macros)
+        {
+            macros.forEach(action);
+        }
     }
 
     /** Expand values of all macros
