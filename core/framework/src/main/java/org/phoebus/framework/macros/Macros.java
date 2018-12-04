@@ -30,6 +30,8 @@ public class Macros implements MacroValueProvider
     // then set it to a new value like this depends on the order of macros:
     // SAVE = $(M), M = "new value"
     //
+    // (At the same time, getNames() always sorts alphabetically, so does order still matter?)
+    //
     // SYNC on access
     private final Map<String, String> macros = new LinkedHashMap<>();
 
@@ -60,6 +62,98 @@ public class Macros implements MacroValueProvider
         if (name.toLowerCase().startsWith("xml"))
             return "Invalid macro name '" + name + "': Must not start with 'XML' or 'xml'";
         return null;
+    }
+
+    /** Parse macro information from "macro1=value1, macro2=value2" type text
+     *
+     *  <p>Format:
+     *  Macro name as described in {{@link #checkMacroName(String)},
+     *  followed by '=' and value.
+     *  Surrounding spaces are removed, and comma separates subsequent macro and value:
+     *  <pre> M1 = Value1 , M2 = Value2 </pre>
+     *
+     *  <p>Value must be enclosed in '"' quotes if it contains surrounding spaces or comma:
+     *  <pre> MSG = "This is a message with comma, quoted!" , M2 = Value2 </pre>
+     *
+     *  To include quotes in the value, the value must be quoted and the embedded quotes
+     *  escaped:
+     *  <pre> MSG = "This is a \"Message\""</pre>
+     *
+     *  @param names_and_values
+     *  @throws Exception
+     */
+    public static Macros fromSimpleSpec(final String names_and_values) throws Exception
+    {
+        final Macros macros = new Macros();
+
+        final int len = names_and_values.length();
+        int pos = 0;
+        while (pos < len)
+        {
+            // Locate next '=' in name = value
+            final int sep = names_and_values.indexOf('=', pos);
+            if (sep < 0)
+                break;
+
+            // Fetch name
+            String name = names_and_values.substring(pos, sep).trim();
+            String error = checkMacroName(name);
+            if (error != null)
+                throw new Exception("Error parsing '" + names_and_values + "': " + error);
+
+            // Fetch value
+            String value = null;
+            pos = sep + 1;
+            int end = pos;
+            // Locate end, either a ',' or via quoted text
+            while (true)
+            {
+                if (end >= len)
+                {
+                    value = names_and_values.substring(pos, end).trim();
+                    break;
+                }
+
+                char c = names_and_values.charAt(end);
+                if (c == ',')
+                {
+                    value = names_and_values.substring(pos, end).trim();
+                    ++end;
+                    break;
+                }
+                if (c == '"')
+                {
+                    // Locate end of quoted text, skipping escaped quotes
+                    int close = end+1;
+                    while (close < len)
+                    {
+                        if (names_and_values.charAt(close) == '"'  &&
+                            names_and_values.charAt(close-1) != '\\')
+                        {
+                            value = names_and_values.substring(end+1, close).replace("\\", "");
+
+                            // Advance to ',' or end
+                            end = close+1;
+                            while (end < len  &&
+                                   (names_and_values.charAt(end) == ' ' ||
+                                    names_and_values.charAt(end) == ','))
+                                ++end;
+                            break;
+                        }
+                        ++close;
+                    }
+                    break;
+                }
+                ++end;
+            }
+
+            if (value == null)
+                throw new Exception("Error parsing '" + names_and_values + "': Missing value");
+            macros.add(name, value);
+            pos = end;
+        }
+
+        return macros;
     }
 
     /** Create empty macro map */
