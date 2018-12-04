@@ -24,9 +24,11 @@ import java.util.logging.Logger;
  *  based on the Eclipse RCP `NLS` idea.
  *
  *  <p>The file `Messsages.java` must contain fields
- *  <code>public static String SomeMessageVariable;<code>,
- *  and the `messages.properties` file in the same location
- *  contains lines
+ *
+ *  <p><code>public static String SomeMessageVariable;</code>
+ *
+ *  <p>and the `messages.properties` file in the same location
+ *  must contain lines
  *
  *  <p><code>SomeMessageVariable=The text</code>.
  *
@@ -36,10 +38,14 @@ import java.util.logging.Logger;
  *  <p>Localized files of the name `messages_xx.properties`
  *  with `xx` determined by the {@link Locale} will be
  *  given preference over the generic `messages.properties` file.
+ *  The language code `xx` ('en' for English) is determined
+ *  by the {@link Locale} or can be set via the property `user.language`.
  *
  *  <p>Since the message files are Java property files,
  *  they need to use ISO 8859-1 character encoding.
- *  From the Javadoc for {@link Properties#load(InputStream)}:
+ *  Unicode can be used, for example <code>\u00e4</code> for lowercase a-umlaut.
+ *
+ *  <p>From the Javadoc for {@link Properties#load(InputStream)}:
  *  "Characters not in Latin1, and certain special characters,
  *  are represented in keys and elements using Unicode escapes
  *  as defined in section 3.3 of The Java™ Language Specification"
