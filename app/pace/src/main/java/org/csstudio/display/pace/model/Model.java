@@ -10,6 +10,7 @@ package org.csstudio.display.pace.model;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,8 +44,7 @@ public class Model
     final private ArrayList<Instance> instances = new ArrayList<>();
 
     /** Listener to be notified of model changes */
-    final private CopyOnWriteArrayList<ModelListener> listeners =
-        new CopyOnWriteArrayList<>();
+    final private CopyOnWriteArrayList<Consumer<Cell>> listeners = new CopyOnWriteArrayList<>();
 
     /** Has any cell been edited? */
     private volatile boolean dirty = false;
@@ -54,7 +54,6 @@ public class Model
      *  @throws Exception on error: Missing XML elements, errors in macros,
      *          problems in PV creation
      */
-    @SuppressWarnings("nls")
     public Model(final InputStream stream) throws Exception
     {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -96,13 +95,13 @@ public class Model
     }
 
     /** @param listener Listener to add */
-    public void addListener(final ModelListener listener)
+    public void addListener(final Consumer<Cell> listener)
     {
         listeners.add(listener);
     }
 
     /** @param listener Listener to remove */
-    public void removeListener(final ModelListener listener)
+    public void removeListener(final Consumer<Cell> listener)
     {
         listeners.remove(listener);
     }
@@ -238,8 +237,8 @@ public class Model
             dirty = true;
         else
             dirty = isAnyCellEdited();
-        for (ModelListener listener : listeners)
-            listener.cellUpdate(cell);
+        for (Consumer<Cell> listener : listeners)
+            listener.accept(cell);
     }
 
     /** @return Info string for debugging */

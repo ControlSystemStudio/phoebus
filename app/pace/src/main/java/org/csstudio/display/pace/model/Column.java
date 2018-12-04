@@ -47,9 +47,9 @@ public class Column
             throw new Exception("Missing PV name pattern");
         // Look in the XML file to see if the column has comment, name and/or
         // date pvs.
-        final String name_pv = XMLUtil.getChildString(col_node, "name_pv").orElse(null);
-        final String date_pv = XMLUtil.getChildString(col_node, "date_pv").orElse(null);
-        final String comment_pv = XMLUtil.getChildString(col_node, "comment_pv").orElse(null);
+        final String name_pv = XMLUtil.getChildString(col_node, "name_pv").orElse("");
+        final String date_pv = XMLUtil.getChildString(col_node, "date_pv").orElse("");
+        final String comment_pv = XMLUtil.getChildString(col_node, "comment_pv").orElse("");
         // When access=="ro", make read-only. Otherwise, including no access
         // info, use read/write
         return new Column(name, pv_pattern, "ro".equalsIgnoreCase(access),
