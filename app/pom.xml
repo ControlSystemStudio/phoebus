@@ -25,5 +25,6 @@
     <module>channel</module>
     <module>3dViewer</module>
     <module>perfmon</module>
+    <module>pace</module>
   </modules>
 </project>

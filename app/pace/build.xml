@@ -1,0 +1,19 @@
+<project default="app-pace">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-pace">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
+      </classpath>
+    </javac>
+    <jar destfile="${build}/app-pace-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>
