@@ -161,7 +161,6 @@ public class Model
         return false;
     }
 
-
     /** Start the PV connections of all cells in model
      *  @throws Exception on error
      */

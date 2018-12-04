@@ -15,12 +15,19 @@ import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.csstudio.display.pace.model.Cell;
 import org.csstudio.display.pace.model.Model;
+import org.csstudio.display.pace.model.VTypeHelper;
 import org.junit.Test;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
+
+import io.reactivex.disposables.Disposable;
 
 /** JUnit test of Model
  *
@@ -146,7 +153,7 @@ public class ModelUnitTest
         // Give it some time
         for (int sec=0; sec < 10; ++sec)
         {
-            if (updates.get() > 0)
+            if (updates.get() > 20)
                 break;
             Thread.sleep(1000);
         }
@@ -158,5 +165,94 @@ public class ModelUnitTest
         assertTrue(updates.get() > 0);
         // ... should have received a few real values
         assertTrue(values.get() > 0);
+    }
+
+    /** Check PV changes, using local PV */
+    @Test
+    public void testSaveRestore() throws Exception
+    {
+        // Local PV that's also used in one of the cells
+        final PV pv = PVPool.getPV("loc://setpoint1(1)");
+        // Change value from initial 1 to 3.14
+        pv.write(3.14);
+
+        final Semaphore have_pv_update = new Semaphore(0);
+        final Disposable subscription = pv.onValueEvent().subscribe(value ->
+        {
+            System.out.println("PV: " + VTypeHelper.getString(value));
+            have_pv_update.release();
+        });
+
+        // Start model
+        final Model model = new Model(Model.class.getResourceAsStream("/pace_examples/localtest.pace"));
+        model.addListener(listener);
+        assertThat(model.getInstance(0).getCell(0).getName(), equalTo("loc://setpoint1(1)"));
+        model.start();
+
+        // Model should reflect the current value of the PV in one of its cells
+        for (int timeout=0; timeout<10; ++timeout)
+        {
+            if ("3.14".equals(model.getInstance(0).getCell(0).getCurrentValue()))
+                break;
+            Thread.sleep(200);
+        }
+        assertFalse(model.isEdited());
+        assertThat(model.getInstance(0).getCell(0).getCurrentValue(), equalTo("3.14"));
+
+        // Simulate user-entered value
+        model.getInstance(0).getCell(0).setUserValue("6.28");
+        assertTrue(model.isEdited());
+        // PV and original value are unchanged, but cell shows the user data
+        assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
+        assertThat(model.getInstance(0).getCell(0).getCurrentValue(), equalTo("3.14"));
+        assertThat(model.getInstance(0).getCell(0).getValue(), equalTo("6.28"));
+
+        // Write model to PVs
+        have_pv_update.drainPermits();
+        model.saveUserValues("test");
+        assertTrue(have_pv_update.tryAcquire(2, TimeUnit.SECONDS));
+        assertThat(VTypeHelper.getString(pv.read()), equalTo("6.28"));
+        // Model is still 'edited' because we didn't revert nor clear
+        assertTrue(model.isEdited());
+
+
+        // Revert
+        have_pv_update.drainPermits();
+        model.revertOriginalValues();
+        assertTrue(have_pv_update.tryAcquire(2, TimeUnit.SECONDS));
+        assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
+
+        // Reverting PVs to the original values means
+        // the model receives these updates,
+        // and is then back in a dirty state with user-entered values
+        // that have not been written.
+        // These updates, however, take some time because of throttling
+        for (int timeout=0; timeout<10; ++timeout)
+        {
+            if (model.isEdited())
+                break;
+            Thread.sleep(300);
+        }
+        assertTrue(model.isEdited());
+
+        model.clearUserValues();
+        assertFalse(model.isEdited());
+
+        // Simulate user-entered value
+        model.getInstance(0).getCell(0).setUserValue("10.0");
+        assertTrue(model.isEdited());
+
+        // Write model to PVs, submit
+        assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
+        model.saveUserValues("test");
+        model.clearUserValues();
+        assertFalse(model.isEdited());
+        assertTrue(have_pv_update.tryAcquire(2, TimeUnit.SECONDS));
+        assertThat(VTypeHelper.getString(pv.read()), equalTo("10.0"));
+
+        model.stop();
+
+        subscription.dispose();
+        PVPool.releasePV(pv);
     }
 }
