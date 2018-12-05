@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.applications.email.ui.SimpleCreateController;
+import org.phoebus.email.EmailPreferences;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.fxml.FXMLLoader;
@@ -40,43 +41,46 @@ public class SendEmailAction extends MenuItem
     {
         setText("Send Email...");
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/mail-send-16.png"));
-        
-        setOnAction(event ->
-        {
-            try
+
+        if (EmailPreferences.isEmailSupported())
+            setOnAction(event ->
             {
-                final FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
-                Parent root = loader.load();
-                final SimpleCreateController controller = loader.getController();
-
-                if (title != null)
-                    controller.setTitle(title);
-                if (get_body != null)
-                    controller.setBody(get_body.get());
-                if (get_image != null)
-                    controller.setImages(List.of(get_image.get()));
-
-                final Stage stage = new Stage();
-                stage.setTitle("Send Email");
-                final Scene scene = new Scene(root, 600, 800);
-                stage.setScene(scene);
-                
-                if (parent != null)
+                try
                 {
-                    controller.setSnapshotNode(parent);
-                    stage.setX(parent.getScene().getWindow().getX() + 100);
-                    stage.setY(parent.getScene().getWindow().getY() + 50);
+                    final FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
+                    Parent root = loader.load();
+                    final SimpleCreateController controller = loader.getController();
+
+                    if (title != null)
+                        controller.setTitle(title);
+                    if (get_body != null)
+                        controller.setBody(get_body.get());
+                    if (get_image != null)
+                        controller.setImages(List.of(get_image.get()));
+
+                    final Stage stage = new Stage();
+                    stage.setTitle("Send Email");
+                    final Scene scene = new Scene(root, 600, 800);
+                    stage.setScene(scene);
+
+                    if (parent != null)
+                    {
+                        controller.setSnapshotNode(parent);
+                        stage.setX(parent.getScene().getWindow().getX() + 100);
+                        stage.setY(parent.getScene().getWindow().getY() + 50);
+                    }
+                    stage.show();
                 }
-                stage.show();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Email dialog failed", ex);
-            }
-        });
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Email dialog failed", ex);
+                }
+            });
+        else
+            setDisable(true);
     }
-    
+
     /** @param parent Parent node used to position dialog
      *  @param title Initial title or <code>null</code>
      *  @param body Initial body text or <code>null</code>

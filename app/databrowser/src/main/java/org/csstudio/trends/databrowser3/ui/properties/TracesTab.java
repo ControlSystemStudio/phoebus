@@ -98,6 +98,8 @@ public class TracesTab extends Tab
 
     private final TableView<ModelItem> trace_table = new TableView<>();
 
+    private Label lower_placeholder = new Label("Select trace to see data sources");
+
     private final TableView<ArchiveDataSource> archives_table = new TableView<>();
 
     private Pane formula_pane;
@@ -263,6 +265,7 @@ public class TracesTab extends Tab
             final ModelItem item = items.get(0);
             if (item instanceof PVItem)
             {
+                lower_placeholder.setVisible(false);
                 archives_table.setVisible(true);
                 formula_pane.setVisible(false);
                 archives_table.getItems().setAll(((PVItem)item).getArchiveDataSources());
@@ -270,6 +273,7 @@ public class TracesTab extends Tab
             }
             else if (item instanceof FormulaItem)
             {
+                lower_placeholder.setVisible(false);
                 archives_table.setVisible(false);
                 formula_pane.setVisible(true);
                 archives_table.getItems().clear();
@@ -278,6 +282,7 @@ public class TracesTab extends Tab
         }
         else
         {
+            lower_placeholder.setVisible(true);
             archives_table.setVisible(false);
             formula_pane.setVisible(false);
             formula_txt.clear();
@@ -301,11 +306,11 @@ public class TracesTab extends Tab
         archives_table.setVisible(false);
         formula_pane.setVisible(false);
 
-        final StackPane details = new StackPane(archives_table, formula_pane);
+        final StackPane details = new StackPane(lower_placeholder, archives_table, formula_pane);
 
         final SplitPane top_bottom = new SplitPane(trace_table, details);
         top_bottom.setOrientation(Orientation.VERTICAL);
-        top_bottom.setDividerPositions(0.7);
+        Platform.runLater(() -> top_bottom.setDividerPositions(0.7));
 
         setContent(top_bottom);
 

@@ -27,12 +27,12 @@ import java.util.logging.Logger;
  *  <code>public static String SomeMessageVariable;<code>,
  *  and the `messages.properties` file in the same location
  *  contains lines
- *  
+ *
  *  <p><code>SomeMessageVariable=The text</code>.
- *  
- *  <p> Note that spaces surrounding the '<code>=</code>' will be consumed, 
+ *
+ *  <p> Note that spaces surrounding the '<code>=</code>' will be consumed,
  *  and the text's trailing whitespace will be preserved.
- *  
+ *
  *  <p>Localized files of the name `messages_xx.properties`
  *  with `xx` determined by the {@link Locale} will be
  *  given preference over the generic `messages.properties` file.
@@ -74,22 +74,9 @@ public class NLS
 
         try
         {
-            // First try "messages_de.properties", "messages_fr.properties", "messages_zh.properties", ...
-            // based on locale
-            String filename = "messages_" + Locale.getDefault().getLanguage() + ".properties";
-            InputStream msg_props = clazz.getResourceAsStream(filename);
-
-            // Fall back to default file
-            if (msg_props == null)
-            {
-                filename = "messages.properties";
-                msg_props = clazz.getResourceAsStream(filename);
-            }
-
+            final InputStream msg_props = getMessages(clazz);
             // Read properties into fields
-            if (msg_props == null)
-                getLogger().log(Level.SEVERE, "Cannot open '" + filename  + "' for " + clazz.getName());
-            else
+            if (msg_props != null)
             {
                 final Properties props = new Properties();
                 props.load(msg_props);
@@ -123,7 +110,7 @@ public class NLS
 
     /** Get stream for messages
      *  Tries to open "messages_{LOCALE}.properties",
-     *  falling back to generic "messages.properties" 
+     *  falling back to generic "messages.properties"
      *  @param clazz Class relative to which message resources are located
      *  @returns Stream for messages or null
      */

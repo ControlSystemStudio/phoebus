@@ -11,7 +11,7 @@ es_port=9200
 # Create the elastic index with the correct mapping for alarm state messages.
 # Create the Index
 # Set the mapping
-curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms -d'
+curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_state -d'
 {
   "mappings" : {  
     "alarm" : {

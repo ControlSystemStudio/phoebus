@@ -21,6 +21,13 @@ public class EmailPreferences
     public static final String username;
     public static final String password;
 
+    /** @return Is email supported? */
+    public static final boolean isEmailSupported()
+    {
+        // Allow DISABLE, DISABLED, Disabled, .. to disable
+        return ! mailhost.toUpperCase().startsWith("DISABLE");
+    }
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(EmailPreferences.class, "/email_preferences.properties");

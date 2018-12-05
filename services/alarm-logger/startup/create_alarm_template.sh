@@ -9,9 +9,9 @@ es_host=localhost
 es_port=9200
 
 # Create the elastic template with the correct mapping for alarm state messages.
-curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_template -H 'Content-Type: application/json' -d'
+curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_state_template -H 'Content-Type: application/json' -d'
 {
-  "index_patterns":["*_alarms*"],
+  "index_patterns":["*_alarms_state*"],
   "mappings" : {  
     "alarm" : {
         "properties" : {
@@ -59,7 +59,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_template -H 'Conte
 # Create the elastic template with the correct mapping for alarm state messages.
 curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_cmd_template -H 'Content-Type: application/json' -d'
 {
-  "index_patterns":["*_alarms*"],
+  "index_patterns":["*_alarms_cmd*"],
   "mappings" : {  
     "alarm_cmd" : {
         "properties" : {

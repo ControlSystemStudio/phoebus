@@ -130,11 +130,12 @@ public class AlarmConfigLoggingService {
         logger.info("Starting logger for: " + properties.getProperty("alarm_topics"));
         List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(":"));
 
-        String location = properties.getProperty("location");
+        String location = properties.getProperty("local.location");
+        String remoteLocation = properties.getProperty("remote.location");
 
         // Start a new stream consumer for each topic
         topicNames.forEach(topic -> {
-            Scheduler.execute(new AlarmConfigLogger(topic, location));
+            Scheduler.execute(new AlarmConfigLogger(topic, location, remoteLocation));
         });
         // Wait in command shell until closed
         final CommandShell shell = new CommandShell(COMMANDS, AlarmConfigLoggingService::handleShellCommands);
