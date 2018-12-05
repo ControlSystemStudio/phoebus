@@ -38,7 +38,7 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
     {
         super.updateItem(item, empty);
 
-        if (empty  ||  item == null)
+        if (empty  ||  item == null  ||  getTableRow() == null)
             setBorder(null);
         else
         {

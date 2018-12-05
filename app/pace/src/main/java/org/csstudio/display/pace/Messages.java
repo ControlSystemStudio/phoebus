@@ -49,6 +49,6 @@ public class Messages
 
     static
     {
-        NLS.getMessages(Messages.class);
+        NLS.initializeMessages(Messages.class);
     }
 }

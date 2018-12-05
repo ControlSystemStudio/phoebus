@@ -8,15 +8,21 @@
 package org.csstudio.display.pace.gui;
 import static org.csstudio.display.pace.PACEApp.logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.display.pace.Messages;
+import org.csstudio.display.pace.PACEApp;
 import org.csstudio.display.pace.model.Cell;
 import org.csstudio.display.pace.model.Column;
 import org.csstudio.display.pace.model.Instance;
 import org.csstudio.display.pace.model.Model;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -26,6 +32,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
@@ -37,19 +44,35 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class GUI extends BorderPane
 {
+    // TODO cell tool tips
+    // TODO 'dirty' state
+    // TODO save & elog
     private Model model = null;
     private TableView<Instance> table;
     private final Consumer<Cell> model_listener = this::handleModelChanges;
 
     public GUI()
     {
-        setTop(new Label("Optional message..."));
-        setCenter(new Label("Loading ..."));
+        setMessage("Loading...");
+        setCenter(new Label(PACEApp.DISPLAY_NAME));
     }
 
-    /** Set model
-     *  May be called off the UI thread, will wait until UI thread update completes
-     *  @param model
+    /** @param message  */
+    public void setMessage(final String message)
+    {
+        Platform.runLater(() ->
+        {
+            final Label label;
+            if (message == null  ||  message.isEmpty())
+                label = null;
+            else
+                label = new Label(message);
+            setTop(label);
+        });
+    }
+
+    /** May be called off the UI thread, will wait until UI thread update completes
+     *  @param model Model to represent
      */
     public void setModel(final Model model)
     {
@@ -137,20 +160,36 @@ public class GUI extends BorderPane
 
     private void createContextMenu()
     {
-        final MenuItem restore = new MenuItem(Messages.RestoreCell);
-        final MenuItem setvalue = new MenuItem(Messages.SetValue);
-        final ContextMenu menu = new ContextMenu(restore, setvalue);
+        // Create menu with dummy entry (otherwise it won't show up)
+        final ContextMenu menu = new ContextMenu(new MenuItem());
+
+        // Update menu based on selection
         menu.setOnShowing(event ->
         {
-            @SuppressWarnings("rawtypes")
-            final ObservableList<TablePosition> selection = table.getSelectionModel().getSelectedCells();
-            if (selection.isEmpty())
-                setvalue.setDisable(true);
-            else
-                setvalue.setDisable(false);
+            // Get selected Cells and their PV names
+            final List<Cell> cells = new ArrayList<>();
+            final List<ProcessVariable> pvnames = new ArrayList<>();
+            final List<Instance> rows = table.getItems();
+            for (TablePosition<?, ?> sel : table.getSelectionModel().getSelectedCells())
+            {
+                final Cell cell = rows.get(sel.getRow()).getCell(sel.getColumn()-1);
+                cells.add(cell);
+                pvnames.add(new ProcessVariable(cell.getName()));
+            }
 
-            // TODO Clear and re-fill the menu
-            // ContextMenuHelper.addSupportedEntries(table, menu);
+            // Update menu
+            final ObservableList<MenuItem> items = menu.getItems();
+            items.clear();
+            items.add(new RestoreCellValues(cells));
+            items.add(new SetCellValues(table, cells));
+
+            // Add PV name entries
+            if (pvnames.size() > 0)
+            {
+                items.add(new SeparatorMenuItem());
+                SelectionService.getInstance().setSelection("AlarmUI", pvnames);
+                ContextMenuHelper.addSupportedEntries(table, menu);
+            }
         });
 
         table.setContextMenu(menu);

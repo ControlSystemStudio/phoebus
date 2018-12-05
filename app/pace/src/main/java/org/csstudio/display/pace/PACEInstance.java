@@ -34,17 +34,10 @@ public class PACEInstance implements AppInstance
         this.app = app;
         tab = new DockItemWithInput(this, gui, resource, null, null);
         DockPane.getActiveDockPane().addTab(tab);
-        Platform.runLater(() -> tab.setLabel(app.getDisplayName()));
 
+        gui.setMessage("Loading " + resource + "...");
         // Load in background...
         JobManager.schedule("Load " + resource, monitor -> loadModel(monitor, resource));
-    }
-
-    private void loadModel(final JobMonitor monitor, final URI resource) throws Exception
-    {
-        Thread.sleep(2000);
-        final Model model = new Model(Model.class.getResourceAsStream("/pace_examples/localtest.pace"));
-        gui.setModel(model);
     }
 
     @Override
@@ -56,5 +49,15 @@ public class PACEInstance implements AppInstance
     public void raise()
     {
         tab.select();
+    }
+
+    private void loadModel(final JobMonitor monitor, final URI resource) throws Exception
+    {
+        final Model model = new Model(resource.toURL().openStream());
+        gui.setModel(model);
+        model.start();
+        gui.setMessage(null);
+
+        Platform.runLater(() -> tab.setLabel(model.getTitle()));
     }
 }

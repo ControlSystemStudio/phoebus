@@ -1,0 +1,454 @@
+<paceconfig>
+<title>HPRF Pwr and Duty Cycle Limits</title>
+<columns>
+   <column>
+     <name>PwrLmt</name>
+     <access>ro</access>
+     <pv>${S}_HPRF:Cav${N}:PwrLmt</pv>
+   </column>
+   <column>
+     <name>PwrLmtAdm</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:PwrLmtAdm</pv>
+     <name_pv>${S}_HPRF:Cav${N}:PwrLmtAdmName</name_pv>
+     <date_pv>${S}_HPRF:Cav${N}:PwrLmtAdmTSStr</date_pv>
+     <comment_pv>${S}_HPRF:Cav${N}:PwrLmtAdmTxt</comment_pv>
+   </column>
+   <column>
+     <name>PwrLmtAdmTxt</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:PwrLmtAdmTxt</pv>
+   </column>
+   <column>
+     <name>PwrLmtRad</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:PwrLmtRad</pv>
+     <name_pv>${S}_HPRF:Cav${N}:PwrLmtRadName</name_pv>
+     <date_pv>${S}_HPRF:Cav${N}:PwrLmtRadTSStr</date_pv>
+     <comment_pv>${S}_HPRF:Cav${N}:PwrLmtRadTxt</comment_pv>
+   </column>
+   <column>
+     <name>PwrLmtRadTxt</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:PwrLmtRadTxt</pv>
+   </column>
+   <column>
+     <name>DutyLmt</name>
+     <access>ro</access>
+     <pv>${S}_HPRF:Cav${N}:DutyLmt</pv>
+   </column>
+    <column>
+     <name>DutyLmtAdm</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:DutyLmtAdm</pv>
+     <name_pv>${S}_HPRF:Cav${N}:DutyLmtAdmName</name_pv>
+     <date_pv>${S}_HPRF:Cav${N}:DutyLmtAdmTSStr</date_pv>
+     <comment_pv>${S}_HPRF:Cav${N}:DutyLmtAdmTxt</comment_pv>
+   </column>  
+   <column>
+     <name>DutyLmtAdmTxt</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:DutyLmtAdmTxt</pv>
+   </column>
+   <column>
+     <name>DutyLmtRad</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:DutyLmtRad</pv>
+     <name_pv>${S}_HPRF:Cav${N}:DutyLmtRadName</name_pv>
+     <date_pv>${S}_HPRF:Cav${N}:DutyLmtRadTSStr</date_pv>
+     <comment_pv>${S}_HPRF:Cav${N}:DutyLmtRadTxt</comment_pv>
+   </column>
+  <column>
+     <name>DutyLmtRadTxt</name>
+     <access>rw</access>
+     <pv>${S}_HPRF:Cav${N}:DutyLmtRadTxt</pv>
+   </column>
+</columns>
+
+ <instances>
+   <instance>
+      <name>RFQ 1</name>
+      <macros>S=RFQ,N=1</macros>
+   </instance>
+   <instance>
+      <name>MEBT 1</name>
+      <macros>S=MEBT,N=1</macros>
+   </instance>
+   <instance>
+      <name>MEBT 2</name>
+      <macros>S=MEBT,N=2</macros>
+   </instance>
+   <instance>
+      <name>MEBT 3</name>
+      <macros>S=MEBT,N=3</macros>
+   </instance>
+   <instance>
+      <name>MEBT 4</name>
+      <macros>S=MEBT,N=4</macros>
+   </instance>
+   <instance>
+      <name>DTL 1</name>
+      <macros>S=DTL,N=1</macros>
+   </instance>
+   <instance>
+      <name>DTL 2</name>
+      <macros>S=DTL,N=2</macros>
+   </instance>
+   <instance>
+      <name>DTL 3</name>
+      <macros>S=DTL,N=3</macros>
+   </instance>
+   <instance>
+      <name>DTL 4</name>
+      <macros>S=DTL,N=4</macros>
+   </instance>
+   <instance>
+      <name>DTL 5</name>
+      <macros>S=DTL,N=5</macros>
+   </instance>
+   <instance>
+      <name>DTL 6</name>
+      <macros>S=DTL,N=6</macros>
+   </instance>
+   <instance>
+      <name>CCL 1</name>
+      <macros>S=CCL,N=1</macros>
+   </instance>
+   <instance>
+      <name>CCL 2</name>
+      <macros>S=CCL,N=2</macros>
+   </instance>
+   <instance>
+      <name>CCL 3</name>
+      <macros>S=CCL,N=3</macros>
+   </instance>
+   <instance>
+      <name>CCL 4</name>
+      <macros>S=CCL,N=4</macros>
+   </instance>
+   <instance>
+      <name>SCL 01a</name>
+      <macros>S=SCL,N=01a</macros>
+   </instance>
+   <instance>
+      <name>SCL 01b</name>
+      <macros>S=SCL,N=01b</macros>
+   </instance>
+   <instance>
+      <name>SCL 01c</name>
+      <macros>S=SCL,N=01c</macros>
+   </instance>
+   <instance>
+      <name>SCL 02a</name>
+      <macros>S=SCL,N=02a</macros>
+   </instance>
+   <instance>
+      <name>SCL 02b</name>
+      <macros>S=SCL,N=02b</macros>
+   </instance>
+   <instance>
+      <name>SCL 02c</name>
+      <macros>S=SCL,N=02c</macros>
+   </instance>
+   <instance>
+      <name>SCL 03a</name>
+      <macros>S=SCL,N=03a</macros>
+   </instance>
+   <instance>
+      <name>SCL 03b</name>
+      <macros>S=SCL,N=03b</macros>
+   </instance>
+   <instance>
+      <name>SCL 03c</name>
+      <macros>S=SCL,N=03c</macros>
+   </instance>
+   <instance>
+      <name>SCL 04a</name>
+      <macros>S=SCL,N=04a</macros>
+   </instance>
+   <instance>
+      <name>SCL 04b</name>
+      <macros>S=SCL,N=04b</macros>
+   </instance>
+   <instance>
+      <name>SCL 04c</name>
+      <macros>S=SCL,N=04c</macros>
+   </instance>
+   <instance>
+      <name>SCL 05a</name>
+      <macros>S=SCL,N=05a</macros>
+   </instance>
+   <instance>
+      <name>SCL 05b</name>
+      <macros>S=SCL,N=05b</macros>
+   </instance>
+   <instance>
+      <name>SCL 05c</name>
+      <macros>S=SCL,N=05c</macros>
+   </instance>
+   <instance>
+      <name>SCL 06a</name>
+      <macros>S=SCL,N=06a</macros>
+   </instance>
+   <instance>
+      <name>SCL 06b</name>
+      <macros>S=SCL,N=06b</macros>
+   </instance>
+   <instance>
+      <name>SCL 06c</name>
+      <macros>S=SCL,N=06c</macros>
+   </instance>
+   <instance>
+      <name>SCL 07a</name>
+      <macros>S=SCL,N=07a</macros>
+   </instance>
+   <instance>
+      <name>SCL 07b</name>
+      <macros>S=SCL,N=07b</macros>
+   </instance>
+   <instance>
+      <name>SCL 07c</name>
+      <macros>S=SCL,N=07c</macros>
+   </instance>
+   <instance>
+      <name>SCL 08a</name>
+      <macros>S=SCL,N=08a</macros>
+   </instance>
+   <instance>
+      <name>SCL 08b</name>
+      <macros>S=SCL,N=08b</macros>
+   </instance>
+   <instance>
+      <name>SCL 08c</name>
+      <macros>S=SCL,N=08c</macros>
+   </instance>
+   <instance>
+      <name>SCL 09a</name>
+      <macros>S=SCL,N=09a</macros>
+   </instance>
+   <instance>
+      <name>SCL 09b</name>
+      <macros>S=SCL,N=09b</macros>
+   </instance>
+   <instance>
+      <name>SCL 09c</name>
+      <macros>S=SCL,N=09c</macros>
+   </instance>
+   <instance>
+      <name>SCL 10a</name>
+      <macros>S=SCL,N=10a</macros>
+   </instance>
+   <instance>
+      <name>SCL 10b</name>
+      <macros>S=SCL,N=10b</macros>
+   </instance>
+   <instance>
+      <name>SCL 10c</name>
+      <macros>S=SCL,N=10c</macros>
+   </instance>
+   <instance>
+      <name>SCL 11a</name>
+      <macros>S=SCL,N=11a</macros>
+   </instance>
+   <instance>
+      <name>SCL 11b</name>
+      <macros>S=SCL,N=11b</macros>
+   </instance>
+   <instance>
+      <name>SCL 11c</name>
+      <macros>S=SCL,N=11c</macros>
+   </instance>
+   <instance>
+      <name>SCL 12a</name>
+      <macros>S=SCL,N=12a</macros>
+   </instance>
+   <instance>
+      <name>SCL 12b</name>
+      <macros>S=SCL,N=12b</macros>
+   </instance>
+   <instance>
+      <name>SCL 12c</name>
+      <macros>S=SCL,N=12c</macros>
+   </instance>
+   <instance>
+      <name>SCL 12d</name>
+      <macros>S=SCL,N=12d</macros>
+   </instance>
+   <instance>
+      <name>SCL 13a</name>
+      <macros>S=SCL,N=13a</macros>
+   </instance>
+   <instance>
+      <name>SCL 13b</name>
+      <macros>S=SCL,N=13b</macros>
+   </instance>
+   <instance>
+      <name>SCL 13c</name>
+      <macros>S=SCL,N=13c</macros>
+   </instance>
+   <instance>
+      <name>SCL 13d</name>
+      <macros>S=SCL,N=13d</macros>
+   </instance>
+   <instance>
+      <name>SCL 14a</name>
+      <macros>S=SCL,N=14a</macros>
+   </instance>
+   <instance>
+      <name>SCL 14b</name>
+      <macros>S=SCL,N=14b</macros>
+   </instance>
+   <instance>
+      <name>SCL 14c</name>
+      <macros>S=SCL,N=14c</macros>
+   </instance>
+   <instance>
+      <name>SCL 14d</name>
+      <macros>S=SCL,N=14d</macros>
+   </instance>
+   <instance>
+      <name>SCL 15a</name>
+      <macros>S=SCL,N=15a</macros>
+   </instance>
+   <instance>
+      <name>SCL 15b</name>
+      <macros>S=SCL,N=15b</macros>
+   </instance>
+   <instance>
+      <name>SCL 15c</name>
+      <macros>S=SCL,N=15c</macros>
+   </instance>
+   <instance>
+      <name>SCL 15d</name>
+      <macros>S=SCL,N=15d</macros>
+   </instance>
+   <instance>
+      <name>SCL 16a</name>
+      <macros>S=SCL,N=16a</macros>
+   </instance>
+   <instance>
+      <name>SCL 16b</name>
+      <macros>S=SCL,N=16b</macros>
+   </instance>
+   <instance>
+      <name>SCL 16c</name>
+      <macros>S=SCL,N=16c</macros>
+   </instance>
+   <instance>
+      <name>SCL 16d</name>
+      <macros>S=SCL,N=16d</macros>
+   </instance>
+   <instance>
+      <name>SCL 17a</name>
+      <macros>S=SCL,N=17a</macros>
+   </instance>
+   <instance>
+      <name>SCL 17b</name>
+      <macros>S=SCL,N=17b</macros>
+   </instance>
+   <instance>
+      <name>SCL 17c</name>
+      <macros>S=SCL,N=17c</macros>
+   </instance>
+   <instance>
+      <name>SCL 17d</name>
+      <macros>S=SCL,N=17d</macros>
+   </instance>
+   <instance>
+      <name>SCL 18a</name>
+      <macros>S=SCL,N=18a</macros>
+   </instance>
+   <instance>
+      <name>SCL 18b</name>
+      <macros>S=SCL,N=18b</macros>
+   </instance>
+   <instance>
+      <name>SCL 18c</name>
+      <macros>S=SCL,N=18c</macros>
+   </instance>
+   <instance>
+      <name>SCL 18d</name>
+      <macros>S=SCL,N=18d</macros>
+   </instance>
+   <instance>
+      <name>SCL 19a</name>
+      <macros>S=SCL,N=19a</macros>
+   </instance>
+   <instance>
+      <name>SCL 19b</name>
+      <macros>S=SCL,N=19b</macros>
+   </instance>
+   <instance>
+      <name>SCL 19c</name>
+      <macros>S=SCL,N=19c</macros>
+   </instance>
+   <instance>
+      <name>SCL 19d</name>
+      <macros>S=SCL,N=19d</macros>
+   </instance>
+   <instance>
+      <name>SCL 20a</name>
+      <macros>S=SCL,N=20a</macros>
+   </instance>
+   <instance>
+      <name>SCL 20b</name>
+      <macros>S=SCL,N=20b</macros>
+   </instance>
+   <instance>
+      <name>SCL 20c</name>
+      <macros>S=SCL,N=20c</macros>
+   </instance>
+   <instance>
+      <name>SCL 20d</name>
+      <macros>S=SCL,N=20d</macros>
+   </instance>
+   <instance>
+      <name>SCL 21a</name>
+      <macros>S=SCL,N=21a</macros>
+   </instance>
+   <instance>
+      <name>SCL 21b</name>
+      <macros>S=SCL,N=21b</macros>
+   </instance>
+   <instance>
+      <name>SCL 21c</name>
+      <macros>S=SCL,N=21c</macros>
+   </instance>
+   <instance>
+      <name>SCL 21d</name>
+      <macros>S=SCL,N=21d</macros>
+   </instance>
+   <instance>
+      <name>SCL 22a</name>
+      <macros>S=SCL,N=22a</macros>
+   </instance>
+   <instance>
+      <name>SCL 22b</name>
+      <macros>S=SCL,N=22b</macros>
+   </instance>
+   <instance>
+      <name>SCL 22c</name>
+      <macros>S=SCL,N=22c</macros>
+   </instance>
+   <instance>
+      <name>SCL 22d</name>
+      <macros>S=SCL,N=22d</macros>
+   </instance>
+   <instance>
+      <name>SCL 23a</name>
+      <macros>S=SCL,N=23a</macros>
+   </instance>
+   <instance>
+      <name>SCL 23b</name>
+      <macros>S=SCL,N=23b</macros>
+   </instance>
+   <instance>
+      <name>SCL 23c</name>
+      <macros>S=SCL,N=23c</macros>
+   </instance>
+   <instance>
+      <name>SCL 23d</name>
+      <macros>S=SCL,N=23d</macros>
+   </instance>
+</instances>
+</paceconfig>

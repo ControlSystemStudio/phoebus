@@ -1,0 +1,29 @@
+<paceconfig>
+<title>Demo</title>
+<columns>
+   <column>
+     <name>Limit</name>
+     <access>rw</access>
+     <pv>limit${N}</pv>
+     <name_pv>user${N}</name_pv>
+     <date_pv>date${N}</date_pv>
+     <comment_pv>comment${N}</comment_pv>
+   </column>
+   <column>
+     <name>... comment</name>
+     <access>rw</access>
+     <pv>comment${N}</pv>
+   </column>
+</columns>
+
+ <instances>
+   <instance>
+      <name>System 1</name>
+      <macros>N=1</macros>
+   </instance>
+   <instance>
+      <name>System 2</name>
+      <macros>N=2</macros>
+   </instance>
+</instances>
+</paceconfig>
