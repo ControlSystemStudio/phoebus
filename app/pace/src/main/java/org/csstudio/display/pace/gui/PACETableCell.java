@@ -30,9 +30,18 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
 {
     private static final Border EDITED = new Border(new BorderStroke(Color.BLUE, BorderStrokeStyle.DASHED, CornerRadii.EMPTY, BorderStroke.THIN, new Insets(1.5)));
 
+    private final Tooltip tooltip = new Tooltip();
+    private Cell cell = null;
+
     public PACETableCell()
     {
         super(new DefaultStringConverter());
+
+        // Computing the tool tip text as well as updating a tool tip (popup scene)
+        // is relatively expensive.
+        // --> Keep one tool tip, only setting its text when shown
+        tooltip.setHideDelay(Duration.seconds(10));
+        tooltip.setOnShowing(event ->  tooltip.setText(cell == null ? "" : cell.getInfo()) );
     }
 
     @Override
@@ -42,6 +51,7 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
 
         if (empty  ||  item == null  ||  getTableRow() == null)
         {
+            cell = null;
             setBorder(null);
             setTooltip(null);
         }
@@ -52,18 +62,9 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
             // Col 0 lists "System", no Cell
             if (col > 0)
             {
-                final Cell cell = instance.getCell(col-1);
+                cell = instance.getCell(col-1);
                 setBorder(cell.isEdited() ? EDITED : null);
-
-                Tooltip tooltip = getTooltip();
-                // Don't update an active tool tip  because that would hide it
-                // and thus never show any for cell with rapidly changing value
-                if (tooltip == null  ||  !tooltip.isShowing())
-                {
-                    tooltip = new Tooltip(cell.getInfo());
-                    tooltip.setHideDelay(Duration.seconds(10));
-                    setTooltip(tooltip);
-                }
+                setTooltip(tooltip);
             }
         }
     }
