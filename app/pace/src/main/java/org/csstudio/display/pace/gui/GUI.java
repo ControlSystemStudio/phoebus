@@ -6,7 +6,14 @@
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.csstudio.display.pace.gui;
+import static org.csstudio.display.pace.PACEApp.logger;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+
 import org.csstudio.display.pace.Messages;
+import org.csstudio.display.pace.model.Cell;
 import org.csstudio.display.pace.model.Column;
 import org.csstudio.display.pace.model.Instance;
 import org.csstudio.display.pace.model.Model;
@@ -14,9 +21,13 @@ import org.csstudio.display.pace.model.Model;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 
@@ -26,22 +37,55 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class GUI extends BorderPane
 {
-    private final Model model;
-    private final TableView<Instance> table;
+    private Model model = null;
+    private TableView<Instance> table;
+    private final Consumer<Cell> model_listener = this::handleModelChanges;
 
-    public GUI(final Model model)
+    public GUI()
     {
-        this.model = model;
-        table = createTable();
-
         setTop(new Label("Optional message..."));
+        setCenter(new Label("Loading ..."));
+    }
+
+    /** Set model
+     *  May be called off the UI thread, will wait until UI thread update completes
+     *  @param model
+     */
+    public void setModel(final Model model)
+    {
+        if (Platform.isFxApplicationThread())
+            doSetModel(model);
+        else
+        {
+            final CountDownLatch done = new CountDownLatch(1);
+            Platform.runLater(() ->
+            {
+                doSetModel(model);
+                done.countDown();
+            });
+            try
+            {
+                done.await();
+            }
+            catch (InterruptedException ex)
+            {
+                logger.log(Level.WARNING, "Cannot set model", ex);
+            }
+        }
+    }
+
+    private void doSetModel(final Model model)
+    {
+        if (this.model != null)
+            this.model.removeListener(model_listener);
+        this.model = model;
+
+        table = createTable();
         setCenter(table);
 
-        model.addListener(cell ->
-        {
-            // System.out.println("Update " + cell);
-            Platform.runLater( () -> cell.getValue());
-        });
+        this.model.addListener(model_listener);
+
+        createContextMenu();
     }
 
     private TableView<Instance> createTable()
@@ -63,7 +107,7 @@ public class GUI extends BorderPane
             final int the_col_index = col_index;
             col = new TableColumn<>(column.getName());
             col.setCellFactory(info -> new PACETableCell());
-            col.setCellValueFactory(cell -> cell.getValue().getCell(the_col_index).getValue());
+            col.setCellValueFactory(cell -> cell.getValue().getCell(the_col_index).getObservable());
             table.getColumns().add(col);
 
             if (column.isReadonly())
@@ -83,5 +127,32 @@ public class GUI extends BorderPane
             ++col_index;
         }
         return table;
+    }
+
+    private void handleModelChanges(final Cell cell)
+    {
+        // System.out.println("Update " + cell);
+        Platform.runLater( () -> cell.getObservable());
+    }
+
+    private void createContextMenu()
+    {
+        final MenuItem restore = new MenuItem(Messages.RestoreCell);
+        final MenuItem setvalue = new MenuItem(Messages.SetValue);
+        final ContextMenu menu = new ContextMenu(restore, setvalue);
+        menu.setOnShowing(event ->
+        {
+            @SuppressWarnings("rawtypes")
+            final ObservableList<TablePosition> selection = table.getSelectionModel().getSelectedCells();
+            if (selection.isEmpty())
+                setvalue.setDisable(true);
+            else
+                setvalue.setDisable(false);
+
+            // TODO Clear and re-fill the menu
+            // ContextMenuHelper.addSupportedEntries(table, menu);
+        });
+
+        table.setContextMenu(menu);
     }
 }

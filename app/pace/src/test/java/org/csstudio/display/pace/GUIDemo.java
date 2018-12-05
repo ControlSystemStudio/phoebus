@@ -8,6 +8,7 @@
 package org.csstudio.display.pace;
 import org.csstudio.display.pace.gui.GUI;
 import org.csstudio.display.pace.model.Model;
+import org.phoebus.framework.jobs.JobManager;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -22,11 +23,17 @@ public class GUIDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final Model model = new Model(Model.class.getResourceAsStream("/pace_examples/localtest.pace"));
-        final GUI gui = new GUI(model);
+        final GUI gui = new GUI();
         stage.setScene(new Scene(gui, 800, 600));
         stage.show();
-        model.start();
+
+        JobManager.schedule("Load...", monitor ->
+        {
+            Thread.sleep(2000);
+            final Model model = new Model(Model.class.getResourceAsStream("/pace_examples/localtest.pace"));
+            gui.setModel(model);
+            model.start();
+        });
     }
 
     public static void main(final String[] args)

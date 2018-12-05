@@ -115,7 +115,7 @@ public class Cell
      *  if we have nothing.
      *  @return Value of this cell
      */
-    public ObservableValue<String> getValue()
+    public ObservableValue<String> getObservable()
     {
         if (user_value != null)
             gui_value.set(user_value);
@@ -386,6 +386,6 @@ public class Cell
     @Override
     public String toString()
     {
-        return "Cell " + pv_name + " = " + getValue();
+        return "Cell " + pv_name + " = " + getObservable().getValue();
     }
 }

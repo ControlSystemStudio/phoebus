@@ -119,7 +119,7 @@ public class ModelUnitTest
         assertTrue(cell.isEdited());
         assertTrue(model.isEdited());
         // Cell should reflect the value that we entered via setUserValue
-        assertThat(cell.getValue(), equalTo("10"));
+        assertThat(cell.getObservable().getValue(), equalTo("10"));
         assertThat(cell.getUserValue(), equalTo("10"));
 
         // Revert to original value
@@ -205,7 +205,7 @@ public class ModelUnitTest
         // PV and original value are unchanged, but cell shows the user data
         assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
         assertThat(model.getInstances().get(0).getCell(0).getCurrentValue(), equalTo("3.14"));
-        assertThat(model.getInstances().get(0).getCell(0).getValue(), equalTo("6.28"));
+        assertThat(model.getInstances().get(0).getCell(0).getObservable().getValue(), equalTo("6.28"));
 
         // Write model to PVs
         have_pv_update.drainPermits();
