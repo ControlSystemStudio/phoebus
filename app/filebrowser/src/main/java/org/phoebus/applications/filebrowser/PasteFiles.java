@@ -43,10 +43,10 @@ public class PasteFiles extends MenuItem
                 for (File original : files)
                 {
                     if (original.isDirectory())
-                        throw new Exception("Can only copy files, not directory " + original + " into " + directory);
+                        throw new Exception(Messages.PasteAlert1 + original + " " + Messages.PasteAlert2 + directory);
                     final File new_file = new File(directory, original.getName());
                     if (new_file.exists())
-                        throw new Exception("Cannot copy " + original + " into " + new_file + " because target already exists");
+                        throw new Exception(Messages.PasteAlert3  + original + " " + Messages.PasteAlert2 + new_file + " " + Messages.PasteAlert4);
 
                     Files.copy(original.toPath(), new FileOutputStream(new_file));
                     Platform.runLater(() ->
@@ -60,4 +60,3 @@ public class PasteFiles extends MenuItem
         });
     }
 }
-

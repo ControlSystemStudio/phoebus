@@ -41,7 +41,7 @@ public class CreateDirectoryAction extends MenuItem
             final File file = item.getValue();
             final TextInputDialog prompt = new TextInputDialog(file.getName());
             prompt.setTitle(getText());
-            prompt.setHeaderText("Enter name for new folder under " + item.getValue());
+            prompt.setHeaderText(Messages.CreateDirectoryHdr + item.getValue());
             DialogHelper.positionDialog(prompt, node, 0, 0);
             final String new_name = prompt.showAndWait().orElse(null);
             if (new_name == null)
@@ -63,7 +63,7 @@ public class CreateDirectoryAction extends MenuItem
             JobManager.schedule(getText(), monitor ->
             {
                 if (! new_folder.mkdirs())
-                    throw new Exception("Cannot create new folder " + new_folder);
+                    throw new Exception(Messages.CreateDirectoryErr + new_folder);
 
                 // Add new folder to tree
                 Platform.runLater(() ->
