@@ -25,7 +25,7 @@ public class Messages
     public static String Password;
     public static String Preferences_DefaultLogbook;
     public static String Preferences_Message;
-    public static String PVWriteErrorFmt;
+    public static String PVWriteError;
     public static String RestoreCell;
     public static String RestoreCell_TT;
     public static String SaveError;

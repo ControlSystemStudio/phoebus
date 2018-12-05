@@ -8,6 +8,8 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
-        <classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-logbook-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

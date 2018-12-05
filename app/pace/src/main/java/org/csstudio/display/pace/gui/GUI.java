@@ -44,7 +44,6 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class GUI extends BorderPane
 {
-    // TODO save & elog
     private final Consumer<Boolean> dirty_state_handler;
     private Model model = null;
     private TableView<Instance> table;
