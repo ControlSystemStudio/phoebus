@@ -44,14 +44,15 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class GUI extends BorderPane
 {
-    // TODO 'dirty' state
     // TODO save & elog
+    private final Consumer<Boolean> dirty_state_handler;
     private Model model = null;
     private TableView<Instance> table;
     private final Consumer<Cell> model_listener = this::handleModelChanges;
 
-    public GUI()
+    public GUI(final Consumer<Boolean> dirty_state_handler)
     {
+        this.dirty_state_handler = dirty_state_handler;
         setMessage("Loading...");
         setCenter(new Label(PACEApp.DISPLAY_NAME));
     }
@@ -155,7 +156,11 @@ public class GUI extends BorderPane
     private void handleModelChanges(final Cell cell)
     {
         // System.out.println("Update " + cell);
-        Platform.runLater( () -> cell.getObservable());
+        Platform.runLater( () ->
+        {
+            cell.getObservable();
+            dirty_state_handler.accept(model.isEdited());
+        });
     }
 
     private void createContextMenu()

@@ -23,7 +23,7 @@ public class GUIDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final GUI gui = new GUI();
+        final GUI gui = new GUI(dirty -> System.out.println("Table is dirty: " + dirty));
         stage.setScene(new Scene(gui, 800, 600));
         stage.show();
 

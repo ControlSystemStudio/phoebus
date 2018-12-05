@@ -25,7 +25,7 @@ import javafx.application.Platform;
  */
 public class PACEInstance implements AppInstance
 {
-    private final GUI gui = new GUI();
+    private final GUI gui = new GUI(this::handleDirtyState);
     private final AppDescriptor app;
     private final DockItemWithInput tab;
 
@@ -59,5 +59,10 @@ public class PACEInstance implements AppInstance
         gui.setMessage(null);
 
         Platform.runLater(() -> tab.setLabel(model.getTitle()));
+    }
+
+    private void handleDirtyState(final Boolean dirty)
+    {
+        tab.setDirty(dirty);
     }
 }
