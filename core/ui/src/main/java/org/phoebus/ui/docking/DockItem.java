@@ -145,6 +145,12 @@ public class DockItem extends Tab
         name_tab = new Label(label);
         setGraphic(name_tab);
 
+        // Clicking tab activates its dock pane,
+        // which obtains this tab via the tab pane selection handler,
+        // and then sets the active dock item in the phoebus app
+        name_tab.setOnMouseClicked(event -> DockPane.setActiveDockPane(getDockPane()));
+
+        // Support dragging tabs
         name_tab.setOnDragDetected(this::handleDragDetected);
         name_tab.setOnDragOver(this::handleDragOver);
         name_tab.setOnDragEntered(this::handleDragEntered);
