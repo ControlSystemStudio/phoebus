@@ -11,6 +11,7 @@ import static org.csstudio.display.pace.PACEApp.logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -45,6 +46,7 @@ import javafx.scene.layout.BorderPane;
 public class GUI extends BorderPane
 {
     private final Consumer<Boolean> dirty_state_handler;
+    private final AtomicBoolean was_dirty = new AtomicBoolean();
     private Model model = null;
     private TableView<Instance> table;
     private final Consumer<Cell> model_listener = this::handleModelChanges;
@@ -158,7 +160,13 @@ public class GUI extends BorderPane
         Platform.runLater( () ->
         {
             cell.getObservable();
-            dirty_state_handler.accept(model.isEdited());
+
+            final boolean is_dirty = model.isEdited();
+            if (was_dirty.getAndSet(is_dirty) != is_dirty)
+            {
+                setMessage(is_dirty ? Messages.FileChanged : null);
+                dirty_state_handler.accept(is_dirty);
+            }
         });
     }
 

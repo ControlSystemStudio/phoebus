@@ -52,9 +52,10 @@ public class PACEInstance implements AppInstance
         tab = new DockItemWithInput(this, gui, resource, extensions, this::saveChanges);
         DockPane.getActiveDockPane().addTab(tab);
 
-        gui.setMessage("Loading " + resource + "...");
+        final String msg = MessageFormat.format(Messages.LoadFormat, resource);
+        gui.setMessage(msg);
         // Load in background...
-        JobManager.schedule("Load " + resource, monitor -> loadModel(monitor, resource));
+        JobManager.schedule(msg, monitor -> loadModel(monitor, resource));
     }
 
     @Override

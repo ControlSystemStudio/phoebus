@@ -15,25 +15,18 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
-    public static String ConfirmChangesFmt;
-    public static String FileChangedFmt;
-    public static String FileUnchangedFmt;
+    public static String FileChanged;
     public static String InstanceLabelProvider_OrigAppendix;
     public static String InstanceLabelProvider_PVValueFormat;
     public static String InstanceLabelProvider_PVCommentTipFormat;
     public static String InstanceLabelProvider_ReadOnlyAppendix;
-    public static String Password;
-    public static String Preferences_DefaultLogbook;
-    public static String Preferences_Message;
+    public static String LoadFormat;
     public static String PVWriteError;
     public static String RestoreCell;
-    public static String RestoreCell_TT;
     public static String SaveError;
-    public static String SaveErrorFmt;
     public static String SaveIntro;
     public static String ELogTitleFmt;
     public static String EntryTitle;
-    public static String Logbook;
     public static String SavePVInfoFmt;
     public static String SaveCommentInfoFmt;
     public static String SaveTitle;
@@ -42,10 +35,8 @@ public class Messages
     public static String SetValue_Msg;
     public static String SetValue_Msg_WithReadonlyWarning;
     public static String SetValue_Title;
-    public static String SetValue_TT;
     public static String SystemColumn;
     public static String UnknownValue;
-    public static String User;
 
     static
     {

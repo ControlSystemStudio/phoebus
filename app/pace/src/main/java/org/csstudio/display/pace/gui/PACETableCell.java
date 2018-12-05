@@ -26,6 +26,7 @@ import javafx.util.converter.DefaultStringConverter;
  *  Indicates edited or disabled cell state
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PACETableCell extends TextFieldTableCell<Instance, String>
 {
     private static final Border EDITED = new Border(new BorderStroke(Color.BLUE, BorderStrokeStyle.DASHED, CornerRadii.EMPTY, BorderStroke.THIN, new Insets(1.5)));
