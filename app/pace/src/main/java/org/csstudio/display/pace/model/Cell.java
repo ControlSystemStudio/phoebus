@@ -8,6 +8,7 @@
 package org.csstudio.display.pace.model;
 
 
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
@@ -380,6 +381,30 @@ public class Cell
         if (last_comment_pv == null)
             return ""; //$NON-NLS-1$
         return last_comment_pv.getName();
+    }
+
+    /** @return Info for e.g. tool tip */
+    public String getInfo()
+    {
+        final StringBuilder buf = new StringBuilder();
+
+        // Creating basic PV name, value tooltip
+        buf.append(MessageFormat.format(Messages.InstanceLabelProvider_PVValueFormat, getName(), getObservable().getValue()));
+        // Extend if 'edited'
+        if (isEdited())
+            buf.append(Messages.InstanceLabelProvider_OrigAppendix).append(getCurrentValue());
+        // Extend if 'read-only'
+        if (isReadOnly() || !isPVWriteAllowed())
+            buf.append(Messages.InstanceLabelProvider_ReadOnlyAppendix);
+        // If the cell has meta information, add the person who made the change,
+        // the date of the change and the comment to the tool-tip.
+        if (hasMetaInformation())
+            buf.append(MessageFormat.format(Messages.InstanceLabelProvider_PVCommentTipFormat,
+                                            getLastUser(),
+                                            getLastDate(),
+                                            getLastComment()));
+
+        return buf.toString();
     }
 
     /** @return String representation for debugging */

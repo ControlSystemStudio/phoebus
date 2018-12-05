@@ -44,7 +44,6 @@ import javafx.scene.layout.BorderPane;
 @SuppressWarnings("nls")
 public class GUI extends BorderPane
 {
-    // TODO cell tool tips
     // TODO 'dirty' state
     // TODO save & elog
     private Model model = null;
@@ -149,6 +148,7 @@ public class GUI extends BorderPane
 
             ++col_index;
         }
+
         return table;
     }
 

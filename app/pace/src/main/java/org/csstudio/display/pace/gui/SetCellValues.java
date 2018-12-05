@@ -27,7 +27,14 @@ public class SetCellValues extends MenuItem
     public SetCellValues(final Node node, final List<Cell> cells)
     {
         super(Messages.SetValue);
-        if (cells.isEmpty())
+        boolean readonly = true;
+        for (Cell cell : cells)
+            if (! cell.isReadOnly())
+            {
+                readonly = false;
+                break;
+            }
+        if (cells.isEmpty() || readonly)
             setDisable(true);
         else
             setOnAction(event -> Platform.runLater(() -> setCells(node, cells)));

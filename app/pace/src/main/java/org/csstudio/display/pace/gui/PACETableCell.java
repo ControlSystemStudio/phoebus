@@ -11,12 +11,14 @@ import org.csstudio.display.pace.model.Cell;
 import org.csstudio.display.pace.model.Instance;
 
 import javafx.geometry.Insets;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import javafx.util.converter.DefaultStringConverter;
 
 /** Table cell
@@ -39,18 +41,30 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
         super.updateItem(item, empty);
 
         if (empty  ||  item == null  ||  getTableRow() == null)
+        {
             setBorder(null);
+            setTooltip(null);
+        }
         else
         {
-            final int col = getTableView().getColumns().indexOf(getTableColumn()) - 1;
             final Instance instance = getTableRow().getItem();
-            final Cell cell = instance.getCell(col);
-            setDisable(cell.isReadOnly());
+            final int col = getTableView().getColumns().indexOf(getTableColumn());
+            // Col 0 lists "System", no Cell
+            if (col > 0)
+            {
+                final Cell cell = instance.getCell(col-1);
+                setBorder(cell.isEdited() ? EDITED : null);
 
-            if (cell.isEdited())
-                setBorder(EDITED);
-            else
-                setBorder(null);
+                Tooltip tooltip = getTooltip();
+                // Don't update an active tool tip  because that would hide it
+                // and thus never show any for cell with rapidly changing value
+                if (tooltip == null  ||  !tooltip.isShowing())
+                {
+                    tooltip = new Tooltip(cell.getInfo());
+                    tooltip.setHideDelay(Duration.seconds(10));
+                    setTooltip(tooltip);
+                }
+            }
         }
     }
 }
