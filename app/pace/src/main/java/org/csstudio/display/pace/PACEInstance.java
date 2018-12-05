@@ -38,6 +38,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 /** PACE Instance
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PACEInstance implements AppInstance
 {
     private static final ExtensionFilter[] extensions = new ExtensionFilter[] { DockItemWithInput.ALL_FILES };
