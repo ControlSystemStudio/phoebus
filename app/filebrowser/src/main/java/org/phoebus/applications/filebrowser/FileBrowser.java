@@ -23,6 +23,7 @@ import javafx.scene.control.Label;
 @SuppressWarnings("nls")
 public class FileBrowser implements AppInstance
 {
+    /** Logger for all file browser code */
     public static final Logger logger = Logger.getLogger(FileBrowser.class.getPackageName());
 
     private static final String DIRECTORY = "directory";

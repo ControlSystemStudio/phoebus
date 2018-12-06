@@ -32,6 +32,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -238,7 +239,7 @@ public class FileBrowserController {
                     item = treeView.getRoot();
                 else if (item.isLeaf())
                     item = item.getParent();
-                new PasteFiles(item).fire();
+                new PasteFiles(treeView, item).fire();
                 event.consume();
             }
             break;
@@ -285,7 +286,15 @@ public class FileBrowserController {
 
         contextMenu.getItems().clear();
 
-        if (! selectedItems.isEmpty())
+        if (selectedItems.isEmpty())
+        {
+            // Create directory at root
+            contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, treeView.getRoot()));
+            // Paste files at root
+            if (Clipboard.getSystemClipboard().hasFiles())
+                contextMenu.getItems().addAll(new PasteFiles(treeView, treeView.getRoot()));
+        }
+        else
         {
             // allMatch() would return true for empty, so only check if there are items
             if (selectedItems.stream().allMatch(item -> item.isLeaf()))
@@ -335,6 +344,9 @@ public class FileBrowserController {
                     // Within a directory, a new directory can be created
                     contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item));
                 contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)));
+
+                if (Clipboard.getSystemClipboard().hasFiles())
+                    contextMenu.getItems().addAll(new PasteFiles(treeView, selectedItems.get(0)));
             }
 
             contextMenu.getItems().add(new DeleteAction(treeView, selectedItems));
