@@ -25,7 +25,6 @@ import javafx.scene.image.ImageView;
 /** Menu item to create a new directory
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class CreateDirectoryAction extends MenuItem
 {
     /** @param node Node used to position confirmation dialog

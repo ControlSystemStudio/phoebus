@@ -285,7 +285,12 @@ public class FileBrowserController {
 
         contextMenu.getItems().clear();
 
-        if (! selectedItems.isEmpty())
+        if (selectedItems.isEmpty())
+        {
+            // Create directory at root
+            contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, treeView.getRoot()));
+        }
+        else
         {
             // allMatch() would return true for empty, so only check if there are items
             if (selectedItems.stream().allMatch(item -> item.isLeaf()))
