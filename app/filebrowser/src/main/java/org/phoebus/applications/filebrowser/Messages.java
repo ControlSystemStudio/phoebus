@@ -38,10 +38,9 @@ public class Messages
     public static String HomeButtonTT;
     public static String LookupJobName;
     public static String MenuPath;
-    public static String MoveAlert1;
-    public static String MoveAlert2;
-    public static String MoveAlertTitle;
-    public static String MoveJobName;
+    public static String MoveOrCopyAlert;
+    public static String MoveOrCopyAlertTitle;
+    public static String MoveOrCopyJobName;
     public static String NewFolder;
     public static String NewFolderAlert1;
     public static String NewFolderAlert2;
