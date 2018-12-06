@@ -52,11 +52,15 @@ public class ExceptionDetailsErrorDialog
     private static void doOpenError(final Node node, final String title, final String message, final Exception exception)
     {
         final Alert dialog = new Alert(AlertType.ERROR);
+        dialog.setTitle(title);
         dialog.setHeaderText(message);
 
         if (exception != null)
         {
-            dialog.setContentText("Exception: " + exception.getMessage());
+            // Show the simple exception name,
+            // e.g. "Exception" or "FileAlreadyExistsException" without package name,
+            // followed by message
+            dialog.setContentText(exception.getClass().getSimpleName() + ": " + exception.getMessage());
 
             // Show exception stack trace in expandable section of dialog
             final ByteArrayOutputStream buf = new ByteArrayOutputStream();
