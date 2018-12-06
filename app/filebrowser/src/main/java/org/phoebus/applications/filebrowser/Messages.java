@@ -48,10 +48,6 @@ public class Messages
     public static String OpenAlert2;
     public static String OpenWith;
     public static String Paste;
-    public static String PasteAlert1;
-    public static String PasteAlert2;
-    public static String PasteAlert3;
-    public static String PasteAlert4;
     public static String PropDlgBytes;
     public static String PropDlgDate;
     public static String PropDlgExecutable;
