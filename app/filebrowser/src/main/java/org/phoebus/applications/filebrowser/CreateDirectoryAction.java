@@ -8,6 +8,7 @@
 package org.phoebus.applications.filebrowser;
 
 import java.io.File;
+import java.text.MessageFormat;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -52,7 +53,7 @@ public class CreateDirectoryAction extends MenuItem
             {
                 final Alert alert = new Alert(AlertType.WARNING);
                 alert.setTitle(getText());
-                alert.setHeaderText(Messages.NewFolderAlert1 + new_folder + Messages.NewFolderAlert2);
+                alert.setHeaderText(MessageFormat.format(Messages.NewFolderAlert, new_folder));
                 DialogHelper.positionDialog(alert, node, 0, 0);
                 alert.showAndWait();
                 return;

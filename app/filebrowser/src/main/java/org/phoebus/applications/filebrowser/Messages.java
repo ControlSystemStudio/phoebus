@@ -42,8 +42,7 @@ public class Messages
     public static String MoveOrCopyAlertTitle;
     public static String MoveOrCopyJobName;
     public static String NewFolder;
-    public static String NewFolderAlert1;
-    public static String NewFolderAlert2;
+    public static String NewFolderAlert;
     public static String Open;
     public static String OpenAlert1;
     public static String OpenAlert2;
