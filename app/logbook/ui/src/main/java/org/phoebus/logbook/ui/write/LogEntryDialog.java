@@ -143,6 +143,12 @@ public class LogEntryDialog extends Dialog<LogEntry>
         });
     }
 
+    /** @return User name under which entry was submitted */
+    public String getUsername()
+    {
+        return model.getUsername();
+    }
+
     /**
      * The model will be initialized to contain the same data as the template.
      * @param template

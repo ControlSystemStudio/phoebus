@@ -51,6 +51,32 @@ public class MacrosUnitTest
         assertThat(MacroHandler.containsMacros("Escaped \\$(S) Used $(S)"), equalTo(true));
     }
 
+    /** Test recursive macro error
+     *  @throws Exception on error
+     */
+    @Test
+    public void testSimpleSpec() throws Exception
+    {
+        // Plain  NAME=VALUE with some spaces
+        Macros macros = Macros.fromSimpleSpec("A=1,  B = 2");
+        assertThat(macros.getNames().size(), equalTo(2));
+        assertThat(macros.getValue("A"), equalTo("1"));
+        assertThat(macros.getValue("B"), equalTo("2"));
+
+        // Quoted value with spaces and comma
+        macros = Macros.fromSimpleSpec("MSG = \"Hello, Dolly\" , B=2");
+        assertThat(macros.getNames().size(), equalTo(2));
+        assertThat(macros.getValue("MSG"), equalTo("Hello, Dolly"));
+        assertThat(macros.getValue("B"), equalTo("2"));
+
+        // Value with escaped quote
+        macros = Macros.fromSimpleSpec("MSG = \"This is a \\\"Message\\\" .. \" , B=2");
+        assertThat(macros.getNames().size(), equalTo(2));
+        assertThat(macros.getValue("MSG"), equalTo("This is a \"Message\" .. "));
+        assertThat(macros.getValue("B"), equalTo("2"));
+
+    }
+
     /** Test basic macro=value
      *  @throws Exception on error
      */

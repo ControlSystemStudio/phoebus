@@ -1,0 +1,43 @@
+<paceconfig>
+<title>Demo</title>
+<columns>
+   <column>
+     <name>Setpoint</name>
+     <access>rw</access>
+     <pv>loc://setpoint${N}(${N})</pv>
+   </column>
+   <column>
+     <name>Limit</name>
+     <access>rw</access>
+     <pv>loc://limit${N}(${N})</pv>
+   </column>
+   <column>
+     <name>Stuff</name>
+     <access>ro</access>
+     <pv>sim://ramp(1, 10, 1)</pv>
+   </column>
+</columns>
+
+ <instances>
+   <instance>
+      <name>System 1</name>
+      <macros>N=1</macros>
+   </instance>
+   <instance>
+      <name>System 2</name>
+      <macros>N=2</macros>
+   </instance>
+   <instance>
+      <name>System 3</name>
+      <macros>N=3</macros>
+   </instance>
+   <instance>
+      <name>System 4</name>
+      <macros>N=4</macros>
+   </instance>
+   <instance>
+      <name>System 5</name>
+      <macros>N=5</macros>
+   </instance>
+</instances>
+</paceconfig>
