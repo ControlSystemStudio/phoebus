@@ -22,6 +22,8 @@ public class Messages
     public static String BaseDirectoryTT;
     public static String BrowserRootTitle;
     public static String CopyPathClp;
+    public static String CreateDirectoryErr;
+    public static String CreateDirectoryHdr;
     public static String Delete;
     public static String DeleteJobName;
     public static String DeletePromptHeader;
@@ -48,6 +50,10 @@ public class Messages
     public static String OpenAlert2;
     public static String OpenWith;
     public static String Paste;
+    public static String PasteAlert1;
+    public static String PasteAlert2;
+    public static String PasteAlert3;
+    public static String PasteAlert4;
     public static String PropDlgBytes;
     public static String PropDlgDate;
     public static String PropDlgExecutable;
