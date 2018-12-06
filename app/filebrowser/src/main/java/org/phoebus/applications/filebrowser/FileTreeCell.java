@@ -6,8 +6,10 @@ import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -54,10 +56,20 @@ final class FileTreeCell extends TreeCell<File> {
             final File file = getItem();
             if (file != null)
             {
-                logger.log(Level.FINE, "Dragging " + file);
+                // Drag not just this file, but all selected files
+                final List<File> files = new ArrayList<>();
+                files.add(file);
+                for (TreeItem<File> sel : getTreeView().getSelectionModel().getSelectedItems())
+                {
+                    final File other = sel.getValue();
+                    if (! files.contains(other))
+                        files.add(other);
+                }
+
+                logger.log(Level.FINE, "Dragging " + files);
                 final ClipboardContent content = new ClipboardContent();
-                content.putFiles(List.of(file));
-                content.putString(file.getAbsolutePath());
+                content.putFiles(files);
+                content.putString(files.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
 
                 final Dragboard db = startDragAndDrop(TransferMode.COPY_OR_MOVE);
                 db.setContent(content);
