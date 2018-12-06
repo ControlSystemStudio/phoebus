@@ -228,6 +228,13 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         contentChanged(null, null, null);
     }
 
+    @Override
+    protected void attachTooltip()
+    {
+        // Use the formatted text for "$(pv_value)"
+        TooltipSupport.attach(jfx_node, model_widget.propTooltip(), () -> value_text);
+    }
+
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         dirty_size.mark();
