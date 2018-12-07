@@ -89,11 +89,12 @@ public class PlotWidgetProperties
     /** Structure for X axis */ // Also base for Y Axis
     public static class AxisWidgetProperty extends StructuredWidgetProperty
     {
-        /** @param widget
+        /** @param descriptor propXAxis or propYAxis
+         *  @param widget
          *  @param title_text
          */
         public static AxisWidgetProperty create(final StructuredWidgetProperty.Descriptor descriptor, final Widget widget, final String title_text)
-        {   
+        {
             return new AxisWidgetProperty(descriptor, widget,
                   Arrays.asList(propTitle.createProperty(widget, title_text),
                                 propAutoscale.createProperty(widget, false),
