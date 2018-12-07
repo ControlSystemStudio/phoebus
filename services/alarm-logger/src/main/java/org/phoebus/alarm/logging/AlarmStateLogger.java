@@ -52,9 +52,10 @@ public class AlarmStateLogger implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Starting the stream consumer");
+        logger.info("Starting the state stream consumer for " + topic);
 
-        Properties props = new Properties(PropertiesHelper.getProperties());
+        Properties props = new Properties();
+        props.putAll(PropertiesHelper.getProperties());
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-state");
         if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
