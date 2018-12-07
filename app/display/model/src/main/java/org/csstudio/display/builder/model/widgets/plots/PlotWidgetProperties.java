@@ -80,10 +80,10 @@ public class PlotWidgetProperties
     public static final WidgetPropertyDescriptor<WidgetColor> propGridColor =
         CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "grid_color", Messages.PlotWidget_GridColor);
 
-    private final static StructuredWidgetProperty.Descriptor propXAxis =
+    public final static StructuredWidgetProperty.Descriptor propXAxis =
         new Descriptor(WidgetPropertyCategory.BEHAVIOR, "x_axis", Messages.PlotWidget_XAxis);
 
-    private final static StructuredWidgetProperty.Descriptor propYAxis =
+    public final static StructuredWidgetProperty.Descriptor propYAxis =
         new Descriptor(WidgetPropertyCategory.BEHAVIOR, "y_axis", Messages.PlotWidget_YAxis);
 
     /** Structure for X axis */ // Also base for Y Axis
@@ -92,9 +92,9 @@ public class PlotWidgetProperties
         /** @param widget
          *  @param title_text
          */
-        public static AxisWidgetProperty create(final Widget widget, final String title_text)
-        {   // Compare to YAxisWidgetProperty, which adds logscale and shifts remaining properties
-            return new AxisWidgetProperty(propXAxis, widget,
+        public static AxisWidgetProperty create(final StructuredWidgetProperty.Descriptor descriptor, final Widget widget, final String title_text)
+        {   
+            return new AxisWidgetProperty(descriptor, widget,
                   Arrays.asList(propTitle.createProperty(widget, title_text),
                                 propAutoscale.createProperty(widget, false),
                                 propLogscale.createProperty(widget, false),
@@ -102,7 +102,8 @@ public class PlotWidgetProperties
                                 CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
                                 propGrid.createProperty(widget, false),
                                 propTitleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
-                                propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT))));
+                                propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT)),
+                                CommonWidgetProperties.propVisible.createProperty(widget, true)));
         }
 
         protected AxisWidgetProperty(final StructuredWidgetProperty.Descriptor axis_descriptor,
@@ -119,45 +120,17 @@ public class PlotWidgetProperties
         public WidgetProperty<Boolean> grid()           { return getElement(5); }
         public WidgetProperty<WidgetFont> titleFont()   { return getElement(6); }
         public WidgetProperty<WidgetFont> scaleFont()   { return getElement(7); }
-    };
-
-    /** Structure for Y axis */
-    public static class YAxisWidgetProperty extends AxisWidgetProperty
-    {
-        /** @param widget
-         *  @param title_text
-         */
-        public static YAxisWidgetProperty create(final Widget widget, final String title_text)
-        {
-            return new YAxisWidgetProperty(propYAxis, widget,
-                  Arrays.asList(propTitle.createProperty(widget, title_text),
-                                propAutoscale.createProperty(widget, false),
-                                propLogscale.createProperty(widget, false),
-                                CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
-                                CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
-                                propGrid.createProperty(widget, false),
-                                propTitleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
-                                propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT)),
-                                CommonWidgetProperties.propVisible.createProperty(widget, true)));
-        }
-
-        protected YAxisWidgetProperty(final StructuredWidgetProperty.Descriptor axis_descriptor,
-                                      final Widget widget, final List<WidgetProperty<?>> elements)
-        {
-            super(axis_descriptor, widget, elements);
-        }
-
         public WidgetProperty<Boolean> visible()        { return getElement(8); }
     };
 
     /** 'y_axes' array */
-    public static final ArrayWidgetProperty.Descriptor<YAxisWidgetProperty> propYAxes =
+    public static final ArrayWidgetProperty.Descriptor<AxisWidgetProperty> propYAxes =
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "y_axes", Messages.PlotWidget_YAxes,
                                              (widget, index) ->
-                                             YAxisWidgetProperty.create(widget,
-                                                                        index > 0
-                                                                        ? Messages.PlotWidget_Y + " " + index
-                                                                        : Messages.PlotWidget_Y));
+                                             AxisWidgetProperty.create(propYAxis, widget,
+                                                                       index > 0
+                                                                       ? Messages.PlotWidget_Y + " " + index
+                                                                       : Messages.PlotWidget_Y));
 
     // Elements of the 'trace' structure
     private static final WidgetPropertyDescriptor<String> traceX =

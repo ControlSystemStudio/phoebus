@@ -23,7 +23,6 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetPointType;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.AxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
-import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.YAxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetTraceType;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget.MarkerProperty;
@@ -383,7 +382,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         trackAxisChanges(model_widget.propXAxis());
 
         // Track initial Y axis
-        final List<YAxisWidgetProperty> y_axes = model_widget.propYAxes().getValue();
+        final List<AxisWidgetProperty> y_axes = model_widget.propYAxes().getValue();
         trackAxisChanges(y_axes.get(0));
         // Create additional Y axes from model
         if (y_axes.size() > 1)
@@ -416,11 +415,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.grid().addUntypedPropertyListener(config_listener);
         axis.titleFont().addUntypedPropertyListener(config_listener);
         axis.scaleFont().addUntypedPropertyListener(config_listener);
-        if (axis instanceof YAxisWidgetProperty)
-        {
-            final YAxisWidgetProperty yaxis = (YAxisWidgetProperty) axis;
-            yaxis.visible().addUntypedPropertyListener(config_listener);
-        }
+        axis.visible().addUntypedPropertyListener(config_listener);
     }
 
     /** Ignore changed axis properties
@@ -438,8 +433,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.scaleFont().removePropertyListener(config_listener);
     }
 
-    private void yAxesChanged(final WidgetProperty<List<YAxisWidgetProperty>> property,
-                              final List<YAxisWidgetProperty> removed, final List<YAxisWidgetProperty> added)
+    private void yAxesChanged(final WidgetProperty<List<AxisWidgetProperty>> property,
+                              final List<AxisWidgetProperty> removed, final List<AxisWidgetProperty> added)
     {
         // Remove axis
         if (removed != null)
@@ -504,7 +499,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
         plot.setForeground(foreground);
-        plot.getXAxis().setColor(foreground);
         plot.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
         plot.setGridColor(JFXUtil.convert(model_widget.propGridColor().getValue()));
         plot.setTitleFont(JFXUtil.convert(model_widget.propTitleFont().getValue()));
@@ -515,8 +509,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         // Show trace names either in legend or on axis
         final boolean legend = model_widget.propLegend().getValue();
         plot.showLegend(legend);
-        for (YAxis<Double> axis : plot.getYAxes())
-            axis.useTraceNames(!legend);
 
         // Update X Axis
         updateAxisConfig(plot.getXAxis(), model_widget.propXAxis());
@@ -524,34 +516,32 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         plot.setLegendFont(JFXUtil.convert(model_widget.propXAxis().titleFont().getValue()));
 
         // Update Y Axes
-        final List<YAxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
+        final List<AxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
         if (plot.getYAxes().size() != model_y.size())
         {
             logger.log(Level.WARNING, "Plot has " + plot.getYAxes().size() + " while model has " + model_y.size() + " Y axes");
             return;
         }
-        for (int i=0;  i<model_y.size();  ++i)
-            updateYAxisConfig(i, model_y.get(i));
-    }
-
-    private void updateYAxisConfig(final int index, final YAxisWidgetProperty model_axis)
-    {
-        final YAxis<Double> plot_axis = plot.getYAxes().get(index);
-        updateAxisConfig(plot_axis, model_axis);
-
-        final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
-        plot_axis.setColor(foreground);
-        plot_axis.setVisible(model_axis.visible().getValue());
+        int i = 0;
+        for (YAxis<Double> plot_axis : plot.getYAxes())
+        {
+            plot_axis.useTraceNames(!legend);
+            updateAxisConfig(plot_axis, model_y.get(i));
+            ++i;
+        }
     }
 
     private void updateAxisConfig(final Axis<Double> plot_axis, final AxisWidgetProperty model_axis)
     {
         plot_axis.setName(model_axis.title().getValue());
+        final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
+        plot_axis.setColor(foreground);
         if (plot_axis instanceof NumericAxis)
             ((NumericAxis)plot_axis).setLogarithmic(model_axis.logscale().getValue());
         plot_axis.setGridVisible(model_axis.grid().getValue());
         plot_axis.setLabelFont(JFXUtil.convert(model_axis.titleFont().getValue()));
         plot_axis.setScaleFont(JFXUtil.convert(model_axis.scaleFont().getValue()));
+        plot_axis.setVisible(model_axis.visible().getValue());
     }
 
     private void updateRanges()
@@ -560,7 +550,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         updateAxisRange(plot.getXAxis(), model_widget.propXAxis());
 
         // Update Y Axes
-        final List<YAxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
+        final List<AxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
         if (plot.getYAxes().size() != model_y.size())
         {
             logger.log(Level.WARNING, "Plot has " + plot.getYAxes().size() + " while model has " + model_y.size() + " Y axes");
