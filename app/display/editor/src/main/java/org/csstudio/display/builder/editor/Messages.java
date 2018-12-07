@@ -48,6 +48,7 @@ public class Messages
     public static String PropertyFilterTT;
     public static String ReloadClasses;
     public static String ReloadDisplay;
+    public static String ReloadWarning;
     public static String RemoveElement;
     public static String RemoveGroup;
     public static String RemoveWidgets;

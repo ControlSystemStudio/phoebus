@@ -13,10 +13,7 @@
       </classpath>
     </javac>
   	
-    <!-- Assemble lib/
-  	     Not including the javafx jars strictly required by core-framework
-  	     but not actually used
-  	-->
+    <!-- Assemble lib/ -->
     <copy todir="${build}/lib" flatten="true">
       <fileset dir="../..">
         <include name="dependencies/**/derby*.jar"/>
