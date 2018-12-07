@@ -1,7 +1,7 @@
 package org.phoebus.applications.probe;
 
-import org.phoebus.framework.spi.ToolbarEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.ToolbarEntry;
 
 /**
  * Launching the probe from the main toolbar

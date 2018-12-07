@@ -10,13 +10,13 @@ package org.phoebus.ui.help;
 import java.util.Arrays;
 import java.util.List;
 
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
+import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;

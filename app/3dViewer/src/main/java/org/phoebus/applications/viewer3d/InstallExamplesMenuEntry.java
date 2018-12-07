@@ -7,9 +7,9 @@
  *******************************************************************************/
 package org.phoebus.applications.viewer3d;
 
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.ui.examples.ExampleInstaller;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
 

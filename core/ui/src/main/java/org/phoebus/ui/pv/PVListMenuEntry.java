@@ -7,8 +7,8 @@
  *******************************************************************************/
 package org.phoebus.ui.pv;
 
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.MenuEntry;
 
 /** Menu entry that opens PV List
  *  @author Kay Kasemir
