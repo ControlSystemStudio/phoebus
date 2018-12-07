@@ -431,6 +431,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.grid().removePropertyListener(config_listener);
         axis.titleFont().removePropertyListener(config_listener);
         axis.scaleFont().removePropertyListener(config_listener);
+        axis.visible().removePropertyListener(config_listener);
     }
 
     private void yAxesChanged(final WidgetProperty<List<AxisWidgetProperty>> property,
