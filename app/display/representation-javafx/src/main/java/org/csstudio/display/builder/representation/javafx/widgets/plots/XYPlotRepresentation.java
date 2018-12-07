@@ -539,14 +539,9 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         final YAxis<Double> plot_axis = plot.getYAxes().get(index);
         updateAxisConfig(plot_axis, model_axis);
 
-        // Make axis and all its traces visible resp. not
-        final Boolean visible = model_axis.visible().getValue();
-        for (Trace<?> trace : plot.getTraces())
-            if (trace.getYAxis() == index)
-                trace.setVisible(visible);
         final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
         plot_axis.setColor(foreground);
-        plot_axis.setVisible(visible);
+        plot_axis.setVisible(model_axis.visible().getValue());
     }
 
     private void updateAxisConfig(final Axis<Double> plot_axis, final AxisWidgetProperty model_axis)
