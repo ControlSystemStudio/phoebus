@@ -9,10 +9,10 @@ package org.phoebus.applications.email.actions;
 
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.email.EmailPreferences;
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
 

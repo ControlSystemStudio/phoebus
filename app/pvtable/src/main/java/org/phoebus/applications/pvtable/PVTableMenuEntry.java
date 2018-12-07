@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtable;
 
-import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
 
