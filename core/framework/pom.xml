@@ -14,11 +14,5 @@
       <version>4.12</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-controls</artifactId>
-      <version>11</version>
-      <type>pom</type>
-    </dependency>
   </dependencies>
 </project>
