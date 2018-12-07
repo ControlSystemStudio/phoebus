@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.phoebus.ui.monitoring;
 
-import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.ui.spi.MenuEntry;
 
 /** Menu entry to freeze UI for testing {@link ResponsivenessMonitor}
  *  @author Kay Kasemir

@@ -1,11 +1,11 @@
-package org.phoebus.framework.workbench;
+package org.phoebus.ui.application;
 
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
-import org.phoebus.framework.spi.ToolbarEntry;
+import org.phoebus.ui.spi.ToolbarEntry;
 
 public class ToolbarEntryService {
 

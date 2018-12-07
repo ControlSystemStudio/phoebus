@@ -1,8 +1,8 @@
-package org.phoebus.framework.spi;
+package org.phoebus.ui.spi;
 
 import java.util.concurrent.Callable;
 
-import org.phoebus.framework.workbench.MenuEntryService;
+import org.phoebus.ui.application.MenuEntryService;
 
 import javafx.scene.image.Image;
 

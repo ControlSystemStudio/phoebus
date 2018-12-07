@@ -7,8 +7,8 @@
  ******************************************************************************/
 package org.phoebus.ui.jobs;
 
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.MenuEntry;
 
 /** Menu entry for job viewer
  *  @author Kay Kasemir

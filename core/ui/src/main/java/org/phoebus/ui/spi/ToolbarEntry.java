@@ -1,4 +1,4 @@
-package org.phoebus.framework.spi;
+package org.phoebus.ui.spi;
 
 import javafx.scene.image.Image;
 
