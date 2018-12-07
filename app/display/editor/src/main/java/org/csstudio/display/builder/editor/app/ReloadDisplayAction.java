@@ -8,9 +8,13 @@
 package org.csstudio.display.builder.editor.app;
 
 import org.csstudio.display.builder.editor.Messages;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
 
 /** Action to re-load display in editor
@@ -22,6 +26,18 @@ class ReloadDisplayAction extends MenuItem
     ReloadDisplayAction(final DisplayEditorInstance editor)
     {
         super(Messages.ReloadDisplay, ImageCache.getImageView(DockStage.class, "/icons/refresh.png"));
-        setOnAction(event -> editor.reloadDisplay());
+        setOnAction(event ->
+        {
+            if (editor.isDirty())
+            {
+                final Alert prompt = new Alert(AlertType.CONFIRMATION);
+                prompt.setTitle(Messages.ReloadDisplay);
+                prompt.setHeaderText(Messages.ReloadWarning);
+                DialogHelper.positionDialog(prompt, editor.getEditorGUI().getParentNode(), -200, -200);
+                if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
+                    return;
+            }
+            editor.reloadDisplay();
+        });
     }
 }
