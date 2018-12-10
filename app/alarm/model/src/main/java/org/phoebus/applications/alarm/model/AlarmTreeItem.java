@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.model;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 
 /** Base class for all nodes in the alarm tree
  *  @param STATE Type used for the alarm state
@@ -97,6 +100,7 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
     {
         final AlarmTreeItem<BasicState> p = parent;
         parent = null;
+        logger.log(Level.FINE, "Detach " + getPathName() + " from parent");
         if (p != null)
             if (! p.children.remove(this))
                 throw new Error("Corrupt alarm tree, " + p.getPathName() + " is not aware of " + getPathName());

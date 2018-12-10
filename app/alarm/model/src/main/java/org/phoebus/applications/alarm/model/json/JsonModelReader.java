@@ -239,7 +239,7 @@ public class JsonModelReader
         if (node instanceof AlarmClientLeaf)
             return updateAlarmLeafState(timestamp, (AlarmClientLeaf) node, actual);
         if (node instanceof AlarmClientNode)
-            return updateAlarmNodeState((AlarmClientNode) node, actual);
+            return updateAlarmNodeState(timestamp, (AlarmClientNode) node, actual);
         return false;
     }
 
@@ -308,7 +308,7 @@ public class JsonModelReader
         return (state != null)  &&  node.setState(timestamp, state);
     }
 
-    private static boolean updateAlarmNodeState(final AlarmClientNode node, final JsonNode json)
+    private static boolean updateAlarmNodeState(final long timestamp, final AlarmClientNode node, final JsonNode json)
     {
         SeverityLevel severity = SeverityLevel.UNDEFINED;
 
@@ -321,7 +321,7 @@ public class JsonModelReader
         if (node.getState().severity == severity)
             return false;
         final BasicState state = new BasicState(severity);
-        node.setState(state);
+        node.setState(timestamp, state);
 
         return true;
     }

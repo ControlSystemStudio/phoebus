@@ -9,7 +9,7 @@
 to the end of the polygon or polyline.
 The 'Backspace' key deletes the last point.
 'Space' switches to EDIT mode.
-'Enter' or 'Escape' exits the point editor.</text>
+'Escape' exits the point editor.</text>
     <y>310</y>
     <width>391</width>
     <height>101</height>
@@ -179,7 +179,7 @@ When later editing an existing Polygon or Polyline, you start out in EDIT mode.
  The Outline view may be helpful to select the widget.)
 
 Pressing the 'Space' key toggles between EDIT and APPEND mode.
-Pressing 'Enter' or 'Escape' exits either mode.</text>
+Pressing 'Escape' exits either mode.</text>
     <y>41</y>
     <width>481</width>
     <height>220</height>
@@ -203,7 +203,7 @@ next to the existing one.
 Clicking with 'Shift' deletes the point.
 
 Space key switches to APPEND mode.
-'Enter' or 'Escape' exits the point editor.
+'Escape' exits the point editor.
 </text>
     <y>450</y>
     <width>421</width>

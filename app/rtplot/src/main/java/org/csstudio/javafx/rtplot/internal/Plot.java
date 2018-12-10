@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
+import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Annotation;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
@@ -646,11 +647,10 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
         // Shade plot region beyond 'now'
         // Lay this 'on top' of grid, then add the traces.
-        if (x_axis instanceof TimeAxis)
+        if (x_axis instanceof TimeAxis  &&  Activator.shady_future.getAlpha() > 0)
         {
             final int future_x = ((TimeAxis)x_axis).getScreenCoord(Instant.now());
-            // Half-transparent, average of black & white, works for both white and black backgrounds
-            gc.setColor(new Color(128, 128, 128, 128));
+            gc.setColor(Activator.shady_future);
             gc.fillRect(future_x, 0, area_copy.width - future_x, area_copy.height);
         }
 

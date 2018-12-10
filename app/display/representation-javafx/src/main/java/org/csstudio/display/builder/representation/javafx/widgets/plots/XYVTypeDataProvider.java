@@ -50,7 +50,8 @@ public class XYVTypeDataProvider implements PlotDataProvider<Double>
 
     /** Set the plot's data
      *  @param x_data X data, may be <code>null</code>
-     *  @param y_data Y data
+     *  @param y_data Y data, may be <code>null</code>,
+     *                but at least one of x or y data must be non-<code>null</code>
      *  @param error_data Error data
      */
     @SuppressWarnings("unchecked")
@@ -64,12 +65,19 @@ public class XYVTypeDataProvider implements PlotDataProvider<Double>
         // but create array of PlotDataItems right now because
         // plot will likely iterate over the data elements at least once to plot value,
         // maybe again to plot outline, find value at cursor etc.
-        final int size = x_data == null ? y_data.size() : Math.min(x_data.size(), y_data.size());
+        final int size;
+        if (x_data == null)
+            size = y_data.size();
+        else if (y_data == null)
+            size = x_data.size();
+        else
+            size = Math.min(x_data.size(), y_data.size());
+
         items = new PlotDataItem[size];
         for (int index=0; index < size; ++index)
         {
             final double x = x_data == null ? index : x_data.getDouble(index);
-            final double y = y_data.getDouble(index);
+            final double y = y_data == null ? index : y_data.getDouble(index);
 
             if (error_data.size() <= 0) // No error data
                 items[index] = new SimpleDataItem<>(x, y, Double.NaN, Double.NaN, Double.NaN, null);
