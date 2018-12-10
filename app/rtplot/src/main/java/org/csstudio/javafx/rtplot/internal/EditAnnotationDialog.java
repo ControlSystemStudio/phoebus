@@ -64,7 +64,7 @@ public class EditAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialo
 			final CheckBox selector = new CheckBox(text);
 			selector.setTextFill(item.annotation.getTrace().getColor());
 			selector.setSelected(true);
-			final Button edit = new Button("Edit");
+			final Button edit = new Button(Messages.AnnotationEditBtn);
 			final BorderPane line = new BorderPane();
 			line.setLeft(selector);
 			line.setRight(edit);
@@ -119,8 +119,8 @@ public class EditAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialo
     private void editAnnotation(final Annotation<XTYPE> annotation)
     {
         final MultiLineInputDialog dialog = new MultiLineInputDialog(annotation.getText());
-        dialog.setTitle("Edit Annotation");
-        dialog.setHeaderText("Modify the annotation text");
+        dialog.setTitle(Messages.AnnotationEditTitle);
+        dialog.setHeaderText(Messages.AnnotationEditHdr);
         dialog.showAndWait().ifPresent(new_text ->
         {
         	plot.getUndoableActionManager().execute(

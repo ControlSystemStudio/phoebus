@@ -152,7 +152,7 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
 		String tip = isHigh ? axis.getValueRange().getHigh().toString() :
 			axis.getValueRange().getLow().toString();
     	axisLimitsField.setText(tip);
-    	axisLimitsField.setTooltip(new Tooltip("Original value: " + tip));
+    	axisLimitsField.setTooltip(new Tooltip(Messages.AxisLimits_TT + tip));
 		axisLimitsField.setVisible(true);
 		axisLimitsField.relocate(area.getX(), area.getY());
 		axisLimitsField.resize(area.getWidth(), area.getHeight());

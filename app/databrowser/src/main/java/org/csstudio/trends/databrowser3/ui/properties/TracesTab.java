@@ -98,7 +98,7 @@ public class TracesTab extends Tab
 
     private final TableView<ModelItem> trace_table = new TableView<>();
 
-    private Label lower_placeholder = new Label("Select trace to see data sources");
+    private Label lower_placeholder = new Label(Messages.SelectTrace);
 
     private final TableView<ArchiveDataSource> archives_table = new TableView<>();
 

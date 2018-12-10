@@ -9,6 +9,7 @@ package org.csstudio.javafx.rtplot.internal;
 
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
+import org.csstudio.javafx.rtplot.Messages;
 import org.csstudio.javafx.rtplot.RTPlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.YAxis;
@@ -46,8 +47,8 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         this.plot = plot;
 
         initModality(Modality.NONE);
-        setTitle("Configure");
-        setHeaderText("Change plot runtime settings");
+        setTitle(Messages.PlotConfigDlgTitle);
+        setHeaderText(Messages.PlotConfigHdr);
         try
         {
             setGraphic(new ImageView(Activator.getIcon("configure")));
@@ -89,7 +90,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         // Row to use for the next elements
         int row = 0;
 
-        Label label = new Label("Value Axes");
+        Label label = new Label(Messages.PlotConfigValAx);
         final Font font = label.getFont();
         final Font section_font = Font.font(font.getFamily(), FontWeight.BOLD, font.getSize());
         label.setFont(section_font);
@@ -98,24 +99,24 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         for (Axis<?> axis : plot.getYAxes())
             row = addAxisContent(layout, row, axis);
 
-        label = new Label("Horizontal Axis");
+        label = new Label(Messages.PlotConfigHorAx);
         label.setFont(section_font);
         layout.add(label, 0, row++);
 
         row = addAxisContent(layout, row, plot.getXAxis());
 
-        label = new Label("Plot");
+        label = new Label(Messages.PlotConfigPlot);
         label.setFont(section_font);
         layout.add(label, 0, row++);
 
-        label = new Label("Title:");
+        label = new Label(Messages.PlotConfigTitle);
         layout.add(label, 0, row);
 
         final TextField title = new TextField(plot.getTitle());
         title.setOnAction(event -> plot.setTitle(title.getText()));
         layout.add(title, 1, row++, 2, 1);
 
-        final CheckBox legend = new CheckBox("Show Legend");
+        final CheckBox legend = new CheckBox(Messages.PlotConfigShowLegend);
         legend.setSelected(plot.isLegendVisible());
         legend.setOnAction(event ->   plot.showLegend(legend.isSelected()) );
         layout.add(legend, 1, row);
@@ -125,7 +126,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
 
         row = 0;
-        label = new Label("Traces");
+        label = new Label(Messages.PlotConfigTraces);
         label.setFont(section_font);
         layout.add(label, 5, row++);
 
@@ -149,7 +150,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         });
         layout.add(color, 6, row);
 
-        final CheckBox visible = new CheckBox("Visible");
+        final CheckBox visible = new CheckBox(Messages.PlotConfigVisible);
         visible.setSelected(trace.isVisible());
         visible.setOnAction(event ->
         {
@@ -163,7 +164,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
     private int addAxisContent(final GridPane layout, int row, final Axis<?> axis)
     {
-        layout.add(new Label("Axis Name:"), 0, row);
+        layout.add(new Label(Messages.PlotConfigAxName), 0, row);
         final TextField axis_name = new TextField(axis.getName());
         axis_name.setOnAction(event -> axis.setName(axis_name.getText()));
         layout.add(axis_name, 1, row++, 2, 1);
@@ -175,7 +176,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         {
             final NumericAxis num_axis = (NumericAxis) axis;
 
-            Label label = new Label("Start, End:");
+            Label label = new Label(Messages.PlotConfigStartEnd);
             layout.add(label, 0, row);
 
             final TextField start = new TextField(axis.getValueRange().getLow().toString());
@@ -205,7 +206,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
             start.setOnAction(update_range);
             end.setOnAction(update_range);
 
-            final CheckBox autoscale = new CheckBox("Auto-scale");
+            final CheckBox autoscale = new CheckBox(Messages.PlotConfigAutoScale);
             if (axis.isAutoscale())
             {
                 autoscale.setSelected(true);
@@ -221,7 +222,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
             });
             layout.add(autoscale, 1, row);
 
-            final CheckBox logscale = new CheckBox("Log scale");
+            final CheckBox logscale = new CheckBox(Messages.PlotConfigLogScale);
             logscale.setSelected(num_axis.isLogarithmic());
             logscale.setOnAction(event ->
             {
@@ -231,7 +232,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
             layout.add(logscale, 2, row++);
         }
 
-        final CheckBox grid = new CheckBox("Grid");
+        final CheckBox grid = new CheckBox(Messages.PlotConfigGrid);
         grid.setSelected(axis.isGridVisible());
         grid.setOnAction(event ->
         {
@@ -243,14 +244,14 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         if (axis instanceof YAxis)
         {
             final YAxis<?> yaxis = (YAxis<?>) axis;
-            final CheckBox trace_names = new CheckBox("Show Trace Names");
+            final CheckBox trace_names = new CheckBox(Messages.PlotConfigTraceNames);
             trace_names.setSelected(yaxis.isUsingTraceNames());
             trace_names.setOnAction(event -> yaxis.useTraceNames(trace_names.isSelected()));
             layout.add(trace_names, 2, row);
         }
         ++row;
 
-        final CheckBox visible = new CheckBox("Visible");
+        final CheckBox visible = new CheckBox(Messages.PlotConfigVisible);
         visible.setSelected(axis.isVisible());
         visible.setOnAction(event -> axis.setVisible(visible.isSelected()));
         layout.add(visible, 1, row++);

@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Annotation;
+import org.csstudio.javafx.rtplot.Messages;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
@@ -162,7 +163,7 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
         catch (IllegalArgumentException ex)
         {
             logger.log(Level.WARNING, "Error in annotation format", ex);
-            label = "Annotation error in\n'" + text + "'";
+            label = Messages.AnnotationErr + "\n'" + text + "'";
         }
 
         // Layout like this when in_range

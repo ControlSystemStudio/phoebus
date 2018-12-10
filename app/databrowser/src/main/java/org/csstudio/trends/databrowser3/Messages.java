@@ -17,6 +17,10 @@ public class Messages
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---
+    public static String ActionEmailTitle;
+    public static String ActionEmailBody;
+    public static String ActionLogbookTitle;
+    public static String ActionLogbookBody;
     public static String AddArchive;
     public static String AddArchiveMsg;
     public static String AddAxis;
@@ -51,6 +55,7 @@ public class Messages
     public static String ArchiveRescale_STAGGER;
     public static String ArchiveServerErrorFmt;
     public static String ArchiveServerInfo;
+    public static String ArchiveServerInfoHdr;
     public static String ArchiveServerInfoTT;
     public static String ArchiveURLDialogTitle;
     public static String AutoScale;
@@ -73,6 +78,7 @@ public class Messages
     public static String CursorValue;
     public static String CursorValueTT;
     public static String DataBrowser;
+    public static String DataBrowserMenuPath;
     public static String DeleteArchive;
     public static String DeleteAxis;
     public static String DeleteAxisWarningFmt;
@@ -135,14 +141,71 @@ public class Messages
     public static String ExportTypeSpreadsheetTT;
     public static String ExportValueInfo;
     public static String ExportValueInfoTT;
+    public static String FileFilterDesc;
+    public static String FileLoadErr;
+    public static String FileLoadJobName;
+    public static String FileOpenErr;
+    public static String FontBtnBold;
+    public static String FontBtnExample;
+    public static String FontBtnItalics;
+    public static String FontBtnJobName;
+    public static String FontBtnName;
+    public static String FontBtnSize;
+    public static String FontBtnStyle;
     public static String FontTT;
     public static String ForegroundColorLbl;
     public static String Format_Decimal;
     public static String Format_Default;
     public static String Format_Exponential;
     public static String Formula;
+    public static String FormulaCalcPane;
+    public static String FormulaCalcs0TT;
+    public static String FormulaCalcs1TT;
+    public static String FormulaCalcs2TT;
+    public static String FormulaCalcs3TT;
+    public static String FormulaCalcs4TT;
+    public static String FormulaCalcs5TT;
+    public static String FormulaCalcs6TT;
+    public static String FormulaCalcs7TT;
+    public static String FormulaCalcs8TT;
+    public static String FormulaCalcs9TT;
+    public static String FormulaCalcsAddTT;
+    public static String FormulaCalcsBsTT;
+    public static String FormulaCalcsCbTT;
+    public static String FormulaCalcsCfTT;
+    public static String FormulaCalcsDivTT;
+    public static String FormulaCalcsDotTT;
+    public static String FormulaCalcsMulTT;
+    public static String FormulaCalcsObTT;
+    public static String FormulaCalcsSubTT;
+    public static String FormulaEmpty;
+    public static String FormulaFuncPane;
+    public static String FormulaFunctAbsTT;
+    public static String FormulaFunctAcosTT;
+    public static String FormulaFunctAsinTT;
+    public static String FormulaFunctAtan2TT;
+    public static String FormulaFunctAtanTT;
+    public static String FormulaFunctCeilTT;
+    public static String FormulaFunctCosTT;
+    public static String FormulaFunctETT;
+    public static String FormulaFunctExpTT;
+    public static String FormulaFunctFloorTT;
+    public static String FormulaFunctIfTT;
+    public static String FormulaFunctLog10TT;
+    public static String FormulaFunctLogTT;
+    public static String FormulaFunctMaxTT;
+    public static String FormulaFunctMinTT;
+    public static String FormulaFunctPiTT;
+    public static String FormulaFunctPowTT;
+    public static String FormulaFunctSinTT;
+    public static String FormulaFunctSqrtTT;
+    public static String FormulaFunctTanTT;
     public static String FormulaLabel;
     public static String FormulaLabelEditTT;
+    public static String FormulaParsed;
+    public static String FormulaTabInput;
+    public static String FormulaTabVariable;
+    public static String FormulaTabTT;
     public static String Grid;
     public static String GridLbl;
     public static String GridTT;
@@ -204,6 +267,7 @@ public class Messages
     public static String PrefPage_UpdatePeriod;
     public static String PrintSnapshot;
     public static String PromptForErrors_Label;
+    public static String PropertiesTabName;
     public static String PVName;
     public static String PVUsedInFormulaFmt;
     public static String Refresh;
@@ -242,6 +306,7 @@ public class Messages
     public static String SearchPattern;
     public static String SearchPatternTT;
     public static String SearchTT;
+    public static String SelectTrace;
     public static String Search_URL;
     public static String Search_URL_TT;
     public static String SendToElog;
@@ -276,6 +341,8 @@ public class Messages
     public static String UseAxisName;
     public static String UseDefaultArchives;
     public static String UseDefaultArchives_Label;
+    public static String UseLines;
+    public static String UsePoints;
     public static String UseTraceNames;
     public static String ValueAxes;
     public static String ValueAxisName;
@@ -286,6 +353,8 @@ public class Messages
     public static String WaveformStatus;
     public static String WaveformTimeSelector;
     public static String WaveformTimestamp;
+    public static String WaveformView;
+    public static String WaveformViewSelect;
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---

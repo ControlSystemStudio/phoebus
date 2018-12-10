@@ -14,6 +14,7 @@ import org.csstudio.javafx.rtplot.RTPlot;
 import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
+import org.csstudio.trends.databrowser3.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -28,7 +29,7 @@ public class ToggleLinesMenuItem extends MenuItem
     {
         if (traces.get(0).getPointType() == PointType.NONE)
         {
-            setText("Use points");
+            setText(Messages.UsePoints);
             setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/points.png"));
             setOnAction(event ->
             {
@@ -42,7 +43,7 @@ public class ToggleLinesMenuItem extends MenuItem
         }
         else
         {
-            setText("Use lines");
+            setText(Messages.UseLines);
             setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/lines.png"));
             setOnAction(event ->
             {
