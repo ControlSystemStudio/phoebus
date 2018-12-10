@@ -106,6 +106,12 @@ public class DisplayEditorInstance implements AppInstance
         dock_item.addClosedNotification(this::dispose);
     }
 
+    /** @return Current 'dirty' state */
+    boolean isDirty()
+    {
+        return dock_item.isDirty();
+    }
+
     private void extendToolbar()
     {
         final ObservableList<Node> toolbar = editor_gui.getDisplayEditor().getToolBar().getItems();

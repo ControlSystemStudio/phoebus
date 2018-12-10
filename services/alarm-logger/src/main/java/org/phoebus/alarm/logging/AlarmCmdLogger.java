@@ -40,17 +40,17 @@ public class AlarmCmdLogger implements Runnable {
         super();
         this.topic = topic;
 
-        MessageParser<AlarmCommandMessage> messageParser = new MessageParser<AlarmCommandMessage>(
-                AlarmCommandMessage.class);
+        MessageParser<AlarmCommandMessage> messageParser = new MessageParser<AlarmCommandMessage>(AlarmCommandMessage.class);
         alarmCommandMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
     }
 
     @Override
     public void run() {
 
-        logger.info("Starting the stream consumer");
+        logger.info("Starting the cmd stream consumer for " + topic);
 
-        Properties props = PropertiesHelper.getProperties();
+        Properties props = new Properties();
+        props.putAll(PropertiesHelper.getProperties());
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-cmd");
         if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -58,7 +58,8 @@ public class AlarmCmdLogger implements Runnable {
 
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, AlarmCommandMessage> alarms = builder.stream(topic + "Command", Consumed
-                .with(Serdes.String(), alarmCommandMessageSerde).withTimestampExtractor(new TimestampExtractor() {
+                .with(Serdes.String(), alarmCommandMessageSerde)
+                .withTimestampExtractor(new TimestampExtractor() {
 
                     @Override
                     public long extract(ConsumerRecord<Object, Object> record, long previousTimestamp) {
@@ -111,7 +112,7 @@ public class AlarmCmdLogger implements Runnable {
         final CountDownLatch latch = new CountDownLatch(1);
 
         // attach shutdown handler to catch control-c
-        Runtime.getRuntime().addShutdownHook(new Thread("streams-" + topic + "-alarm-shutdown-hook") {
+        Runtime.getRuntime().addShutdownHook(new Thread("streams-" + topic + "-alarm-cmd-shutdown-hook") {
             @Override
             public void run() {
                 streams.close(10, TimeUnit.SECONDS);

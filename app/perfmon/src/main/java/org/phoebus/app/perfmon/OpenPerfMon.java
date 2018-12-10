@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.phoebus.app.perfmon;
 
-import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.ui.spi.MenuEntry;
 import org.phoebus.ui.statusbar.StatusBar;
 
 /** Menu entry (SPI) for adding/removing performance monitor status bar entry

@@ -52,9 +52,10 @@ public class AlarmStateLogger implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Starting the stream consumer");
+        logger.info("Starting the state stream consumer for " + topic);
 
-        Properties props = PropertiesHelper.getProperties();
+        Properties props = new Properties();
+        props.putAll(PropertiesHelper.getProperties());
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-state");
         if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -141,7 +142,7 @@ public class AlarmStateLogger implements Runnable {
         final CountDownLatch latch = new CountDownLatch(1);
 
         // attach shutdown handler to catch control-c
-        Runtime.getRuntime().addShutdownHook(new Thread("streams-"+topic+"-alarm-shutdown-hook") {
+        Runtime.getRuntime().addShutdownHook(new Thread("streams-"+topic+"-alarm-state-shutdown-hook") {
             @Override
             public void run() {
                 streams.close(10, TimeUnit.SECONDS);

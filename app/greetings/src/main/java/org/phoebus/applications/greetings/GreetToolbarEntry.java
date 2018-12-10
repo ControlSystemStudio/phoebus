@@ -3,8 +3,8 @@ package org.phoebus.applications.greetings;
 import java.util.Arrays;
 import java.util.List;
 
-import org.phoebus.framework.spi.ToolbarEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.ToolbarEntry;
 
 public class GreetToolbarEntry implements ToolbarEntry {
 

@@ -145,6 +145,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
 
         if (!load_failed)
         {
+            if (toolkit.isEditMode())
+                ImageCache.remove(img_path);
             img_loaded = ImageCache.cache(img_path, () ->
             {
                 try

@@ -1,9 +1,15 @@
 package org.phoebus.applications.filebrowser;
 
+import static org.phoebus.applications.filebrowser.FileBrowser.logger;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -50,11 +56,22 @@ final class FileTreeCell extends TreeCell<File> {
             final File file = getItem();
             if (file != null)
             {
-                final ClipboardContent content = new ClipboardContent();
-                content.putFiles(List.of(file));
-                content.putString(file.getAbsolutePath());
+                // Drag not just this file, but all selected files
+                final List<File> files = new ArrayList<>();
+                files.add(file);
+                for (TreeItem<File> sel : getTreeView().getSelectionModel().getSelectedItems())
+                {
+                    final File other = sel.getValue();
+                    if (! files.contains(other))
+                        files.add(other);
+                }
 
-                final Dragboard db = startDragAndDrop(TransferMode.MOVE);
+                logger.log(Level.FINE, "Dragging " + files);
+                final ClipboardContent content = new ClipboardContent();
+                content.putFiles(files);
+                content.putString(files.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+
+                final Dragboard db = startDragAndDrop(TransferMode.COPY_OR_MOVE);
                 db.setContent(content);
             }
             event.consume();
@@ -68,13 +85,15 @@ final class FileTreeCell extends TreeCell<File> {
             if (event.getTransferMode() == TransferMode.MOVE  &&
                 file != null)
             {
-                // System.out.println("Delete tree item for removed " + file);
+                logger.log(Level.FINE, "Drag (MOVE) completed. Deleting moved " + file);
                 // Might want to check if file.exists() in case move failed,
                 // but actual move is performed in background, so right now file
                 // might still be present...
                 final TreeItem<File> deleted_item = getTreeItem();
                 deleted_item.getParent().getChildren().remove(deleted_item);
             }
+            else
+                logger.log(Level.FINE, "Drag (COPY) completed.");
 
             event.consume();
         });
@@ -107,24 +126,27 @@ final class FileTreeCell extends TreeCell<File> {
                 final Dragboard db = event.getDragboard();
                 if (db.hasFiles())
                     for (File file : db.getFiles())
-                        move(file, target_item);
+                    {
+                        logger.log(Level.FINE, "Dropped " + file + " onto " + target_item.getValue() + " via " + event.getTransferMode());
+                        move_or_copy(file, target_item, event.getTransferMode() == TransferMode.MOVE);
+                    }
             }
             event.setDropCompleted(true);
             event.consume();
         });
     }
 
-    /** @param file File to move
+    /** @param file File to move or copy
      *  @param target_item Destination directory's tree item
      */
-    private void move(final File file, final TreeItem<File> target_item)
+    private void move_or_copy(final File file, final TreeItem<File> target_item, final boolean do_move)
     {
         final File dir = target_item.getValue();
         // Ignore NOP move
         if (file.getParentFile().equals(dir))
             return;
 
-        JobManager.schedule(Messages.MoveJobName, monitor ->
+        JobManager.schedule(Messages.MoveOrCopyJobName, monitor ->
         {
             // System.out.println("Move " + file + " into " + dir);
             final File new_name = new File(dir, file.getName());
@@ -132,7 +154,10 @@ final class FileTreeCell extends TreeCell<File> {
             final DirectoryMonitor mon = ((FileTreeItem)target_item).getMonitor();
             try
             {
-                FileHelper.move(file, dir);
+                if (do_move)
+                    FileHelper.move(file, dir);
+                else
+                    FileHelper.copy(file, dir);
                 Platform.runLater(() ->
                 {
                     // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
@@ -144,7 +169,8 @@ final class FileTreeCell extends TreeCell<File> {
             catch (Exception ex)
             {
                 final TreeView<File> tree = getTreeView();
-                ExceptionDetailsErrorDialog.openError(tree, Messages.MoveAlertTitle, Messages.MoveAlert1 + file + " " + Messages.MoveAlert2 + target_item, ex);
+                ExceptionDetailsErrorDialog.openError(tree, Messages.MoveOrCopyAlertTitle,
+                                                      MessageFormat.format(Messages.MoveOrCopyAlert, file, target_item.getValue()), ex);
                 // Force full refresh
                 Platform.runLater(() ->
                     tree.setRoot(new FileTreeItem(mon, tree.getRoot().getValue())) );

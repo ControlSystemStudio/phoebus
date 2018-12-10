@@ -30,6 +30,7 @@
     <ant target="clean" dir="app/databrowser"/>
     <ant target="clean" dir="app/3dViewer"/>
     <ant target="clean" dir="app/perfmon"/>
+    <ant target="clean" dir="app/pace"/>
     <ant target="clean" dir="app/display/model"/>
     <ant target="clean" dir="app/display/representation"/>
     <ant target="clean" dir="app/display/representation-javafx"/>
@@ -91,6 +92,7 @@
     <ant dir="app/databrowser"/>
     <ant dir="app/3dViewer"/>
     <ant dir="app/perfmon"/>
+    <ant dir="app/pace"/>
     <ant dir="app/display/model"/>
     <ant dir="app/display/representation"/>
     <ant dir="app/display/representation-javafx"/>

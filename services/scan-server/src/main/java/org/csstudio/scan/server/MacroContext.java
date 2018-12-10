@@ -13,6 +13,7 @@ import java.util.Stack;
 
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.framework.macros.Macros;
 
 /** Stack of macros, allows pushing new values and popping back to previous macros
  *  @author Kay Kasemir
@@ -39,22 +40,13 @@ public class MacroContext implements MacroValueProvider
      */
     public void pushMacros(final String names_and_values) throws Exception
     {
-        final Map<String, String> macros = new HashMap<String, String>();
+        final Map<String, String> macros = new HashMap<>();
         if (! stack.isEmpty())
             macros.putAll(stack.peek());
 
-        final String pairs[] = names_and_values.split(",");
-        for (String pair : pairs)
-        {
-            if (pair.trim().isEmpty())
-                continue;
-            final String name_value[] = pair.split("=");
-            if (name_value.length != 2)
-                throw new Exception("Input '" + pair + "' does not match 'name=value'");
-            final String name = name_value[0].trim();
-            final String value = name_value[1].trim();
-            macros.put(name, value);
-        }
+        final Macros added = Macros.fromSimpleSpec(names_and_values);
+        added.forEach((name, value) -> macros.put(name, value));
+
         stack.push(macros);
     }
 

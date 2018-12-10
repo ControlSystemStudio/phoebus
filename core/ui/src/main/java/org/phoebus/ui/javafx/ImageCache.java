@@ -69,6 +69,17 @@ public class ImageCache
         return img;
     }
 
+    /** Remove image from cache
+     *
+     *  @param key Key for the image
+     *  @return Image or <code>null</code> if not in cache
+     */
+    public static Image remove(final String key)
+    {
+        final SoftReference<Image> ref = cache.remove(key);
+        return ref == null ? null : ref.get();
+    }
+
     /** @param clazz Class from which to load, if not already cached
      *  @param path Path to the image, based on clazz
      *  @return Image, may be cached copy

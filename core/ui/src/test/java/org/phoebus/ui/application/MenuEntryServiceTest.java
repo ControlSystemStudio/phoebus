@@ -1,11 +1,12 @@
-package org.phoebus.framework.workbench;
+package org.phoebus.ui.application;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-import org.phoebus.framework.spi.MenuEntry;
-import org.phoebus.framework.workbench.MenuEntryService.MenuTreeNode;
+import org.phoebus.ui.application.MenuEntryService;
+import org.phoebus.ui.application.MenuEntryService.MenuTreeNode;
+import org.phoebus.ui.spi.MenuEntry;
 
 import static org.junit.Assert.assertTrue;
 
