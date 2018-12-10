@@ -9,7 +9,7 @@
 to the end of the polygon or polyline.
 The 'Backspace' key deletes the last point.
 'Space' switches to EDIT mode.
-'Enter' or 'Escape' exits the point editor.</text>
+'Escape' exits the point editor.</text>
     <y>310</y>
     <width>391</width>
     <height>101</height>
