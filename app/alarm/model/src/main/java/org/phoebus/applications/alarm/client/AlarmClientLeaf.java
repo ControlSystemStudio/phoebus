@@ -48,7 +48,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
      *  @param state State
      *  @return <code>true</code> if this changed the state
      */
-    public boolean setState(final long timestamp, ClientState state)
+    public boolean setState(final long timestamp, final ClientState state)
     {
         this.timestamp = timestamp;
         return setState(state);
