@@ -94,8 +94,7 @@ public class PointsEditor
             listener.pointsChanged(points);
         }
 
-        if (event.getCode() == KeyCode.ESCAPE  ||
-            event.getCode() == KeyCode.ENTER)
+        if (event.getCode() == KeyCode.ESCAPE)
             listener.done(); // XXX Not 'consumed' so others may also react to Escape
     };
 
