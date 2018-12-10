@@ -36,9 +36,11 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
@@ -100,7 +102,10 @@ public class AlarmConfigLogger implements Runnable {
         if (remoteLocation != null && !remoteLocation.isEmpty()) {
             try {
                 Git git = Git.open(root, FS.detect());
-                URIish uri = new URIish(remoteLocation + "/" + this.topic);
+                URIish uri = new URIish(remoteLocation);
+                RemoteRemoveCommand command = git.remoteRemove();
+                command.setName(REMOTE_NAME);
+                command.call();
                 git.remoteAdd().setName(REMOTE_NAME).setUri(uri).call();
             } catch (IOException | URISyntaxException | GitAPIException e) {
                 e.printStackTrace();
@@ -194,7 +199,6 @@ public class AlarmConfigLogger implements Runnable {
         try {
             logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
             if (alarm_config != null) {
-//                objectMapper.readValue(alarm_config, AlarmConfigMessage.class);
                 path = path.replace(":\\/\\/", "_");
                 File node = Paths.get(root.getParent(), path).toFile();
                 node.mkdirs();
@@ -209,8 +213,10 @@ public class AlarmConfigLogger implements Runnable {
             } else {
                 path = path.replace(":\\/\\/", "_");
                 Path directory = Paths.get(root.getParent(), path);
-                Files.walk(directory).map(Path::toFile).forEach(File::delete);
-                directory.toFile().delete();
+                if(directory.toFile().exists()) {
+                    Files.walk(directory).map(Path::toFile).forEach(File::delete);
+                    directory.toFile().delete();
+                }
             }
             if(commit) {
              // Commit the initialized git repo
@@ -223,6 +229,12 @@ public class AlarmConfigLogger implements Runnable {
                         // If remote defined push to remote
                         PushCommand pushCommand = git.push();
                         pushCommand.setRemote(REMOTE_NAME);
+                        pushCommand.setForce(true);
+                        pushCommand.setCredentialsProvider(
+                                new UsernamePasswordCredentialsProvider(
+                                        props.getProperty("username"),
+                                        props.getProperty("password"))
+                                );
                         pushCommand.call();
                     }
                 } catch (GitAPIException | IOException e) {

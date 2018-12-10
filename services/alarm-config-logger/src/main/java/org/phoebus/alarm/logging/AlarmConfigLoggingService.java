@@ -44,6 +44,9 @@ public class AlarmConfigLoggingService {
         System.out.println("-topics   Accelerator                      - Alarm topics whoes assocaited configuration is to be logged, they can be defined as a comma separated list");
         System.out.println("-bootstrap.servers localhost:9092          - Kafka server address");
         System.out.println("-repo.location /etc/var/alarm_repo         - Location of the alarm configuration repository");
+        System.out.println("-remote.location https://remote.git/repo   - Location of the remote git alarm configuration repository");
+        System.out.println("-username username                         - username for remote git repo");
+        System.out.println("-password password                         - password for remote git repo");
         System.out.println("-properties alarm_config_logger.properties - Properties file to be used (instead of command line arguments)");
         System.out.println("-logging logging.properties                - Load log settings");
         System.out.println();
@@ -104,7 +107,25 @@ public class AlarmConfigLoggingService {
                     iter.remove();
                 } else if (cmd.equals("-repo.location")) {
                     if (!iter.hasNext())
-                        throw new Exception("Missing -bootstrap.servers kafaka server addresss");
+                        throw new Exception("Missing -repo.location local checkout location for alarm confing repo");
+                    iter.remove();
+                    properties.put("location", iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-remote.location")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -remote.location URL to remote git repo");
+                    iter.remove();
+                    properties.put("location", iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-username")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -username username for remote git repo");
+                    iter.remove();
+                    properties.put("location", iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-password")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -paassword password for remote git repo");
                     iter.remove();
                     properties.put("location", iter.next());
                     iter.remove();
