@@ -10,6 +10,7 @@ package org.csstudio.javafx.rtplot.internal;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.ColorMappingFunction;
+import org.csstudio.javafx.rtplot.Messages;
 import org.csstudio.javafx.rtplot.NamedColorMapping;
 import org.csstudio.javafx.rtplot.NamedColorMappings;
 import org.csstudio.javafx.rtplot.RTImagePlot;
@@ -42,8 +43,8 @@ public class ImageConfigDialog  extends Dialog<Void>
         this.plot = plot;
 
         initModality(Modality.NONE);
-        setTitle("Configure");
-        setHeaderText("Change image settings");
+        setTitle(Messages.ImageConfigTitle);
+        setHeaderText(Messages.ImageConfigHdr);
         try
         {
             setGraphic(new ImageView(Activator.getIcon("configure")));
@@ -73,7 +74,7 @@ public class ImageConfigDialog  extends Dialog<Void>
         int row = 0;
 
 
-        Label label = new Label("Value Range");
+        Label label = new Label(Messages.ImageConfigRange);
         final Font font = label.getFont();
         final Font section_font = Font.font(font.getFamily(), FontWeight.BOLD, font.getSize());
         label.setFont(section_font);
@@ -84,7 +85,7 @@ public class ImageConfigDialog  extends Dialog<Void>
         final ColorMappingFunction selected_mapping = plot.internalGetImagePlot().getColorMapping();
         if (selected_mapping instanceof NamedColorMapping)
         {
-            label = new Label("Mapping");
+            label = new Label(Messages.ImageConfigMapping);
             layout.add(label, 1, row);
 
             final ComboBox<String> mappings = new ComboBox<>();
@@ -102,13 +103,13 @@ public class ImageConfigDialog  extends Dialog<Void>
             layout.add(mappings, 2, row++);
         }
 
-        label = new Label("Minimum");
+        label = new Label(Messages.ImageConfigMin);
         layout.add(label, 1, row);
 
         final TextField min = new TextField(Double.toString(plot.getValueRange().getLow()));
         layout.add(min, 2, row);
 
-        label = new Label("Maximum");
+        label = new Label(Messages.ImageConfigMax);
         layout.add(label, 1, ++row);
         final TextField max = new TextField(Double.toString(plot.getValueRange().getHigh()));
         layout.add(max, 2, row);
@@ -131,7 +132,7 @@ public class ImageConfigDialog  extends Dialog<Void>
         min.setOnAction(update_range);
         max.setOnAction(update_range);
 
-        final CheckBox autoscale = new CheckBox("auto-scale");
+        final CheckBox autoscale = new CheckBox(Messages.ImageConfigAutoScale);
         autoscale.setSelected(plot.isAutoscale());
         min.setDisable(autoscale.isSelected());
         max.setDisable(autoscale.isSelected());
@@ -144,12 +145,12 @@ public class ImageConfigDialog  extends Dialog<Void>
         });
         layout.add(autoscale, 2, ++row);
 
-        final CheckBox show_color_bar = new CheckBox("show color bar");
+        final CheckBox show_color_bar = new CheckBox(Messages.ImageConfigShowBar);
         show_color_bar.setSelected(plot.isShowingColorMap());
         show_color_bar.setOnAction(event -> plot.showColorMap(show_color_bar.isSelected()));
         layout.add(show_color_bar, 2, ++row);
 
-        final CheckBox logscale = new CheckBox("log scale");
+        final CheckBox logscale = new CheckBox(Messages.ImageConfigLogScale);
         logscale.setSelected(plot.isLogscale());
         logscale.setOnAction(event ->
         {
@@ -158,13 +159,13 @@ public class ImageConfigDialog  extends Dialog<Void>
         });
         layout.add(logscale, 2, ++row);
 
-        label = new Label("Horizontal Axis");
+        label = new Label(Messages.ImageConfigHor);
         label.setFont(section_font);
         layout.add(label, 0, ++row);
 
         row = addAxisContent(layout, row, plot.getXAxis());
 
-        label = new Label("Vertical Axis");
+        label = new Label(Messages.ImageConfigVer);
         label.setFont(section_font);
         layout.add(label, 0, ++row);
 
@@ -175,13 +176,13 @@ public class ImageConfigDialog  extends Dialog<Void>
 
     private int addAxisContent(final GridPane layout, int row, final Axis<Double> axis)
     {
-        Label label = new Label("Start");
+        Label label = new Label(Messages.ImageConfigStart);
         layout.add(label, 1, row);
 
         final TextField start = new TextField(axis.getValueRange().getLow().toString());
         layout.add(start,  2, row++);
 
-        label = new Label("End");
+        label = new Label(Messages.ImageConfigEnd);
         layout.add(label, 1, row);
         final TextField end = new TextField(axis.getValueRange().getHigh().toString());
         layout.add(end,  2, row++);

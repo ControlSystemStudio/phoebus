@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
+import org.csstudio.trends.databrowser3.Messages;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -89,11 +90,11 @@ public class FormulaPane extends GridPane
         final TableView<InputItem> input_pane = createInputs();
         add(input_pane, 0, 1);
 
-        final TitledPane functions_pane = new TitledPane("Functions", createFunctions());
+        final TitledPane functions_pane = new TitledPane(Messages.FormulaFuncPane, createFunctions());
         functions_pane.setCollapsible(false);
         add(functions_pane, 1, 1);
 
-        final TitledPane calc_pane = new TitledPane("Calculations", createCalculations());
+        final TitledPane calc_pane = new TitledPane(Messages.FormulaCalcPane, createCalculations());
         calc_pane.setCollapsible(false);
         add(calc_pane, 2, 1);
 
@@ -171,11 +172,11 @@ public class FormulaPane extends GridPane
 
     private TableView<InputItem> createInputs()
     {
-        TableColumn<InputItem, String> col = new TableColumn<>("Input");
+        TableColumn<InputItem, String> col = new TableColumn<>(Messages.FormulaTabInput);
         col.setCellValueFactory(c ->  c.getValue().input_name);
         input_table.getColumns().add(col);
 
-        col = new TableColumn<>("Variable");
+        col = new TableColumn<>(Messages.FormulaTabVariable);
         col.setCellValueFactory(c ->  c.getValue().variable_name);
         col.setCellFactory(TextFieldTableCell.forTableColumn());
         // When variable is renamed, re-evaluate formula
@@ -184,7 +185,7 @@ public class FormulaPane extends GridPane
         input_table.getColumns().add(col);
 
         input_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        input_table.setTooltip(new Tooltip("Double-click input to add to formula, or edit variable name"));
+        input_table.setTooltip(new Tooltip(Messages.FormulaTabTT));
         input_table.setEditable(true);
         // Double-click (on input column) adds that variable name to formula
         input_table.addEventHandler(MouseEvent.MOUSE_PRESSED, event ->
@@ -202,30 +203,30 @@ public class FormulaPane extends GridPane
         layout.setHgap(5);
         layout.setVgap(5);
 
-        layout.add(createButton("sin", "sin(x), sine"), 0, 0);
-        layout.add(createButton("asin", "asin(x), inverse sine"), 1, 0);
-        layout.add(createButton("sqrt", "sqrt(x), square root"), 2, 0);
-        layout.add(createButton("^", "x^y, power"), 3, 0);
+        layout.add(createButton("sin", Messages.FormulaFunctSinTT), 0, 0);
+        layout.add(createButton("asin", Messages.FormulaFunctAsinTT), 1, 0);
+        layout.add(createButton("sqrt", Messages.FormulaFunctSqrtTT), 2, 0);
+        layout.add(createButton("^", Messages.FormulaFunctPowTT), 3, 0);
 
-        layout.add(createButton("cos", "cos(x), cosine"), 0, 1);
-        layout.add(createButton("acos", "acos(x), inverse cosine"), 1, 1);
-        layout.add(createButton("log", "log(x), logarithm (base e)"), 2, 1);
-        layout.add(createButton("log10", "log10(x), logarithm (base 10)"), 3, 1);
+        layout.add(createButton("cos", Messages.FormulaFunctCosTT), 0, 1);
+        layout.add(createButton("acos", Messages.FormulaFunctAcosTT), 1, 1);
+        layout.add(createButton("log", Messages.FormulaFunctLogTT), 2, 1);
+        layout.add(createButton("log10", Messages.FormulaFunctLog10TT), 3, 1);
 
-        layout.add(createButton("tan", "tan(x), tangent"), 0, 2);
-        layout.add(createButton("atan", "atan(x), inverse tangent"), 1, 2);
-        layout.add(createButton("atan2", "atan2(y,x), inverse tangent"), 2, 2);
-        layout.add(createButton("exp", "exp(x), exponential (base e)"), 3, 2);
+        layout.add(createButton("tan", Messages.FormulaFunctTanTT), 0, 2);
+        layout.add(createButton("atan", Messages.FormulaFunctAtanTT), 1, 2);
+        layout.add(createButton("atan2", Messages.FormulaFunctAtan2TT), 2, 2);
+        layout.add(createButton("exp", Messages.FormulaFunctExpTT), 3, 2);
 
-        layout.add(createButton("abs", "abs(x), absolute value"), 0, 3);
-        layout.add(createButton("min", "min(x, y, ...), minimum"), 1, 3);
-        layout.add(createButton("max", "max(x, y, ...), maximum"), 2, 3);
-        layout.add(createButton("? : ", "x ? y : z, if-x-then-y-else-z"), 3, 3);
+        layout.add(createButton("abs", Messages.FormulaFunctAbsTT), 0, 3);
+        layout.add(createButton("min", Messages.FormulaFunctMinTT), 1, 3);
+        layout.add(createButton("max", Messages.FormulaFunctMaxTT), 2, 3);
+        layout.add(createButton("? : ", Messages.FormulaFunctIfTT), 3, 3);
 
-        layout.add(createButton("floor", "floor(x), round toward -\u221e"), 0, 4);
-        layout.add(createButton("ceil", "ceil(x), round towards +\u221e"), 1, 4);
-        layout.add(createButton("PI", "\u03C0=3.14..."), 2, 4);
-        layout.add(createButton("E", "e=2.71..."), 3, 4);
+        layout.add(createButton("floor", Messages.FormulaFunctFloorTT), 0, 4);
+        layout.add(createButton("ceil", Messages.FormulaFunctCeilTT), 1, 4);
+        layout.add(createButton("PI", Messages.FormulaFunctPiTT), 2, 4);
+        layout.add(createButton("E", Messages.FormulaFunctETT), 3, 4);
 
         return layout;
     }
@@ -236,36 +237,36 @@ public class FormulaPane extends GridPane
         layout.setHgap(5);
         layout.setVgap(5);
 
-        layout.add(createButton("C", "Clear Formula", event ->
+        layout.add(createButton("C", Messages.FormulaCalcsCfTT, event ->
         {
             formula_txt.clear();
             insert_location = 0;
         }), 0, 0);
-        layout.add(createButton("(", "Opening brace"), 1, 0);
-        layout.add(createButton(")", "Closing brace"), 2, 0);
-        layout.add(createButton("Del", "Backspace", event ->
+        layout.add(createButton("(", Messages.FormulaCalcsObTT), 1, 0);
+        layout.add(createButton(")", Messages.FormulaCalcsCbTT), 2, 0);
+        layout.add(createButton("Del", Messages.FormulaCalcsBsTT, event ->
         {
             formula_txt.deletePreviousChar();
         }), 3, 0);
 
-        layout.add(createButton("7", "Seven"), 0, 1);
-        layout.add(createButton("8", "Eight"), 1, 1);
-        layout.add(createButton("9", "Nine"), 2, 1);
-        layout.add(createButton("*", "Multiply"), 3, 1);
+        layout.add(createButton("7", Messages.FormulaCalcs7TT), 0, 1);
+        layout.add(createButton("8", Messages.FormulaCalcs8TT), 1, 1);
+        layout.add(createButton("9", Messages.FormulaCalcs9TT), 2, 1);
+        layout.add(createButton("*", Messages.FormulaCalcsMulTT), 3, 1);
 
-        layout.add(createButton("4", "Four"), 0, 2);
-        layout.add(createButton("5", "Five"), 1, 2);
-        layout.add(createButton("6", "Six"), 2, 2);
-        layout.add(createButton("/", "Divide"), 3, 2);
+        layout.add(createButton("4", Messages.FormulaCalcs4TT), 0, 2);
+        layout.add(createButton("5", Messages.FormulaCalcs5TT), 1, 2);
+        layout.add(createButton("6", Messages.FormulaCalcs6TT), 2, 2);
+        layout.add(createButton("/", Messages.FormulaCalcsDivTT), 3, 2);
 
-        layout.add(createButton("1", "One"), 0, 3);
-        layout.add(createButton("2", "Two"), 1, 3);
-        layout.add(createButton("3", "Three"), 2, 3);
-        layout.add(createButton("+", "Add"), 3, 3);
+        layout.add(createButton("1", Messages.FormulaCalcs1TT), 0, 3);
+        layout.add(createButton("2", Messages.FormulaCalcs2TT), 1, 3);
+        layout.add(createButton("3", Messages.FormulaCalcs3TT), 2, 3);
+        layout.add(createButton("+", Messages.FormulaCalcsAddTT), 3, 3);
 
-        layout.add(createButton("0", "Zero"), 0, 4, 2, 1);
-        layout.add(createButton(".", "Decimal Point"), 2, 4);
-        layout.add(createButton("-", "Substract"), 3, 4);
+        layout.add(createButton("0", Messages.FormulaCalcs0TT), 0, 4, 2, 1);
+        layout.add(createButton(".", Messages.FormulaCalcsDotTT), 2, 4);
+        layout.add(createButton("-", Messages.FormulaCalcsSubTT), 3, 4);
 
         return layout;
     }
@@ -291,7 +292,7 @@ public class FormulaPane extends GridPane
 
         if (form.isEmpty())
         {
-            status.setText("Formula is empty");
+            status.setText(Messages.FormulaEmpty);
             status.setTextFill(Color.DARKRED);
             ok.set(false);
             return;
@@ -316,7 +317,7 @@ public class FormulaPane extends GridPane
             return;
         }
 
-        status.setText("Parsed Formula: " + formula.toString());
+        status.setText(Messages.FormulaParsed + formula.toString());
         status.setTextFill(Color.BLACK);
 
         // Create array of all variables actually found inside the formula

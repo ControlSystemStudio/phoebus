@@ -90,7 +90,7 @@ public class Perspective extends SplitPane
     public Perspective(final boolean minimal)
     {
         property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
-        properties_tab = new Tab("Properties", property_panel);
+        properties_tab = new Tab(Messages.PropertiesTabName, property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
         properties_tab.setOnClosed(event ->
         {
@@ -192,8 +192,8 @@ public class Perspective extends SplitPane
             items.add(new SeparatorMenuItem());
             items.add(new PrintAction(plot.getPlot()));
             items.add(new SaveSnapshotAction(plot.getPlot()));
-            items.add(new SendEmailAction(this, "Data Browser Plot", "See attached data browser plot", () ->  plot.getPlot().getImage()));
-            items.add(new SendLogbookAction(DockPane.getActiveDockPane(), "Data Browser Plot", "See attached data browser plot", () ->  plot.getPlot().getImage()));
+            items.add(new SendEmailAction(this, Messages.ActionEmailTitle, Messages.ActionEmailBody, () ->  plot.getPlot().getImage()));
+            items.add(new SendLogbookAction(DockPane.getActiveDockPane(), Messages.ActionLogbookTitle, Messages.ActionLogbookBody, () ->  plot.getPlot().getImage()));
 
             if (model.getEmptyAxis().isPresent())
             {

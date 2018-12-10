@@ -28,7 +28,7 @@ public class OpenDataBrowser implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Display";
+        return Messages.DataBrowserMenuPath;
     }
 
     @Override

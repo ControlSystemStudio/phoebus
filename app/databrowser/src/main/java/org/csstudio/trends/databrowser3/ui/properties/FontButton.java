@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.csstudio.trends.databrowser3.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.ui.dialog.PopOver;
@@ -40,9 +41,9 @@ public class FontButton extends Button
 {
     private final ChoiceBox<String> families = new ChoiceBox<>();
     private final ComboBox<String> size = new ComboBox<>(FXCollections.observableArrayList("8", "10", "12", "14", "16", "18", "22", "24", "32"));
-    private final CheckBox bold = new CheckBox("Bold"),
-                           italic = new CheckBox("Italics");
-    private TextField example = new TextField("Example Text");
+    private final CheckBox bold = new CheckBox(Messages.FontBtnBold),
+                           italic = new CheckBox(Messages.FontBtnItalics);
+    private TextField example = new TextField(Messages.FontBtnExample);
 
     private final PopOver popover;
 
@@ -75,13 +76,13 @@ public class FontButton extends Button
         layout.setHgap(5);
         layout.setVgap(5);
 
-        layout.add(new Label("Font Name:"), 0, 0);
+        layout.add(new Label(Messages.FontBtnName), 0, 0);
         layout.add(families, 1, 0, 2, 1);
 
-        layout.add(new Label("Size:"), 0, 1);
+        layout.add(new Label(Messages.FontBtnSize), 0, 1);
         layout.add(size, 1, 1);
 
-        layout.add(new Label("Style:"), 0, 2);
+        layout.add(new Label(Messages.FontBtnStyle), 0, 2);
         layout.add(bold, 1, 2);
         layout.add(italic, 2, 2);
 
@@ -96,7 +97,7 @@ public class FontButton extends Button
         buttons.getButtons().addAll(ok, cancel);
         layout.add(buttons, 0, 4, 4, 1);
 
-        JobManager.schedule("Get Fonts", this::getFamilies);
+        JobManager.schedule(Messages.FontBtnJobName, this::getFamilies);
 
         size.setEditable(true);
         families.valueProperty().addListener(event -> updateFont());

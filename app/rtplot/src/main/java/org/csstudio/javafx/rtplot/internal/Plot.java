@@ -130,13 +130,13 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         // When passing X axis in, its listener needs to be set
         // in here, but an axis design with final listener was preferred.
         if (type == Double.class)
-            x_axis = (AxisPart) new HorizontalNumericAxis("X", plot_part_listener);
+            x_axis = (AxisPart) new HorizontalNumericAxis(Messages.AxisNameDefX, plot_part_listener);
         else if (type == Instant.class)
-            x_axis = (AxisPart) TimeAxis.forDuration("Time", plot_part_listener, Duration.ofMinutes(2));
+            x_axis = (AxisPart) TimeAxis.forDuration(Messages.AxisNameDefT, plot_part_listener, Duration.ofMinutes(2));
         else
             throw new IllegalArgumentException("Cannot handle " + type.getName());
 
-        addYAxis("Value 1");
+        addYAxis(Messages.AxisNameDefY);
         title_part = new TitlePart("", plot_part_listener);
         plot_area = new PlotPart("main", plot_part_listener);
         legend = new LegendPart<>("legend", plot_part_listener);

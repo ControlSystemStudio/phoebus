@@ -64,7 +64,7 @@ import javafx.scene.layout.VBox;
 public class WaveformView extends VBox
 {
     /** Text used for the annotation that indicates waveform sample */
-    private static final String ANNOTATION_TEXT = "Waveform view";
+    private static final String ANNOTATION_TEXT = Messages.WaveformView;
 
     private final Model model;
 
@@ -74,7 +74,7 @@ public class WaveformView extends VBox
     /** Waveform for the currently selected sample */
     private final List<WaveformValueDataProvider> waveforms = new ArrayList<>();
 
-    private final MultiCheckboxCombo<ModelItem> items = new MultiCheckboxCombo<>("Select Items...");
+    private final MultiCheckboxCombo<ModelItem> items = new MultiCheckboxCombo<>(Messages.WaveformViewSelect);
 
     /** Is this code updating 'items', so ignore? */
     private boolean updating_selected_items = false;

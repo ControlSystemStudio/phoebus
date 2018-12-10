@@ -47,7 +47,7 @@ import javafx.stage.Screen;
 @SuppressWarnings("nls")
 public class DataBrowserInstance implements AppInstance
 {
-    public static final ExtensionFilter[] file_extensions = new ExtensionFilter[] { new ExtensionFilter("Data Browser", "*.plt") };
+    public static final ExtensionFilter[] file_extensions = new ExtensionFilter[] { new ExtensionFilter(Messages.FileFilterDesc, "*.plt") };
 
     /** Width of the display in pixels. Used to scale negative plot_bins */
     public static int display_pixel_width = 0;
@@ -180,7 +180,7 @@ public class DataBrowserInstance implements AppInstance
         dock_item.setInput(input);
 
         // Load files in background job
-        JobManager.schedule("Load Data Browser", monitor ->
+        JobManager.schedule(Messages.FileLoadJobName, monitor ->
         {
             final Model new_model = new Model();
             try
@@ -209,16 +209,16 @@ public class DataBrowserInstance implements AppInstance
                     catch (Exception ex)
                     {
                         ExceptionDetailsErrorDialog.openError(Messages.Error,
-                            "Cannot load " + input,
+                                Messages.FileLoadErr + input,
                             ex);
                     }
                 });
             }
             catch (Exception ex)
             {
-                final String message = "Cannot open Data Browser file\n" + input;
+                final String message = "Cannot open Data Browser file " + input;
                 logger.log(Level.WARNING, message, ex);
-                ExceptionDetailsErrorDialog.openError(app.getDisplayName(), message, ex);
+                ExceptionDetailsErrorDialog.openError(app.getDisplayName(), Messages.FileOpenErr, ex);
             }
         });
     }

@@ -90,7 +90,7 @@ public class ArchiveListPane extends BorderPane
                 DialogHelper.positionDialog(dialog, archive_list, -300, -200);
                 dialog.setTitle(Messages.ArchiveServerInfo);
                 dialog.setResizable(true);
-                dialog.setHeaderText("Archive Data Source " + archive.getName());
+                dialog.setHeaderText(Messages.ArchiveServerInfoHdr + archive.getName());
                 final TextArea detail = new TextArea(info.toString());
                 detail.setEditable(false);
                 dialog.getDialogPane().setContent(detail);
