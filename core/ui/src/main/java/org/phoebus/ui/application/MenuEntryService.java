@@ -1,4 +1,4 @@
-package org.phoebus.framework.workbench;
+package org.phoebus.ui.application;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +9,7 @@ import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
-import org.phoebus.framework.spi.MenuEntry;
+import org.phoebus.ui.spi.MenuEntry;
 
 /**
  *

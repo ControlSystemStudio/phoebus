@@ -99,6 +99,13 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
         contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
+    @Override
+    protected void attachTooltip()
+    {
+        // Use the formatted text for "$(pv_value)"
+        TooltipSupport.attach(jfx_node, model_widget.propTooltip(), () -> value_text);
+    }
+
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),

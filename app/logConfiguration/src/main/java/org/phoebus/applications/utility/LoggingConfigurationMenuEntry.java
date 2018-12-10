@@ -7,8 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.utility;
 
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.MenuEntry;
 
 /**
  * Toolbar entry that starts Logging Configuration Application

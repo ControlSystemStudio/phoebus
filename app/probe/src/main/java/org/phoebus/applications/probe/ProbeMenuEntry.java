@@ -7,9 +7,9 @@
  *******************************************************************************/
 package org.phoebus.applications.probe;
 
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
 

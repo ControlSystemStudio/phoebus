@@ -7,8 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.pvtree;
 
-import org.phoebus.framework.spi.ToolbarEntry;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.spi.ToolbarEntry;
 
 /** Toolbar entry that starts PV Tree Application
  *  @author Kay Kasemir

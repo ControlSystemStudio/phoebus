@@ -8,9 +8,9 @@
 package org.csstudio.display.builder.editor.app;
 
 import org.csstudio.display.builder.model.DisplayModel;
-import org.phoebus.framework.spi.MenuEntry;
 import org.phoebus.ui.examples.ExampleInstaller;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
 

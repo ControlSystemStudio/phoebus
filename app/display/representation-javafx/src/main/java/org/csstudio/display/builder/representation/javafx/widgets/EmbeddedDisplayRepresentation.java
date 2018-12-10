@@ -124,6 +124,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
         model_widget.propFile().addUntypedPropertyListener(this::fileChanged);
         model_widget.propGroupName().addUntypedPropertyListener(this::fileChanged);
+        model_widget.propMacros().addUntypedPropertyListener(this::fileChanged);
 
         model_widget.propTransparent().addUntypedPropertyListener(this::backgroundChanged);
         fileChanged(null, null, null);

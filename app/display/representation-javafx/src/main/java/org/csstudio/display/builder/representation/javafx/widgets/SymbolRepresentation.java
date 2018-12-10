@@ -739,6 +739,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             String imageFileName = resolveImageFile(model_widget, fileName);
 
             if ( imageFileName != null ) {
+                if (toolkit.isEditMode())
+                    ImageCache.remove(imageFileName);
 
                 image = ImageCache.cache(imageFileName, () ->
                 {

@@ -85,4 +85,35 @@ public class FileHelper
             Files.move(original.toPath(), new_file.toPath());
         }
     }
+
+
+    /** Copy a file or directory into another directory
+     *
+     *  <p>Copy a single file into a new directory,
+     *  or copies a whole source directory into a new target directory.
+     *
+     *  @param original File or directory
+     *  @param directory Target directory
+     *  @throws Exception on error
+     */
+    public static void copy(final File original, final File directory) throws Exception
+    {
+        if (original.isDirectory())
+        {
+            final File subdir = new File(directory, original.getName());
+            if (! subdir.exists())
+                subdir.mkdirs();
+            else
+                throw new Exception("Cannot copy " + original + " into " + directory +
+                                    ": Target exists");
+
+            for (File file : original.listFiles())
+                copy(file, subdir);
+        }
+        else
+        {
+            final File new_file = new File(directory, original.getName());
+            Files.copy(original.toPath(), new_file.toPath());
+        }
+    }
 }

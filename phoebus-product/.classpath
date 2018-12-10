@@ -42,5 +42,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/app-logbook-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-filebrowser"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-greetings"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-perfmon"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
