@@ -283,8 +283,25 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 else
                     error = ArrayDouble.of(VTypeUtil.getValueNumber(error_value).doubleValue());
             }
-            else // Clear all unless there's Y data
-                x_data = y_data = error = XYVTypeDataProvider.EMPTY;
+            else
+            {   // No Y Data.
+                // Do we have X data?
+                final VType x_value = model_trace.traceXValue().getValue();
+                if (x_value instanceof VNumberArray)
+                {
+                    x_data = ((VNumberArray)x_value).getData();
+                    y_data = error = null;
+                }
+                else if (x_value instanceof VNumber)
+                {
+                    x_data = ArrayDouble.of(((VNumber)x_value).getValue().doubleValue());
+                    y_data = error = null;
+                }
+                else
+                {   // Neither X nor Y data
+                    x_data = y_data = error = XYVTypeDataProvider.EMPTY;
+                }
+            }
 
             // Decouple from CAJ's PV thread
             if (latest_data.getAndSet(new XYVTypeDataProvider(x_data, y_data, error)) == null)
