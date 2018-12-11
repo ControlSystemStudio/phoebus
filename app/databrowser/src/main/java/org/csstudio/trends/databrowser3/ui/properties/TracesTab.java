@@ -308,6 +308,7 @@ public class TracesTab extends Tab
 
         final StackPane details = new StackPane(lower_placeholder, archives_table, formula_pane);
 
+        trace_table.setPlaceholder(new Label(Messages.TraceTableEmpty));
         final SplitPane top_bottom = new SplitPane(trace_table, details);
         top_bottom.setOrientation(Orientation.VERTICAL);
         Platform.runLater(() -> top_bottom.setDividerPositions(0.7));
