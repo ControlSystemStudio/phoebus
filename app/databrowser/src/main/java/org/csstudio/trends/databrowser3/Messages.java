@@ -328,6 +328,7 @@ public class Messages
     public static String TraceLineWidth;
     public static String TraceLineWidthTT;
     public static String TracesTab;
+    public static String TraceTableEmpty;
     public static String TraceType;
     public static String TraceTypes_Label;
     public static String TraceTypeTT;
