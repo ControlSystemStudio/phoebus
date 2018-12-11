@@ -7,6 +7,10 @@
  *******************************************************************************/
 package org.phoebus.ui.autocomplete;
 
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -24,6 +28,11 @@ public class AutocompleteMenuDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
+        final Logger logger = Logger.getLogger("");
+        logger.setLevel(Level.FINE);
+        for (Handler handler : logger.getHandlers())
+            handler.setLevel(logger.getLevel());
+
         final GridPane layout = new GridPane();
         layout.setHgap(5);
         layout.setVgap(5);

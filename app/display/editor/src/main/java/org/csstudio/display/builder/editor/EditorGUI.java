@@ -101,8 +101,12 @@ public class EditorGUI
 
     private final EventHandler<KeyEvent> key_handler = event ->
     {
+        // Don't steal delete, backspace, ... from inline editor
+        if (editor.getSelectedWidgetUITracker().isInlineEditorActive())
+            return;
+
         final KeyCode code = event.getCode();
-        // System.out.println("Editor Key: " + event);
+        // System.out.println("Editor Key: " + code);
 
         // Only handle delete, copy, paste when mouse inside editor
         final boolean in_editor = editor.getContextMenuNode()
