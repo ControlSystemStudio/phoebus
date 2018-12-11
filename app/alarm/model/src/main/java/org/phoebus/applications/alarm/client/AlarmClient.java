@@ -181,8 +181,8 @@ public class AlarmClient
                 logger.log(Level.WARNING, "Expect updates with CreateTime, got " + record.timestampType() + ": " + record.timestamp() + " " + path + " = " + node_config);
 
             logger.log(Level.FINE, () ->
+                record.topic() + " @ " +
                 TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
-                record.topic() + " " +
                 path + " = " + node_config);
 
             // Messages within a topic are ordered by time,
@@ -320,20 +320,20 @@ public class AlarmClient
         if (node == null)
             return null;
 
-        if (node instanceof AlarmClientLeaf)
+        final long last_update = node instanceof AlarmClientLeaf
+            ? ((AlarmClientLeaf) node).getLastUpdateTimestamp()
+            : ((AlarmClientNode) node).getLastUpdateTimestamp();
+        if (last_update > timestamp)
         {
-            final AlarmClientLeaf leaf = (AlarmClientLeaf) node;
-            if (leaf.getLastUpdateTimestamp() > timestamp)
-            {
-                logger.log(Level.FINE,
-                           "Ignoring deletion of " + leaf.getPathName() + " at " +
-                           TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) +
-                           ". Superseded by more recent state update at " +
-                           TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(leaf.getLastUpdateTimestamp()))
-                          );
-                return null;
-            }
+            logger.log(Level.FINE,
+                       "Ignoring deletion of " + node.getPathName() + " at " +
+                       TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) +
+                       ". Superseded by more recent state update at " +
+                       TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(last_update))
+                      );
+            return null;
         }
+
         // Node is known: Detach it
         node.detachFromParent();
         return node;
