@@ -151,6 +151,8 @@ class JobViewer implements AppInstance
 
         final TableColumn<JobInfo, Boolean> stop_col = new TableColumn<>("");
         stop_col.setCellFactory(col -> new CancelTableCell());
+        stop_col.setMinWidth(200);
+        stop_col.setMaxWidth(200);
         table.getColumns().add(stop_col);
 
         updateJobs();

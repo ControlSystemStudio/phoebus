@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.jobs.JobViewerApplication;
 import org.phoebus.ui.statusbar.StatusBar;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -39,6 +41,7 @@ import javafx.scene.control.ButtonType;
 public class UpdateApplication implements AppDescriptor
 {
     private static final String NAME = "Update";
+    private Button start_update = null;
 
     @Override
     public String getName()
@@ -63,7 +66,7 @@ public class UpdateApplication implements AppDescriptor
 
     private void installUpdateButton(final Instant new_version)
     {
-        final Button start_update = new Button("Update");
+        start_update = new Button("Update");
         start_update.setOnAction(event -> promptForUpdate(start_update, new_version));
         Platform.runLater(()  ->  StatusBar.getInstance().addItem(start_update));
     }
@@ -94,12 +97,24 @@ public class UpdateApplication implements AppDescriptor
         DialogHelper.positionDialog(prompt, node, -600, -350);
         prompt.getDialogPane().setPrefSize(600, 300);
         if (prompt.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK)
+        {
+            // Show job manager to display progress
+            ApplicationService.findApplication(JobViewerApplication.NAME).create();
+            // Perform update
             JobManager.schedule(NAME, monitor ->
             {
                 Update.adjustCurrentVersion();
                 Update.downloadAndUpdate(monitor, install_location);
-                Platform.runLater(() -> restart(node));
+                if (! monitor.isCanceled())
+                    Platform.runLater(() -> restart(node));
             });
+        }
+        else
+        {
+            // Remove the update button
+            StatusBar.getInstance().removeItem(start_update);
+            start_update = null;
+        }
     }
 
     private void restart(final Node node)
