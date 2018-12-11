@@ -8,7 +8,9 @@
 package org.phoebus.framework.workbench;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 
@@ -22,13 +24,13 @@ public class WorkbenchPreferences
     public static final Logger logger = Logger.getLogger(WorkbenchPreferences.class.getPackageName());
 
 
-    public static final String external_apps;
+    public static final Collection<String> external_apps;
     public static final File external_apps_directory;
 
     static
     {
         final PreferencesReader prefs = new PreferencesReader(WorkbenchPreferences.class, "/workbench_preferences.properties");
-        external_apps = prefs.get("external_apps");
         external_apps_directory = new File(PreferencesReader.replaceProperties(prefs.get("external_apps_directory")));
+        external_apps = prefs.getKeys("external_app_.*").stream().map(prefs::get).collect(Collectors.toList());
     }
 }

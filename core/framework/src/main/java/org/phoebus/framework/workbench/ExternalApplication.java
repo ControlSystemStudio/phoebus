@@ -9,6 +9,7 @@ package org.phoebus.framework.workbench;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 import org.phoebus.framework.jobs.CommandExecutor;
@@ -53,6 +54,12 @@ class ExternalApplication implements AppResourceDescriptor
     public List<String> supportedFileExtentions()
     {
         return ext;
+    }
+
+    @Override
+    public URL getIconURL()
+    {
+        return ExternalApplication.class.getResource("/icons/ext_app.png");
     }
 
     @Override
