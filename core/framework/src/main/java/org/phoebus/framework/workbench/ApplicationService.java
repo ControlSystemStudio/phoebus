@@ -56,7 +56,7 @@ public class ApplicationService
         }
 
         // External applications, defined in preferences
-        for (String definition : WorkbenchPreferences.external_apps.split(";"))
+        for (String definition : WorkbenchPreferences.external_apps)
         {
             if (definition.isEmpty())
                 continue;
