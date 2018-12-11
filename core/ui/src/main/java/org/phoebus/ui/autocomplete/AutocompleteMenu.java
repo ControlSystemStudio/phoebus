@@ -299,11 +299,10 @@ public class AutocompleteMenu
      */
     private void invokeAction(final TextInputControl field)
     {
-        logger.log(Level.FINE, () -> "InvokeAction: Selected " + field.getText());
-        if (field != null)
-            proposal_service.addToHistory(field.getText());
         if (field instanceof TextField)
         {
+            logger.log(Level.FINE, () -> "InvokeAction: Selected " + field.getText());
+            proposal_service.addToHistory(field.getText());
             final EventHandler<ActionEvent> action = ((TextField)field).getOnAction();
             if (action != null)
                 action.handle(new ActionEvent(field, null));

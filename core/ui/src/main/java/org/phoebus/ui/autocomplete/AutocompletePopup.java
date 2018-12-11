@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.autocomplete;
 
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import javafx.stage.Window;
 class AutocompletePopup extends PopupControl
 {
     private final AutocompletePopupSkin skin;
+    private WeakReference<TextInputControl> active_field;
 
     public AutocompletePopup()
     {
@@ -29,7 +31,18 @@ class AutocompletePopup extends PopupControl
         setSkin(skin);
 
         // Speed GC by releasing items, since menu stays in memory forever
-        setOnHidden(event -> clear());
+        setOnHidden(event ->
+        {
+            clear();
+            active_field = null;
+        });
+    }
+
+    TextInputControl getActiveField()
+    {
+        if (active_field == null)
+            return null;
+        return active_field.get();
     }
 
     public void clear()
@@ -44,8 +57,10 @@ class AutocompletePopup extends PopupControl
 
     public void show(final TextInputControl field)
     {
+        active_field = new WeakReference<>(field);
+
         // Back when using a ContextMenu,
-        //  menu.show(field, Side.BOTTOM, 0, 0);
+        //   menu.show(field, Side.BOTTOM, 0, 0);
         // held an `ownerNode` reference,
         // so not passing the field sped up GC.
         final Bounds bounds = field.localToScreen(field.getLayoutBounds());

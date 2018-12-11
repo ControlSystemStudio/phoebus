@@ -16,6 +16,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -70,6 +71,7 @@ class AutocompletePopupSkin implements Skin<AutocompletePopup>
 
     private void handleKey(final KeyEvent event)
     {
+        final TextInputControl field = popup.getActiveField();
         switch (event.getCode())
         {
         case ESCAPE:
@@ -79,6 +81,28 @@ class AutocompletePopupSkin implements Skin<AutocompletePopup>
         case ENTER:
             logger.log(Level.FINE, () -> "Pressed enter in list");
             runSelectedAction();
+            break;
+        case LEFT:
+            // Forward left/right from list which ignores them anyway
+            // to text field where user might want to move the cursor.
+            // Unclear why the caretposition is already updated
+            // in the 'shift' case, but still necessary to trigger selection.
+            if (field != null)
+            {
+                if (event.isShiftDown())
+                    field.selectPositionCaret(field.getCaretPosition());
+                else
+                    field.backward();
+            }
+            break;
+        case RIGHT:
+            if (field != null)
+            {
+                if (event.isShiftDown())
+                    field.selectPositionCaret(field.getCaretPosition());
+                else
+                    field.forward();
+            }
             break;
         default:
         }
