@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.phoebus.ui.autocomplete;
 
+import static org.phoebus.ui.autocomplete.AutocompleteMenu.logger;
+
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import javafx.geometry.Bounds;
 import javafx.scene.control.ListView;
@@ -20,6 +23,7 @@ import javafx.stage.Window;
 /** Popup for {@link AutocompleteItem}s
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 class AutocompletePopup extends PopupControl
 {
     private final AutocompletePopupSkin skin;
@@ -64,6 +68,11 @@ class AutocompletePopup extends PopupControl
         // held an `ownerNode` reference,
         // so not passing the field sped up GC.
         final Bounds bounds = field.localToScreen(field.getLayoutBounds());
+        if (bounds == null)
+        {
+            logger.log(Level.WARNING, "Cannot show popup", new Exception("No window"));
+            return;
+        }
 
         // Min. width of 620 is useful for long sim PVs
         ((ListView<?>) skin.getNode()).setPrefWidth(Math.max(620, bounds.getWidth()));
