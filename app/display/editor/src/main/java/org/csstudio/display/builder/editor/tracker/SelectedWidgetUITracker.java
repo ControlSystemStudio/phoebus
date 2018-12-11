@@ -300,18 +300,20 @@ public class SelectedWidgetUITracker extends Tracker
         inline_editor.resize(Math.max(100, tracker.getWidth()), Math.max(20, tracker.getHeight()));
         getChildren().add(inline_editor);
 
-        //add autocomplete menu if editing property PVName
+        // Add autocomplete menu if editing property PVName
         if (property.getName().equals(CommonWidgetProperties.propPVName.getName()))
             PVAutocompleteMenu.INSTANCE.attachField(inline_editor);
 
-        // On enter, update the property. On Escape, just close
+        // On enter, update the property. On Escape, just close.
+        inline_editor.setOnAction(event ->
+        {
+            undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
+            closeInlineEditor();
+        });
         inline_editor.setOnKeyPressed(event ->
         {
             switch (event.getCode())
             {
-            case ENTER:
-                undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
-                // Fall through, close editor
             case ESCAPE:
                 event.consume();
                 closeInlineEditor();
