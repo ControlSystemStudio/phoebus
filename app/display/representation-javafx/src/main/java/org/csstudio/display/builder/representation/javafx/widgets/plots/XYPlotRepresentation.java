@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets.plots;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -54,9 +55,16 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotWidget>
 {
+    /** Plot */
+    private RTValuePlot plot;
+
     private final DirtyFlag dirty_position = new DirtyFlag();
     private final DirtyFlag dirty_range = new DirtyFlag();
     private final DirtyFlag dirty_config = new DirtyFlag();
+    private final WidgetPropertyListener<List<AxisWidgetProperty>> yaxes_listener = this::yAxesChanged;
+    private final UntypedWidgetPropertyListener position_listener = this::positionChanged;
+    private final WidgetPropertyListener<List<TraceWidgetProperty>> traces_listener = this::tracesChanged;
+    private final WidgetPropertyListener<Instant> configure_listener = (p, o, n) -> plot.showConfigurationDialog();
 
     /** Prevent event loop when this code changes the range,
      *  and then receives the range-change-event
@@ -76,9 +84,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         dirty_config.mark();
         toolkit.scheduleUpdate(this);
     };
-
-    /** Plot */
-    private RTValuePlot plot;
 
     private volatile boolean changing_marker = false;
 
@@ -405,18 +410,46 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         if (y_axes.size() > 1)
             yAxesChanged(model_widget.propYAxes(), null, y_axes.subList(1, y_axes.size()));
         // Track added/remove Y axes
-        model_widget.propYAxes().addPropertyListener(this::yAxesChanged);
+        model_widget.propYAxes().addPropertyListener(yaxes_listener);
 
-        final UntypedWidgetPropertyListener position_listener = this::positionChanged;
         model_widget.propWidth().addUntypedPropertyListener(position_listener);
         model_widget.propHeight().addUntypedPropertyListener(position_listener);
 
         tracesChanged(model_widget.propTraces(), null, model_widget.propTraces().getValue());
-        model_widget.propTraces().addPropertyListener(this::tracesChanged);
+        model_widget.propTraces().addPropertyListener(traces_listener);
 
-        model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.showConfigurationDialog());
+        model_widget.runtimePropConfigure().addPropertyListener(configure_listener);
 
         plot.addListener(plot_listener);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propBackground().removePropertyListener(config_listener);
+        model_widget.propForeground().removePropertyListener(config_listener);
+        model_widget.propGridColor().removePropertyListener(config_listener);
+        model_widget.propTitle().removePropertyListener(config_listener);
+        model_widget.propTitleFont().removePropertyListener(config_listener);
+        model_widget.propToolbar().removePropertyListener(config_listener);
+        model_widget.propLegend().removePropertyListener(config_listener);
+
+        ignoreAxisChanges(model_widget.propXAxis());
+        final List<AxisWidgetProperty> y_axes = model_widget.propYAxes().getValue();
+        for (AxisWidgetProperty axis : y_axes)
+            ignoreAxisChanges(axis);
+        model_widget.propYAxes().removePropertyListener(yaxes_listener);
+
+        model_widget.propWidth().removePropertyListener(position_listener);
+        model_widget.propHeight().removePropertyListener(position_listener);
+
+        tracesChanged(model_widget.propTraces(), model_widget.propTraces().getValue(), null);
+        model_widget.propTraces().removePropertyListener(traces_listener);
+
+        model_widget.runtimePropConfigure().removePropertyListener(configure_listener);
+
+        plot.removeListener(plot_listener);
+        super.unregisterListeners();
     }
 
     /** Listen to changed axis properties
@@ -604,8 +637,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     @Override
     public void dispose()
     {
+        super.dispose();
         plot.dispose();
         plot = null;
-        super.dispose();
     }
 }

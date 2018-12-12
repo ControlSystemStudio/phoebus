@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.representation.javafx.widgets;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -23,6 +24,8 @@ public class RectangleRepresentation extends JFXBaseRepresentation<Rectangle, Re
 {
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final DirtyFlag dirty_look = new DirtyFlag();
+    private final UntypedWidgetPropertyListener lookChangedListener = this::lookChanged;
+    private final UntypedWidgetPropertyListener sizeChangedListener = this::sizeChanged;
     private volatile Color background, line_color;
     private volatile boolean ignore_mouse = false;
 
@@ -38,16 +41,30 @@ public class RectangleRepresentation extends JFXBaseRepresentation<Rectangle, Re
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propCornerWidth().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propCornerHeight().addUntypedPropertyListener(this::sizeChanged);
+        model_widget.propWidth().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propCornerWidth().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propCornerHeight().addUntypedPropertyListener(sizeChangedListener);
 
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propTransparent().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propLineColor().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propLineWidth().addUntypedPropertyListener(this::lookChanged);
-   }
+        model_widget.propBackgroundColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propTransparent().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propLineColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propLineWidth().addUntypedPropertyListener(lookChangedListener);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propCornerWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propCornerHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(lookChangedListener);
+        model_widget.propTransparent().removePropertyListener(lookChangedListener);
+        model_widget.propLineColor().removePropertyListener(lookChangedListener);
+        model_widget.propLineWidth().removePropertyListener(lookChangedListener);
+        super.unregisterListeners();
+    }
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {

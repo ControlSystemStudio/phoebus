@@ -14,7 +14,9 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
@@ -68,6 +70,12 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private volatile String value_label;
     private volatile ImageView[] state_images;
     private volatile ImageView value_image;
+
+    private final UntypedWidgetPropertyListener imagesChangedListener = this::imagesChanged;
+    private final UntypedWidgetPropertyListener representationChangedListener = this::representationChanged;
+    private final WidgetPropertyListener<Integer> bitChangedListener = this::bitChanged;
+    private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
+    private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
 
     @Override
     public ButtonBase createJFXNode() throws Exception
@@ -125,27 +133,49 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     {
         super.registerListeners();
         representationChanged(null,null,null);
-        model_widget.propWidth().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propOffLabel().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propOffImage().addUntypedPropertyListener(this::imagesChanged);
-        model_widget.propOffColor().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propOnLabel().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propOnImage().addUntypedPropertyListener(this::imagesChanged);
-        model_widget.propOnColor().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propShowLED().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propEnabled().addPropertyListener(this::enablementChanged);
-        model_widget.runtimePropPVWritable().addPropertyListener(this::enablementChanged);
-        model_widget.propBit().addPropertyListener(this::bitChanged);
-        model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
+        model_widget.propWidth().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propOffLabel().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propOffImage().addUntypedPropertyListener(imagesChangedListener);
+        model_widget.propOffColor().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propOnLabel().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propOnImage().addUntypedPropertyListener(imagesChangedListener);
+        model_widget.propOnColor().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propShowLED().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propEnabled().addPropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
+        model_widget.propBit().addPropertyListener(bitChangedListener);
+        model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
 
         imagesChanged(null, null, null);
         bitChanged(model_widget.propBit(), null, model_widget.propBit().getValue());
         enablementChanged(null, null, null);
         valueChanged(null, null, model_widget.runtimePropValue().getValue());
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(representationChangedListener);
+        model_widget.propHeight().removePropertyListener(representationChangedListener);
+        model_widget.propOffLabel().removePropertyListener(representationChangedListener);
+        model_widget.propOffImage().removePropertyListener(imagesChangedListener);
+        model_widget.propOffColor().removePropertyListener(representationChangedListener);
+        model_widget.propOnLabel().removePropertyListener(representationChangedListener);
+        model_widget.propOnImage().removePropertyListener(imagesChangedListener);
+        model_widget.propOnColor().removePropertyListener(representationChangedListener);
+        model_widget.propShowLED().removePropertyListener(representationChangedListener);
+        model_widget.propFont().removePropertyListener(representationChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(representationChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(representationChangedListener);
+        model_widget.propEnabled().removePropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
+        model_widget.propBit().removePropertyListener(bitChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        super.unregisterListeners();
     }
 
     private void stateChanged()

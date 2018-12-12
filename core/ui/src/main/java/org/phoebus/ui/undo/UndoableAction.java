@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 abstract public class UndoableAction implements Runnable
 {
-    public static final Logger logger = Logger.getLogger(UndoableAction.class.getName());
+    public static final Logger logger = Logger.getLogger(UndoableAction.class.getPackageName());
 
     final private String name;
 

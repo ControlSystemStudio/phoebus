@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -31,6 +32,7 @@ import javafx.scene.shape.StrokeLineJoin;
 public class PolylineRepresentation extends JFXBaseRepresentation<Group, PolylineWidget>
 {
     private final DirtyFlag dirty_display = new DirtyFlag();
+    private final UntypedWidgetPropertyListener displayChangedListener = this::displayChanged;
 
     @Override
     public Group createJFXNode() throws Exception
@@ -81,15 +83,30 @@ public class PolylineRepresentation extends JFXBaseRepresentation<Group, Polylin
         if (! toolkit.isEditMode())
             attachTooltip();
         // Polyline can't use the default x/y handling from super.registerListeners();
-        model_widget.propVisible().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propX().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propY().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propLineColor().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propLineWidth().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propLineStyle().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propPoints().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propArrows().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propArrowLength().addUntypedPropertyListener(this::displayChanged);
+        model_widget.propVisible().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propX().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propY().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propLineColor().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propLineWidth().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propLineStyle().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propPoints().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propArrows().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propArrowLength().addUntypedPropertyListener(displayChangedListener);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        detachTooltip();
+        model_widget.propVisible().removePropertyListener(displayChangedListener);
+        model_widget.propX().removePropertyListener(displayChangedListener);
+        model_widget.propY().removePropertyListener(displayChangedListener);
+        model_widget.propLineColor().removePropertyListener(displayChangedListener);
+        model_widget.propLineWidth().removePropertyListener(displayChangedListener);
+        model_widget.propLineStyle().removePropertyListener(displayChangedListener);
+        model_widget.propPoints().removePropertyListener(displayChangedListener);
+        model_widget.propArrows().removePropertyListener(displayChangedListener);
+        model_widget.propArrowLength().removePropertyListener(displayChangedListener);
     }
 
     private void displayChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

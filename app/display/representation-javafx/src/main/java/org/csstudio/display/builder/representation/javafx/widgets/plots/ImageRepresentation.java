@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets.plots;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ColorMap;
@@ -59,6 +61,14 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
 
     /** Actual plotting delegated to {@link RTImagePlot} */
     private RTImagePlot image_plot;
+
+    private final UntypedWidgetPropertyListener coloringChangedListener = this::coloringChanged;
+    private final UntypedWidgetPropertyListener configChangedListener = this::configChanged;
+    private final UntypedWidgetPropertyListener contentChangedListener = this::contentChanged;
+    private final UntypedWidgetPropertyListener positionChangedListener = this::positionChanged;
+    private final UntypedWidgetPropertyListener rangeChangedListener = this::rangeChanged;
+    private final WidgetPropertyListener<Double[]> crosshairChangedListener = this::crosshairChanged;
+    private final WidgetPropertyListener<Instant> runtimeConfigChangedListener = (p, o, n) -> image_plot.showConfigurationDialog();
 
     private volatile boolean changing_roi = false,
                              changing_range = false,
@@ -249,33 +259,33 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::positionChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::positionChanged);
+        model_widget.propWidth().addUntypedPropertyListener(positionChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(positionChangedListener);
 
-        model_widget.propToolbar().addUntypedPropertyListener(this::configChanged);
-        model_widget.propBackground().addUntypedPropertyListener(this::configChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::configChanged);
-        model_widget.propColorbar().visible().addUntypedPropertyListener(this::configChanged);
-        model_widget.propColorbar().barSize().addUntypedPropertyListener(this::configChanged);
-        model_widget.propColorbar().scaleFont().addUntypedPropertyListener(this::configChanged);
-        model_widget.propCursorCrosshair().addUntypedPropertyListener(this::configChanged);
+        model_widget.propToolbar().addUntypedPropertyListener(configChangedListener);
+        model_widget.propBackground().addUntypedPropertyListener(configChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(configChangedListener);
+        model_widget.propColorbar().visible().addUntypedPropertyListener(configChangedListener);
+        model_widget.propColorbar().barSize().addUntypedPropertyListener(configChangedListener);
+        model_widget.propColorbar().scaleFont().addUntypedPropertyListener(configChangedListener);
+        model_widget.propCursorCrosshair().addUntypedPropertyListener(configChangedListener);
         addAxisListener(model_widget.propXAxis());
         addAxisListener(model_widget.propYAxis());
 
-        model_widget.propDataInterpolation().addUntypedPropertyListener(this::coloringChanged);
-        model_widget.propDataColormap().addUntypedPropertyListener(this::coloringChanged);
-        model_widget.propDataAutoscale().addUntypedPropertyListener(this::rangeChanged);
-        model_widget.propDataLogscale().addUntypedPropertyListener(this::rangeChanged);
-        model_widget.propDataMinimum().addUntypedPropertyListener(this::rangeChanged);
-        model_widget.propDataMaximum().addUntypedPropertyListener(this::rangeChanged);
+        model_widget.propDataInterpolation().addUntypedPropertyListener(coloringChangedListener);
+        model_widget.propDataColormap().addUntypedPropertyListener(coloringChangedListener);
+        model_widget.propDataAutoscale().addUntypedPropertyListener(rangeChangedListener);
+        model_widget.propDataLogscale().addUntypedPropertyListener(rangeChangedListener);
+        model_widget.propDataMinimum().addUntypedPropertyListener(rangeChangedListener);
+        model_widget.propDataMaximum().addUntypedPropertyListener(rangeChangedListener);
 
-        model_widget.propDataWidth().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propDataHeight().addUntypedPropertyListener(this::contentChanged);
-        model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
+        model_widget.propDataWidth().addUntypedPropertyListener(contentChangedListener);
+        model_widget.propDataHeight().addUntypedPropertyListener(contentChangedListener);
+        model_widget.runtimePropValue().addUntypedPropertyListener(contentChangedListener);
 
-        model_widget.runtimePropCrosshair().addPropertyListener(this::crosshairChanged);
+        model_widget.runtimePropCrosshair().addPropertyListener(crosshairChangedListener);
 
-        model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> image_plot.showConfigurationDialog() );
+        model_widget.runtimePropConfigure().addPropertyListener(runtimeConfigChangedListener);
 
         image_plot.setListener(plot_listener);
 
@@ -286,14 +296,52 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         contentChanged(null, null, null);
     }
 
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(positionChangedListener);
+        model_widget.propHeight().removePropertyListener(positionChangedListener);
+        model_widget.propToolbar().removePropertyListener(configChangedListener);
+        model_widget.propBackground().removePropertyListener(configChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(configChangedListener);
+        model_widget.propColorbar().visible().removePropertyListener(configChangedListener);
+        model_widget.propColorbar().barSize().removePropertyListener(configChangedListener);
+        model_widget.propColorbar().scaleFont().removePropertyListener(configChangedListener);
+        model_widget.propCursorCrosshair().removePropertyListener(configChangedListener);
+        removeAxisListener(model_widget.propXAxis());
+        removeAxisListener(model_widget.propYAxis());
+        model_widget.propDataInterpolation().removePropertyListener(coloringChangedListener);
+        model_widget.propDataColormap().removePropertyListener(coloringChangedListener);
+        model_widget.propDataAutoscale().removePropertyListener(rangeChangedListener);
+        model_widget.propDataLogscale().removePropertyListener(rangeChangedListener);
+        model_widget.propDataMinimum().removePropertyListener(rangeChangedListener);
+        model_widget.propDataMaximum().removePropertyListener(rangeChangedListener);
+        model_widget.propDataWidth().removePropertyListener(contentChangedListener);
+        model_widget.propDataHeight().removePropertyListener(contentChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(contentChangedListener);
+        model_widget.runtimePropCrosshair().removePropertyListener(crosshairChangedListener);
+        model_widget.runtimePropConfigure().removePropertyListener(runtimeConfigChangedListener);
+        super.unregisterListeners();
+    }
+
     private void addAxisListener(final AxisWidgetProperty axis)
     {
-        axis.visible().addUntypedPropertyListener(this::configChanged);
-        axis.title().addUntypedPropertyListener(this::configChanged);
-        axis.minimum().addUntypedPropertyListener(this::configChanged);
-        axis.maximum().addUntypedPropertyListener(this::configChanged);
-        axis.titleFont().addUntypedPropertyListener(this::configChanged);
-        axis.scaleFont().addUntypedPropertyListener(this::configChanged);
+        axis.visible().addUntypedPropertyListener(configChangedListener);
+        axis.title().addUntypedPropertyListener(configChangedListener);
+        axis.minimum().addUntypedPropertyListener(configChangedListener);
+        axis.maximum().addUntypedPropertyListener(configChangedListener);
+        axis.titleFont().addUntypedPropertyListener(configChangedListener);
+        axis.scaleFont().addUntypedPropertyListener(configChangedListener);
+    }
+
+    private void removeAxisListener(final AxisWidgetProperty axis)
+    {
+        axis.visible().removePropertyListener(configChangedListener);
+        axis.title().removePropertyListener(configChangedListener);
+        axis.minimum().removePropertyListener(configChangedListener);
+        axis.maximum().removePropertyListener(configChangedListener);
+        axis.titleFont().removePropertyListener(configChangedListener);
+        axis.scaleFont().removePropertyListener(configChangedListener);
     }
 
     private void positionChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

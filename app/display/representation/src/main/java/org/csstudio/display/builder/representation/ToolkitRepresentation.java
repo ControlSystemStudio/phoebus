@@ -55,7 +55,7 @@ import org.csstudio.display.builder.representation.spi.WidgetRepresentationsServ
 abstract public class ToolkitRepresentation<TWP extends Object, TW> implements Executor
 {
     /** Logger suggested for all representation logging */
-    public final static Logger logger = Logger.getLogger(ToolkitRepresentation.class.getName());
+    public final static Logger logger = Logger.getLogger(ToolkitRepresentation.class.getPackageName());
 
     private final static AtomicBoolean initialized = new AtomicBoolean();
 

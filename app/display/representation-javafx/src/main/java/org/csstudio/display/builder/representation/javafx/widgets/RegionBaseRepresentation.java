@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
@@ -107,6 +108,9 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
     }
 
     private final DirtyFlag dirty_border = new DirtyFlag();
+    private final UntypedWidgetPropertyListener customBorderChangedListener = this::custom_border_changed;
+    private final UntypedWidgetPropertyListener connectionOrValueChangedListener = this::connectionOrValueChanged;
+
     private volatile WidgetProperty<VType> value_prop = null;
     private volatile WidgetProperty<Boolean> alarm_sensitive_border_prop = null;
     private volatile WidgetProperty<WidgetColor> border_color_prop = null;
@@ -156,8 +160,8 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         {
             border_color_prop = cust_col.get();
             border_width_prop = cust_wid.get();
-            border_color_prop.addUntypedPropertyListener(this::custom_border_changed);
-            border_width_prop.addUntypedPropertyListener(this::custom_border_changed);
+            border_color_prop.addUntypedPropertyListener(customBorderChangedListener);
+            border_width_prop.addUntypedPropertyListener(customBorderChangedListener);
             custom_border_changed(null, null, null);
         }
 
@@ -174,15 +178,34 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
             // runtimeValue should be a VType,
             // but some widgets may allow other data types (Table),
             // so use Object and then check for VType
-            value_prop.addUntypedPropertyListener(this::connectionOrValueChanged);
+            value_prop.addUntypedPropertyListener(connectionOrValueChangedListener);
         }
 
         // Indicate 'disconnected' state
-        model_widget.runtimePropConnected().addUntypedPropertyListener(this::connectionOrValueChanged);
+        model_widget.runtimePropConnected().addUntypedPropertyListener(connectionOrValueChangedListener);
 
         // Allow middle-button click to copy PV name
         if (model_widget instanceof PVWidget)
             jfx_node.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> hookMiddleButtonCopy(event));
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        if (border_color_prop != null)
+            border_color_prop.removePropertyListener(customBorderChangedListener);
+        if (border_width_prop != null)
+            border_width_prop.removePropertyListener(customBorderChangedListener);
+
+        if (!toolkit.isEditMode())
+        {
+            if (value_prop != null)
+                value_prop.removePropertyListener(connectionOrValueChangedListener);
+
+            model_widget.runtimePropConnected().removePropertyListener(connectionOrValueChangedListener);
+        }
+
+        super.unregisterListeners();
     }
 
     /** Copy PV name to clipboard when middle button clicked
