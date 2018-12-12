@@ -39,8 +39,8 @@
     
     <TextField fx:id="txtValue" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
     <HBox spacing="10" alignment="bottom_right" GridPane.columnIndex="1" GridPane.rowIndex="3">
-        <ComboBox fx:id="format" prefWidth="90.0" />
-        <Label text="%Precision" />
+        <ComboBox fx:id="format" HBox.hgrow="ALWAYS" minWidth="40" maxWidth="Infinity" />
+        <Label text="%Precision" prefWidth="200" />
         <Spinner fx:id="precision" min="0" max="20" initialValue="3" amountToStepBy="1" />
     </HBox>
     <TextField fx:id="txtAlarm" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
