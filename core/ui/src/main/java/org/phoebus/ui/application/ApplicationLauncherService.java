@@ -150,8 +150,8 @@ public class ApplicationLauncherService {
         // Prompt user which application to use for this resource
         final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
         final Dialog<String> which = new ListPickerDialog(stage.getScene().getRoot(), options, null);
-        which.setTitle("Open");
-        which.setHeaderText("Select application for opening\n" + resource);
+        which.setTitle(Messages.OpenTitle);
+        which.setHeaderText(Messages.OpenHdr + resource);
         which.setWidth(300);
         which.setHeight(300);
         final Optional<String> result = which.showAndWait();

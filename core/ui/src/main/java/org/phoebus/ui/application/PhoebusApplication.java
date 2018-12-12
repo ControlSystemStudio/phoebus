@@ -115,7 +115,7 @@ public class PhoebusApplication extends Application {
     private SaveLayoutMenuItem save_layout;
 
     /** Menu to load past layouts */
-    private final Menu load_layout = new Menu("Load Layout", ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
+    private final Menu load_layout = new Menu(Messages.LoadLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
 
     /** List of memento files in default directory. */
     private final List<String> memento_files = new CopyOnWriteArrayList<>();
@@ -195,13 +195,13 @@ public class PhoebusApplication extends Application {
     {
         // Assume there's 100 percent of work do to,
         // not knowing, yet, how many applications to start etc.
-        monitor.beginTask("Start Applications", 100);
+        monitor.beginTask(Messages.MonitorTaskApps, 100);
 
         // Locate registered applications and start them, allocating 30% to that
         startApplications(new SubJobMonitor(monitor, 30));
 
         // Load saved state (slow file access) off UI thread, allocating 30% to that
-        monitor.beginTask("Load saved state");
+        monitor.beginTask(Messages.MonitorTaskSave);
         final MementoTree memento = loadDefaultMemento(new SubJobMonitor(monitor, 30));
 
         // Trigger initialization of authentication service
@@ -227,7 +227,7 @@ public class PhoebusApplication extends Application {
 
     private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception
     {
-        monitor.beginTask("Start UI", 4);
+        monitor.beginTask(Messages.MonitorTaskUi, 4);
 
         main_stage = new Stage();
         final MenuBar menuBar = createMenu(main_stage);
@@ -257,13 +257,13 @@ public class PhoebusApplication extends Application {
 
         // If there's nothing to restore from a previous instance,
         // start with welcome
-        monitor.updateTaskName("Restore tabs");
+        monitor.updateTaskName(Messages.MonitorTaskTabs);
         if (! restoreState(memento))
             new Welcome().create();
         monitor.worked(1);
 
         // Check command line parameters
-        monitor.updateTaskName("Handle command line parameters");
+        monitor.updateTaskName(Messages.MonitorTaskCmdl);
         handleParameters(getParameters().getRaw());
         monitor.worked(1);
 
@@ -599,7 +599,7 @@ public class PhoebusApplication extends Application {
         homeIcon.setFitHeight(16.0);
         homeIcon.setFitWidth(16.0);
         home_display_button = new Button(null, homeIcon);
-        home_display_button.setTooltip(new Tooltip("Navigate to home display."));
+        home_display_button.setTooltip(new Tooltip(Messages.HomeTT));
         toolBar.getItems().add(home_display_button);
 
         final TopResources homeResource = TopResources.parse(Preferences.home_display);
@@ -612,7 +612,7 @@ public class PhoebusApplication extends Application {
         toolBar.getItems().add(top_resources_button);
 
         layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/layouts.png"));
-        layout_menu_button.setTooltip(new Tooltip("Load Layouts"));
+        layout_menu_button.setTooltip(new Tooltip(Messages.LayoutTT));
         toolBar.getItems().add(layout_menu_button);
 
         // Contributed Entries
@@ -745,8 +745,8 @@ public class PhoebusApplication extends Application {
         // Prompt user which application to use for this resource
         final List<String> options = applications.stream().map(app -> app.getDisplayName()).collect(Collectors.toList());
         final Dialog<String> which = new ListPickerDialog(main_stage.getScene().getRoot(), options, default_application);
-        which.setTitle("Open");
-        which.setHeaderText("Select application for opening\n" + resource);
+        which.setTitle(Messages.OpenTitle);
+        which.setHeaderText(Messages.OpenHdr + resource);
         which.setWidth(300);
         which.setHeight(300);
         final Optional<String> result = which.showAndWait();
@@ -866,7 +866,7 @@ public class PhoebusApplication extends Application {
      */
     private MementoTree loadDefaultMemento(final JobMonitor monitor)
     {
-        monitor.beginTask("Load persisted state", 1);
+        monitor.beginTask(Messages.MonitorTaskPers, 1);
         final File memfile = XMLMementoTree.getDefaultFile();
         try
         {
@@ -980,9 +980,9 @@ public class PhoebusApplication extends Application {
         if (stages.size() > 1)
         {
             final Alert dialog = new Alert(AlertType.CONFIRMATION);
-            dialog.setTitle("Exit Phoebus");
-            dialog.setHeaderText("Close main window");
-            dialog.setContentText("Closing this window exits the application,\nclosing all other windows.\n");
+            dialog.setTitle(Messages.ExitTitle);
+            dialog.setHeaderText(Messages.ExitHdr);
+            dialog.setContentText(Messages.ExitContent);
             DialogHelper.positionDialog(dialog, stages.get(0).getScene().getRoot(), -200, -200);
             if (dialog.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return false;
@@ -1034,10 +1034,10 @@ public class PhoebusApplication extends Application {
     private void startApplications(final JobMonitor monitor)
     {
         final Collection<AppDescriptor> apps = ApplicationService.getApplications();
-        monitor.beginTask("Start applications", apps.size());
+        monitor.beginTask(Messages.MonitorTaskApps, apps.size());
         for (AppDescriptor app : apps)
         {
-            monitor.updateTaskName("Starting " + app.getDisplayName());
+            monitor.updateTaskName(Messages.MonitorTaskStarting + app.getDisplayName());
             try
             {
                 app.start();
