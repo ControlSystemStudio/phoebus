@@ -98,10 +98,10 @@ public class AxesTab extends Tab
                           rescale_stagger = new RadioButton(Messages.ArchiveRescale_STAGGER);
         rescale_none.setToggleGroup(rescale);
         rescale_stagger.setToggleGroup(rescale);
-        rescale_stagger.setOnAction(event ->
+        rescale_stagger.selectedProperty().addListener((p, o, stagger) ->
         {
             updating = true;
-            new ChangeArchiveRescaleCommand(model, undo, rescale_stagger.isSelected() ? ArchiveRescale.STAGGER : ArchiveRescale.NONE);
+            new ChangeArchiveRescaleCommand(model, undo, stagger ? ArchiveRescale.STAGGER : ArchiveRescale.NONE);
             updating = false;
         });
 
