@@ -237,7 +237,11 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
      *  is located relative to the bounds of the TabPane
      */
     private void computeInsets()
-    {   // There is always at least one tab. All tabs have the same size.
+    {
+        // Called with delay by refreshHack, may be invoked when already disposed
+        if (jfx_node == null)
+            return;
+        // There is always at least one tab. All tabs have the same size.
         final Pane pane = (Pane)jfx_node.getTabs().get(0).getContent();
         final Point2D tabs_bounds = jfx_node.localToScene(0.0, 0.0);
         final Point2D pane_bounds = pane.localToScene(0.0, 0.0);
@@ -295,6 +299,9 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         // OK to then clear the style later, i.e. in here.
         final Runnable twiddle = () ->
         {
+            // Called with delay, may happen after disposal
+            if (jfx_node == null)
+                return;
             jfx_node.setStyle("");
             jfx_node.setSide(Side.BOTTOM);
             if (model_widget.propDirection().getValue() == Direction.HORIZONTAL)
@@ -312,12 +319,11 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
     @Override
     public void dispose()
     {
-        super.dispose();
-
         for (TabItemProperty tab : model_widget.propTabs().getValue())
             for (Widget child : tab.children().getValue())
                 toolkit.execute(() -> toolkit.disposeWidget(child));
 
         jfx_node.getTabs().clear();
+        super.dispose();
     }
 }
