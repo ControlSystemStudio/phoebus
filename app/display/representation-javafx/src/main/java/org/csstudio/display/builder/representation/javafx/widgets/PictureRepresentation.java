@@ -23,7 +23,6 @@ import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Dimension2D;
-import javafx.scene.Group;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
@@ -33,7 +32,7 @@ import javafx.scene.transform.Translate;
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureWidget>
+public class PictureRepresentation extends JFXBaseRepresentation<ImageView, PictureWidget>
 {
     /** Change the image file */
     private final DirtyFlag dirty_content = new DirtyFlag();
@@ -43,37 +42,36 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
     private final WidgetPropertyListener<String> contentChangedListener = this::contentChanged;
 
     private volatile Image img_loaded;
-    private volatile ImageView iv;
     private volatile String img_path;
     private volatile double native_ratio = 1.0;
 
     private volatile Rotate rotation = new Rotate(0);
     private volatile Translate translate = new Translate(0,0);
 
-    public static Dimension2D computeSize ( final PictureWidget widget ) {
-
+    public static Dimension2D computeSize(final PictureWidget widget)
+    {
         final String imageFile = widget.propFile().getValue();
 
-        try {
-
+        try
+        {
             final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
             final Image image = new Image(ModelResourceUtil.openResourceStream(filename));
             return new Dimension2D(image.getWidth(), image.getHeight());
 
-        } catch ( Exception ex ) {
+        }
+        catch (Exception ex)
+        {
             return new Dimension2D(0.0, 0.0);
         }
-
     }
 
     @Override
-    public Group createJFXNode() throws Exception
+    public ImageView createJFXNode() throws Exception
     {
-        iv = new ImageView();
+        final ImageView iv = new ImageView();
         iv.setSmooth(true);
-        Group gr = new Group(iv);
-        gr.getTransforms().addAll(translate, rotation);
-        return gr;
+        iv.getTransforms().addAll(translate, rotation);
+        return iv;
     }
 
     @Override
@@ -196,9 +194,9 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
         {
             if (img_loaded != null)
             {
-                iv.setImage(img_loaded);
+                jfx_node.setImage(img_loaded);
                 // We handle ratio internally, do not let ImageView do that
-                iv.setPreserveRatio(false);
+                jfx_node.setPreserveRatio(false);
             }
             jfx_node.setCache(true);
         }
@@ -239,8 +237,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
                 final_pic_h = (int) Math.floor(scale_fac * pic_h);
             }
 
-            iv.setFitHeight(final_pic_h);
-            iv.setFitWidth(final_pic_w);
+            jfx_node.setFitHeight(final_pic_h);
+            jfx_node.setFitWidth(final_pic_w);
 
             // Rotate around the center of the resized image
             rotation.setAngle(model_widget.propRotation().getValue());
