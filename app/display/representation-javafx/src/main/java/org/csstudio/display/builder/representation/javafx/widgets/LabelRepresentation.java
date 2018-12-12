@@ -34,10 +34,9 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
 {
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
-    private volatile Pos pos;
-
     private final UntypedWidgetPropertyListener contentChangedListener = this::contentChanged;
     private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
+    private volatile Pos pos;
 
     /** Was there ever any transformation applied to the jfx_node?
      *
