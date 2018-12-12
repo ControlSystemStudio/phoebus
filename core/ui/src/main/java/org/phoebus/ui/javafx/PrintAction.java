@@ -76,7 +76,7 @@ public class PrintAction extends MenuItem
         }
         catch (Exception ex)
         {
-            ExceptionDetailsErrorDialog.openError(node, Messages.Print, "Failed to print", ex);
+            ExceptionDetailsErrorDialog.openError(node, Messages.Print, Messages.PrintErr, ex);
         }
     }
 }

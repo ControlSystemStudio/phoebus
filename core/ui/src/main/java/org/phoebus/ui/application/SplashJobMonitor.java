@@ -85,7 +85,7 @@ class SplashJobMonitor implements JobMonitor
         parent.done();
         if (splash != null)
         {
-            splash.updateStatus("Enjoy Phoebus!");
+            splash.updateStatus(Messages.Enjoy);
             splash.updateProgress(parent.getPercentage());
         }
     }

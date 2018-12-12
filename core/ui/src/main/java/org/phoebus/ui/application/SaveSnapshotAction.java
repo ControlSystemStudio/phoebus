@@ -29,8 +29,8 @@ import javafx.stage.Window;
 public class SaveSnapshotAction extends MenuItem
 {
     private static final Image icon = ImageCache.getImage(SaveSnapshotAction.class, "/icons/save_edit.png");
-    private static final ExtensionFilter all_file_extensions = new ExtensionFilter("All Files", "*.*");
-    private static final ExtensionFilter image_file_extension = new ExtensionFilter("Image (*.png)", "*.png");
+    private static final ExtensionFilter all_file_extensions = new ExtensionFilter(Messages.AllFiles, "*.*");
+    private static final ExtensionFilter image_file_extension = new ExtensionFilter(Messages.ImagePng, "*.png");
 
     /** @param node Node in scene of which to take snapshot */
     public SaveSnapshotAction(final Node node)
@@ -63,7 +63,7 @@ public class SaveSnapshotAction extends MenuItem
             }
             catch (Exception ex)
             {
-                ExceptionDetailsErrorDialog.openError("Screenshot error", "Cannot write screenshot", ex);
+                ExceptionDetailsErrorDialog.openError(Messages.ScreenshotErrHdr, Messages.ScreenshotErrMsg, ex);
             }
         });
     }

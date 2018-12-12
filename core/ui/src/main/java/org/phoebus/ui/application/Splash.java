@@ -53,7 +53,7 @@ public class Splash
         // but doesn't always work,
         // so calling toFront() below whenever updating
         stage.setAlwaysOnTop(true);
-        stage.setTitle("Phoebus");
+        stage.setTitle(Messages.ProgressTitle);
 
         final Image image = new Image(getClass().getResourceAsStream("/icons/splash.png"));
         final double width = image.getWidth();

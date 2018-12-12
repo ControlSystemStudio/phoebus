@@ -8,6 +8,7 @@
 package org.phoebus.ui.application;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.List;
 
 import org.phoebus.framework.jobs.JobManager;
@@ -56,7 +57,7 @@ class SaveLayoutMenuItem extends MenuItem
     {
         final TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle(getText());
-        prompt.setHeaderText("Enter a file name to save the layout as.");
+        prompt.setHeaderText(Messages.SaveDlgHdr);
         positionDialog(prompt);
 
         while (true)
@@ -70,11 +71,11 @@ class SaveLayoutMenuItem extends MenuItem
             if (! validateFilename(filename))
             {
                 // Ask again
-                prompt.setHeaderText("Name must only contain alphanumeric characters, space, underscore or '-'.\nEnter a valid layout name.");
+                prompt.setHeaderText(Messages.SaveDlgErrHdr);
                 continue;
             }
             else
-                prompt.setHeaderText("Enter a file name to save the layout as.");
+                prompt.setHeaderText(Messages.SaveDlgHdr);
 
             // Done if save succeeded.
             if (saveState(filename))
@@ -107,7 +108,7 @@ class SaveLayoutMenuItem extends MenuItem
         if (memento_files.contains(memento_filename))
         {
             final Alert fileExistsAlert = new Alert(AlertType.CONFIRMATION);
-            fileExistsAlert.setHeaderText("File \"" + filename + "\" already exists. Do you want to overwite it?");
+            fileExistsAlert.setHeaderText(MessageFormat.format( Messages.FileExists, filename));
             positionDialog(fileExistsAlert);
             if (fileExistsAlert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return false;

@@ -76,7 +76,7 @@ public class FilesList extends VBox
         final Node buttons = createButtons();
 
         setSpacing(5);
-        getChildren().setAll(new Label("Attached files"), files, buttons);
+        getChildren().setAll(new Label(Messages.AttachedFiles), files, buttons);
         setPadding(new Insets(5));
     }
 
@@ -94,11 +94,11 @@ public class FilesList extends VBox
 
     private Node createButtons()
     {
-        final Button attach = new Button("Attach File");
-        final Button remove = new Button("Remove Selected", ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
+        final Button attach = new Button(Messages.AttachFile);
+        final Button remove = new Button(Messages.RemoveSelected, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
 
-        attach.setTooltip(new Tooltip("Add an image to the log entry."));
-        remove.setTooltip(new Tooltip("Remove selected files."));
+        attach.setTooltip(new Tooltip(Messages.AddImageLog));
+        remove.setTooltip(new Tooltip(Messages.RemoveSelectedFiles));
 
         // Only enable 'remove' when file(s) selected
         remove.disableProperty().bind(Bindings.isEmpty(files.getSelectionModel().getSelectedItems()));
