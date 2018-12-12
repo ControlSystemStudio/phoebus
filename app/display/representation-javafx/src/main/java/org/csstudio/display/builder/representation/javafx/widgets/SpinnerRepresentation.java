@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
@@ -48,6 +49,9 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
+    private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
+    private final UntypedWidgetPropertyListener behaviourListener = this::behaviorChanged;
+    private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
 
     protected volatile String value_text = "<?>";
     protected volatile VType value = null;
@@ -325,26 +329,46 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propButtonsOnLeft().addPropertyListener(this::styleChanged);
+        model_widget.propWidth().addUntypedPropertyListener(styleListener);
+        model_widget.propHeight().addUntypedPropertyListener(styleListener);
+        model_widget.propButtonsOnLeft().addUntypedPropertyListener(styleListener);
 
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propForegroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propEnabled().addUntypedPropertyListener(styleListener);
 
-        model_widget.propIncrement().addUntypedPropertyListener(this::behaviorChanged);
-        model_widget.propMinimum().addUntypedPropertyListener(this::behaviorChanged);
-        model_widget.propMaximum().addUntypedPropertyListener(this::behaviorChanged);
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(this::behaviorChanged);
+        model_widget.propIncrement().addUntypedPropertyListener(behaviourListener);
+        model_widget.propMinimum().addUntypedPropertyListener(behaviourListener);
+        model_widget.propMaximum().addUntypedPropertyListener(behaviourListener);
+        model_widget.propLimitsFromPV().addUntypedPropertyListener(behaviourListener);
 
-        model_widget.propFormat().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propPrecision().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propShowUnits().addUntypedPropertyListener(this::contentChanged);
-        model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
+        model_widget.propFormat().addUntypedPropertyListener(contentListener);
+        model_widget.propPrecision().addUntypedPropertyListener(contentListener);
+        model_widget.propShowUnits().addUntypedPropertyListener(contentListener);
+        model_widget.runtimePropValue().addUntypedPropertyListener(contentListener);
 
         behaviorChanged(null, null, null);
         contentChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(styleListener);
+        model_widget.propHeight().removePropertyListener(styleListener);
+        model_widget.propButtonsOnLeft().removePropertyListener(styleListener);
+        model_widget.propForegroundColor().removePropertyListener(styleListener);
+        model_widget.propBackgroundColor().removePropertyListener(styleListener);
+        model_widget.propEnabled().removePropertyListener(styleListener);
+        model_widget.propIncrement().removePropertyListener(behaviourListener);
+        model_widget.propMinimum().removePropertyListener(behaviourListener);
+        model_widget.propMaximum().removePropertyListener(behaviourListener);
+        model_widget.propLimitsFromPV().removePropertyListener(behaviourListener);
+        model_widget.propFormat().removePropertyListener(contentListener);
+        model_widget.propPrecision().removePropertyListener(contentListener);
+        model_widget.propShowUnits().removePropertyListener(contentListener);
+        model_widget.runtimePropValue().removePropertyListener(contentListener);
+        super.unregisterListeners();
     }
 
     @Override

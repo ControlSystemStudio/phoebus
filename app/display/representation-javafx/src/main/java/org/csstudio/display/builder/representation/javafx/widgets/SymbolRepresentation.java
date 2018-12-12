@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.macros.MacroHandler;
@@ -87,6 +88,13 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private final DirtyFlag                      dirtyGeometry          = new DirtyFlag();
     private final DirtyFlag                      dirtyStyle             = new DirtyFlag();
     private final DirtyFlag                      dirtyValue             = new DirtyFlag();
+    private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
+    private final UntypedWidgetPropertyListener geometryListener = this::geometryChanged;
+    private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
+    private final WidgetPropertyListener<VType> valueListener = this::valueChanged;
+    private final WidgetPropertyListener<List<WidgetProperty<String>>> symbolsListener = this::symbolsChanged;
+    private final WidgetPropertyListener<Integer> indexListener = this::initialIndexChanged;
+
     private volatile boolean                     enabled                = true;
     private final ImageView                      imageView              = new ImageView();
     private final Label                          indexLabel             = new Label();
@@ -215,16 +223,12 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     @Override
     public void dispose ( ) {
-
-        model_widget.propSymbols().getValue().stream().forEach(p -> p.removePropertyListener(symbolPropertyListener));
+        super.dispose();
 
         symbol = null;
 
         symbols.get().clear();
         symbols.set(null);
-
-        super.dispose();
-
     }
 
     @Override
@@ -417,39 +421,70 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     }
 
     @Override
-    protected void registerListeners ( ) {
-
+    protected void registerListeners()
+    {
         super.registerListeners();
 
-        model_widget.propArrayIndex().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propPVName().addPropertyListener(this::contentChanged);
+        model_widget.propArrayIndex().addUntypedPropertyListener(contentListener);
+        model_widget.propPVName().addUntypedPropertyListener(contentListener);
 
-        model_widget.propSymbols().addPropertyListener(this::symbolsChanged);
+        model_widget.propSymbols().addPropertyListener(symbolsListener);
         model_widget.propSymbols().getValue().stream().forEach(p -> p.addPropertyListener(symbolPropertyListener));
 
-        model_widget.propInitialIndex().addPropertyListener(this::initialIndexChanged);
+        model_widget.propInitialIndex().addPropertyListener(indexListener);
 
-        model_widget.propAutoSize().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propVisible().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propX().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propY().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propWidth().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propPreserveRatio().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propRotation().addUntypedPropertyListener(this::geometryChanged);
+        model_widget.propAutoSize().addUntypedPropertyListener(geometryListener);
+        model_widget.propVisible().addUntypedPropertyListener(geometryListener);
+        model_widget.propX().addUntypedPropertyListener(geometryListener);
+        model_widget.propY().addUntypedPropertyListener(geometryListener);
+        model_widget.propWidth().addUntypedPropertyListener(geometryListener);
+        model_widget.propHeight().addUntypedPropertyListener(geometryListener);
+        model_widget.propPreserveRatio().addUntypedPropertyListener(geometryListener);
+        model_widget.propRotation().addUntypedPropertyListener(geometryListener);
 
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propShowIndex().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propTransparent().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propEnabled().addUntypedPropertyListener(styleListener);
+        model_widget.propShowIndex().addUntypedPropertyListener(styleListener);
+        model_widget.propTransparent().addUntypedPropertyListener(styleListener);
 
-        if ( toolkit.isEditMode() ) {
+        if (toolkit.isEditMode())
             dirtyValue.checkAndClear();
-        } else {
-            model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
+        else
+        {
+            model_widget.runtimePropValue().addPropertyListener(valueListener);
             valueChanged(null, null, null);
         }
+    }
 
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propArrayIndex().removePropertyListener(contentListener);
+        model_widget.propPVName().removePropertyListener(contentListener);
+
+        model_widget.propSymbols().removePropertyListener(symbolsListener);
+        model_widget.propSymbols().getValue().stream().forEach(p -> p.removePropertyListener(symbolPropertyListener));
+
+        model_widget.propInitialIndex().removePropertyListener(indexListener);
+
+        model_widget.propAutoSize().removePropertyListener(geometryListener);
+        model_widget.propVisible().removePropertyListener(geometryListener);
+        model_widget.propX().removePropertyListener(geometryListener);
+        model_widget.propY().removePropertyListener(geometryListener);
+        model_widget.propWidth().removePropertyListener(geometryListener);
+        model_widget.propHeight().removePropertyListener(geometryListener);
+        model_widget.propPreserveRatio().removePropertyListener(geometryListener);
+        model_widget.propRotation().removePropertyListener(geometryListener);
+
+        model_widget.propBackgroundColor().removePropertyListener(styleListener);
+        model_widget.propEnabled().removePropertyListener(styleListener);
+        model_widget.propShowIndex().removePropertyListener(styleListener);
+        model_widget.propTransparent().removePropertyListener(styleListener);
+
+        if (!toolkit.isEditMode())
+            model_widget.runtimePropValue().removePropertyListener(valueListener);
+
+        super.unregisterListeners();
     }
 
     private void contentChanged ( final WidgetProperty<?> property, final Object oldValue, final Object newValue ) {
