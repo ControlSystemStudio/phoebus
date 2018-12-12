@@ -14,6 +14,7 @@ import java.util.Optional;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -46,6 +47,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     private volatile WidgetProperty<Boolean> visible;
 
     private final DirtyFlag dirty_position = new DirtyFlag();
+    private final UntypedWidgetPropertyListener positionChangedListener = this::positionChanged;
 
     /** {@inheritDoc} */
     @Override
@@ -212,6 +214,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     @Override
     public void dispose()
     {
+        unregisterListeners();
         Objects.requireNonNull(jfx_node);
         JFXRepresentation.getChildren(jfx_node.getParent()).remove(jfx_node);
         jfx_node = null;
@@ -241,9 +244,9 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     {
         visible = model_widget.checkProperty(CommonWidgetProperties.propVisible).orElse(null);
         if (visible != null)
-            visible.addUntypedPropertyListener(this::positionChanged);
-        model_widget.propX().addUntypedPropertyListener(this::positionChanged);
-        model_widget.propY().addUntypedPropertyListener(this::positionChanged);
+            visible.addUntypedPropertyListener(positionChangedListener);
+        model_widget.propX().addUntypedPropertyListener(positionChangedListener);
+        model_widget.propY().addUntypedPropertyListener(positionChangedListener);
         // Would like to also listen to positionWidth & height,
         // then call jfx_node.resizeRelocate(x, y, width, height),
         // but resizeRelocate tends to ignore the width & height on
@@ -252,6 +255,21 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
 
         if (! toolkit.isEditMode())
             attachTooltip();
+    }
+
+    /** Unregister model widget listeners.
+     *
+     *  <p>Override must call base class
+     */
+    protected void unregisterListeners()
+    {
+        visible = model_widget.checkProperty(CommonWidgetProperties.propVisible).orElse(null);
+        if (visible != null)
+            visible.removePropertyListener(positionChangedListener);
+        model_widget.propX().removePropertyListener(positionChangedListener);
+        model_widget.propY().removePropertyListener(positionChangedListener);
+        if ( !toolkit.isEditMode())
+            detachTooltip();
     }
 
     /** Attach tool tip support
@@ -265,6 +283,12 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     {
         model_widget.checkProperty(CommonWidgetProperties.propTooltip)
                     .ifPresent(prop -> TooltipSupport.attach(jfx_node, prop));
+    }
+
+    /** Detach tool tip support */
+    protected void detachTooltip ( )
+    {
+        TooltipSupport.detach(jfx_node);
     }
 
     private void positionChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
