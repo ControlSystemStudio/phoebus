@@ -15,7 +15,9 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
@@ -82,6 +84,10 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private Optional<OpenDisplayActionInfo.Target> target_modifier = Optional.empty();
 
     private Pane pane;
+
+    private final UntypedWidgetPropertyListener buttonChangedListener = this::buttonChanged;
+    private final UntypedWidgetPropertyListener representationChangedListener = this::representationChanged;
+    private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
 
     @Override
     protected boolean isFilteringEditModeClicks()
@@ -280,21 +286,38 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         updateColors();
         super.registerListeners();
 
-        model_widget.propWidth().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propText().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::representationChanged);
-        model_widget.propRotationStep().addUntypedPropertyListener(this::representationChanged);
+        model_widget.propWidth().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propText().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propRotationStep().addUntypedPropertyListener(representationChangedListener);
 
-        model_widget.propEnabled().addPropertyListener(this::enablementChanged);
-        model_widget.runtimePropPVWritable().addPropertyListener(this::enablementChanged);
+        model_widget.propEnabled().addPropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
 
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::buttonChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::buttonChanged);
-        model_widget.propTransparent().addUntypedPropertyListener(this::buttonChanged);
-        model_widget.propActions().addUntypedPropertyListener(this::buttonChanged);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(buttonChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(buttonChangedListener);
+        model_widget.propTransparent().addUntypedPropertyListener(buttonChangedListener);
+        model_widget.propActions().addUntypedPropertyListener(buttonChangedListener);
 
         enablementChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(representationChangedListener);
+        model_widget.propHeight().removePropertyListener(representationChangedListener);
+        model_widget.propText().removePropertyListener(representationChangedListener);
+        model_widget.propFont().removePropertyListener(representationChangedListener);
+        model_widget.propRotationStep().removePropertyListener(representationChangedListener);
+        model_widget.propEnabled().removePropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(buttonChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(buttonChangedListener);
+        model_widget.propTransparent().removePropertyListener(buttonChangedListener);
+        model_widget.propActions().removePropertyListener(buttonChangedListener);
+        super.unregisterListeners();
     }
 
     @Override
