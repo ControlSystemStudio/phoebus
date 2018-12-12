@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget;
 import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget.StateWidgetProperty;
@@ -24,15 +25,23 @@ import javafx.scene.paint.Color;
  */
 public class MultiStateLEDRepresentation extends BaseLEDRepresentation<MultiStateLEDWidget>
 {
-    private final UntypedWidgetPropertyListener state_listener = (prop, old, value) -> configChanged(prop, old, value);
+    private final WidgetPropertyListener<List<StateWidgetProperty>> statesChangedListener = this::statesChanged;
+    private final UntypedWidgetPropertyListener state_listener = this::configChanged;
 
     @Override
     protected void registerListeners()
     {
         super.registerListeners();
         // Track changes to (most of) the state details
-        model_widget.propStates().addPropertyListener(this::statesChanged);
+        model_widget.propStates().addPropertyListener(statesChangedListener);
         statesChanged(null, null, model_widget.propStates().getValue());
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propStates().removePropertyListener(statesChangedListener);
+        super.unregisterListeners();
     }
 
     private void statesChanged(final WidgetProperty<List<StateWidgetProperty>> prop,

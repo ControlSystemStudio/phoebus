@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import java.util.List;
 
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.LEDWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -22,14 +23,26 @@ import javafx.scene.paint.Color;
  */
 public class LEDRepresentation extends BaseLEDRepresentation<LEDWidget>
 {
+    private final UntypedWidgetPropertyListener configChangedListener = this::configChanged;
+
     @Override
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propOffColor().addUntypedPropertyListener(this::configChanged);
-        model_widget.propOnColor().addUntypedPropertyListener(this::configChanged);
-        model_widget.propOffLabel().addUntypedPropertyListener(this::configChanged);
-        model_widget.propOnLabel().addUntypedPropertyListener(this::configChanged);
+        model_widget.propOffColor().addUntypedPropertyListener(configChangedListener);
+        model_widget.propOnColor().addUntypedPropertyListener(configChangedListener);
+        model_widget.propOffLabel().addUntypedPropertyListener(configChangedListener);
+        model_widget.propOnLabel().addUntypedPropertyListener(configChangedListener);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propOffColor().removePropertyListener(configChangedListener);
+        model_widget.propOnColor().removePropertyListener(configChangedListener);
+        model_widget.propOffLabel().removePropertyListener(configChangedListener);
+        model_widget.propOnLabel().removePropertyListener(configChangedListener);
+        super.unregisterListeners();
     }
 
     @Override

@@ -21,6 +21,8 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -55,6 +57,10 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
     private volatile boolean isArranging = false, isAddingRemoving = false;
     private volatile Widget master = null;
     private Pane inner_pane;
+    private final WidgetPropertyListener<List<Widget>> childrenChangedListener = this::childrenChanged;
+    private final WidgetPropertyListener<Integer> sizeChangedListener = this::sizeChanged;
+    private final WidgetPropertyListener<WidgetColor> colorChangedListener = this::colorChanged;
+
 
     @Override
     protected Pane createJFXNode() throws Exception
@@ -77,14 +83,25 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.runtimeChildren().addPropertyListener(this::childrenChanged);
-        model_widget.propHeight().addPropertyListener(this::sizeChanged);
-        model_widget.propWidth().addPropertyListener(this::sizeChanged);
-        model_widget.propForegroundColor().addPropertyListener(this::colorChanged);
-        model_widget.displayBackgroundColor().addPropertyListener(this::colorChanged);
+        model_widget.runtimeChildren().addPropertyListener(childrenChangedListener);
+        model_widget.propHeight().addPropertyListener(sizeChangedListener);
+        model_widget.propWidth().addPropertyListener(sizeChangedListener);
+        model_widget.propForegroundColor().addPropertyListener(colorChangedListener);
+        model_widget.displayBackgroundColor().addPropertyListener(colorChangedListener);
 
         childrenChanged(null, null, model_widget.runtimeChildren().getValue());
         adjustNumberByLength();
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.runtimeChildren().removePropertyListener(childrenChangedListener);
+        model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(colorChangedListener);
+        model_widget.displayBackgroundColor().removePropertyListener(colorChangedListener);
+        super.unregisterListeners();
     }
 
     @Override
@@ -120,7 +137,7 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
         }
     }
 
-    private void colorChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    private void colorChanged(final WidgetProperty<WidgetColor> property, final WidgetColor old_value, final WidgetColor new_value)
     {
         dirty_look.mark();
         toolkit.scheduleUpdate(this);
@@ -143,7 +160,7 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
     private void childrenChanged(final WidgetProperty<List<Widget>> property, final List<Widget> removed,
                                  final List<Widget> added)
     {
-        final List<Widget> newval = new ArrayList<Widget>(model_widget.runtimeChildren().getValue());
+        final List<Widget> newval = new ArrayList<>(model_widget.runtimeChildren().getValue());
         if (!isAddingRemoving)
         {
             numChildren = newval.size();
@@ -276,7 +293,7 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
 
     private void arrangeChildren()
     {
-        List<Widget> children = new ArrayList<Widget>(model_widget.runtimeChildren().getValue());
+        List<Widget> children = new ArrayList<>(model_widget.runtimeChildren().getValue());
         Widget master = this.master;
         if (children.isEmpty())
             return;
@@ -313,7 +330,7 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
 
     private void adjustNumberByLength()
     {
-        final List<Widget> children = new ArrayList<Widget>(model_widget.runtimeChildren().getValue());
+        final List<Widget> children = new ArrayList<>(model_widget.runtimeChildren().getValue());
         if (children.isEmpty())
             return;
         final boolean vertical = testVerticalStacking(children.get(0));

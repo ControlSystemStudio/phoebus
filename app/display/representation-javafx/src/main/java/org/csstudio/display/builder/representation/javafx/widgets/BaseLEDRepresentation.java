@@ -8,7 +8,9 @@
 package org.csstudio.display.builder.representation.javafx.widgets;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.BaseLEDWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.AlarmSeverity;
@@ -31,6 +33,10 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
     private final DirtyFlag typeChanged = new DirtyFlag();
     private final DirtyFlag styleChanged = new DirtyFlag();
     protected final DirtyFlag dirty_content = new DirtyFlag();
+
+    private final WidgetPropertyListener<Boolean> typeChangedListener = this::typeChanged;
+    private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
+    private final WidgetPropertyListener<VType> contentChangedListener = this::contentChanged;
 
     protected volatile Color[] colors = new Color[0];
 
@@ -102,14 +108,27 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propSquare().addPropertyListener(this::typeChanged);
-        model_widget.propWidth().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propLineColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.runtimePropValue().addPropertyListener(this::contentChanged);
+        model_widget.propSquare().addPropertyListener(typeChangedListener);
+        model_widget.propWidth().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propLineColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.runtimePropValue().addPropertyListener(contentChangedListener);
         contentChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propSquare().removePropertyListener(typeChangedListener);
+        model_widget.propWidth().removePropertyListener(styleChangedListener);
+        model_widget.propHeight().removePropertyListener(styleChangedListener);
+        model_widget.propFont().removePropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(styleChangedListener);
+        model_widget.propLineColor().removePropertyListener(styleChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(contentChangedListener);
+        super.unregisterListeners();
     }
 
     private void typeChanged(final WidgetProperty<Boolean> property, final Boolean old_value, final Boolean new_value)
