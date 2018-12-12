@@ -637,8 +637,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     @Override
     public void dispose()
     {
+        super.dispose();
         plot.dispose();
         plot = null;
-        super.dispose();
     }
 }
