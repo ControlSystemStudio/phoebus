@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
@@ -58,6 +59,9 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
+    private final UntypedWidgetPropertyListener backgroundChangedListener = this::backgroundChanged;
+    private final UntypedWidgetPropertyListener fileChangedListener = this::fileChanged;
+    private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
 
     private volatile double zoom_factor = 1.0;
 
@@ -118,16 +122,29 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::sizesChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::sizesChanged);
-        model_widget.propResize().addUntypedPropertyListener(this::sizesChanged);
+        model_widget.propWidth().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propResize().addUntypedPropertyListener(sizesChangedListener);
 
-        model_widget.propFile().addUntypedPropertyListener(this::fileChanged);
-        model_widget.propGroupName().addUntypedPropertyListener(this::fileChanged);
-        model_widget.propMacros().addUntypedPropertyListener(this::fileChanged);
+        model_widget.propFile().addUntypedPropertyListener(fileChangedListener);
+        model_widget.propGroupName().addUntypedPropertyListener(fileChangedListener);
+        model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
 
-        model_widget.propTransparent().addUntypedPropertyListener(this::backgroundChanged);
+        model_widget.propTransparent().addUntypedPropertyListener(backgroundChangedListener);
         fileChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizesChangedListener);
+        model_widget.propHeight().removePropertyListener(sizesChangedListener);
+        model_widget.propResize().removePropertyListener(sizesChangedListener);
+        model_widget.propFile().removePropertyListener(fileChangedListener);
+        model_widget.propGroupName().removePropertyListener(fileChangedListener);
+        model_widget.propMacros().removePropertyListener(fileChangedListener);
+        model_widget.propTransparent().removePropertyListener(backgroundChangedListener);
+        super.unregisterListeners();
     }
 
     private void sizesChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -224,7 +241,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
             // Atomically update the 'active' model
             final DisplayModel old_model = active_content_model.getAndSet(new_model);
-            new_model.propBackgroundColor().addUntypedPropertyListener(this::backgroundChanged);
+            new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
 
             if (old_model != null)
             {   // Dispose old model

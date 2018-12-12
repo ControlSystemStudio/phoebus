@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ComboWidget;
@@ -41,6 +42,10 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
     private final DirtyFlag dirty_enable = new DirtyFlag();
+    private final UntypedWidgetPropertyListener contentChangedListener = this::contentChanged;
+    private final UntypedWidgetPropertyListener enableChangedListener = this::enableChanged;
+    private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
+
     private volatile List<String> items = Collections.emptyList();
     private volatile int index = -1;
 
@@ -112,20 +117,36 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propWidth().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(styleChangedListener);
 
-        model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propItemsFromPV().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propItems().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propEnabled().addUntypedPropertyListener(this::enableChanged);
-        model_widget.runtimePropPVWritable().addUntypedPropertyListener(this::enableChanged);
+        model_widget.runtimePropValue().addUntypedPropertyListener(contentChangedListener);
+        model_widget.propItemsFromPV().addUntypedPropertyListener(contentChangedListener);
+        model_widget.propItems().addUntypedPropertyListener(contentChangedListener);
+        model_widget.propEnabled().addUntypedPropertyListener(enableChangedListener);
+        model_widget.runtimePropPVWritable().addUntypedPropertyListener(enableChangedListener);
 
         styleChanged(null, null, null);
         contentChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(styleChangedListener);
+        model_widget.propHeight().removePropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(styleChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(styleChangedListener);
+        model_widget.propFont().removePropertyListener(styleChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(contentChangedListener);
+        model_widget.propItemsFromPV().removePropertyListener(contentChangedListener);
+        model_widget.propItems().removePropertyListener(contentChangedListener);
+        model_widget.propEnabled().removePropertyListener(enableChangedListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(enableChangedListener);
+        super.unregisterListeners();
     }
 
     private void confirm(final String value)
