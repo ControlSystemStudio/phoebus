@@ -17,6 +17,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -52,7 +53,7 @@ public class HelpBrowser implements AppInstance
             {
                 super.fillInformation(info);
                 info.append("\n");
-                info.append("Help Page: ").append(browser.getEngine().getLocation());
+                info.append(Messages.HelpPage).append(browser.getEngine().getLocation());
             }
         };
         dock_item.addClosedNotification(this::dispose);

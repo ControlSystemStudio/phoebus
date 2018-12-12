@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -21,7 +22,7 @@ public class NamePaneMenuItem extends MenuItem
 {
     public NamePaneMenuItem(final DockPane pane)
     {
-        super("Name Pane", ImageCache.getImageView(DockItem.class, "/icons/name.png"));
+        super(Messages.NamePane, ImageCache.getImageView(DockItem.class, "/icons/name.png"));
         setOnAction(event -> editName(pane));
     }
 
@@ -29,8 +30,8 @@ public class NamePaneMenuItem extends MenuItem
     private void editName(final DockPane pane)
     {
         final TextInputDialog dialog = new TextInputDialog(pane.getName());
-        dialog.setTitle("Name Pane");
-        dialog.setHeaderText("Assign a name to this pane.\nSome displays can be configured\nto appear in a named pane.");
+        dialog.setTitle(Messages.NamePane);
+        dialog.setHeaderText(Messages.NamePaneHdr);
         DialogHelper.positionDialog(dialog, pane, -200, -100);
         dialog.showAndWait().ifPresent(pane::setName);
     }

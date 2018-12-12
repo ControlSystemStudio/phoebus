@@ -9,6 +9,7 @@ package org.phoebus.ui.jobs;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.statusbar.StatusBar;
 
 import javafx.application.Platform;
@@ -19,7 +20,7 @@ import javafx.application.Platform;
 @SuppressWarnings("nls")
 public class JobViewerApplication implements AppDescriptor
 {
-    static final String DISPLAY_NAME = "Active Jobs";
+    static final String DISPLAY_NAME = Messages.JobDisplayName;
     public static final String NAME = "jobs";
 
     @Override

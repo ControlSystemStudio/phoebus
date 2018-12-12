@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.ui.dialog;
 
+import org.phoebus.ui.Messages;
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -31,7 +33,7 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class AlertWithToggle extends Alert
 {
-    final CheckBox hide = new CheckBox("Don't show this message again.");
+    final CheckBox hide = new CheckBox(Messages.DoNotShow);
 
     /** @param type {@link AlertType}
      *  @param header Header text
