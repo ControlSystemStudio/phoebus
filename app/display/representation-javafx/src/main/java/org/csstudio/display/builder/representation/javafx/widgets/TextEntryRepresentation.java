@@ -18,12 +18,12 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;

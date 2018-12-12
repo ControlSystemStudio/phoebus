@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.util;
 
-import org.csstudio.display.builder.model.properties.FormatOption;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VEnum;
@@ -15,6 +14,8 @@ import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 /** Utility for displaying VType data.
  *  @author Kay Kasemir

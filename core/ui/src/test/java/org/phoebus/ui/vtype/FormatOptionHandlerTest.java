@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.util;
+package org.phoebus.ui.vtype;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -16,7 +16,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
-import org.csstudio.display.builder.model.properties.FormatOption;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayInteger;
 import org.epics.util.array.ListNumber;

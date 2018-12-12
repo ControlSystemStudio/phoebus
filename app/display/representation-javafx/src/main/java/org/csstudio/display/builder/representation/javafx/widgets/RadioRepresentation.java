@@ -17,8 +17,6 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.properties.FormatOption;
-import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -26,6 +24,8 @@ import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;

@@ -25,6 +25,7 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.ui.vtype.FormatOption;
 
 /** Common widget properties.
  *
