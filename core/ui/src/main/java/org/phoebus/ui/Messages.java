@@ -18,12 +18,14 @@ public class Messages
     public static String AddColumn;
     public static String AddRow;
     public static String DefaultNewColumnName;
+    public static String DoNotShow;
     public static String InstallExamples;
     public static String MagicLastRow;
     public static String MoveColumnLeft;
     public static String MoveColumnRight;
     public static String MoveRowDown;
     public static String MoveRowUp;
+    public static String NumberInputHdr;
     public static String Redo_TT;
     public static String RemoveColumn;
     public static String RemoveRow;

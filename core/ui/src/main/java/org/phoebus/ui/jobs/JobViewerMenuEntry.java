@@ -8,6 +8,7 @@
 package org.phoebus.ui.jobs;
 
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.spi.MenuEntry;
 
 /** Menu entry for job viewer
@@ -25,7 +26,7 @@ public class JobViewerMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Debug";
+        return Messages.JobMenuPath;
     }
 
     @Override

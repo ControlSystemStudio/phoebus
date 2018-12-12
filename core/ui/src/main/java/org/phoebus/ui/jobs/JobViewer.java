@@ -19,6 +19,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -123,7 +124,7 @@ class JobViewer implements AppInstance
             {
                 setAlignment(Pos.CENTER_RIGHT);
                 final JobInfo info = row.getItem();
-                final Button cancel = new Button("Cancel", new ImageView(ABORT));
+                final Button cancel = new Button(Messages.JobCancel, new ImageView(ABORT));
                 cancel.setOnAction(event -> info.job.cancel());
                 cancel.setMaxWidth(Double.MAX_VALUE);
                 setGraphic(cancel);
@@ -138,21 +139,19 @@ class JobViewer implements AppInstance
     private Node create()
     {
         final TableView<JobInfo> table = new TableView<>(job_infos);
-        table.setPlaceholder(new Label("No background jobs"));
+        table.setPlaceholder(new Label(Messages.JobPlaceholder));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        final TableColumn<JobInfo, String> name_col = new TableColumn<>("Name");
+        final TableColumn<JobInfo, String> name_col = new TableColumn<>(Messages.JobName);
         name_col.setCellValueFactory(cell -> cell.getValue().name);
         table.getColumns().add(name_col);
 
-        final TableColumn<JobInfo, String> status_col = new TableColumn<>("Status");
+        final TableColumn<JobInfo, String> status_col = new TableColumn<>(Messages.JobStatus);
         status_col.setCellValueFactory(cell -> cell.getValue().status);
         table.getColumns().add(status_col);
 
         final TableColumn<JobInfo, Boolean> stop_col = new TableColumn<>("");
         stop_col.setCellFactory(col -> new CancelTableCell());
-        stop_col.setMinWidth(200);
-        stop_col.setMaxWidth(200);
         table.getColumns().add(stop_col);
 
         updateJobs();

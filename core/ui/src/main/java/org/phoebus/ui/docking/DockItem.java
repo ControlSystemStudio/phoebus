@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -176,22 +177,22 @@ public class DockItem extends Tab
 
     private void createContextMenu()
     {
-        final MenuItem info = new MenuItem("Info", new ImageView(info_icon));
+        final MenuItem info = new MenuItem(Messages.DockInfo, new ImageView(info_icon));
         info.setOnAction(event -> showInfo());
 
-        final MenuItem detach = new MenuItem("Detach", new ImageView(detach_icon));
+        final MenuItem detach = new MenuItem(Messages.DockDetach, new ImageView(detach_icon));
         detach.setOnAction(event -> detach());
 
-        final MenuItem split_horiz = new MenuItem("Split Horizontally", new ImageView(split_horiz_icon));
+        final MenuItem split_horiz = new MenuItem(Messages.DockSplitH, new ImageView(split_horiz_icon));
         split_horiz.setOnAction(event -> split(true));
 
-        final MenuItem split_vert = new MenuItem("Split Vertically", new ImageView(split_vert_icon));
+        final MenuItem split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
-        final MenuItem close = new MenuItem("Close", new ImageView(DockPane.close_icon));
+        final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
         close.setOnAction(event -> close());
 
-        final MenuItem close_other = new MenuItem("Close Others", new ImageView(close_many_icon));
+        final MenuItem close_other = new MenuItem(Messages.DockCloseOthers, new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
             // Close all other tabs in non-fixed panes of this window
@@ -203,7 +204,7 @@ public class DockItem extends Tab
                             ((DockItem)tab).close();
         });
 
-        final MenuItem close_all = new MenuItem("Close All", new ImageView(close_many_icon));
+        final MenuItem close_all = new MenuItem(Messages.DockCloseAll, new ImageView(close_many_icon));
         close_all.setOnAction(event ->
         {
             // Close all tabs in non-fixed panes of this window
@@ -286,7 +287,7 @@ public class DockItem extends Tab
     private void showInfo()
     {
         final Alert dlg = new Alert(AlertType.INFORMATION);
-        dlg.setTitle("Info");
+        dlg.setTitle(Messages.DockInfo);
 
         // No DialogPane 'header', all info is in the 'content'
         dlg.setHeaderText("");
@@ -308,9 +309,9 @@ public class DockItem extends Tab
     protected void fillInformation(final StringBuilder info)
     {
         if (getApplication() == null)
-            info.append("NO APPLICATION");
+            info.append(Messages.DockNoApp);
         else
-            info.append("Application Name: ")
+            info.append(Messages.DockAppName)
                 .append(getApplication().getAppDescriptor().getName());
     }
 

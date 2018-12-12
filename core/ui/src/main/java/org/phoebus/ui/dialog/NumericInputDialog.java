@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.phoebus.ui.Messages;
+
 import javafx.event.ActionEvent;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
@@ -43,7 +45,7 @@ public class NumericInputDialog extends TextInputDialog
             }
             catch (NumberFormatException ex)
             {
-                setHeaderText("Please enter a number");
+                setHeaderText(Messages.NumberInputHdr);
                 event.consume();
                 return;
             }
