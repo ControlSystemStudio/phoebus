@@ -21,7 +21,9 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
@@ -56,6 +58,10 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
     /** Other options (toolbar, etc) changed */
     private final DirtyFlag dirty_opts = new DirtyFlag();
 
+    private final WidgetPropertyListener<Integer> sizeChangedListener = this::sizeChanged;
+    private final UntypedWidgetPropertyListener optsChangedListener = this::optsChanged;
+    private final WidgetPropertyListener<String> fileChangedListener = this::fileChanged;
+
     /** Data Browser model */
     private final Model model = new Model();
 
@@ -73,6 +79,7 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
      *  It is only started in run mode.
      */
     private volatile Controller controller;
+
 
     /** Listener to model's selected sample, updates widget.propSelectionValue() */
     private class ModelSampleSelectionListener implements ModelListener
@@ -140,26 +147,41 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
             }
         }
 
-        model_widget.propWidth().addPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addPropertyListener(this::sizeChanged);
+        model_widget.propWidth().addPropertyListener(sizeChangedListener);
+        model_widget.propHeight().addPropertyListener(sizeChangedListener);
         // Not monitoring macros.
         // Macros are read when the file property updates
-        model_widget.propFile().addPropertyListener(this::fileChanged);
-        model_widget.propShowToolbar().addUntypedPropertyListener(this::optsChanged);
-        model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.getPlot().showConfigurationDialog());
-        model_widget.runtimePropOpenFull().addPropertyListener((p, o, n) -> openFullDataBrowser());
+        model_widget.propFile().addPropertyListener(fileChangedListener);
+        model_widget.propShowToolbar().addUntypedPropertyListener(optsChangedListener);
 
         // Initial update
         final String filename = model_widget.propFile().getValue();
         if (! filename.isEmpty())
             ModelThreadPool.getExecutor().execute(() -> fileChanged(null, null, filename));
 
-        // Track selected sample?
-        // 'selection_value_pv' must be set when runtime starts,
-        // can not be set later
-        if (! toolkit.isEditMode()  &&  model_widget.propSelectionValuePVName().getValue().length() > 0)
-            model.addListener(new ModelSampleSelectionListener());
+        if (! toolkit.isEditMode())
+        {
+            model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.getPlot().showConfigurationDialog());
+            model_widget.runtimePropOpenFull().addPropertyListener((p, o, n) -> openFullDataBrowser());
+
+            // Track selected sample?
+            // 'selection_value_pv' must be set when runtime starts,
+            // can not be set later
+            if (model_widget.propSelectionValuePVName().getValue().length() > 0)
+                model.addListener(new ModelSampleSelectionListener());
+        }
     }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propShowToolbar().removePropertyListener(optsChangedListener);
+        model_widget.propFile().removePropertyListener(fileChangedListener);
+        super.unregisterListeners();
+    }
+
 
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
     {
@@ -271,12 +293,12 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
     @Override
     public void dispose()
     {
-        super.dispose();
         if (controller != null  &&  controller.isRunning())
         {
             controller.stop();
             controller = null;
         }
+        super.dispose();
         if (plot != null)
         {
             plot.dispose();
