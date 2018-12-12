@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RotationStep;
@@ -52,6 +53,11 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
     private final DirtyFlag                      dirtyGeometry          = new DirtyFlag();
     private final DirtyFlag                      dirtyStyle             = new DirtyFlag();
     private final DirtyFlag                      dirtyValue             = new DirtyFlag();
+    private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
+    private final UntypedWidgetPropertyListener geometryListener = this::geometryChanged;
+    private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
+    private final WidgetPropertyListener<List<WidgetProperty<String>>> symbolsListener = this::symbolsChanged;
+    private final WidgetPropertyListener<VType> valueListener = this::valueChanged;
     private volatile boolean                     enabled                = true;
     private int                                  symbolIndex            = -1;
     private final WidgetPropertyListener<String> symbolPropertyListener = this::symbolChanged;
@@ -228,34 +234,60 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
 
         super.registerListeners();
 
-        model_widget.propPVName().addPropertyListener(this::contentChanged);
-        model_widget.propArrayIndex().addUntypedPropertyListener(this::contentChanged);
+        model_widget.propPVName().addUntypedPropertyListener(contentListener);
+        model_widget.propArrayIndex().addUntypedPropertyListener(contentListener);
 
-        model_widget.propSymbols().addPropertyListener(this::symbolsChanged);
+        model_widget.propSymbols().addPropertyListener(symbolsListener);
 
-        model_widget.propVisible().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propX().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propY().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propWidth().addUntypedPropertyListener(this::geometryChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::geometryChanged);
+        model_widget.propVisible().addUntypedPropertyListener(geometryListener);
+        model_widget.propX().addUntypedPropertyListener(geometryListener);
+        model_widget.propY().addUntypedPropertyListener(geometryListener);
+        model_widget.propWidth().addUntypedPropertyListener(geometryListener);
+        model_widget.propHeight().addUntypedPropertyListener(geometryListener);
 
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propHorizontalAlignment().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propRotationStep().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propTransparent().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propVerticalAlignment().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propWrapWords().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propEnabled().addUntypedPropertyListener(styleListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propFont().addUntypedPropertyListener(styleListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(styleListener);
+        model_widget.propRotationStep().addUntypedPropertyListener(styleListener);
+        model_widget.propTransparent().addUntypedPropertyListener(styleListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(styleListener);
+        model_widget.propWrapWords().addUntypedPropertyListener(styleListener);
 
         if ( toolkit.isEditMode() ) {
             dirtyValue.checkAndClear();
         } else {
-            model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
+            model_widget.runtimePropValue().addPropertyListener(valueListener);
             valueChanged(null, null, null);
         }
+    }
 
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propPVName().removePropertyListener(contentListener);
+        model_widget.propArrayIndex().removePropertyListener(contentListener);
+        model_widget.propSymbols().removePropertyListener(symbolsListener);
+        model_widget.propVisible().removePropertyListener(geometryListener);
+        model_widget.propX().removePropertyListener(geometryListener);
+        model_widget.propY().removePropertyListener(geometryListener);
+        model_widget.propWidth().removePropertyListener(geometryListener);
+        model_widget.propHeight().removePropertyListener(geometryListener);
+        model_widget.propBackgroundColor().removePropertyListener(styleListener);
+        model_widget.propEnabled().removePropertyListener(styleListener);
+        model_widget.propForegroundColor().removePropertyListener(styleListener);
+        model_widget.propFont().removePropertyListener(styleListener);
+        model_widget.propHorizontalAlignment().removePropertyListener(styleListener);
+        model_widget.propRotationStep().removePropertyListener(styleListener);
+        model_widget.propTransparent().removePropertyListener(styleListener);
+        model_widget.propVerticalAlignment().removePropertyListener(styleListener);
+        model_widget.propWrapWords().removePropertyListener(styleListener);
+
+        if (! toolkit.isEditMode())
+            model_widget.runtimePropValue().removePropertyListener(valueListener);
+
+        super.unregisterListeners();
     }
 
     private void contentChanged ( final WidgetProperty<?> property, final Object oldValue, final Object newValue ) {

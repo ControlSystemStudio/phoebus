@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.phoebus.applications.viewer3d.ResourceUtil;
@@ -31,6 +32,8 @@ public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, View
 {
     private final DirtyFlag dirty_position = new DirtyFlag();
     private final DirtyFlag dirty_resource = new DirtyFlag();
+    private final UntypedWidgetPropertyListener positionListener = this::positionChanged;
+    private final UntypedWidgetPropertyListener resourceListener = this::resourceChanged;
 
     @Override
     protected Viewer3d createJFXNode() throws Exception
@@ -41,13 +44,27 @@ public class Viewer3dRepresentation extends JFXBaseRepresentation<Viewer3d, View
     @Override
     protected void registerListeners()
     {
-        model_widget.propVisible().addUntypedPropertyListener(this::positionChanged);
-        model_widget.propX().addUntypedPropertyListener(this::positionChanged);
-        model_widget.propY().addUntypedPropertyListener(this::positionChanged);
-        model_widget.propWidth().addUntypedPropertyListener(this::positionChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::positionChanged);
+        // XXX Viewer3d does not behave like other top-level nodes,
+        //     cannot use basic X, Y property listener
+        // super.registerListeners();
+        model_widget.propVisible().addUntypedPropertyListener(positionListener);
+        model_widget.propX().addUntypedPropertyListener(positionListener);
+        model_widget.propY().addUntypedPropertyListener(positionListener);
+        model_widget.propWidth().addUntypedPropertyListener(positionListener);
+        model_widget.propHeight().addUntypedPropertyListener(positionListener);
+        model_widget.propResource().addUntypedPropertyListener(resourceListener);
+    }
 
-        model_widget.propResource().addUntypedPropertyListener(this::resourceChanged);
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propVisible().removePropertyListener(positionListener);
+        model_widget.propX().removePropertyListener(positionListener);
+        model_widget.propY().removePropertyListener(positionListener);
+        model_widget.propWidth().removePropertyListener(positionListener);
+        model_widget.propHeight().removePropertyListener(positionListener);
+        model_widget.propResource().removePropertyListener(resourceListener);
+        // super.unregisterListeners();
     }
 
     private void positionChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
