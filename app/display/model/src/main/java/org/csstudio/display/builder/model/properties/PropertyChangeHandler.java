@@ -104,6 +104,8 @@ public abstract class PropertyChangeHandler<T extends Object>
      */
     public void addUntypedPropertyListener(final UntypedWidgetPropertyListener listener)
     {
+        if (getListeners().contains(listener))
+            throw new IllegalStateException("Listener already added " + listener);
         getListeners().add(listener);
     }
 
