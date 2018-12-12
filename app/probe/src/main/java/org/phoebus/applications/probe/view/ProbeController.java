@@ -2,7 +2,6 @@ package org.phoebus.applications.probe.view;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,7 +12,6 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
-import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.applications.probe.Messages;
 import org.phoebus.applications.probe.Probe;
@@ -23,13 +21,19 @@ import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.pv.SeverityColors;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 import org.phoebus.util.time.TimestampFormats;
 
 import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
@@ -43,6 +47,10 @@ public class ProbeController {
     private TextField txtPVName;
     @FXML
     private TextField txtValue;
+    @FXML
+    private ComboBox<FormatOption> format;
+    @FXML
+    private Spinner<Integer> precision;
     @FXML
     private TextField txtAlarm;
     @FXML
@@ -124,6 +132,18 @@ public class ProbeController {
                 setEditing(false);
         });
 
+        format.getItems().addAll(FormatOption.values());
+        format.setValue(FormatOption.DEFAULT);
+        // When format changes, disable/enable precision spinner
+        precision.disableProperty().bind(
+            Bindings.createBooleanBinding(() -> ! format.getValue().isUsingPrecision(),
+                                          format.valueProperty()));
+
+        // Refresh when formatting is changed
+        final InvalidationListener update_value = p -> setValue(last_value);
+        format.valueProperty().addListener(update_value);
+        precision.valueProperty().addListener(update_value);
+
         // Context menu to open other PV-aware tools
         final ContextMenu menu = new ContextMenu(new MenuItem());
         txtPVName.setOnContextMenuRequested(event ->
@@ -138,6 +158,7 @@ public class ProbeController {
 
     private PV pv;
     private Disposable pv_flow, permission_flow;
+    private VType last_value = null;
 
     private void update(final VType value)
     {
@@ -194,22 +215,9 @@ public class ProbeController {
         if (editing)
             return;
 
-        String valueString = null;
-        if (value != null)
-        {
-            if (value instanceof VNumber)
-                valueString = ((VNumber)value).getDisplay().getFormat().format(((VNumber)value).getValue().doubleValue());
-            else if (value instanceof VString)
-                valueString = ((VString)value).getValue();
-            else if (value instanceof VEnum)
-                valueString = ((VEnum)value).getValue();
-            else
-                valueString = Objects.toString(value);
-        }
-        if (valueString != null)
-            txtValue.setText(valueString);
-        else
-            txtValue.setText("<null>");
+        last_value = value;
+
+        txtValue.setText(FormatOptionHandler.format(value, format.getValue(), precision.getValue(), true));
         setTime(Time.timeOf(value));
         setAlarm(Alarm.alarmOf(value, value != null));
         setMetadata(value);
