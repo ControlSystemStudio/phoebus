@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,8 @@ package org.phoebus.ui.autocomplete;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.phoebus.framework.autocomplete.MatchSegment;
 import org.phoebus.framework.autocomplete.Proposal;
@@ -19,11 +21,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
@@ -31,7 +29,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 /** Menu for use with auto-completion.
@@ -42,49 +39,51 @@ import javafx.scene.text.TextFlow;
  *  @author Amanda Carpenter - Original version in Display Builder
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AutocompleteMenu
 {
-    /** Result of a lookup, packaged for display in menu. */
+    // First implementation used a ContextMenu.
+    // The menu, however, tends to automatically select the item under the mouse.
+    // When simply typing text and pressing 'enter',
+    // that would accidentally pick the unexpectedly selected menu item
+    // instead of simply confirming what's entered.
+    // A popup window with list allows more control.
+    public static final Logger logger = Logger.getLogger(AutocompleteMenu.class.getPackageName());
+
+    /** Font used to highlight section of proposal */
+    private final Font header_font, highlight_font;
+
+    private final ProposalService proposal_service;
+
+    /** Result of a lookup, packaged with header for display in list */
     private class Result
     {
-        final SeparatorMenuItem header;
+        final Label header;
         final int priority;
         final List<Proposal> proposals;
 
         Result(final String name, final int priority, final List<Proposal> proposals)
         {
-            // Create non-selectable menu item
-            // CustomMenuItem seems natural, but it's traversed when using menu.
-            // http://tiwulfx.panemu.com/2013/01/02/creating-custom-menu-separator-in-javafx
-            // describes use of SeparatorMenuItem.setContent().
-            final Label label = new Label(name);
-            label.setFont(header_font);
-            header = new SeparatorMenuItem();
-            header.setContent(label);
+            header = new Label(name);
+            header.setFont(header_font);
 
             this.priority = priority;
             this.proposals = proposals;
         }
     }
 
-    private final ProposalService proposal_service;
-
+    /** All results. SYNC on access */
     private final TreeSet<Result> results = new TreeSet<>((a, b) -> a.priority - b.priority);
 
-    /** Context menu, shared by all attached fields,
+    /** Popup, shared by all attached fields,
      *  because shown for at most one field at a time.
-     *
-     *  <p>User data is set to the field that 'show()'s the menu.
      */
-    private final ContextMenu menu = new ContextMenu();
-
-    private boolean selected_menu_item = false;
-
+    private final AutocompletePopup menu = new AutocompletePopup();
 
     /** Toggle menu. On 'ENTER', add the manually entered value to history */
     private final EventHandler<KeyEvent> key_pressed_filter = event ->
     {
-        // System.out.println("Text field Key press " + event.getCode() + " on " + event.getSource());
+        logger.log(Level.FINE, () -> "Text field Key press " + event.getCode() + " on " + event.getSource());
         toggleMenu(event);
         if (event.isConsumed())
             return;
@@ -92,6 +91,7 @@ public class AutocompleteMenu
         final KeyCode code = event.getCode();
         if (code == KeyCode.ENTER)
         {
+            logger.log(Level.FINE, () -> "Add to history: " + field.getText());
             updateHistory(field.getText());
             menu.hide();
         }
@@ -108,7 +108,7 @@ public class AutocompleteMenu
      */
     private final EventHandler<KeyEvent> key_released_filter = event ->
     {
-        // System.out.println("Text field Key release " + event.getCode() + " on " + event.getSource());
+        logger.log(Level.FINE, () -> "Text field Key release " + event.getCode() + " on " + event.getSource());
         final TextField field = (TextField) event.getSource();
         final KeyCode code = event.getCode();
         if (code != KeyCode.SPACE    &&
@@ -129,7 +129,6 @@ public class AutocompleteMenu
         if (! focus)
         {
             menu.hide();
-            menu.getItems().clear();
             synchronized (results)
             {
                 results.clear();
@@ -137,54 +136,14 @@ public class AutocompleteMenu
         }
     };
 
-    /** Font used to highlight section of proposal */
-    private final Font header_font, highlight_font;
-
     /** Create autocomplete menu */
     public AutocompleteMenu(final ProposalService service)
     {
         this.proposal_service = service;
 
         final Font default_font = Font.getDefault();
-        header_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize()+1);
-        highlight_font = Font.font(default_font.getFamily(), FontWeight.EXTRA_BOLD, default_font.getSize());
-
-        menu.addEventFilter(KeyEvent.KEY_PRESSED, event ->
-        {
-            // System.out.println("Menu Key press " + event.getCode() + " on " + event.getSource());
-            if (event.getCode() == KeyCode.ENTER)
-            {   // The menu will see 'ENTER' keys.
-                selected_menu_item = false;
-                // Let menu react, then check later
-                final TextInputControl field = (TextInputControl) menu.getUserData();
-                if (field != null)
-                    Platform.runLater(() ->
-                    {
-                        // If that key invokes a menu item -> Done.
-                        // Sometimes, however, when no menu item is active,
-                        // the ENTER key goes nowhere.
-                        // In that case, simulate 'enter' on the text field.
-                        if (selected_menu_item == false)
-                            invokeAction(field);
-                    });
-            }
-            else
-            {
-                toggleMenu(event);
-                // Pressing space in the active TextInputControl
-                // would be caught by the menu and activate the first menu item?!
-                // --> Filter plain SPACE
-                if (! event.isConsumed()  &&  event.getCode() == KeyCode.SPACE)
-                    event.consume();
-            }
-        });
-
-        menu.setOnHidden(event ->
-        {
-            // Speed GC by releasing items, since menu stays in memory forever
-            menu.getItems().clear();
-            menu.setUserData(null);
-        });
+        header_font = Font.font(default_font.getFamily(), FontWeight.BOLD, default_font.getSize());
+        highlight_font = Font.font(default_font.getFamily(), FontWeight.BOLD, default_font.getSize());
     }
 
     /** Attach the completion menu to a text field
@@ -250,18 +209,7 @@ public class AutocompleteMenu
 
     private void showMenuForField(final TextInputControl field)
     {
-        menu.setUserData(field);
-
-        // Same functionality as
-        //    menu.show(field, Side.BOTTOM, 0, 0);
-        // but preventing the menu from keeping an `ownerNode` reference
-        // to the field, which in turn keeps a reference to the UI
-        // and thus data of the attached field.
-        final Bounds bounds = field.localToScreen(field.getLayoutBounds());
-        menu.show(field.getScene().getWindow(), bounds.getMinX(), bounds.getMaxY());
-        // Alas, the menu.focused property can still hold on for a while ..
-        // So best is for all UI to release application data when closed,
-        // since complete disposal of the UI can take some time.
+        menu.show(field);
     }
 
     private void updateHistory(final String text)
@@ -282,17 +230,7 @@ public class AutocompleteMenu
 
     private void handleLookupResult(final TextInputControl field, final String text, final String name, final int priority, final List<Proposal> proposals)
     {
-        final List<MenuItem> items = new ArrayList<>();
-
-        // Assume the user is typing in the text field.
-        // When the menu is shown, the first item will _sometimes_ be auto-selected.
-        // When user presses ENTER, the text that the user just entered in the text field
-        // is replaced by the value of the first menu item, because it had been unwittingly invoked.
-        // By starting the menu with a bogus no-op item, that problem is averted.
-        // By making the text of that item match what the user entered,
-        // this almost appears to be on-purpose.
-        final MenuItem bogus = new MenuItem(null, new Text(text));
-        items.add(bogus);
+        final List<AutocompleteItem> items = new ArrayList<>();
 
         synchronized (results)
         {
@@ -303,16 +241,17 @@ public class AutocompleteMenu
             // then list proposals
             for (Result result : results)
             {
-                items.add(result.header);
+                // Pressing 'Enter' on header simply forwards the enter to the text field
+                items.add(new AutocompleteItem(result.header, () -> invokeAction(field)));
                 for (Proposal proposal : result.proposals)
-                    items.add(createMenuItem(field, text, proposal));
+                    items.add(createItem(field, text, proposal));
             }
         }
 
         // Update and show menu on UI thread
         Platform.runLater(() ->
         {
-            menu.getItems().setAll(items);
+            menu.setItems(items);
             if (! menu.isShowing())
                 showMenuForField(field);
         });
@@ -321,10 +260,10 @@ public class AutocompleteMenu
     /** @param field Field where user entered text
      *  @param text Text entered by user
      *  @param proposal Matching proposal
-     *  @return MenuItem that will apply the proposal
+     *  @return AutocompleteItem that will apply the proposal
      */
-    private MenuItem createMenuItem(final TextInputControl field,
-                                    final String text, final Proposal proposal)
+    private AutocompleteItem createItem(final TextInputControl field,
+                                        final String text, final Proposal proposal)
     {
         final TextFlow markup = new TextFlow();
         for (MatchSegment seg: proposal.getMatch(text))
@@ -341,21 +280,18 @@ public class AutocompleteMenu
                 match.setFont(highlight_font);
                 break;
             case NORMAL:
-                default:
+            default:
             }
             markup.getChildren().add(match);
         }
-        final MenuItem item = new MenuItem(null, markup);
-        item.setOnAction(event ->
+
+        return new AutocompleteItem(markup, () ->
         {
-            selected_menu_item = true;
             final String value = proposal.apply(text);
             field.setText(value);
             field.positionCaret(value.length());
             invokeAction(field);
         });
-
-        return item;
     }
 
     /** Try to invoke 'onAction' handler
@@ -363,13 +299,14 @@ public class AutocompleteMenu
      */
     private void invokeAction(final TextInputControl field)
     {
-        if (field != null)
-            proposal_service.addToHistory(field.getText());
         if (field instanceof TextField)
         {
+            logger.log(Level.FINE, () -> "InvokeAction: Selected " + field.getText());
+            proposal_service.addToHistory(field.getText());
             final EventHandler<ActionEvent> action = ((TextField)field).getOnAction();
             if (action != null)
                 action.handle(new ActionEvent(field, null));
         }
+        menu.hide();
     }
 }

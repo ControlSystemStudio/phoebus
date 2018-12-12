@@ -4,6 +4,7 @@ import static org.phoebus.applications.email.EmailApp.logger;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -24,6 +25,7 @@ import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -155,10 +157,12 @@ public class SimpleCreateController {
                 multipart.addBodyPart(messageBodyPart);
                 // Attachments
 // TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
+                final String date = TimestampFormats.SECONDS_FORMAT.format(Instant.now());
+                int i = 0;
                 for (Image image : att_images.getImages()) {
                     messageBodyPart = new MimeBodyPart();
                     messageBodyPart.setDataHandler(new DataHandler(new ImageDataSource(image)));
-                    messageBodyPart.setFileName("Image");
+                    messageBodyPart.setFileName("Image" + (++i) + "_" + date + ".png");
                     multipart.addBodyPart(messageBodyPart);
                 }
 

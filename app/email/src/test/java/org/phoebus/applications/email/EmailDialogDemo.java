@@ -17,7 +17,7 @@ public class EmailDialogDemo extends Application
     @Override
     public void start(final Stage stage) throws Exception
     {
-        new SendEmailAction(null, "Demo", "This is\na demonstation...", null).fire();
+        new SendEmailAction(null, "Demo", "This is\na demonstration...", null).fire();
     }
 
     public static void main(final String[] args)

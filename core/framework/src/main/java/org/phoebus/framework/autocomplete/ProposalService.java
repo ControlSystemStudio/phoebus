@@ -14,6 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.jobs.NamedThreadFactory;
+
 /** Proposal Service
  *
  *  <p>When asked to lookup proposals for some text entered by user,
@@ -41,7 +43,7 @@ public class ProposalService
         public void handleProposals(String name, int priority, List<Proposal> proposals);
     }
 
-    private final ExecutorService pool = Executors.newCachedThreadPool();
+    private final ExecutorService pool = Executors.newCachedThreadPool(new NamedThreadFactory("ProposalService"));
     private final History history = new History();
     protected final List<ProposalProvider> providers;
     private final List<Future<?>> submitted = new ArrayList<>();

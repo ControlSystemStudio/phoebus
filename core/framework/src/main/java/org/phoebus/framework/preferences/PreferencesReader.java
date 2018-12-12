@@ -7,9 +7,12 @@
  ******************************************************************************/
 package org.phoebus.framework.preferences;
 
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -86,6 +89,36 @@ public class PreferencesReader
                   .log(Level.SEVERE, "Cannot read default preference settings for " + package_class + " from " + preferences_properties_filename);
         }
         prefs = Preferences.userNodeForPackage(package_class);
+    }
+
+    /** Get all preference keys that match a pattern
+     *  @param regex Regular expression
+     *  @return Keys that have a preference setting
+     */
+    public Set<String> getKeys(final String regex)
+    {
+        final Set<String> keys = new HashSet<>();
+        final Pattern pattern = Pattern.compile(regex);
+        try
+        {
+            // Check keys in default settings
+            for (Object o : defaults.keySet())
+            {
+                final String key = o.toString();
+                if (pattern.matcher(key).matches())
+                    keys.add(key);
+            }
+            // Check keys in updated preferences
+            for (String key : prefs.keys())
+                if (pattern.matcher(key).matches())
+                    keys.add(key);
+        }
+        catch (BackingStoreException ex)
+        {
+            Logger.getLogger(PreferencesReader.class.getPackageName())
+                  .log(Level.SEVERE, "Cannot locate preference entries matching '" + regex + "'", ex);
+        }
+        return keys;
     }
 
     /** @param key Key for preference setting

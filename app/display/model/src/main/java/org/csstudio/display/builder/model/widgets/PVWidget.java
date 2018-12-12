@@ -80,7 +80,7 @@ public class PVWidget extends VisibleWidget
     {
         super.defineProperties(properties);
         properties.add(pv_name = propPVName.createProperty(this, ""));
-        properties.add(pv_value = runtimePropPVValue.createProperty(this, RUNTIME_VALUE_NO_PV));
+        properties.add(pv_value = runtimePropPVValue.createProperty(this, null));
         properties.add(propBorderAlarmSensitive.createProperty(this, true));
     }
 

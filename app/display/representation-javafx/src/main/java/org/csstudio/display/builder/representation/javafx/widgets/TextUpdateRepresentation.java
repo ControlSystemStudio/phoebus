@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import java.util.Objects;
+
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.RotationStep;
@@ -119,6 +121,7 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
      */
     private String computeText(final VType value)
     {
+        Objects.requireNonNull(model_widget, "No widget");
         if (value == null)
             return "<" + model_widget.propPVName().getValue() + ">";
         if (value == PVWidget.RUNTIME_VALUE_NO_PV)

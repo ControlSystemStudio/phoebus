@@ -22,6 +22,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.framework.workbench.Locations;
@@ -95,6 +96,8 @@ public class Update
             // Caller will delete the file.
             final File file = File.createTempFile("phoebus_update", ".zip");
             logger.info("Download " + distribution_url + " into " + file);
+            // Would be nice to update monitor, but that would mean
+            // implementing Files.copy to instrument it...
             Files.copy(src, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file;
         }
@@ -108,24 +111,30 @@ public class Update
      */
     public static void update(final JobMonitor monitor, final File install_location, final File update_zip) throws Exception
     {
+        if (monitor.isCanceled())
+            return;
         if (! update_zip.canRead())
             throw new Exception("Cannot read " + update_zip);
         if (! install_location.canWrite())
             throw new Exception("Cannot write " + install_location);
 
+        monitor.updateTaskName("Delete " + install_location);
+        monitor.worked(10);
         logger.info("Deleting " + install_location);
         FileHelper.delete(install_location);
 
         // Un-zip new distribution
+        final SubJobMonitor sub = new SubJobMonitor(monitor, 80);
         try
         (
             ZipFile zip = new ZipFile(update_zip);
         )
         {
             final long num_entries = zip.stream().count();
+            sub.beginTask("Unpack " + update_zip, (int) num_entries);
             int counter = 0;
             final Enumeration<? extends ZipEntry> entries = zip.entries();
-            while (entries.hasMoreElements())
+            while (entries.hasMoreElements()  &&  ! monitor.isCanceled())
             {
                 final ZipEntry entry = entries.nextElement();
                 ++counter;
@@ -154,6 +163,7 @@ public class Update
                             outfile.setExecutable(true);
                     }
                 }
+                sub.worked(1);
             }
         }
     }
@@ -206,6 +216,7 @@ public class Update
      */
     public static void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
     {
+        monitor.beginTask("Update", 100);
         logger.info("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
         // Local file?
         if (update_url.startsWith("file:"))
@@ -213,6 +224,7 @@ public class Update
         else
         {   // Download
             final URL distribution_url = new URL(update_url);
+            monitor.updateTaskName("Download " + update_url);
             final File distribution_zip = download(monitor, distribution_url);
             try
             {
