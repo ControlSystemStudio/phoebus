@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -19,7 +20,7 @@ public class UnlockMenuItem extends MenuItem
 {
     public UnlockMenuItem(final DockPane pane)
     {
-        super("Un-lock Pane", ImageCache.getImageView(DockItem.class, "/icons/unlock.png"));
+        super(Messages.UnLockPane, ImageCache.getImageView(DockItem.class, "/icons/unlock.png"));
         setOnAction(event -> pane.setFixed(false));
     }
 }

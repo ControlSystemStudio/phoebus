@@ -234,7 +234,7 @@ public class DockPane extends TabPane
                 if (dock_parent instanceof SplitDock  &&
                     ((SplitDock) dock_parent).canMerge())
                 {
-                    final MenuItem close = new MenuItem("Close", new ImageView(close_icon));
+                    final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(close_icon));
                     close.setOnAction(evt -> mergeEmptyAnonymousSplit());
                     items.addAll(new SeparatorMenuItem(), close);
                 }
@@ -427,7 +427,7 @@ public class DockPane extends TabPane
         else
         {   // Fixed title
             stage.titleProperty().unbind();
-            stage.setTitle("Phoebus");
+            stage.setTitle(Messages.FixedTitle);
         }
     }
 

@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
@@ -37,13 +38,13 @@ public class OpenAbout implements MenuEntry
     @Override
     public String getName()
     {
-        return "About";
+        return Messages.HelpAbout;
     }
 
     @Override
     public String getMenuPath()
     {
-        return "Help/About";
+        return Messages.HelpAboutMenuPath;
     }
 
     @Override
@@ -58,26 +59,26 @@ public class OpenAbout implements MenuEntry
         // Useful, but ugly
         // TODO Add version information
         final Alert dialog = new Alert(AlertType.INFORMATION);
-        dialog.setTitle("About Phoebus");
-        dialog.setHeaderText("Phoebus Installation Information");
+        dialog.setTitle(Messages.HelpAboutTitle);
+        dialog.setHeaderText(Messages.HelpAboutHdr);
 
         // Table with Name, Value columns
         final ObservableList<List<String>> infos = FXCollections.observableArrayList();
-        infos.add(Arrays.asList("Installation Location", Locations.install().toString()));
-        infos.add(Arrays.asList("User Settings Location", Locations.user().toString()));
-        infos.add(Arrays.asList("Java Version", System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
-        infos.add(Arrays.asList("JavaFX Version", System.getProperty("javafx.runtime.version")));
+        infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
+        infos.add(Arrays.asList(Messages.HelpAboutUser, Locations.user().toString()));
+        infos.add(Arrays.asList(Messages.HelpAboutJava, System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
+        infos.add(Arrays.asList(Messages.HelpAboutJfx, System.getProperty("javafx.runtime.version")));
 
         // Display in TableView
         final TableView<List<String>> info_table = new TableView<>(infos);
         info_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         info_table.setPrefHeight(200.0);
 
-        final TableColumn<List<String>, String> name_col = new TableColumn<>("Name");
+        final TableColumn<List<String>, String> name_col = new TableColumn<>(Messages.HelpAboutColName);
         name_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(0)));
         info_table.getColumns().add(name_col);
 
-        final TableColumn<List<String>, String> value_col = new TableColumn<>("Value");
+        final TableColumn<List<String>, String> value_col = new TableColumn<>(Messages.HelpAboutColValue);
         value_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(1)));
         value_col.setCellFactory(col -> new ReadOnlyTextCell<>());
         info_table.getColumns().add(value_col);
@@ -86,16 +87,16 @@ public class OpenAbout implements MenuEntry
 
         // Info for expandable "Show Details" section
         final StringBuilder details = new StringBuilder();
-        details.append("Application Features\n");
-        details.append("====================\n");
+        details.append(Messages.HelpAboutAppFea);
+        details.append(Messages.HelpAboutAppUnd);
         ApplicationService.getApplications()
                           .stream()
                           .sorted((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()))
                           .forEach(app -> details.append(app.getDisplayName()).append("\n"));
 
         details.append("\n");
-        details.append("System Properties\n");
-        details.append("=================\n");
+        details.append(Messages.HelpAboutSysFea);
+        details.append(Messages.HelpAboutSysUnd);
         System.getProperties()
               .stringPropertyNames()
               .stream()

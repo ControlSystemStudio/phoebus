@@ -65,7 +65,7 @@ public class DockItemWithInput extends DockItem
     private AtomicBoolean is_dirty = new AtomicBoolean(false);
 
     /** The one item that should always be included in 'file_extensions' */
-    public static final ExtensionFilter ALL_FILES = new ExtensionFilter("All", "*.*");
+    public static final ExtensionFilter ALL_FILES = new ExtensionFilter(Messages.DockAll, "*.*");
 
     private final ExtensionFilter[] file_extensions;
 
@@ -119,7 +119,7 @@ public class DockItemWithInput extends DockItem
     {
         super.fillInformation(info);
         info.append("\n");
-        info.append("Input: ").append(getInput());
+        info.append(Messages.DockInput).append(getInput());
     }
 
     private static String extract_name(String path)
@@ -161,7 +161,7 @@ public class DockItemWithInput extends DockItem
         Platform.runLater(() ->
         {
             if (input == null)
-                name_tab.setTooltip(new Tooltip("<Not saved to file>"));
+                name_tab.setTooltip(new Tooltip(Messages.DockNotSaved));
             else
             {
                 name_tab.setTooltip(new Tooltip(input.toString()));
@@ -212,11 +212,11 @@ public class DockItemWithInput extends DockItem
         if (! isDirty())
             return true;
 
-        final String text = MessageFormat.format("The {0} has been modified.\n\nSave before closing?", getLabel());
+        final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
         final Alert prompt = new Alert(AlertType.NONE,
                                        text,
                                        ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
-        prompt.setTitle("Save File");
+        prompt.setTitle(Messages.DockAlertTitle);
         prompt.getDialogPane().setMinSize(300, 100);
         prompt.setResizable(true);
         DialogHelper.positionDialog(prompt, getTabPane(), -200, -100);
@@ -251,7 +251,7 @@ public class DockItemWithInput extends DockItem
     {
         // 'final' because any save customization should be possible
         // inside the save_handler
-        monitor.beginTask(MessageFormat.format("Saving {0}...", input));
+        monitor.beginTask(MessageFormat.format(Messages.Saving , input));
 
         try
         {   // If there is no file (input is null or for example http:),
@@ -267,12 +267,9 @@ public class DockItemWithInput extends DockItem
                 Platform.runLater(() ->
                 {
                     final Alert prompt = new Alert(AlertType.CONFIRMATION);
-                    prompt.setTitle("File has changed");
+                    prompt.setTitle(Messages.SavingAlertTitle);
                     prompt.setResizable(true);
-                    prompt.setHeaderText(
-                        "The file\n   " + file.toString() + "\n" +
-                        "is read-only.\n\n" +
-                        "Save to a different file?");
+                    prompt.setHeaderText(MessageFormat.format(Messages.SavingAlert , file.toString()));
                     DialogHelper.positionDialog(prompt, getTabPane(), -200, -200);
                     response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
 
@@ -292,8 +289,8 @@ public class DockItemWithInput extends DockItem
         {
             logger.log(Level.WARNING, "Save error", ex);
             Platform.runLater(() ->
-                ExceptionDetailsErrorDialog.openError("Save error",
-                                                      "Error saving " + getLabel(), ex));
+                ExceptionDetailsErrorDialog.openError(Messages.SavingHdr,
+                                                      Messages.SavingErr + getLabel(), ex));
             return false;
         }
 
@@ -362,18 +359,14 @@ public class DockItemWithInput extends DockItem
             if (! checkFileExtension(file, valid))
             {
                 // Prompt on UI thread
-                final String prompt =
-                    "The file name\n  " + file + "\n" +
-                    "does not have the suggested file extension\n" +
-                    "i.e. " + valid.stream().collect(Collectors.joining(", ")) + ".\n\n" +
-                    "Continue with chosen name, or cancel?";
+                final String prompt = MessageFormat.format(Messages.SaveAsPrompt, file, valid.stream().collect(Collectors.joining(", ")));
 
                 final CompletableFuture<Boolean> go_on = new CompletableFuture<>();
                 Platform.runLater(() ->
                 {
                     final Alert dialog = new Alert(AlertType.CONFIRMATION);
                     dialog.setTitle(Messages.SaveAs);
-                    dialog.setHeaderText("Use this file extension?");
+                    dialog.setHeaderText(Messages.SaveAsHdr);
                     dialog.setContentText(prompt);
                     dialog.setResizable(true);
                     DialogHelper.positionDialog(dialog, getTabPane(), -100, -200);
@@ -393,8 +386,8 @@ public class DockItemWithInput extends DockItem
         {
             logger.log(Level.WARNING, "Save-As error", ex);
             Platform.runLater(() ->
-                ExceptionDetailsErrorDialog.openError("Save-As error",
-                                                      "Error saving " + getLabel(), ex));
+                ExceptionDetailsErrorDialog.openError(Messages.SaveAsErrHdr,
+                                                      Messages.SaveAsErrMsg + getLabel(), ex));
         }
         return false;
     }

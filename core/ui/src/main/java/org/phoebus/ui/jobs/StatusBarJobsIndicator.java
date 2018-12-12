@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.Messages;
 
 import javafx.application.Platform;
 import javafx.scene.control.Button;
@@ -31,7 +32,7 @@ public class StatusBarJobsIndicator extends Button
 
     public StatusBarJobsIndicator()
     {
-        super("Jobs: ?");
+        super(Messages.JobBtnInit);
         setOnAction(event -> ApplicationService.createInstance(JobViewerApplication.NAME));
         JobViewer.TIMER.scheduleWithFixedDelay(this::update, 2000, 500, TimeUnit.MILLISECONDS);
     }
@@ -47,7 +48,7 @@ public class StatusBarJobsIndicator extends Button
         if (count <= 0)
             text = null;
         else
-            text = "Jobs: " + count;
+            text = Messages.JobBtnCnt + count;
 
         // Update button on UI thread
         final CountDownLatch done = new CountDownLatch(1);

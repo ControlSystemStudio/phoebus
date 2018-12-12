@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -19,7 +20,7 @@ public class LockMenuItem extends MenuItem
 {
     public LockMenuItem(final DockPane pane)
     {
-        super("Lock Pane", ImageCache.getImageView(DockItem.class, "/icons/lock.png"));
+        super(Messages.LockPane, ImageCache.getImageView(DockItem.class, "/icons/lock.png"));
         setOnAction(event -> pane.setFixed(true));
     }
 }

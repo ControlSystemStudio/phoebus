@@ -8,6 +8,7 @@
 package org.phoebus.ui.help;
 
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
 
@@ -28,7 +29,7 @@ public class OpenHelp implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Help/Content";
+        return Messages.HelpContentMenuPath;
     }
 
     @Override

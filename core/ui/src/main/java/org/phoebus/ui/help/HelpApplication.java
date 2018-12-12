@@ -9,6 +9,7 @@ package org.phoebus.ui.help;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.application.Messages;
 
 /** 'Help' application descriptor
  *  @author Kay Kasemir
@@ -17,7 +18,7 @@ import org.phoebus.framework.spi.AppInstance;
 public class HelpApplication implements AppDescriptor
 {
     public static final String NAME = "help";
-    public static final String DISPLAY_NAME = "Help";
+    public static final String DISPLAY_NAME = Messages.Help;
 
     @Override
     public String getName()
