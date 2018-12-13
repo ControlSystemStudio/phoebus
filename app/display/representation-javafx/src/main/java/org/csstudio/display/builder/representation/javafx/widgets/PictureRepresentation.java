@@ -155,7 +155,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                 return null;
             });
 
-            if ( img_loaded == null )
+            if (img_loaded == null)
                 load_failed = true;
         }
 
@@ -174,9 +174,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             }
         }
 
-        if ( !load_failed ) {
+        if (!load_failed)
             native_ratio = img_loaded.getWidth() / img_loaded.getHeight();
-        }
 
         // Resize/reorient in case we are preserving aspect ratio and changed native_ratio
         dirty_style.mark();
@@ -184,7 +183,6 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         dirty_content.mark();
         toolkit.scheduleUpdate(this);
     }
-
 
     @Override
     public void updateChanges()
@@ -210,17 +208,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             // preserve aspect ratio
             if (!model_widget.propStretch().getValue())
             {
-
                 double w_prime = pic_h * native_ratio;
                 double h_prime = pic_w / native_ratio;
                 if (w_prime < pic_w)
-                {
                     pic_h = h_prime;
-                }
                 else if (h_prime < pic_h)
-                {
                     pic_w = w_prime;
-                }
             }
 
             double final_pic_w = pic_w;

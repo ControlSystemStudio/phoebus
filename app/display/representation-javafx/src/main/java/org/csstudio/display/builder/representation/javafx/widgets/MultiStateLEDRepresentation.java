@@ -40,6 +40,7 @@ public class MultiStateLEDRepresentation extends BaseLEDRepresentation<MultiStat
     @Override
     protected void unregisterListeners()
     {
+        statesChanged(null, model_widget.propStates().getValue(), null);
         model_widget.propStates().removePropertyListener(statesChangedListener);
         super.unregisterListeners();
     }
