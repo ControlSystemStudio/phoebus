@@ -66,6 +66,7 @@ public class TooltipSupport
     {
         if (disable_tooltips)
             return;
+
         // Patch legacy tool tips that defaulted to pv name & value,
         // even for static widgets
         final StringWidgetProperty ttp = (StringWidgetProperty)tooltip_property;
@@ -136,7 +137,7 @@ public class TooltipSupport
     /** Detach tool tip.
      *  @param node Node that should have the tool tip removed.
      */
-    public static void detach (final Node node)
+    public static void detach(final Node node)
     {
         if (disable_tooltips)
             return;

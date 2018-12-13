@@ -265,6 +265,9 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         model_widget.propNumBits().removePropertyListener(lookChangedListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         model_widget.propSquare().removePropertyListener(lookChangedListener);
+
+        labelsChanged(model_widget.propLabels(), model_widget.propLabels().getValue(), null);
+
         super.unregisterListeners();
     }
 

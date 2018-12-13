@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -147,13 +147,14 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         model_widget.propTabs().addPropertyListener(tabsChangedListener);
 
         // Initial update
-        tabsChanged(model_widget.propTabs(), null, model_widget.propTabs().getValue());
+        tabsChanged(null, null, model_widget.propTabs().getValue());
         activeTabChanged(null, null, model_widget.propActiveTab().getValue());
     }
 
     @Override
     protected void unregisterListeners()
     {
+        tabsChanged(null, model_widget.propTabs().getValue(), null);
         model_widget.propWidth().removePropertyListener(sizesChangedListener);
         model_widget.propHeight().removePropertyListener(sizesChangedListener);
         model_widget.propDirection().removePropertyListener(tabLookChangedListener);
