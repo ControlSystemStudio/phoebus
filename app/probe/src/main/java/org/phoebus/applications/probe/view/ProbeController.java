@@ -158,6 +158,7 @@ public class ProbeController {
 
     private PV pv;
     private Disposable pv_flow, permission_flow;
+    /** Most recent value, used to update formatting */
     private VType last_value = null;
 
     private void update(final VType value)
