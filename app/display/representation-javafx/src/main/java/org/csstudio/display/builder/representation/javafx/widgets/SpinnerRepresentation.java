@@ -14,13 +14,13 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Display;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectPropertyBase;

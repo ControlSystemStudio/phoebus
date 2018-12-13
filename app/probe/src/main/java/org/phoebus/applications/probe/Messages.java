@@ -23,6 +23,7 @@ public class Messages
     public static String Copy;
     public static String EnumLbls;
     public static String Format;
+    public static String Precision;
     public static String Metadata;
     public static String Probe;
     public static String ProbeMenuPath;

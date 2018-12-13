@@ -15,8 +15,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.csstudio.display.builder.model.properties.FormatOption;
-import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListNumber;
@@ -33,6 +31,8 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 /** Utility for handling Values of PVs in scripts.
  *

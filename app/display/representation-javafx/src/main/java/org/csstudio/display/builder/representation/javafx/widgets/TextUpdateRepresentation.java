@@ -15,11 +15,11 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
