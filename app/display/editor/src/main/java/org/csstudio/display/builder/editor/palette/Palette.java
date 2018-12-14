@@ -139,8 +139,16 @@ public class Palette
     private Map<WidgetCategory, Pane> createWidgetCategoryPanes(final Pane parent)
     {
         final Map<WidgetCategory, Pane> palette_groups = new HashMap<>();
+        final Set<String> deprecated = Preferences.hidden_widget_types;
         for (final WidgetCategory category : WidgetCategory.values())
         {
+            if (!WidgetFactory.getInstance()
+            .getWidgetDescriptions()
+            .stream()
+            .filter(desc -> !deprecated.contains(desc.getType()))
+            .filter(desc -> desc.getCategory() == category)
+            .findFirst().isPresent())
+                continue;
             final TilePane palette_group = new TilePane();
             palette_group.getStyleClass().add("palette_group");
             palette_group.setPrefColumns(1);

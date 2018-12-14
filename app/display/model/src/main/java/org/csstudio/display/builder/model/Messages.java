@@ -137,6 +137,7 @@ public class Messages
     public static String WebBrowser_showToolbar;
     public static String WebBrowser_URL;
     public static String WidgetCategory_Controls;
+    public static String WidgetCategory_Extensions;
     public static String WidgetCategory_Graphics;
     public static String WidgetCategory_Miscellaneous;
     public static String WidgetCategory_Monitors;
