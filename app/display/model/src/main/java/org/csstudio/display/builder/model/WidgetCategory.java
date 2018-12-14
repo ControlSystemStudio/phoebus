@@ -29,6 +29,8 @@ public enum WidgetCategory
     PLOT(Messages.WidgetCategory_Plots),
     /** Widgets that structure the display: Group, Embedded Display */
     STRUCTURE(Messages.WidgetCategory_Structure),
+    /** Widgets grouped as a site specific collection */
+    EXTENSIONS(Messages.WidgetCategory_Extensions),
     // More categories?
     /** Widgets that do not fit the other categories */
     MISC(Messages.WidgetCategory_Miscellaneous);
