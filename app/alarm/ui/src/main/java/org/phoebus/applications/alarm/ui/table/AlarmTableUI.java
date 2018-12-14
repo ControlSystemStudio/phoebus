@@ -30,6 +30,7 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.text.RegExHelper;
+import org.phoebus.util.text.CompareNatural;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.binding.Bindings;
@@ -330,7 +331,7 @@ public class AlarmTableUI extends BorderPane
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().pv);
         col.setCellFactory(c -> new DragPVCell());
-
+        col.setComparator(CompareNatural.INSTANCE);
         table.getColumns().add(col);
 
         col = new TableColumn<>("Description");
@@ -338,6 +339,7 @@ public class AlarmTableUI extends BorderPane
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().description);
         col.setCellFactory(c -> new DragPVCell());
+        col.setComparator(CompareNatural.INSTANCE);
         table.getColumns().add(col);
 
         sevcol = new TableColumn<>("Alarm Severity");

@@ -38,6 +38,7 @@ import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
+import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -217,7 +218,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         {
             // Keep sorted by inserting at appropriate index
             final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
-            final int index = Collections.binarySearch(items, view_item, (a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
+            final int index = Collections.binarySearch(items, view_item,
+                                                       (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
+                                                                                          b.getValue().getName()));
             if (index < 0)
                 items.add(-index-1, view_item);
             else
