@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import java.time.Instant;
 import java.util.Objects;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
 import org.epics.vtype.Display;
@@ -33,6 +36,11 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
+    private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
+    private final UntypedWidgetPropertyListener sizeChangedListener = this::sizeChanged;
+    private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
+    private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
+    private final WidgetPropertyListener<Instant> runtimeConfChangedListener = (p, o, n) -> openConfigurationPanel();
 
     private volatile double min = 0.0;
     private volatile double max = 100.0;
@@ -104,23 +112,40 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propMinimum().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propMaximum().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propHorizontal().addPropertyListener(this::sizeChanged);
-        model_widget.propBarLength().addPropertyListener(this::sizeChanged);
-        model_widget.propIncrement().addPropertyListener(this::sizeChanged);
+        model_widget.propWidth().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propLimitsFromPV().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propMinimum().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propMaximum().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propHorizontal().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propBarLength().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propIncrement().addUntypedPropertyListener(sizeChangedListener);
 
-        model_widget.propEnabled().addPropertyListener(this::enablementChanged);
+        model_widget.propEnabled().addPropertyListener(enablementChangedListener);
 
         //Since both the widget's PV value and the ScrollBar node's value property might be
         //written to independently during runtime, both must be listened to.
-        model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
+        model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
         jfx_node.valueProperty().addListener(this::nodeValueChanged);
-        model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> openConfigurationPanel());
+        model_widget.runtimePropConfigure().addPropertyListener(runtimeConfChangedListener);
         valueChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propLimitsFromPV().removePropertyListener(limitsChangedListener);
+        model_widget.propMinimum().removePropertyListener(limitsChangedListener);
+        model_widget.propMaximum().removePropertyListener(limitsChangedListener);
+        model_widget.propHorizontal().removePropertyListener(sizeChangedListener);
+        model_widget.propBarLength().removePropertyListener(sizeChangedListener);
+        model_widget.propIncrement().removePropertyListener(sizeChangedListener);
+        model_widget.propEnabled().removePropertyListener(enablementChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        model_widget.runtimePropConfigure().removePropertyListener(runtimeConfChangedListener);
+        super.unregisterListeners();
     }
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -104,6 +104,8 @@ public abstract class PropertyChangeHandler<T extends Object>
      */
     public void addUntypedPropertyListener(final UntypedWidgetPropertyListener listener)
     {
+        if (getListeners().contains(listener))
+            throw new IllegalStateException("Listener already added " + listener);
         getListeners().add(listener);
     }
 
@@ -114,7 +116,7 @@ public abstract class PropertyChangeHandler<T extends Object>
     {
         final boolean removed = getListeners().remove(listener);
         if (! removed)
-            logger.log(Level.SEVERE, "Unknown listener " + listener);
+            logger.log(Level.SEVERE, "Unknown listener " + listener, new Exception("Unknown listener"));
     }
 
     /** Notify listeners of property change.

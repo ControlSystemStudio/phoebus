@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
@@ -58,6 +59,9 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
+    private final UntypedWidgetPropertyListener backgroundChangedListener = this::backgroundChanged;
+    private final UntypedWidgetPropertyListener fileChangedListener = this::fileChanged;
+    private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
 
     private volatile double zoom_factor = 1.0;
 
@@ -102,7 +106,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         inner.getTransforms().add(zoom = new Scale());
 
         scroll = new ScrollPane(inner);
-        scroll.getStyleClass().add("embedded_display");
+        //  Removing 1px border around the ScrollPane's content. See https://stackoverflow.com/a/29376445
+        scroll.getStyleClass().add("edge-to-edge");
         // Panning tends to 'jerk' the content when clicked
         // scroll.setPannable(true);
         return scroll;
@@ -118,16 +123,29 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::sizesChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::sizesChanged);
-        model_widget.propResize().addUntypedPropertyListener(this::sizesChanged);
+        model_widget.propWidth().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propResize().addUntypedPropertyListener(sizesChangedListener);
 
-        model_widget.propFile().addUntypedPropertyListener(this::fileChanged);
-        model_widget.propGroupName().addUntypedPropertyListener(this::fileChanged);
-        model_widget.propMacros().addUntypedPropertyListener(this::fileChanged);
+        model_widget.propFile().addUntypedPropertyListener(fileChangedListener);
+        model_widget.propGroupName().addUntypedPropertyListener(fileChangedListener);
+        model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
 
-        model_widget.propTransparent().addUntypedPropertyListener(this::backgroundChanged);
+        model_widget.propTransparent().addUntypedPropertyListener(backgroundChangedListener);
         fileChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizesChangedListener);
+        model_widget.propHeight().removePropertyListener(sizesChangedListener);
+        model_widget.propResize().removePropertyListener(sizesChangedListener);
+        model_widget.propFile().removePropertyListener(fileChangedListener);
+        model_widget.propGroupName().removePropertyListener(fileChangedListener);
+        model_widget.propMacros().removePropertyListener(fileChangedListener);
+        model_widget.propTransparent().removePropertyListener(backgroundChangedListener);
+        super.unregisterListeners();
     }
 
     private void sizesChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -148,20 +166,19 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             final int content_width = content_model.propWidth().getValue();
             final int content_height = content_model.propHeight().getValue();
             if (resize == Resize.ResizeContent)
-            {   // Adjust sizes by +-1 so that content is completely visible
-                final double zoom_x = content_width  > 0 ? (double)(widget_width-1)  / (content_width+1) : 1.0;
-                final double zoom_y = content_height > 0 ? (double)(widget_height-1) / (content_height+1) : 1.0;
+            {
+                final double zoom_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
+                final double zoom_y = content_height > 0 ? (double) widget_height / content_height : 1.0;
                 zoom_factor = Math.min(zoom_x, zoom_y);
             }
             else if (resize == Resize.SizeToContent)
             {
                 zoom_factor = 1.0;
                 resizing = true;
-                // Adjust sizes by 2 so that content is completely visible
                 if (content_width > 0)
-                    model_widget.propWidth().setValue(content_width+2);
+                    model_widget.propWidth().setValue(content_width);
                 if (content_height > 0)
-                    model_widget.propHeight().setValue(content_height+2);
+                    model_widget.propHeight().setValue(content_height);
                 resizing = false;
             }
         }
@@ -224,7 +241,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
             // Atomically update the 'active' model
             final DisplayModel old_model = active_content_model.getAndSet(new_model);
-            new_model.propBackgroundColor().addUntypedPropertyListener(this::backgroundChanged);
+            new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
 
             if (old_model != null)
             {   // Dispose old model

@@ -10,10 +10,13 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.text.DecimalFormat;
+import java.time.Instant;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -46,6 +49,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private final DirtyFlag dirty_layout = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
+    private final UntypedWidgetPropertyListener layoutChangedListener = this::layoutChanged;
+    private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
+    private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
+    private final WidgetPropertyListener<Instant> runtimeConfChangedListener = (p, o, n) -> openConfigurationPanel();
+    private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
 
     private volatile double min = 0.0;
     private volatile double max = 100.0;
@@ -111,33 +119,33 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propHorizontal().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propTransparent().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propShowScale().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propScaleFormat().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propShowMinorTicks().addUntypedPropertyListener(this::layoutChanged);
-        model_widget.propIncrement().addPropertyListener(this::layoutChanged);
+        model_widget.propWidth().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propHorizontal().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propTransparent().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propShowScale().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propScaleFormat().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propShowMinorTicks().addUntypedPropertyListener(layoutChangedListener);
+        model_widget.propIncrement().addUntypedPropertyListener(layoutChangedListener);
 
-        model_widget.propEnabled().addPropertyListener(this::enablementChanged);
-        model_widget.runtimePropPVWritable().addPropertyListener(this::enablementChanged);
+        model_widget.propEnabled().addPropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
 
-        model_widget.propLevelHi().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propLevelHiHi().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propLevelLo().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propLevelLoLo().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propShowHigh().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propShowHiHi().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propShowLow().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propShowLoLo().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propMinimum().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propMaximum().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propMajorTickStepHint().addUntypedPropertyListener(this::limitsChanged);
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(this::limitsChanged);
+        model_widget.propLevelHi().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propLevelHiHi().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propLevelLo().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propLevelLoLo().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propShowHigh().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propShowHiHi().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propShowLow().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propShowLoLo().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propMinimum().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propMaximum().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propMajorTickStepHint().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propLimitsFromPV().addUntypedPropertyListener(limitsChangedListener);
 
         // Since both the widget's PV value and the JFX node's value property might be
         // written to independently during runtime, both must have listeners.
@@ -146,12 +154,48 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             dirty_value.checkAndClear();
         else
         {
-            model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
-            model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> openConfigurationPanel());
+            model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
+            model_widget.runtimePropConfigure().addPropertyListener(runtimeConfChangedListener);
         }
         enablementChanged(null, null, null);
         limitsChanged(null, null, null);
         layoutChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(layoutChangedListener);
+        model_widget.propHeight().removePropertyListener(layoutChangedListener);
+        model_widget.propHorizontal().removePropertyListener(layoutChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(layoutChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(layoutChangedListener);
+        model_widget.propTransparent().removePropertyListener(layoutChangedListener);
+        model_widget.propFont().removePropertyListener(layoutChangedListener);
+        model_widget.propShowScale().removePropertyListener(layoutChangedListener);
+        model_widget.propScaleFormat().removePropertyListener(layoutChangedListener);
+        model_widget.propShowMinorTicks().removePropertyListener(layoutChangedListener);
+        model_widget.propIncrement().removePropertyListener(layoutChangedListener);
+        model_widget.propEnabled().removePropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
+        model_widget.propLevelHi().removePropertyListener(limitsChangedListener);
+        model_widget.propLevelHiHi().removePropertyListener(limitsChangedListener);
+        model_widget.propLevelLo().removePropertyListener(limitsChangedListener);
+        model_widget.propLevelLoLo().removePropertyListener(limitsChangedListener);
+        model_widget.propShowHigh().removePropertyListener(limitsChangedListener);
+        model_widget.propShowHiHi().removePropertyListener(limitsChangedListener);
+        model_widget.propShowLow().removePropertyListener(limitsChangedListener);
+        model_widget.propShowLoLo().removePropertyListener(limitsChangedListener);
+        model_widget.propMinimum().removePropertyListener(limitsChangedListener);
+        model_widget.propMaximum().removePropertyListener(limitsChangedListener);
+        model_widget.propMajorTickStepHint().removePropertyListener(limitsChangedListener);
+        model_widget.propLimitsFromPV().removePropertyListener(limitsChangedListener);
+        if ( !toolkit.isEditMode() )
+        {
+            model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+            model_widget.runtimePropConfigure().removePropertyListener(runtimeConfChangedListener);
+        }
+        super.unregisterListeners();
     }
 
     private void layoutChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

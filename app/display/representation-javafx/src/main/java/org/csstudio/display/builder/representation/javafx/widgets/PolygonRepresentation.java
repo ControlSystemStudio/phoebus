@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.representation.javafx.widgets;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.PolygonWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -22,6 +23,7 @@ import javafx.scene.shape.StrokeLineJoin;
 public class PolygonRepresentation extends JFXBaseRepresentation<Polygon, PolygonWidget>
 {
     private final DirtyFlag dirty_display = new DirtyFlag();
+    private final UntypedWidgetPropertyListener displayChangedListener = this::displayChanged;
 
     @Override
     public Polygon createJFXNode() throws Exception
@@ -38,13 +40,26 @@ public class PolygonRepresentation extends JFXBaseRepresentation<Polygon, Polygo
         if (! toolkit.isEditMode())
             attachTooltip();
         // Polygon can't use the default x/y handling from super.registerListeners();
-        model_widget.propVisible().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propX().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propY().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propLineColor().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propLineWidth().addUntypedPropertyListener(this::displayChanged);
-        model_widget.propPoints().addUntypedPropertyListener(this::displayChanged);
+        model_widget.propVisible().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propX().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propY().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propLineColor().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propLineWidth().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propPoints().addUntypedPropertyListener(displayChangedListener);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        detachTooltip();
+        model_widget.propVisible().removePropertyListener(displayChangedListener);
+        model_widget.propX().removePropertyListener(displayChangedListener);
+        model_widget.propY().removePropertyListener(displayChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(displayChangedListener);
+        model_widget.propLineColor().removePropertyListener(displayChangedListener);
+        model_widget.propLineWidth().removePropertyListener(displayChangedListener);
+        model_widget.propPoints().removePropertyListener(displayChangedListener);
     }
 
     private void displayChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

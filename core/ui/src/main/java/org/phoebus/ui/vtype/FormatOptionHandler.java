@@ -5,9 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.util;
-
-import static org.csstudio.display.builder.model.ModelPlugin.logger;
+package org.phoebus.ui.vtype;
 
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
@@ -18,8 +16,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.csstudio.display.builder.model.properties.FormatOption;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Display;
 import org.epics.vtype.TableHack;
@@ -466,7 +464,8 @@ public class FormatOptionHandler
         }
         catch (Throwable ex)
         {
-            logger.log(Level.WARNING, "Error parsing value from '" +  text + "', will use as is", ex);
+            Logger.getLogger(FormatOptionHandler.class.getPackageName())
+                  .log(Level.WARNING, "Error parsing value from '" +  text + "', will use as is", ex);
         }
         return text;
     }

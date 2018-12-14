@@ -32,15 +32,20 @@
     <Separator  GridPane.rowIndex="1" GridPane.columnSpan="2" />
   
     <Label text="%Value" GridPane.rowIndex="2" />
-    <Label text="%Alarm" GridPane.rowIndex="3" />
-    <Label text="%TimeStamp" GridPane.rowIndex="4" />
-    <Label text="%Metadata" minWidth="100" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-    
+    <Label text="%Format" GridPane.rowIndex="3" />
+    <Label text="%Alarm" GridPane.rowIndex="4" />
+    <Label text="%TimeStamp" GridPane.rowIndex="5" />
+    <Label text="%Metadata" minWidth="100" GridPane.rowIndex="6" GridPane.valignment="TOP" />
     
     <TextField fx:id="txtValue" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-    <TextField fx:id="txtAlarm" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-    <TextField fx:id="txtTimeStamp" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-    <TextArea  fx:id="txtMetadata" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5"
+    <HBox spacing="10" alignment="bottom_right" GridPane.columnIndex="1" GridPane.rowIndex="3">
+        <ComboBox fx:id="format" HBox.hgrow="ALWAYS" minWidth="40" maxWidth="Infinity" />
+        <Label text="%Precision" prefWidth="200" />
+        <Spinner fx:id="precision" min="-1" max="20" initialValue="-1" amountToStepBy="1" />
+    </HBox>
+    <TextField fx:id="txtAlarm" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+    <TextField fx:id="txtTimeStamp" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+    <TextArea  fx:id="txtMetadata" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
                                                     GridPane.hgrow="SOMETIMES" GridPane.vgrow="SOMETIMES"/>
   </children>
 </GridPane>

@@ -11,6 +11,7 @@ import java.io.File;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.FileSelectorWidget;
 import org.phoebus.ui.javafx.ImageCache;
@@ -37,6 +38,7 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
     private static File last_directory = null;
 
     private final DirtyFlag dirty_size = new DirtyFlag();
+    private final WidgetPropertyListener<Integer> sizeChangedListener = this::sizeChanged;
 
     @Override
     protected Button createJFXNode() throws Exception
@@ -56,8 +58,16 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addPropertyListener(this::sizeChanged);
+        model_widget.propWidth().addPropertyListener(sizeChangedListener);
+        model_widget.propHeight().addPropertyListener(sizeChangedListener);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        super.unregisterListeners();
     }
 
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)

@@ -33,8 +33,8 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.properties.FormatOption;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.vtype.FormatOption;
 
 /** Widget that represents a spinner
  *  @author Amanda Carpenter

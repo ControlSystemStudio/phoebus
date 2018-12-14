@@ -19,6 +19,16 @@ public class Messages
     public static String AddRow;
     public static String DefaultNewColumnName;
     public static String DoNotShow;
+    public static String Format_Compact;
+    public static String Format_Decimal;
+    public static String Format_Default;
+    public static String Format_Engineering;
+    public static String Format_Exponential;
+    public static String Format_Hexadecimal;
+    public static String Format_Sexagesimal;
+    public static String Format_SexagesimalDMS;
+    public static String Format_SexagesimalHMS;
+    public static String Format_String;
     public static String InstallExamples;
     public static String MagicLastRow;
     public static String MoveColumnLeft;

@@ -12,16 +12,18 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.util.FormatOptionHandler;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -44,6 +46,10 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
+    private final UntypedWidgetPropertyListener sizeListener = this::sizeChanged;
+    private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
+    private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
+    private final WidgetPropertyListener<String> pvNameListener = this::pvnameChanged;
     private volatile String value_text = "<?>";
 
     private static WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
@@ -209,23 +215,41 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::sizeChanged);
+        model_widget.propWidth().addUntypedPropertyListener(sizeListener);
+        model_widget.propHeight().addUntypedPropertyListener(sizeListener);
 
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
-        model_widget.runtimePropPVWritable().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propForegroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propFont().addUntypedPropertyListener(styleListener);
+        model_widget.propEnabled().addUntypedPropertyListener(styleListener);
+        model_widget.runtimePropPVWritable().addUntypedPropertyListener(styleListener);
 
-        model_widget.propFormat().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propPrecision().addUntypedPropertyListener(this::contentChanged);
-        model_widget.propShowUnits().addUntypedPropertyListener(this::contentChanged);
-        model_widget.runtimePropValue().addUntypedPropertyListener(this::contentChanged);
+        model_widget.propFormat().addUntypedPropertyListener(contentListener);
+        model_widget.propPrecision().addUntypedPropertyListener(contentListener);
+        model_widget.propShowUnits().addUntypedPropertyListener(contentListener);
+        model_widget.runtimePropValue().addUntypedPropertyListener(contentListener);
 
-        model_widget.propPVName().addPropertyListener(this::pvnameChanged);
+        model_widget.propPVName().addPropertyListener(pvNameListener);
 
         contentChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizeListener);
+        model_widget.propHeight().removePropertyListener(sizeListener);
+        model_widget.propForegroundColor().removePropertyListener(styleListener);
+        model_widget.propBackgroundColor().removePropertyListener(styleListener);
+        model_widget.propFont().removePropertyListener(styleListener);
+        model_widget.propEnabled().removePropertyListener(styleListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(styleListener);
+        model_widget.propFormat().removePropertyListener(contentListener);
+        model_widget.propPrecision().removePropertyListener(contentListener);
+        model_widget.propShowUnits().removePropertyListener(contentListener);
+        model_widget.runtimePropValue().removePropertyListener(contentListener);
+        model_widget.propPVName().removePropertyListener(pvNameListener);
+        super.unregisterListeners();
     }
 
     @Override

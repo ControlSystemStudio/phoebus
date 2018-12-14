@@ -95,6 +95,21 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         return tabs;
     }
 
+    private final UntypedWidgetPropertyListener layoutListener = this::layoutChanged;
+    private final WidgetPropertyListener<List<TabItemProperty>> tabsListener = this::tabsChanged;
+    // Update UI when model selects a tab
+    final WidgetPropertyListener<Integer> track_active_model_tab = (p, old, value) ->
+    {
+        if (! changing_active_tab.compareAndSet(false, true))
+            return;
+        if (value == null)
+            value = p.getValue();
+        if (value >= jfx_node.getTabs().size())
+            value = jfx_node.getTabs().size() - 1;
+        jfx_node.getSelectionModel().select(value);
+        changing_active_tab.set(false);
+    };
+
     @Override
     protected void registerListeners()
     {
@@ -103,27 +118,14 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         // Create initial tabs and their children
         addTabs(model_widget.propTabs().getValue());
 
-        final UntypedWidgetPropertyListener listener = this::layoutChanged;
-        model_widget.propWidth().addUntypedPropertyListener(listener);
-        model_widget.propHeight().addUntypedPropertyListener(listener);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(listener);
-        model_widget.propFont().addUntypedPropertyListener(listener);
-        model_widget.propTabs().addPropertyListener(this::tabsChanged);
-        model_widget.propDirection().addUntypedPropertyListener(listener);
-        model_widget.propTabHeight().addUntypedPropertyListener(listener);
+        model_widget.propWidth().addUntypedPropertyListener(layoutListener);
+        model_widget.propHeight().addUntypedPropertyListener(layoutListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(layoutListener);
+        model_widget.propFont().addUntypedPropertyListener(layoutListener);
+        model_widget.propTabs().addPropertyListener(tabsListener);
+        model_widget.propDirection().addUntypedPropertyListener(layoutListener);
+        model_widget.propTabHeight().addUntypedPropertyListener(layoutListener);
 
-        // Update UI when model selects a tab
-        final WidgetPropertyListener<Integer> track_active_model_tab = (p, old, value) ->
-        {
-            if (! changing_active_tab.compareAndSet(false, true))
-                return;
-            if (value == null)
-                value = p.getValue();
-            if (value >= jfx_node.getTabs().size())
-                value = jfx_node.getTabs().size() - 1;
-            jfx_node.getSelectionModel().select(value);
-            changing_active_tab.set(false);
-        };
         // Select initial tab
         track_active_model_tab.propertyChanged(model_widget.propActiveTab(), null, null);
         model_widget.propActiveTab().addPropertyListener(track_active_model_tab);
@@ -139,6 +141,23 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
 
         // Initial update of font, size
         layoutChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        removeTabs(model_widget.propTabs().getValue());
+
+        model_widget.propWidth().removePropertyListener(layoutListener);
+        model_widget.propHeight().removePropertyListener(layoutListener);
+        model_widget.propBackgroundColor().removePropertyListener(layoutListener);
+        model_widget.propFont().removePropertyListener(layoutListener);
+        model_widget.propTabs().removePropertyListener(tabsListener);
+        model_widget.propDirection().removePropertyListener(layoutListener);
+        model_widget.propTabHeight().removePropertyListener(layoutListener);
+        model_widget.propActiveTab().addPropertyListener(track_active_model_tab);
+
+        super.unregisterListeners();
     }
 
     private void tabsChanged(final WidgetProperty<List<TabItemProperty>> property,
@@ -218,7 +237,11 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
      *  is located relative to the bounds of the TabPane
      */
     private void computeInsets()
-    {   // There is always at least one tab. All tabs have the same size.
+    {
+        // Called with delay by refreshHack, may be invoked when already disposed
+        if (jfx_node == null)
+            return;
+        // There is always at least one tab. All tabs have the same size.
         final Pane pane = (Pane)jfx_node.getTabs().get(0).getContent();
         final Point2D tabs_bounds = jfx_node.localToScene(0.0, 0.0);
         final Point2D pane_bounds = pane.localToScene(0.0, 0.0);
@@ -276,6 +299,9 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         // OK to then clear the style later, i.e. in here.
         final Runnable twiddle = () ->
         {
+            // Called with delay, may happen after disposal
+            if (jfx_node == null)
+                return;
             jfx_node.setStyle("");
             jfx_node.setSide(Side.BOTTOM);
             if (model_widget.propDirection().getValue() == Direction.HORIZONTAL)
@@ -298,7 +324,6 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
                 toolkit.execute(() -> toolkit.disposeWidget(child));
 
         jfx_node.getTabs().clear();
-
         super.dispose();
     }
 }

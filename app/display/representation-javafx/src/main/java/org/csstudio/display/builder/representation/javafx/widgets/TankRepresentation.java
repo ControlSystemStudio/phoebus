@@ -10,6 +10,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 import java.util.concurrent.TimeUnit;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.TankWidget;
@@ -27,6 +28,8 @@ import javafx.scene.layout.Pane;
 public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidget>
 {
     private final DirtyFlag dirty_look = new DirtyFlag();
+    private final UntypedWidgetPropertyListener lookListener = this::lookChanged;
+    private final UntypedWidgetPropertyListener valueListener = this::valueChanged;
 
     private volatile RTTank tank;
 
@@ -42,19 +45,36 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propForeground().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propBackground().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propFillColor().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propEmptyColor().addUntypedPropertyListener(this::lookChanged);
+        model_widget.propWidth().addUntypedPropertyListener(lookListener);
+        model_widget.propHeight().addUntypedPropertyListener(lookListener);
+        model_widget.propFont().addUntypedPropertyListener(lookListener);
+        model_widget.propForeground().addUntypedPropertyListener(lookListener);
+        model_widget.propBackground().addUntypedPropertyListener(lookListener);
+        model_widget.propFillColor().addUntypedPropertyListener(lookListener);
+        model_widget.propEmptyColor().addUntypedPropertyListener(lookListener);
 
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(this::valueChanged);
-        model_widget.propMinimum().addUntypedPropertyListener(this::valueChanged);
-        model_widget.propMaximum().addUntypedPropertyListener(this::valueChanged);
-        model_widget.runtimePropValue().addUntypedPropertyListener(this::valueChanged);
+        model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
+        model_widget.propMinimum().addUntypedPropertyListener(valueListener);
+        model_widget.propMaximum().addUntypedPropertyListener(valueListener);
+        model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
         valueChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(lookListener);
+        model_widget.propHeight().removePropertyListener(lookListener);
+        model_widget.propFont().removePropertyListener(lookListener);
+        model_widget.propForeground().removePropertyListener(lookListener);
+        model_widget.propBackground().removePropertyListener(lookListener);
+        model_widget.propFillColor().removePropertyListener(lookListener);
+        model_widget.propEmptyColor().removePropertyListener(lookListener);
+        model_widget.propLimitsFromPV().removePropertyListener(valueListener);
+        model_widget.propMinimum().removePropertyListener(valueListener);
+        model_widget.propMaximum().removePropertyListener(valueListener);
+        model_widget.runtimePropValue().removePropertyListener(valueListener);
+        super.unregisterListeners();
     }
 
     private void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

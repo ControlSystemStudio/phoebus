@@ -12,6 +12,7 @@ import java.util.List;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
@@ -37,7 +38,12 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
 {
     private final DirtyFlag dirty_config = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
-    private final UntypedWidgetPropertyListener look_listener = this::lookChanged;
+    private final UntypedWidgetPropertyListener lookChangedListener = this::lookChanged;
+    private final UntypedWidgetPropertyListener configChangedListener = this::configChanged;
+    private final WidgetPropertyListener<VType> contentChangedListener = this::contentChanged;
+    private final WidgetPropertyListener<List<StringWidgetProperty>> labelsChangedListener = this::labelsChanged;
+    private final WidgetPropertyListener<Boolean> orientationChangedListener = this::orientationChanged;
+    private final WidgetPropertyListener<Integer> sizeChangedListener = this::sizeChanged;
 
     private volatile Color[] colors;
 
@@ -50,6 +56,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     private volatile boolean square_led = false;
 
     private volatile Shape[] leds = null;
+
 
     @Override
     protected Pane createJFXNode() throws Exception
@@ -219,22 +226,22 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addPropertyListener(this::sizeChanged);
+        model_widget.propWidth().addPropertyListener(sizeChangedListener);
+        model_widget.propHeight().addPropertyListener(sizeChangedListener);
 
-        model_widget.runtimePropValue().addPropertyListener(this::contentChanged);
+        model_widget.runtimePropValue().addPropertyListener(contentChangedListener);
 
-        model_widget.propOffColor().addUntypedPropertyListener(this::configChanged);
-        model_widget.propOnColor().addUntypedPropertyListener(this::configChanged);
-        model_widget.propStartBit().addUntypedPropertyListener(this::configChanged);
+        model_widget.propOffColor().addUntypedPropertyListener(configChangedListener);
+        model_widget.propOnColor().addUntypedPropertyListener(configChangedListener);
+        model_widget.propStartBit().addUntypedPropertyListener(configChangedListener);
 
-        model_widget.propBitReverse().addUntypedPropertyListener(look_listener);
-        model_widget.propForegroundColor().addUntypedPropertyListener(look_listener);
-        model_widget.propFont().addUntypedPropertyListener(look_listener);
-        model_widget.propLabels().addPropertyListener(this::labelsChanged);
-        model_widget.propNumBits().addUntypedPropertyListener(look_listener);
-        model_widget.propHorizontal().addPropertyListener(this::orientationChanged);
-        model_widget.propSquare().addUntypedPropertyListener(look_listener);
+        model_widget.propBitReverse().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propLabels().addPropertyListener(labelsChangedListener);
+        model_widget.propNumBits().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
+        model_widget.propSquare().addUntypedPropertyListener(lookChangedListener);
 
         //initialization
         labelsChanged(model_widget.propLabels(), null, model_widget.propLabels().getValue());
@@ -242,16 +249,38 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(contentChangedListener);
+        model_widget.propOffColor().removePropertyListener(configChangedListener);
+        model_widget.propOnColor().removePropertyListener(configChangedListener);
+        model_widget.propStartBit().removePropertyListener(configChangedListener);
+        model_widget.propBitReverse().removePropertyListener(lookChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(lookChangedListener);
+        model_widget.propFont().removePropertyListener(lookChangedListener);
+        model_widget.propLabels().removePropertyListener(labelsChangedListener);
+        model_widget.propNumBits().removePropertyListener(lookChangedListener);
+        model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
+        model_widget.propSquare().removePropertyListener(lookChangedListener);
+
+        labelsChanged(model_widget.propLabels(), model_widget.propLabels().getValue(), null);
+
+        super.unregisterListeners();
+    }
+
     private void labelsChanged(final WidgetProperty<List<StringWidgetProperty>> prop,
                                final List<StringWidgetProperty> removed, final List<StringWidgetProperty> added)
     {
         if (added != null)
             for (StringWidgetProperty text : added)
-                text.addUntypedPropertyListener(look_listener);
+                text.addUntypedPropertyListener(lookChangedListener);
         if (removed != null)
             for (StringWidgetProperty text : removed)
-                text.removePropertyListener(look_listener);
-        look_listener.propertyChanged(null, null, null);
+                text.removePropertyListener(lookChangedListener);
+        lookChangedListener.propertyChanged(null, null, null);
     }
 
     private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)

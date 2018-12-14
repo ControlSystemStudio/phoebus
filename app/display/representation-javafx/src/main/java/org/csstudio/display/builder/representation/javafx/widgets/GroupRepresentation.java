@@ -51,6 +51,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     );
 
     private final DirtyFlag dirty_border = new DirtyFlag();
+    private final UntypedWidgetPropertyListener borderChangedListener = this::borderChanged;
 
     // top-level 'Pane' provides background color and border
 
@@ -85,15 +86,28 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     protected void registerListeners()
     {
         super.registerListeners();
-        final UntypedWidgetPropertyListener listener = this::borderChanged;
-        model_widget.propForegroundColor().addUntypedPropertyListener(listener);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(listener);
-        model_widget.propTransparent().addUntypedPropertyListener(listener);
-        model_widget.propName().addUntypedPropertyListener(listener);
-        model_widget.propStyle().addUntypedPropertyListener(listener);
-        model_widget.propFont().addUntypedPropertyListener(listener);
-        model_widget.propWidth().addUntypedPropertyListener(listener);
-        model_widget.propHeight().addUntypedPropertyListener(listener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propTransparent().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propName().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propStyle().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propWidth().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(borderChangedListener);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propForegroundColor().removePropertyListener(borderChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(borderChangedListener);
+        model_widget.propTransparent().removePropertyListener(borderChangedListener);
+        model_widget.propName().removePropertyListener(borderChangedListener);
+        model_widget.propStyle().removePropertyListener(borderChangedListener);
+        model_widget.propFont().removePropertyListener(borderChangedListener);
+        model_widget.propWidth().removePropertyListener(borderChangedListener);
+        model_widget.propHeight().removePropertyListener(borderChangedListener);
+        super.unregisterListeners();
     }
 
     private void borderChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

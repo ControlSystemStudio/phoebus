@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.util;
+package org.phoebus.ui.vtype;
 
 import java.util.ArrayList;
 import java.util.List;

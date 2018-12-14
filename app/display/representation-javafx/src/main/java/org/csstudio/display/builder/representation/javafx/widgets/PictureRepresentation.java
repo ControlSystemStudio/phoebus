@@ -13,7 +13,9 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
@@ -21,12 +23,8 @@ import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Dimension2D;
-import javafx.scene.Group;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.StrokeType;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -34,85 +32,81 @@ import javafx.scene.transform.Translate;
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureWidget>
+public class PictureRepresentation extends JFXBaseRepresentation<ImageView, PictureWidget>
 {
-    /** Change the image border properties */
-    private final DirtyFlag dirty_border = new DirtyFlag();
     /** Change the image file */
     private final DirtyFlag dirty_content = new DirtyFlag();
     /** Change the image size, rotation or preserve_ratio */
     private final DirtyFlag dirty_style = new DirtyFlag();
+    private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
+    private final WidgetPropertyListener<String> contentChangedListener = this::contentChanged;
 
     private volatile Image img_loaded;
-    private volatile ImageView iv;
     private volatile String img_path;
     private volatile double native_ratio = 1.0;
-
-    // private static final Color border_color = Color.GRAY;
-    private static final int inset = 0;
-    private static final int border_width = 1;
-    private volatile Rectangle border = new Rectangle();
 
     private volatile Rotate rotation = new Rotate(0);
     private volatile Translate translate = new Translate(0,0);
 
-    public static Dimension2D computeSize ( final PictureWidget widget ) {
-
+    public static Dimension2D computeSize(final PictureWidget widget)
+    {
         final String imageFile = widget.propFile().getValue();
 
-        try {
-
+        try
+        {
             final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
             final Image image = new Image(ModelResourceUtil.openResourceStream(filename));
             return new Dimension2D(image.getWidth(), image.getHeight());
 
-        } catch ( Exception ex ) {
+        }
+        catch (Exception ex)
+        {
             return new Dimension2D(0.0, 0.0);
         }
-
     }
 
     @Override
-    public Group createJFXNode() throws Exception
+    public ImageView createJFXNode() throws Exception
     {
-        iv = new ImageView();
+        final ImageView iv = new ImageView();
         iv.setSmooth(true);
-        Group gr = new Group(border, iv);
-        gr.getTransforms().addAll(translate, rotation);
-        return gr;
+        iv.getTransforms().addAll(translate, rotation);
+        return iv;
     }
 
     @Override
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propWidth().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(styleChangedListener);
 
-        model_widget.propStretch().addPropertyListener(this::styleChanged);
-        model_widget.propRotation().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propStretch().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
         styleChanged(null, null, null);
-
-        //TODO: add way to disable border or remove permanently
-        borderChanged(null, null, null);
 
         // This is one of those weird cases where getValue calls setValue and fires the listener.
         // So register listener after getValue called
         final String img_name = model_widget.propFile().getValue();
-        model_widget.propFile().addPropertyListener(this::contentChanged);
+        model_widget.propFile().addPropertyListener(contentChangedListener);
         ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, img_name));
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(styleChangedListener);
+        model_widget.propHeight().removePropertyListener(styleChangedListener);
+        model_widget.propStretch().removePropertyListener(styleChangedListener);
+        model_widget.propRotation().removePropertyListener(styleChangedListener);
+        model_widget.propFile().removePropertyListener(contentChangedListener);
+        super.unregisterListeners();
     }
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         dirty_style.mark();
         toolkit.scheduleUpdate(this);
-    }
-
-    private void borderChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
-    {
-       dirty_border.mark();
-       toolkit.scheduleUpdate(this);
     }
 
     private void contentChanged(final WidgetProperty<String> property, final String old_value, final String new_value)
@@ -161,7 +155,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
                 return null;
             });
 
-            if ( img_loaded == null )
+            if (img_loaded == null)
                 load_failed = true;
         }
 
@@ -180,9 +174,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
             }
         }
 
-        if ( !load_failed ) {
+        if (!load_failed)
             native_ratio = img_loaded.getWidth() / img_loaded.getHeight();
-        }
 
         // Resize/reorient in case we are preserving aspect ratio and changed native_ratio
         dirty_style.mark();
@@ -191,28 +184,17 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
         toolkit.scheduleUpdate(this);
     }
 
-
     @Override
     public void updateChanges()
     {
         super.updateChanges();
-        if (dirty_border.checkAndClear())
-        {
-            border.relocate(border_width, inset);
-            border.setFill(Color.TRANSPARENT);
-            // Hide border (but not really removing it for now)
-            // border.setStroke(border_color);
-            border.setStroke(null);
-            border.setStrokeWidth(border_width);
-            border.setStrokeType(StrokeType.INSIDE);
-        }
         if (dirty_content.checkAndClear())
         {
             if (img_loaded != null)
             {
-                iv.setImage(img_loaded);
+                jfx_node.setImage(img_loaded);
                 // We handle ratio internally, do not let ImageView do that
-                iv.setPreserveRatio(false);
+                jfx_node.setPreserveRatio(false);
             }
             jfx_node.setCache(true);
         }
@@ -226,17 +208,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
             // preserve aspect ratio
             if (!model_widget.propStretch().getValue())
             {
-
                 double w_prime = pic_h * native_ratio;
                 double h_prime = pic_w / native_ratio;
                 if (w_prime < pic_w)
-                {
                     pic_h = h_prime;
-                }
                 else if (h_prime < pic_h)
-                {
                     pic_w = w_prime;
-                }
             }
 
             double final_pic_w = pic_w;
@@ -253,11 +230,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<Group, PictureW
                 final_pic_h = (int) Math.floor(scale_fac * pic_h);
             }
 
-            border.setWidth(final_pic_w - 2*inset);
-            border.setHeight(final_pic_h - 2*inset);
-
-            iv.setFitHeight(final_pic_h);
-            iv.setFitWidth(final_pic_w);
+            jfx_node.setFitHeight(final_pic_h);
+            jfx_node.setFitWidth(final_pic_w);
 
             // Rotate around the center of the resized image
             rotation.setAngle(model_widget.propRotation().getValue());

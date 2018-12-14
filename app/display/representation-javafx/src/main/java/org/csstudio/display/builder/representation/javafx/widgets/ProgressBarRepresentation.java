@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.representation.javafx.widgets;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
@@ -28,6 +29,8 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
 {
     private final DirtyFlag dirty_look = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
+    private final UntypedWidgetPropertyListener lookChangedListener = this::lookChanged;
+    private final UntypedWidgetPropertyListener valueChangedListener = this::valueChanged;
     private volatile double percentage = 0.0;
 
     @Override
@@ -41,15 +44,29 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propFillColor().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propWidth().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::lookChanged);
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(this::valueChanged);
-        model_widget.propMinimum().addUntypedPropertyListener(this::valueChanged);
-        model_widget.propMaximum().addUntypedPropertyListener(this::valueChanged);
-        model_widget.runtimePropValue().addUntypedPropertyListener(this::valueChanged);
-        model_widget.propHorizontal().addUntypedPropertyListener(this::lookChanged);
+        model_widget.propFillColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propWidth().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propLimitsFromPV().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propMinimum().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propMaximum().addUntypedPropertyListener(valueChangedListener);
+        model_widget.runtimePropValue().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propHorizontal().addUntypedPropertyListener(lookChangedListener);
         valueChanged(null, null, null);
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propFillColor().removePropertyListener(lookChangedListener);
+        model_widget.propWidth().removePropertyListener(lookChangedListener);
+        model_widget.propHeight().removePropertyListener(lookChangedListener);
+        model_widget.propLimitsFromPV().removePropertyListener(valueChangedListener);
+        model_widget.propMinimum().removePropertyListener(valueChangedListener);
+        model_widget.propMaximum().removePropertyListener(valueChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        model_widget.propHorizontal().removePropertyListener(lookChangedListener);
+        super.unregisterListeners();
     }
 
     private void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

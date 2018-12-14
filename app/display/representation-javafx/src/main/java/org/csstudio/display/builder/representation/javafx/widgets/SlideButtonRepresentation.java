@@ -16,7 +16,9 @@ import java.util.logging.Level;
 
 import org.controlsfx.control.ToggleSwitch;
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.SlideButtonWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -48,6 +50,11 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     private final DirtyFlag dirty_size    = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
     private final DirtyFlag dirty_style   = new DirtyFlag();
+    private final UntypedWidgetPropertyListener   sizeChangedListener  = this::sizeChanged;
+    private final UntypedWidgetPropertyListener   styleChangedListener = this::styleChanged;
+    private final WidgetPropertyListener<Integer> bitChangedListener   = this::bitChanged;
+    private final WidgetPropertyListener<String>  labelChangedListener = this::labelChanged;
+    private final WidgetPropertyListener<VType>   valueChangedListener = this::valueChanged;
 
     protected volatile int     bit          = 0;
     protected volatile boolean enabled      = true;
@@ -142,34 +149,50 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
 
     @Override
     protected void registerListeners ( ) {
-
         super.registerListeners();
 
-        model_widget.propAutoSize().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propWidth().addUntypedPropertyListener(this::sizeChanged);
+        model_widget.propAutoSize().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propWidth().addUntypedPropertyListener(sizeChangedListener);
 
         labelChanged(model_widget.propLabel(), null, model_widget.propLabel().getValue());
 
-        model_widget.propLabel().addPropertyListener(this::labelChanged);
+        model_widget.propLabel().addPropertyListener(labelChangedListener);
 
         styleChanged(null, null, null);
 
-        model_widget.propEnabled().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propFont().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propForegroundColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propOffColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.propOnColor().addUntypedPropertyListener(this::styleChanged);
-        model_widget.runtimePropPVWritable().addUntypedPropertyListener(this::styleChanged);
+        model_widget.propEnabled().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propFont().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propOffColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propOnColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.runtimePropPVWritable().addUntypedPropertyListener(styleChangedListener);
 
         bitChanged(model_widget.propBit(), null, model_widget.propBit().getValue());
 
-        model_widget.propBit().addPropertyListener(this::bitChanged);
-        model_widget.runtimePropValue().addPropertyListener(this::valueChanged);
+        model_widget.propBit().addPropertyListener(bitChangedListener);
+        model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
 
         // Initial Update
         valueChanged(null, null, model_widget.runtimePropValue().getValue());
+    }
 
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propAutoSize().removePropertyListener(sizeChangedListener);
+        model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propWidth().removePropertyListener(sizeChangedListener);
+        model_widget.propLabel().removePropertyListener(labelChangedListener);
+        model_widget.propEnabled().removePropertyListener(styleChangedListener);
+        model_widget.propFont().removePropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(styleChangedListener);
+        model_widget.propOffColor().removePropertyListener(styleChangedListener);
+        model_widget.propOnColor().removePropertyListener(styleChangedListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(styleChangedListener);
+        model_widget.propBit().removePropertyListener(bitChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        super.unregisterListeners();
     }
 
     private void bitChanged ( final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value ) {

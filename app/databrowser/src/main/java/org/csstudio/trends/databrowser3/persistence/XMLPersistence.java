@@ -449,10 +449,10 @@ public class XMLPersistence
             writer.writeCharacters(model.getTitle().orElse(""));
             writer.writeEndElement();
 
-            if (model.shouldSaveChanges())
+            if (!model.shouldSaveChanges())
             {
                 writer.writeStartElement(TAG_SAVE_CHANGES);
-                writer.writeCharacters(Boolean.TRUE.toString());
+                writer.writeCharacters(Boolean.FALSE.toString());
                 writer.writeEndElement();
             }
 

@@ -12,7 +12,9 @@ import java.io.OutputStream;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.ModelPlugin;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.phoebus.framework.jobs.JobManager;
@@ -43,6 +45,8 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
 {
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final DirtyFlag dirty_url = new DirtyFlag();
+    private final UntypedWidgetPropertyListener sizeListener = this::sizeChanged;
+    private final WidgetPropertyListener<String> urlListener = this::urlChanged;
 
     private volatile double width;
     private volatile double height;
@@ -297,12 +301,23 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(this::sizeChanged);
-        model_widget.propHeight().addUntypedPropertyListener(this::sizeChanged);
+        model_widget.propWidth().addUntypedPropertyListener(sizeListener);
+        model_widget.propHeight().addUntypedPropertyListener(sizeListener);
         if (!toolkit.isEditMode())
-            model_widget.propWidgetURL().addPropertyListener(this::urlChanged);
+            model_widget.propWidgetURL().addPropertyListener(urlListener);
         //the showToolbar property cannot be changed at runtime
+    }
+
+    @Override
+    protected void unregisterListeners()
+    {
+        model_widget.propWidth().removePropertyListener(sizeListener);
+        model_widget.propHeight().removePropertyListener(sizeListener);
+        if (!toolkit.isEditMode())
+            model_widget.propWidgetURL().removePropertyListener(urlListener);
+        super.unregisterListeners();
    }
+
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
