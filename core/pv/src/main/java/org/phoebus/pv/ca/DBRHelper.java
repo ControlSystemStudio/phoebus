@@ -220,8 +220,7 @@ public class DBRHelper
             {
                 final short index = xx.getEnumValue()[0];
                 logger.log(Level.WARNING, "Invalid enum index " + index + " for PV with enum options " + enum_meta.getChoices());
-                return VShort.of(index, Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "Invalid Enum Index"),
-                                 convertTime(dbr), Display.none());
+                return VShort.of(index, convertAlarm(dbr), convertTime(dbr), Display.none());
             }
         }
 

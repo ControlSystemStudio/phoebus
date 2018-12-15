@@ -30,6 +30,7 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.text.RegExHelper;
+import org.phoebus.util.text.CompareNatural;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.binding.Bindings;
@@ -325,19 +326,20 @@ public class AlarmTableUI extends BorderPane
         sevcol.setCellFactory(c -> new SeverityIconCell());
         table.getColumns().add(sevcol);
 
-        TableColumn<AlarmInfoRow, String> col = new TableColumn<>("PV");
-        col.setPrefWidth(240);
-        col.setReorderable(false);
-        col.setCellValueFactory(cell -> cell.getValue().pv);
-        col.setCellFactory(c -> new DragPVCell());
+        final TableColumn<AlarmInfoRow, String> pv_col = new TableColumn<>("PV");
+        pv_col.setPrefWidth(240);
+        pv_col.setReorderable(false);
+        pv_col.setCellValueFactory(cell -> cell.getValue().pv);
+        pv_col.setCellFactory(c -> new DragPVCell());
+        pv_col.setComparator(CompareNatural.INSTANCE);
+        table.getColumns().add(pv_col);
 
-        table.getColumns().add(col);
-
-        col = new TableColumn<>("Description");
+        TableColumn<AlarmInfoRow, String> col = new TableColumn<>("Description");
         col.setPrefWidth(400);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().description);
         col.setCellFactory(c -> new DragPVCell());
+        col.setComparator(CompareNatural.INSTANCE);
         table.getColumns().add(col);
 
         sevcol = new TableColumn<>("Alarm Severity");
@@ -381,6 +383,11 @@ public class AlarmTableUI extends BorderPane
         col.setCellValueFactory(cell -> cell.getValue().pv_status);
         col.setCellFactory(c -> new DragPVCell());
         table.getColumns().add(col);
+
+        // Initially, sort on PV name
+        // - restore(Memento) might change that
+        table.getSortOrder().setAll(List.of(pv_col));
+        pv_col.setSortType(SortType.ASCENDING);
 
         table.setPlaceholder(new Label(active ? "No active alarms" : "No acknowledged alarms"));
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
