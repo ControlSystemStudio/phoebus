@@ -81,6 +81,14 @@ public class Messages
     public static String OpenTitle;
     public static String OpenWith;
     public static String ProgressTitle;
+    public static String PVListAppName;
+    public static String PVListJobName;
+    public static String PVListMenuPath;
+    public static String PVListPlaceholder;
+    public static String PVListRefreshTT;
+    public static String PVListTblConnected;
+    public static String PVListTblPVName;
+    public static String PVListTblReferences;
     public static String Save;
     public static String SaveAs;
     public static String SaveAsErrHdr;
@@ -100,8 +108,26 @@ public class Messages
     public static String ScreenshotErrHdr;
     public static String ScreenshotErrMsg;
     public static String ShowToolbar;
+    public static String Time12h;
+    public static String Time1d;
+    public static String Time3d;
+    public static String Time7d;
+    public static String TimeDate;
+    public static String TimeDays;
+    public static String TimeEnd;
+    public static String TimeHours;
+    public static String TimeMinutes;
+    public static String TimeMonth;
+    public static String TimeNow;
+    public static String TimeSeconds;
+    public static String TimeStart;
+    public static String TimeTime;
+    public static String TimeYear;
     public static String TopResources;
     public static String UnLockPane;
+    public static String WebBrowser;
+    public static String Welcome;
+    public static String WelcomeLabel;
     public static String Window;
 
     static

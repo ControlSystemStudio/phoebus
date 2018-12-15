@@ -13,6 +13,7 @@ import java.time.Period;
 import java.time.temporal.TemporalAmount;
 import java.util.Optional;
 
+import org.phoebus.ui.application.Messages;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
@@ -62,7 +63,7 @@ public class TimeRelativeIntervalPane extends GridPane
         setVgap(5);
         setPadding(new Insets(5));
 
-        Label label = new Label("Start");
+        Label label = new Label(Messages.TimeStart);
         final Font font = label.getFont();
         final Font bold = Font.font(font.getFamily(), FontWeight.BOLD, font.getSize());
         label.setFont(bold);
@@ -76,7 +77,7 @@ public class TimeRelativeIntervalPane extends GridPane
 
         add(new Separator(Orientation.VERTICAL), 1, 0, 1, 3);
 
-        label = new Label("End");
+        label = new Label(Messages.TimeEnd);
         label.setFont(bold);
         add(label, 2, 0);
 

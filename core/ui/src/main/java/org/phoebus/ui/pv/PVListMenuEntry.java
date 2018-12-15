@@ -8,6 +8,7 @@
 package org.phoebus.ui.pv;
 
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.spi.MenuEntry;
 
 /** Menu entry that opens PV List
@@ -25,7 +26,7 @@ public class PVListMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Debug";
+        return Messages.PVListMenuPath;
     }
 
     @Override

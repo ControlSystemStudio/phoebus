@@ -13,6 +13,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -79,7 +80,7 @@ public class PVList extends BorderPane
     public PVList()
     {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        table.setPlaceholder(new Label("There are no PVs in use"));
+        table.setPlaceholder(new Label(Messages.PVListPlaceholder));
         createTableColumns();
 
         Node toolbar = createToolbar();
@@ -96,7 +97,7 @@ public class PVList extends BorderPane
     {
         final Button refresh = new Button();
         refresh.setGraphic(ImageCache.getImageView(PVList.class, "/icons/refresh.png"));
-        refresh.setTooltip(new Tooltip("Refresh the PV Information"));
+        refresh.setTooltip(new Tooltip(Messages.PVListRefreshTT));
         refresh.setOnAction(event -> triggerRefresh());
         return refresh;
         // If more buttons are added:
@@ -105,7 +106,7 @@ public class PVList extends BorderPane
 
     private void createTableColumns()
     {
-        final TableColumn<PVInfo, Boolean> conn_col = new TableColumn<>("Connected");
+        final TableColumn<PVInfo, Boolean> conn_col = new TableColumn<>(Messages.PVListTblConnected);
         conn_col.setCellFactory(col -> new ConnectedCell());
         conn_col.setCellValueFactory(cell -> cell.getValue().connected);
         conn_col.setMinWidth(20.0);
@@ -113,11 +114,11 @@ public class PVList extends BorderPane
         conn_col.setMaxWidth(500.0);
         table.getColumns().add(conn_col);
 
-        final TableColumn<PVInfo, String> name_col = new TableColumn<>("PV Name");
+        final TableColumn<PVInfo, String> name_col = new TableColumn<>(Messages.PVListTblPVName);
         name_col.setCellValueFactory(cell -> cell.getValue().name);
         table.getColumns().add(name_col);
 
-        final TableColumn<PVInfo, Number> ref_col = new TableColumn<>("References");
+        final TableColumn<PVInfo, Number> ref_col = new TableColumn<>(Messages.PVListTblReferences);
         ref_col.setCellValueFactory(cell -> cell.getValue().references);
         ref_col.setMaxWidth(500.0);
         table.getColumns().add(ref_col);
@@ -125,7 +126,7 @@ public class PVList extends BorderPane
 
     private void triggerRefresh()
     {
-        JobManager.schedule("List PVs", monitor ->
+        JobManager.schedule(Messages.PVListJobName, monitor ->
         {
             // Background thread to list information
             final ObservableList<PVInfo> items = FXCollections.observableArrayList();

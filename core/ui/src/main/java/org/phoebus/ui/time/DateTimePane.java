@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+import org.phoebus.ui.application.Messages;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.InvalidationListener;
@@ -118,7 +119,7 @@ class DateTimePane extends GridPane
 
         date.setConverter(DATE_CONVERTER);
 
-        add(new Label("Date:"), 0, 0);
+        add(new Label(Messages.TimeDate), 0, 0);
         add(date, 1, 0);
 
         midnight.setMaxHeight(Double.MAX_VALUE);
@@ -136,7 +137,7 @@ class DateTimePane extends GridPane
         // nor GridPane.setFillWidth() so bind its widths to the hms box
         date.prefWidthProperty().bind(hms.widthProperty());
 
-        add(new Label("Time:"), 0, 1);
+        add(new Label(Messages.TimeTime), 0, 1);
         add(hms, 1, 1);
 
         final InvalidationListener invalidated = p ->

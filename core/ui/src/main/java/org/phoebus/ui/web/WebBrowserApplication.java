@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.application.PhoebusApplication;
 
 import javafx.application.Platform;
@@ -34,7 +35,7 @@ public class WebBrowserApplication implements AppResourceDescriptor
     @Override
     public String getDisplayName()
     {
-        return "Web Browser";
+        return Messages.WebBrowser;
     }
 
     @Override
