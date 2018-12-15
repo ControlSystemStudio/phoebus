@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
+import org.phoebus.util.text.CompareNatural;
+
 /** Base class for all nodes in the alarm tree
  *  @param STATE Type used for the alarm state
  *  @author Kay Kasemir
@@ -67,7 +69,8 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
             path_name = AlarmTreePath.makePath(parent.getPathName(), name);
 
             // Keep sorted by inserting at appropriate index
-            final int index = Collections.binarySearch(parent.children, this, (a, b) -> a.getName().compareTo(b.getName()));
+            // Note that getChild(name) depends on this order!
+            final int index = Collections.binarySearch(parent.children, this, (a, b) -> CompareNatural.compareTo(a.getName(), b.getName()));
             if (index < 0)
                 parent.children.add(-index-1, this);
             else
@@ -118,12 +121,13 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
     public AlarmTreeItem<?> getChild(final String name)
     {
         // Binary search for name
+        // Depends on nodes being in 'natural' order
         int low = 0, high = children.size()-1;
         while (low <= high)
         {
             final int mid = (low + high) >>> 1;
             final AlarmTreeItem<?> val = children.get(mid);
-            final int cmp = val.getName().compareTo(name);
+            final int cmp = CompareNatural.compareTo(val.getName(), name);
             if (cmp < 0)
                 low = mid + 1;
             else if (cmp > 0)
