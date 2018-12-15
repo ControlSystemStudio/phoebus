@@ -91,6 +91,9 @@ Select the phoebus root directory, and check the option to "Seach for nested pro
 
 By default, all projects should be selected ('dependencies', 'core-framework', .., 'product').
 
+When using Java 11, the file `dependencies/phoebus-target/.classpath`
+needs to be edited to list all the `phoebus-target/target/lib/javafx*.jar` files.
+
 Invoke `Run As/Java Application` on the `Launcher` in the product.
 
 
