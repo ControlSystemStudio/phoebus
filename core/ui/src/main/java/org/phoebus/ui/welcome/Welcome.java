@@ -9,6 +9,7 @@ package org.phoebus.ui.welcome;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.application.Messages;
 
 /** Welcome Application
  *  @author Kay Kasemir
@@ -25,7 +26,7 @@ public class Welcome  implements AppDescriptor
     @Override
     public String getDisplayName()
     {
-        return "Welcome";
+        return Messages.Welcome;
     }
 
     @Override

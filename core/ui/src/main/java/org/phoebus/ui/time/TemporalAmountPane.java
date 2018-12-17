@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+import org.phoebus.ui.application.Messages;
+
 import javafx.beans.InvalidationListener;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -72,33 +74,33 @@ public class TemporalAmountPane extends GridPane
 
         if (type != Type.ONLY_NOW)
         {
-            add(new Label("Year:"), 0, 0);
+            add(new Label(Messages.TimeYear), 0, 0);
             add(years, 1, 0);
 
-            add(new Label("Month:"), 0, 1);
+            add(new Label(Messages.TimeMonth), 0, 1);
             add(months, 1, 1);
 
-            add(new Label("Days:"), 0, 2);
+            add(new Label(Messages.TimeDays), 0, 2);
             add(days, 1, 2);
 
-            add(new Label("Hours:"), 2, 0);
+            add(new Label(Messages.TimeHours), 2, 0);
             add(hours, 3, 0);
 
-            add(new Label("Minutes:"), 2, 1);
+            add(new Label(Messages.TimeMinutes), 2, 1);
             add(minutes, 3, 1);
 
-            add(new Label("Seconds:"), 2, 2);
+            add(new Label(Messages.TimeSeconds), 2, 2);
             add(seconds, 3, 2);
 
-            add(createButton("12 h", Duration.ofHours(12)), 0, 3);
-            add(createButton("1 day", Period.ofDays(1)), 1, 3);
-            add(createButton("3 days", Period.ofDays(3)), 2, 3);
-            add(createButton("7 days", Period.ofDays(7)), 3, 3);
+            add(createButton(Messages.Time12h, Duration.ofHours(12)), 0, 3);
+            add(createButton(Messages.Time1d, Period.ofDays(1)), 1, 3);
+            add(createButton(Messages.Time3d, Period.ofDays(3)), 2, 3);
+            add(createButton(Messages.Time7d, Period.ofDays(7)), 3, 3);
         }
         if (type == Type.TEMPORAL_AMOUNTS_AND_NOW)
-            add(createButton("Now", Duration.ZERO), 3, 4);
+            add(createButton(Messages.TimeNow, Duration.ZERO), 3, 4);
         else if (type == Type.ONLY_NOW)
-            add(createButton("Now", Duration.ZERO), 0, 0);
+            add(createButton(Messages.TimeNow, Duration.ZERO), 0, 0);
 
         final InvalidationListener invalidated = p ->
         {

@@ -9,6 +9,7 @@ package org.phoebus.ui.pv;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.application.Messages;
 
 /** Application for the PV List
  *
@@ -22,7 +23,7 @@ import org.phoebus.framework.spi.AppInstance;
 public class PVListApplication implements AppDescriptor
 {
     public static final String NAME = "pv_list";
-    public static final String DISPLAY_NAME = "PV List";
+    public static final String DISPLAY_NAME = Messages.PVListAppName;
 
     @Override
     public String getName()
