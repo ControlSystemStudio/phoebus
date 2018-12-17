@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.macros.DisplayMacroExpander;
 import org.csstudio.display.builder.model.persist.ModelLoader;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
@@ -263,6 +264,7 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Re-load the current input */
     public void reload()
     {
+        ModelResourceUtil.clearURLCache();
         loadDisplayFile(getDisplayInfo());
     }
 
