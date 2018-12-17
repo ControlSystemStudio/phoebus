@@ -1,11 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.phoebus.ui.application;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.logging.Level;
+
+import org.phoebus.framework.workbench.Locations;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -25,6 +34,14 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 /** Splash screen
+ *
+ *  <p>Defaults to the <code>/icons/splash.png</code> resource.
+ *
+ *  <p>For site-specific splash, place a <code>site_splash.png</code>
+ *  in the install location.
+ *  See {@link Locations#install()} or runtime menu Help, About
+ *  for install location.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -55,7 +72,22 @@ public class Splash
         stage.setAlwaysOnTop(true);
         stage.setTitle(Messages.ProgressTitle);
 
-        final Image image = new Image(getClass().getResourceAsStream("/icons/splash.png"));
+        Image image = null;
+        final File custom_splash = new File(Locations.install(), "site_splash.png");
+        if (custom_splash.exists())
+        {
+            try
+            {
+                image = new Image(new FileInputStream(custom_splash));
+            }
+            catch (FileNotFoundException ex)
+            {
+                logger.log(Level.WARNING, "Cannot open " + custom_splash, ex);
+                image = null;
+            }
+        }
+        if (image == null)
+            image = new Image(getClass().getResourceAsStream("/icons/splash.png"));
         final double width = image.getWidth();
         final double height = image.getHeight();
 
