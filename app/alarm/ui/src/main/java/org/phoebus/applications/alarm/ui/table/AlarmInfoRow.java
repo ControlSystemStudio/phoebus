@@ -27,9 +27,10 @@ import javafx.util.Callback;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AlarmInfoRow
 {
-    /** Callback that obtains list of potentially changing properies
+    /** Callback that obtains list of potentially changing properties
      *  for an alarm info row.
      *
      *  To be used with TableView and SortedList to re-sort the table
