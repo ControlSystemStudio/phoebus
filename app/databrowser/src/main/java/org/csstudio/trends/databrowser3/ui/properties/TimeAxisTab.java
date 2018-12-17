@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 
+import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
@@ -27,16 +28,19 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
 /** Property tab for time axis
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class TimeAxisTab extends Tab
 {
     private final Model model;
 
+    private static final Tooltip times_tt = new Tooltip(Messages.StartEndDialogTT);
     private final TextField start = new TextField(),
                             end = new TextField();
     private final CheckBox grid = new CheckBox();
@@ -87,7 +91,8 @@ public class TimeAxisTab extends Tab
         GridPane.setHgrow(end, Priority.ALWAYS);
         layout.add(end, 3, 0);
 
-        final Button times = new Button(Messages.StartEndDialogBtn);
+        final Button times = new Button(Messages.StartEndDialogBtn, Activator.getIcon("time_range"));
+        times.setTooltip(times_tt);
         times.setOnAction(event ->  ChangeTimerangeAction.run(model, layout, undo));
         layout.add(times, 4, 0);
 
