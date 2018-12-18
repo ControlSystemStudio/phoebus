@@ -47,7 +47,7 @@ public class Activator
     static
     {
         // After 10 seconds, delete all idle threads
-        thread_pool = Executors.newScheduledThreadPool(5, new NamedThreadFactory("DataBrowser"));
+        thread_pool = Executors.newScheduledThreadPool(0, new NamedThreadFactory("DataBrowser"));
        ((ThreadPoolExecutor)thread_pool).setKeepAliveTime(10, TimeUnit.SECONDS);
     }
 
