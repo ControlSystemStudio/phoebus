@@ -35,7 +35,8 @@ public class Activator
      *
      *  <p>This timer is to be used for short-running tasks.
      */
-    public static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DataBrowserScroll"));
+    public static final ScheduledExecutorService timer;
+
 
     /** Thread pool, mostly for fetching archived data
      *
@@ -46,6 +47,11 @@ public class Activator
 
     static
     {
+        // Up to 1 timer thread, delete when more than 10 seconds idle
+        timer = Executors.newScheduledThreadPool(0, new NamedThreadFactory("DataBrowserScroll"));
+        ((ThreadPoolExecutor)timer).setKeepAliveTime(10, TimeUnit.SECONDS);
+        ((ThreadPoolExecutor)timer).setMaximumPoolSize(1);
+
         // After 10 seconds, delete all idle threads
         thread_pool = Executors.newScheduledThreadPool(0, new NamedThreadFactory("DataBrowser"));
        ((ThreadPoolExecutor)thread_pool).setKeepAliveTime(10, TimeUnit.SECONDS);
