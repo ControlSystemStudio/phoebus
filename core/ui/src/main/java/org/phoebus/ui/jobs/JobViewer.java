@@ -45,7 +45,7 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 class JobViewer implements AppInstance
 {
-    /** Timer, shared with {@link StatusBarJobsIndicator} */
+    /** Timer, shared with {@link StatusBarJobsIndicator} which keeps using it for a timer that shows/hides the 'Jobs' button in status bar */
     static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("JobViewer"));
 
     static JobViewer INSTANCE = null;
