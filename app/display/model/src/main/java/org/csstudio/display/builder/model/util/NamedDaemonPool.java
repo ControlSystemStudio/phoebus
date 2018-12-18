@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,10 +11,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import org.phoebus.framework.jobs.NamedThreadFactory;
 
 /** Factory of named daemon threads
  *
@@ -23,13 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *  debugger.
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
-public class NamedDaemonPool implements ThreadFactory
+public class NamedDaemonPool
 {
-    private static final AtomicInteger instance = new AtomicInteger();
-
-    private final String name;
-
     // Using one thread per CPU core should make best use of the CPU.
     // Having just one such ExecutorService, however, may not be optimal:
     // If the display 'runtime' uses all cores,
@@ -72,7 +67,7 @@ public class NamedDaemonPool implements ThreadFactory
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 10L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(),
-                new NamedDaemonPool(name));
+                new NamedThreadFactory(name));
     }
 
     /** Create scheduled executor service for model related tasks
@@ -82,23 +77,9 @@ public class NamedDaemonPool implements ThreadFactory
      */
     public static ScheduledExecutorService createTimer(final String name)
     {
-        return Executors.newSingleThreadScheduledExecutor(new NamedDaemonPool(name));
-    }
-
-    public NamedDaemonPool(final String name)
-    {
-        this.name = name;
-    }
-
-    @Override
-    public Thread newThread(final Runnable target)
-    {
-        final int inst = instance.incrementAndGet();
-        final String thread_name = (inst == 1)
-                ? name
-                : name + "-" + inst;
-        final Thread thread = new Thread(target, thread_name);
-        thread.setDaemon(true);
-        return thread;
+        final ScheduledExecutorService timer = Executors.newScheduledThreadPool(0, new NamedThreadFactory(name));
+        ((ThreadPoolExecutor)timer).setKeepAliveTime(10, TimeUnit.SECONDS);
+        ((ThreadPoolExecutor)timer).setMaximumPoolSize(1);
+        return timer;
     }
 }
