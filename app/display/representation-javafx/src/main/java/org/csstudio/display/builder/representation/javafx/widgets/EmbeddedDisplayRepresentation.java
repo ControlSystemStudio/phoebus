@@ -55,7 +55,7 @@ import javafx.scene.transform.Scale;
 public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<ScrollPane, EmbeddedDisplayWidget>
 {
     private static final Background TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
-    private static final Border EDIT_BORDER = new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
+    private static final Border EDIT_BORDER = new Border(new BorderStroke(new Color(0.45, 0.44, 0.43, 0.7), BorderStrokeStyle.DOTTED, CornerRadii.EMPTY, BorderWidths.DEFAULT));
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
@@ -107,7 +107,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
         scroll = new ScrollPane(inner);
         //  Removing 1px border around the ScrollPane's content. See https://stackoverflow.com/a/29376445
-        scroll.getStyleClass().add("edge-to-edge");
+        scroll.getStyleClass().addAll("embedded_display", "edge-to-edge");
         // Panning tends to 'jerk' the content when clicked
         // scroll.setPannable(true);
         return scroll;
@@ -155,9 +155,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
 
         final int widget_width = model_widget.propWidth().getValue();
         final int widget_height = model_widget.propHeight().getValue();
-        // "-2" to prevent triggering scrollbars
-        inner.setMinWidth(widget_width-2);
-        inner.setMinHeight(widget_height-2);
+        inner.setMinWidth(widget_width);
+        inner.setMinHeight(widget_height);
 
         final Resize resize = model_widget.propResize().getValue();
         final DisplayModel content_model = active_content_model.get();
