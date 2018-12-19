@@ -111,7 +111,7 @@ public class PhoebusApplication extends Application {
 
     /** Menu item to show/hide toolbar */
     private CheckMenuItem show_toolbar;
-    
+
     /** Menu item to save layout */
     private SaveLayoutMenuItem save_layout;
 
@@ -429,8 +429,8 @@ public class PhoebusApplication extends Application {
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
         save_layout = new SaveLayoutMenuItem(this, memento_files);
-        
-        final Menu menu = new Menu(Messages.Window, null, 
+
+        final Menu menu = new Menu(Messages.Window, null,
                 show_tabs,
                 show_toolbar,
                 new SeparatorMenuItem(),
@@ -439,13 +439,15 @@ public class PhoebusApplication extends Application {
                 new SeparatorMenuItem(),
                 /* Full Screen placeholder */
                 new FullScreenAction(stage));
-        // Update Full screen action when shown, last menu item
-        menu.setOnShowing(event -> {
-            int full_screen_index = menu.getItems().size()-1;
-            menu.getItems().set(full_screen_index, new FullScreenAction(stage));
-            final boolean may_full_screen = AuthorizationService.hasAuthorization("full_screen");
-            menu.getItems().get(full_screen_index).setDisable(!may_full_screen);
-            });
+        // Update Full screen action when shown to get correct enter/exit FS mode
+        menu.setOnShowing(event ->
+        {   // Last menu item
+            final int full_screen_index = menu.getItems().size()-1;
+            final FullScreenAction full_screen = new FullScreenAction(stage);
+            if (! AuthorizationService.hasAuthorization("full_screen"))
+                full_screen.setDisable(true);
+            menu.getItems().set(full_screen_index, full_screen);
+        });
         menuBar.getMenus().add(menu);
 
         // Help
