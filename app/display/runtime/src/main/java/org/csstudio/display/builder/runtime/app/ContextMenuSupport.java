@@ -39,7 +39,6 @@ import org.phoebus.ui.javafx.Screenshot;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -167,7 +166,6 @@ class ContextMenuSupport
         }
 
 
-        final Scene scene = node.getScene();
         final Parent model_parent = instance.getRepresentation().getModelParent();
         items.add(new PrintAction(model_parent));
 
@@ -177,7 +175,6 @@ class ContextMenuSupport
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));
-        items.add(new FullScreenAction(scene));
 
         // If the editor is available, add "Open in Editor"
         final AppResourceDescriptor editor = ApplicationService.findApplication("display_editor");

@@ -40,6 +40,7 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.help.OpenAbout;
 import org.phoebus.ui.help.OpenHelp;
 import org.phoebus.ui.internal.MementoHelper;
+import org.phoebus.ui.javafx.FullScreenAction;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.monitoring.ResponsivenessMonitor;
@@ -110,7 +111,7 @@ public class PhoebusApplication extends Application {
 
     /** Menu item to show/hide toolbar */
     private CheckMenuItem show_toolbar;
-
+    
     /** Menu item to save layout */
     private SaveLayoutMenuItem save_layout;
 
@@ -428,8 +429,23 @@ public class PhoebusApplication extends Application {
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
         save_layout = new SaveLayoutMenuItem(this, memento_files);
-
-        final Menu menu = new Menu(Messages.Window, null, show_tabs, show_toolbar, save_layout, load_layout);
+        
+        final Menu menu = new Menu(Messages.Window, null, 
+                show_tabs,
+                show_toolbar,
+                new SeparatorMenuItem(),
+                save_layout,
+                load_layout,
+                new SeparatorMenuItem(),
+                /* Full Screen placeholder */
+                new FullScreenAction(stage));
+        // Update Full screen action when shown, last menu item
+        menu.setOnShowing(event -> {
+            int full_screen_index = menu.getItems().size()-1;
+            menu.getItems().set(full_screen_index, new FullScreenAction(stage));
+            final boolean may_full_screen = AuthorizationService.hasAuthorization("full_screen");
+            menu.getItems().get(full_screen_index).setDisable(!may_full_screen);
+            });
         menuBar.getMenus().add(menu);
 
         // Help
