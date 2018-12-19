@@ -111,9 +111,15 @@ public class ScanMonitor implements AppInstance
     @Override
     public void restore(final Memento memento)
     {
-        int i = 0;
-        for (TableColumn<?, ?> col : scans.getTableColumns())
-            memento.getNumber("COL" + i++).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
+        final List<TableColumn<ScanInfoProxy, ?>> columns = scans.getTableColumns();
+        // Don't restore width of the last column, the "Error",
+        // because its pref.width is bound to a computation from table width
+        // and sum of other columns
+        for (int i=0; i<columns.size()-1; ++i)
+        {
+            final TableColumn<?, ?> col = columns.get(i);
+            memento.getNumber("COL" + i).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
+        }
     }
 
     @Override

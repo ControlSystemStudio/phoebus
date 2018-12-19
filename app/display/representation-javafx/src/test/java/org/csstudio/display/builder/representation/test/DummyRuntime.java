@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.test;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -22,8 +21,7 @@ import org.csstudio.display.builder.model.util.NamedDaemonPool;
 @SuppressWarnings("nls")
 class DummyRuntime
 {
-    final private ScheduledExecutorService timer =
-            Executors.newScheduledThreadPool(1, new NamedDaemonPool("DemoTimer"));
+    final private ScheduledExecutorService timer = NamedDaemonPool.createTimer("DemoTimer");
 
     public DummyRuntime(final DisplayModel model)
     {
