@@ -171,4 +171,10 @@ public class Cache<T>
     {
         return cache.keySet();
     }
+
+    /** Clear cache entries (not waiting for them to expire) */
+    public void clear()
+    {
+        cache.clear();
+    }
 }

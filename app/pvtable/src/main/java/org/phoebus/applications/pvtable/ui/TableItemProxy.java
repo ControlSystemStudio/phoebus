@@ -15,11 +15,13 @@ import org.phoebus.applications.pvtable.model.SavedValue;
 import org.phoebus.applications.pvtable.model.TimestampHelper;
 import org.phoebus.applications.pvtable.model.VTypeHelper;
 
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.WeakChangeListener;
+import javafx.util.Callback;
 
 /** Proxy for a PVTableItem
  *
@@ -34,6 +36,7 @@ import javafx.beans.value.WeakChangeListener;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 class TableItemProxy
 {
     /** 'Magic' table item added to the end of the actual model to allow adding
@@ -42,6 +45,20 @@ class TableItemProxy
      */
     final public static TableItemProxy NEW_ITEM = new TableItemProxy();
 
+    /** Callback to obtain list of potentially changing properties.
+     *  Add to list wrapped in SortedList to trigger re-sort
+     *  when a property changes.
+     *  See https://rterp.wordpress.com/2015/05/08/automatically-sort-a-javafx-tableview
+     */
+    public static final Callback<TableItemProxy, Observable[]> CHANGING_PROPERTIES = proxy -> new Observable[]
+    {
+        proxy.time,
+        proxy.value,
+        proxy.alarm,
+        proxy.saved,
+        proxy.time_saved
+    };
+
     // UI can be held in memory for a little longer after the application
     // has been closed.
     // Use weak reference to application data (PV item)
@@ -49,13 +66,13 @@ class TableItemProxy
     // Eventually, UI will also be GCed.
     final private WeakReference<PVTableItem> item;
     final BooleanProperty selected = new SimpleBooleanProperty();
-    final StringProperty name = new SimpleStringProperty();
-    final StringProperty time = new SimpleStringProperty();
-    final StringProperty value = new SimpleStringProperty();
-    final StringProperty desc_value = new SimpleStringProperty();
-    final StringProperty alarm = new SimpleStringProperty();
-    final StringProperty saved = new SimpleStringProperty();
-    final StringProperty time_saved = new SimpleStringProperty();
+    final StringProperty name = new SimpleStringProperty("");
+    final StringProperty time = new SimpleStringProperty("");
+    final StringProperty value = new SimpleStringProperty("");
+    final StringProperty desc_value = new SimpleStringProperty("");
+    final StringProperty alarm = new SimpleStringProperty("");
+    final StringProperty saved = new SimpleStringProperty("");
+    final StringProperty time_saved = new SimpleStringProperty("");
     final BooleanProperty use_completion = new SimpleBooleanProperty();
 
     public TableItemProxy()
@@ -85,9 +102,9 @@ class TableItemProxy
         final VType item_value = item.getValue();
         if (item_value == null)
         {
-            time.set(null);
-            value.set(null);
-            alarm.set(null);
+            time.set("");
+            value.set("");
+            alarm.set("");
         }
         else
         {
@@ -101,8 +118,8 @@ class TableItemProxy
         final SavedValue saved_value = item.getSavedValue().orElse(null);
         if (saved_value == null)
         {
-            saved.set(null);
-            time_saved.set(null);
+            saved.set("");
+            time_saved.set("");
         }
         else
         {

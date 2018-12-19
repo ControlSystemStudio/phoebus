@@ -514,6 +514,15 @@ public class ModelResourceUtil
         return new FileInputStream(resource_name);
     }
 
+    /** Clear cached URLs
+     *
+     *  <p>Call to force a re-load right now without waiting for cache to expire
+     */
+    public static void clearURLCache()
+    {
+        url_cache.clear();
+    }
+
     /** Open URL for "http", "https", "ftp", ..
      *  @param resource_name URL specification
      *  @return {@link InputStream}

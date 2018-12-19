@@ -90,6 +90,28 @@
     -fx-text-overrun: clip;
 }
 
+/** Embedded display uses a ScrollPane.
+ *  That pane has a 'background' which only appears as a small rim.
+ *  The bulk is handled by a 'viewport' inside the skin,
+ *  which is hard to access since lookup(".viewport") only works
+ *  after the widgets have been rendered.
+ *
+ *  -> Make the embedded display scroll pane
+ *     transparent and handle all coloring
+ *     via the 'inner' pane in the code.
+ */
+.embedded_display
+{
+    /* Hide small border around scroll pane, see
+     * http://stackoverflow.com/questions/17540137/javafx-scrollpane-border-and-background/17540428#17540428
+     */
+    -fx-background-color: transparent;
+}
+.embedded_display > .viewport
+{
+    -fx-background-color: transparent;
+}
+
 /* NavigationTabs:
  * tabregion with buttons; horizontal or vertical(default).
  * body contains the embedded widgets.

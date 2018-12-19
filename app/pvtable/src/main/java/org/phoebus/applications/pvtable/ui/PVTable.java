@@ -36,12 +36,14 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.pv.SeverityColors;
+import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -85,8 +87,29 @@ public class PVTable extends VBox
     private static final String new_item_style = "-fx-text-fill: gray;";
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
 
+    /** When sorting, keep the 'NEW_ITEM' row at the bottom **/
+    private static final Comparator<TableItemProxy> SORT_NEW_ITEM_LAST = (a, b) ->
+    {
+        if (a == TableItemProxy.NEW_ITEM)
+            return 1;
+        else if (b == TableItemProxy.NEW_ITEM)
+            return -1;
+        return 0;
+    };
+
+    /** Model of all PV table items */
     private final PVTableModel model;
-    private final TableView<TableItemProxy> table;
+
+    /** TableItemProxy rows for table view, with callback to trigger updates
+     *  not only when item is added/removed, but also when (selected)
+     *  properties of the item (== column values) change
+     */
+    private final ObservableList<TableItemProxy> rows = FXCollections.observableArrayList(TableItemProxy.CHANGING_PROPERTIES);
+    /** Sorted view of the rows.
+     *  Order of 'rows' is preserved, but comparator of this list changes to sort.
+     */
+    private final SortedList<TableItemProxy> sorted = rows.sorted();
+    private final TableView<TableItemProxy> table = new TableView<>(sorted);
 
     private TableColumn<TableItemProxy, String>  saved_value_col;
     private TableColumn<TableItemProxy, String>  saved_time_col;
@@ -378,7 +401,10 @@ public class PVTable extends VBox
             final int row = model.getItems().indexOf(item);
 
             // System.out.println(item + " changed in row " + row + " on " + Thread.currentThread().getName());
-            table.getItems().get(row).update(item);
+            final TableItemProxy proxy = rows.get(row);
+            if (proxy.getItem() != item)
+                throw new IllegalStateException("*** Looking for " + item.getName() + " but found " + proxy.name.get());
+            proxy.update(item);
         }
 
         @Override
@@ -397,29 +423,47 @@ public class PVTable extends VBox
     public PVTable(final PVTableModel model)
     {
         this.model = model;
-        table = new TableView<>();
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 
-        // When sorting, keep the 'NEW_ITEM' row at the bottom
-        final Comparator<TableItemProxy> compare_except_new_item = (a, b) ->
-        {
-            // Force 'NEW_ITEM' to remain at bottom
-            if (a == TableItemProxy.NEW_ITEM)
-                return 1;
-            else if (b == TableItemProxy.NEW_ITEM)
-                return -1;
+        // Initial sort: No columns, just new item at bottom
+        sorted.setComparator(SORT_NEW_ITEM_LAST);
 
-            // Normal comparison uses the currently active comparator,
-            // i.e. the one that depends on the currently selected
-            // sort column
-            final Comparator<TableItemProxy> normal = table.getComparator();
-            if (normal == null)
-                return 0;
-            return normal.compare(a, b);
+        // When user clicks on column headers, table.comparatorProperty updates
+        // to sort by those columns.
+        // SortedList should fundamentally use that order, i.e.
+        //   sorted.comparatorProperty().bind(table.comparatorProperty());
+        // but in addition the NEW_ITEM should remain last.
+        final InvalidationListener sort_changed = p ->
+        {
+            final Comparator<? super TableItemProxy> column_comparator = table.getComparator();
+            // System.out.println("Table column sort: " + column_comparator);
+            if (column_comparator == null)
+                sorted.setComparator(SORT_NEW_ITEM_LAST);
+            else
+                sorted.setComparator(SORT_NEW_ITEM_LAST.thenComparing(column_comparator));
         };
+
+        // The InvalidationListener is called when sort order is set up, down or null.
+        // Iffy: A ChangeListener was only called when sort order is set up or null,
+        // no change when sorting up vs. down, so failed to set the combined
+        // SORT_NEW_ITEM_LAST.thenComparing(column_comparator)
+        table.comparatorProperty().addListener(sort_changed);
+
+        // TableView.DEFAULT_SORT_POLICY will check if table items are a SortedList.
+        // If so, it warns unless  sortedList.comparator == table.comparator,
+        // which is not the case since we wrap it in SORT_NEW_ITEM_LAST
         table.setSortPolicy(table ->
         {
-            FXCollections.sort(table.getItems(), compare_except_new_item);
+            // Underlying 'rows' are kept in their original order
+            // System.out.println("Data:");
+            // for (TableItemProxy proxy : rows)
+            //    System.out.println(proxy.name.get() + (proxy == TableItemProxy.NEW_ITEM ? " (NEW)" : ""));
+            // The 'sorted' list uses the changing comparator
+            // System.out.println("Sorted:");
+            // for (TableItemProxy proxy : sorted)
+            //    System.out.println(proxy.name.get() + (proxy == TableItemProxy.NEW_ITEM ? " (NEW)" : ""));
+
+            // Nothing to do, sorted list already handles everything
             return true;
         });
 
@@ -473,12 +517,11 @@ public class PVTable extends VBox
         if (! model.isSaveRestoreEnabled())
             disableSaveRestore();
 
-        table.setItems(FXCollections.emptyObservableList());
-        final ObservableList<TableItemProxy> items = FXCollections.observableArrayList();
+        final List<TableItemProxy> items = new ArrayList<>(model.getItems().size() + 1);
         for (PVTableItem item : model.getItems())
             items.add(new TableItemProxy(item));
         items.add(TableItemProxy.NEW_ITEM);
-        table.setItems(items);
+        rows.setAll(items);
         table.refresh();
     }
 
@@ -689,6 +732,8 @@ public class PVTable extends VBox
                 model.fireModelChange();
             }
         });
+        // Use natural order for PV name
+        col.setComparator(CompareNatural.INSTANCE);
         table.getColumns().add(col);
 
         // Description
@@ -722,6 +767,8 @@ public class PVTable extends VBox
             // Since updates were suppressed, refresh table
             table.refresh();
         });
+        // Use natural order for value
+        col.setComparator(CompareNatural.INSTANCE);
         table.getColumns().add(col);
 
         // Alarm
@@ -733,6 +780,8 @@ public class PVTable extends VBox
         // Saved value
         col = new TableColumn<>(Messages.Saved);
         col.setCellValueFactory(cell -> cell.getValue().saved);
+        // Use natural order for saved value
+        col.setComparator(CompareNatural.INSTANCE);
         saved_value_col = col;
         table.getColumns().add(col);
 

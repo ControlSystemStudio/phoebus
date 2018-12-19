@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.ScriptInfo;
-import org.csstudio.display.builder.model.util.NamedDaemonPool;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 
 /** Script (Jython, Javascript) Support
  *
@@ -38,7 +38,7 @@ import org.csstudio.display.builder.model.util.NamedDaemonPool;
 public class ScriptSupport
 {
     /** Single thread script executor, shared by Jython and Javascript */
-    private final ExecutorService executor = Executors.newSingleThreadExecutor(new NamedDaemonPool("ScriptSupport"));
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("ScriptSupport"));
 
     /** Futures of submitted scripts to allow cancellation */
     private final Queue<Future<Object>> active_scripts = new ConcurrentLinkedQueue<>();
