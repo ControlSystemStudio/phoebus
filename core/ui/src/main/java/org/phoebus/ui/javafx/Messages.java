@@ -19,6 +19,8 @@ public class Messages
     public static String ClipboardTooltip;
     public static String CSSWindow;
     public static String CSSWindowTooltip;
+    public static String EnterFullScreen;
+    public static String ExitFullScreen;
     public static String Files;
     public static String Images;
     public static String ImagesTitle;
