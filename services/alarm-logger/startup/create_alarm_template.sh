@@ -1,9 +1,4 @@
 #!/bin/sh
-if [ $# -ne 1 ]
-then
-    echo "Usage: create_alarm_template.sh"
-    exit 1
-fi
 
 es_host=localhost
 es_port=9200
@@ -90,3 +85,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_cmd_template -H 'Conten
   }
 }
 '
+
+echo "Alarm templates:"
+curl -X GET "${es_host}:${es_port}/_template/*alarm*"
+
