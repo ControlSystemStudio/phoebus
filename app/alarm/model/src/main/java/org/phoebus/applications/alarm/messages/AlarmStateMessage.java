@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * A bean representing a alarm state message
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -32,14 +32,11 @@ public class AlarmStateMessage {
 
     // The following fields are for logging purposes
     private Instant message_time;
+    private boolean latch;
 
     private String config;
     private String pv;
 
-
-    public AlarmStateMessage() {
-        super();
-    }
 
     public String getConfig() {
         return config;
@@ -63,6 +60,16 @@ public class AlarmStateMessage {
 
     public void setSeverity(String severity) {
         this.severity = severity;
+    }
+
+    public boolean isLatch()
+    {
+        return latch;
+    }
+
+    public void setLatch(boolean latch)
+    {
+        this.latch = latch;
     }
 
     public String getMessage() {
@@ -128,7 +135,7 @@ public class AlarmStateMessage {
 
     @JsonIgnore
     public void setInstant(Instant instant) {
-        this.time = new HashMap<String, String>();
+        this.time = new HashMap<>();
         this.time.put("seconds", String.valueOf(instant.getEpochSecond()));
         this.time.put("nano", String.valueOf(instant.getNano()));
     }

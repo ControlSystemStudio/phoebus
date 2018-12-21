@@ -4,6 +4,7 @@ import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
 import java.time.Instant;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -32,6 +33,7 @@ import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.util.indexname.IndexNameHelper;
 
+@SuppressWarnings("nls")
 public class AlarmStateLogger implements Runnable {
 
     private static final String INDEX_FORMAT = "_alarms_state";
@@ -42,11 +44,17 @@ public class AlarmStateLogger implements Runnable {
 
     private IndexNameHelper indexNameHelper;
 
+    /** Track the last known alarm severity for each PV
+     *
+     *  That's the latched severity, not current_severity.
+     */
+    private final ConcurrentHashMap<String, String> last_pv_severity = new ConcurrentHashMap<>();
+
     public AlarmStateLogger(String topic) throws Exception {
         super();
         this.topic = topic;
 
-        MessageParser<AlarmStateMessage> messageParser = new MessageParser<AlarmStateMessage>(AlarmStateMessage.class);
+        MessageParser<AlarmStateMessage> messageParser = new MessageParser<>(AlarmStateMessage.class);
         alarmStateMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
     }
 
@@ -90,7 +98,7 @@ public class AlarmStateLogger implements Runnable {
 
             @Override
             public Transformer<String, AlarmStateMessage, KeyValue<String, AlarmStateMessage>> get() {
-                return new Transformer<String, AlarmStateMessage, KeyValue<String, AlarmStateMessage>>() {
+                return new Transformer<>() {
                     private ProcessorContext context;
                     private StateStore state;
 
@@ -101,9 +109,22 @@ public class AlarmStateLogger implements Runnable {
                         value.setConfig(key);
                         matcher.find();
                         String[] tokens = AlarmTreePath.splitPath(key);
-                        value.setPv(tokens[tokens.length - 1]);
+                        final String pv = tokens[tokens.length - 1];
+                        value.setPv(pv);
+
+                        // Did the severity for this PV change into MINOR, MAJOR, INVALID, UNDEFINED?
+                        // Then this message indicates the start of a latched alarm.
+                        // Otherwise the message indicates an update of the current_severity (still latched),
+                        // or an acknowledgement (same latched alarm),
+                        // or an OK (alarm cleared).
+                        final String severity = value.getSeverity();
+                        final String last_severity = last_pv_severity.put(pv, severity);
+                        value.setLatch(! severity.equals(last_severity)  &&
+                                       ! severity.equals("OK")           &&
+                                       ! severity.endsWith("_ACK"));
+
                         value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
-                        return new KeyValue<String, AlarmStateMessage>(key, value);
+                        return new KeyValue<>(key, value);
                     }
 
                     @Override
