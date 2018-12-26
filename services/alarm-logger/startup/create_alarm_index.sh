@@ -110,7 +110,13 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
           "host" : {
             "type" : "keyword"
           },
-          "config" : {
+          "enabled" : {
+            "type" : "keyword"
+          },
+          "latching" : {
+            "type" : "keyword"
+          },
+          "config_msg" : {
             "type" : "keyword"
           },
           "message_time" : {

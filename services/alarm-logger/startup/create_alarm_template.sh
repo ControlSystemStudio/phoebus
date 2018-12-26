@@ -107,7 +107,13 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_config_template -H
           "host" : {
             "type" : "keyword"
           },
-          "config" : {
+          "enabled" : {
+            "type" : "keyword"
+          },
+          "latching" : {
+            "type" : "keyword"
+          },
+          "config_msg" : {
             "type" : "keyword"
           },
           "message_time" : {

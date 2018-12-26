@@ -27,6 +27,9 @@ public class AlarmConfigMessage {
     private String user;
     private String host;
     private String description;
+    private boolean enabled = true;
+    private boolean latching = true;
+    private boolean annunciating = true;
     private int delay;
     private int count;
     private String filter;
@@ -34,6 +37,7 @@ public class AlarmConfigMessage {
     private List<Map<String, String>> displays;
     private List<Map<String, String>> commands;
     private List<Map<String, String>> actions;
+
     private String delete;
 
     // The following fields are for logging purposes
@@ -65,6 +69,30 @@ public class AlarmConfigMessage {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isLatching() {
+        return latching;
+    }
+
+    public void setLatching(boolean latching) {
+        this.latching = latching;
+    }
+
+    public boolean isAnnunciating() {
+        return annunciating;
+    }
+
+    public void setAnnunciating(boolean annunciating) {
+        this.annunciating = annunciating;
     }
 
     public int getDelay() {
@@ -174,6 +202,8 @@ public class AlarmConfigMessage {
         map.put("config", getConfig());
         map.put("user", getUser());
         map.put("host", getHost());
+        map.put("enabled", Boolean.toString(isEnabled()));
+        map.put("latching", Boolean.toString(isLatching()));
         map.put("config_msg", toString());
         map.put("message_time", formatter.format(getMessage_time()));
         return map;
