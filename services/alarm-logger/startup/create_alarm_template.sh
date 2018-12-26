@@ -87,3 +87,35 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_cmd_template -H 'C
   }
 }
 '
+
+# Create the elastic template with the correct mapping for alarm config messages.
+curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_config_template -H 'Content-Type: application/json' -d'
+{
+  "index_patterns":["*_alarms_config*"],
+  "mappings" : {  
+    "alarm_cmd" : {
+        "properties" : {
+          "APPLICATION-ID" : {
+            "type" : "text"
+          },
+          "config" : {
+            "type" : "keyword"
+          },
+          "user" : {
+            "type" : "keyword"
+          },
+          "host" : {
+            "type" : "keyword"
+          },
+          "config" : {
+            "type" : "keyword"
+          },
+          "message_time" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+  }
+}
+'

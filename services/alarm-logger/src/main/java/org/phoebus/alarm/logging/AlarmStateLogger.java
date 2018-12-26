@@ -32,6 +32,11 @@ import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.util.indexname.IndexNameHelper;
 
+/**
+ * A Runnable which consumes the alarm state messages and records them to an elastic index.
+ * @author Kunal Shroff
+ *
+ */
 public class AlarmStateLogger implements Runnable {
 
     private static final String INDEX_FORMAT = "_alarms_state";
@@ -42,6 +47,15 @@ public class AlarmStateLogger implements Runnable {
 
     private IndexNameHelper indexNameHelper;
 
+    /**
+     * Create a alarm state logger for the given alarm server topic * This runnable
+     * will create the kafka streams for the given alarm messages which match the
+     * format 'topicState'
+     * 
+     * @param topic
+     *            the alarm topic
+     * @throws Exception
+     */
     public AlarmStateLogger(String topic) throws Exception {
         super();
         this.topic = topic;

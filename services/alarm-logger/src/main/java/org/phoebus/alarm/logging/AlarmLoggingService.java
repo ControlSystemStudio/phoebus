@@ -187,6 +187,7 @@ public class AlarmLoggingService {
             {
                 Scheduler.execute(new AlarmStateLogger(topic));
                 Scheduler.execute(new AlarmCmdLogger(topic));
+                Scheduler.execute(new AlarmConfigLogger(topic));
             } 
             catch (Exception ex)
             {
