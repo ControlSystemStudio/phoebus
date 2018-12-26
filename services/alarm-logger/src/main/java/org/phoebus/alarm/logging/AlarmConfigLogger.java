@@ -1,6 +1,5 @@
 package org.phoebus.alarm.logging;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
 import java.time.Instant;
