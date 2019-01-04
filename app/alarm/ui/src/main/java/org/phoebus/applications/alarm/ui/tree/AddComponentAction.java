@@ -7,6 +7,9 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.framework.jobs.JobManager;
@@ -37,7 +40,7 @@ class AddComponentAction extends MenuItem
     {
         private final TextField name = new TextField();
         private final RadioButton type_node = new RadioButton("Node"),
-                                  type_pv = new RadioButton("PV");
+                                  type_pv = new RadioButton("PV/s");
 
         public AddComponentDialog(final AlarmTreeItem<?> parent)
         {
@@ -53,7 +56,7 @@ class AddComponentAction extends MenuItem
             type_node.setTooltip(new Tooltip("Create a new node in the alarm configuration hierachy"));
 
             type_pv.setToggleGroup(types);
-            type_pv.setTooltip(new Tooltip("Add a PV to the alarm configuration"));
+            type_pv.setTooltip(new Tooltip("Add a PV or a list of PV's to the alarm configuration"));
 
             layout.add(new HBox(5, type_node, type_pv), 1, 0);
 
@@ -111,9 +114,17 @@ class AddComponentAction extends MenuItem
             JobManager.schedule(getText(), monitor ->
             {
                 if (dialog.isPV())
-                    model.addPV(parent.getPathName(), new_name);
+                {
+                    // allow the use of comma, semicolon, or space separated lists of pv's
+                    List<String> new_names = Arrays.asList(new_name.split("[\\s,;]+"));
+                    new_names.forEach(pv -> {
+                        model.addPV(parent.getPathName(), pv);
+                    });
+                }
                 else
+                {
                     model.addComponent(parent.getPathName(), new_name);
+                }
             });
         });
     }
