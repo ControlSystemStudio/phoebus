@@ -59,7 +59,7 @@ public class AlarmStateLogger implements Runnable {
      * Create a alarm state logger for the given alarm server topic * This runnable
      * will create the kafka streams for the given alarm messages which match the
      * format 'topicState'
-     * 
+     *
      * @param topic
      *            the alarm topic
      * @throws Exception
@@ -136,6 +136,8 @@ public class AlarmStateLogger implements Runnable {
                         value.setLatch(! severity.equals(last_severity)  &&
                                        ! severity.equals("OK")           &&
                                        ! severity.endsWith("_ACK"));
+
+                        // System.out.println(pv + " - " + severity + (value.isLatch() ? " (latch)" : " (no change)"));
 
                         value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
                         return new KeyValue<>(key, value);
