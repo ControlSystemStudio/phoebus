@@ -151,6 +151,7 @@ public class AlarmStateMessage {
         map.put("config", getConfig());
         map.put("pv", getPv());
         map.put("severity", getSeverity());
+        map.put("latch", Boolean.toString(isLatch()));
         map.put("message", getMessage());
         map.put("value", getValue());
         map.put("time", formatter.format(getInstant()));

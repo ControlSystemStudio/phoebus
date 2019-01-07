@@ -127,8 +127,8 @@ public class AlarmStateLogger implements Runnable {
                         value.setPv(pv);
 
                         // Did the severity for this PV change into MINOR, MAJOR, INVALID, UNDEFINED?
-                        // Then this message indicates the start of a latched alarm.
-                        // Otherwise the message indicates an update of the current_severity (still latched),
+                        // Then this message indicates that we just now "latch" the alarm.
+                        // Otherwise the message indicates an update of the current_severity (remaining latched),
                         // or an acknowledgement (same latched alarm),
                         // or an OK (alarm cleared).
                         final String severity = value.getSeverity();
@@ -136,8 +136,6 @@ public class AlarmStateLogger implements Runnable {
                         value.setLatch(! severity.equals(last_severity)  &&
                                        ! severity.equals("OK")           &&
                                        ! severity.endsWith("_ACK"));
-
-                        // System.out.println(pv + " - " + severity + (value.isLatch() ? " (latch)" : " (no change)"));
 
                         value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
                         return new KeyValue<>(key, value);

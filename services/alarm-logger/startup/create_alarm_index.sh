@@ -28,6 +28,9 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
           "severity" : {
             "type" : "keyword"
           },
+          "latch" : {
+            "type" : "boolean"
+          },
           "message" : {
             "type" : "text"
           },
@@ -49,7 +52,7 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "text"
           },
           "mode" : {
-            "type" : "text"
+            "type" : "keyword"
           }
         }
       }
