@@ -33,6 +33,11 @@ import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.util.indexname.IndexNameHelper;
 
+/**
+ * A Runnable which consumes the alarm state messages and records them to an elastic index.
+ * @author Kunal Shroff
+ *
+ */
 @SuppressWarnings("nls")
 public class AlarmStateLogger implements Runnable {
 
@@ -50,6 +55,15 @@ public class AlarmStateLogger implements Runnable {
      */
     private final ConcurrentHashMap<String, String> last_pv_severity = new ConcurrentHashMap<>();
 
+    /**
+     * Create a alarm state logger for the given alarm server topic * This runnable
+     * will create the kafka streams for the given alarm messages which match the
+     * format 'topicState'
+     * 
+     * @param topic
+     *            the alarm topic
+     * @throws Exception
+     */
     public AlarmStateLogger(String topic) throws Exception {
         super();
         this.topic = topic;

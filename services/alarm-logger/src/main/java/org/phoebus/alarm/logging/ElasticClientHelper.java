@@ -6,8 +6,8 @@ package org.phoebus.alarm.logging;
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.DocWriteResponse.Result;
@@ -16,9 +16,9 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 
 /**
  * @author Kunal Shroff {@literal <kunalshroff9@gmail.gov>}
@@ -100,6 +100,17 @@ public class ElasticClientHelper {
         IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm_cmd");
         try {
             indexRequest.source(alarmCommandMessage.sourceMap());
+            IndexResponse indexResponse = client.index(indexRequest);
+            return indexResponse.getResult().equals(Result.CREATED);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public boolean indexAlarmConfigDocument(String indexName, AlarmConfigMessage alarmConfigMessage) {
+        IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm_config");
+        try {
+            indexRequest.source(alarmConfigMessage.sourceMap());
             IndexResponse indexResponse = client.index(indexRequest);
             return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
