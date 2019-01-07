@@ -21,55 +21,54 @@ import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.kstream.TransformerSupplier;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
-import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
+import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.util.indexname.IndexNameHelper;
 
 /**
- * A Runnable which consumes the alarm command messages and records them to an
+ * A Runnable which consumes some of the alarm configuration messages and records them to an
  * elastic index. 
  *
  * @author Kunal Shroff
  *
  */
-public class AlarmCmdLogger implements Runnable {
+public class AlarmConfigLogger implements Runnable {
 
-    private static final String INDEX_FORMAT = "_alarms_cmd";
+    private static final String INDEX_FORMAT = "_alarms_config";
     private final String topic;
-    private final Serde<AlarmCommandMessage> alarmCommandMessageSerde;
+    private final Serde<AlarmConfigMessage> alarmConfigMessageSerde;
 
     
     private IndexNameHelper indexNameHelper;
 
     /**
-     * Create a alarm command message logger for the given topic. 
-     * This runnable will create the kafka streams for the given alarm messages which match the format 'topicCommand'
+     * Create a alarm configuration message logger for the given topic.
      * @param topic
      * @throws Exception
      */
-    public AlarmCmdLogger(String topic) throws Exception {
+    public AlarmConfigLogger(String topic) throws Exception {
         super();
         this.topic = topic;
 
-        MessageParser<AlarmCommandMessage> messageParser = new MessageParser<AlarmCommandMessage>(AlarmCommandMessage.class);
-        alarmCommandMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
+        MessageParser<AlarmConfigMessage> messageParser = new MessageParser<AlarmConfigMessage>(AlarmConfigMessage.class);
+        alarmConfigMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
     }
 
     @Override
     public void run() {
 
-        logger.info("Starting the cmd stream consumer for " + topic);
+        logger.info("Starting the config stream consumer for " + topic);
 
         Properties props = new Properties();
         props.putAll(PropertiesHelper.getProperties());
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-cmd");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-config");
         if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         }
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, AlarmCommandMessage> alarms = builder.stream(topic + "Command", Consumed
-                .with(Serdes.String(), alarmCommandMessageSerde)
+        KStream<String, AlarmConfigMessage> alarms = builder.stream(topic, Consumed
+                .with(Serdes.String(), alarmConfigMessageSerde)
                 .withTimestampExtractor(new TimestampExtractor() {
 
                     @Override
@@ -86,11 +85,11 @@ public class AlarmCmdLogger implements Runnable {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
         }
-        KStream<String, AlarmCommandMessage> timeStampedAlarms = alarms.transform(new TransformerSupplier<String, AlarmCommandMessage, KeyValue<String,AlarmCommandMessage>>() {
+        KStream<String, AlarmConfigMessage> timeStampedAlarms = alarms.transform(new TransformerSupplier<String, AlarmConfigMessage, KeyValue<String,AlarmConfigMessage>>() {
 
             @Override
-            public Transformer<String, AlarmCommandMessage, KeyValue<String, AlarmCommandMessage>> get() {
-                return new Transformer<String, AlarmCommandMessage, KeyValue<String, AlarmCommandMessage>>() {
+            public Transformer<String, AlarmConfigMessage, KeyValue<String, AlarmConfigMessage>> get() {
+                return new Transformer<String, AlarmConfigMessage, KeyValue<String, AlarmConfigMessage>>() {
                     private ProcessorContext context;
                     @Override
                     public void init(ProcessorContext context) {
@@ -98,11 +97,15 @@ public class AlarmCmdLogger implements Runnable {
                     }
 
                     @Override
-                    public KeyValue<String, AlarmCommandMessage> transform(String key, AlarmCommandMessage value) {
+                    public KeyValue<String, AlarmConfigMessage> transform(String key, AlarmConfigMessage value) {
                         key = key.replace("\\", "");
-                        value.setConfig(key);
-                        value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
-                        return new KeyValue<String, AlarmCommandMessage>(key, value);
+                        if(value != null) {
+                            value.setConfig(key);
+                            value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
+                            return new KeyValue<String, AlarmConfigMessage>(key, value);
+                        } else {
+                            return null;
+                        }
                     }
 
                     @Override
@@ -117,17 +120,17 @@ public class AlarmCmdLogger implements Runnable {
         // Commit to elastic
         timeStampedAlarms.foreach((k, v) -> {
             String topic_name = indexNameHelper.getIndexName(v.getMessage_time());
-            ElasticClientHelper.getInstance().indexAlarmCmdDocument(topic_name, v);
+            ElasticClientHelper.getInstance().indexAlarmConfigDocument(topic_name, v);
         });
         final KafkaStreams streams = new KafkaStreams(builder.build(), props);
         final CountDownLatch latch = new CountDownLatch(1);
 
         // attach shutdown handler to catch control-c
-        Runtime.getRuntime().addShutdownHook(new Thread("streams-" + topic + "-alarm-cmd-shutdown-hook") {
+        Runtime.getRuntime().addShutdownHook(new Thread("streams-" + topic + "-alarm-config-shutdown-hook") {
             @Override
             public void run() {
                 streams.close(10, TimeUnit.SECONDS);
-                System.out.println("\nShutting cmd streams Done.");
+                System.out.println("\nShutting config streams Done.");
                 latch.countDown();
             }
         });
