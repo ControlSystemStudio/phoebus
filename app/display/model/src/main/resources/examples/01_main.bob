@@ -129,12 +129,12 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_6</name>
+    <name>Action Button_37</name>
     <actions>
       <action type="open_display">
-        <file>10_scripts.bob</file>
+        <file>09_rules.bob</file>
         <target>replace</target>
-        <description>Scripts</description>
+        <description>Rules</description>
       </action>
     </actions>
     <y>280</y>
@@ -143,12 +143,12 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_37</name>
+    <name>Action Button_6</name>
     <actions>
       <action type="open_display">
-        <file>09_rules.bob</file>
+        <file>10_scripts.bob</file>
         <target>replace</target>
-        <description>Rules</description>
+        <description>Scripts</description>
       </action>
     </actions>
     <y>320</y>
