@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -121,11 +122,13 @@ public class MacrosTable
             {
                 final Alert alert = new Alert(AlertType.ERROR);
                 alert.setHeaderText(error);
+                DialogHelper.positionDialog(alert, table, -300, -200);
                 alert.showAndWait();
                 // Table will continue to show the entered name,
                 // not the actual name. Hack to 'refresh' table.
                 name_col.setVisible(false);
                 name_col.setVisible(true);
+                return;
             }
             // Next edit the value
             ModelThreadPool.getTimer().schedule(() ->
@@ -151,6 +154,11 @@ public class MacrosTable
             final int row = event.getTablePosition().getRow();
             data.get(row).setValue(event.getNewValue());
             fixup(row);
+            // Edit next row
+            ModelThreadPool.getTimer().schedule(() ->
+            {
+                Platform.runLater(() -> table.edit(row+1, name_col));
+            }, 123, TimeUnit.MILLISECONDS);
         });
 
         table.getColumns().add(name_col);
@@ -243,8 +251,7 @@ public class MacrosTable
     public void setMacros(final Macros macros)
     {
         data.clear();
-        for (String name : macros.getNames())
-            data.add(new MacroItem(name, macros.getValue(name)));
+        macros.forEach((name, value) -> data.add(new MacroItem(name, value)));
         // Add empty final row
         data.add(new MacroItem("", ""));
     }
@@ -257,8 +264,8 @@ public class MacrosTable
         {
             final String name = item.getName().trim();
             final String value = item.getValue().trim();
-            // Skip empty rows
-            if (!name.isEmpty()  &&  !value.isEmpty())
+            // Skip when there's no macro name
+            if (!name.isEmpty())
                 macros.add(name, value);
         }
         return macros;
