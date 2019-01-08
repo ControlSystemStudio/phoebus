@@ -320,6 +320,9 @@ public class FileBrowserController {
                     }
                     contextMenu.getItems().add(openWith);
                 }
+
+                if (file.isDirectory())
+                    contextMenu.getItems().add(new SetBaseDirectory(file, this::setRoot));
             }
 
             contextMenu.getItems().add(new CopyPath(selectedItems));

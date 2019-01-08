@@ -61,6 +61,7 @@ public class Messages
     public static String Rename;
     public static String RenameHdr;
     public static String RenameJobName;
+    public static String SetBaseDirectory;
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---
