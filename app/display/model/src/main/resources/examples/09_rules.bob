@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Rules</name>
+  <macros>
+    <LIMIT>2</LIMIT>
+    <VALUE>300</VALUE>
+  </macros>
+  <width>650</width>
+  <height>800</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Rules</text>
+    <width>181</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Ideally, the existing widgets and their properties suffice to create a useful control system display.
+You use static widgets to create for example labels or circles.
+If the text of a label should change depending on the value of a PV, use a Text Update widget, which not only displays the value of the PV, but also supports formatting options and adds an alarm-sensitive border.
+If the color of a circle should change depending on the value of a PV, use an LED widget.
+
+There might still be rare cases where updating the properties of a widget based on PVs might be helpful beyond what's natively supported by the monitoring widgets.
+In these cases, consider Rules.</text>
+    <y>41</y>
+    <width>610</width>
+    <height>189</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Label_2</name>
+    <pv_name>sim://ramp</pv_name>
+    <x>70</x>
+    <y>270</y>
+    <rules>
+      <rule name="Move" prop_id="x" out_exp="false">
+        <exp bool_exp="pv0 &gt; $(LIMIT)">
+          <value>$(VALUE)</value>
+        </exp>
+        <pv_name>sim://ramp</pv_name>
+      </rule>
+    </rules>
+    <tooltip></tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>This Text Update widget has a rule that changes the 'x' property from its original value to $(VALUE) when the value of a PV exceeds $(LIMIT):</text>
+    <y>230</y>
+    <width>590</width>
+    <height>50</height>
+  </widget>
+</display>

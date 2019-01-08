@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,19 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.rules;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
+import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.Macros;
 
 /** Transform rules into scripts
  *
@@ -280,10 +285,24 @@ public class RuleToScript
 
         final String setPropStr = "widget.setPropertyValue('" + rule.getPropID() + "', ";
         int idx = 0;
+
+        final Macros macros = attached_widget.getEffectiveMacros();
         for (ExpressionInfo<?> expr : rule.getExpressions())
         {
             script.append((idx == 0) ? "if" : "elif");
-            script.append(" ").append(javascriptToPythonLogic(expr.getBoolExp())).append(":\n");
+
+            String expanded_expression;
+            try
+            {
+                expanded_expression = MacroHandler.replace(macros, expr.getBoolExp());
+            }
+            catch (Exception ex)
+            {
+                expanded_expression = expr.getBoolExp();
+                logger.log(Level.WARNING, "Cannot expand macro in " + expanded_expression, ex);
+            }
+
+            script.append(" ").append(javascriptToPythonLogic(expanded_expression)).append(":\n");
             script.append(indent).append(setPropStr);
             if (rule.getPropAsExprFlag())
                 script.append(javascriptToPythonLogic(expr.getPropVal().toString())).append(")\n");
