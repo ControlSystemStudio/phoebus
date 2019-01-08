@@ -3,6 +3,9 @@
 es_host=localhost
 es_port=9200
 
+# The mapping names used in here need to match those used in the ElasticClientHelper:
+# "alarm", ""alarm_cmd", "alarm_config"
+
 # Create the elastic template with the correct mapping for alarm state messages.
 curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Content-Type: application/json' -d'
 {
@@ -21,6 +24,9 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
           },
           "severity" : {
             "type" : "keyword"
+          },
+          "latch" : {
+            "type" : "boolean"
           },
           "message" : {
             "type" : "text"
@@ -43,7 +49,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
             "type" : "text"
           },
           "mode" : {
-            "type" : "text"
+            "type" : "keyword"
           }
         }
       }
@@ -51,7 +57,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
 }
 '
 
-# Create the elastic template with the correct mapping for alarm state messages.
+# Create the elastic template with the correct mapping for alarm command messages.
 curl -XPUT http://${es_host}:${es_port}/_template/alarms_cmd_template -H 'Content-Type: application/json' -d'
 {
   "index_patterns":["*_alarms_cmd*"],
@@ -88,7 +94,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_config_template -H 'Con
 {
   "index_patterns":["*_alarms_config*"],
   "mappings" : {  
-    "alarm_cmd" : {
+    "alarm_config" : {
         "properties" : {
           "APPLICATION-ID" : {
             "type" : "text"
@@ -120,3 +126,8 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_config_template -H 'Con
   }
 }
 '
+
+
+echo "Alarm templates:"
+curl -X GET "${es_host}:${es_port}/_template/*alarm*"
+
