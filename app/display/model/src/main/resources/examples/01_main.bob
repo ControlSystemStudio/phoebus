@@ -146,7 +146,7 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_37</name>
     <actions>
       <action type="open_display">
-        <file>rules.bob</file>
+        <file>09_rules.bob</file>
         <target>replace</target>
         <description>Rules</description>
       </action>
