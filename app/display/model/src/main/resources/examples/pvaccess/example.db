@@ -1,0 +1,17 @@
+# Run as 
+#     softIocPVA -d example.db 
+
+record(calc, "counter01")
+{
+   field(SCAN, ".1 second")
+   field(INPA, "counter01")
+   field(CALC, "A<50 ? A+0.5 : 0")
+   field(EGU,  "counts")
+   field(PREC, "1")
+   field(HOPR, "50")
+   field(LOPR, "0")
+   field(HIGH, "30")
+   field(HIHI, "40")
+   field(HSV,  "MINOR")
+   field(HHSV, "MAJOR")
+}
