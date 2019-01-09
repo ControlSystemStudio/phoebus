@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
@@ -27,6 +26,7 @@ import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.Tra
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetTraceType;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget.MarkerProperty;
+import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.RepresentationUpdateThrottle;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
@@ -45,6 +45,7 @@ import org.epics.util.array.ListNumber;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -176,15 +177,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         private final UntypedWidgetPropertyListener trace_listener = this::traceChanged,
                                                     value_listener = this::valueChanged;
         private final Trace<Double> trace;
-
-        /** Plot needs a consistent combination of X, Y[, Error]
-         *
-         *  <p>Assume we receive updates X1, Y1, then a little later X2 and finally Y2.
-         *  Updates need to be handled on other thread.
-         *  If posting the values to a thread pool, it might handle X2, Y2 _before_ XY1.
-         *  Caching the most recent value avoids handling old data.
-         */
-        private final AtomicReference<XYVTypeDataProvider> latest_data = new AtomicReference<>();
+        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay/2, TimeUnit.MILLISECONDS, this::computeTrace);
 
         TraceHandler(final TraceWidgetProperty model_trace)
         {
@@ -253,6 +246,13 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         // PV changed value -> runtime updated X/Y value property -> valueChanged()
         private void valueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
         {
+            logger.log(Level.CONFIG, model_widget.getName() + " " + property.getName() + " on " + Thread.currentThread());
+            throttle.trigger();
+        }
+
+        // Called by throttle
+        private void computeTrace()
+        {
             final ListNumber x_data, y_data, error;
             final VType y_value = model_trace.traceYValue().getValue();
 
@@ -308,29 +308,49 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 }
             }
 
+            logger.log(Level.CONFIG, () ->
+            {
+                final StringBuilder buf = new StringBuilder();
+                buf.append(model_widget.getName()).append(" update ");
+                buf.append("X: ");
+                logInfo(buf, x_data);
+                buf.append(", Y: ");
+                logInfo(buf, y_data);
+                return buf.toString();
+            });
+
             // Decouple from CAJ's PV thread
-            if (latest_data.getAndSet(new XYVTypeDataProvider(x_data, y_data, error)) == null)
-                toolkit.submit(this::updateData);
+            final XYVTypeDataProvider latest = new XYVTypeDataProvider(x_data, y_data, error);
+            logger.log(Level.CONFIG, "Update to " + latest);
+
+            trace.updateData(latest);
+            plot.requestUpdate();
         }
 
-        // Update XYPlot data on different thread, not from CAJ callback.
-        // Void to be usable as Callable(..) with Exception on error
-        private Void updateData() throws Exception
+        private void logInfo(final StringBuilder buf, final ListNumber array)
         {
-            // Flurry of N updates should schedule only one updateData() call,
-            // while the remaining updates simply replace latest_data,
-            // but find that the update request has already been submitted.
-            final XYVTypeDataProvider latest = latest_data.getAndSet(null);
-            if (latest != null)
+            if (array == null)
+                buf.append("null");
+            else
             {
-                trace.updateData(latest);
-                plot.requestUpdate();
+                final int N = array.size();
+                double min = Double.NaN, max = Double.NaN;
+                buf.append(N).append(" samples ");
+                for (int i=0; i<N; ++i)
+                {
+                    final double val = array.getDouble(i);
+                    if (i==0 || val < min)
+                        min = val;
+                    if (i==0 || val > max)
+                        max = val;
+                }
+                buf.append(min).append(" to ").append(max);
             }
-            return null;
         }
 
         void dispose()
         {
+            throttle.dispose();
             model_trace.traceName().removePropertyListener(trace_listener);
             model_trace.traceYPV().removePropertyListener(trace_listener);
             model_trace.traceYAxis().removePropertyListener(trace_listener);
