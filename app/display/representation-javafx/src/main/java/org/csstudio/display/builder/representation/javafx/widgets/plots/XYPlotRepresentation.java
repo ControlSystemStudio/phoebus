@@ -177,7 +177,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         private final UntypedWidgetPropertyListener trace_listener = this::traceChanged,
                                                     value_listener = this::valueChanged;
         private final Trace<Double> trace;
-        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay/2, TimeUnit.MILLISECONDS, this::computeTrace);
+        // Throttle this trace's x, y, error value changes
+        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay, TimeUnit.MILLISECONDS, this::computeTrace);
 
         TraceHandler(final TraceWidgetProperty model_trace)
         {
@@ -254,6 +255,10 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         // Called by throttle
         private void computeTrace()
         {
+            // Already disposed?
+            if (model_widget == null)
+                return;
+
             final ListNumber x_data, y_data, error;
             final VType y_value = model_trace.traceYValue().getValue();
 
@@ -314,19 +319,19 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 final StringBuilder buf = new StringBuilder();
                 buf.append(model_widget.getName()).append(" update ");
                 buf.append("X: ");
-                logInfo(buf, x_data);
+                describeData(buf, x_data);
                 buf.append(", Y: ");
-                logInfo(buf, y_data);
+                describeData(buf, y_data);
                 return buf.toString();
             });
 
-            // Decouple from CAJ's PV thread
+            // Wrap as PlotDataProvider
             final XYVTypeDataProvider latest = new XYVTypeDataProvider(x_data, y_data, error);
             trace.updateData(latest);
             plot.requestUpdate();
         }
 
-        private void logInfo(final StringBuilder buf, final ListNumber array)
+        private void describeData(final StringBuilder buf, final ListNumber array)
         {
             if (array == null)
                 buf.append("null");
