@@ -246,7 +246,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         // PV changed value -> runtime updated X/Y value property -> valueChanged()
         private void valueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
         {
-            logger.log(Level.CONFIG, model_widget.getName() + " " + property.getName() + " on " + Thread.currentThread());
+            logger.log(Level.FINE, () -> model_widget.getName() + " " + property.getName() + " on " + Thread.currentThread());
+            // Trigger computeTrace()
             throttle.trigger();
         }
 
@@ -308,7 +309,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 }
             }
 
-            logger.log(Level.CONFIG, () ->
+            logger.log(Level.FINE, () ->
             {
                 final StringBuilder buf = new StringBuilder();
                 buf.append(model_widget.getName()).append(" update ");
@@ -321,8 +322,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
             // Decouple from CAJ's PV thread
             final XYVTypeDataProvider latest = new XYVTypeDataProvider(x_data, y_data, error);
-            logger.log(Level.CONFIG, "Update to " + latest);
-
             trace.updateData(latest);
             plot.requestUpdate();
         }
