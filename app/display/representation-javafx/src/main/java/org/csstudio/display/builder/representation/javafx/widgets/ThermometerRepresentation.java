@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -60,6 +60,8 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
 
     private class Thermo extends Region
     {
+        // Doesn't fully resize:
+        // Width grows until certain limit
         private final Ellipse ellipse = new Ellipse();
         private final Rectangle fill = new Rectangle();
 
@@ -67,8 +69,8 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
         private final VLineTo left = new VLineTo();
         private final ArcTo arc = new ArcTo();
         private final LineTo rightcorner = new LineTo();
-        private final Path border = new Path(move, new VLineTo(3), rightcorner, new HLineTo(3), new LineTo(0, 3), left,
-                arc);
+        private final Path border = new Path(move, new VLineTo(3), rightcorner,
+                                             new HLineTo(3), new LineTo(0, 3), left, arc);
 
         private double max = 0;
         private double min = 100;
@@ -111,6 +113,7 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
         {
             final double width = computePrefWidth(0);
             final double height = computePrefHeight(0);
+            // Limit width
             final double w = clamp(width / 2, 0, 20);
             final double d = clamp(width, w, Math.min(height, 2 * w));
             final double h = height - d;
@@ -173,7 +176,9 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
 
         private void adjustFill(double width, double height, double d)
         {
-            fill.setHeight(d / 2 + (height - d) * (value - min) / (max - min));
+            // '-4' leaves one pixel between top and border,
+            // just like there's one pixel all around to the border
+            fill.setHeight(d / 2 + (height - d) * (value - min) / (max - min) - 4);
             layoutInArea(fill, 0.0, -d / 2, width, height, 0, HPos.CENTER, VPos.BOTTOM);
         }
     }

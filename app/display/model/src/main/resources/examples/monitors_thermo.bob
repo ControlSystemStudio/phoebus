@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Thermometer</name>
+  <widget type="thermometer" version="2.0.0">
+    <name>Thermometer</name>
+    <pv_name>loc://value(50)</pv_name>
+    <x>10</x>
+    <y>10</y>
+    <width>50</width>
+    <height>370</height>
+    <limits_from_pv>false</limits_from_pv>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://value(50)</pv_name>
+    <x>120</x>
+    <y>60</y>
+    <width>110</width>
+    <height>30</height>
+  </widget>
+</display>
