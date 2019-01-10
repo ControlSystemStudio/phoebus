@@ -17,6 +17,7 @@ import org.phoebus.ui.docking.DockPane;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("nls")
 public class Probe implements AppResourceDescriptor {
 
     public static final String NAME = "probe";
@@ -33,17 +34,11 @@ public class Probe implements AppResourceDescriptor {
     }
 
     @Override
-    public void start() {
-    }
-
-    @Override
-    public void stop() {
-    }
-
-    @Override
     public AppInstance create() {
         ProbeInstance probeInstance = new ProbeInstance(this);
         final DockItem tab = new DockItem(probeInstance, probeInstance.create());
+        // Clear PV when tab is closed
+        tab.addClosedNotification(() -> probeInstance.setPV(""));
         DockPane.getActiveDockPane().addTab(tab);
 
         PVAutocompleteMenu.INSTANCE.attachField(probeInstance.getPVField());
@@ -74,5 +69,4 @@ public class Probe implements AppResourceDescriptor {
         }
         return probe;
     }
-
 }

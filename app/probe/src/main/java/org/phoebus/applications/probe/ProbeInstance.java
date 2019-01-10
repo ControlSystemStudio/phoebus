@@ -75,6 +75,4 @@ public class ProbeInstance implements AppInstance {
     public void save(final Memento memento) {
         memento.setString("pv", getPV());
     }
-
-
 }
