@@ -38,7 +38,7 @@ As shown, when accessing structures, the path to a nested structure element can 
 
 Simulated
 ---------
-Simulated process variables are ueful for tests. They do not communicate with the control system.
+Simulated process variables are useful for tests. They do not communicate with the control system.
 
 The provided simulated process variables are:
     * flipflop(update_seconds)
