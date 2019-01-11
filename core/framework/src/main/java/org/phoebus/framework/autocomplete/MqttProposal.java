@@ -74,7 +74,7 @@ public class MqttProposal extends Proposal
     @Override
     public List<MatchSegment> getMatch(final String text)
     {
-        // Does text contain parameters?
+        // Does text contain anything?
         final List<String> split = splitPathType(text);
         if (split.size() < 1)
             return List.of();

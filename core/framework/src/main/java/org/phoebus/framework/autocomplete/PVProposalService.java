@@ -29,6 +29,8 @@ public class PVProposalService extends ProposalService
             providers.add(LocProposalProvider.INSTANCE);
         if (prefs.getBoolean("enable_sim_pv_proposals"))
             providers.add(SimProposalProvider.INSTANCE);
+        if (prefs.getBoolean("enable_pva_pv_proposals"))
+            providers.add(PvaProposalProvider.INSTANCE);
         if (prefs.getBoolean("enable_mqtt_pv_proposals"))
             providers.add(MqttProposalProvider.INSTANCE);
 
