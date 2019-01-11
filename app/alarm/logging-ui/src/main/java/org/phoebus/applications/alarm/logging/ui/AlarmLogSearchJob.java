@@ -19,7 +19,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.phoebus.applications.alarm.messages.AlarmStateMessage;
+import org.phoebus.applications.alarm.logging.ui.AlarmLogTableType;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class AlarmLogSearchJob implements JobRunnable {
     private final RestHighLevelClient client;
     private final String pattern;
-    private final Consumer<List<AlarmStateMessage>> alarmMessageHandler;
+    private final Consumer<List<AlarmLogTableType>> alarmMessageHandler;
     private final BiConsumer<String, Exception> errorHandler;
 
     private final ObjectMapper objectMapper;
@@ -44,7 +44,7 @@ public class AlarmLogSearchJob implements JobRunnable {
             "/alarm_logging_preferences.properties");
 
     public static Job submit(RestHighLevelClient client, final String pattern,
-            final Consumer<List<AlarmStateMessage>> alarmMessageHandler,
+            final Consumer<List<AlarmLogTableType>> alarmMessageHandler,
             final BiConsumer<String, Exception> errorHandler) {
 
         return JobManager.schedule("searching alarm log messages for : " + pattern,
@@ -52,7 +52,7 @@ public class AlarmLogSearchJob implements JobRunnable {
     }
 
     private AlarmLogSearchJob(RestHighLevelClient client, String pattern,
-            Consumer<List<AlarmStateMessage>> alarmMessageHandler, BiConsumer<String, Exception> errorHandler) {
+            Consumer<List<AlarmLogTableType>> alarmMessageHandler, BiConsumer<String, Exception> errorHandler) {
         super();
         this.client = client;
         this.pattern = pattern;
@@ -65,36 +65,37 @@ public class AlarmLogSearchJob implements JobRunnable {
     @Override
     public void run(JobMonitor monitor) {
         monitor.beginTask("searching for alarm log entires : " + pattern);
-        QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("pv", pattern);
+        String searchPattern = "*".concat(pattern);
+        QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("config", searchPattern);
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder = sourceBuilder.query(matchQueryBuilder);
         sourceBuilder.size(prefs.getInt("es_max_size"));
-        sourceBuilder.sort("time", SortOrder.DESC);
+        sourceBuilder.sort("message_time", SortOrder.DESC);
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.source(sourceBuilder);
-        List<AlarmStateMessage> result;
+        List<AlarmLogTableType> result;
         try {
             result = Arrays.asList(client.search(searchRequest).getHits().getHits()).stream()
-                    .map(new Function<SearchHit, AlarmStateMessage>() {
+                    .map(new Function<SearchHit, AlarmLogTableType>() {
                         @Override
-                        public AlarmStateMessage apply(SearchHit hit) {
+                        public AlarmLogTableType apply(SearchHit hit) {
                             try {
                                 JsonNode root = objectMapper.readTree(hit.getSourceAsString());
                                 JsonNode time = ((ObjectNode) root).remove("time");
                                 JsonNode message_time = ((ObjectNode) root).remove("message_time");
-                                AlarmStateMessage alarmStateMessage = objectMapper.readValue(root.traverse(),
-                                        AlarmStateMessage.class);
+                                AlarmLogTableType alarmMessage = objectMapper.readValue(root.traverse(),
+                                        AlarmLogTableType.class);
                                 if (time != null) {
                                     Instant instant = LocalDateTime.parse(time.asText(), formatter)
                                             .atZone(ZoneId.systemDefault()).toInstant();
-                                    alarmStateMessage.setInstant(instant);
+                                    alarmMessage.setInstant(instant);
                                 }
                                 if (message_time != null) {
                                     Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
                                             .atZone(ZoneId.systemDefault()).toInstant();
-                                    alarmStateMessage.setMessage_time(instant);
+                                    alarmMessage.setMessage_time(instant);
                                 }
-                                return alarmStateMessage;
+                                return alarmMessage;
                             } catch (Exception e) {
                                 errorHandler.accept("Failed to search for alarm logs ", e);
                                 return null;
