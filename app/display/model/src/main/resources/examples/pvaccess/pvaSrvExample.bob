@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<display version="1.0.0">
-  <name>Display</name>
+<display version="2.0.0">
+  <name>CA vs. PVA</name>
   <widget type="label" version="2.0.0">
     <name>Label</name>
+    <text>CA vs. PVA</text>
     <width>440</width>
     <height>31</height>
-    <text>EPICS V4 pvaSrv/testTop/testDbPv IOC</text>
     <font>
       <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
       </font>
@@ -13,16 +13,15 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update</name>
+    <pv_name>counter01</pv_name>
     <x>60</x>
     <y>90</y>
-    <precision>0</precision>
-    <pv_name>counter01</pv_name>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_1</name>
+    <text>Records read via Channel Access</text>
     <y>31</y>
     <width>240</width>
-    <text>Records read via Channel Access</text>
     <font>
       <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
       </font>
@@ -30,10 +29,10 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_2</name>
+    <text>Records read via PV Access</text>
     <x>260</x>
     <y>31</y>
     <width>220</width>
-    <text>Records read via PV Access</text>
     <font>
       <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
       </font>
@@ -41,31 +40,30 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_1</name>
+    <pv_name>pva://counter01</pv_name>
     <x>299</x>
     <y>92</y>
-    <precision>0</precision>
-    <pv_name>pva://counter01</pv_name>
   </widget>
   <widget type="thermometer" version="2.0.0">
     <name>Thermometer</name>
+    <pv_name>counter01</pv_name>
     <x>60</x>
     <y>130</y>
     <height>170</height>
-    <pv_name>counter01</pv_name>
   </widget>
   <widget type="thermometer" version="2.0.0">
     <name>Thermometer_1</name>
+    <pv_name>pva://counter01</pv_name>
     <x>299</x>
     <y>130</y>
     <height>170</height>
-    <pv_name>pva://counter01</pv_name>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_3</name>
+    <text>Both get limits, alarm, units from the PV</text>
     <x>70</x>
     <y>330</y>
     <width>350</width>
-    <text>Both get limits, alarm, units from the PV</text>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
@@ -73,10 +71,10 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_4</name>
+    <text>PV "counter01"</text>
     <x>60</x>
     <y>70</y>
     <width>140</width>
-    <text>PV "counter01"</text>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
@@ -84,10 +82,20 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_5</name>
+    <text>PV "pva://counter01"</text>
     <x>299</x>
     <y>70</y>
     <width>140</width>
-    <text>PV "pva://counter01"</text>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Uses 'example.db'</text>
+    <y>380</y>
+    <width>350</width>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
