@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,10 +7,11 @@
  *******************************************************************************/
 package org.phoebus.framework.autocomplete;
 
-
 import java.util.ServiceLoader;
 
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.PVProposalProvider;
+import org.phoebus.framework.workbench.WorkbenchPreferences;
 
 /** Autocompletion Service for PVs
  *  @author Kay Kasemir
@@ -22,7 +23,14 @@ public class PVProposalService extends ProposalService
 
     private PVProposalService()
     {
-        super(SimProposalProvider.INSTANCE, LocProposalProvider.INSTANCE);
+        // Enable built-in proposal providers
+        final PreferencesReader prefs = new PreferencesReader(WorkbenchPreferences.class, "/autocomplete_preferences.properties");
+        if (prefs.getBoolean("enable_loc_pv_proposals"))
+            providers.add(LocProposalProvider.INSTANCE);
+        if (prefs.getBoolean("enable_sim_pv_proposals"))
+            providers.add(SimProposalProvider.INSTANCE);
+        if (prefs.getBoolean("enable_mqtt_pv_proposals"))
+            providers.add(MqttProposalProvider.INSTANCE);
 
         // Use SPI to add site-specific PV name providers
         for (PVProposalProvider add : ServiceLoader.load(PVProposalProvider.class))
