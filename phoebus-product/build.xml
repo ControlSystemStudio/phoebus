@@ -28,6 +28,7 @@
         <!-- Site-specific build might remove more     -->
         <exclude name="app/**/app-alarm-server*.jar"/>
         <exclude name="app/**/app-scan-server*.jar"/>
+        <exclude name="app/alarm/examples/**/*.jar"/>
       </fileset>
     </copy>
 
