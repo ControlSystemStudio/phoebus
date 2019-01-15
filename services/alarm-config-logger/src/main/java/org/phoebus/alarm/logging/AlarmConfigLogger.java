@@ -75,7 +75,7 @@ public class AlarmConfigLogger implements Runnable {
         group_id = "Alarm-" + UUID.randomUUID();
 
         props = PropertiesHelper.getProperties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + this.topic + "-alarm-config");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "AlarmConfigLogger-streams-" + this.topic);
         if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         }
