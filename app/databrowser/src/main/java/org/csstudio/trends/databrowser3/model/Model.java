@@ -653,7 +653,7 @@ public class Model
      */
     public static String[] getTimerangeText(final TimeRelativeInterval range)
     {
-        if (range.isEndAbsolute())
+        if (range.isStartAbsolute())
         {
             final TimeInterval abs = range.toAbsoluteInterval();
             return new String[]
