@@ -65,7 +65,7 @@ public class AlarmLogSearchJob implements JobRunnable {
     @Override
     public void run(JobMonitor monitor) {
         monitor.beginTask("searching for alarm log entires : " + pattern);
-        String searchPattern = "*".concat(pattern);
+        String searchPattern = "*".concat(pattern).concat("*");
         QueryBuilder matchQueryBuilder = QueryBuilders.wildcardQuery("config", searchPattern);
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder = sourceBuilder.query(matchQueryBuilder);
