@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -42,7 +42,14 @@ public enum FormatOption
     SEXAGESIMAL_HMS(Messages.Format_SexagesimalHMS, false),
 
     /** Sexagesimal, number is assumed to be radians with 2pi == 360 degrees */
-    SEXAGESIMAL_DMS(Messages.Format_SexagesimalDMS, false);
+    SEXAGESIMAL_DMS(Messages.Format_SexagesimalDMS, false),
+
+    // Binary was added when PVA introduced it.
+    /** Binary, precision determines the number of 01010101 */
+    BINARY(Messages.Format_Binary, false);
+
+    // To remain compatible with previous versions of this enum,
+    // new options must be added to the end.
 
     private final String label;
     private final boolean use_precision;

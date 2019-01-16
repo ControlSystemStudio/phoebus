@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VIntArray;
+import org.epics.vtype.VLong;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
@@ -266,6 +267,42 @@ public class FormatOptionHandlerTest
         text = FormatOptionHandler.format(VDouble.of(65430000.0, Alarm.none(), Time.now(), display), FormatOption.COMPACT, 2, true);
         System.out.println(text);
         assertThat(text, equalTo("6.54E7 V"));
+    }
+
+    @Test
+    public void testBinary() throws Exception
+    {
+        String text = FormatOptionHandler.format(VLong.of(0b101010, Alarm.none(), Time.now(), display), FormatOption.BINARY, 10, true);
+        System.out.println(text);
+        assertThat(text, equalTo("0b0000101010 V"));
+
+        text = FormatOptionHandler.format(VLong.of(0b101010, Alarm.none(), Time.now(), display), FormatOption.BINARY, 0, false);
+        System.out.println(text);
+        assertThat(text, equalTo("0b101010"));
+    }
+
+    @Test
+    public void testBinaryParse() throws Exception
+    {
+        final VType number = VLong.of(0b101010, Alarm.none(), Time.now(), display);
+
+        // Parse binary as binary
+        Object parsed = FormatOptionHandler.parse(number, "0b0000101010", FormatOption.BINARY);
+        System.out.println(parsed);
+        assertThat(parsed, instanceOf(Number.class));
+        assertThat(((Number)parsed).intValue(), equalTo(42));
+
+        // Parse binary when using default format
+        parsed = FormatOptionHandler.parse(number, "0b1111111111111111", FormatOption.DEFAULT);
+        System.out.println(parsed);
+        assertThat(parsed, instanceOf(Number.class));
+        assertThat(((Number)parsed).intValue(), equalTo(65535));
+
+        // Parse binary without '0b' identifier when using hex format
+        parsed = FormatOptionHandler.parse(number, "0000101010", FormatOption.BINARY);
+        System.out.println(parsed);
+        assertThat(parsed, instanceOf(Number.class));
+        assertThat(((Number)parsed).intValue(), equalTo(42));
     }
 
     @Test
