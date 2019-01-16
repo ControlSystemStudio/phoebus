@@ -1,35 +1,48 @@
-# alarm config logging
-Log the configuration changes made to the alarm server configuration
+# Alarm Server
 
-### Dependencies ###
+An alarm server for the epics control system which monitors and processes the states of hundreds or thousands of pv's and produces well described, manageable, and actionable alarms for users.
 
-### Running ###
+It was developed based on experience with the original EPICS alarm systems like ALH and BEAST combined with ideas from the book Alarm Management: Seven Effective Methods for Optimum Performance by B. Hollifield and E. Habibi, published by ISA in 2007.
 
-1. Run the jar
+
+## Building ##
+
+### Requirements
+ - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/11).
+   (For the time being, Phoebus still builds with Oracle JDK 9 and 10,
+    but it must be a JDK that includes JavaFX).
+ - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
+
+The alarm server can be build using maven or ant.
+
+### Build with maven
 
 ```
 mvn clean install
-java -jar target/alarm-config-logger-<version>.jar
 ```
 
-2. Using spring boot  
-```mvn spring-boot:run```
+### Build with ant
 
-### Description ###
+```
+ant clean build
+```
+### Start Alarm server
 
-The alarm config model creates a git repository, sharing the same name as the alarm topic, which is used to keep track of the alarm configuration changes.
+Before starting the alarm server you will need to ensure that you have set up the kafka cluster as described here https://github.com/shroffk/phoebus/tree/master/app/alarm
 
-The repo structure is as follows.
+With the Kafka cluster running you can start the alarm server using the provided script
 
-<pre>
-Accelerator/  
-    .restore-script/config.xml  # It consists of an XMl dump of the alarm server configuration after each config change  
-    Node1/  
-        alarmconfig.json 	# A json representation of the alarm configuration of this node  
-        PV:alarmPV1/  
-            alarmconfig.json	# A json representation of the alarm configuration of this pv  
-        PV:alarmPV1/  
-        PV:alarmPV1/  
-</pre>
+```
+./alarm-server.sh
+```
 
-The split between the config.xml and the file structure is to simplify the process of auditing the changes associated with a single pv of node within the alarm tree. The use of only the version controlled config.xml would require sifting through all the changes on the alarm tree.
+some useful startup arguments include
+
+-help                       - Help
+-server   localhost:9092    - Location of Kafka server
+-config   Accelerator       - Alarm configuration
+-settings settings.xml      - Import preferences (PV connectivity) from property format file
+-export   config.xml        - Export alarm configuration to file
+-import   config.xml        - Import alarm configruation from file
+-logging logging.properties - Load log settings
+
