@@ -46,7 +46,7 @@ public enum FormatOption
 
     // Binary was added when PVA introduced it.
     /** Binary, precision determines the number of 01010101 */
-    BINARY(Messages.Format_Binary, false);
+    BINARY(Messages.Format_Binary, true);
 
     // To remain compatible with previous versions of this enum,
     // new options must be added to the end.

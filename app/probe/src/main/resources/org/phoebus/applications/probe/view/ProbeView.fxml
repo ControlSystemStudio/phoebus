@@ -41,7 +41,7 @@
     <HBox spacing="10" alignment="bottom_right" GridPane.columnIndex="1" GridPane.rowIndex="3">
         <ComboBox fx:id="format" HBox.hgrow="ALWAYS" minWidth="40" maxWidth="Infinity" />
         <Label text="%Precision" prefWidth="200" />
-        <Spinner fx:id="precision" min="-1" max="20" initialValue="-1" amountToStepBy="1" />
+        <Spinner fx:id="precision" min="-1" max="64" initialValue="-1" amountToStepBy="1" />
     </HBox>
     <TextField fx:id="txtAlarm" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
     <TextField fx:id="txtTimeStamp" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
