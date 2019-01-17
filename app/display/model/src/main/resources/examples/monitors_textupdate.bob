@@ -196,35 +196,17 @@
     <format>4</format>
     <precision>0</precision>
   </widget>
-  <widget type="textentry" version="3.0.0">
-    <name>Text Entry</name>
-    <pv_name>loc://number(3.14)</pv_name>
-    <x>320</x>
-    <y>610</y>
-    <width>109</width>
-    <format>4</format>
-    <precision>0</precision>
-  </widget>
   <widget type="label" version="2.0.0">
     <name>Label_14</name>
     <text>Sexagesimal:</text>
-    <y>640</y>
+    <y>670</y>
     <width>111</width>
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_11</name>
     <pv_name>loc://number(3.14)</pv_name>
     <x>191</x>
-    <y>640</y>
-    <width>109</width>
-    <format>7</format>
-    <precision>4</precision>
-  </widget>
-  <widget type="textentry" version="3.0.0">
-    <name>Text Entry_1</name>
-    <pv_name>loc://number(3.14)</pv_name>
-    <x>320</x>
-    <y>640</y>
+    <y>670</y>
     <width>109</width>
     <format>7</format>
     <precision>4</precision>
@@ -232,23 +214,14 @@
   <widget type="label" version="2.0.0">
     <name>Label_15</name>
     <text>Sexagesimal (HMS):</text>
-    <y>670</y>
+    <y>700</y>
     <width>161</width>
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_12</name>
     <pv_name>loc://number(3.14)</pv_name>
     <x>191</x>
-    <y>670</y>
-    <width>109</width>
-    <format>8</format>
-    <precision>4</precision>
-  </widget>
-  <widget type="textentry" version="3.0.0">
-    <name>Text Entry_2</name>
-    <pv_name>loc://number(3.14)</pv_name>
-    <x>320</x>
-    <y>670</y>
+    <y>700</y>
     <width>109</width>
     <format>8</format>
     <precision>4</precision>
@@ -256,23 +229,14 @@
   <widget type="label" version="2.0.0">
     <name>Label_16</name>
     <text>Sexagesimal (DMS):</text>
-    <y>700</y>
+    <y>730</y>
     <width>161</width>
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_13</name>
     <pv_name>loc://number(3.14)</pv_name>
     <x>191</x>
-    <y>700</y>
-    <width>109</width>
-    <format>9</format>
-    <precision>4</precision>
-  </widget>
-  <widget type="textentry" version="3.0.0">
-    <name>Text Entry_3</name>
-    <pv_name>loc://number(3.14)</pv_name>
-    <x>320</x>
-    <y>700</y>
+    <y>730</y>
     <width>109</width>
     <format>9</format>
     <precision>4</precision>
@@ -288,7 +252,7 @@ and maps 2 pi to 24 hours,
 while the DMS specialization maps 2 pi to 360 degrees.
 (Try a value of 3.14 or 6.28 to see the effect)</text>
     <x>450</x>
-    <y>580</y>
+    <y>620</y>
     <width>350</width>
     <height>160</height>
     <font>
@@ -306,16 +270,7 @@ while the DMS specialization maps 2 pi to 360 degrees.
     <name>Text Update_14</name>
     <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
     <x>191</x>
-    <y>770</y>
-    <width>109</width>
-    <format>1</format>
-    <precision>4</precision>
-  </widget>
-  <widget type="textentry" version="3.0.0">
-    <name>Text Entry_4</name>
-    <pv_name>loc://number(3.14)</pv_name>
-    <x>320</x>
-    <y>550</y>
+    <y>800</y>
     <width>109</width>
     <format>1</format>
     <precision>4</precision>
@@ -330,15 +285,6 @@ while the DMS specialization maps 2 pi to 360 degrees.
     <name>Text Update_17</name>
     <pv_name>loc://number(3.14)</pv_name>
     <x>191</x>
-    <y>580</y>
-    <width>109</width>
-    <format>3</format>
-    <precision>4</precision>
-  </widget>
-  <widget type="textentry" version="3.0.0">
-    <name>Text Entry_5</name>
-    <pv_name>loc://number(3.14)</pv_name>
-    <x>320</x>
     <y>580</y>
     <width>109</width>
     <format>3</format>
@@ -375,7 +321,7 @@ while the DMS specialization maps 2 pi to 360 degrees.
   <widget type="label" version="2.0.0">
     <name>Label_21</name>
     <text>Interactive Behavior:</text>
-    <y>740</y>
+    <y>770</y>
     <width>330</width>
     <font>
       <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
@@ -383,26 +329,24 @@ while the DMS specialization maps 2 pi to 360 degrees.
     </font>
   </widget>
   <widget type="textupdate" version="2.0.0">
-    <name>Text Update_15</name>
-    <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
+    <name>Text Update_16</name>
+    <pv_name>loc://number(3.14)</pv_name>
     <x>191</x>
-    <y>800</y>
-    <width>69</width>
-    <height>60</height>
-    <format>1</format>
-    <precision>4</precision>
-    <interactive>true</interactive>
+    <y>640</y>
+    <width>109</width>
+    <format>10</format>
+    <precision>0</precision>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_22</name>
     <text>Not interactive:</text>
-    <y>770</y>
+    <y>800</y>
     <width>111</width>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_23</name>
     <text>Interactive:</text>
-    <y>800</y>
+    <y>830</y>
     <width>111</width>
   </widget>
   <widget type="label" version="2.0.0">
@@ -414,12 +358,92 @@ When you set the  'interactive' property to true, the widget allows selecting th
 In addition, a scrollbar appears when the text exceeds the widget area.
 </text>
     <x>450</x>
-    <y>770</y>
+    <y>800</y>
     <width>350</width>
     <height>160</height>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
     </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>Binary:</text>
+    <y>636</y>
+    <width>111</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_4</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>550</y>
+    <width>109</width>
+    <format>1</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_5</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>580</y>
+    <width>109</width>
+    <format>3</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>610</y>
+    <width>109</width>
+    <format>4</format>
+    <precision>0</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_6</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>640</y>
+    <width>109</width>
+    <format>10</format>
+    <precision>0</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>670</y>
+    <width>109</width>
+    <format>7</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>700</y>
+    <width>109</width>
+    <format>8</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <pv_name>loc://number(3.14)</pv_name>
+    <x>320</x>
+    <y>730</y>
+    <width>109</width>
+    <format>9</format>
+    <precision>4</precision>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_15</name>
+    <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
+    <x>191</x>
+    <y>830</y>
+    <width>69</width>
+    <height>60</height>
+    <format>1</format>
+    <precision>4</precision>
+    <interactive>true</interactive>
   </widget>
 </display>

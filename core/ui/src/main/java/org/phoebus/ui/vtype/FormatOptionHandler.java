@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -228,6 +228,15 @@ public class FormatOptionHandler
             else
                 return formatNumber(value, display, FormatOption.EXPONENTIAL, precision);
         }
+        if (option == FormatOption.BINARY)
+        {
+            final StringBuilder buf = new StringBuilder();
+            buf.append(Long.toBinaryString(value.longValue()));
+            for (int i=buf.length(); i<precision; ++i)
+                buf.insert(0, '0');
+            buf.insert(0, "0b");
+            return buf.toString();
+        }
         if (option == FormatOption.SEXAGESIMAL)
             return SexagesimalFormat.format(value.doubleValue(), precision);
         if (option == FormatOption.SEXAGESIMAL_HMS)
@@ -409,6 +418,17 @@ public class FormatOptionHandler
                     text = text.substring(2);
                 return Long.parseLong(text, 16);
             }
+            case BINARY:
+            {   // Remove trailing text (units or part of units)
+                text = text.trim();
+                final int sep = text.lastIndexOf(' ');
+                if (sep > 0)
+                    text = text.substring(0, sep).trim();
+                text = text.toUpperCase();
+                if (text.startsWith("0B"))
+                    text = text.substring(2);
+                return Long.parseLong(text, 2);
+            }
             case SEXAGESIMAL:
                 return SexagesimalFormat.parse(text);
             case SEXAGESIMAL_HMS:
@@ -427,6 +447,12 @@ public class FormatOptionHandler
                     {
                         text = text.substring(2).toUpperCase();
                         return Long.parseLong(text, 16);
+                    }
+                    // Detect binary
+                    if (text.startsWith("0b")  ||  text.startsWith("0B"))
+                    {
+                        text = text.substring(2);
+                        return Long.parseLong(text, 2);
                     }
                     if (value instanceof VDouble)
                         return Double.parseDouble(text);
