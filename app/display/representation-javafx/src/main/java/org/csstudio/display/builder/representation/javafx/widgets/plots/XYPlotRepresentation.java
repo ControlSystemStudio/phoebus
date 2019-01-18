@@ -382,6 +382,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         plot.setUpdateThrottle(RepresentationUpdateThrottle.plot_update_delay, TimeUnit.MILLISECONDS);
         plot.showToolbar(false);
         plot.showCrosshair(false);
+        plot.setManaged(false);
 
         // Create PlotMarkers once. Not allowing adding/removing them at runtime
         if (! toolkit.isEditMode())
@@ -564,8 +565,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         {
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
-            plot.setPrefWidth(w);
-            plot.setPrefHeight(h);
+            plot.resize(w, h);
         }
         plot.requestUpdate();
     }

@@ -161,6 +161,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         image_plot = new RTImagePlot(! toolkit.isEditMode());
         image_plot.setUpdateThrottle(RepresentationUpdateThrottle.plot_update_delay, TimeUnit.MILLISECONDS);
         image_plot.setAutoscale(false);
+        image_plot.setManaged(false);
 
         if (! toolkit.isEditMode())
         {
@@ -456,8 +457,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         {
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
-            image_plot.setPrefWidth(w);
-            image_plot.setPrefHeight(h);
+            image_plot.resize(w, h);
         }
         image_plot.requestUpdate();
     }
