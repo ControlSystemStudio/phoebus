@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTable;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp;
-import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -21,13 +21,13 @@ import javafx.scene.image.Image;
  * selections. TODO this temporary headless action needs to removed once the
  * create log entry dialog is complete.
  * 
- * @author Kunal Shroff
+ * @author Tanvi Ashwarya
  *
  */
 @SuppressWarnings("rawtypes")
-public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
+public class ContextMenuNodeAlarmHistory implements ContextMenuEntry {
 
-    private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
+    private static final List<Class> supportedTypes = List.of(AlarmTreeItem.class);
     private static final String NAME = "Alarm History";
 
     @Override
@@ -39,23 +39,23 @@ public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
     @Override
     public Object callWithSelection(Selection selection) throws URISyntaxException {
 
-        List<ProcessVariable> selectedPvs = new ArrayList<ProcessVariable>();
+        List<AlarmTreeItem> selectedNodes = new ArrayList<AlarmTreeItem>();
         selection.getSelections().stream().forEach(s -> {
-            if (s instanceof ProcessVariable) {
-                selectedPvs.add((ProcessVariable) s);
+            if (s instanceof AlarmTreeItem) {
+                selectedNodes.add((AlarmTreeItem) s);
             } else {
                 AdapterService.getInstance().getAdaptersforAdaptable(s.getClass()).ifPresent(a -> {
                     a.forEach(af -> {
-                        af.getAdapter(s, ProcessVariable.class).ifPresent(adapted -> {
-                            selectedPvs.add((ProcessVariable) adapted);
+                        af.getAdapter(s, AlarmTreeItem.class).ifPresent(adapted -> {
+                            selectedNodes.add((AlarmTreeItem) adapted);
                         });
                     });
                 });
             }
         });
         AlarmLogTable table = ApplicationService.createInstance(AlarmLogTableApp.NAME);
-        URI uri = new URI(AlarmLogTableApp.SUPPORTED_SCHEMA, "", "", "pv="+selectedPvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(",")), "");
-        table.setPVResource(uri);
+        URI uri = new URI(AlarmLogTableApp.SUPPORTED_SCHEMA, "", "", "node="+selectedNodes.stream().map(AlarmTreeItem::getName).collect(Collectors.joining(",")), "");
+        table.setNodeResource(uri);
         
         return null;
     }
