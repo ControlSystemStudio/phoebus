@@ -11,17 +11,17 @@
 from org.csstudio.display.builder.runtime.script import ScriptUtil
 from org.csstudio.display.builder.model import WidgetFactory
 
-width = 50
-height = 25
+width = 20
+height = 20
 gap = 5
 
 display = widget.getDisplayModel()
 rows = 35
-for i in range(500):
+for i in range(2000):
     x = gap + (i / rows) * (width+gap)
     y = 40 + (height+gap)*(i % rows)
 
-    w = WidgetFactory.getInstance().getWidgetDescriptor("textentry").createWidget();
+    w = WidgetFactory.getInstance().getWidgetDescriptor("led").createWidget();
     w.setPropertyValue("x", x)
     w.setPropertyValue("y", y)
     w.setPropertyValue("width", width)
@@ -36,7 +36,7 @@ for i in range(500):
   </scripts>
   <widget type="label" version="2.0.0">
     <name>Label</name>
-    <text>Many Text Entries</text>
+    <text>Many LEDs</text>
     <width>490</width>
     <height>31</height>
     <font>
