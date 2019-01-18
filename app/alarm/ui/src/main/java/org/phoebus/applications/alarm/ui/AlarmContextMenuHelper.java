@@ -127,12 +127,16 @@ public class AlarmContextMenuHelper
             if (acked.size() > 0)
                 menu_items.add(new UnAcknowledgeAction(model, acked));
         }
-
         // Add context menu actions for PVs
         if (pvnames.size() > 0)
         {
             menu_items.add(new SeparatorMenuItem());
             SelectionService.getInstance().setSelection("AlarmUI", pvnames);
+            ContextMenuHelper.addSupportedEntries(node, menu);
+        } else
+        {
+            // search for other context menu actions registered for AlarmTreeItem
+            SelectionService.getInstance().setSelection("AlarmUI", selection);
             ContextMenuHelper.addSupportedEntries(node, menu);
         }
     }
