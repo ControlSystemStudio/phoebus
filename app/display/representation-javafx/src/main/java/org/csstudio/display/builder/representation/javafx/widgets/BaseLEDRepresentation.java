@@ -73,12 +73,12 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
             led = new Ellipse();
         led.getStyleClass().add("led");
         led.setManaged(false);
-        
+
         label = new Label();
         label.getStyleClass().add("led_label");
         label.setAlignment(Pos.CENTER);
         label.setManaged(false);
-        
+
         jfx_node.getChildren().addAll(led, label);
     }
 
@@ -227,9 +227,11 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         if (dirty_content.checkAndClear())
         {
             led.setFill(value_color);
-            label.setText(value_label);
-            // If text changed, is layout required?
-            // label.layout();
+            if (! value_label.equals(label.getText()))
+            {
+                label.setText(value_label);
+                label.layout();
+            }
         }
     }
 }
