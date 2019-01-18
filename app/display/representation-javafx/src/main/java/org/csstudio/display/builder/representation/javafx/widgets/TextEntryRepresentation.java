@@ -137,6 +137,11 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 }
             });
         }
+
+        // Reduce expensive Node.notifyParentOfBoundsChange() calls
+        // by handling pos & size in here
+        text.setManaged(false);
+
         return text;
     }
 
@@ -310,8 +315,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     {
         super.updateChanges();
         if (dirty_size.checkAndClear())
-            jfx_node.setPrefSize(model_widget.propWidth().getValue(),
-                                 model_widget.propHeight().getValue());
+            jfx_node.resize(model_widget.propWidth().getValue(),
+                            model_widget.propHeight().getValue());
         if (dirty_style.checkAndClear())
         {
             final StringBuilder style = new StringBuilder(100);

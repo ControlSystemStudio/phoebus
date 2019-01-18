@@ -17,11 +17,11 @@ gap = 5
 
 display = widget.getDisplayModel()
 rows = 35
-for i in range(2000):
+for i in range(500):
     x = gap + (i / rows) * (width+gap)
     y = 40 + (height+gap)*(i % rows)
 
-    w = WidgetFactory.getInstance().getWidgetDescriptor("textupdate").createWidget();
+    w = WidgetFactory.getInstance().getWidgetDescriptor("textentry").createWidget();
     w.setPropertyValue("x", x)
     w.setPropertyValue("y", y)
     w.setPropertyValue("width", width)
