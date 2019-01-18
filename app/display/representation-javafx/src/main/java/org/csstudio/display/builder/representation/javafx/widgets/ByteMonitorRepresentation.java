@@ -67,8 +67,6 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         square_led = model_widget.propSquare().getValue();
         horizontal = model_widget.propHorizontal().getValue();
         addLEDs(pane);
-        pane.setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-        pane.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
         pane.setManaged(false);
         return pane;
     }
@@ -180,7 +178,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                     else
                     {
                         label.relocate(x+2*rad+gap, y);
-                        label.setPrefSize(led_w-2*rad-gap, led_h);
+                        label.resize(led_w-2*rad-gap, led_h);
                     }
                 }
             }

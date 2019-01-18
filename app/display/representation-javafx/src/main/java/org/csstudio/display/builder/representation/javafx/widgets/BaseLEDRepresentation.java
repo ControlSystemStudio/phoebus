@@ -56,8 +56,6 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         value_color = colors[0];
 
         final Pane pane = new Pane();
-        pane.setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-        pane.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
 
         // Avoid expensive Node.notifyParentOfBoundsChange()
         pane.setManaged(false);
