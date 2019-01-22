@@ -60,27 +60,4 @@ In addition, the context menu of the widget allows opening the full Data Browser
     <y>480</y>
     <tooltip>$(actions)</tooltip>
   </widget>
-  <widget type="databrowser" version="2.0.0">
-    <name>Data Browser_2</name>
-    <file>../../../../../../../../test3.plt</file>
-    <x>20</x>
-    <y>620</y>
-    <width>680</width>
-    <height>290</height>
-    <selection_value_pv>loc://cursor&lt;VTable&gt;</selection_value_pv>
-  </widget>
-  <widget type="table" version="2.0.0">
-    <name>Table</name>
-    <pv_name>loc://cursor&lt;VTable&gt;</pv_name>
-    <x>740</x>
-    <y>640</y>
-    <columns>
-      <column>
-        <name>Trace</name>
-        <width>100</width>
-        <editable>false</editable>
-      </column>
-    </columns>
-    <editable>false</editable>
-  </widget>
 </display>

@@ -67,8 +67,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         square_led = model_widget.propSquare().getValue();
         horizontal = model_widget.propHorizontal().getValue();
         addLEDs(pane);
-        pane.setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-        pane.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+        pane.setManaged(false);
         return pane;
     }
 
@@ -135,6 +134,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 label.getStyleClass().add("led_label");
                 label.setFont(text_font);
                 label.setTextFill(text_color);
+                label.setManaged(false);
             }
             else
                 label = null;
@@ -151,7 +151,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 if (label != null)
                 {
                     label.relocate(x, y);
-                    label.setPrefSize(led_w, led_h);
+                    label.resize(led_w, led_h);
                     label.setAlignment(Pos.CENTER);
                     if (horizontal)
                         label.setRotate(-90);
@@ -172,22 +172,25 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                         label.getTransforms().setAll(new Rotate(-90.0));
                         // label.setBackground(new Background(new BackgroundFill(Color.BISQUE, CornerRadii.EMPTY, Insets.EMPTY)));
                         label.relocate(x, y+led_h);
-                        label.setPrefSize(led_h - 2*rad - gap, led_w);
+                        label.resize(led_h - 2*rad - gap, led_w);
                         label.setAlignment(Pos.CENTER_RIGHT);
                     }
                     else
                     {
                         label.relocate(x+2*rad+gap, y);
-                        label.setPrefSize(led_w-2*rad-gap, led_h);
+                        label.resize(led_w-2*rad-gap, led_h);
                     }
                 }
             }
             led.getStyleClass().add("led");
+            led.setManaged(false);
             if (save_colorVals != null && i < save_colorVals.length)
                 led.setFill(save_colorVals[i]);
 
             leds[i] = led;
             labels[i] = label;
+            if (label != null)
+                label.layout();
             x += dx;
             y += dy;
         }
@@ -369,7 +372,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         {
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
-            jfx_node.setPrefSize(w, h);
+            jfx_node.resize(w, h);
             addLEDs(jfx_node, w, h, horizontal);
         }
         if (dirty_content.checkAndClear())
