@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@ public class Preferences
     public static final String top_resources;
     public static final boolean splash;
     public static final int ui_monitor_period;
+    public static final String[] hide_spi_menu;
 
     static
     {
@@ -35,5 +36,6 @@ public class Preferences
         top_resources = prefs.get(TOP_RESOURCES);
         splash = prefs.getBoolean(SPLASH);
         ui_monitor_period = prefs.getInt("ui_monitor_period");
+        hide_spi_menu = prefs.get("hide_spi_menu").split("\\s*,\\s*");
     }
 }
