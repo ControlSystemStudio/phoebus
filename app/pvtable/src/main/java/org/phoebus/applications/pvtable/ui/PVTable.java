@@ -30,6 +30,7 @@ import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
 import org.phoebus.ui.javafx.PrintAction;
@@ -582,6 +583,7 @@ public class PVTable extends VBox
                                                     .collect(Collectors.joining("\n")));
             dialog.getDialogPane().setPrefWidth(800.0);
             dialog.setResizable(true);
+            DialogHelper.positionDialog(dialog, table, -400, -100);
             dialog.showAndWait();
         });
 
