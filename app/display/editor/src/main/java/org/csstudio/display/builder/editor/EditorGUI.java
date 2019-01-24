@@ -105,6 +105,10 @@ public class EditorGUI
         if (editor.getSelectedWidgetUITracker().isInlineEditorActive())
             return;
 
+        // Same for widget tree's name editor
+        if (tree.isInlineEditorActive())
+            return;
+
         final KeyCode code = event.getCode();
         // System.out.println("Editor Key: " + code);
 

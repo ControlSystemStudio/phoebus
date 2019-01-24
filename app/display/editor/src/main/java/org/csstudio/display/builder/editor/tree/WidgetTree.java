@@ -472,4 +472,10 @@ public class WidgetTree
                 removeWidgetListeners(child);
         }
     }
+
+    /** @return Is the tree currently editing a widget name? */
+    public boolean isInlineEditorActive()
+    {
+        return tree_view.editingItemProperty().get() != null;
+    }
 }

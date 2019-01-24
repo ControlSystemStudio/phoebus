@@ -103,6 +103,11 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
     public void cancelEdit()
     {
         super.cancelEdit();
+        // Pressing 'ESC' while editing
+        // would leave the display in a half-updated state
+        // where the item reverts to the original name (OK)
+        // but has no icon (bad)
+        // Force a refresh
         updateItem(getItem(), false);
     }
 }
