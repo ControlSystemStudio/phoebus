@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,155 +8,157 @@
 package org.phoebus.applications.alarm.ui.annunciator;
 
 import java.time.Instant;
-import java.util.PriorityQueue;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
-import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /** Controller class for an annunciator.
  *
- *  <p>Annunciates messages in order of severity so long as the message queue remains below
- *  a given threshold. Should the threshold be exceeded, a message saying "There are N new messages"
- *  will be spoken and the message queue will be cleared.
+ *  <p>Annunciates messages in order.
+ *  If several messages queue up, "There are N new messages"
+ *  will be spoken instead of spending time with each message.
  *
  *  <p>Messages marked as 'standout' will always be annunciated regardless of queue size.
  *
+ *  <p>Previous versions re-ordered by severity, but that turned out to be confusing.
+ *  Imagine "MINOR Alarm XYZ" followed by "MAJOR Alarm XYZ".
+ *  If re-ordered by severity, they're annunciated out of time order
+ *  which doesn't make sense to users.
+ *
  *  @author Evan Smith
+ *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class AnnunciatorController
 {
-    private final Annunciator annunciator;
-    private final Thread      annunciatorThread;
+    /** Special message sent to request shutdown */
+    private static final AnnunciatorMessage LAST_MESSAGE = new AnnunciatorMessage(false, SeverityLevel.OK, null, null);
 
-    private final PriorityQueue<AnnunciatorMessage> to_annunciate = new PriorityQueue<>();
+    /** Maximum number of messages to queue before summarizing */
+    private final int threshold;
+    private final Consumer<AnnunciatorMessage> addToTable;
 
-    private int threshold;
+    private final BlockingQueue<AnnunciatorMessage> to_annunciate = new LinkedBlockingQueue<>();
 
-    // Muted is only ever set in the application thread so it doesn't need to be thread safe.
+    private final Annunciator annunciator = new Annunciator();
+    private final Thread process_thread = new Thread(this::processMessages, "Annunciator");
+
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
     private volatile boolean muted = false;
-    private volatile boolean run   = true;
 
-    /**
-     * Create AnnunciatorController.
-     * @param threshold - Integer value that the length of the queue should not exceed.
-     * @param addToTable - callback to add the message to the annunciator table.
+    /** Create AnnunciatorController.
+     *  @param threshold - Integer value that the length of the queue should not exceed.
+     *  @param addToTable - callback to add the message to the annunciator table.
      */
     public AnnunciatorController(final int threshold, final Consumer<AnnunciatorMessage> addToTable)
     {
-        annunciator = new Annunciator();
         this.threshold = threshold;
+        this.addToTable = addToTable;
 
-        // Runnable that will execute in another thread. Handles speaking and message queue.
-        final Runnable speaker = () ->
-        {
-            // Process new messages until killed.
-            while (run)
-            {
-                synchronized (to_annunciate)
-                {
-                    // If above threshold, empty the queue, annunciating any stand out messages, and annunciate a generic queue size message.
-                    int size = to_annunciate.size();
-                    if (size > this.threshold)
-                    {
-                        int flurry = 0;
-                        Instant earliest = Instant.now();
-                        // Empty the queue
-                        while (! to_annunciate.isEmpty())
-                        {
-                            AnnunciatorMessage message = to_annunciate.poll();
-                            if (earliest.compareTo(message.time) < 0)
-                                earliest = message.time;
-                            // Annunciate if marked as stand out.
-                            if (message.standout)
-                            {
-                                addToTable.accept(message);
-                                if (! muted)
-                                    annunciator.speak(message.message);
-                            }
-                            else // Increment count of non stand out messages.
-                                flurry++;
-                        }
-                        // Annunciate generic message for queue size.
-                        if (flurry > 0)
-                        {
-                            AnnunciatorMessage flurryMessage = new AnnunciatorMessage(false, null, earliest, "There are " + flurry + " new messages");
-                            addToTable.accept(flurryMessage);
-                            if (! muted)
-                                annunciator.speak(flurryMessage.message);
-                        }
-                    }
-                    else // Otherwise, speak the messages in the queue.
-                    {
-                        while (! to_annunciate.isEmpty())
-                        {
-                            AnnunciatorMessage message = to_annunciate.poll();
-                            addToTable.accept(message);
-                            if (! muted)
-                                annunciator.speak(message.message);
-                        }
-                    }
-                    // Wait for more.
-                    try
-                    {
-                        to_annunciate.wait();
-                    }
-                    catch (InterruptedException e)
-                    {/* Time to die? */}
-                }
-            }
-        };
-
-        annunciatorThread = new Thread(speaker);
-        // The thread should be killed by shutdown() call, but set to daemon so it dies
+        // The thread should exit when requested by shutdown() call, but set to daemon so it dies
         // when program closes regardless.
-        annunciatorThread.setDaemon(true);
-        annunciatorThread.start();
+        process_thread.setDaemon(true);
+        process_thread.start();
     }
 
-
-    /**
-     * Annunciate the passed message.
-     * @param message
-     */
-    public void annunciate(AnnunciatorMessage message)
+    /** @param message Message to annunciate */
+    public void annunciate(final AnnunciatorMessage message)
     {
-        // May block on the to_annunciate queue. So call in another thread to prevent blocking on UI thread.
-        JobManager.schedule("annunciate message", (monitor) ->
-        {
-            // Add the new message and notify the annunciator thread.
-            synchronized(to_annunciate)
-            {
-                to_annunciate.add(message);
-                to_annunciate.notifyAll();
-            }
-        });
+        to_annunciate.offer(message);
     }
 
-    /**
-     * Set the muted attribute of the annunciator.
-     * @param val - True for muted, False for not muted.
-     */
+    /** @param val Mute the annunciator? */
     public void setMuted(final boolean val)
     {
         muted = val;
     }
 
-    /**
-     * Shutdown the annunciator controller.
-     * @throws InterruptedException
+    private void processMessages()
+    {
+        final List<AnnunciatorMessage> batch = new ArrayList<>();
+
+        // Process new messages until receiving LAST_MESSAGE
+        while (true)
+        {
+            // Fetch batch of pending messages
+            batch.clear();
+            {
+                AnnunciatorMessage message;
+                try
+                {
+                    // Wait for the first message
+                    message = to_annunciate.take();
+                }
+                catch (InterruptedException ex)
+                {
+                    return;
+                }
+
+                // Gather all messages that have accumulated
+                while (message != null)
+                {
+                    if (message == LAST_MESSAGE)
+                        return;
+                    batch.add(message);
+                    message = to_annunciate.poll();
+                }
+            }
+
+            // Simply annunciate up to threshold
+            if (batch.size() <= threshold)
+            {
+                for (AnnunciatorMessage message : batch)
+                {
+                    addToTable.accept(message);
+                    if (! muted)
+                        annunciator.speak(message.message);
+                }
+            }
+            else
+            {   // Above threshold, annunciate only stand out messages
+                int flurry = 0;
+                Instant earliest = Instant.now();
+                for (AnnunciatorMessage message : batch)
+                {
+                    if (earliest.isBefore(message.time))
+                        earliest = message.time;
+                    if (message.standout)
+                    {   // Annunciate if marked as stand out.
+                        addToTable.accept(message);
+                        if (! muted)
+                            annunciator.speak(message.message);
+                    }
+                    else
+                    {   // Increment count of non stand out messages.
+                        message.message += " (skipped)";
+                        addToTable.accept(message);
+                        flurry++;
+                    }
+                }
+                if (flurry > 0)
+                {   // Replace rest with message count
+                    final AnnunciatorMessage message = new AnnunciatorMessage(false, null, earliest, "There are " + flurry + " new messages");
+                    addToTable.accept(message);
+                    if (! muted)
+                        annunciator.speak(message.message);
+                }
+            }
+        }
+    }
+
+    /** Shutdown the annunciator controller.
+     *  @throws InterruptedException
      */
     public void shutdown() throws InterruptedException
     {
-        // Set run to false and wake annunciatorThread.
-        run = false;
-        synchronized(to_annunciate)
-        {
-            to_annunciate.notifyAll();
-        }
-        // The thread should shutdown having left the while(run) loop.
-        annunciatorThread.join(1000);
+        // Send magic message that wakes annunciatorThread and causes it to exit
+        to_annunciate.offer(LAST_MESSAGE);
+        // The thread should shutdown
+        process_thread.join(2000);
 
         // Deallocate the annunciator's voice.
         annunciator.shutdown();
