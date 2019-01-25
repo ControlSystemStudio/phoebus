@@ -21,7 +21,7 @@ import org.phoebus.framework.preferences.PreferencesReader;
 public class Preferences
 {
     public static int performance_log_period_secs, performance_log_threshold_ms,
-                      update_accumulation_time, update_delay, plot_update_delay;
+                      update_accumulation_time, update_delay, plot_update_delay, image_update_delay;
 
     static
     {
@@ -33,6 +33,7 @@ public class Preferences
             update_accumulation_time = prefs.getInt("update_accumulation_time");
             update_delay = prefs.getInt("update_delay");
             plot_update_delay = prefs.getInt("plot_update_delay");
+            image_update_delay = prefs.getInt("image_update_delay");
         }
         catch (Exception ex)
         {
