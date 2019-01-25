@@ -30,6 +30,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
@@ -201,9 +202,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         this.client = client;
         this.client.addListener(this);
 
-
         if (annunciator_retention_count < 1)
             logger.log(Level.SEVERE, "Annunciation Retention Count set below 1.");
+
+        table.setPlaceholder(new Label("No annunciations"));
 
         time.setCellValueFactory(cell -> cell.getValue().time_received);
         time.setCellFactory(c -> new TimeCell());
