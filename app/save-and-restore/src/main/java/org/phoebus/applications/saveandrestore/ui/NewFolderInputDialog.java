@@ -16,23 +16,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui;
 
 import java.util.List;
 
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextInputDialog;
 
-public interface DataProvider {
+public class NewFolderInputDialog extends TextInputDialog {
 
-	public TreeNode getRootNode();
+	private List<String> invalidFolderNames;
 	
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode);
-	
-	public void rename(TreeNode treeNode, String newName);
-	
-	public TreeNode createNewTreeNode(int parentId, TreeNode newreeNode);
-	
-	public void deleteTreeNode(TreeNode treeNode);
+	public NewFolderInputDialog(List<String> invalidFolderNames) {
+		this.invalidFolderNames = invalidFolderNames;
+		setTitle("New Folder");
+		setContentText("Specify a folder name:");
+		setHeaderText(null);
+		getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
+
+		getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+			getDialogPane().lookupButton(ButtonType.OK).setDisable(invalidFolderNames.contains(newValue.trim()));
+		});
+	}
 	
 }

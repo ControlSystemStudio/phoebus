@@ -19,12 +19,42 @@
 package org.phoebus.applications.saveandrestore.data;
 
 import org.junit.Test;
+import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
+
+import static org.junit.Assert.*;
 
 public class TestTreeNode {
 
 	@Test
 	public void testEquals() {
 		
+		TreeNode t1 = FolderTreeNode.builder()
+				.id(1)
+				.name("name1")
+				.build();
 		
+		TreeNode t2 = FolderTreeNode.builder()
+				.id(1)
+				.name("name1")
+				.build();
+		
+		assertEquals(t1, t2);
+		assertEquals(t1.hashCode(), t2.hashCode());
+		
+		t1.setId(2);
+		
+		assertNotEquals(t1,  t2);
+		assertNotEquals(t1.hashCode(), t2.hashCode());
+		
+		t1.setId(1);
+		t1.setName("name");
+		
+		assertNotEquals(t1,  t2);
+		assertNotEquals(t1.hashCode(), t2.hashCode());
+		
+		assertNotEquals(t1, new Object());
+		
+		assertEquals(t1, t1);
 	}
 }

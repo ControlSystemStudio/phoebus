@@ -16,23 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui.model;
 
-import java.util.List;
-
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
-
-public interface DataProvider {
-
-	public TreeNode getRootNode();
-	
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode);
-	
-	public void rename(TreeNode treeNode, String newName);
-	
-	public TreeNode createNewTreeNode(int parentId, TreeNode newreeNode);
-	
-	public void deleteTreeNode(TreeNode treeNode);
-	
+/**
+ * @author georgweiss
+ * Created 16 Jan 2019
+ */
+public enum EpicsProvider {
+	CA,
+	PVA;
 }
+
+

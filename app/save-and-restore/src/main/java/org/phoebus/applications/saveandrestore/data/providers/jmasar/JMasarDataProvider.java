@@ -22,19 +22,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.data.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.data.TreeNode;
-import org.phoebus.applications.saveandrestore.data.TreeNodeType;
-
+import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNodeType;
 
 import se.esss.ics.masar.model.Folder;
 import se.esss.ics.masar.model.Node;
+import se.esss.ics.masar.model.NodeType;
 import se.esss.ics.masar.model.Snapshot;
 
 public class JMasarDataProvider implements DataProvider {
-	
+
 	private JMasarClient jmasarClient;
-	
+
 	public JMasarDataProvider() {
 		jmasarClient = new JMasarClient();
 	}
@@ -42,12 +42,12 @@ public class JMasarDataProvider implements DataProvider {
 	@Override
 	public TreeNode getRootNode() {
 		Folder folder = jmasarClient.getRoot();
-		
+
 		return DataConverter.fromJMasarFolder(folder);
 	}
-	
+
 	@Override
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode){
+	public List<TreeNode> getChildNodes(FolderTreeNode parentNode) {
 		if (parentNode.getType().equals(TreeNodeType.SAVESET)) {
 			List<Snapshot> snapshots = jmasarClient.getSnapshots(parentNode);
 			return snapshots.stream().map(s -> DataConverter.jmasarSnapshot2TreeNode(s)).collect(Collectors.toList());
@@ -56,19 +56,36 @@ public class JMasarDataProvider implements DataProvider {
 			return childNodes.stream().map(n -> DataConverter.fromJMasarNode(n)).collect(Collectors.toList());
 		}
 	}
-	
+
 	@Override
 	public void rename(TreeNode treeNode, String newName) {
-		jmasarClient.rename(treeNode.getId(), newName); 
+		jmasarClient.rename(treeNode.getId(), newName);
 	}
-	
+
 	@Override
 	public FolderTreeNode createNewTreeNode(int parentId, TreeNode newTreeNode) {
-		
+
 		Folder newFolder = DataConverter.toJMasarFolder(parentId, newTreeNode);
-		
+
 		newFolder = jmasarClient.createNewFolder(newFolder);
-		
+
 		return DataConverter.fromJMasarNode(newFolder);
+	}
+
+	@Override
+	public void deleteTreeNode(TreeNode treeNode) {
+
+		switch (treeNode.getType()) {
+		case FOLDER:
+			jmasarClient.deleteNode(NodeType.FOLDER, treeNode.getId());
+			break;
+		case SAVESET:
+			jmasarClient.deleteNode(NodeType.CONFIGURATION, treeNode.getId());
+			break;
+		case SNAPSHOT:
+			jmasarClient.deleteSnapshot(treeNode.getId());
+			break;
+		default:
+		}
 	}
 }

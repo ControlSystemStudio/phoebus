@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui.model;
 
 public enum TreeNodeType {
 	FOLDER,

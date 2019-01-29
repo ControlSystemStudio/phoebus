@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 European Spallation Source ERIC.
+ * Copyright (C) 2019 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,11 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui.model;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
@@ -28,28 +26,45 @@ import lombok.EqualsAndHashCode;
 
 /**
  * @author georgweiss
- * Created 3 Jan 2019
+ * Created 7 Jan 2019
  */
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FolderTreeNode extends TreeNode{
-	
-	private List<TreeNode> children;
-	
-	@Builder
-	public FolderTreeNode(int id, String name, TreeNodeType type) {
-		super(id, name, null, null, type);
-		children = new ArrayList<>();
-	}
-	
-	@Builder
-	public FolderTreeNode(int id, String name, String userName, Date lastModified, TreeNodeType type) {
-		super(id, name, userName, lastModified, type);
-		children = new ArrayList<>();
-	}
+public class SnapshotTreeNode extends TreeNode{
 
+	private String comment;
+	
+	@Builder
+	public SnapshotTreeNode(int id, String name) {
+		super(id, name, null, null, TreeNodeType.SNAPSHOT, null);
+	}
+	
+	@Builder
+	public SnapshotTreeNode(int id, String name, String userName, Date lastModified) {
+		super(id, name, userName, lastModified, TreeNodeType.SNAPSHOT, null);
+	}
+	
 	@Override
 	public boolean isLeaf() {
-		return false;
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuffer stringBuffer = new StringBuffer();
+		
+		stringBuffer.append(getName());
+		if(getType().equals(TreeNodeType.SAVESET) && getLastModified() != null) {
+			stringBuffer.append(" " + getLastModified());
+		}
+		
+		if(getUserName() != null && !getUserName().isEmpty()) {
+			stringBuffer.append(" (" + getUserName() + ")");
+		}
+		
+		return stringBuffer.toString();
 	}
 }
+
+

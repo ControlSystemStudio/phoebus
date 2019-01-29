@@ -16,11 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui.model;
 
 import java.util.Date;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 
@@ -31,14 +34,16 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @Data
-public abstract class TreeNode {
+public abstract class TreeNode{
 
 	private int id;
 	private String name;
 	private String userName;
 	private Date lastModified;
-
 	private TreeNodeType type;
+	
+	@Builder.Default
+	private ObservableList<TreeNode> children = FXCollections.observableArrayList();
 	
 	public abstract boolean isLeaf();
 

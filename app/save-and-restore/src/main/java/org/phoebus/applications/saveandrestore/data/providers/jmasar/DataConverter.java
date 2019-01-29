@@ -21,11 +21,13 @@ package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.phoebus.applications.saveandrestore.data.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.data.SnapshotTreeNode;
-import org.phoebus.applications.saveandrestore.data.TreeNode;
-import org.phoebus.applications.saveandrestore.data.TreeNodeType;
+import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.SnapshotTreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNodeType;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import se.esss.ics.masar.model.Folder;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
@@ -37,27 +39,23 @@ public class DataConverter {
 		FolderTreeNode node = fromJMasarNode(folder);
 		List<TreeNode> children = folder.getChildNodes().stream().map(n -> fromJMasarNode(n))
 				.collect(Collectors.toList());
-		node.setChildren(children);
+
+		ObservableList<TreeNode> observableList = FXCollections.observableArrayList(children);
+		node.setChildren(observableList);
 		return node;
 	}
-	
+
 	public static Folder toJMasarFolder(int parentId, TreeNode treeNode) {
-		
-		return Folder.builder()
-				.parentId(parentId)
-				.name(treeNode.getName())
-				.build();
+
+		return Folder.builder().parentId(parentId).name(treeNode.getName()).build();
 	}
 
 	public static FolderTreeNode fromJMasarNode(Node node) {
 
-		FolderTreeNode treeNode = FolderTreeNode.builder()
-				.id(node.getId())
-				.name(node.getName())
+		FolderTreeNode treeNode = FolderTreeNode.builder().id(node.getId()).name(node.getName())
 				.type(node.getNodeType().equals(NodeType.FOLDER) ? TreeNodeType.FOLDER : TreeNodeType.SAVESET)
-				.userName(node.getUserName())
-				.lastModified(node.getLastModified())
-				.build();
+				.userName(node.getUserName()).lastModified(node.getLastModified()).build();
+
 		return treeNode;
 	}
 
@@ -138,6 +136,4 @@ public class DataConverter {
 //		}
 //	}
 
-
-	
 }

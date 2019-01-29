@@ -20,28 +20,30 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.data.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.data.TreeNode;
-import org.phoebus.applications.saveandrestore.data.TreeNodeType;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNodeType;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -54,7 +56,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
-import javafx.util.Duration;
 import se.esss.ics.masar.model.Node;
 
 /**
@@ -68,13 +69,12 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 
 	private TreeNodeItem treeRootItem;
 
-	private TreeNode selectedTreeNode;
-
 	private SaveAndRestoreService service;
 
 	private ContextMenu folderContextMenu;
 	private ContextMenu saveSetContextMenu;
 	private ContextMenu snapshotContextMenu;
+	private ContextMenu rootFolderContextMenu;
 
 	private static final int NEW_FOLDER_ID = -1;
 
@@ -86,7 +86,7 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		nodeExpandedHandler = new EventHandler<TreeItem.TreeModificationEvent<TreeNode>>() {
 			@Override
 			public void handle(TreeModificationEvent<TreeNode> event) {
-				expandTreeNode(event);
+				expandTreeNode(event.getTreeItem());
 			}
 		};
 
@@ -95,7 +95,6 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 			public void handle(MouseEvent mouseEvent) {
 				TreeItem<TreeNode> item = getSelectionModel().getSelectedItem();
 				if (item != null) {
-					selectedTreeNode = item.getValue();
 					if (mouseEvent.getClickCount() == 2) {
 						nodeDoubleClicked(getSelectionModel().getSelectedItem());
 					}
@@ -104,22 +103,44 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		});
 
 		folderContextMenu = new ContextMenu();
-		MenuItem newFolderMenuItem = new MenuItem("New");
+		MenuItem newFolderMenuItem = new MenuItem("New folder");
 		newFolderMenuItem.setOnAction(ae -> {
 			handleNewFolder(getSelectionModel().getSelectedItem());
 		});
-		MenuItem deleteFolderMenuItem = new MenuItem("Delete");
 
-		folderContextMenu.getItems().addAll(newFolderMenuItem, deleteFolderMenuItem);
+		MenuItem deleteFolderMenuItem = new MenuItem("Delete folder");
+		deleteFolderMenuItem.setOnAction(ae -> {
+			handleDeleteFolder(getSelectionModel().getSelectedItem());
+		});
+
+		MenuItem newSaveSetMenuItem = new MenuItem("New save set");
+
+		folderContextMenu.getItems().addAll(newFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem);
+
+		rootFolderContextMenu = new ContextMenu();
+		MenuItem newRootFolderMenuItem = new MenuItem("New folder");
+		newRootFolderMenuItem.setOnAction(ae -> {
+			handleNewFolder(getSelectionModel().getSelectedItem());
+		});
+		rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
 		saveSetContextMenu = new ContextMenu();
-		MenuItem newSaveSetMenuItem = new MenuItem("New");
-		MenuItem deleteSaveSetMenuItem = new MenuItem("Delete");
-		saveSetContextMenu.getItems().addAll(newSaveSetMenuItem, deleteSaveSetMenuItem);
+
+		MenuItem deleteSaveSetMenuItem = new MenuItem("Delete save set");
+		deleteSaveSetMenuItem.setOnAction(ae -> {
+			handleDeleteSaveSet(getSelectionModel().getSelectedItem());
+		});
+
+		saveSetContextMenu.getItems().addAll(deleteSaveSetMenuItem);
+		
 
 		snapshotContextMenu = new ContextMenu();
-		MenuItem deleteSnapshotMenuItem = new MenuItem("Delete");
-		MenuItem compareSaveSetMenuItem = new MenuItem("Compare");
+		MenuItem deleteSnapshotMenuItem = new MenuItem("Delete snapshot");
+		deleteSnapshotMenuItem.setOnAction(ae -> {
+			handleDeleteSnapshot(getSelectionModel().getSelectedItem());
+		});
+		
+		MenuItem compareSaveSetMenuItem = new MenuItem("Compare snapshots");
 		snapshotContextMenu.getItems().addAll(deleteSnapshotMenuItem, compareSaveSetMenuItem);
 
 		this.setCellFactory(new Callback<TreeView<TreeNode>, TreeCell<TreeNode>>() {
@@ -133,27 +154,24 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 
 	/**
 	 * Loads the data for the tree root as provided (persisted) by the current
-	 * {@link DataProvider}. This should be called when the UI is set up and when
-	 * the {@link DataProvider} is changed or reconfigured, e.g. when specifying a
-	 * different service URL.
+	 * {@link DataProvider}.
 	 */
 	public void loadInitialTreeData() {
-
-		if (treeRootItem != null) {
-			treeRootItem.removeEventHandler(TreeItem.branchExpandedEvent(), nodeExpandedHandler);
-		}
 
 		TreeNode treeRoot = service.getRootNode();
 		treeRootItem = new TreeNodeItem(treeRoot);
 
-		for (TreeNode childNode : ((FolderTreeNode) treeRoot).getChildren()) {
-			treeRootItem.getChildren().add(new TreeNodeItem(childNode));
-		}
+//		for (TreeNode childNode : ((FolderTreeNode) treeRoot).getChildren()) {
+//			treeRootItem.getChildren().add(new TreeNodeItem(childNode));
+//		}
 
-		treeRootItem.setExpanded(true);
 		treeRootItem.addEventHandler(TreeItem.branchExpandedEvent(), nodeExpandedHandler);
 
-		UI_EXECUTOR.execute(() -> super.setRoot(treeRootItem));
+		UI_EXECUTOR.execute(() -> {
+			super.setRoot(treeRootItem);
+			treeRootItem.setExpanded(true);
+			// expandTreeNode(treeRootItem);
+		});
 	}
 
 	/**
@@ -162,21 +180,21 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 	 * 
 	 * @param event The event triggered by an expansion of a tree node.
 	 */
-	private void expandTreeNode(TreeModificationEvent<TreeNode> event) {
+	private void expandTreeNode(TreeItem<TreeNode> targetItem) {
 
-		TreeItem<TreeNode> targetItem = event.getTreeItem();
 		targetItem.getChildren().clear();
 		List<TreeNodeItem> childItems = service.getChildNodes((FolderTreeNode) targetItem.getValue()).stream()
 				.map(i -> new TreeNodeItem(i)).collect(Collectors.toList());
 		childItems.sort(new Comparator<TreeNodeItem>() {
-			
+
 			@Override
 			public int compare(TreeNodeItem item1, TreeNodeItem item2) {
 				return item1.getValue().getName().compareTo(item2.getValue().getName());
 			}
 		});
-		UI_EXECUTOR.execute(() -> targetItem.getChildren().addAll(childItems));
-
+		UI_EXECUTOR.execute(() -> {
+			targetItem.getChildren().addAll(childItems);
+		});
 	}
 
 	/**
@@ -236,65 +254,10 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 	 *         {@code false} (including if the specified node is of type
 	 *         {@link TreeNodeType#SNAPSHOT}.
 	 */
-//	private boolean handleRenameNode(TreeNode treeNode, String newName) {
-//		if (treeNode.getType().equals(TreeNodeType.SNAPSHOT)) {
-//			return false;
-//		}
-//		try {
-//			if (treeNode.getId() != NEW_FOLDER_ID) {
-//				service.rename(treeNode, newName);
-//			}
-//			return true;
-//		} catch (Exception e) {
-//			Alert dialog = new Alert(AlertType.ERROR);
-//			dialog.setTitle("Rename failed");
-//			dialog.setHeaderText(e.getMessage());
-//			dialog.showAndWait();
-//			return false;
-//		}
-//	}
-
 	private boolean handleEditDone(TreeNode treeNode, String nodeName) {
-		if (treeNode.getType().equals(TreeNodeType.SNAPSHOT)) {
-			return false;
-		}
-//		if (treeNode.getId() == NEW_FOLDER_ID) {
-//			try {
-//				treeNode.setName(nodeName);
-//				TreeNode newTreeNode = 
-//						service.createNewTreeNode(getSelectionModel().getSelectedItem().getParent().getValue().getId(), treeNode);
-//				treeNode.setId(newTreeNode.getId());
-//				return true;
-//			} catch (Exception e) {
-//				Alert dialog = new Alert(AlertType.ERROR);
-//				dialog.setTitle("Create new node failed");
-//				dialog.setHeaderText(e.getMessage());
-//				dialog.showAndWait();
-//				return false;
-//			}
-//
-//		} else {
-//			try {
-//				service.rename(treeNode, nodeName);
-//				return true;
-//			} catch (Exception e) {
-//				Alert dialog = new Alert(AlertType.ERROR);
-//				dialog.setTitle("Rename failed");
-//				dialog.setHeaderText(e.getMessage());
-//				dialog.showAndWait();
-//				return false;
-//			}
-//		}
 		try {
-			if (treeNode.getId() == NEW_FOLDER_ID) {
-				treeNode.setName(nodeName);
-				TreeNode newTreeNode = service.createNewTreeNode(
-						getSelectionModel().getSelectedItem().getParent().getValue().getId(), treeNode);
-				treeNode.setId(newTreeNode.getId());		
-			} else {
-				service.rename(treeNode, nodeName);
-				treeNode.setName(nodeName);
-			}
+			service.rename(treeNode, nodeName);
+			treeNode.setName(nodeName);
 			return true;
 		} catch (Exception e) {
 			Alert dialog = new Alert(AlertType.ERROR);
@@ -303,29 +266,100 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 			dialog.showAndWait();
 			return false;
 		}
-
 	}
 
 	private void handleNewFolder(TreeItem<TreeNode> parentTreeItem) {
-		if (!parentTreeItem.isExpanded()) {
-			parentTreeItem.setExpanded(true);
-		}
-		// Construct a new node and add it to the parent
-		FolderTreeNode newFolderNode = FolderTreeNode.builder().id(NEW_FOLDER_ID)
-				.name(getNameForNewFolder(parentTreeItem)).type(TreeNodeType.FOLDER).build();
 
-		TreeNodeItem newFolderItem = new TreeNodeItem(newFolderNode);
-		parentTreeItem.getChildren().add(newFolderItem);
-		getSelectionModel().select(newFolderItem);
-		PauseTransition p = new PauseTransition(Duration.millis(150));
-		p.setOnFinished(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				edit(newFolderItem);
-			}
+		List<String> existingFolderNames = parentTreeItem.getChildren().stream().map(item -> item.getValue().getName())
+				.collect(Collectors.toList());
+
+		TextInputDialog dialog = new TextInputDialog();
+		dialog.setTitle("New Folder");
+		dialog.setContentText("Specify a folder name:");
+		dialog.setHeaderText(null);
+		dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
+
+		dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+			String value = newValue.trim();
+			dialog.getDialogPane().lookupButton(ButtonType.OK)
+					.setDisable(existingFolderNames.contains(value) || value.isBlank());
 		});
-		p.play();
 
+		// NewFolderInputDialog dialog = new NewFolderInputDialog(existingFolderNames);
+
+		DialogHelper.positionDialog(dialog, this, -200, -100);
+
+		Optional<String> result = dialog.showAndWait();
+
+		if (result.isPresent()) {
+			FolderTreeNode newFolderNode = FolderTreeNode.builder().id(NEW_FOLDER_ID).name(result.get())
+					.type(TreeNodeType.FOLDER).build();
+			try {
+				TreeNode newTreeNode = service
+						.createNewTreeNode(getSelectionModel().getSelectedItem().getValue().getId(), newFolderNode);
+				parentTreeItem.getChildren().add(new TreeNodeItem(newTreeNode));
+				parentTreeItem.setExpanded(true);
+			} catch (Exception e) {
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Action failed");
+				alert.setHeaderText(e.getMessage());
+				alert.showAndWait();
+			}
+		}
+
+//		
+//		PauseTransition p = new PauseTransition(Duration.millis(150));
+//		p.setOnFinished(new EventHandler<ActionEvent>() {
+//			@Override
+//			public void handle(ActionEvent event) {
+//				edit(newFolderItem);
+//			}
+//		});
+//		p.play();
+	}
+
+	private void handleDeleteFolder(TreeItem<TreeNode> treeItem) {
+		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		alert.setTitle("Delete folder?");
+		alert.setHeaderText("All folders, save sets and snapshots in this folder and sub-folders will be deleted!");
+		alert.setContentText("Deletion is irreversible. Do you wish to continue?");
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.isPresent() && result.get().equals(ButtonType.OK)) {
+			TreeItem<TreeNode> parent = treeItem.getParent();
+			service.deleteNode(treeItem.getValue());
+			UI_EXECUTOR.execute(() -> {
+				parent.getChildren().remove(treeItem);
+			});
+		}
+	}
+	
+	private void handleDeleteSaveSet(TreeItem<TreeNode> treeItem) {
+		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		alert.setTitle("Delete save set?");
+		alert.setHeaderText("All snapshots for this save set will be deleted!");
+		alert.setContentText("Deletion is irreversible. Do you wish to continue?");
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.isPresent() && result.get().equals(ButtonType.OK)) {
+			TreeItem<TreeNode> parent = treeItem.getParent();
+			service.deleteNode(treeItem.getValue());
+			UI_EXECUTOR.execute(() -> {
+				parent.getChildren().remove(treeItem);
+			});
+		}
+	}
+	
+	private void handleDeleteSnapshot(TreeItem<TreeNode> treeItem) {
+		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		alert.setTitle("Delete snapshot?");
+		alert.setContentText("Deletion is irreversible. Do you wish to continue?");
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.isPresent() && result.get().equals(ButtonType.OK)) {
+			TreeItem<TreeNode> parent = treeItem.getParent();
+			service.deleteNode(treeItem.getValue());
+			UI_EXECUTOR.execute(() -> {
+				parent.getChildren().remove(treeItem);
+			});
+		}
 	}
 
 	/**
@@ -347,7 +381,7 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		public boolean isLeaf() {
 			return treeNode.isLeaf();
 		}
-		
+
 		@Override
 		public String toString() {
 			return treeNode.getName();
@@ -413,11 +447,13 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 					setGraphic(saveSetBox);
 					setTooltip(new Tooltip("Double click to open saveset"));
 					setContextMenu(saveSetContextMenu);
-				} else {
+				} else if (treeNode.getType().equals(TreeNodeType.FOLDER)) {
 					folderNameLabel.setText(treeNode.getName());
 					setGraphic(folderBox);
-					if(treeNode.getId() != Node.ROOT_NODE_ID) {
+					if (treeNode.getId() != Node.ROOT_NODE_ID) {
 						setContextMenu(folderContextMenu);
+					} else {
+						setContextMenu(rootFolderContextMenu);
 					}
 				}
 			}
@@ -440,10 +476,8 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		@Override
 		public void cancelEdit() {
 			super.cancelEdit();
-			if (getItem() != null) {
-				textField.setText(getItem().getName());
-				updateItem(getItem(), false);
-			}
+			textField.setText(getItem().getName());
+			updateItem(getItem(), false);
 		}
 
 		private void createTextField() {
@@ -451,14 +485,10 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 
 			textField.setOnKeyPressed(keyEvent -> {
 				if (keyEvent.getCode() == KeyCode.ENTER) {
-					if (textField.getText().equals(getItem().getName())) {
-						cancelEdit();
-					} else if (handleEditDone(getItem(), textField.getText())) {
-						//getItem().setName(textField.getText());
+					if (getItem().getName().equals(textField.getText())
+							|| handleEditDone(getItem(), textField.getText())) {
 						cancelEdit();
 					}
-				} else if (keyEvent.getCode() == KeyCode.ESCAPE) {
-					cancelEdit();
 				}
 			});
 		}
@@ -468,23 +498,31 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		}
 	}
 
-	private String getNameForNewFolder(TreeItem<TreeNode> parentFolderItem) {
+	protected String getNameForNewFolder(TreeItem<TreeNode> parentFolderItem) {
 
-		ObservableList<TreeItem<TreeNode>> children = parentFolderItem.getParent().getChildren();
-
-		int index = 0;
-		while (true) {
-			String newFolderName = "untitled folder";
-			if (index > 0) {
-				newFolderName += " " + index;
+		ObservableList<TreeItem<TreeNode>> children = parentFolderItem.getChildren();
+		String newFolderNameBase = "untitled folder";
+		String newName = newFolderNameBase;
+		int index = 1;
+		boolean nameClashFound = false;
+		do {
+			if (index > 1) {
+				newName = newFolderNameBase + " " + index;
 			}
+
 			for (TreeItem<TreeNode> child : children) {
-				if (child.getValue().getName().equals(newFolderName)) {
-					continue;
+				if (child.getValue().getName().equals(newName)) {
+					nameClashFound = true;
+					break;
 				}
 			}
-			return newFolderName;
-		}
+			if (!nameClashFound) {
+				break;
+			}
+			index++;
+			nameClashFound = false;
+		} while (true);
+		return newName;
 	}
 
 }

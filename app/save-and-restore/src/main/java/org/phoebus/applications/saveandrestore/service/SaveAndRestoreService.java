@@ -19,6 +19,7 @@
 package org.phoebus.applications.saveandrestore.service;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,8 +29,8 @@ import java.util.concurrent.TimeUnit;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
-import org.phoebus.applications.saveandrestore.data.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.data.TreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 public class SaveAndRestoreService {
@@ -120,5 +121,21 @@ public class SaveAndRestoreService {
 		});
 			
 	    return future.get();		
+	}
+	
+	public void deleteNode(TreeNode treeNode) {
+		Future<Void> future = executor.submit(() -> {
+			
+			dataProvider.deleteTreeNode(treeNode);
+			
+			return null;
+		});
+		
+		// Wait for response...
+		try {
+			future.get();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

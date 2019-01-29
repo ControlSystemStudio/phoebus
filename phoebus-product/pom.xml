@@ -98,6 +98,11 @@
       <artifactId>app-perfmon</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>save-and-restore</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
     
     <!-- diirt
     <dependency>

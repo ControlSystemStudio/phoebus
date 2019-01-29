@@ -116,18 +116,16 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.annotation-api-1.3.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/hibernate-validator-6.0.11.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/validation-api-2.0.1.Final.jar"/>
-	<!-- On Windows, need to add this:
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11-mac.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-11-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-11-mac.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-11-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-11-mac.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-11-mac.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-11-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-11-mac.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-web-11-win.jar"/>
-	-->
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-11-mac.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-web-11-mac.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

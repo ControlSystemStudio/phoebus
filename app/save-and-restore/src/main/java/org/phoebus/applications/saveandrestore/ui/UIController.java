@@ -16,23 +16,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui;
 
-import java.util.List;
+public class UIController {
 
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
-
-public interface DataProvider {
-
-	public TreeNode getRootNode();
+	private static UIController instance;
 	
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode);
+	private MainUI mainUI;
 	
-	public void rename(TreeNode treeNode, String newName);
+	private UIController() {
+		
+	}
 	
-	public TreeNode createNewTreeNode(int parentId, TreeNode newreeNode);
-	
-	public void deleteTreeNode(TreeNode treeNode);
-	
+	public static UIController getInstance() {
+		if(instance == null) {
+			instance = new UIController();
+		}
+		
+		return instance;
+	}
 }

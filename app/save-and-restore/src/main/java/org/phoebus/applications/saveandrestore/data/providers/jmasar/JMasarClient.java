@@ -20,9 +20,10 @@ package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 
 import java.util.List;
 
+import org.eclipse.persistence.internal.identitymaps.NoIdentityMap;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
-import org.phoebus.applications.saveandrestore.data.FolderTreeNode;
+import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -35,6 +36,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import se.esss.ics.masar.model.Config;
 import se.esss.ics.masar.model.Folder;
 import se.esss.ics.masar.model.Node;
+import se.esss.ics.masar.model.NodeType;
 import se.esss.ics.masar.model.Snapshot;
 
 public class JMasarClient {
@@ -161,6 +163,25 @@ public class JMasarClient {
 		
 		if (response.getStatus() != 200) {
 			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+		}
+	}
+	
+	public void deleteNode(NodeType nodeType, int nodeId) {
+		String relativeUrl = nodeType.equals(NodeType.FOLDER) ? "/folder" : "/config";
+		WebResource webResource = client.resource(jmasarServiceUrl + relativeUrl + "/" + nodeId);
+		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
+		if (response.getStatus() != 200) {
+			String message = response.getEntity(String.class);
+			throw new DataProviderException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
+		}
+	}
+	
+	public void deleteSnapshot(int snapshotId) {
+		WebResource webResource = client.resource(jmasarServiceUrl + "/snapshot/" + snapshotId);
+		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
+		if (response.getStatus() != 200) {
+			String message = response.getEntity(String.class);
+			throw new DataProviderException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
 		}
 	}
 	
