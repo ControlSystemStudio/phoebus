@@ -80,18 +80,12 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     {
         if (square_led)
             return null;
+        final int r;
         if (horizontal)
-            return new int[]
-            {
-                model_widget.propWidth().getValue()/numBits/2,
-                model_widget.propHeight().getValue()/2,
-            };
+            r = model_widget.propWidth().getValue() / numBits / 2;
         else
-            return new int[]
-            {
-                model_widget.propWidth().getValue()/2,
-                model_widget.propHeight().getValue()/numBits/2,
-            };
+            r = model_widget.propHeight().getValue() / numBits / 2;
+        return new int[] { r, r };
     }
 
     private void addLEDs(final Pane pane)
