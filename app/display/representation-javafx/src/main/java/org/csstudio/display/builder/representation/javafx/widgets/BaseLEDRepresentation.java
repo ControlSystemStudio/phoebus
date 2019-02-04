@@ -7,6 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -20,6 +23,10 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -40,7 +47,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
 
     protected volatile Color[] colors = new Color[0];
 
-    protected volatile Color value_color;
+    protected volatile Paint value_color;
 
     protected volatile String value_label;
 
@@ -162,8 +169,9 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
 
     private void contentChanged(final WidgetProperty<VType> property, final VType old_value, final VType new_value)
     {
+        final boolean runtime_mode = ! toolkit.isEditMode();
         final VType value = model_widget.runtimePropValue().getValue();
-        if (value == null)
+        if (value == null && runtime_mode)
         {
             value_color = alarm_colors[AlarmSeverity.UNDEFINED.ordinal()];
             value_label = "";
@@ -176,12 +184,27 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
                 value_index = 0;
             if (value_index >= save_colors.length)
                 value_index = save_colors.length-1;
-            value_color = save_colors[value_index];
+            value_color = runtime_mode ? save_colors[value_index] : computeEditColors();
             value_label = computeLabel(value_index);
         }
 
         dirty_content.mark();
         toolkit.scheduleUpdate(this);
+    }
+
+    private Paint computeEditColors()
+    {
+        final Color[] save_colors = colors;
+        final List<Stop> stops = new ArrayList<>(2 * save_colors.length);
+        final double offset = 1.0 / save_colors.length;
+
+        for (int i = 0; i < save_colors.length; ++i)
+        {
+            stops.add(new Stop(i * offset, save_colors[i]));
+            stops.add(new Stop((i + 1) * offset, save_colors[i]));
+        }
+
+        return new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, stops);
     }
 
     @Override
