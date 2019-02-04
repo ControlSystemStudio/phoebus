@@ -71,6 +71,50 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     private volatile AtomicBoolean updating = new AtomicBoolean();
 
     @Override
+    public void updateChanges ( ) {
+
+        super.updateChanges();
+
+        if ( dirty_size.checkAndClear() ) {
+
+            jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
+
+            if ( model_widget.propAutoSize().getValue() ) {
+                jfx_node.autosize();
+                model_widget.propWidth().setValue((int) jfx_node.getWidth());
+                model_widget.propHeight().setValue((int) jfx_node.getHeight());
+            }
+
+        }
+
+        if ( dirty_style.checkAndClear() ) {
+
+            button.setStyle(state_colors);
+
+            label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            label.setText(labelContent);
+            label.setTextFill(foreground);
+
+            // Don't disable the widget, because that would also remove the context menu etc.
+            // Just apply a style that matches the disabled look.
+            enabled = model_widget.propEnabled().getValue() && model_widget.runtimePropPVWritable().getValue();
+
+            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+
+            // Since jfx_node.isManaged() == false, need to trigger layout
+            jfx_node.layout();
+        }
+
+        if ( dirty_content.checkAndClear() ) {
+            if ( updating.compareAndSet(false, true) ) {
+                button.setSelected(state);
+                updating.set(false);
+            }
+        }
+
+    }
+
+    @Override
     public HBox createJFXNode ( ) throws Exception {
 
         button = new ToggleSwitch();
@@ -97,6 +141,11 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
 
         hbox.setAlignment(Pos.CENTER_RIGHT);
 
+        // This code manages layout,
+        // because otherwise for example border changes would trigger
+        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
+        hbox.setManaged(false);
+
         return hbox;
     }
 
@@ -104,47 +153,6 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     protected boolean isFilteringEditModeClicks()
     {
         return true;
-    }
-
-    @Override
-    public void updateChanges ( ) {
-
-        super.updateChanges();
-
-        if ( dirty_size.checkAndClear() ) {
-
-            jfx_node.setPrefWidth(model_widget.propWidth().getValue());
-            jfx_node.setPrefHeight(model_widget.propHeight().getValue());
-
-            if ( model_widget.propAutoSize().getValue() ) {
-                jfx_node.autosize();
-            }
-
-        }
-
-        if ( dirty_style.checkAndClear() ) {
-
-            button.setStyle(state_colors);
-
-            label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
-            label.setText(labelContent);
-            label.setTextFill(foreground);
-
-            // Don't disable the widget, because that would also remove the context menu etc.
-            // Just apply a style that matches the disabled look.
-            enabled = model_widget.propEnabled().getValue() && model_widget.runtimePropPVWritable().getValue();
-
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
-
-        }
-
-        if ( dirty_content.checkAndClear() ) {
-            if ( updating.compareAndSet(false, true) ) {
-                button.setSelected(state);
-                updating.set(false);
-            }
-        }
-
     }
 
     @Override
