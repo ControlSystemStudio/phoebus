@@ -321,6 +321,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
                     active = false;
             }
         }
+        jfx_node.layout();
     }
 
     private SliderConfigPopOver config_popover = null;

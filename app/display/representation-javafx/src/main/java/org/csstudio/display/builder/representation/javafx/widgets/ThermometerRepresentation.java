@@ -55,7 +55,14 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
     @Override
     public Region createJFXNode() throws Exception
     {
-        return new Thermo();
+        final Thermo thermo = new Thermo();
+
+        // This code manages layout,
+        // because otherwise for example border changes would trigger
+        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
+        thermo.setManaged(false);
+
+        return thermo;
     }
 
     private class Thermo extends Region
@@ -256,8 +263,7 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
         if (dirty_look.checkAndClear())
         {
             ((Thermo) jfx_node).setFill(JFXUtil.convert(model_widget.propFillColor().getValue()));
-            jfx_node.setPrefHeight(model_widget.propHeight().getValue());
-            jfx_node.setPrefWidth(model_widget.propWidth().getValue());
+            jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
         }
         if (dirty_value.checkAndClear())
             ((Thermo) jfx_node).setLimits(min, max, val);
