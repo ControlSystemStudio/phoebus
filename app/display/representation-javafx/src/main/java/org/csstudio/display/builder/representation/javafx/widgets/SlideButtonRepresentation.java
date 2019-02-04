@@ -103,6 +103,9 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
 
             // Since jfx_node.isManaged() == false, need to trigger layout
             jfx_node.layout();
+
+            if (model_widget.propAutoSize().getValue())
+                sizeChanged(null, null, null);
         }
 
         if ( dirty_content.checkAndClear() ) {

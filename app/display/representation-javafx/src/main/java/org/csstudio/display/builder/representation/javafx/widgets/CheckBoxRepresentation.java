@@ -20,8 +20,10 @@ import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
+import org.phoebus.ui.javafx.TextUtils;
 
 import javafx.application.Platform;
+import javafx.geometry.Dimension2D;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.CheckBox;
 
@@ -197,7 +199,22 @@ public class CheckBoxRepresentation extends RegionBaseRepresentation<CheckBox, C
             jfx_node.setPrefWidth(model_widget.propWidth().getValue());
             jfx_node.setPrefHeight(model_widget.propHeight().getValue());
             if (model_widget.propAutoSize().getValue())
-                jfx_node.autosize();
+            {
+                final String text = jfx_node.getText();
+                if (text == null || text.isEmpty())
+                {
+                    model_widget.propWidth().setValue(18);
+                    model_widget.propHeight().setValue(18);
+                }
+                else
+                {
+                    final Dimension2D size = TextUtils.computeTextSize(JFXUtil.convert(model_widget.propFont().getValue()), text);
+                    //  Heuristics that seems working (at least on macOS) with fonts sized from 6 to 64.
+                    final int offset = 5 + (int) (2.1 * Math.exp(size.getHeight() / 23.0));
+                    model_widget.propWidth().setValue(18 + offset + (int) Math.ceil(size.getWidth()));
+                    model_widget.propHeight().setValue(Math.max(18, (int) Math.ceil(size.getHeight())));
+                }
+            }
         }
         if (dirty_content.checkAndClear())
             jfx_node.setSelected(state);
@@ -213,6 +230,8 @@ public class CheckBoxRepresentation extends RegionBaseRepresentation<CheckBox, C
             enabled = model_widget.propEnabled().getValue() &&
                       model_widget.runtimePropPVWritable().getValue();
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            if (model_widget.propAutoSize().getValue())
+                sizeChanged(null, null, null);
         }
     }
 }
