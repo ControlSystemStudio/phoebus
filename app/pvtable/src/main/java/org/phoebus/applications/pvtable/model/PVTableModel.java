@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 import org.phoebus.applications.pvtable.Settings;
@@ -38,17 +39,19 @@ public class PVTableModel implements PVTableItemListener
      */
     private static final long UPDATE_PERIOD_MS = 200;
 
-    private boolean enableSaveRestore = true;
-    
-    /** The list of items in this table. */
-    private List<PVTableItem> items = new ArrayList<PVTableItem>();
+    private volatile BooleanSupplier suppress_updates = () -> false;
 
-    final private List<PVTableModelListener> listeners = new ArrayList<PVTableModelListener>();
+    private boolean enableSaveRestore = true;
+
+    /** The list of items in this table. */
+    private List<PVTableItem> items = new ArrayList<>();
+
+    final private List<PVTableModelListener> listeners = new ArrayList<>();
 
     private Timer update_timer;
 
     /** @see #performUpdates() */
-    private Set<PVTableItem> changed_items = new HashSet<PVTableItem>();
+    private Set<PVTableItem> changed_items = new HashSet<>();
 
     /** Timeout in seconds used for restoring PVs with completion */
     private long completion_timeout_seconds = 60;
@@ -76,6 +79,12 @@ public class PVTableModel implements PVTableItemListener
                 }
             }, UPDATE_PERIOD_MS, UPDATE_PERIOD_MS);
         }
+    }
+
+    /** @param suppress_updates Function that can suppress updates by returning <code>true</code> */
+    public void setUpdateSuppressor(final BooleanSupplier suppress_updates)
+    {
+        this.suppress_updates = suppress_updates;
     }
 
     /** @param listener Listener to add */
@@ -212,6 +221,11 @@ public class PVTableModel implements PVTableItemListener
      */
     private void performUpdates()
     {
+        if (suppress_updates.getAsBoolean())
+        {
+            // System.out.println("Suppressing updates");
+            return;
+        }
         final List<PVTableItem> to_update = new ArrayList<>();
         synchronized (changed_items)
         {
@@ -242,6 +256,19 @@ public class PVTableModel implements PVTableItemListener
                         listener.tableItemChanged(item);
             }
         });
+    }
+
+    /** In case updates were suppressed while editing,
+     *  this call performs the queued changes
+     */
+    public void performPendingUpdates()
+    {
+        synchronized (changed_items)
+        {
+            if (changed_items.isEmpty())
+                return;
+        }
+        performUpdates();
     }
 
     /** {@inheritDoc} */
@@ -296,12 +323,12 @@ public class PVTableModel implements PVTableItemListener
     {
         this.enableSaveRestore = enableSaveRestore;
     }
-    
+
     public boolean isSaveRestoreEnabled()
     {
         return enableSaveRestore;
     }
-    
+
     /** Restore saved values for all checked items */
     public void restore()
     {

@@ -118,12 +118,16 @@ public class EditorGUI
                                         .contains(mouse_x, mouse_y);
 
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
+        // Do NOT delete for DELETE and/or BACKSPACE.
+        // Those keys are often used when editing text,
+        // and it's easy to accidentally loose input focus
+        // and then delete a widget instead of a character.
         final boolean meta = event.isShortcutDown();
         if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  ((meta  &&  code == KeyCode.X) || code == KeyCode.DELETE || code == KeyCode.BACK_SPACE))
+        else if (in_editor  &&  meta  &&  code == KeyCode.X)
             editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();

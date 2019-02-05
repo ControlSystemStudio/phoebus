@@ -120,9 +120,6 @@ public class PVTable extends VBox
     private Button  snapshot_button;
     private Button  restore_button;
 
-    /** Flag to disable updates while editing */
-    private boolean editing = false;
-
     private boolean saveRestoreDisabled = false;
 
     /** Table cell for boolean column, empty for 'comment' items */
@@ -345,6 +342,13 @@ public class PVTable extends VBox
         }
 
         @Override
+        public void commitEdit(final String newValue)
+        {
+            setGraphic(null);
+            super.commitEdit(newValue);
+        }
+
+        @Override
         public void cancelEdit()
         {
             super.cancelEdit();
@@ -391,13 +395,6 @@ public class PVTable extends VBox
         @Override
         public void tableItemChanged(final PVTableItem item)
         {
-            // In principle, just suppressing updates to the single row
-            // that's being edited should be sufficient,
-            // but JavaFX seems to update arbitrary rows beyond the requested
-            // one, so suppress all updates while editing
-            if (editing)
-                return;
-
             // XXX Replace linear lookup of row w/ member variable in PVTableItem?
             final int row = model.getItems().indexOf(item);
 
@@ -425,6 +422,7 @@ public class PVTable extends VBox
     {
         this.model = model;
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        model.setUpdateSuppressor(() -> table.getEditingCell() != null);
 
         // Initial sort: No columns, just new item at bottom
         sorted.setComparator(SORT_NEW_ITEM_LAST);
@@ -722,12 +720,20 @@ public class PVTable extends VBox
         col.setCellFactory(column -> new PVNameTableCell());
         col.setOnEditCommit(event ->
         {
+            final String new_name = event.getNewValue().trim();
             final TableItemProxy proxy = event.getRowValue();
             if (proxy == TableItemProxy.NEW_ITEM)
-                model.addItem(event.getNewValue());
+            {
+                if (!new_name.isEmpty())
+                    model.addItem(new_name);
+                // else: No name entered, do nothing
+            }
             else
             {
-                proxy.getItem().updateName(event.getNewValue());
+                // Set name, even if empty, assuming user wants to continue
+                // editing the existing row.
+                // To remove row, use context menu.
+                proxy.getItem().updateName(new_name);
                 proxy.update(proxy.getItem());
                 // Content of model changed.
                 // Triggers full table update.
@@ -755,19 +761,16 @@ public class PVTable extends VBox
         col = new TableColumn<>(Messages.Value);
         col.setCellValueFactory(cell -> cell.getValue().value);
         col.setCellFactory(column -> new ValueTableCell(model));
-        col.setOnEditStart(event -> editing = true);
         col.setOnEditCommit(event ->
         {
-            editing = false;
             event.getRowValue().getItem().setValue(event.getNewValue());
             // Since updates were suppressed, refresh table
-            table.refresh();
+            model.performPendingUpdates();
         });
         col.setOnEditCancel(event ->
         {
-            editing = false;
             // Since updates were suppressed, refresh table
-            table.refresh();
+            model.performPendingUpdates();
         });
         // Use natural order for value
         col.setComparator(CompareNatural.INSTANCE);
