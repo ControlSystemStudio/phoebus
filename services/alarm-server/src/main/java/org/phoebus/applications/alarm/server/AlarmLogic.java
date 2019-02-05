@@ -442,7 +442,17 @@ public class AlarmLogic // implements GlobalAlarmListener
         if (latching.get())
         {   // Latch to maximum severity
             if (received_state.hasHigherUpdatePriority(state_to_update))
-                return received_state;
+            {   // Alarm latched to a higher level
+                final AlarmState latched = new AlarmState(received_state.severity, received_state.message, received_state.value, received_state.time, true);
+                return latched;
+            }
+            else if (state_to_update.isLatching())
+            {
+                // Received an update for a latched state, same or lower severity.
+                // Clear the latch indicator
+                final AlarmState unlatched = new AlarmState(state_to_update.severity, state_to_update.message, state_to_update.value, state_to_update.time, false);
+                return unlatched;
+            }
         }
         else
         {   // Not 'latched': Follow _active_ alarms

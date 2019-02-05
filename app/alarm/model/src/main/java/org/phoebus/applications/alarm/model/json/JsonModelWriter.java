@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.client.IdentificationHelper;
+import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
@@ -53,6 +54,12 @@ public class JsonModelWriter
         {
             jg.writeStartObject();
             jg.writeStringField(JsonTags.SEVERITY, state.severity.name());
+            if (state instanceof AlarmState)
+            {
+                final AlarmState as = (AlarmState) state;
+                if (as.isLatching())
+                    jg.writeBooleanField(JsonTags.LATCHING, true);
+            }
             if (state instanceof ClientState)
             {
                 final ClientState as = (ClientState) state;

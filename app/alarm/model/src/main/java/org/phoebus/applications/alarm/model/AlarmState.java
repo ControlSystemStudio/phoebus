@@ -24,14 +24,31 @@ public class AlarmState extends BasicState
     public final String message;
     public final String value;
     public final Instant time;
+    public final boolean latching;
 
     public AlarmState(final SeverityLevel severity, final String message,
                       final String value, final Instant time)
+    {
+        this(severity, message,value, time, false);
+    }
+
+    public AlarmState(final SeverityLevel severity, final String message,
+                      final String value, final Instant time,
+                      final boolean latching)
     {
         super(severity);
         this.message = Objects.requireNonNull(message);
         this.value = value; // May be null
         this.time = Objects.requireNonNull(time);
+        this.latching = latching;
+    }
+
+    /** @return <code>true</code> if this state update is the one when the severity 'latched',
+     *          i.e. when the alarm first reached this severity level.
+     */
+    public boolean isLatching()
+    {
+        return latching;
     }
 
     /** @return Alarm message */
@@ -97,7 +114,7 @@ public class AlarmState extends BasicState
      */
     public AlarmState createUpdatedState(final SeverityLevel new_severity)
     {
-        return new AlarmState(new_severity, message, value, time);
+        return new AlarmState(new_severity, message, value, time, latching);
     }
 
     /** Change 'active' alarm severity into 'acknowledged' type, relaxing
@@ -113,13 +130,13 @@ public class AlarmState extends BasicState
             switch (current_state.severity)
             {
             case UNDEFINED:
-                return new AlarmState(SeverityLevel.UNDEFINED_ACK, current_state.message, current_state.value, current_state.time);
+                return new AlarmState(SeverityLevel.UNDEFINED_ACK, current_state.message, current_state.value, current_state.time, current_state.latching);
             case INVALID:
-                return new AlarmState(SeverityLevel.INVALID_ACK, current_state.message, current_state.value, current_state.time);
+                return new AlarmState(SeverityLevel.INVALID_ACK, current_state.message, current_state.value, current_state.time, current_state.latching);
             case MAJOR:
-                return new AlarmState(SeverityLevel.MAJOR_ACK, current_state.message, current_state.value, current_state.time);
+                return new AlarmState(SeverityLevel.MAJOR_ACK, current_state.message, current_state.value, current_state.time, current_state.latching);
             case MINOR:
-                return new AlarmState(SeverityLevel.MINOR_ACK, current_state.message, current_state.value, current_state.time);
+                return new AlarmState(SeverityLevel.MINOR_ACK, current_state.message, current_state.value, current_state.time, current_state.latching);
             default:
                 // other severities stay as they are
                 return current_state;
@@ -173,7 +190,8 @@ public class AlarmState extends BasicState
         return other.severity == severity    &&
                Objects.equals(other.message, message) &&
                Objects.equals(other.value, value)     &&
-               Objects.equals(other.time, time);
+               Objects.equals(other.time, time)       &&
+               other.latching == latching;
     }
 
     /** {@inheritDoc} */
@@ -185,6 +203,7 @@ public class AlarmState extends BasicState
         result = prime * result + severity.hashCode();
         result = prime * result + time.hashCode();
         result = prime * result + (value == null ? 0 : value.hashCode());
+        result = prime * result + Boolean.hashCode(latching);
         return result;
     }
 
@@ -192,6 +211,8 @@ public class AlarmState extends BasicState
     public String toString()
     {
         final StringBuilder buf = new StringBuilder();
+        if (latching)
+            buf.append("latching ");
         buf.append(severity).append("/").append(message);
         buf.append(" (").append(value).append("), ").append(TimestampFormats.MILLI_FORMAT.format(time));
         return buf.toString();
