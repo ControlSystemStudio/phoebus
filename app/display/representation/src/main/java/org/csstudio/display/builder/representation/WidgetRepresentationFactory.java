@@ -16,8 +16,12 @@ import org.csstudio.display.builder.model.Widget;
  *  @param <TW> Toolkit widget base class
  */
 @FunctionalInterface
+@SuppressWarnings("nls")
 public interface WidgetRepresentationFactory<TWP, TW>
 {
+    /** Type used to represent unknown widgets */
+    public static final String UNKNOWN = "UNKNOWN";
+
     /** Construct representation for a model widget
      *  @throws Exception on error
      */
