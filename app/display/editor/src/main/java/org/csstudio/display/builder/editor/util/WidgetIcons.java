@@ -44,7 +44,7 @@ public class WidgetIcons
             logger.log(Level.FINE, "Obtaining icon for widget type " + type);
             return new Image(descriptor.getIconURL().toExternalForm());
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot obtain widget for " + type, ex);
         }

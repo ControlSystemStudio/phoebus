@@ -282,14 +282,17 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @return Toolkit item that represents the widget
      *  @see #disposeWidget(Object, Widget)
      */
+    @SuppressWarnings("unchecked")
     public void representWidget(final TWP parent, final Widget widget)
     {
-        @SuppressWarnings("unchecked")
-        final WidgetRepresentationFactory<TWP, TW> factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(widget.getType());
+        WidgetRepresentationFactory<TWP, TW> factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(widget.getType());
         if (factory == null)
         {
             logger.log(Level.SEVERE, "Lacking representation for " + widget.getType());
-            return;
+            // Check for a generic "unknown" representation
+            factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(WidgetRepresentationFactory.UNKNOWN);
+            if (factory == null)
+                return;
         }
 
         final TWP re_parent;
