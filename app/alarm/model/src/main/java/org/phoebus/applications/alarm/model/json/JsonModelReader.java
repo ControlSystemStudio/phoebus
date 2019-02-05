@@ -261,8 +261,8 @@ public class JsonModelReader
             return null;
         severity = SeverityLevel.valueOf(jn.asText());
 
-        jn = json.get(JsonTags.LATCHING);
-        final boolean latching = jn != null  &&  Boolean.parseBoolean(jn.asText());
+        jn = json.get(JsonTags.LATCH);
+        final boolean latch = jn != null  &&  Boolean.parseBoolean(jn.asText());
 
         jn = json.get(JsonTags.MESSAGE);
         if (jn == null)
@@ -297,7 +297,7 @@ public class JsonModelReader
             nano = sub.asLong();
         time = Instant.ofEpochSecond(secs, nano);
 
-        return new ClientState(severity, message, value, time, current_severity, current_message, latching);
+        return new ClientState(severity, message, value, time, current_severity, current_message, latch);
     }
 
     /** @param timestamp Timestamp of the update

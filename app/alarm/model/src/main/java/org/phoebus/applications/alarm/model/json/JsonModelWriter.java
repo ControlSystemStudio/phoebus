@@ -57,8 +57,8 @@ public class JsonModelWriter
             if (state instanceof AlarmState)
             {
                 final AlarmState as = (AlarmState) state;
-                if (as.isLatching())
-                    jg.writeBooleanField(JsonTags.LATCHING, true);
+                if (as.isLatched())
+                    jg.writeBooleanField(JsonTags.LATCH, true);
             }
             if (state instanceof ClientState)
             {

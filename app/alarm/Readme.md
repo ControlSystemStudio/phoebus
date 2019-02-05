@@ -275,7 +275,7 @@ The state topic JSON format for an alarm tree leaf:
 
     {
         "severity": String,
-        "latching": Boolean,
+        "latch": Boolean,
         "message":  String,
         "value":    String,
         "time": {
@@ -296,7 +296,7 @@ The state topic JSON format for an alarm tree node:
 
 At minimum, state updates this always contain a "severity". 
 
-The "latching" entry will only be present when an alarm that
+The "latch" entry will only be present when an alarm that
 is configured to latch is actually latching, i.e. entering an alarm severity
 at which it will stay until acknowledged.
 
@@ -305,7 +305,7 @@ For normal operational mode, the "mode" tag is omitted.
 
 Example messages that could appear in a state topic:
 
-    /path/to/pv :{"severity":"MAJOR","latching":true,"message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MAJOR","current_message":"LOLO"}
+    /path/to/pv :{"severity":"MAJOR","latch":true,"message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MAJOR","current_message":"LOLO"}
     /path/to/pv :{"severity":"MAJOR","message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MINOR","current_message":"LOW"}
 
 In this example, the first message is issued when the alarm latches to the MAJOR severity.

@@ -27,9 +27,9 @@ public class ClientState extends AlarmState
     public ClientState(final SeverityLevel severity, final String message, final String value,
                        final Instant time, final SeverityLevel current_severity,
                        final String current_message,
-                       final boolean latching)
+                       final boolean latch)
     {
-        super(severity, message, value, time, latching);
+        super(severity, message, value, time, latch);
         this.current_severity = Objects.requireNonNull(current_severity);
         this.current_message = Objects.requireNonNull(current_message);
     }
@@ -46,7 +46,7 @@ public class ClientState extends AlarmState
                        final String current_message)
     {
         this(state.severity, state.message, state.value, state.time,
-             current_severity, current_message, state.latching);
+             current_severity, current_message, state.latch);
     }
 
     /** @return <code>true</code> if disabled via filter */

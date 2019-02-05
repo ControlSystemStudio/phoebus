@@ -446,7 +446,7 @@ public class AlarmLogic // implements GlobalAlarmListener
                 final AlarmState latched = new AlarmState(received_state.severity, received_state.message, received_state.value, received_state.time, true);
                 return latched;
             }
-            else if (state_to_update.isLatching())
+            else if (state_to_update.isLatched())
             {
                 // Received an update for a latched state, same or lower severity.
                 // Clear the latch indicator
