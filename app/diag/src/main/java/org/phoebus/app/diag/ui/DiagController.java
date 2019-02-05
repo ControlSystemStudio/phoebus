@@ -1,4 +1,4 @@
-package org.phoebus.applications.greetings.ui;
+package org.phoebus.app.diag.ui;
 
 import static javafx.collections.FXCollections.observableArrayList;
 
@@ -21,7 +21,7 @@ import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-public class GreetingController {
+public class DiagController {
 
     @FXML
     Button btncalculate;

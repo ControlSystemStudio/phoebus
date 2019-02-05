@@ -1,20 +1,20 @@
-package org.phoebus.applications.greetings;
+package org.phoebus.app.diag;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 
 @SuppressWarnings("nls")
-public class GreetingsApp implements AppDescriptor {
+public class DiagApp implements AppDescriptor {
 
-    public static final String Name = "Greetings";
+    static final String NAME = "Phoebus Diagnostics";
 
     @Override
     public String getName() {
-        return Name;
+        return NAME;
     }
 
     @Override
     public AppInstance create() {
-        return new Greet(this);
+        return new DiagAppInstance(this);
     }
 }
