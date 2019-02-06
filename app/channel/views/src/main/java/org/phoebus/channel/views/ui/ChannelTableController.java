@@ -26,11 +26,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.util.Callback;
 
 /**
@@ -86,8 +88,11 @@ public class ChannelTableController extends ChannelFinderController {
 //        SelectionService.getInstance().setSelection(tableView, tableView.getSelectionModel().getSelectedItems());
 
         List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+
+        contextMenu.getItems().add(new SeparatorMenuItem());
+
         contextEntries.forEach(entry -> {
-            MenuItem item = new MenuItem(entry.getName());
+            MenuItem item = new MenuItem(entry.getName(), new ImageView(entry.getIcon()));
             item.setOnAction(e -> {
                 try {
                     ObservableList<Channel> old = tableView.getSelectionModel().getSelectedItems();
