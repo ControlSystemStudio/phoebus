@@ -4,7 +4,6 @@ import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
 import java.time.Instant;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -48,12 +47,6 @@ public class AlarmStateLogger implements Runnable {
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
     private IndexNameHelper indexNameHelper;
-
-    /** Track the last known alarm severity for each PV
-     *
-     *  That's the latched severity, not current_severity.
-     */
-    private final ConcurrentHashMap<String, String> last_pv_severity = new ConcurrentHashMap<>();
 
     /**
      * Create a alarm state logger for the given alarm server topic * This runnable
@@ -125,17 +118,6 @@ public class AlarmStateLogger implements Runnable {
                         String[] tokens = AlarmTreePath.splitPath(key);
                         final String pv = tokens[tokens.length - 1];
                         value.setPv(pv);
-
-                        // Did the severity for this PV change into MINOR, MAJOR, INVALID, UNDEFINED?
-                        // Then this message indicates that we just now "latch" the alarm.
-                        // Otherwise the message indicates an update of the current_severity (remaining latched),
-                        // or an acknowledgement (same latched alarm),
-                        // or an OK (alarm cleared).
-                        final String severity = value.getSeverity();
-                        final String last_severity = last_pv_severity.put(pv, severity);
-                        value.setLatch(! severity.equals(last_severity)  &&
-                                       ! severity.equals("OK")           &&
-                                       ! severity.endsWith("_ACK"));
 
                         value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
                         return new KeyValue<>(key, value);
