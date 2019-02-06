@@ -21,6 +21,7 @@ package org.phoebus.applications.saveandrestore.ui;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -39,6 +40,13 @@ public class MainUI {
 		}
 		return mainUI;
 	}
+	
+//	public void openNewSaveSetPane() {
+//		Tab tab = new Tab();
+//		tab.setText("Name");
+//		tab.setContent(new SaveSetEditor().getUI());
+//		tabPane.getTabs().add(tab);
+//	}
 
 	private void createUI() {
 
@@ -55,6 +63,7 @@ public class MainUI {
 
 	private Node createRightPane() {
 		tabPane = new TabPane();
+		tabPane.setId("tabPane");
 		// HBox.setHgrow(tabPane, Priority.ALWAYS);
 		return tabPane;
 	}
@@ -73,5 +82,7 @@ public class MainUI {
 
 		return hBox;
 	}
+	
+	
 
 }

@@ -18,11 +18,13 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.scene.Node;
+
 public class UIController {
 
 	private static UIController instance;
 	
-	private MainUI mainUI;
+	private static MainUI mainUI;
 	
 	private UIController() {
 		
@@ -31,8 +33,14 @@ public class UIController {
 	public static UIController getInstance() {
 		if(instance == null) {
 			instance = new UIController();
+			mainUI = new MainUI();
 		}
 		
 		return instance;
 	}
+	
+	public Node getUI() {
+		return mainUI.getUI();
+	}
+	
 }

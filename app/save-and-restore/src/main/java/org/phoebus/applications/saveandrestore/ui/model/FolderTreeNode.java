@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.ui.model;
 
 import java.util.Date;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import lombok.Builder;
 import lombok.Data;
@@ -35,12 +36,12 @@ public class FolderTreeNode extends TreeNode{
 		
 	@Builder
 	public FolderTreeNode(int id, String name, TreeNodeType type, ObservableList<TreeNode> children) {
-		super(id, name, null, null, type, children);
+		super(id, new SimpleStringProperty(name), null, null, type, children);
 	}
 	
 	@Builder
 	public FolderTreeNode(int id, String name, String userName, Date lastModified, TreeNodeType type, ObservableList<TreeNode> children) {
-		super(id, name, userName, lastModified, type, children);
+		super(id, new SimpleStringProperty(name), userName, lastModified, type, children);
 	}
 
 	@Override

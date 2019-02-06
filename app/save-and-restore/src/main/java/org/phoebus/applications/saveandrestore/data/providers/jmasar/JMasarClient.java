@@ -20,7 +20,6 @@ package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 
 import java.util.List;
 
-import org.eclipse.persistence.internal.identitymaps.NoIdentityMap;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
@@ -53,7 +52,7 @@ public class JMasarClient {
 		client = Client.create(defaultClientConfig);
 		
 		PreferencesReader prefs = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
-		jmasarServiceUrl = prefs.get("jmasar.service.url");
+		jmasarServiceUrl = "http://jmasar.tn.esss.lu.se"; //prefs.get("jmasar.service.url");
 	}
 
 	public Folder getRoot(){
@@ -187,5 +186,35 @@ public class JMasarClient {
 	
 	private String getCurrentUsersName(){
 		return System.getProperty("user.name");
+	}
+	
+	public Config createConfiguration(Config config) {
+		config.setUserName(getCurrentUsersName());
+		
+		WebResource webResource = client.resource(jmasarServiceUrl + "/config/");
+		
+		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+				.entity(config)
+				.put(ClientResponse.class);
+		if (response.getStatus() != 200) {
+			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+		}
+		
+		return response.getEntity(Config.class);
+	}
+	
+	public Config updateConfiguration(Config config) {
+		config.setUserName(getCurrentUsersName());
+		
+		WebResource webResource = client.resource(jmasarServiceUrl + "/config/");
+		
+		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+				.entity(config)
+				.post(ClientResponse.class);
+		if (response.getStatus() != 200) {
+			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+		}
+		
+		return response.getEntity(Config.class);
 	}
 }

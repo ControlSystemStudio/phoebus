@@ -18,7 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
@@ -33,6 +33,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
@@ -149,6 +150,8 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 				return new BrowserTreeCell();
 			}
 		});
+		
+		
 
 	}
 
@@ -161,10 +164,6 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		TreeNode treeRoot = service.getRootNode();
 		treeRootItem = new TreeNodeItem(treeRoot);
 
-//		for (TreeNode childNode : ((FolderTreeNode) treeRoot).getChildren()) {
-//			treeRootItem.getChildren().add(new TreeNodeItem(childNode));
-//		}
-
 		treeRootItem.addEventHandler(TreeItem.branchExpandedEvent(), nodeExpandedHandler);
 
 		UI_EXECUTOR.execute(() -> {
@@ -176,7 +175,10 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 
 	/**
 	 * Handles expansion of a tree node. Queries the {@link DataProvider} service
-	 * for child nodes of the node associated with the event.
+	 * for child nodes of the node associated with the event. The child nodes are
+	 * sorted by name only, the type is not considered. This mimics the behavior
+	 * of the Mac OS Finder, where objects in a folder are sorted alphabetically without
+	 * taking the type (folder or file) into consideration.
 	 * 
 	 * @param event The event triggered by an expansion of a tree node.
 	 */
@@ -185,13 +187,7 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		targetItem.getChildren().clear();
 		List<TreeNodeItem> childItems = service.getChildNodes((FolderTreeNode) targetItem.getValue()).stream()
 				.map(i -> new TreeNodeItem(i)).collect(Collectors.toList());
-		childItems.sort(new Comparator<TreeNodeItem>() {
-
-			@Override
-			public int compare(TreeNodeItem item1, TreeNodeItem item2) {
-				return item1.getValue().getName().compareTo(item2.getValue().getName());
-			}
-		});
+		Collections.sort(childItems);
 		UI_EXECUTOR.execute(() -> {
 			targetItem.getChildren().addAll(childItems);
 		});
@@ -223,6 +219,12 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 //			});
 			break;
 		case SAVESET:
+//			
+//			Tab tab = new Tab();
+//			tab.setText(getSelectionModel().getSelectedItem().getValue().getName());
+//			tab.setContent(new SaveSetEditor().getUI());
+//			
+//			tabPane.getTabs().add(new Tab());
 //			SERVICE_EXECUTOR.accept("SaveSet node selected", () -> {
 //				SaveSet saveSet = new SaveSet(new Branch(), Optional.empty(),
 //						new String[] { newValue.getValue().getName() },
@@ -257,7 +259,7 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 	private boolean handleEditDone(TreeNode treeNode, String nodeName) {
 		try {
 			service.rename(treeNode, nodeName);
-			treeNode.setName(nodeName);
+			treeNode.setName(new SimpleStringProperty(nodeName));
 			return true;
 		} catch (Exception e) {
 			Alert dialog = new Alert(AlertType.ERROR);
@@ -270,7 +272,7 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 
 	private void handleNewFolder(TreeItem<TreeNode> parentTreeItem) {
 
-		List<String> existingFolderNames = parentTreeItem.getChildren().stream().map(item -> item.getValue().getName())
+		List<String> existingFolderNames = parentTreeItem.getChildren().stream().map(item -> item.getValue().getName().get())
 				.collect(Collectors.toList());
 
 		TextInputDialog dialog = new TextInputDialog();
@@ -363,32 +365,6 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 	}
 
 	/**
-	 * Subclass of {@link TreeItem} using {@link TreeNode} (and subclasses) to hold
-	 * business data.
-	 * 
-	 * @author georgweiss Created 3 Jan 2019
-	 */
-	private class TreeNodeItem extends TreeItem<TreeNode> {
-
-		TreeNode treeNode;
-
-		TreeNodeItem(TreeNode treeNode) {
-			super(treeNode);
-			this.treeNode = treeNode;
-		}
-
-		@Override
-		public boolean isLeaf() {
-			return treeNode.isLeaf();
-		}
-
-		@Override
-		public String toString() {
-			return treeNode.getName();
-		}
-	}
-
-	/**
 	 * Cell renderer for a tree node item. It uses icons for save set and snapshot
 	 * nodes, and also adds date and user name to snapshot nodes.
 	 * 
@@ -437,18 +413,18 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 				setGraphic(textField);
 			} else {
 				if (treeNode.getType().equals(TreeNodeType.SNAPSHOT)) {
-					snapshotNameLabel.setText(treeNode.getName());
+					snapshotNameLabel.setText(treeNode.getName().get());
 					snapshotMetaDataLabel.setText(treeNode.getLastModified() + " (" + treeNode.getUserName() + ")");
 					setGraphic(snapshotBox);
 					setTooltip(new Tooltip("Double click to open snapshot"));
 					setContextMenu(snapshotContextMenu);
 				} else if (treeNode.getType().equals(TreeNodeType.SAVESET)) {
-					saveSetNameLabel.setText(treeNode.getName());
+					saveSetNameLabel.setText(treeNode.getName().get());
 					setGraphic(saveSetBox);
 					setTooltip(new Tooltip("Double click to open saveset"));
 					setContextMenu(saveSetContextMenu);
 				} else if (treeNode.getType().equals(TreeNodeType.FOLDER)) {
-					folderNameLabel.setText(treeNode.getName());
+					folderNameLabel.setText(treeNode.getName().get());
 					setGraphic(folderBox);
 					if (treeNode.getId() != Node.ROOT_NODE_ID) {
 						setContextMenu(folderContextMenu);
@@ -476,17 +452,18 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		@Override
 		public void cancelEdit() {
 			super.cancelEdit();
-			textField.setText(getItem().getName());
+			textField.setText(getItem().getName().get());
 			updateItem(getItem(), false);
 		}
 
 		private void createTextField() {
 			textField = new TextField(getString());
 
-			textField.setOnKeyPressed(keyEvent -> {
+			textField.setOnKeyPressed(keyEvent -> {				
 				if (keyEvent.getCode() == KeyCode.ENTER) {
 					if (getItem().getName().equals(textField.getText())
 							|| handleEditDone(getItem(), textField.getText())) {
+						
 						cancelEdit();
 					}
 				}
@@ -494,7 +471,7 @@ public class TreeViewBrowser extends TreeView<TreeNode> {
 		}
 
 		private String getString() {
-			return getItem() == null ? "" : getItem().getName();
+			return getItem() == null ? "" : getItem().getName().get();
 		}
 	}
 

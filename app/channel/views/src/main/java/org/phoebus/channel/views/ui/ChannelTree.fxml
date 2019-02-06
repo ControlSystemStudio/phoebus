@@ -21,7 +21,7 @@
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
   </rowConstraints>
   <children>
-    <Label maxHeight="-Infinity" minHeight="-Infinity" prefHeight="25.0" text="Query: " GridPane.halignment="RIGHT" GridPane.vgrow="NEVER" />
+    <Label maxHeight="-Infinity" minHeight="-Infinity" prefHeight="25.0" text="Query: " GridPane.halignment="RIGHT"  />
     <TextField fx:id="query" maxHeight="-Infinity" minHeight="-Infinity" onAction="#search" prefHeight="25.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER" />
     <Button fx:id="search" maxHeight="-Infinity" minHeight="-Infinity" mnemonicParsing="false" onAction="#search" prefHeight="25.0" text="Search" GridPane.columnIndex="2">
       <GridPane.margin>

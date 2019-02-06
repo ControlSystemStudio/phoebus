@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.ui.model;
 
 import java.util.Date;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.AllArgsConstructor;
@@ -37,7 +38,7 @@ import lombok.experimental.SuperBuilder;
 public abstract class TreeNode{
 
 	private int id;
-	private String name;
+	private SimpleStringProperty name;
 	private String userName;
 	private Date lastModified;
 	private TreeNodeType type;
@@ -49,7 +50,7 @@ public abstract class TreeNode{
 
 	@Override
 	public String toString() {
-		return name;
+		return name.get();
 	}
 
 	@Override
@@ -61,11 +62,11 @@ public abstract class TreeNode{
 		
 		TreeNode treeNode = (TreeNode)obj;
 		
-		return (treeNode.getId() + treeNode.getName()).equals(id + name);
+		return (treeNode.getId() + treeNode.getName().get()).equals(id + name.get());
 	}
 	
 	@Override
 	public int hashCode() {
-		return (id + name).hashCode();
+		return (id + name.get()).hashCode();
 	}
 }

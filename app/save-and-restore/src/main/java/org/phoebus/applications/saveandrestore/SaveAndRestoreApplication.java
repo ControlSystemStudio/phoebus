@@ -19,11 +19,8 @@
 
 package org.phoebus.applications.saveandrestore;
 
-import org.phoebus.applications.saveandrestore.ui.MainUI;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockPane;
 
 public class SaveAndRestoreApplication implements AppDescriptor {
 	
@@ -42,12 +39,7 @@ public class SaveAndRestoreApplication implements AppDescriptor {
 	@Override
 	public AppInstance create() {
 		
-		SaveAndRestoreAppInstance appInstance = new SaveAndRestoreAppInstance(this);
-		
-	    DockItem tab = new DockItem(appInstance, new MainUI().getUI());
-	    //tab.addClosedNotification(() -> saveAndRestoreUI.dispose());
-	    DockPane.getActiveDockPane().addTab(tab);
-	    return appInstance;
+		return new SaveAndRestoreAppInstance(this);
 	}
 
 }

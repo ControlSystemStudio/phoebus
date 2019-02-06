@@ -16,31 +16,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui;
 
-import java.util.List;
-
+import org.junit.Test;
+import static org.junit.Assert.*;
 import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
 
-import se.esss.ics.masar.model.Config;
-
-public interface DataProvider {
-
-	public TreeNode getRootNode();
+public class TreeNodeItemTest {
 	
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode);
-	
-	public void rename(TreeNode treeNode, String newName);
-	
-	public TreeNode createNewTreeNode(int parentId, TreeNode newreeNode);
-	
-	public void deleteTreeNode(TreeNode treeNode);
-	
-	public Config getSaveSet(int id);
-	
-	public Config saveSaveSet(Config config);
-	
-	public Config updateSaveSet(Config config);
-	
+	@Test
+	public void testComparison() {
+			
+		TreeNodeItem i1 = new TreeNodeItem(FolderTreeNode.builder().name("A").build());
+		TreeNodeItem i2 = new TreeNodeItem(FolderTreeNode.builder().name("A").build());
+		TreeNodeItem i3 = new TreeNodeItem(FolderTreeNode.builder().name("B").build());
+		
+		assertTrue(i1.compareTo(i2) == 0);
+		assertTrue(i1.compareTo(i3) < 0);
+		assertTrue(i3.compareTo(i1) > 0);
+		
+	}
 }

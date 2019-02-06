@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.ui.model;
 
 import java.util.Date;
 
+import javafx.beans.property.SimpleStringProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,12 +38,12 @@ public class SnapshotTreeNode extends TreeNode{
 	
 	@Builder
 	public SnapshotTreeNode(int id, String name) {
-		super(id, name, null, null, TreeNodeType.SNAPSHOT, null);
+		super(id, new SimpleStringProperty(name), null, null, TreeNodeType.SNAPSHOT, null);
 	}
 	
 	@Builder
 	public SnapshotTreeNode(int id, String name, String userName, Date lastModified) {
-		super(id, name, userName, lastModified, TreeNodeType.SNAPSHOT, null);
+		super(id, new SimpleStringProperty(name), userName, lastModified, TreeNodeType.SNAPSHOT, null);
 	}
 	
 	@Override

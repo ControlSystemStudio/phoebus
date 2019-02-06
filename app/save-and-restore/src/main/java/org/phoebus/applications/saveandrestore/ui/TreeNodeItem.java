@@ -16,31 +16,40 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.data;
+package org.phoebus.applications.saveandrestore.ui;
 
-import java.util.List;
-
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
 import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
 
-import se.esss.ics.masar.model.Config;
+import javafx.scene.control.TreeItem;
 
-public interface DataProvider {
+/**
+ * Subclass of {@link TreeItem} using {@link TreeNode} (and subclasses) to hold
+ * business data.
+ * 
+ * @author georgweiss Created 3 Jan 2019
+ */
+public class TreeNodeItem extends TreeItem<TreeNode> implements Comparable<TreeNodeItem>{
 
-	public TreeNode getRootNode();
+	private TreeNode treeNode;
+
+	public TreeNodeItem(TreeNode treeNode) {
+		super(treeNode);
+		this.treeNode = treeNode;
+	}
+
+	@Override
+	public boolean isLeaf() {
+		return treeNode.isLeaf();
+	}
+
+	@Override
+	public String toString() {
+		return treeNode.getName().get();
+	}
 	
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode);
-	
-	public void rename(TreeNode treeNode, String newName);
-	
-	public TreeNode createNewTreeNode(int parentId, TreeNode newreeNode);
-	
-	public void deleteTreeNode(TreeNode treeNode);
-	
-	public Config getSaveSet(int id);
-	
-	public Config saveSaveSet(Config config);
-	
-	public Config updateSaveSet(Config config);
-	
+	@Override
+	public int compareTo(TreeNodeItem other) {
+		
+		return treeNode.getName().get().compareTo(other.getValue().getName().get());
+	}
 }

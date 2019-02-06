@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.GridPane?>
+
+<BorderPane>
+	<HBox fx:id="folder" xmlns:fx="http://javafx.com/fxml/1"
+		xmlns="http://javafx.com/javafx/8">
+		<children>
+			<ImageView pickOnBounds="true" preserveRatio="true">
+				<image>
+					<Image url="/icons/fldr_obj.png" />
+				</image>
+			</ImageView>
+			<Label text="Label" fx:id="folderLabel" />
+		</children>
+	</HBox>
+
+	<HBox fx:id="saveset" xmlns:fx="http://javafx.com/fxml/1"
+		xmlns="http://javafx.com/javafx/8">
+		<children>
+			<ImageView pickOnBounds="true" preserveRatio="true">
+				<image>
+					<Image url="/icons/txt.png" />
+				</image>
+			</ImageView>
+			<Label text="Label" fx:id="savesetLabel" />
+		</children>
+	</HBox>
+
+	<VBox fx:id="snapshot" xmlns:fx="http://javafx.com/fxml/1"
+		xmlns="http://javafx.com/javafx/8">
+		<children>
+			<HBox>
+				<ImageView pickOnBounds="true" preserveRatio="true">
+					<image>
+						<Image url="/icons/ksnapshot.png" />
+					</image>
+				</ImageView>
+				<VBox>
+					<Label text="Label" fx:id="primaryLabel" />
+					<Label text="Label" fx:id="secondaryLabel" style="-fx-font-size: 7pt;"/>
+				</VBox>
+			</HBox>
+		</children>
+	</VBox>
+
+	
+</BorderPane>

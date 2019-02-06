@@ -47,7 +47,7 @@ public class DataConverter {
 
 	public static Folder toJMasarFolder(int parentId, TreeNode treeNode) {
 
-		return Folder.builder().parentId(parentId).name(treeNode.getName()).build();
+		return Folder.builder().parentId(parentId).name(treeNode.getName().get()).build();
 	}
 
 	public static FolderTreeNode fromJMasarNode(Node node) {

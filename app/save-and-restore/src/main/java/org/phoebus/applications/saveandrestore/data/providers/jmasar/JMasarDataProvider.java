@@ -26,6 +26,7 @@ import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
 import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
 import org.phoebus.applications.saveandrestore.ui.model.TreeNodeType;
 
+import se.esss.ics.masar.model.Config;
 import se.esss.ics.masar.model.Folder;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
@@ -88,4 +89,22 @@ public class JMasarDataProvider implements DataProvider {
 		default:
 		}
 	}
+	
+	@Override
+	public Config getSaveSet(int id) {
+		
+		return jmasarClient.getConfiguration(id);
+	}
+	
+	@Override
+	public Config saveSaveSet(Config config) {
+		return jmasarClient.saveConfig(config);
+	}
+	
+	@Override
+	public Config updateSaveSet(Config config) {
+		return jmasarClient.saveConfig(config);
+	}
+	
+	
 }

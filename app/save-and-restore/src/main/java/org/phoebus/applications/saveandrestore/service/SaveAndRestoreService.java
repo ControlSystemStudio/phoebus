@@ -19,7 +19,6 @@
 package org.phoebus.applications.saveandrestore.service;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,28 +27,30 @@ import java.util.concurrent.TimeUnit;
 
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
 import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
 import org.phoebus.framework.preferences.PreferencesReader;
+
+import se.esss.ics.masar.model.Config;
 
 public class SaveAndRestoreService {
 
 	private static SaveAndRestoreService instance;
 	private ExecutorService executor;
 	private DataProvider dataProvider;
-	
+
 	private SaveAndRestoreService() {
-		
+
 		executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-	
+
 	}
-	
+
 	public static SaveAndRestoreService getInstance() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new SaveAndRestoreService();
 			try {
-				PreferencesReader prefs = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
+				PreferencesReader prefs = new PreferencesReader(SaveAndRestoreApplication.class,
+						"/save_and_restore_preferences.properties");
 				String dataProviderClassName = PreferencesReader.replaceProperties(prefs.get("dataprovider"));
 				instance.setDataProvider(dataProviderClassName);
 			} catch (Exception e) {
@@ -57,85 +58,114 @@ public class SaveAndRestoreService {
 				e.printStackTrace();
 			}
 		}
-		
+
 		return instance;
 	}
-	
-	public void setDataProvider(String dataProviderClassName) throws Exception{
+
+	public void setDataProvider(String dataProviderClassName) throws Exception {
 		Class<?> clazz = Class.forName(dataProviderClassName);
-		
-		dataProvider = (DataProvider)clazz.getConstructor().newInstance();
+
+		dataProvider = (DataProvider) clazz.getConstructor().newInstance();
 	}
-	
+
 	public Future<?> execute(Runnable runnable) {
-		return 	executor.submit(runnable);
+		return executor.submit(runnable);
 	}
-	
+
 	public TreeNode getRootNode() {
-		
+
 		Future<TreeNode> future = executor.submit(() -> {
-			
+
 			return dataProvider.getRootNode();
 		});
-		
+
 		try {
 			return future.get();
-		}
-		catch(Exception ie) {
+		} catch (Exception ie) {
 			ie.printStackTrace();
 		}
-		
+
 		return null;
 	}
-	
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode){
+
+	public List<TreeNode> getChildNodes(FolderTreeNode parentNode) {
 		Future<List<TreeNode>> future = executor.submit(() -> {
-			
+
 			return dataProvider.getChildNodes(parentNode);
 		});
-		
+
 		try {
 			return future.get();
-		}
-		catch(Exception ie) {
+		} catch (Exception ie) {
 			ie.printStackTrace();
 		}
-		
+
 		return null;
 	}
-	
-	public void rename(TreeNode treeNode, String newName) throws Exception{
+
+	public void rename(TreeNode treeNode, String newName) throws Exception {
 		Future<Void> future = executor.submit(() -> {
-			
+
 			dataProvider.rename(treeNode, newName);
 			return null;
 		});
-		
+
 		future.get();
 	}
-	
+
 	public TreeNode createNewTreeNode(int parentId, TreeNode newTreeNode) throws Exception {
 		Future<TreeNode> future = executor.submit(() -> {
-			
+
 			return dataProvider.createNewTreeNode(parentId, newTreeNode);
 		});
-			
-	    return future.get();		
+
+		return future.get();
 	}
-	
+
 	public void deleteNode(TreeNode treeNode) {
 		Future<Void> future = executor.submit(() -> {
-			
+
 			dataProvider.deleteTreeNode(treeNode);
-			
+
 			return null;
 		});
-		
+
 		// Wait for response...
 		try {
 			future.get();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public Config getSaveSet(int id) throws Exception {
+
+		Future<Config> future = executor.submit(() -> {
+
+			return dataProvider.getSaveSet(id);
+
+		});
+
+		return future.get();
+	}
+
+	public Config saveSaveSet(Config config) throws Exception {
+		Future<Config> future = executor.submit(() -> {
+
+			return dataProvider.saveSaveSet(config);
+
+		});
+
+		return future.get();
+	}
+	
+	public Config updateSaveSet(Config config) throws Exception {
+		Future<Config> future = executor.submit(() -> {
+
+			return dataProvider.saveSaveSet(config);
+
+		});
+
+		return future.get();
 	}
 }
