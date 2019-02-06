@@ -46,7 +46,7 @@ public class ChannelTable implements AppInstance {
 
     public void setResource(URI resource) {
         String query = resource.getQuery();
-        // TODO URI parsing might be imporved.
+        // TODO URI parsing might be improved.
         String parsedQuery = Arrays.asList(query.split("&")).stream().filter(s->{
             return s.startsWith("query");
         }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
