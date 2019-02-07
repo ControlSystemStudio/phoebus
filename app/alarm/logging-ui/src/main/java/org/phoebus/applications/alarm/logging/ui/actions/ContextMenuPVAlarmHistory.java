@@ -55,7 +55,7 @@ public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
         });
         AlarmLogTable table = ApplicationService.createInstance(AlarmLogTableApp.NAME);
         URI uri = new URI(AlarmLogTableApp.SUPPORTED_SCHEMA, "", "", "pv="+selectedPvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(",")), "");
-        table.setResource(uri);
+        table.setPVResource(uri);
         
         return null;
     }

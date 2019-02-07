@@ -32,6 +32,12 @@ import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.util.indexname.IndexNameHelper;
 
+/**
+ * A Runnable which consumes the alarm state messages and records them to an elastic index.
+ * @author Kunal Shroff
+ *
+ */
+@SuppressWarnings("nls")
 public class AlarmStateLogger implements Runnable {
 
     private static final String INDEX_FORMAT = "_alarms_state";
@@ -42,11 +48,20 @@ public class AlarmStateLogger implements Runnable {
 
     private IndexNameHelper indexNameHelper;
 
+    /**
+     * Create a alarm state logger for the given alarm server topic * This runnable
+     * will create the kafka streams for the given alarm messages which match the
+     * format 'topicState'
+     *
+     * @param topic
+     *            the alarm topic
+     * @throws Exception
+     */
     public AlarmStateLogger(String topic) throws Exception {
         super();
         this.topic = topic;
 
-        MessageParser<AlarmStateMessage> messageParser = new MessageParser<AlarmStateMessage>(AlarmStateMessage.class);
+        MessageParser<AlarmStateMessage> messageParser = new MessageParser<>(AlarmStateMessage.class);
         alarmStateMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
     }
 
@@ -90,7 +105,7 @@ public class AlarmStateLogger implements Runnable {
 
             @Override
             public Transformer<String, AlarmStateMessage, KeyValue<String, AlarmStateMessage>> get() {
-                return new Transformer<String, AlarmStateMessage, KeyValue<String, AlarmStateMessage>>() {
+                return new Transformer<>() {
                     private ProcessorContext context;
                     private StateStore state;
 
@@ -101,9 +116,11 @@ public class AlarmStateLogger implements Runnable {
                         value.setConfig(key);
                         matcher.find();
                         String[] tokens = AlarmTreePath.splitPath(key);
-                        value.setPv(tokens[tokens.length - 1]);
+                        final String pv = tokens[tokens.length - 1];
+                        value.setPv(pv);
+
                         value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
-                        return new KeyValue<String, AlarmStateMessage>(key, value);
+                        return new KeyValue<>(key, value);
                     }
 
                     @Override

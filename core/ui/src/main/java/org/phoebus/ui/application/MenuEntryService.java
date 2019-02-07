@@ -9,6 +9,7 @@ import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.spi.MenuEntry;
 
 /**
@@ -37,7 +38,14 @@ public class MenuEntryService {
      * @param menuEntries
      */
     synchronized void populateMenuTree(MenuTreeNode root, List<MenuEntry> menuEntries) {
+        // Sort hidden menu entries to allow binary search
+        Arrays.sort(Preferences.hide_spi_menu);
         for (MenuEntry menuEntry : menuEntries) {
+            // Skip hidden menu entries
+            final String clazz = menuEntry.getClass().getName();
+            if (Arrays.binarySearch(Preferences.hide_spi_menu, clazz) >= 0)
+                continue;
+
             MenuTreeNode parent = root;
             List<String> path = Arrays.asList(menuEntry.getMenuPath().split("\\."));
             for (String p : path) {

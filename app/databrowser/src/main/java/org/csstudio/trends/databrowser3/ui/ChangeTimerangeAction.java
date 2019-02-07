@@ -11,6 +11,8 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.properties.ChangeTimerangeCommand;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
+import org.phoebus.util.time.TimeInterval;
+import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.scene.Node;
 
@@ -28,6 +30,16 @@ public class ChangeTimerangeAction
     {
         final TimeRangeDialog dlg = new TimeRangeDialog(model.getTimerange());
         DialogHelper.positionDialog(dlg, node, -300, -200);
-        dlg.showAndWait().ifPresent(range  ->  new ChangeTimerangeCommand(model, undo, range));
+        dlg.showAndWait().ifPresent(range  ->
+        {
+            // If anything is absolute, make both ends absolute
+            if (range.isStartAbsolute()  ||  range.isEndAbsolute())
+            {
+                final TimeInterval abs = range.toAbsoluteInterval();
+                new ChangeTimerangeCommand(model, undo, TimeRelativeInterval.of(abs.getStart(), abs.getEnd()));
+            }
+            else
+                new ChangeTimerangeCommand(model, undo, range);
+        });
     }
 }

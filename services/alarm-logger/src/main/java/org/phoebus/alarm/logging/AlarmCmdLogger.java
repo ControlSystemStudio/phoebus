@@ -7,7 +7,6 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serde;
@@ -23,10 +22,16 @@ import org.apache.kafka.streams.kstream.TransformerSupplier;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
-import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.util.indexname.IndexNameHelper;
 
+/**
+ * A Runnable which consumes the alarm command messages and records them to an
+ * elastic index. 
+ *
+ * @author Kunal Shroff
+ *
+ */
 public class AlarmCmdLogger implements Runnable {
 
     private static final String INDEX_FORMAT = "_alarms_cmd";
@@ -36,6 +41,12 @@ public class AlarmCmdLogger implements Runnable {
     
     private IndexNameHelper indexNameHelper;
 
+    /**
+     * Create a alarm command message logger for the given topic. 
+     * This runnable will create the kafka streams for the given alarm messages which match the format 'topicCommand'
+     * @param topic
+     * @throws Exception
+     */
     public AlarmCmdLogger(String topic) throws Exception {
         super();
         this.topic = topic;

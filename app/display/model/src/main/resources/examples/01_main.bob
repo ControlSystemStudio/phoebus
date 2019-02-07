@@ -129,6 +129,20 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
+    <name>Action Button_37</name>
+    <actions>
+      <action type="open_display">
+        <file>09_rules.bob</file>
+        <target>replace</target>
+        <description>Rules</description>
+      </action>
+    </actions>
+    <y>280</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
     <name>Action Button_6</name>
     <actions>
       <action type="open_display">
@@ -137,7 +151,7 @@ then press &lt;SPACE&gt; to activate button.</text>
         <description>Scripts</description>
       </action>
     </actions>
-    <y>280</y>
+    <y>320</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>
@@ -151,7 +165,7 @@ then press &lt;SPACE&gt; to activate button.</text>
         <description>Enablement</description>
       </action>
     </actions>
-    <y>320</y>
+    <y>360</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>

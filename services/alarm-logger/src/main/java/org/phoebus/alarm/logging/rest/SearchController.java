@@ -52,22 +52,28 @@ public class SearchController {
 
     private final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/alarm_logging_service.properties");
 
-    @RequestMapping(value = "/search", method = RequestMethod.GET)
+    @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmStateMessage> search(@RequestParam Map<String, String> allRequestParams) {
         BoolQueryBuilder query = QueryBuilders.boolQuery();
         allRequestParams.forEach((k, v) -> {
             query.must(QueryBuilders.wildcardQuery(k, v));
         });
-        return esSearch(query);
+        return esAlarmSearch(query);
     }
 
-    @RequestMapping(value = "/search/{pv}", method = RequestMethod.GET)
+    @RequestMapping(value = "/search/alarm/{pv}", method = RequestMethod.GET)
     public List<AlarmStateMessage> searchPv(@PathVariable String pv) {
         QueryBuilder query = QueryBuilders.wildcardQuery("pv", pv);
-        return esSearch(query);
+        return esAlarmSearch(query);
     }
 
-    private List<AlarmStateMessage> esSearch(QueryBuilder query) {
+    @RequestMapping(value = "/search/alarm/{config}", method = RequestMethod.GET)
+    public List<AlarmStateMessage> searchConfig(@PathVariable String config) {
+        QueryBuilder query = QueryBuilders.wildcardQuery("config", config);
+        return esAlarmSearch(query);
+    }
+
+    private List<AlarmStateMessage> esAlarmSearch(QueryBuilder query) {
         RestHighLevelClient client = ElasticClientHelper.getInstance().getClient();
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();

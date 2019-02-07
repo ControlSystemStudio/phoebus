@@ -245,7 +245,7 @@ public class Macros implements MacroValueProvider
         return names;
     }
 
-    /** Perform given action for each name/value
+    /** Perform given action for each name/value (names are not sorted)
      *  @param action Invoked with each name/value
      */
     public void forEach(final BiConsumer<String, String> action)

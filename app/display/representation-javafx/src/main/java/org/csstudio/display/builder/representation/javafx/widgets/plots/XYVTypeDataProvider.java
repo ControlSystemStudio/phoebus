@@ -116,6 +116,6 @@ public class XYVTypeDataProvider implements PlotDataProvider<Double>
     @Override
     public String toString()
     {
-        return "XYVTypeDataProvider, lock: " + lock.toString();
+        return "XYVTypeDataProvider, " + items.length + " items, lock: " + lock.toString();
     }
 }

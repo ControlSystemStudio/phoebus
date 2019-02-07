@@ -190,6 +190,12 @@ public class ProbeController {
             pv = null;
         }
 
+        // Clear all info, will be populated as we receive new data
+        txtValue.clear();
+        txtAlarm.clear();
+        txtTimeStamp.clear();
+        txtMetadata.clear();
+
         // search for pv, unless empty
         if (txtPVName.getText().isEmpty())
             return;

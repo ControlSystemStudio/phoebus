@@ -105,6 +105,10 @@ public class EditorGUI
         if (editor.getSelectedWidgetUITracker().isInlineEditorActive())
             return;
 
+        // Same for widget tree's name editor
+        if (tree.isInlineEditorActive())
+            return;
+
         final KeyCode code = event.getCode();
         // System.out.println("Editor Key: " + code);
 
@@ -114,12 +118,16 @@ public class EditorGUI
                                         .contains(mouse_x, mouse_y);
 
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
+        // Do NOT delete for DELETE and/or BACKSPACE.
+        // Those keys are often used when editing text,
+        // and it's easy to accidentally loose input focus
+        // and then delete a widget instead of a character.
         final boolean meta = event.isShortcutDown();
         if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  ((meta  &&  code == KeyCode.X) || code == KeyCode.DELETE || code == KeyCode.BACK_SPACE))
+        else if (in_editor  &&  meta  &&  code == KeyCode.X)
             editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
@@ -285,11 +293,17 @@ public class EditorGUI
         // Handle copy/paste/...
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 
-        // Request keyboard focus when mouse enters,
-        // to allow 'paste' etc.
-        // Without this filter, user would first need to select some widget
-        // before 'paste' is possible
-        layout.addEventFilter(MouseEvent.MOUSE_ENTERED, event ->  layout.requestFocus());
+        // We used to request keyboard focus when mouse enters,
+        // to allow copy/paste between two windows.
+        // Without this filter, user first needs to select some widget in the 'other'
+        // before 'paste' is possible in the 'other' window.
+        //   layout.addEventFilter(MouseEvent.MOUSE_ENTERED, event -> layout.requestFocus());
+        // The side effect, however, is that this breaks the natural focus handling:
+        // Use edits some property, for example a Label's text.
+        // Mouse moves by accident out and back into the window
+        // -> Focus now on 'layout', and that means the next Delete or Backspace
+        // meant to edit the text will instead delete the widget.
+        // https://github.com/kasemir/org.csstudio.display.builder/issues/486
 
         return layout;
     }

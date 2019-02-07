@@ -19,7 +19,7 @@ public class MapperTest {
 
     @Test
     public void AlarmStateMessageTest() {
-        String expectedJsonString = "{\"severity\":\"OK\",\"message\":\"OK\",\"value\":\"-2.5614483916185438\",\"time\":{\"seconds\":\"1531143702\",\"nanos\":\"487182900\"},\"current_severity\":\"OK\",\"current_message\":\"NONE\"}";
+        String expectedJsonString = "{\"severity\":\"OK\",\"message\":\"OK\",\"value\":\"-2.5614483916185438\",\"time\":{\"seconds\":\"1531143702\",\"nanos\":\"487182900\"},\"current_severity\":\"OK\",\"current_message\":\"NONE\",\"latch\":false}";
 
         AlarmStateMessage message = new AlarmStateMessage();
         message.setValue("-2.5614483916185438");
@@ -27,7 +27,7 @@ public class MapperTest {
         message.setMessage("OK");
         message.setCurrent_severity("OK");
         message.setCurrent_message("NONE");
-        HashMap<String, String> timeMap = new HashMap<String, String>();
+        HashMap<String, String> timeMap = new HashMap<>();
         timeMap.put("seconds", "1531143702");
         timeMap.put("nanos", "487182900");
         message.setTime(timeMap);

@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.elasticsearch.client.RestHighLevelClient;
-import org.phoebus.applications.alarm.messages.AlarmStateMessage;
+import org.phoebus.applications.alarm.logging.ui.AlarmLogTableType;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -28,34 +28,40 @@ import javafx.util.Callback;
 public class AlarmLogTableController {
 
     @FXML
-    TableView<AlarmStateMessage> tableView;
+    TableView<AlarmLogTableType> tableView;
 
     @FXML
-    TableColumn<AlarmStateMessage, String> configCol;
+    TableColumn<AlarmLogTableType, String> configCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> pvCol;
+    TableColumn<AlarmLogTableType, String> pvCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> severityCol;
+    TableColumn<AlarmLogTableType, String> severityCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> messageCol;
+    TableColumn<AlarmLogTableType, String> messageCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> valueCol;
+    TableColumn<AlarmLogTableType, String> valueCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> timeCol;
+    TableColumn<AlarmLogTableType, String> timeCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> msgTimeCol;
+    TableColumn<AlarmLogTableType, String> msgTimeCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> currentSeverityCol;
+    TableColumn<AlarmLogTableType, String> currentSeverityCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> currentMessageCol;
+    TableColumn<AlarmLogTableType, String> currentMessageCol;
     @FXML
-    TableColumn<AlarmStateMessage, String> mode;
+    TableColumn<AlarmLogTableType, String> mode;
+    @FXML
+    TableColumn<AlarmLogTableType, String> actionCol;
+    @FXML
+    TableColumn<AlarmLogTableType, String> userCol;
+    @FXML
+    TableColumn<AlarmLogTableType, String> hostCol;
 
     // The search string
     // TODO need to standardize the search string so that it can be easily parsed
     private String searchString = "*";
     // Result
-    private List<AlarmStateMessage> alarmStateMessages;
+    private List<AlarmLogTableType> alarmMessages;
 
     private Job alarmLogSearchJob;
     private RestHighLevelClient searchClient;
@@ -65,60 +71,63 @@ public class AlarmLogTableController {
         tableView.getColumns().clear();
         configCol = new TableColumn<>("Config");
         configCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        return new SimpleStringProperty(alarmStateMessage.getValue().getConfig());
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        return new SimpleStringProperty(alarmMessage.getValue().getConfig());
                     }
                 });
         tableView.getColumns().add(configCol);
 
         pvCol = new TableColumn<>("PV");
-        pvCol.setCellValueFactory(new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+        pvCol.setCellValueFactory(new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
             @Override
-            public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                return new SimpleStringProperty(alarmStateMessage.getValue().getPv());
+            public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                return new SimpleStringProperty(alarmMessage.getValue().getPv());
             }
         });
         tableView.getColumns().add(pvCol);
 
         severityCol = new TableColumn<>("Severity");
         severityCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        return new SimpleStringProperty(alarmStateMessage.getValue().getSeverity());
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        return new SimpleStringProperty(alarmMessage.getValue().getSeverity());
                     }
                 });
         tableView.getColumns().add(severityCol);
 
         messageCol = new TableColumn<>("Message");
         messageCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        return new SimpleStringProperty(alarmStateMessage.getValue().getMessage());
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        return new SimpleStringProperty(alarmMessage.getValue().getMessage());
                     }
                 });
         tableView.getColumns().add(messageCol);
-
-        timeCol = new TableColumn<>("Time");
-        timeCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        String time = TimestampFormats.MILLI_FORMAT.format(alarmStateMessage.getValue().getInstant());
-                        return new SimpleStringProperty(time);
-                    }
-                });
-        tableView.getColumns().add(timeCol);
-
+        
+      timeCol = new TableColumn<>("Time");
+      timeCol.setCellValueFactory(
+              new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                  @Override
+                  public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                	  if (alarmMessage.getValue().getTime() != null) {
+                		  String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getInstant());
+                		  return new SimpleStringProperty(time);
+                	  }
+                	  return null;
+                  }
+              });
+      tableView.getColumns().add(timeCol);
+        
         msgTimeCol = new TableColumn<>("Message Time");
         msgTimeCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        String time = TimestampFormats.MILLI_FORMAT.format(alarmStateMessage.getValue().getMessage_time());
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getMessage_time());
                         return new SimpleStringProperty(time);
                     }
                 });
@@ -126,23 +135,65 @@ public class AlarmLogTableController {
 
         currentSeverityCol = new TableColumn<>("Current Severity");
         currentSeverityCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        return new SimpleStringProperty(alarmStateMessage.getValue().getCurrent_severity());
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        return new SimpleStringProperty(alarmMessage.getValue().getCurrent_severity());
                     }
                 });
         tableView.getColumns().add(currentSeverityCol);
 
         currentMessageCol = new TableColumn<>("Current Message");
         currentMessageCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmStateMessage, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmStateMessage, String> alarmStateMessage) {
-                        return new SimpleStringProperty(alarmStateMessage.getValue().getCurrent_message());
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        return new SimpleStringProperty(alarmMessage.getValue().getCurrent_message());
                     }
                 });
         tableView.getColumns().add(currentMessageCol);
+        
+        actionCol = new TableColumn<>("Action");
+        actionCol.setCellValueFactory(
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                    @Override
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        String action = alarmMessage.getValue().getCommand();
+                        if (action != null) {
+                        	return new SimpleStringProperty(action);
+                        }
+                        boolean en = alarmMessage.getValue().isEnabled();
+                        if (alarmMessage.getValue().getUser() != null && alarmMessage.getValue().getHost() != null) {
+	                        if (en == false) {
+	                        	return new SimpleStringProperty("Disabled");
+	                        } else if (en == true) {
+	                        	return new SimpleStringProperty("Enabled");
+	                        }
+                        }
+                        return null;
+                    }
+                });
+        tableView.getColumns().add(actionCol);
+        
+        userCol = new TableColumn<>("User");
+        userCol.setCellValueFactory(
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                    @Override
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        return new SimpleStringProperty(alarmMessage.getValue().getUser());
+                    }
+                });
+        tableView.getColumns().add(userCol);
+        
+        hostCol = new TableColumn<>("Host");
+        hostCol.setCellValueFactory(
+                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                    @Override
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                        return new SimpleStringProperty(alarmMessage.getValue().getHost());
+                    }
+                });
+        tableView.getColumns().add(hostCol);
         peroidicSearch();
     }
 
@@ -159,7 +210,7 @@ public class AlarmLogTableController {
                 alarmLogSearchJob.cancel();
             }
             alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString,
-                    result -> Platform.runLater(() -> setAlarmStateMessages(result)), (url, ex) -> {
+                    result -> Platform.runLater(() -> setAlarmMessages(result)), (url, ex) -> {
                         logger.log(Level.WARNING, "Shutting down alarm log message scheduler.", ex);
                         runningTask.cancel(true);
                     });
@@ -171,13 +222,13 @@ public class AlarmLogTableController {
         peroidicSearch();
     }
 
-    public List<AlarmStateMessage> getAlarmStateMessages() {
-        return alarmStateMessages;
+    public List<AlarmLogTableType> getAlarmMessages() {
+        return alarmMessages;
     }
 
-    public void setAlarmStateMessages(List<AlarmStateMessage> alarmStateMessages) {
-        this.alarmStateMessages = alarmStateMessages;
-        tableView.setItems(FXCollections.observableArrayList(this.alarmStateMessages));
+    public void setAlarmMessages(List<AlarmLogTableType> alarmMessages) {
+        this.alarmMessages = alarmMessages;
+        tableView.setItems(FXCollections.observableArrayList(this.alarmMessages));
     }
 
     public void setClient(RestHighLevelClient client) {

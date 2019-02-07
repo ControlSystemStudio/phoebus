@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
@@ -23,6 +26,7 @@ import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -83,10 +87,18 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                     index = container.get().getProperty(ChildrenProperty.DESCRIPTOR).getValue().indexOf(model_widget);
             }
 
+            final ObservableList<Node> children = JFXRepresentation.getChildren(parent);
             if (index < 0)
-                JFXRepresentation.getChildren(parent).add(jfx_node);
+                children.add(jfx_node);
+            else if (index <= children.size())
+                children.add(index, jfx_node);
             else
-                JFXRepresentation.getChildren(parent).add(index, jfx_node);
+            {
+                // If one of the other sibling widgets cannot be represented,
+                // the 'index' will be useless.
+                logger.log(Level.WARNING, "Cannot represent " + model_widget + " at index " + index + " within parent, which has only " + children.size() + " nodes");
+                children.add(jfx_node);
+            }
 
             if (toolkit.isEditMode())
             {   // Any visible item can be 'clicked' to allow editor to 'select' it

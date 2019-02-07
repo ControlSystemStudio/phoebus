@@ -27,7 +27,7 @@ import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget.AxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget.ROIWidgetProperty;
-import org.csstudio.display.builder.representation.RepresentationUpdateThrottle;
+import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
 import org.csstudio.javafx.rtplot.Axis;
@@ -159,8 +159,9 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
     {
         // Plot is only active in runtime mode, not edit mode
         image_plot = new RTImagePlot(! toolkit.isEditMode());
-        image_plot.setUpdateThrottle(RepresentationUpdateThrottle.plot_update_delay, TimeUnit.MILLISECONDS);
+        image_plot.setUpdateThrottle(Preferences.image_update_delay, TimeUnit.MILLISECONDS);
         image_plot.setAutoscale(false);
+        image_plot.setManaged(false);
 
         if (! toolkit.isEditMode())
         {
@@ -456,8 +457,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
         {
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
-            image_plot.setPrefWidth(w);
-            image_plot.setPrefHeight(h);
+            image_plot.resize(w, h);
         }
         image_plot.requestUpdate();
     }

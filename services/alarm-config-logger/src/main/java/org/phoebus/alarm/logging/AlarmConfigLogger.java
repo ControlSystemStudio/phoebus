@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -47,6 +48,13 @@ import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * A Runnable which creates the alarm config model for the given topic and its
+ * associated local and remote git repo.
+ *
+ * @author Kunal Shroff
+ *
+ */
 public class AlarmConfigLogger implements Runnable {
 
     private final String topic;
@@ -67,7 +75,7 @@ public class AlarmConfigLogger implements Runnable {
         group_id = "Alarm-" + UUID.randomUUID();
 
         props = PropertiesHelper.getProperties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + this.topic + "-alarm-config");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "AlarmConfigLogger-streams-" + this.topic);
         if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         }
@@ -108,7 +116,7 @@ public class AlarmConfigLogger implements Runnable {
                 command.call();
                 git.remoteAdd().setName(REMOTE_NAME).setUri(uri).call();
             } catch (IOException | URISyntaxException | GitAPIException e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Failed to properly configure remote", e);
             }
         }
 
@@ -129,7 +137,7 @@ public class AlarmConfigLogger implements Runnable {
                 }
             };
             consumer.subscribe(List.of(this.topic), crl);
-            final ConsumerRecords<String, String> records = consumer.poll(1000);
+            final ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
             syncAlarmConfigRepository(records);
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to create the alarm model", e);
@@ -161,7 +169,7 @@ public class AlarmConfigLogger implements Runnable {
 
             Topology topology = builder.build();
             logger.config(topology.describe().toString());
-            streams = new KafkaStreams(topology, new StreamsConfig(props));
+            streams = new KafkaStreams(topology, props);
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to commit the alarm config message", e);
         }

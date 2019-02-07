@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.ui.dialog;
 
+import org.phoebus.ui.javafx.ScreenUtil;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectPropertyBase;
@@ -18,7 +20,6 @@ import javafx.scene.Node;
 import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
 import javafx.scene.layout.Region;
-import javafx.stage.Screen;
 import javafx.stage.Window;
 
 /** PopupControl with fixed 'content'.
@@ -147,16 +148,7 @@ public class PopOver extends PopupControl
        final double owner_y = owner_bounds.getMinY() + owner_bounds.getHeight()/2;
 
        // Locate screen
-       Rectangle2D screen_bounds = null;
-       for (Screen screen : Screen.getScreens())
-       {
-           final Rectangle2D check = screen.getVisualBounds();
-           if (check.contains(owner_x, owner_y))
-           {
-               screen_bounds = check;
-               break;
-           }
-       }
+       Rectangle2D screen_bounds = ScreenUtil.getScreenBounds(owner_x, owner_y);
        if (screen_bounds == null)
            return Side.BOTTOM;
 

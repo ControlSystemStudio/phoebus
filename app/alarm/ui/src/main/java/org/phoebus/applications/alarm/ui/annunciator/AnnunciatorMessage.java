@@ -10,9 +10,10 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import java.time.Instant;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.util.time.TimestampFormats;
 
 /**
- * Annunciator Message class. 
+ * Annunciator Message class.
  * Serves as a container for all the values the annunciator needs to annunciate a message.
  * <p>
  * <b>Contains:</b>
@@ -23,13 +24,14 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  * </ol>
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class AnnunciatorMessage implements Comparable<AnnunciatorMessage>
 {
     public final boolean      standout;
     public final SeverityLevel severity;
     public final Instant       time;
-    public final String        message;
-    
+    public       String        message;
+
     public AnnunciatorMessage(final boolean standout, final SeverityLevel severity, final Instant time, final String message)
     {
         this.standout = standout;
@@ -46,7 +48,13 @@ public class AnnunciatorMessage implements Comparable<AnnunciatorMessage>
         // If the same severity, compare on time. Newest in time comes first.
         if (result == 0)
             result = this.time.compareTo(other.time);
-        
+
         return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        return TimestampFormats.MILLI_FORMAT.format(time) + " " + severity + " " + message;
     }
 }

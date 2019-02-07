@@ -28,6 +28,9 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
           "severity" : {
             "type" : "keyword"
           },
+          "latch" : {
+            "type" : "boolean"
+          },
           "message" : {
             "type" : "text"
           },
@@ -49,14 +52,13 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "text"
           },
           "mode" : {
-            "type" : "text"
+            "type" : "keyword"
           }
         }
       }
   }
 }
 '
-
 
 # Create the elastic index with the correct mapping for alarm command messages.
 # Create the Index
@@ -79,6 +81,45 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "keyword"
           },
           "command" : {
+            "type" : "keyword"
+          },
+          "message_time" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+  }
+}
+'
+
+# Create the elastic index with the correct mapping for alarm config messages.
+# Create the Index
+# Set the mapping
+curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_config -d'
+{
+  "mappings" : {  
+    "alarm_config" : {
+        "properties" : {
+          "APPLICATION-ID" : {
+            "type" : "text"
+          },
+          "config" : {
+            "type" : "keyword"
+          },
+          "user" : {
+            "type" : "keyword"
+          },
+          "host" : {
+            "type" : "keyword"
+          },
+          "enabled" : {
+            "type" : "keyword"
+          },
+          "latching" : {
+            "type" : "keyword"
+          },
+          "config_msg" : {
             "type" : "keyword"
           },
           "message_time" : {

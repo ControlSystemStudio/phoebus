@@ -39,11 +39,14 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
     private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
     private final UntypedWidgetPropertyListener sizeChangedListener = this::sizeChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
+    private final WidgetPropertyListener<Boolean> orientationChangedListener = this::orientationChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
     private final WidgetPropertyListener<Instant> runtimeConfChangedListener = (p, o, n) -> openConfigurationPanel();
 
     private volatile double min = 0.0;
     private volatile double max = 100.0;
+    private volatile double block = ( max - min ) / 10.0;
+    private volatile double step = ( max - min ) / 100.0;
     private volatile boolean active = false; //is updating UI to match PV?
     private volatile boolean isValueChanging = false; //is user interacting with UI (need to suppress UI updates)?
     private volatile boolean enabled = false;
@@ -99,6 +102,11 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         enablementChanged(null, null, null);
         limitsChanged(null, null, null);
 
+        // This code manages layout,
+        // because otherwise for example border changes would trigger
+        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
+        scrollbar.setManaged(false);
+
         return scrollbar;
     }
 
@@ -117,9 +125,9 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         model_widget.propLimitsFromPV().addUntypedPropertyListener(limitsChangedListener);
         model_widget.propMinimum().addUntypedPropertyListener(limitsChangedListener);
         model_widget.propMaximum().addUntypedPropertyListener(limitsChangedListener);
-        model_widget.propHorizontal().addUntypedPropertyListener(sizeChangedListener);
-        model_widget.propBarLength().addUntypedPropertyListener(sizeChangedListener);
-        model_widget.propIncrement().addUntypedPropertyListener(sizeChangedListener);
+        model_widget.propBarLength().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propIncrement().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
 
         model_widget.propEnabled().addPropertyListener(enablementChangedListener);
 
@@ -139,13 +147,30 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         model_widget.propLimitsFromPV().removePropertyListener(limitsChangedListener);
         model_widget.propMinimum().removePropertyListener(limitsChangedListener);
         model_widget.propMaximum().removePropertyListener(limitsChangedListener);
-        model_widget.propHorizontal().removePropertyListener(sizeChangedListener);
-        model_widget.propBarLength().removePropertyListener(sizeChangedListener);
-        model_widget.propIncrement().removePropertyListener(sizeChangedListener);
+        model_widget.propBarLength().removePropertyListener(limitsChangedListener);
+        model_widget.propIncrement().removePropertyListener(limitsChangedListener);
+        model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         model_widget.propEnabled().removePropertyListener(enablementChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
         model_widget.runtimePropConfigure().removePropertyListener(runtimeConfChangedListener);
         super.unregisterListeners();
+    }
+
+    private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
+    {
+        // When interactively changing orientation, swap width <-> height.
+        // This will only affect interactive changes once the widget is represented on the screen.
+        // Initially, when the widget is loaded from XML, the representation
+        // doesn't exist and the original width, height and orientation are applied
+        // without triggering a swap.
+        if (toolkit.isEditMode())
+        {
+            final int w = model_widget.propWidth().getValue();
+            final int h = model_widget.propHeight().getValue();
+            model_widget.propWidth().setValue(h);
+            model_widget.propHeight().setValue(w);
+        }
+        sizeChanged(prop, old, horizontal);
     }
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -164,30 +189,11 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
 
     private void limitsChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
-        double min_val = model_widget.propMinimum().getValue();
-        double max_val = model_widget.propMaximum().getValue();
-        if (model_widget.propLimitsFromPV().getValue())
+        if (updateLimits(model_widget.propLimitsFromPV().getValue()))
         {
-            //Try to get display range from PV
-            final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
-            if (display_info != null)
-            {
-                min_val = display_info.getControlRange().getMinimum();
-                max_val = display_info.getControlRange().getMaximum();
-            }
+            dirty_size.mark();
+            toolkit.scheduleUpdate(this);
         }
-        //If invalid limits, fall back to 0..100 range
-        if (min_val >= max_val)
-        {
-            min_val = 0.0;
-            max_val = 100.0;
-        }
-
-        min = min_val;
-        max = max_val;
-
-        dirty_size.mark();
-        toolkit.scheduleUpdate(this);
     }
 
     private void nodeValueChanged(final ObservableValue<? extends Number> property, final Number old_value, final Number new_value)
@@ -210,9 +216,74 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
 
     private void valueChanged(final WidgetProperty<? extends VType> property, final VType old_value, final VType new_value)
     {
+        if (model_widget.propLimitsFromPV().getValue())
+        {
+            updateLimits(model_widget.propLimitsFromPV().getValue());
+            dirty_size.mark();
+        }
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
     }
+
+    /** Updates, if required, the limits and zones.
+     *
+     *  @return {@code true} is something changed and UI update is required.
+     */
+    private boolean updateLimits(boolean limitsFromPV)
+    {
+        boolean somethingChanged = false;
+
+        //  Model's values.
+        double min_val = model_widget.propMinimum().getValue();
+        double max_val = model_widget.propMaximum().getValue();
+        double block_val = model_widget.propBarLength().getValue();
+        double step_val = model_widget.propIncrement().getValue();
+
+        if (limitsFromPV)
+        {
+            // Try to get display range from PV
+            final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
+            if (display_info != null)
+            {
+                min_val = display_info.getControlRange().getMinimum();
+                max_val = display_info.getControlRange().getMaximum();
+                final double delta = ( max_val - min_val );
+                block_val = delta / 10.0;
+                step_val = delta / 100.0;
+            }
+        }
+
+        // If invalid limits, fall back to 0..100 range
+        if (min_val >= max_val)
+        {
+            min_val = 0.0;
+            max_val = 100.0;
+        }
+
+        if (min != min_val)
+        {
+            min = min_val;
+            somethingChanged = true;
+        }
+        if (max != max_val)
+        {
+            max = max_val;
+            somethingChanged = true;
+        }
+        if (block != block_val)
+        {
+            block = block_val;
+            somethingChanged = true;
+        }
+        if (step != step_val)
+        {
+            step = step_val;
+            somethingChanged = true;
+        }
+
+        return somethingChanged;
+    }
+
 
     @Override
     public void updateChanges()
@@ -225,14 +296,13 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         }
         if (dirty_size.checkAndClear())
         {
-            jfx_node.setPrefHeight(model_widget.propHeight().getValue());
-            jfx_node.setPrefWidth(model_widget.propWidth().getValue());
+            jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
             jfx_node.setMin(min);
             jfx_node.setMax(max);
             jfx_node.setOrientation(model_widget.propHorizontal().getValue() ? Orientation.HORIZONTAL : Orientation.VERTICAL);
-            jfx_node.setUnitIncrement(model_widget.propIncrement().getValue());
-            jfx_node.setBlockIncrement(model_widget.propIncrement().getValue());
-            jfx_node.setVisibleAmount(model_widget.propBarLength().getValue());
+            jfx_node.setUnitIncrement(step);
+            jfx_node.setBlockIncrement(block);
+            jfx_node.setVisibleAmount(block);
         }
         if (dirty_value.checkAndClear())
         {
@@ -251,6 +321,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
                     active = false;
             }
         }
+        jfx_node.layout();
     }
 
     private SliderConfigPopOver config_popover = null;

@@ -1,15 +1,13 @@
 #!/bin/sh
-if [ $# -ne 1 ]
-then
-    echo "Usage: create_alarm_index.sh accelerator"
-    exit 1
-fi
 
 es_host=localhost
 es_port=9200
 
+# The mapping names used in here need to match those used in the ElasticClientHelper:
+# "alarm", ""alarm_cmd", "alarm_config"
+
 # Create the elastic template with the correct mapping for alarm state messages.
-curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_state_template -H 'Content-Type: application/json' -d'
+curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Content-Type: application/json' -d'
 {
   "index_patterns":["*_alarms_state*"],
   "mappings" : {  
@@ -26,6 +24,9 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_state_template -H 
           },
           "severity" : {
             "type" : "keyword"
+          },
+          "latch" : {
+            "type" : "boolean"
           },
           "message" : {
             "type" : "text"
@@ -48,7 +49,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_state_template -H 
             "type" : "text"
           },
           "mode" : {
-            "type" : "text"
+            "type" : "keyword"
           }
         }
       }
@@ -56,8 +57,8 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_state_template -H 
 }
 '
 
-# Create the elastic template with the correct mapping for alarm state messages.
-curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_cmd_template -H 'Content-Type: application/json' -d'
+# Create the elastic template with the correct mapping for alarm command messages.
+curl -XPUT http://${es_host}:${es_port}/_template/alarms_cmd_template -H 'Content-Type: application/json' -d'
 {
   "index_patterns":["*_alarms_cmd*"],
   "mappings" : {  
@@ -87,3 +88,46 @@ curl -XPUT http://${es_host}:${es_port}/_template/${1}_alarms_cmd_template -H 'C
   }
 }
 '
+
+# Create the elastic template with the correct mapping for alarm config messages.
+curl -XPUT http://${es_host}:${es_port}/_template/alarms_config_template -H 'Content-Type: application/json' -d'
+{
+  "index_patterns":["*_alarms_config*"],
+  "mappings" : {  
+    "alarm_config" : {
+        "properties" : {
+          "APPLICATION-ID" : {
+            "type" : "text"
+          },
+          "config" : {
+            "type" : "keyword"
+          },
+          "user" : {
+            "type" : "keyword"
+          },
+          "host" : {
+            "type" : "keyword"
+          },
+          "enabled" : {
+            "type" : "keyword"
+          },
+          "latching" : {
+            "type" : "keyword"
+          },
+          "config_msg" : {
+            "type" : "keyword"
+          },
+          "message_time" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+  }
+}
+'
+
+
+echo "Alarm templates:"
+curl -X GET "${es_host}:${es_port}/_template/*alarm*"
+

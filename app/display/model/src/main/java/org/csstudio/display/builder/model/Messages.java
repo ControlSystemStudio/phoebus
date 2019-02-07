@@ -261,6 +261,7 @@ public class Messages
     public static String WidgetProperties_ScaleFactor;
     public static String WidgetProperties_ScaleFormat;
     public static String WidgetProperties_ScaleDirection;
+    public static String WidgetProperties_ScaleVisible;
     public static String WidgetProperties_SecondColor;
     public static String WidgetProperties_SecondVisible;
     public static String WidgetProperties_Scripts;

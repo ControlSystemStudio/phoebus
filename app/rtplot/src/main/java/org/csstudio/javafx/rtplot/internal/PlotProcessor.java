@@ -25,7 +25,9 @@ import java.util.logging.Level;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.Messages;
+import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.Trace;
+import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.PlotDataProvider;
 import org.csstudio.javafx.rtplot.data.PlotDataSearch;
@@ -71,7 +73,8 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 {
                     for (Trace<XTYPE> trace : yaxis.getTraces())
                     {
-                        if (! trace.isVisible())
+                        if (trace.isVisible() == false ||
+                            (trace.getType() == TraceType.NONE  &&  trace.getPointType() == PointType.NONE))
                             continue;
                         final PlotDataProvider<XTYPE> data = trace.getData();
                         if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
@@ -205,7 +208,8 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 // In parallel, determine range of all traces in this axis
                 final List<Future<ValueRange>> ranges = new ArrayList<>();
                 for (Trace<XTYPE> trace : axis.getTraces())
-                    if (trace.isVisible())
+                    if (trace.isVisible() &&
+                        (trace.getType() != TraceType.NONE  ||  trace.getPointType() != PointType.NONE))
                         ranges.add(determineValueRange(trace.getData(), position_range));
 
                 // Merge the trace ranges into overall axis range
@@ -363,7 +367,8 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
             for (YAxisImpl<XTYPE> axis : plot.getYAxes())
                 for (TraceImpl<XTYPE> trace : axis.getTraces())
                 {
-                    if (! trace.isVisible())
+                    if (trace.isVisible() == false ||
+                        (trace.getType() == TraceType.NONE  &&  trace.getPointType() == PointType.NONE))
                         continue;
                     final PlotDataProvider<XTYPE> data = trace.getData();
                     final PlotDataItem<XTYPE> sample;

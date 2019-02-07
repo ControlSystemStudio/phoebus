@@ -31,6 +31,10 @@ import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 
 /** Creates JavaFX item for model widget
@@ -262,6 +266,16 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         toolkit.scheduleUpdate(this);
     }
 
+    private Paint computeEditColors()
+    {
+        final Color[] save_colors = state_colors;
+        return new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+            List.of(new Stop(0.0, save_colors[0]),
+                    new Stop(0.5, save_colors[0]),
+                    new Stop(0.5, save_colors[1]),
+                    new Stop(1.0, save_colors[1])));
+    }
+
     @Override
     public void updateChanges()
     {
@@ -308,7 +322,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
                 jfx_node.setGraphic(led);
                 // Put highlight in top-left corner, about 0.2 wide,
                 // relative to actual size of LED
-                led.setFill(value_color);
+                led.setFill(toolkit.isEditMode() ? computeEditColors() : value_color);
             }
             else
                 jfx_node.setGraphic(image);

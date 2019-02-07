@@ -389,7 +389,7 @@ public class Controller
             {
                 final TimeRelativeInterval span = model.getTimerange();
                 final TimeInterval abs = span.toAbsoluteInterval();
-                if (span.isEndAbsolute())
+                if (span.isStartAbsolute())
                     plot.setTimeRange(false, abs.getStart(), abs.getEnd());
                 else
                     plot.setTimeRange(true, abs.getStart(), abs.getEnd().plus(model.getScrollStep()));

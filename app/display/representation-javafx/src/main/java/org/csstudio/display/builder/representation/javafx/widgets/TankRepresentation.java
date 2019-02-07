@@ -14,7 +14,7 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.TankWidget;
-import org.csstudio.display.builder.representation.RepresentationUpdateThrottle;
+import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.javafx.rtplot.RTTank;
 import org.epics.vtype.Display;
@@ -37,7 +37,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
     public Pane createJFXNode() throws Exception
     {
         tank = new RTTank();
-        tank.setUpdateThrottle(RepresentationUpdateThrottle.plot_update_delay, TimeUnit.MILLISECONDS);
+        tank.setUpdateThrottle(Preferences.image_update_delay, TimeUnit.MILLISECONDS);
         return new Pane(tank);
     }
 
@@ -52,6 +52,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propBackground().addUntypedPropertyListener(lookListener);
         model_widget.propFillColor().addUntypedPropertyListener(lookListener);
         model_widget.propEmptyColor().addUntypedPropertyListener(lookListener);
+        model_widget.propScaleVisible().addUntypedPropertyListener(lookListener);
 
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueListener);
@@ -70,6 +71,8 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propBackground().removePropertyListener(lookListener);
         model_widget.propFillColor().removePropertyListener(lookListener);
         model_widget.propEmptyColor().removePropertyListener(lookListener);
+        model_widget.propScaleVisible().removePropertyListener(lookListener);
+
         model_widget.propLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propMinimum().removePropertyListener(valueListener);
         model_widget.propMaximum().removePropertyListener(valueListener);
@@ -126,6 +129,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
             tank.setForeground(JFXUtil.convert(model_widget.propForeground().getValue()));
             tank.setFillColor(JFXUtil.convert(model_widget.propFillColor().getValue()));
             tank.setEmptyColor(JFXUtil.convert(model_widget.propEmptyColor().getValue()));
+            tank.setScaleVisible(model_widget.propScaleVisible().getValue());
         }
     }
 }

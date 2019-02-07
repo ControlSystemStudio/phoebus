@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import java.util.List;
+
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -36,8 +39,9 @@ class AddComponentAction extends MenuItem
     private static class AddComponentDialog extends Dialog<String>
     {
         private final TextField name = new TextField();
+        private final Label message = new Label();
         private final RadioButton type_node = new RadioButton("Node"),
-                                  type_pv = new RadioButton("PV");
+                                  type_pv = new RadioButton("PV/s");
 
         public AddComponentDialog(final AlarmTreeItem<?> parent)
         {
@@ -53,7 +57,7 @@ class AddComponentAction extends MenuItem
             type_node.setTooltip(new Tooltip("Create a new node in the alarm configuration hierachy"));
 
             type_pv.setToggleGroup(types);
-            type_pv.setTooltip(new Tooltip("Add a PV to the alarm configuration"));
+            type_pv.setTooltip(new Tooltip("Add a PV or a list of space-separated PVs to the alarm configuration"));
 
             layout.add(new HBox(5, type_node, type_pv), 1, 0);
 
@@ -70,6 +74,10 @@ class AddComponentAction extends MenuItem
             GridPane.setHgrow(name, Priority.ALWAYS);
             layout.add(name, 1, 1);
 
+            layout.add(message, 1, 2);
+
+            name.textProperty().addListener( (prop, old, value) -> checkName(value));
+
             setTitle("Add Component to " + parent.getPathName());
             getDialogPane().setContent(layout);
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -83,13 +91,49 @@ class AddComponentAction extends MenuItem
             // Initial focus on name
             Platform.runLater(() -> name.requestFocus());
 
-            // Selecting a type then also focuses on the name
-            type_pv.selectedProperty().addListener(p -> Platform.runLater(() -> name.requestFocus()));
+            type_pv.selectedProperty().addListener(p ->
+            {
+                updateAutocompletion();
+                // Selecting a type then also focuses on the name
+                Platform.runLater(() -> name.requestFocus());
+            });
+            // Initial setting
+            updateAutocompletion();
+        }
+
+        /** Add or remove PV name completion support based on type_pv */
+        private void updateAutocompletion()
+        {
+            // Always OK to detach
+            PVAutocompleteMenu.INSTANCE.detachField(name);
+            // If PV names are required, attach
+            if (type_pv.isSelected())
+                PVAutocompleteMenu.INSTANCE.attachField(name);
+        }
+
+        private void checkName(final String name)
+        {
+            if (isPV())
+            {
+                final List<String> names = splitNames(name);
+                if (names.size() <= 1)
+                    message.setText("Enter one or more PV names, separated by spaces");
+                else
+                    message.setText("Adding " + names.size() + " PVs");
+            }
+            else
+                message.setText("");
         }
 
         public boolean isPV()
         {
             return type_pv.isSelected();
+        }
+
+        // Allowing not just space as mentioned in tooltip and message, but also comma or semicolon
+        public static List<String> splitNames(final String names)
+        {
+            return List.of(names.split("[\\s,;]+"));
         }
     }
 
@@ -107,11 +151,14 @@ class AddComponentAction extends MenuItem
             final String new_name = dialog.showAndWait().orElse(null);
             if (new_name == null  ||  new_name.isEmpty())
                 return;
-            
+
             JobManager.schedule(getText(), monitor ->
             {
                 if (dialog.isPV())
-                    model.addPV(parent.getPathName(), new_name);
+                {
+                    final List<String> new_names = AddComponentDialog.splitNames(new_name);
+                    new_names.forEach(pv ->  model.addPV(parent.getPathName(), pv));
+                }
                 else
                     model.addComponent(parent.getPathName(), new_name);
             });
