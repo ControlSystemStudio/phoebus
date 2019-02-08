@@ -26,10 +26,15 @@ public class ChannelTableApp implements AppResourceDescriptor {
     public void start() {
         client = ChannelFinderService.getInstance().getClient();
     }
-    
+
     @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return DISPLAYNAME;
     }
 
     @Override

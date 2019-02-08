@@ -1,4 +1,4 @@
-package org.phoebus.applications.greetings;
+package org.phoebus.app.diag;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -12,15 +12,15 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.fxml.FXMLLoader;
 
 @SuppressWarnings("nls")
-public class Greet implements AppInstance {
+public class DiagAppInstance implements AppInstance {
     private final AppDescriptor app;
 
-    Greet(final AppDescriptor app)
+    DiagAppInstance(final AppDescriptor app)
     {
         this.app = app;
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(this.getClass().getResource("ui/GreetingView.fxml"));
+            loader.setLocation(this.getClass().getResource("ui/DiagView.fxml"));
             final DockItem tab = new DockItem(this, loader.load());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
