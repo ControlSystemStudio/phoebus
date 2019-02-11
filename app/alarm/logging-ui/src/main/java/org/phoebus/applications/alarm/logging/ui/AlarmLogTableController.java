@@ -1,7 +1,20 @@
 package org.phoebus.applications.alarm.logging.ui;
 
 import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
+import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 
+import org.phoebus.util.time.TimeParser;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -24,6 +37,11 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 
 public class AlarmLogTableController {
 
@@ -56,7 +74,20 @@ public class AlarmLogTableController {
     TableColumn<AlarmLogTableType, String> userCol;
     @FXML
     TableColumn<AlarmLogTableType, String> hostCol;
-
+    @FXML
+    Button search;
+    @FXML
+    TextField query;
+    @FXML
+    AnchorPane ViewSearchPane;
+    @FXML
+    TextField searchText;
+    @FXML
+    TextField startTime;
+    @FXML
+    TextField endTime;
+    // Search parameters
+    ObservableMap<Keys, String> searchParameters;
     // The search string
     // TODO need to standardize the search string so that it can be easily parsed
     private String searchString = "*";
@@ -194,6 +225,32 @@ public class AlarmLogTableController {
                     }
                 });
         tableView.getColumns().add(hostCol);
+
+        searchParameters = FXCollections.<Keys, String>observableHashMap();
+        searchParameters.put(Keys.SEARCH, "*");
+        searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));
+        searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+        
+        searchParameters.addListener(new MapChangeListener<Keys, String>() {
+            @Override
+            public void onChanged(Change<? extends Keys, ? extends String> change) {
+                Platform.runLater(() -> {
+                    query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
+                        return e.getKey().getName().trim() + "=" + e.getValue().trim();
+                    }).collect(Collectors.joining("&")));
+                    searchText.setText(searchParameters.get(Keys.SEARCH));
+                });
+            }
+        });
+
+//        startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
+//        endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
+
+//        searchText.setText(searchParameters.get(Keys.SEARCH));
+        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
+            return e.getKey().getName().trim() + "=" + e.getValue().trim();
+        }).collect(Collectors.joining("&")));
+
         peroidicSearch();
     }
 
@@ -235,6 +292,26 @@ public class AlarmLogTableController {
         this.searchClient = client;
     }
 
+    @FXML
+    void updateQuery() {
+        Arrays.asList(query.getText().split("&")).forEach(s -> {
+            String key = s.split("=")[0];
+            for (Keys k : Keys.values()) {
+                if (k.getName().equals(key)) {
+                    searchParameters.put(k, s.split("=")[1]);
+                }
+            }
+        });
+    }
+
+    @FXML
+    public void search() {
+        peroidicSearch();
+    }
+	/*
+	 * public void setQuery(String parsedQuery) { query.setText(parsedQuery);
+	 * updateQuery(); search(); }
+	 */
     public void shutdown() {
         if (runningTask != null) {
             runningTask.cancel(true);
