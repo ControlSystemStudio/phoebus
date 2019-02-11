@@ -2,9 +2,7 @@ package org.phoebus.channelfinder.utility;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Tag;
 import org.phoebus.framework.jobs.Job;
@@ -17,7 +15,6 @@ public class AddTag2ChannelsJob implements JobRunnable {
     private final ChannelFinderClient client;
     private final Tag tag;
     private final Collection<String> channelNames;
-    private final Consumer<Collection<Channel>> channel_handler;
     private final BiConsumer<String, Exception> error_handler;
     
 
@@ -31,17 +28,14 @@ public class AddTag2ChannelsJob implements JobRunnable {
     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Tag tag,
-                                final Consumer<Collection<Channel>> channel_handler,
                                 final BiConsumer<String, Exception> error_handler) {
         return JobManager.schedule("Adding tag : " + tag.getName() + " to " + channelNames.size() + " channels",
-                new AddTag2ChannelsJob(client, channelNames, tag, channel_handler, error_handler));
+                new AddTag2ChannelsJob(client, channelNames, tag, error_handler));
     }
 
-    private AddTag2ChannelsJob(ChannelFinderClient client, Collection<String> channels, Tag tag,
-            Consumer<Collection<Channel>> channel_handler, BiConsumer<String, Exception> error_handler) {
+    private AddTag2ChannelsJob(ChannelFinderClient client, Collection<String> channels, Tag tag, BiConsumer<String, Exception> error_handler) {
         super();
         this.client = client;
-        this.channel_handler = channel_handler;
         this.error_handler = error_handler;
         this.channelNames = channels;
         this.tag = tag;
@@ -51,7 +45,6 @@ public class AddTag2ChannelsJob implements JobRunnable {
     public void run(JobMonitor monitor) throws Exception {
         monitor.beginTask("Adding tag : " + tag.getName() + " to " + channelNames.size() + " channels");
         client.update(Tag.Builder.tag(tag), channelNames);
-        //schannel_handler.accept(channels);
     }
 
 }

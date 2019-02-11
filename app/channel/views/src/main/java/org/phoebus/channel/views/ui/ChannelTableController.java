@@ -10,7 +10,9 @@ import org.phoebus.channel.views.ChannelTableApp;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
 import org.phoebus.channelfinder.Property;
+import org.phoebus.channelfinder.Tag;
 import org.phoebus.channelfinder.utility.AddProperty2ChannelsJob;
+import org.phoebus.channelfinder.utility.AddTag2ChannelsJob;
 import org.phoebus.channelfinder.utility.ChannelSearchJob;
 import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.framework.adapter.AdapterService;
@@ -89,17 +91,17 @@ public class ChannelTableController extends ChannelFinderController {
         super.search(query.getText());
     }
 
-    private Job addPropertiesJob;
-
+    private Job addPropertyJob;
+    private Job addTagJob;
 
     Image addProperties = ImageCache.getImage(ChannelTableApp.class, "/icons/add_properties.png");
+    Image addTags = ImageCache.getImage(ChannelTableApp.class, "/icons/add_tag.png");
 
     @FXML
     public void createContextMenu() {
 
         final ContextMenu contextMenu = new ContextMenu();
-//
-//        SelectionService.getInstance().setSelection(tableView, tableView.getSelectionModel().getSelectedItems());
+        // Add property to channel
         MenuItem addProperty = new MenuItem("Add Property", new ImageView(addProperties));
         addProperty.setOnAction(e -> {
 
@@ -108,8 +110,8 @@ public class ChannelTableController extends ChannelFinderController {
             AddPropertyDialog dialog = new AddPropertyDialog(tableView, properties);
             Optional<Property> result = dialog.showAndWait();
             result.ifPresent(property -> {
-                if (addPropertiesJob != null) {
-                    addPropertiesJob.cancel();
+                if (addPropertyJob != null) {
+                    addPropertyJob.cancel();
                 }
                 List<String> channelNames = tableView.getSelectionModel().getSelectedItems().stream().map(ch -> {
                     return ch.getName();
@@ -121,9 +123,33 @@ public class ChannelTableController extends ChannelFinderController {
 
             });
         });
-        List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
         contextMenu.getItems().add(addProperty);
+        // Add tag to channel
+        MenuItem addTag = new MenuItem("Add tag", new ImageView(addTags));
+        addTag.setOnAction(e -> {
+
+            // get the list of cf tags
+            tags = getClient().getAllTags();
+            AddTagDialog dialog = new AddTagDialog(tableView, tags);
+            Optional<Tag> result = dialog.showAndWait();
+            result.ifPresent(tag -> {
+                if (addTagJob != null) {
+                    addTagJob.cancel();
+                }
+                List<String> channelNames = tableView.getSelectionModel().getSelectedItems().stream().map(ch -> {
+                    return ch.getName();
+                }).collect(Collectors.toList());
+                AddTag2ChannelsJob.submit(getClient(),
+                        channelNames,
+                        tag,
+                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+
+            });
+        });
+        contextMenu.getItems().add(addTag);
         contextMenu.getItems().add(new SeparatorMenuItem());
+
+        List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
 
         contextEntries.forEach(entry -> {
             MenuItem item = new MenuItem(entry.getName(), new ImageView(entry.getIcon()));
@@ -158,8 +184,8 @@ public class ChannelTableController extends ChannelFinderController {
     @Override
     public void setChannels(Collection<Channel> channels) {
         initialize();
-        Collection<String> allProperties = ChannelUtil.getPropertyNames(channels);
-        Collection<String> allTags = ChannelUtil.getAllTagNames(channels);
+        List<String> allProperties = ChannelUtil.getPropertyNames(channels).stream().sorted().collect(Collectors.toList());
+        List<String> allTags = ChannelUtil.getAllTagNames(channels).stream().sorted().collect(Collectors.toList());
         List<TableColumn<Channel, String>> propColumns = allProperties.parallelStream().map(new Function<String, TableColumn<Channel, String>>() {
 
             @Override

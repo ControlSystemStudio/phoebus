@@ -1,6 +1,7 @@
 package org.phoebus.channel.views.ui;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -43,7 +44,7 @@ public class AddPropertyController {
 
     public void setAvaibleOptions(Collection<String> properties) {
         avialable.clear();
-        avialable.addAll(properties);
+        avialable.addAll(properties.stream().sorted().collect(Collectors.toList()));
     }
 
     public String getProperty() {
