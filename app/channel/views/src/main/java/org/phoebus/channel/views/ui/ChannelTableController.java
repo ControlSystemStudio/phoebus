@@ -244,7 +244,8 @@ public class ChannelTableController extends ChannelFinderController {
 
                     @Override
                     public ObservableValue<String> call(CellDataFeatures<Channel, String> channel) {
-                        return new SimpleStringProperty(channel.getValue().getProperty(propName).getValue());
+                        Property prop = channel.getValue().getProperty(propName);
+                        return new SimpleStringProperty(prop != null ? prop.getValue(): "");
                     }
                 });
                 return propCol;
