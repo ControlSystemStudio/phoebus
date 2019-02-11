@@ -14,6 +14,8 @@ import org.phoebus.channelfinder.Tag;
 import org.phoebus.channelfinder.utility.AddProperty2ChannelsJob;
 import org.phoebus.channelfinder.utility.AddTag2ChannelsJob;
 import org.phoebus.channelfinder.utility.ChannelSearchJob;
+import org.phoebus.channelfinder.utility.RemovePropertyChannelsJob;
+import org.phoebus.channelfinder.utility.RemoveTagChannelsJob;
 import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.jobs.Job;
@@ -93,9 +95,13 @@ public class ChannelTableController extends ChannelFinderController {
 
     private Job addPropertyJob;
     private Job addTagJob;
+    private Job removePropertyJob;
+    private Job removeTagJob;
 
     Image addProperties = ImageCache.getImage(ChannelTableApp.class, "/icons/add_properties.png");
     Image addTags = ImageCache.getImage(ChannelTableApp.class, "/icons/add_tag.png");
+    Image removeProperties = ImageCache.getImage(ChannelTableApp.class, "/icons/remove_properties.png");
+    Image removeTags = ImageCache.getImage(ChannelTableApp.class, "/icons/remove_tag.png");
 
     @FXML
     public void createContextMenu() {
@@ -147,6 +153,49 @@ public class ChannelTableController extends ChannelFinderController {
             });
         });
         contextMenu.getItems().add(addTag);
+        // Remove property from channels
+        MenuItem removeProperty = new MenuItem("Remove Property", new ImageView(removeProperties));
+        removeProperty.setOnAction(e -> {
+
+            List<Channel> channels = tableView.getSelectionModel().getSelectedItems();
+            List<String> channelNames = channels.stream().map(Channel::getName).collect(Collectors.toList());
+
+            RemovePropertyDialog dialog = new RemovePropertyDialog(tableView, ChannelUtil.getPropertyNames(channels));
+            Optional<Property> result = dialog.showAndWait();
+            result.ifPresent(property -> {
+                if (removePropertyJob != null) {
+                    removePropertyJob.cancel();
+                }
+                RemovePropertyChannelsJob.submit(getClient(),
+                        channelNames,
+                        property,
+                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+
+            });
+        });
+        contextMenu.getItems().add(removeProperty);
+        // Remove tag from channels
+        MenuItem removeTag = new MenuItem("Remove Tag", new ImageView(removeTags));
+        removeTag.setOnAction(e -> {
+
+            List<Channel> channels = tableView.getSelectionModel().getSelectedItems();
+            List<String> channelNames = channels.stream().map(Channel::getName).collect(Collectors.toList());
+
+            // get the list of cf properties
+            RemoveTagDialog dialog = new RemoveTagDialog(tableView, ChannelUtil.getAllTagNames(channels));
+            Optional<Tag> result = dialog.showAndWait();
+            result.ifPresent(tag -> {
+                if (removeTagJob != null) {
+                    removeTagJob.cancel();
+                }
+                RemoveTagChannelsJob.submit(getClient(),
+                        channelNames,
+                        tag,
+                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+
+            });
+        });
+        contextMenu.getItems().add(removeTag);
         contextMenu.getItems().add(new SeparatorMenuItem());
 
         List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();

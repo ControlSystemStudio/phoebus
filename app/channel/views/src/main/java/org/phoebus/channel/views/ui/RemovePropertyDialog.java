@@ -3,7 +3,7 @@ package org.phoebus.channel.views.ui;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.phoebus.channelfinder.Tag;
+import org.phoebus.channelfinder.Property;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -11,14 +11,14 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 
 /**
- * A dialog for adding a tag to a list of channels
+ * A dialog for removing a property to a list of channels
  * 
  * @author Kunal Shroff
  *
  */
-public class AddTagDialog extends Dialog<Tag> {
+public class RemovePropertyDialog extends Dialog<Property> {
 
-    public AddTagDialog(final Node parent, final Collection<String> tags) {
+    public RemovePropertyDialog(final Node parent, final Collection<String> tags) {
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         setResizable(true);
         FXMLLoader loader = new FXMLLoader();
@@ -29,7 +29,7 @@ public class AddTagDialog extends Dialog<Tag> {
             controller.setAvaibleOptions(tags);
             setResultConverter(button -> {
                 return button == ButtonType.OK
-                        ? Tag.Builder.tag(controller.getSelectedOption()).build()
+                        ? Property.Builder.property(controller.getSelectedOption()).build()
                         : null;
             });
         } catch (IOException e) {

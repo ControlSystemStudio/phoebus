@@ -84,7 +84,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         private URI uri = null;
 
         // optional
-        private boolean withHTTPAuthentication = false;
+        private boolean withHTTPAuthentication = true;
         private HTTPBasicAuthFilter httpBasicAuthFilter = null;
 
         private ClientConfig clientConfig = null;
@@ -849,8 +849,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public void run() {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
-                        .put(mapper.writeValueAsString(this.pxmlProperty));
+                service.path(resourceProperties)
+                       .path(this.pxmlProperty.getName())
+                       .type(MediaType.APPLICATION_JSON)
+                       .put(mapper.writeValueAsString(this.pxmlProperty));
             } catch (UniformInterfaceException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

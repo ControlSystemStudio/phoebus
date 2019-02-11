@@ -11,14 +11,14 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 
 /**
- * A dialog for adding a tag to a list of channels
+ * A dialog for removing a tag to a list of channels
  * 
  * @author Kunal Shroff
  *
  */
-public class AddTagDialog extends Dialog<Tag> {
+public class RemoveTagDialog extends Dialog<Tag> {
 
-    public AddTagDialog(final Node parent, final Collection<String> tags) {
+    public RemoveTagDialog(final Node parent, final Collection<String> tags) {
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         setResizable(true);
         FXMLLoader loader = new FXMLLoader();
