@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Displaying Table From Channel Access</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>PV:</text>
+    <y>50</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>Demo:Table</pv_name>
+    <x>50</x>
+    <y>50</y>
+    <width>410</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>See ca_table_server.py</text>
+    <y>80</y>
+    <width>510</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table</name>
+    <y>120</y>
+    <width>310</width>
+    <columns>
+      <column>
+        <name>Column 1</name>
+        <width>100</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Column 2</name>
+        <width>100</width>
+        <editable>true</editable>
+      </column>
+      <column>
+        <name>Column 3</name>
+        <width>100</width>
+        <editable>true</editable>
+      </column>
+    </columns>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil
+
+# Fetch data from Channel Access,
+# in this case a string array
+data = PVUtil.getStringArray(pvs[0])
+
+# Package in rows
+rows = []
+for r in range(len(data) / 3):
+   i = 3*r
+   rows.append(list(data[i:(i+3)]))
+print(rows)
+
+widget.setValue(rows)
+]]></text>
+        <pv_name>Demo:Table</pv_name>
+      </script>
+    </scripts>
+    <row_selection_mode>true</row_selection_mode>
+    <selection_pv>loc://sel&lt;VTable&gt;</selection_pv>
+  </widget>
+  <widget type="table" version="2.0.0">
+    <name>Table_1</name>
+    <pv_name>loc://sel&lt;VTable&gt;</pv_name>
+    <x>350</x>
+    <y>270</y>
+    <width>420</width>
+    <height>140</height>
+    <columns>
+      <column>
+        <name>Column 1</name>
+        <width>100</width>
+        <editable>true</editable>
+      </column>
+    </columns>
+    <editable>false</editable>
+  </widget>
+</display>
