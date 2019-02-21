@@ -100,8 +100,7 @@ public class InMemoryLogClient implements LogClient{
         // TODO Auto-generated method stub
         return null;
     }
-    String prefix = "foobar";
-    String suffix = ".tmp";
+    String prefix = "phoebus_tmp_file";
     @Override
     public LogEntry set(LogEntry log) {
         long id = (long) logIdCounter.incrementAndGet();
