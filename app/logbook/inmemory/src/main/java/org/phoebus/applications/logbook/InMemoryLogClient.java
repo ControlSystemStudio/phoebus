@@ -1,22 +1,32 @@
 package org.phoebus.applications.logbook;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryImpl;
+import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+
+import com.google.common.io.Files;
 
 public class InMemoryLogClient implements LogClient{
     private final AtomicInteger logIdCounter;
@@ -24,7 +34,7 @@ public class InMemoryLogClient implements LogClient{
 
     private final Collection<Logbook> logbooks = Arrays.asList(LogbookImpl.of("Controls"),
                                                                LogbookImpl.of("Commissioning"),
-                                                               LogbookImpl.of("test"));
+                                                               LogbookImpl.of("Scratch Pad"));
     private final Collection<Tag> tags = Arrays.asList(TagImpl.of("Operations"),
                                                        TagImpl.of("Alarm"),
                                                        TagImpl.of("Example"));
@@ -90,11 +100,36 @@ public class InMemoryLogClient implements LogClient{
         // TODO Auto-generated method stub
         return null;
     }
-
+    String prefix = "foobar";
+    String suffix = ".tmp";
     @Override
     public LogEntry set(LogEntry log) {
-        LogEntries.put((long) logIdCounter.incrementAndGet(), log);
-        return null;
+        long id = (long) logIdCounter.incrementAndGet();
+
+        LogEntryBuilder logBuilder = LogEntryImpl.LogEntryBuilder.log(log);
+        logBuilder.id(id);
+        logBuilder.createdDate(Instant.now());
+
+        Set<Attachment> attachmentsBuilder = log.getAttachments().stream().map(attachment -> {
+
+            try {
+                File file = attachment.getFile();
+                int i = file.getName().lastIndexOf(".");
+                String ext = null;
+                if (i >= 0) {
+                    ext = file.getName().substring(i);
+                }
+                File tempFile = File.createTempFile(prefix, ext);
+                Files.copy(file, tempFile);
+                return AttachmentImpl.of(tempFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).collect(Collectors.toSet());
+
+        logBuilder.setAttach(attachmentsBuilder);
+        return LogEntries.put(id, logBuilder.build());
     }
 
     @Override
@@ -225,8 +260,26 @@ public class InMemoryLogClient implements LogClient{
 
     @Override
     public List<LogEntry> findLogs(Map<String, String> map) {
-        // TODO Auto-generated method stub
-        return null;
+        Stream<LogEntry> searchStream = LogEntries.values().stream();
+        if(map.containsKey("start")) {
+            searchStream = searchStream.filter(log -> {
+                return log.getCreatedDate().isAfter(Instant.ofEpochSecond(Long.valueOf(map.get("start"))));
+            });
+        }
+        if(map.containsKey("end")) {
+            searchStream = searchStream.filter(log -> {
+                return log.getCreatedDate().isBefore(Instant.ofEpochSecond(Long.valueOf(map.get("end"))));
+            });
+        }
+        if (map.containsKey("search")) {
+            final String searchString = map.get("search").replaceAll("\\*", "");
+            if (!searchString.isEmpty()) {
+                searchStream = searchStream.filter(log -> {
+                    return log.getDescription().contains(searchString)||log.getTitle().contains(searchString);
+                });
+            }
+        }
+        return searchStream.collect(Collectors.toList());
     }
 
     @Override

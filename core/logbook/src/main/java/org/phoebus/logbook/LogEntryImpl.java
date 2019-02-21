@@ -288,6 +288,11 @@ public class LogEntryImpl implements LogEntry {
             attachments.add(attachment);
             return this;
         }
+        
+        public LogEntryBuilder setAttach(Set<Attachment> attachments) {
+            this.attachments = attachments;
+            return this;
+        }
 
         public LogEntryBuilder property(Property property) {
             properties.add(property);
