@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<TitledPane animated="false" text=" Diagnostic Info:" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.app.diag.ui.DiagController">
+  <content>
+    <BorderPane>
+      <top>
+        <Label text="Welcome to Phoebus : " BorderPane.alignment="CENTER" />
+      </top>
+      <center>
+        <Accordion BorderPane.alignment="CENTER">
+          <panes>
+            <TitledPane animated="false" text="Selections">
+              <content>
+                <ListView fx:id="listView" onContextMenuRequested="#createContextMenu" prefHeight="200.0" prefWidth="200.0" />
+              </content>
+            </TitledPane>
+          </panes>
+        </Accordion>
+      </center>
+    </BorderPane>
+  </content>
+</TitledPane>

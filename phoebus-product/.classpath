@@ -20,6 +20,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-security"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-3d-viewer"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-alarm-ui"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-alarm-logging-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-alarm-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-scan-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-scan-model"/>
@@ -41,8 +42,8 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/app-probe"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-logbook-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-filebrowser"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/app-greetings"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-perfmon"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-diag"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

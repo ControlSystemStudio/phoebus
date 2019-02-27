@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.channel.views.ui.AddPropertyController">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+  </rowConstraints>
+  <children>
+    <Label alignment="CENTER" contentDisplay="CENTER" text="Available Properties:" GridPane.halignment="LEFT">
+      <GridPane.margin>
+        <Insets left="2.0" />
+      </GridPane.margin>
+    </Label>
+    <ListView fx:id="availableProperties" onMouseClicked="#setSelection" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+      <GridPane.margin>
+        <Insets bottom="2.0" left="2.0" right="2.0" />
+      </GridPane.margin>
+    </ListView>
+    <Label alignment="CENTER" contentDisplay="CENTER" text="Selected Property:" GridPane.rowIndex="2">
+      <GridPane.margin>
+        <Insets left="2.0" />
+      </GridPane.margin>
+    </Label>
+    <TextField fx:id="selectedPropertyValueText" GridPane.rowIndex="5">
+      <GridPane.margin>
+        <Insets bottom="2.0" left="2.0" right="2.0" />
+      </GridPane.margin>
+    </TextField>
+    <Label alignment="CENTER" contentDisplay="CENTER" text="Property Value:" GridPane.rowIndex="4">
+      <GridPane.margin>
+        <Insets left="2.0" />
+      </GridPane.margin>
+    </Label>
+    <TextField fx:id="selectedPropertyText" editable="false" GridPane.rowIndex="3">
+      <GridPane.margin>
+        <Insets left="2.0" right="2.0" />
+      </GridPane.margin>
+    </TextField>
+  </children>
+</GridPane>

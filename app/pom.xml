@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <modules>
-    <module>greetings</module>
+    <module>diag</module>
     <module>logConfiguration</module>
     <module>probe</module>
     <module>pvtable</module>

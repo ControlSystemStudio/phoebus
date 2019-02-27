@@ -11,15 +11,24 @@ import javax.management.Query;
 
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.stage.WindowEvent;
 
 /**
  * Controller for the file browser app
@@ -44,7 +53,14 @@ public class ChannelTreeController extends ChannelFinderController {
 
     @FXML
     public void initialize() {
+
         treeView.setCellFactory(f -> new ChannelTreeCell());
+        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                SelectionService.getInstance().setSelection(treeView, treeView.getSelectionModel().getSelectedItems());
+            }
+        });
     }
 
     public void setQuery(String string) {
@@ -90,6 +106,28 @@ public class ChannelTreeController extends ChannelFinderController {
     @FXML
     public void search() {
         super.search(query.getText());
+    }
+
+    @FXML
+    public void createContextMenu() {
+
+        final ContextMenu contextMenu = new ContextMenu();
+
+        List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+        contextEntries.forEach(entry -> {
+            MenuItem item = new MenuItem(entry.getName());
+            item.setOnAction(e -> {
+                try {
+                    //final Stage stage = (Stage) listView.getScene().getWindow();
+                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            });
+            contextMenu.getItems().add(item);
+        });
+
+        treeView.setContextMenu(contextMenu);
     }
 
     private final class ChannelTreeItem extends TreeItem<ChannelTreeByPropertyNode> {
