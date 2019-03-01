@@ -8,6 +8,7 @@
 package org.phoebus.pv.pva;
 
 import org.epics.pvdata.pv.PVByteArray;
+import org.epics.pvdata.pv.PVDoubleArray;
 import org.epics.pvdata.pv.PVField;
 import org.epics.pvdata.pv.PVFloatArray;
 import org.epics.pvdata.pv.PVInt;
@@ -25,6 +26,7 @@ import org.epics.pvdata.pv.PVUShortArray;
 import org.epics.pvdata.pv.PVUnion;
 import org.epics.pvdata.pv.StructureArrayData;
 import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
 import org.epics.util.array.ArrayInteger;
 import org.epics.util.array.ArrayLong;
@@ -211,6 +213,13 @@ class ImageDecoder
             PVStructureHelper.convert.toFloatArray((PVFloatArray) value, 0, size, values, 0);
             data = ArrayFloat.of(values);
             data_type = VImageDataType.pvFloat;
+        }
+        else if (value instanceof PVDoubleArray)
+        {
+            final double[] values = new double[size];
+            PVStructureHelper.convert.toDoubleArray((PVDoubleArray) value, 0, size, values, 0);
+            data = ArrayDouble.of(values);
+            data_type = VImageDataType.pvDouble;
         }
         else
             throw new Exception("Cannot decode NTNDArray type of value " + value);
