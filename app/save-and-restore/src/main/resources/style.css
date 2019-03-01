@@ -1,0 +1,37 @@
+.diff-cell {
+    -fx-background-color: #FF000044;
+    -fx-text-fill: black;
+}
+
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected > .diff-cell,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled > .diff-cell:selected,
+.table-view:cell-selection > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled > .diff-cell:hover:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled > .diff-cell:focused:selected:hover {
+    -fx-background-color: -fx-selection-bar;
+    -fx-text-fill: -fx-selection-bar-text;
+}
+
+.separator:vertical .line {
+    -fx-border-style: dashed;
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em;
+}
+
+.text-area:alerted {
+    -fx-background-color: red, -fx-text-box-border, -fx-control-inner-background;
+    -fx-background-insets: -0.4, 1, 2;
+    -fx-background-radius: 3.4, 2, 2;
+    -fx-prompt-text-fill: transparent;
+}
+
+.chart-plot-background {
+    -fx-background-color: #ffffff;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+.check-box-table-cell-disabled > .check-box > .box {
+	-fx-background-color: #E0E0E0;
+}
+

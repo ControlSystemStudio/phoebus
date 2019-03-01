@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2018 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -33,7 +32,6 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 import se.esss.ics.masar.model.Config;
-import se.esss.ics.masar.model.Folder;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 import se.esss.ics.masar.model.Snapshot;
@@ -52,24 +50,24 @@ public class JMasarClient {
 		client = Client.create(defaultClientConfig);
 		
 		PreferencesReader prefs = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
-		jmasarServiceUrl = "http://jmasar.tn.esss.lu.se"; //prefs.get("jmasar.service.url");
+		jmasarServiceUrl = "http://localhost:8080"; //prefs.get("jmasar.service.url");
+	}
+	
+	public String getServiceUrl() {
+		return jmasarServiceUrl;
 	}
 
-	public Folder getRoot(){
-		return getCall("/folder/" + Node.ROOT_NODE_ID, Folder.class);
+	public Node getRoot(){
+		return getCall("/node/" + Node.ROOT_NODE_ID, Node.class);
 	}
 	
 	public List<Node> getChildNodes(int id) throws DataProviderException{
-		ClientResponse response = getCall("/folder/" + id);		
-		Folder folder = response.getEntity(Folder.class);
-		return folder.getChildNodes();
+		ClientResponse response = getCall("/node/" + id + "/children");		
+		List<Node> childNodes = response.getEntity(new GenericType<List<Node>>() {
+	    });
+		return childNodes;
 	}
-	
-	public List<Snapshot> getSnapshots(FolderTreeNode treeNode){
-		ClientResponse response = getCall("/config/" + treeNode.getId()+ "/snapshots");	
-		return response.getEntity(new GenericType<List<Snapshot>>(){});
-	}
-	
+
 	public Snapshot getSnapshot(int id) {
 		return getCall("/snapshot/" + id, Snapshot.class);
 	}
@@ -78,20 +76,24 @@ public class JMasarClient {
 		return getCall("/config/" + id, Config.class);
 	}
 	
-	public Folder createNewFolder(Folder folder) {
+	public Node createNewNode(Node node) {
 		
-		folder.setUserName(getCurrentUsersName());
+		node.setUserName(getCurrentUsersName());
+
+		String url = node.getNodeType().equals(NodeType.FOLDER) ?
+				jmasarServiceUrl + "/node" :
+				jmasarServiceUrl + "/config";
 		
-		WebResource webResource = client.resource(jmasarServiceUrl + "/folder");
+		WebResource webResource = client.resource(url);
 		
 		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-				.entity(folder, CONTENT_TYPE_JSON)
+				.entity(node, CONTENT_TYPE_JSON)
 				.put(ClientResponse.class);
 		if (response.getStatus() != 200) {
 			throw new DataProviderException(response.getEntity(String.class));
 		}
 		
-		return response.getEntity(Folder.class);
+		return response.getEntity(Node.class);
 		
 	}
 	
@@ -109,6 +111,7 @@ public class JMasarClient {
 	}
 	
 	public Config saveConfig(Config config) {
+		config.setUserName(getCurrentUsersName());
 		WebResource webResource = client.resource(jmasarServiceUrl + "/config");
 		
 		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
@@ -194,7 +197,7 @@ public class JMasarClient {
 		WebResource webResource = client.resource(jmasarServiceUrl + "/config/");
 		
 		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-				.entity(config)
+				.entity(config, CONTENT_TYPE_JSON)
 				.put(ClientResponse.class);
 		if (response.getStatus() != 200) {
 			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
@@ -209,12 +212,23 @@ public class JMasarClient {
 		WebResource webResource = client.resource(jmasarServiceUrl + "/config/");
 		
 		ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-				.entity(config)
+				.entity(config, CONTENT_TYPE_JSON)
 				.post(ClientResponse.class);
 		if (response.getStatus() != 200) {
 			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
 		}
 		
 		return response.getEntity(Config.class);
+	}
+
+	public String getJMasarServiceVersion(){
+		WebResource webResource = client.resource(jmasarServiceUrl + "/version");
+
+		ClientResponse response = webResource.get(ClientResponse.class);
+		if (response.getStatus() != 200) {
+			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+		}
+
+		return response.getEntity(String.class);
 	}
 }

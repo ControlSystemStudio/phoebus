@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import java.lang.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.GridPane?>
 
-<BorderPane>
-	<HBox fx:id="folder" xmlns:fx="http://javafx.com/fxml/1"
-		xmlns="http://javafx.com/javafx/8">
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+			xmlns="http://javafx.com/javafx/8">
+	<HBox fx:id="folder">
 		<children>
 			<ImageView pickOnBounds="true" preserveRatio="true">
 				<image>
@@ -20,8 +18,7 @@
 		</children>
 	</HBox>
 
-	<HBox fx:id="saveset" xmlns:fx="http://javafx.com/fxml/1"
-		xmlns="http://javafx.com/javafx/8">
+	<HBox fx:id="saveset" >
 		<children>
 			<ImageView pickOnBounds="true" preserveRatio="true">
 				<image>
@@ -32,8 +29,7 @@
 		</children>
 	</HBox>
 
-	<VBox fx:id="snapshot" xmlns:fx="http://javafx.com/fxml/1"
-		xmlns="http://javafx.com/javafx/8">
+	<VBox fx:id="snapshot">
 		<children>
 			<HBox>
 				<ImageView pickOnBounds="true" preserveRatio="true">

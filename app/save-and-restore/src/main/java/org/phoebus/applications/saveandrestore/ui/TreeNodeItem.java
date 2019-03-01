@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2019 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,8 @@ package org.phoebus.applications.saveandrestore.ui;
 import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
 
 import javafx.scene.control.TreeItem;
+import se.esss.ics.masar.model.Node;
+import se.esss.ics.masar.model.NodeType;
 
 /**
  * Subclass of {@link TreeItem} using {@link TreeNode} (and subclasses) to hold
@@ -28,28 +30,46 @@ import javafx.scene.control.TreeItem;
  * 
  * @author georgweiss Created 3 Jan 2019
  */
-public class TreeNodeItem extends TreeItem<TreeNode> implements Comparable<TreeNodeItem>{
+public class TreeNodeItem extends TreeItem<Node> implements Comparable<TreeNodeItem>{
 
-	private TreeNode treeNode;
+	private Node treeNode;
 
-	public TreeNodeItem(TreeNode treeNode) {
+	public TreeNodeItem(Node treeNode) {
 		super(treeNode);
 		this.treeNode = treeNode;
 	}
 
 	@Override
 	public boolean isLeaf() {
-		return treeNode.isLeaf();
+		return treeNode.getNodeType().equals(NodeType.SNAPSHOT);
 	}
 
 	@Override
 	public String toString() {
-		return treeNode.getName().get();
+		return treeNode.getName();
 	}
-	
+
+	/**
+	 * Implements strategy where folders are sorted before save sets, and
+	 * equal node types are sorted alphabetically.
+	 * @param other The tree item to compare to
+	 * @return -1 if this item is a folder and the other item is a save set,
+	 * 1 if vice versa, and result of name comparison if node types are equal.
+	 */
 	@Override
 	public int compareTo(TreeNodeItem other) {
-		
-		return treeNode.getName().get().compareTo(other.getValue().getName().get());
+
+		Node thisNode = getValue();
+		Node otherNode = other.getValue();
+
+		if(thisNode.getNodeType().equals(NodeType.FOLDER) && otherNode.getNodeType().equals(NodeType.CONFIGURATION)){
+			return -1;
+		}
+		else if(thisNode.getNodeType().equals(NodeType.CONFIGURATION) && otherNode.getNodeType().equals(NodeType.FOLDER)){
+			return 1;
+		}
+		else{
+			return treeNode.getName().compareTo(other.getValue().getName());
+		}
 	}
 }

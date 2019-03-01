@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2019 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -20,27 +20,34 @@ package org.phoebus.applications.saveandrestore.data;
 
 import java.util.List;
 
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
-
 import se.esss.ics.masar.model.Config;
+import se.esss.ics.masar.model.Node;
+import se.esss.ics.masar.model.Snapshot;
 
 public interface DataProvider {
 
-	public TreeNode getRootNode();
+	public Node getRootNode();
 	
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode);
+	public List<Node> getChildNodes(Node node);
 	
-	public void rename(TreeNode treeNode, String newName);
+	public boolean rename(Node treeNode);
 	
-	public TreeNode createNewTreeNode(int parentId, TreeNode newreeNode);
+	public Node createNewTreeNode(int parentId, Node node);
 	
-	public void deleteTreeNode(TreeNode treeNode);
+	public boolean deleteTreeNode(Node treeNode);
 	
 	public Config getSaveSet(int id);
 	
 	public Config saveSaveSet(Config config);
 	
 	public Config updateSaveSet(Config config);
+	
+	public String getServiceIdentifier();
+
+	public String getServiceVersion();
+
+	public Snapshot getSnapshot(int id);
+
+	public Snapshot takeSnapshot(int id);
 	
 }

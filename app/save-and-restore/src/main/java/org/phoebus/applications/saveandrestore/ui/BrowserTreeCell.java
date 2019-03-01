@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2019 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -20,41 +20,36 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import java.io.IOException;
 
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNodeType;
-
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeCell;
+import javafx.collections.ObservableList;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 
 
-public class BrowserTreeCell extends TreeCell<TreeNode> {
+import javafx.fxml.FXMLLoader;
+import se.esss.ics.masar.model.Node;
+import se.esss.ics.masar.model.NodeType;
+
+public class BrowserTreeCell extends TreeCell<Node> {
 
 	private javafx.scene.Node folderBox;
 	private javafx.scene.Node saveSetBox;
 	private javafx.scene.Node snapshotBox;
-
-	private TextField textField;
 
 	private ContextMenu folderContextMenu;
 	private ContextMenu saveSetContextMenu;
 	private ContextMenu snapshotContextMenu;
 	private ContextMenu rootFolderContextMenu;
 
+	private TextField textField;
+
 	public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu saveSetContextMenu,
-			ContextMenu snapshotContextMenu, ContextMenu rooFolderContextMenu) {
+			ContextMenu snapshotContextMenu, ContextMenu rootFolderContextMenu) {
 
 		FXMLLoader loader = new FXMLLoader();
 
 		try {
 			loader.setLocation(this.getClass().getResource("fxml/TreeCellGraphic.fxml"));
-			Node rootNode = loader.load();
+			javafx.scene.Node rootNode = loader.load();
 			folderBox = rootNode.lookup("#folder");
 			saveSetBox = rootNode.lookup("#saveset");
 			snapshotBox = rootNode.lookup("#snapshot");
@@ -69,61 +64,21 @@ public class BrowserTreeCell extends TreeCell<TreeNode> {
 		this.folderContextMenu = folderContextMenu;
 		this.saveSetContextMenu = saveSetContextMenu;
 		this.snapshotContextMenu = snapshotContextMenu;
-		this.rootFolderContextMenu = rooFolderContextMenu;
-	}
-
-	@Override
-	public void updateItem(TreeNode treeNode, boolean empty) {
-		super.updateItem(treeNode, empty);
-		if (empty) {
-			setGraphic(null);
-			setText(null);
-			return;
-		}
-
-		if (isEditing()) {
-			if (textField != null) {
-				textField.setText(getString());
-			}
-			setText(null);
-			setGraphic(textField);
-		} else {
-			if (treeNode.getType().equals(TreeNodeType.SNAPSHOT)) {
-				((Label) snapshotBox.lookup("#primaryLabel")).setText(treeNode.getName().get());
-				((Label) snapshotBox.lookup("#secondaryLabel"))
-						.setText(treeNode.getLastModified() + " (" + treeNode.getUserName() + ")");
-				setGraphic(snapshotBox);
-				setTooltip(new Tooltip("Double click to open snapshot"));
-				setContextMenu(snapshotContextMenu);
-				setEditable(false);
-			} else if (treeNode.getType().equals(TreeNodeType.SAVESET)) {
-				((Label) saveSetBox.lookup("#savesetLabel")).setText(treeNode.getName().get());
-				setGraphic(saveSetBox);
-				setTooltip(new Tooltip("Double click to open saveset"));
-				setContextMenu(saveSetContextMenu);
-			} else if (treeNode.getType().equals(TreeNodeType.FOLDER)) {
-				((Label) folderBox.lookup("#folderLabel")).setText(treeNode.getName().get());
-				setGraphic(folderBox);
-				if (treeNode.getId() != se.esss.ics.masar.model.Node.ROOT_NODE_ID) {
-					setContextMenu(folderContextMenu);
-				} else {
-					setContextMenu(rootFolderContextMenu);
-				}
-			}
-		}
+		this.rootFolderContextMenu = rootFolderContextMenu;
 	}
 
 	@Override
 	public void startEdit() {
-		if (getItem().getType().equals(TreeNodeType.SNAPSHOT) || 
-				getItem().getId() == se.esss.ics.masar.model.Node.ROOT_NODE_ID) {
+
+		if (getItem().getNodeType().equals(NodeType.SNAPSHOT) || getItem().getId() == Node.ROOT_NODE_ID) {
 			return;
 		}
 		super.startEdit();
 		if (textField == null) {
 			createTextField();
 		}
-		setText(null);
+		//setText(null);
+		textField.setText(getItem().getName());
 		setGraphic(textField);
 		textField.selectAll();
 	}
@@ -131,24 +86,89 @@ public class BrowserTreeCell extends TreeCell<TreeNode> {
 	@Override
 	public void cancelEdit() {
 		super.cancelEdit();
-		textField.setText(getItem().getName().get());
-		updateItem(getItem(), false);
+		if(getItem().getNodeType().equals(NodeType.CONFIGURATION)){
+			setGraphic(saveSetBox);
+		}
+		else if(getItem().getNodeType().equals(NodeType.FOLDER)){
+			setGraphic(folderBox);
+		}
+	}
+
+	@Override
+	public void updateItem(Node treeNode, boolean empty) {
+		super.updateItem(treeNode, empty);
+		if (empty) {
+			setGraphic(null);
+			setText(null);
+			return;
+		}
+
+		switch(treeNode.getNodeType()) {
+		case SNAPSHOT: 
+			((Label) snapshotBox.lookup("#primaryLabel")).setText(treeNode.getName());
+			((Label) snapshotBox.lookup("#secondaryLabel"))
+					.setText(treeNode.getLastModified() + " (" + treeNode.getUserName() + ")");
+			setGraphic(snapshotBox);
+			setTooltip(new Tooltip("Double click to open snapshot"));
+			setContextMenu(snapshotContextMenu);
+			setEditable(false);
+			break;
+		case CONFIGURATION:
+			((Label) saveSetBox.lookup("#savesetLabel")).setText(treeNode.getName());
+			setGraphic(saveSetBox);
+			setTooltip(new Tooltip("Double click to open save set"));
+			setContextMenu(saveSetContextMenu);
+			break;
+		case FOLDER:
+			String labelText = treeNode.getName();
+			if (treeNode.getId() != se.esss.ics.masar.model.Node.ROOT_NODE_ID) {
+				setContextMenu(folderContextMenu);
+			} else {
+				//labelText = SaveAndRestoreService.getInstance().getServiceIdentifier();
+				setContextMenu(rootFolderContextMenu);
+			}
+			((Label) folderBox.lookup("#folderLabel")).setText(labelText);
+			setGraphic(folderBox);
+			break;
+		}
 	}
 
 	private void createTextField() {
 		textField = new TextField(getString());
 
 		textField.setOnKeyPressed(keyEvent -> {
-			if (keyEvent.getCode() == KeyCode.ENTER) {
-				if (getItem().getName().equals(textField.getText())
-				/* || handleEditDone(getItem(), textField.getText()) */) {
-					cancelEdit();
-				}
+			if (keyEvent.getCode() == KeyCode.ENTER && isNewNameValid()) {
+				getItem().setName(textField.getText());
+				super.commitEdit(getItem());
+			}
+			else if(keyEvent.getCode() == KeyCode.ESCAPE){
+				cancelEdit();
 			}
 		});
 	}
 
 	private String getString() {
-		return getItem() == null ? "" : getItem().getName().get();
+		return getItem() == null ? "" : getItem().getName();
+	}
+
+	/**
+	 * Checks if the specified new name for a node is valid. It cannot be empty,
+	 * and cannot have the same value as a sibling node of the same type.
+	 * @return <code>true</code> if the name is valid, otherwise <code>false</code>.
+	 */
+	private boolean isNewNameValid(){
+		if(textField.getText().isEmpty()){
+			return false;
+		}
+		ObservableList<TreeItem<Node>> siblings = getTreeItem().getParent().getChildren();
+		for(TreeItem<Node> sibling : siblings){
+			if(sibling.getValue().getId() != getItem().getId() &&
+					sibling.getValue().getName().equals(textField.getText()) &&
+					sibling.getValue().getNodeType().equals(getItem().getNodeType())){
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

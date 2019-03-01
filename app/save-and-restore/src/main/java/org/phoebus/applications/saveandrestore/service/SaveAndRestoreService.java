@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2019 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -27,11 +27,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
+import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import se.esss.ics.masar.model.Config;
+import se.esss.ics.masar.model.Node;
+import se.esss.ics.masar.model.Snapshot;
 
 public class SaveAndRestoreService {
 
@@ -72,9 +73,9 @@ public class SaveAndRestoreService {
 		return executor.submit(runnable);
 	}
 
-	public TreeNode getRootNode() {
+	public Node getRootNode() {
 
-		Future<TreeNode> future = executor.submit(() -> {
+		Future<Node> future = executor.submit(() -> {
 
 			return dataProvider.getRootNode();
 		});
@@ -88,8 +89,8 @@ public class SaveAndRestoreService {
 		return null;
 	}
 
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode) {
-		Future<List<TreeNode>> future = executor.submit(() -> {
+	public List<Node> getChildNodes(Node parentNode) {
+		Future<List<Node>> future = executor.submit(() -> {
 
 			return dataProvider.getChildNodes(parentNode);
 		});
@@ -103,18 +104,20 @@ public class SaveAndRestoreService {
 		return null;
 	}
 
-	public void rename(TreeNode treeNode, String newName) throws Exception {
+	public void rename(Node treeNode) throws Exception {
 		Future<Void> future = executor.submit(() -> {
 
-			dataProvider.rename(treeNode, newName);
+			if(!dataProvider.rename(treeNode)){
+				throw new DataProviderException("Unable to rename node");
+			}
 			return null;
 		});
 
 		future.get();
 	}
 
-	public TreeNode createNewTreeNode(int parentId, TreeNode newTreeNode) throws Exception {
-		Future<TreeNode> future = executor.submit(() -> {
+	public Node createNewTreeNode(int parentId, Node newTreeNode) throws Exception {
+		Future<Node> future = executor.submit(() -> {
 
 			return dataProvider.createNewTreeNode(parentId, newTreeNode);
 		});
@@ -122,20 +125,15 @@ public class SaveAndRestoreService {
 		return future.get();
 	}
 
-	public void deleteNode(TreeNode treeNode) {
-		Future<Void> future = executor.submit(() -> {
+	public boolean deleteNode(Node treeNode) throws Exception{
+		Future<Boolean> future = executor.submit(() -> {
 
-			dataProvider.deleteTreeNode(treeNode);
-
-			return null;
+			return dataProvider.deleteTreeNode(treeNode);
+			
 		});
+		
+		return future.get();
 
-		// Wait for response...
-		try {
-			future.get();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public Config getSaveSet(int id) throws Exception {
@@ -162,8 +160,39 @@ public class SaveAndRestoreService {
 	public Config updateSaveSet(Config config) throws Exception {
 		Future<Config> future = executor.submit(() -> {
 
-			return dataProvider.saveSaveSet(config);
+			return dataProvider.updateSaveSet(config);
 
+		});
+
+		return future.get();
+	}
+	
+	public String getServiceIdentifier() {
+		return dataProvider.getServiceIdentifier();
+	}
+
+	public String getServiceVersion() throws Exception {
+		Future<String> future = executor.submit(() -> {
+
+			return dataProvider.getServiceVersion();
+		});
+
+		return future.get();
+	}
+
+	public Snapshot getSnapshot(int id) throws Exception{
+		Future<Snapshot> future = executor.submit(() -> {
+
+			return dataProvider.getSnapshot(id);
+		});
+
+		return future.get();
+	}
+
+	public Snapshot takeSnapshot(int id) throws Exception{
+		Future<Snapshot> future = executor.submit(() -> {
+
+			return dataProvider.takeSnapshot(id);
 		});
 
 		return future.get();

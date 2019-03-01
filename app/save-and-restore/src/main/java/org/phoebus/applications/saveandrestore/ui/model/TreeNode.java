@@ -41,12 +41,10 @@ public abstract class TreeNode{
 	private SimpleStringProperty name;
 	private String userName;
 	private Date lastModified;
-	private TreeNodeType type;
+
 	
 	@Builder.Default
 	private ObservableList<TreeNode> children = FXCollections.observableArrayList();
-	
-	public abstract boolean isLeaf();
 
 	@Override
 	public String toString() {

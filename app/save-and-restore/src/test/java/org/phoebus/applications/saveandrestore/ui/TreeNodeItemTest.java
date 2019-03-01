@@ -20,16 +20,17 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
+
+import se.esss.ics.masar.model.Node;
 
 public class TreeNodeItemTest {
 	
 	@Test
 	public void testComparison() {
 			
-		TreeNodeItem i1 = new TreeNodeItem(FolderTreeNode.builder().name("A").build());
-		TreeNodeItem i2 = new TreeNodeItem(FolderTreeNode.builder().name("A").build());
-		TreeNodeItem i3 = new TreeNodeItem(FolderTreeNode.builder().name("B").build());
+		TreeNodeItem i1 = new TreeNodeItem(Node.builder().name("A").build());
+		TreeNodeItem i2 = new TreeNodeItem(Node.builder().name("A").build());
+		TreeNodeItem i3 = new TreeNodeItem(Node.builder().name("B").build());
 		
 		assertTrue(i1.compareTo(i2) == 0);
 		assertTrue(i1.compareTo(i3) < 0);

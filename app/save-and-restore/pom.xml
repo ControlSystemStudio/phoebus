@@ -21,7 +21,7 @@
 		<dependency>
 			<groupId>se.esss.ics.jmasar</groupId>
 			<artifactId>jmasar-model</artifactId>
-			<version>1.0.7</version>
+			<version>1.0.8</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider -->
 		<dependency>
@@ -40,6 +40,33 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 			<version>4.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-core</artifactId>
+			<version>1.19</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>1.19</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>1.19</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey.contribs</groupId>
+			<artifactId>jersey-multipart</artifactId>
+			<version>1.19</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.epics</groupId>
+			<artifactId>vtype</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/junit/junit -->

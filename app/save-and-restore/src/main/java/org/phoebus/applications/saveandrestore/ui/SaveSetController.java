@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2019 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,54 +19,37 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.ConfigProperty;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellEditEvent;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
 import se.esss.ics.masar.model.Config;
 import se.esss.ics.masar.model.ConfigPv;
+import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.Provider;
 
 public class SaveSetController {
 
 	@FXML
 	private TableColumn<ConfigPv, Provider> providerColumn;
-	
+
 	@FXML
 	private TableColumn<ConfigPv, String> pvNameColumn;
 
@@ -78,12 +61,25 @@ public class SaveSetController {
 
 	@FXML
 	private Button saveButton;
-	
-	@FXML
-	private TextField saveSetNameField;
 
 	@FXML
-	private Tab tab;
+	private TextField pvNameField;
+
+	@FXML
+	private RadioButton ca;
+
+	@FXML
+	private RadioButton pva;
+
+	@FXML
+	private ToggleGroup providerToggleGroup;
+
+	@FXML
+	private Button addPvButton;
+
+	private SimpleStringProperty pvNameProperty = new SimpleStringProperty("");
+
+	private ObjectProperty<Provider> providerChoice = new SimpleObjectProperty<>(Provider.ca);
 
 	private SaveAndRestoreService service;
 
@@ -94,140 +90,137 @@ public class SaveSetController {
 	}
 
 	private String originalComment;
-	private String originalSaveSetName;
 	private SimpleBooleanProperty commentUnchanged = new SimpleBooleanProperty(true);
-	private SimpleBooleanProperty saveSetNameUnchanged = new SimpleBooleanProperty(true);
 	private SimpleBooleanProperty pvListUnchanged = new SimpleBooleanProperty(true);
-	private SimpleStringProperty tabTitle = new SimpleStringProperty();
 
 	private SimpleStringProperty commentTextProperty = new SimpleStringProperty();
-	private SimpleStringProperty saveSetNamePorperty = new SimpleStringProperty();	
 
-	private Config config;
-	
-	private ConfigProperty configProperty = new ConfigProperty();
+	private ObservableList<ConfigPv> saveSetEntries = FXCollections.observableArrayList();
+
+	private SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
+
+	private static final String PROVIDER = "provider";
+
+	private Config loadedConfig;
 
 	@FXML
 	public void initialize() {
-		
-	
 
 		pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-		providerColumn.setCellFactory(
-				param -> new RadioButtonCell<ConfigPv, Provider>(EnumSet.allOf(Provider.class)));
-
-		providerColumn.setOnEditCommit(new EventHandler<CellEditEvent<ConfigPv, Provider>>() {
-			@Override
-			public void handle(CellEditEvent<ConfigPv, Provider> t) {
-				((ConfigPv) t.getTableView().getItems().get(t.getTablePosition().getRow()))
-					.setProvider(t.getNewValue());
-			}
+		pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
+			selectionEmpty.set(nv == null);
 		});
-		
-		pvNameColumn.setCellValueFactory(new PropertyValueFactory<ConfigPv, String>("pvName"));
 
-		//commentTextArea.textProperty().bindBidirectional(commentTextProperty);
-		commentTextArea.textProperty().bindBidirectional(configProperty.getDescription());
+		providerColumn.setCellValueFactory(new PropertyValueFactory<>(PROVIDER));
+		providerColumn.setOnEditCommit(t ->
+				(t.getTableView().getItems().get(t.getTablePosition().getRow()))
+						.setProvider(t.getNewValue()));
+		
+		commentTextArea.textProperty().bindBidirectional(commentTextProperty);
 		commentTextArea.textProperty().addListener(ce -> {
 			commentUnchanged.set(commentTextArea.textProperty().get().equals(originalComment));
-			config.setDescription(commentTextArea.textProperty().get());
-			updateTabTitle();
-		});
-		
-		saveSetNameField.textProperty().bindBidirectional(saveSetNamePorperty);
-		saveSetNameField.textProperty().addListener(ce -> {
-			saveSetNameUnchanged.set(saveSetNameField.textProperty().get().equals(originalSaveSetName));
-			config.setName(saveSetNameField.textProperty().get());
-			updateTabTitle();
 		});
 
 		ContextMenu contextMenu = new ContextMenu();
-		MenuItem addMenuItem = new MenuItem("Add PV");
-		MenuItem deleteMenuItem = new MenuItem("Delete PV");
+
+		MenuItem deleteMenuItem = new MenuItem("Delete selected PV(s)");
 		deleteMenuItem.setOnAction(ae -> {
 			ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
+			if(selectedPvs == null || selectedPvs.isEmpty()){
+				return;
+			}
 			UI_EXECUTOR.execute(() -> {
-				pvTable.getItems().removeAll(selectedPvs);
-				pvListUnchanged.set(false);
-				updateTabTitle();
+				saveSetEntries.removeAll(selectedPvs);
+					pvTable.refresh();
 			});
 		});
+		deleteMenuItem.disableProperty().bind(selectionEmpty);
 
-		contextMenu.getItems().addAll(addMenuItem, deleteMenuItem);
+		contextMenu.getItems().addAll(deleteMenuItem);
 
-		pvTable.setContextMenu(contextMenu);
-		pvTable.setEditable(true);
+		pvNameColumn.setEditable(true);
+		pvNameColumn.setCellFactory(new Callback<TableColumn<ConfigPv, String>, TableCell<ConfigPv, String>>() {
+			@Override
+			public TableCell<ConfigPv, String> call(TableColumn<ConfigPv, String> param) {
+				final TableCell cell = new TableCell() {
 
-		pvTable.getItems().addListener(new ListChangeListener<ConfigPv>() {
+					@Override
+					public void updateItem(Object item, boolean empty) {
+						super.updateItem(item, empty);
+						selectionEmpty.set(empty);
+						if (empty) {
+							setText(null);
+						} else {
+							if (isEditing()) {
+								setText(null);
+							} else {
+								setText(getItem().toString());
+								setGraphic(null);
+							}
+						}
+					}
+				};
+				// This way I will have context menu only for specific column
+				cell.setContextMenu(contextMenu);
+				return cell;
+			}
+		});
+
+
+
+
+		ca.getProperties().put(PROVIDER, Provider.ca);
+		pva.getProperties().put(PROVIDER, Provider.pva);
+
+		providerToggleGroup.selectedToggleProperty().addListener((obs, old, nv) -> {
+			providerChoice.set((Provider)nv.getProperties().get(PROVIDER));
+		});
+
+		pvNameField.textProperty().bindBidirectional(pvNameProperty);
+		pvNameField.textProperty().addListener((ce -> {
+			if(pvNameField.textProperty().get().isEmpty()){
+				addPvButton.setDisable(true);
+			}
+			else{
+				addPvButton.setDisable(false);
+			}
+		}));
+
+		saveSetEntries.addListener(new ListChangeListener<ConfigPv>() {
 
 			@Override
 			public void onChanged(Change<? extends ConfigPv> change) {
-				if (change.wasAdded() || change.wasRemoved()) {
-
+				while (change.next()) {
+					if (change.wasAdded() || change.wasRemoved()) {
+						FXCollections.sort(saveSetEntries);
+						pvListUnchanged.set(false);
+					}
 				}
 			}
 		});
 
 		saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
-				return commentUnchanged.get() && saveSetNameUnchanged.get() && pvListUnchanged.get();}, 
-				commentUnchanged, 
-				saveSetNameUnchanged, 
-				pvListUnchanged));
-		
-		saveButton.setOnAction(ae -> {
-			saveSaveSet();
-		});
-		
-		tab.textProperty().bind(tabTitle);
+			return commentUnchanged.get() && pvListUnchanged.get();
+		}, commentUnchanged, pvListUnchanged));
 
-		tab.setOnCloseRequest(e -> {
-			if (commentUnchanged.get() && pvListUnchanged.get()) {
-				return;
-			}
 
-			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setTitle("Save changes?");
-			alert.setHeaderText("Content has changed. Do you wish to save the save set?");
-			ButtonType save = new ButtonType("Save");
-			ButtonType dontSave = new ButtonType("Don't save");
-			ButtonType cancel = new ButtonType("Cancel");
-
-			alert.getButtonTypes().setAll(cancel, dontSave, save);
-
-			Optional<ButtonType> result = alert.showAndWait();
-			if (result.get().equals(dontSave)) {
-				return;
-			} else if (result.get().equals(cancel)) {
-				e.consume();
-			} else {
-				saveSaveSet();
-			}
-		});
 	}
 
-	private void updateTabTitle() {
-		if (commentUnchanged.get() && pvListUnchanged.get() && saveSetNameUnchanged.get()) {
-			tabTitle.set(originalSaveSetName);
-		} else {
-			tabTitle.set("* " + saveSetNameField.textProperty().get());
-		}
-	}
+	@FXML
+	public void saveSaveSet(ActionEvent event) {
 
-	private void saveSaveSet() {
-		
 		UI_EXECUTOR.execute(() -> {
-			//config.setDescription(commentTextProperty.get());
-			//config.setName(saveSetNameField.textProperty().get());
-			//config.setConfigPvList(toConfigPvList());
 			try {
-				int configId = config.getId();
-				if (configId > 0) {
+				Config config = Config.builder().name(loadedConfig.getName()).description(commentTextProperty.get()).build();
+				config.setConfigPvList(saveSetEntries);
+				int id = loadedConfig.getId();
+				if (id > 0) {
+					config.setId(id);
 					service.updateSaveSet(config);
 				} else {
-					configId = service.saveSaveSet(config).getId();
+					id = service.saveSaveSet(config).getId();
 				}
-				loadSaveSet(configId);
+				loadSaveSet(id);
 			} catch (Exception e1) {
 				Alert errorAlert = new Alert(AlertType.ERROR);
 				errorAlert.setTitle("Action failed");
@@ -235,79 +228,50 @@ public class SaveSetController {
 				errorAlert.showAndWait();
 			}
 		});
-		
-	}
-	
-	public void loadSaveSet(TreeNode treeNode) {
-		loadSaveSet(treeNode.getId());
-		configProperty.setName(treeNode.getName());
+
 	}
 
-	private void loadSaveSet(int saveSetId) {
+	@FXML
+	public void addPv(ActionEvent event){
+		ConfigPv configPv = ConfigPv.builder()
+				.pvName(pvNameProperty.get().trim())
+				.provider(providerChoice.get())
+				.build();
+
+		UI_EXECUTOR.execute(() -> {
+			saveSetEntries.add(configPv);
+			resetAddPv();
+		});
+
+	}
+
+	private void resetAddPv(){
+		pvNameProperty.set("");
+		providerChoice.set(Provider.ca);
+	}
+
+	public String loadSaveSet(Node treeNode) {
+		return loadSaveSet(treeNode.getId());
+	}
+
+	private String loadSaveSet(int saveSetId) {
 		try {
-			config = service.getSaveSet(saveSetId);
-			Collections.sort(config.getConfigPvList());
+			loadedConfig = service.getSaveSet(saveSetId);
+			Collections.sort(loadedConfig.getConfigPvList());
 			UI_EXECUTOR.execute(() -> {
-				configProperty.setDescription(config.getDescription());
-				//configProperty.setName(config.getName());
-				saveSetNamePorperty.set(config.getName());
-				commentTextProperty.set(config.getDescription());
-				originalComment = config.getDescription();
-				pvTable.setItems(FXCollections.observableArrayList(config.getConfigPvList()));
+				commentTextProperty.set(loadedConfig.getDescription());
+				originalComment = loadedConfig.getDescription();
+				saveSetEntries.setAll(loadedConfig.getConfigPvList());
+				pvTable.setItems(saveSetEntries);
 				commentUnchanged.set(true);
 				pvListUnchanged.set(true);
-				originalSaveSetName = config.getName();
-				tabTitle.set(originalSaveSetName);
-				//saveSetNameField.textProperty().set(originalSaveSetName);
 			});
+			return loadedConfig.getName();
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	private static class RadioButtonCell<S, T extends Enum<T>> extends TableCell<S, T> {
-
-		private EnumSet<T> enumeration;
-
-		public RadioButtonCell(EnumSet<T> enumeration) {
-			this.enumeration = enumeration;
-		}
-
-		@Override
-		protected void updateItem(T item, boolean empty) {
-			super.updateItem(item, empty);
-			if (!empty) {
-				// UI setup
-				HBox hb = new HBox(7);
-				hb.setAlignment(Pos.CENTER);
-				final ToggleGroup group = new ToggleGroup();
-
-				// create a radio button for each 'element' of the enumeration
-				for (Enum<T> enumElement : enumeration) {
-					RadioButton radioButton = new RadioButton(enumElement.toString());
-					radioButton.setUserData(enumElement);
-					radioButton.setToggleGroup(group);
-					hb.getChildren().add(radioButton);
-					if (enumElement.equals(item)) {
-						radioButton.setSelected(true);
-					}
-				}
-
-				// issue events on change of the selected radio button
-				group.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-
-					@SuppressWarnings("unchecked")
-					@Override
-					public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue,
-							Toggle newValue) {
-						getTableView().edit(getIndex(), getTableColumn());
-						RadioButtonCell.this.commitEdit((T) newValue.getUserData());
-					}
-				});
-				setGraphic(hb);
-			}
-		}
+		return null;
 	}
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2019 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,11 @@
 package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.ui.model.FolderTreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNode;
-import org.phoebus.applications.saveandrestore.ui.model.TreeNodeType;
+import org.phoebus.applications.saveandrestore.data.DataProviderException;
 
 import se.esss.ics.masar.model.Config;
-import se.esss.ics.masar.model.Folder;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 import se.esss.ics.masar.model.Snapshot;
@@ -41,53 +37,55 @@ public class JMasarDataProvider implements DataProvider {
 	}
 
 	@Override
-	public TreeNode getRootNode() {
-		Folder folder = jmasarClient.getRoot();
-
-		return DataConverter.fromJMasarFolder(folder);
+	public Node getRootNode() {
+		return jmasarClient.getRoot();
 	}
 
 	@Override
-	public List<TreeNode> getChildNodes(FolderTreeNode parentNode) {
-		if (parentNode.getType().equals(TreeNodeType.SAVESET)) {
-			List<Snapshot> snapshots = jmasarClient.getSnapshots(parentNode);
-			return snapshots.stream().map(s -> DataConverter.jmasarSnapshot2TreeNode(s)).collect(Collectors.toList());
-		} else {
-			List<Node> childNodes = jmasarClient.getChildNodes(parentNode.getId());
-			return childNodes.stream().map(n -> DataConverter.fromJMasarNode(n)).collect(Collectors.toList());
+	public List<Node> getChildNodes(Node parentNode) {	
+		return jmasarClient.getChildNodes(parentNode.getId());		
+	}
+
+	@Override
+	public boolean rename(Node treeNode) {
+		try {
+			jmasarClient.rename(treeNode.getId(), treeNode.getName());
+		} catch (Exception e) {
+			return false;
 		}
+		return true;
 	}
 
 	@Override
-	public void rename(TreeNode treeNode, String newName) {
-		jmasarClient.rename(treeNode.getId(), newName);
+	public Node createNewTreeNode(int parentId, Node node) {
+		return jmasarClient.createNewNode(node);
+	}
+	
+	@Override
+	public String getServiceIdentifier() {
+		return "JMasar service (" + jmasarClient.getServiceUrl() + ")";
 	}
 
 	@Override
-	public FolderTreeNode createNewTreeNode(int parentId, TreeNode newTreeNode) {
+	public boolean deleteTreeNode(Node treeNode) {
 
-		Folder newFolder = DataConverter.toJMasarFolder(parentId, newTreeNode);
-
-		newFolder = jmasarClient.createNewFolder(newFolder);
-
-		return DataConverter.fromJMasarNode(newFolder);
-	}
-
-	@Override
-	public void deleteTreeNode(TreeNode treeNode) {
-
-		switch (treeNode.getType()) {
-		case FOLDER:
-			jmasarClient.deleteNode(NodeType.FOLDER, treeNode.getId());
-			break;
-		case SAVESET:
-			jmasarClient.deleteNode(NodeType.CONFIGURATION, treeNode.getId());
-			break;
-		case SNAPSHOT:
-			jmasarClient.deleteSnapshot(treeNode.getId());
-			break;
-		default:
+		try {
+			switch (treeNode.getNodeType()) {
+			case FOLDER:
+				jmasarClient.deleteNode(NodeType.FOLDER, treeNode.getId());
+				break;
+			case CONFIGURATION:
+				jmasarClient.deleteNode(NodeType.CONFIGURATION, treeNode.getId());
+				break;
+			case SNAPSHOT:
+				jmasarClient.deleteSnapshot(treeNode.getId());
+				break;
+			default:
+			}
+		} catch (DataProviderException e) {
+			return false;
 		}
+		return true;
 	}
 	
 	@Override
@@ -98,13 +96,27 @@ public class JMasarDataProvider implements DataProvider {
 	
 	@Override
 	public Config saveSaveSet(Config config) {
-		return jmasarClient.saveConfig(config);
+		return jmasarClient.createConfiguration(config);
 	}
 	
 	@Override
 	public Config updateSaveSet(Config config) {
-		return jmasarClient.saveConfig(config);
+		return jmasarClient.updateConfiguration(config);
 	}
-	
+
+	@Override
+	public String getServiceVersion() {
+		return jmasarClient.getJMasarServiceVersion();
+	}
+
+	@Override
+	public Snapshot getSnapshot(int id){
+		return jmasarClient.getSnapshot(id);
+	}
+
+	@Override
+	public Snapshot takeSnapshot(int id){
+		return jmasarClient.takeSnapshot(Integer.toString(id));
+	}
 	
 }
