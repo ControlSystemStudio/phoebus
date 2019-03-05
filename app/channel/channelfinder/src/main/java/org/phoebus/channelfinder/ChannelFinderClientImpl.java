@@ -72,6 +72,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     private static final String resourceProperties = "resources/properties";
     private static final String resourceTags = "resources/tags";
 
+    private static final Logger log = Logger.getLogger(ChannelFinderClient.class.getName());
     /**
      * A Builder class to help create the client to the Channelfinder Service
      * 
@@ -232,6 +233,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
          * @return {@link ChannelFinderClientImpl}
          */
         public ChannelFinderClient create() throws ChannelFinderException {
+            log.info("Creating a channelfinder client to : " + this.uri);
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
             } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
