@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<display version="1.0.0">
+<display version="2.0.0">
   <name>Group</name>
-  <x>-1</x>
-  <y>-1</y>
   <widget type="label" version="2.0.0">
     <name>Label</name>
+    <text>Group</text>
     <width>181</width>
     <height>31</height>
-    <text>Group</text>
     <font>
       <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
       </font>
@@ -15,9 +13,6 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_1</name>
-    <y>41</y>
-    <width>411</width>
-    <height>30</height>
     <text>A container that groups widgets, both visually and logically.
 
 Visually, the Group widget adds a border and label to a group of widgets.
@@ -25,6 +20,9 @@ Visually, the Group widget adds a border and label to a group of widgets.
 Logically, the Group widget and its contained widgets can be moved,
 copied, deleted as a whole in the editor.
 At runtime, a group can apply macros to its child widgets.</text>
+    <y>41</y>
+    <width>411</width>
+    <height>179</height>
   </widget>
   <widget type="group" version="2.0.0">
     <name>Group 1</name>
@@ -32,16 +30,16 @@ At runtime, a group can apply macros to its child widgets.</text>
       <PV>sim://sine</PV>
       <TEXT>This is group one</TEXT>
     </macros>
-    <y>91</y>
+    <y>230</y>
     <width>227</width>
     <height>140</height>
     <widget type="led" version="2.0.0">
       <name>BoolLED_3</name>
+      <pv_name>sim://ramp(0, 4, 1)</pv_name>
       <x>161</x>
       <y>40</y>
       <width>26</width>
       <height>26</height>
-      <border_alarm_sensitive>false</border_alarm_sensitive>
       <off_color>
         <color name="Off" red="60" green="100" blue="60">
         </color>
@@ -50,44 +48,31 @@ At runtime, a group can apply macros to its child widgets.</text>
         <color name="On" red="0" green="255" blue="0">
         </color>
       </on_color>
-      <pv_name>sim://ramp(0, 4, 1)</pv_name>
-      <bit>-1</bit>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
     </widget>
     <widget type="textupdate" version="2.0.0">
       <name>Text Update_5</name>
+      <pv_name>$(PV)</pv_name>
       <x>61</x>
       <y>40</y>
       <width>80</width>
       <height>26</height>
       <border_alarm_sensitive>false</border_alarm_sensitive>
-      <foreground_color>
-        <color red="0" green="0" blue="0">
-        </color>
-      </foreground_color>
-      <pv_name>$(PV)</pv_name>
     </widget>
     <widget type="label" version="2.0.0">
       <name>Label_18</name>
+      <text>Value:</text>
       <x>1</x>
       <y>40</y>
       <width>80</width>
       <height>26</height>
-      <text>Value:</text>
-      <foreground_color>
-        <color red="0" green="0" blue="0">
-        </color>
-      </foreground_color>
-      <background_color>
-        <color red="255" green="255" blue="255">
-        </color>
-      </background_color>
     </widget>
     <widget type="label" version="2.0.0">
       <name>Label_19</name>
+      <text>$(TEXT)</text>
       <x>1</x>
       <y>10</y>
       <width>186</width>
-      <text>$(TEXT)</text>
     </widget>
   </widget>
   <widget type="group" version="2.0.0">
@@ -97,16 +82,16 @@ At runtime, a group can apply macros to its child widgets.</text>
       <TEXT>This is group two</TEXT>
     </macros>
     <x>251</x>
-    <y>91</y>
+    <y>230</y>
     <width>227</width>
     <height>140</height>
     <widget type="led" version="2.0.0">
       <name>BoolLED_4</name>
+      <pv_name>sim://ramp(0, 4, 1)</pv_name>
       <x>161</x>
       <y>40</y>
       <width>26</width>
       <height>26</height>
-      <border_alarm_sensitive>false</border_alarm_sensitive>
       <off_color>
         <color name="Off" red="60" green="100" blue="60">
         </color>
@@ -115,53 +100,40 @@ At runtime, a group can apply macros to its child widgets.</text>
         <color name="On" red="0" green="255" blue="0">
         </color>
       </on_color>
-      <pv_name>sim://ramp(0, 4, 1)</pv_name>
-      <bit>-1</bit>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
     </widget>
     <widget type="textupdate" version="2.0.0">
       <name>Text Update_6</name>
+      <pv_name>$(PV)</pv_name>
       <x>61</x>
       <y>40</y>
       <width>80</width>
       <height>26</height>
       <border_alarm_sensitive>false</border_alarm_sensitive>
-      <foreground_color>
-        <color red="0" green="0" blue="0">
-        </color>
-      </foreground_color>
-      <pv_name>$(PV)</pv_name>
     </widget>
     <widget type="label" version="2.0.0">
       <name>Label_20</name>
+      <text>Value:</text>
       <x>1</x>
       <y>40</y>
       <width>80</width>
       <height>26</height>
-      <text>Value:</text>
-      <foreground_color>
-        <color red="0" green="0" blue="0">
-        </color>
-      </foreground_color>
-      <background_color>
-        <color red="255" green="255" blue="255">
-        </color>
-      </background_color>
     </widget>
     <widget type="label" version="2.0.0">
       <name>Label_21</name>
+      <text>$(TEXT)</text>
       <x>1</x>
       <y>10</y>
       <width>186</width>
-      <text>$(TEXT)</text>
     </widget>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_22</name>
-    <y>251</y>
-    <width>478</width>
-    <height>70</height>
     <text>These two groups contain the same types of widgets,
 but pass different values for macros 'TEXT' and 'PV'.</text>
+    <y>390</y>
+    <width>478</width>
+    <height>70</height>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
