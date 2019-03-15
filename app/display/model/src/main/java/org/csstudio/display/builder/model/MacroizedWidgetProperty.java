@@ -147,6 +147,10 @@ abstract public class MacroizedWidgetProperty<T> extends WidgetProperty<T>
             {
                 expanded = MacroHandler.replace(macros, specification);
             }
+            catch (StackOverflowError ex)
+            {
+                expanded = "Recursive " + specification.replace("$", "");
+            }
             catch (final Exception ex)
             {
                 logger.log(Level.WARNING, widget + " property " + getName() + " cannot expand macros for '" + specification + "'", ex);
