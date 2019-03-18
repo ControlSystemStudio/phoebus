@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -1109,14 +1110,14 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                         .accept(MediaType.APPLICATION_JSON).get(String.class), new TypeReference<List<XmlChannel>>() {
                         });
             } catch (Exception e) {
-                e.printStackTrace();
+            	log.log(Level.WARNING, "Error creating channels:", e);
             }
-            System.out.println("Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.INFO, "Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
             start = System.currentTimeMillis();
             for (XmlChannel xmlchannel : xmlchannels) {
                 channels.add(new Channel(xmlchannel));
             }
-            System.out.println("Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.INFO, "Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
             return Collections.unmodifiableCollection(channels);
         }
     }
