@@ -70,9 +70,12 @@ public class MacroOrPropertyProvider implements MacroValueProvider
 
         // Check actual macros
         final Macros macros = widget.getEffectiveMacros();
-        String value = macros.getValue(name);
-        if (value != null)
-            return value;
+        if (macros != null)
+        {
+            final String value = macros.getValue(name);
+            if (value != null)
+                return value;
+        }
 
         // Fall back to widget properties
         try
@@ -100,7 +103,7 @@ public class MacroOrPropertyProvider implements MacroValueProvider
         }
 
         // Fall back to Java system properties
-        value = System.getProperty(name);
+        final String value = System.getProperty(name);
         if (value != null)
             return value;
 

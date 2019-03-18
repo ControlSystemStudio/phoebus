@@ -228,13 +228,43 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_17</name>
     <actions>
       <action type="open_display">
+        <file>graphics_rect.bob</file>
+        <target>replace</target>
+        <description>Rectangle</description>
+      </action>
+    </actions>
+    <x>190</x>
+    <y>200</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_38</name>
+    <actions>
+      <action type="open_display">
+        <file>graphics_arc.bob</file>
+        <target>replace</target>
+        <description>Arc</description>
+      </action>
+    </actions>
+    <x>190</x>
+    <y>240</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_39</name>
+    <actions>
+      <action type="open_display">
         <file>graphics_poly.bob</file>
         <target>replace</target>
         <description>Polygon/line</description>
       </action>
     </actions>
     <x>190</x>
-    <y>200</y>
+    <y>280</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>

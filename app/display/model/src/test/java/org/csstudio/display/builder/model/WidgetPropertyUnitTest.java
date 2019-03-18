@@ -7,9 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propType;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -144,12 +144,12 @@ public class WidgetPropertyUnitTest
     };
 
     WidgetPropertyDescriptor<Align> alignHoriz =
-            new WidgetPropertyDescriptor<Align>(WidgetPropertyCategory.DISPLAY, "horiz_align", "Horizontal alignment")
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "horiz_align", "Horizontal alignment")
     {
         @Override
         public WidgetProperty<Align> createProperty(final Widget widget, final Align default_value)
         {
-            return new EnumWidgetProperty<Align>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
@@ -162,7 +162,7 @@ public class WidgetPropertyUnitTest
         macros.add("ALIGN", "1");
         widget.propMacros().setValue(macros);
 
-        final EnumWidgetProperty<Align> prop = new EnumWidgetProperty<Align>(alignHoriz, widget, Align.LEFT);
+        final EnumWidgetProperty<Align> prop = new EnumWidgetProperty<>(alignHoriz, widget, Align.LEFT);
         System.out.println(prop);
         assertThat(prop.getValue(), equalTo(Align.LEFT));
 
@@ -263,16 +263,8 @@ public class WidgetPropertyUnitTest
 
         // Bad recursion: Property was set to macro which in turn requests that same property
         ((MacroizedWidgetProperty<String>)widget.propPVName()).setSpecification("$(pv_name)");
-        try
-        {
-            MacroHandler.replace(widget.getMacrosOrProperties(), "$(pv_name)");
-            fail("Didn't detect recursion");
-        }
-        catch (Exception ex)
-        {
-            assertThat(ex.getMessage().toLowerCase(), containsString("recursive"));
-        }
+        MacroHandler.replace(widget.getMacrosOrProperties(), "$(pv_name)");
         // Macro remains unresolved (with many warnings on console)
-        assertThat(widget.propPVName().getValue(), equalTo("$(pv_name)"));
+        assertThat(widget.propPVName().getValue().toLowerCase(), containsString("recursive"));
     }
 }
