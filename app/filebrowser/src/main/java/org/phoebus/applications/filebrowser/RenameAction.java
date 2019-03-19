@@ -8,6 +8,8 @@
 package org.phoebus.applications.filebrowser;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -45,7 +47,7 @@ public class RenameAction extends MenuItem
 
             JobManager.schedule(Messages.RenameJobName + item.getValue(), monitor ->
             {
-                file.renameTo(new File(file.getParentFile(), new_name));
+                Files.move(file.toPath(), (new File(file.getParentFile(), new_name)).toPath(), StandardCopyOption.REPLACE_EXISTING);
 
                 final FileTreeItem parent = (FileTreeItem)item.getParent();
                 Platform.runLater(() ->  parent.forceRefresh());
