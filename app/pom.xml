@@ -9,7 +9,7 @@
   </parent>
   <modules>
     <module>diag</module>
-    <module>logConfiguration</module>
+    <module>log-configuration</module>
     <module>probe</module>
     <module>pvtable</module>
     <module>pvtree</module>
