@@ -6,14 +6,14 @@ import java.util.Optional;
 public interface AdapterFactory {
 
     /**
-     * 
-     * @return
+     * Returns the type of the object that can be processed by this adapter factory
+     * @return the adaptable object Class
      */
     public Class getAdaptableObject();
 
     /**
      * 
-     * @return
+     * @return the list of types to which this adapter can convert the supported adaptable type
      */
     public List<? extends Class> getAdapterList();
 
@@ -23,6 +23,6 @@ public interface AdapterFactory {
      * @param adapterType
      * @return
      */
-    public Optional getAdapter(Object adaptableObject, Class adapterType);
+    public Optional<?> getAdapter(Object adaptableObject, Class adapterType);
 
 }
