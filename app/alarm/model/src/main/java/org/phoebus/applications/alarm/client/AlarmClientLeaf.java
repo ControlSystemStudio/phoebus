@@ -16,8 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.model.TitleDetail;
-import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 /** Alarm tree leaf
  *
