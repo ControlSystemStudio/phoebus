@@ -181,7 +181,8 @@ public class ScanServerImpl implements ScanServer
     @Override
     public long submitScan(final String scan_name,
                            final String commands_as_xml,
-                           final boolean queue) throws Exception
+                           final boolean queue,
+                           final boolean pre_post) throws Exception
     {
         cullScans();
 
@@ -191,7 +192,7 @@ public class ScanServerImpl implements ScanServer
 
             // Read pre- and post-scan commands
             final List<ScanCommand> pre_commands, post_commands;
-            if (queue)
+            if (pre_post)
             {
                 pre_commands = new ArrayList<>();
                 for (String path : ScanServerInstance.getScanConfig().getPreScanPaths())
