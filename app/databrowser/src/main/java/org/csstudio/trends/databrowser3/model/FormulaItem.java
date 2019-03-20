@@ -254,9 +254,9 @@ public class FormulaItem extends ModelItem
                     else
                     {   // No min/max.
                         if (Double.isNaN(res_val))
-                            value = VDouble.of(res_val, INVALID_FORMULA, Time.now(), display);
+                            value = VDouble.of(res_val, INVALID_FORMULA, Time.of(time), display);
                         else
-                            value = VDouble.of(res_val, OK_FORMULA, Time.now(), display);
+                            value = VDouble.of(res_val, OK_FORMULA, Time.of(time), display);
                     }
                     result.add(new PlotSample(Messages.Formula, value));
                 }
