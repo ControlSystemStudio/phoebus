@@ -25,8 +25,10 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.ParallelCommand;
@@ -80,7 +82,7 @@ public class ParallelCommandImpl extends ScanCommandImpl<ParallelCommand>
     @Override
     public String[] getDeviceNames(final MacroContext macros) throws Exception
     {
-        final Set<String> device_names = new HashSet<String>();
+        final Set<String> device_names = new HashSet<>();
         for (ScanCommandImpl<?> command : implementation)
         {
             final String[] names = command.getDeviceNames(macros);
@@ -107,26 +109,28 @@ public class ParallelCommandImpl extends ScanCommandImpl<ParallelCommand>
                 ? Math.round(System.currentTimeMillis() + command.getTimeout()*1000)
                 : -1;
         final List<Future<Object>> results = new ArrayList<>();
+        final Semaphore all_done = new Semaphore(1 - implementation.size());
+        final AtomicReference<Exception> first_error = new AtomicReference<>();
         // Start commands in parallel
         for (ScanCommandImpl<?> body_command : implementation)
-            results.add(launch(context, body_command));
+            results.add(launch(all_done, first_error, context, body_command));
 
-        // Wait for commands to finish
         try
         {
-            for (Future<Object> result : results)
+            // Wait for commands to finish
+            if (end > 0)
             {
-                if (end > 0)
-                {
-                    final long time_left = end - System.currentTimeMillis();
-                    if (time_left <= 0)
-                        throw new TimeoutException();
-                    else
-                        result.get(time_left, TimeUnit.MILLISECONDS);
-                }
-                else
-                    result.get();
+                final long time_left = end - System.currentTimeMillis();
+                if (time_left <= 0   ||
+                    ! all_done.tryAcquire(time_left, TimeUnit.MILLISECONDS))
+                    throw new TimeoutException();
             }
+            else
+                all_done.acquire();
+
+            // Check if there was an error
+            if (first_error.get() != null)
+                throw new Exception("Parallel Sub-command failed", first_error.get());
         }
         catch (TimeoutException ex)
         {
@@ -142,19 +146,34 @@ public class ParallelCommandImpl extends ScanCommandImpl<ParallelCommand>
     }
 
     /** Launch one of the body commands
+     *  @param all_done
+     *  @param first_error
      *  @param context
      *  @param body_command
      *  @return Future for the command, may provide Exception
      */
-    private Future<Object> launch(final ScanContext context, ScanCommandImpl<?> body_command)
+    private Future<Object> launch(final Semaphore all_done, final AtomicReference<Exception> first_error, final ScanContext context, ScanCommandImpl<?> body_command)
     {
         logger.log(Level.FINE, "Launching: {0}", body_command);
-        return executor.submit(new Callable<Object>()
+        return executor.submit(new Callable<>()
         {
             @Override
             public Object call() throws Exception
             {
-                context.execute(body_command);
+                try
+                {
+                    context.execute(body_command);
+                    // Indicate that this one command completed
+                    all_done.release();
+                }
+                catch (Exception ex)
+                {
+                    // Set first error (unless already non-null)
+                    first_error.compareAndSet(null, ex);
+                    // Release enough to wake the Parallel command that started this sub-command
+                    all_done.release(implementation.size());
+                    throw ex;
+                }
                 return null;
             }
         });
