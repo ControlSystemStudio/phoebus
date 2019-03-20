@@ -12,25 +12,31 @@ import static org.csstudio.display.builder.editor.Plugin.logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.app.CreateGroupAction;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
+import org.csstudio.display.builder.editor.app.RemoveGroupAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
 import org.csstudio.display.builder.editor.tree.FindWidgetAction;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
+import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -39,6 +45,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -319,6 +326,22 @@ public class EditorGUI
             new ActionWapper(ActionDescription.MOVE_DOWN),
             new ActionWapper(ActionDescription.TO_FRONT));
         node.setContextMenu(menu);
+        // Add/remove menu entries based on selection
+        final ObservableList<MenuItem> items = menu.getItems();
+        menu.setOnShowing(event ->
+        {
+            int N = items.size();
+            if (N > 7)
+                items.remove(7, N);
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            if (widgets.size() >= 1)
+            {
+                items.add(new SeparatorMenuItem());
+                items.add(new CreateGroupAction(editor, widgets));
+                if (widgets.size() == 1  && widgets.get(0) instanceof GroupWidget)
+                    items.add(new RemoveGroupAction(editor, (GroupWidget)widgets.get(0)));
+            }
+        });
     }
 
     /** @return Currently edited file */
