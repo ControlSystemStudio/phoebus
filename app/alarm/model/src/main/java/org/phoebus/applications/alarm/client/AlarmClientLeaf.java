@@ -8,7 +8,7 @@
 package org.phoebus.applications.alarm.client;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,11 +37,6 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
 
     private final AtomicInteger delay = new AtomicInteger(0);
     private final AtomicInteger count = new AtomicInteger(0);
-    
-    private List<TitleDetail> guidance = Collections.emptyList();
-    private List<TitleDetail> displays = Collections.emptyList();
-    private List<TitleDetail> commands = Collections.emptyList();
-    private List<TitleDetailDelay> actions = Collections.emptyList();
 
     private volatile String filter = "";
 
@@ -81,10 +76,10 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         pv.setDelay(getDelay());
         pv.setCount(getCount());
         pv.setFilter(getFilter());
-        pv.setGuidance(getGuidance());
-        pv.setDisplays(getDisplays());
-        pv.setCommands(getCommands());
-        pv.setActions(getActions());
+        pv.setGuidance(new ArrayList<>(getGuidance()));
+        pv.setDisplays(new ArrayList<>(getDisplays()));
+        pv.setCommands(new ArrayList<>(getCommands()));
+        pv.setActions(new ArrayList<>(getActions()));
         return pv;
     }
 
@@ -204,60 +199,5 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
             return false;
         filter = expression;
         return true;
-    }
-    
-    /** @param guidance Guidance entries
-     *  @return <code>true</code> if guidance was changed, <code>false</code> if no change
-     */
-    public boolean setGuidance(final List<TitleDetail> guidance)
-    {
-        if (this.guidance.equals(guidance))
-            return false;
-        this.guidance = guidance;
-        return true;
-    }
-
-    public List<TitleDetail> getGuidance()
-    {
-        return guidance;
-    }
-
-    public boolean setDisplays(final List<TitleDetail> displays)
-    {
-        if (this.displays.equals(displays))
-            return false;
-        this.displays = displays;
-        return true;
-    }
-
-    public List<TitleDetail> getDisplays()
-    {
-        return displays;
-    }
-
-    public boolean setCommands(final List<TitleDetail> commands)
-    {
-        if (this.commands.equals(commands))
-            return false;
-        this.commands = commands;
-        return true;
-    }
-
-    public List<TitleDetail> getCommands()
-    {
-        return commands;
-    }
-
-    public boolean setActions(final List<TitleDetailDelay> actions)
-    {
-        if (this.actions.equals(actions))
-            return false;
-        this.actions = actions;
-        return true;
-    }
-
-    public List<TitleDetailDelay> getActions()
-    {
-        return actions;
     }
 }
