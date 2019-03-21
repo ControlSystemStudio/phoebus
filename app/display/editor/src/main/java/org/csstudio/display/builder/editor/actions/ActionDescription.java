@@ -45,8 +45,8 @@ public abstract class ActionDescription
     };
 
     /** Delete selected widgets */
-    public static final ActionDescription DELETE =
-        new ActionDescription("icons/delete.png", Messages.Delete)
+    public static final ActionDescription CUT =
+        new ActionDescription("icons/cut_edit.png", Messages.Cut)
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
@@ -103,7 +103,7 @@ public abstract class ActionDescription
 
     /** Move widget one step to the back */
     public static final ActionDescription MOVE_UP =
-        new ActionDescription("icons/up.png", Messages.MoveUp)
+        new ActionDescription("icons/widget_up.png", Messages.MoveUp)
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
@@ -150,7 +150,7 @@ public abstract class ActionDescription
 
     /** Move widget one step to the front */
     public static final ActionDescription MOVE_DOWN =
-        new ActionDescription("icons/down.png", Messages.MoveDown)
+        new ActionDescription("icons/widget_down.png", Messages.MoveDown)
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)

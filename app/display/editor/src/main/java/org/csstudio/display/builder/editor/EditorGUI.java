@@ -21,6 +21,7 @@ import java.util.prefs.Preferences;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.app.CreateGroupAction;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
+import org.csstudio.display.builder.editor.app.PasteWidgets;
 import org.csstudio.display.builder.editor.app.RemoveGroupAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
 import org.csstudio.display.builder.editor.tree.FindWidgetAction;
@@ -36,7 +37,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -317,30 +317,40 @@ public class EditorGUI
 
     private void hookWidgetTreeContextMenu(final Control node)
     {
-        final ContextMenu menu = new ContextMenu(
-            new ActionWapper(ActionDescription.COPY),
-            new ActionWapper(ActionDescription.DELETE),
-            new FindWidgetAction(node, editor),
-            new ActionWapper(ActionDescription.TO_BACK),
-            new ActionWapper(ActionDescription.MOVE_UP),
-            new ActionWapper(ActionDescription.MOVE_DOWN),
-            new ActionWapper(ActionDescription.TO_FRONT));
+        final ContextMenu menu = new ContextMenu(new MenuItem());
         node.setContextMenu(menu);
-        // Add/remove menu entries based on selection
-        final ObservableList<MenuItem> items = menu.getItems();
         menu.setOnShowing(event ->
         {
-            int N = items.size();
-            if (N > 7)
-                items.remove(7, N);
+            // Enable/disable menu entries based on selection
             final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
-            if (widgets.size() >= 1)
+            final MenuItem cut = new ActionWapper(ActionDescription.CUT);
+            final MenuItem copy = new ActionWapper(ActionDescription.COPY);
+            final MenuItem group = new CreateGroupAction(editor, widgets);
+            if (widgets.size() < 0)
             {
-                items.add(new SeparatorMenuItem());
-                items.add(new CreateGroupAction(editor, widgets));
-                if (widgets.size() == 1  && widgets.get(0) instanceof GroupWidget)
-                    items.add(new RemoveGroupAction(editor, (GroupWidget)widgets.get(0)));
+                cut.setDisable(true);
+                copy.setDisable(true);
             }
+            final MenuItem ungroup;
+            if (widgets.size() == 1  &&  widgets.get(0) instanceof GroupWidget)
+                ungroup = new RemoveGroupAction(editor, (GroupWidget)widgets.get(0));
+            else
+            {
+                ungroup = new RemoveGroupAction(editor, null);
+                ungroup.setDisable(true);
+            }
+            menu.getItems().setAll(cut,
+                                   copy,
+                                   new PasteWidgets(this),
+                                   new FindWidgetAction(node, editor),
+                                   new SeparatorMenuItem(),
+                                   group,
+                                   ungroup,
+                                   new SeparatorMenuItem(),
+                                   new ActionWapper(ActionDescription.TO_BACK),
+                                   new ActionWapper(ActionDescription.MOVE_UP),
+                                   new ActionWapper(ActionDescription.MOVE_DOWN),
+                                   new ActionWapper(ActionDescription.TO_FRONT));
         });
     }
 
