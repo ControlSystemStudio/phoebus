@@ -26,7 +26,7 @@ public class Messages
     public static String AlignTop;
     public static String Copy;
     public static String CreateGroup;
-    public static String Delete;
+    public static String Cut;
     public static String Distribute;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
