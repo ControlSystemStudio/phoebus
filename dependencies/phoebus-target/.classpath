@@ -94,28 +94,30 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/protobuf-java-2.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/pbrawclient-0.0.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/org.eclipse.jgit-5.0.3.201809091024-r.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-2.0.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-2.0.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-aop-5.0.8.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-beans-5.0.8.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-autoconfigure-2.0.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-logging-2.0.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-context-5.0.8.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-core-5.0.8.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-expression-5.0.8.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-json-2.0.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-web-2.0.4.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-datatype-jdk8-2.9.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-module-parameter-names-2.9.6.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-tomcat-2.0.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-web-5.0.8.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/spring-webmvc-5.0.8.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/tomcat-embed-core-8.5.32.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/tomcat-embed-el-8.5.32.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/tomcat-embed-websocket-8.5.32.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.annotation-api-1.3.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/hibernate-validator-6.0.11.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/validation-api-2.0.1.Final.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-aop-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-beans-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-autoconfigure-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-json-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-logging-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-test-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-tomcat-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-web-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-test-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-boot-test-autoconfigure-2.0.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-context-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-core-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-expression-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-jcl-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-test-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-web-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/spring-webmvc-5.0.9.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/hibernate-validator-6.0.12.Final.jar"/>
 	<!-- On Windows, need to add this:
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11-win.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11.jar"/>

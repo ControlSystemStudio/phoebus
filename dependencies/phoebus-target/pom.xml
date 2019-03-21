@@ -9,7 +9,7 @@
   <artifactId>phoebus-target</artifactId>
 
   <properties>
-    <spring.boot-version>2.0.4.RELEASE</spring.boot-version>
+    <spring.boot-version>2.0.5.RELEASE</spring.boot-version>
   </properties>
 
   <profiles>
@@ -60,25 +60,25 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
-      <version>11</version>
+      <version>11.0.2</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
-      <version>11</version>
+      <version>11.0.2</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
-      <version>11</version>
+      <version>11.0.2</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>11</version>
+      <version>11.0.2</version>
       <type>pom</type>
     </dependency>
 
