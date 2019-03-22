@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -180,7 +181,8 @@ public class ScanServerImpl implements ScanServer
     @Override
     public long submitScan(final String scan_name,
                            final String commands_as_xml,
-                           final boolean queue) throws Exception
+                           final boolean queue,
+                           final boolean pre_post) throws Exception
     {
         cullScans();
 
@@ -189,13 +191,19 @@ public class ScanServerImpl implements ScanServer
             final List<ScanCommand> commands = XMLCommandReader.readXMLString(commands_as_xml);
 
             // Read pre- and post-scan commands
-            final List<ScanCommand> pre_commands = new ArrayList<ScanCommand>();
-            for (String path : ScanServerInstance.getScanConfig().getPreScanPaths())
-                pre_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
+            final List<ScanCommand> pre_commands, post_commands;
+            if (pre_post)
+            {
+                pre_commands = new ArrayList<>();
+                for (String path : ScanServerInstance.getScanConfig().getPreScanPaths())
+                    pre_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
 
-            final List<ScanCommand> post_commands = new ArrayList<ScanCommand>();
-            for (String path : ScanServerInstance.getScanConfig().getPostScanPaths())
-                post_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
+                post_commands = new ArrayList<>();
+                for (String path : ScanServerInstance.getScanConfig().getPostScanPaths())
+                    post_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
+            }
+            else
+                pre_commands = post_commands = Collections.emptyList();
 
             // Create Jython interpreter for this scan
             final JythonSupport jython = new JythonSupport();
@@ -257,7 +265,7 @@ public class ScanServerImpl implements ScanServer
     public List<ScanInfo> getScanInfos() throws Exception
     {
         final List<LoggedScan> scans = scan_engine.getScans();
-        final List<ScanInfo> infos = new ArrayList<ScanInfo>(scans.size());
+        final List<ScanInfo> infos = new ArrayList<>(scans.size());
         // Build result with most recent scan first
         for (int i=scans.size()-1; i>=0; --i)
             infos.add(scans.get(i).getScanInfo());

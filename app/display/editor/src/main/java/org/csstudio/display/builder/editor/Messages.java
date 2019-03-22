@@ -17,6 +17,7 @@ public class Messages
     // Keep in alphabetical order, synchronized with messages.properties
     public static String AddElement;
     public static String AddWidget;
+    public static String Align;
     public static String AlignBottom;
     public static String AlignCenter;
     public static String AlignLeft;
@@ -25,7 +26,8 @@ public class Messages
     public static String AlignTop;
     public static String Copy;
     public static String CreateGroup;
-    public static String Delete;
+    public static String Cut;
+    public static String Distribute;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
     public static String DownloadPromptFMT;
@@ -43,6 +45,7 @@ public class Messages
     public static String MoveToFront;
     public static String MoveUp;
     public static String NewDisplay;
+    public static String Order;
     public static String Paste;
     public static String PointCount_Fmt;
     public static String PropertyFilterTT;
@@ -59,9 +62,11 @@ public class Messages
     public static String SaveDisplay_TT;
     public static String ScriptCountFMT;
     public static String SearchTextField;
+    public static String SelectZoomLevel;
     public static String SetPropertyFmt;
     public static String SetWidgetPoints;
     public static String ShowCoordinates;
+    public static String Size;
     public static String Snap;
     public static String UpdateWidgetLocation;
     public static String UpdateWidgetOrder;

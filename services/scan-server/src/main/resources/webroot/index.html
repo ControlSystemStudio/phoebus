@@ -31,7 +31,9 @@
 <dd>POST</dd>
 <dt>URL</dt>
 <dd><a href="submit.html">/scan/{name-of-new-scan}</a> to queue or
-    <a href="submit.html">/scan/{name-of-new-scan}?queue=false</a> for immediate execution.
+    <a href="submit.html">/scan/{name-of-new-scan}?queue=false</a> for immediate execution.<br>
+    
+    <a href="submit.html">/scan/{name-of-new-scan}?pre_post=false</a> to suppress pre- and post-scan commands.
 </dd>
 <dt>Message Body</dt>
 <dd>XML-formatted scan</dd>
@@ -197,14 +199,17 @@ Returns default devices for scan ID -1: <a href="scan/-1/devices">/scan/-1/devic
 <dd>GET</dd>
 <dt>URL</dt>
 <dd><a href="/server/shutdown" id='shutdown'>/server/shutdown</a>
-
-
 </dd>
-
-
-
 <dt>Result</dt>
 <dd>HTTP OK</dd>
+</dl>
+
+
+<h2>Versions</h2>
+
+<dl>
+<dt>4.5.1</dt> <dd>Submit 'pre_post=false' option</dd>
+<dt>4.5.0</dt> <dd>Import from RCP</dd>
 </dl>
 
 </body>

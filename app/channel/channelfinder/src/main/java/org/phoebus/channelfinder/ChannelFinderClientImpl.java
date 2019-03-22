@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -72,6 +73,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     private static final String resourceProperties = "resources/properties";
     private static final String resourceTags = "resources/tags";
 
+    private static final Logger log = Logger.getLogger(ChannelFinderClient.class.getName());
     /**
      * A Builder class to help create the client to the Channelfinder Service
      * 
@@ -84,7 +86,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         private URI uri = null;
 
         // optional
-        private boolean withHTTPAuthentication = false;
+        private boolean withHTTPAuthentication = true;
         private HTTPBasicAuthFilter httpBasicAuthFilter = null;
 
         private ClientConfig clientConfig = null;
@@ -232,6 +234,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
          * @return {@link ChannelFinderClientImpl}
          */
         public ChannelFinderClient create() throws ChannelFinderException {
+            log.info("Creating a channelfinder client to : " + this.uri);
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
             } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
@@ -324,27 +327,23 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         return wrappedSubmit(new Callable<Collection<String>>() {
 
             @Override
-            public Collection<String> call() throws Exception {
+            public Collection<String> call() {
                 Collection<String> allTags = new HashSet<String>();
                 ObjectMapper mapper = new ObjectMapper();
                 List<XmlTag> xmltags = new ArrayList<XmlTag>();
                 try {
                     xmltags = mapper.readValue(
-                            service.path(resourceTags).accept(MediaType.APPLICATION_JSON).get(String.class),
-                            new TypeReference<List<XmlTag>>() {
-                            });
-                } catch (JsonParseException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (JsonMappingException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                            service.path(resourceTags)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .get(String.class), new TypeReference<List<XmlTag>>() { });
+                } catch ( JsonParseException | JsonMappingException e) {
+                    log.log(Level.WARNING, "Failed to parse the list of tags", e);
+                } catch ( IOException e) {
+                    log.log(Level.WARNING, "Failed to parse the list of tags", e);
+                } catch (UniformInterfaceException e) {
+                    throw new ChannelFinderException(e);
                 } catch (ClientHandlerException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    throw new ChannelFinderException(e);
                 }
                 for (XmlTag xmltag : xmltags) {
                     allTags.add(xmltag.getName());
@@ -402,18 +401,12 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
             try {
                 return new Channel(mapper.readValue(service.path(resourceChannels).path(channelName)
                         .get(ClientResponse.class).getEntityInputStream(), XmlChannel.class));
-            } catch (JsonParseException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (JsonMappingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ClientHandlerException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } catch (JsonParseException | JsonMappingException e) {
+                log.log(Level.WARNING, "Failed to process the list of channels", e);
+            } catch ( IOException e) {
+                log.log(Level.WARNING, "Failed to parse the list of tags", e);
+            } catch (UniformInterfaceException e) {
+                throw new ChannelFinderException(e);
             }
             return null;
         }
@@ -448,8 +441,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 service.path(resourceChannels).path(this.pxmlChannel.getName()).type(MediaType.APPLICATION_JSON)
                         .put(mapper.writeValueAsString(this.pxmlChannel));
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.log(Level.WARNING, "Failed to process the list of channel ", e);
             }
         }
     }
@@ -484,12 +476,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
                 String test = new String(data);
                 service.path(resourceChannels).type(MediaType.APPLICATION_JSON).put(test);
-            } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } catch (JsonParseException | JsonMappingException e) {
+                log.log(Level.WARNING, "Failed to process the list of channels ", e);
+            } catch ( IOException e) {
+                log.log(Level.WARNING, "Failed to parse the list of tags", e);
             }
         }
     }
@@ -583,8 +573,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 service.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).put(mapper.writeValueAsString(this.pxmlTag));
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.log(Level.WARNING, "Failed to process the list of tags ", e);
             }
         }
     }
@@ -688,8 +677,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).put(mapper.writeValueAsString(this.pxmlProperty));
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.log(Level.WARNING, "Failed to process the list of properties ", e);
             }
         }
     }
@@ -718,17 +706,14 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public void run() {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceChannels).path(this.channel.getName()).type(MediaType.APPLICATION_JSON)
-                        .post(mapper.writeValueAsString(this.channel));
+                service.path(resourceChannels)
+                       .path(this.channel.getName())
+                       .type(MediaType.APPLICATION_JSON)
+                       .post(mapper.writeValueAsString(this.channel));
             } catch (UniformInterfaceException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ClientHandlerException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new ChannelFinderException(e);
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.log(Level.WARNING, "Failed to process the list of channel ", e);
             }
         }
 
@@ -800,14 +785,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 service.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
                         .post(mapper.writeValueAsString(this.pxmlTag));
             } catch (UniformInterfaceException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ClientHandlerException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new ChannelFinderException(e);
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.log(Level.WARNING, "Failed to process the list of channel ", e);
             }
         }
     }
@@ -849,17 +829,14 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public void run() {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
-                        .put(mapper.writeValueAsString(this.pxmlProperty));
+                service.path(resourceProperties)
+                       .path(this.pxmlProperty.getName())
+                       .type(MediaType.APPLICATION_JSON)
+                       .put(mapper.writeValueAsString(this.pxmlProperty));
             } catch (UniformInterfaceException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ClientHandlerException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new ChannelFinderException(e);
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.log(Level.WARNING, "Failed to process the property ", e);
             }
         }
     }
@@ -936,14 +913,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).post(mapper.writeValueAsString(this.pxmlProperty));
             } catch (UniformInterfaceException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (ClientHandlerException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new ChannelFinderException(e);
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.log(Level.WARNING, "Failed to process the list of channel ", e);
             }
         }
 
@@ -1105,14 +1077,14 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                         .accept(MediaType.APPLICATION_JSON).get(String.class), new TypeReference<List<XmlChannel>>() {
                         });
             } catch (Exception e) {
-                e.printStackTrace();
+            	log.log(Level.WARNING, "Error creating channels:", e);
             }
-            System.out.println("Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.INFO, "Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
             start = System.currentTimeMillis();
             for (XmlChannel xmlchannel : xmlchannels) {
                 channels.add(new Channel(xmlchannel));
             }
-            System.out.println("Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.INFO, "Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
             return Collections.unmodifiableCollection(channels);
         }
     }
@@ -1366,18 +1338,12 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                     service.path(resourceChannels).accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<XmlChannel>>() {
                     });
-        } catch (JsonParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ClientHandlerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (JsonParseException | JsonMappingException e) {
+            log.log(Level.WARNING, "Failed to parse the list of channels ", e);
+        } catch ( IOException e) {
+            log.log(Level.WARNING, "Failed to parse the list of channels", e);
+        } catch (UniformInterfaceException e) {
+            throw new ChannelFinderException(e);
         }
         Collection<Channel> set = new HashSet<Channel>();
         for (XmlChannel channel : xmlchannels) {

@@ -29,6 +29,6 @@
       </GridPane.margin>
     </Button>
       <Button fx:id="configure" mnemonicParsing="false" onAction="#configure" text="Configure" GridPane.columnIndex="3" />
-    <TreeView fx:id="treeView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
+    <TreeView fx:id="treeView" onContextMenuRequested="#createContextMenu" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
   </children>
 </GridPane>

@@ -207,7 +207,7 @@ public class AlarmConfigLogger implements Runnable {
         try {
             logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
             if (alarm_config != null) {
-                path = path.replace(":\\/\\/", "_");
+                path = path.replaceAll("[:|?*]", "_");
                 File node = Paths.get(root.getParent(), path).toFile();
                 node.mkdirs();
                 File node_info = new File(node, "alarm_config.json");
@@ -219,13 +219,14 @@ public class AlarmConfigLogger implements Runnable {
                             "Alarm config logging failed for path " + path + ", config " + alarm_config, e);
                 }
             } else {
-                path = path.replace(":\\/\\/", "_");
+                path = path.replaceAll("[:|?*]", "_");
                 Path directory = Paths.get(root.getParent(), path);
                 if(directory.toFile().exists()) {
                     Files.walk(directory).map(Path::toFile).forEach(File::delete);
                     directory.toFile().delete();
                 }
             }
+            writeAlarmModel();
             if(commit) {
              // Commit the initialized git repo
                 try (Git git = Git.open(root)) {

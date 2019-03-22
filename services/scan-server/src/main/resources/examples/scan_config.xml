@@ -20,7 +20,7 @@
     -->
   <data_log>/tmp/scan_log_db</data_log>
   
-  <!-- Commands executed before and after each scan
+  <!-- Commands executed before and after each queued scan
        Can use built-in 'examples:' or local file path to *.scn
     -->   
   <pre_scan>examples:pre_scan.scn</pre_scan> 

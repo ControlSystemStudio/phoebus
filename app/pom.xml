@@ -8,8 +8,8 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <modules>
-    <module>greetings</module>
-    <module>logConfiguration</module>
+    <module>diag</module>
+    <module>log-configuration</module>
     <module>probe</module>
     <module>pvtable</module>
     <module>pvtree</module>

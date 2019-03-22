@@ -7,6 +7,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
+/**
+ * A service which manages the conversion of different types of selection from one type to another.
+ *
+ * @author Kunal Shroff
+ *
+ */
+@SuppressWarnings("rawtypes")
 public class AdapterService {
 
     static final java.lang.String SERVICE_NAME = "AdapterService";
@@ -14,11 +21,9 @@ public class AdapterService {
     private static AdapterService adapterService;
     private ServiceLoader<AdapterFactory> loader;
 
-    @SuppressWarnings("rawtypes")
     private Map<Class, List<AdapterFactory>> adapters = new HashMap<Class, List<AdapterFactory>>();
 
-    @SuppressWarnings("rawtypes")
-    private Map<String, List<AdapterFactory>> adaptables = new HashMap<String, List<AdapterFactory>>();
+    private Map<Class, List<AdapterFactory>> adaptables = new HashMap<Class, List<AdapterFactory>>();
 
     private AdapterService() {
         // Load available adapter factories
@@ -32,10 +37,10 @@ public class AdapterService {
                 adapters.get(adaptableType).add(adapterFactory);
             });
             Class adaptable = adapterFactory.getAdaptableObject();
-            if (!adaptables.containsKey(adaptable.getName())) {
-                adaptables.put(adaptable.getName(), new ArrayList<>());
+            if (!adaptables.containsKey(adaptable)) {
+                adaptables.put(adaptable, new ArrayList<>());
             }
-            adaptables.get(adaptable.getName()).add(adapterFactory);
+            adaptables.get(adaptable).add(adapterFactory);
         });
     }
 
@@ -47,18 +52,18 @@ public class AdapterService {
     }
 
     /**
-     * 
-     * @param cls
-     * @return
+     * Returns a list of all the {@link AdapterFactory}s that can adapt TO the type cls
+     * @param cls the type for which we want AdapterFactories to be adapt to
+     * @return List of {@link AdapterFactory}s that can adapt to type cls
      */
     public Optional<List<AdapterFactory>> getAdapters(Class cls) {
-        return Optional.ofNullable(adapters.get(cls.getName()));
+        return Optional.ofNullable(adapters.get(cls));
     }
 
     /**
-     * 
-     * @param cls
-     * @return
+     * Returns a list of {@link AdapterFactory}s which can adapt this type to other types
+     * @param cls the class for which adapter factories are wanted.
+     * @return List of {@link AdapterFactory}s that can handle cls
      */
     public Optional<List<AdapterFactory>> getAdaptersforAdaptable(Class cls) {
         return Optional.ofNullable(adaptables.get(cls.getName()));

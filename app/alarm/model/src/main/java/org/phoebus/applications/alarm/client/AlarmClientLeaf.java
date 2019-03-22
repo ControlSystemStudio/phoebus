@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.client;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,6 +74,10 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         pv.setDelay(getDelay());
         pv.setCount(getCount());
         pv.setFilter(getFilter());
+        pv.setGuidance(new ArrayList<>(getGuidance()));
+        pv.setDisplays(new ArrayList<>(getDisplays()));
+        pv.setCommands(new ArrayList<>(getCommands()));
+        pv.setActions(new ArrayList<>(getActions()));
         return pv;
     }
 

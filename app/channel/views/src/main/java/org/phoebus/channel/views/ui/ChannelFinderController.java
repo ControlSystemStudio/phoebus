@@ -29,6 +29,10 @@ public abstract class ChannelFinderController {
         this.client = client;
     }
 
+    public ChannelFinderClient getClient() {
+        return this.client;
+    }
+
     public void search(String searchString) {
         if (channelSearchJob != null) {
             channelSearchJob.cancel();

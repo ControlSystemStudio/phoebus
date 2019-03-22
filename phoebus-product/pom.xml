@@ -10,7 +10,7 @@
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-greetings</artifactId>
+      <artifactId>app-diag</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -40,7 +40,7 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-logConfiguration</artifactId>
+      <artifactId>app-log-configuration</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -81,6 +81,11 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-ui</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-alarm-logging-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>

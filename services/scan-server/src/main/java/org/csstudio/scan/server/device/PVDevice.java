@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.scan.device.DeviceInfo;
+import org.csstudio.scan.device.VTypeHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
