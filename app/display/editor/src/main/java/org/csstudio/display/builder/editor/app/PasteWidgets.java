@@ -10,6 +10,7 @@ package org.csstudio.display.builder.editor.app;
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.Messages;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.Clipboard;
@@ -20,7 +21,7 @@ public class PasteWidgets extends MenuItem
 {
     public PasteWidgets(final EditorGUI gui)
     {
-        super(Messages.Paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
+        super(Messages.Paste + " [" + PlatformInfo.SHORTCUT + "-V]", ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
 
         // Anything on clipboard?
         // Does it look like widget XML?

@@ -20,6 +20,7 @@ import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.editor.undo.UpdateWidgetOrderAction;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -35,7 +36,7 @@ public abstract class ActionDescription
 {
     /** Copy selected widgets */
     public static final ActionDescription COPY =
-        new ActionDescription("icons/copy_edit.png", Messages.Copy)
+        new ActionDescription("icons/copy_edit.png", Messages.Copy + " [" + PlatformInfo.SHORTCUT + "-C]")
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
@@ -46,7 +47,7 @@ public abstract class ActionDescription
 
     /** Delete selected widgets */
     public static final ActionDescription CUT =
-        new ActionDescription("icons/cut_edit.png", Messages.Cut)
+        new ActionDescription("icons/cut_edit.png", Messages.Cut + " [" + PlatformInfo.SHORTCUT + "-X]")
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)

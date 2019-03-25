@@ -123,8 +123,7 @@ public class DisplayEditorInstance implements AppInstance
     {
         ActionWapper(ActionDescription action)
         {
-            // Always use 'simple' text without " [Some Shortcut Key]"
-            super(action.getToolTip().replaceAll(" \\[.*", ""),
+            super(action.getToolTip(),
                   ImageCache.getImageView(action.getIconResourcePath()));
             setOnAction(event -> action.run(getEditorGUI().getDisplayEditor()));
         }

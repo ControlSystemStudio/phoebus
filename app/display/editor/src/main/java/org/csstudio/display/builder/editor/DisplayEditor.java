@@ -394,7 +394,7 @@ public class DisplayEditor
 
     private void handleKeyPress(final KeyEvent event)
     {
-        WidgetTree.handleWidgetOrderKeys(event, this);
+        WidgetTree.handleGroupOrOrderKeys(event, this);
     }
 
     private void handleRubberbandSelection(final Rectangle2D region, final boolean update_existing)
