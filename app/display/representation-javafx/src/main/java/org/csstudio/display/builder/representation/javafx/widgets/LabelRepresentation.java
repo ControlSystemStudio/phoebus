@@ -23,6 +23,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -145,6 +146,7 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
                 break;
             }
             jfx_node.setAlignment(pos);
+            jfx_node.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
             jfx_node.setWrapText(model_widget.propWrapWords().getValue());
 
             Color color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
