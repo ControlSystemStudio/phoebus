@@ -18,4 +18,7 @@ public class PlatformInfo
 
     /** Is JRE on Linux? */
     public final static boolean is_linux = System.getProperty("os.name").contains("inux");
+
+    /** Ctrl, or Apple Command key */
+    public final static String SHORTCUT = is_mac_os_x ? "\u2318" : "Ctrl";
 }

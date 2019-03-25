@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.MenuItem;
@@ -32,14 +33,14 @@ public class RemoveGroupAction extends MenuItem
 
     public RemoveGroupAction(final DisplayEditor editor, final GroupWidget group)
     {
-        super(Messages.RemoveGroup,
+        super(Messages.RemoveGroup + " [" + PlatformInfo.SHORTCUT + "-U]",
               ImageCache.getImageView(DisplayModel.class, "/icons/group.png"));
         this.editor = editor;
         this.group = group;
         setOnAction(event -> run());
     }
 
-    private void run()
+    public void run()
     {
         editor.getWidgetSelectionHandler().clear();
         // Group's children list will be empty, create copy

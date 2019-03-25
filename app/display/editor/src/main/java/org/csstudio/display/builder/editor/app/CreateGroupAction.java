@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget.Style;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Rectangle2D;
@@ -35,14 +36,14 @@ public class CreateGroupAction extends MenuItem
 
     public CreateGroupAction(final DisplayEditor editor, final List<Widget> widgets)
     {
-        super(Messages.CreateGroup,
+        super(Messages.CreateGroup + " [" + PlatformInfo.SHORTCUT + "-G]",
               ImageCache.getImageView(DisplayModel.class, "/icons/group.png"));
         this.editor = editor;
         this.widgets = widgets;
         setOnAction(event -> run());
     }
 
-    private void run()
+    public void run()
     {
         editor.getWidgetSelectionHandler().clear();
 
