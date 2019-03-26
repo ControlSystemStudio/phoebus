@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,21 @@
  *******************************************************************************/
 package org.phoebus.ui.welcome;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.net.URL;
+import java.util.logging.Level;
+
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 
 /** Welcome Application
  *  @author Kay Kasemir
@@ -28,6 +35,8 @@ public class WelcomeInstance implements AppInstance
     private final AppDescriptor app;
 
     private final DockItem tab;
+
+    private WebView browser;
 
     WelcomeInstance(final AppDescriptor app)
     {
@@ -49,9 +58,19 @@ public class WelcomeInstance implements AppInstance
 
     private Node createContent()
     {
-        final Label info = new Label("Welcome to Phoebus!\n\n" +
-                                     "Try pushing the buttons in the toolbar");
-        return new BorderPane(info);
+        browser = new WebView();
+        final WebEngine engine = browser.getEngine();
+
+        String url = PreferencesReader.replaceProperties(Preferences.welcome);
+        if (url.isEmpty())
+        {
+            final URL resource = getClass().getResource("welcome.html");
+            url = resource.toExternalForm();
+        }
+        logger.log(Level.CONFIG, "Welcome URL: " + url);
+        engine.load(url);
+
+        return browser;
     }
 
     void raise()
