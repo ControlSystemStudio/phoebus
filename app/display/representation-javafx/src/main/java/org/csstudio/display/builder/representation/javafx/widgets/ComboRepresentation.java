@@ -248,7 +248,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
             ));
 
         }
-        if (dirty_content.checkAndClear())
+        if (dirty_content.checkAndClear()  &&  !toolkit.isEditMode())
         {
             active = true;
             try
@@ -261,7 +261,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                 active = false;
             }
         }
-        if (dirty_enable.checkAndClear())
+        if (dirty_enable.checkAndClear()  &&  !toolkit.isEditMode())
         {
             final boolean enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
